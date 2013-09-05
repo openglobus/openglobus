@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BufFixer899999", "BufFixer899999\BufFixer899999.vcxproj", "{71693E1B-91D2-4585-8216-56CB85E90678}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71693E1B-91D2-4585-8216-56CB85E90678}.Debug|Win32.ActiveCfg = Debug|Win32
+		{71693E1B-91D2-4585-8216-56CB85E90678}.Debug|Win32.Build.0 = Debug|Win32
+		{71693E1B-91D2-4585-8216-56CB85E90678}.Release|Win32.ActiveCfg = Release|Win32
+		{71693E1B-91D2-4585-8216-56CB85E90678}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
