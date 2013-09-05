@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LevelMaker", "LevelMaker\LevelMaker.vcxproj", "{F4748697-A17F-4235-8DEC-9B481EAA8507}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F4748697-A17F-4235-8DEC-9B481EAA8507}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4748697-A17F-4235-8DEC-9B481EAA8507}.Debug|Win32.Build.0 = Debug|Win32
+		{F4748697-A17F-4235-8DEC-9B481EAA8507}.Release|Win32.ActiveCfg = Release|Win32
+		{F4748697-A17F-4235-8DEC-9B481EAA8507}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
