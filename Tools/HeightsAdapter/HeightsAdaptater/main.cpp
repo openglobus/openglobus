@@ -54,16 +54,12 @@ void main( int argc, char* argv[] )
 	LogAll("DEM files grid created.\n");
 
 	char destTilesPath[] = "G:\\earth3\\14\\";
-	//char destTilesPath[] = "d:\\temp\\1\\";
 
 	LogAll("Preparing adaptation parameters...\n ");
 	const int dstFieldSize = 524289;// = 2^19 + 1 > 1201 * 360 - (360 - 1)
 	HgtFormat srcHgtFormat( 1201, 1201, 1.0/1200.0 );// 3 / 3600 == 1 / ( 1201 - 1 ) deg.
 	HgtFormat srcField( srcHgtFormat.nrows * 180 - (180 - 1), srcHgtFormat.ncols * 360 - (360 - 1));
 	HgtFormat dstField( dstFieldSize, dstFieldSize );
-
-	//vec_t incLat = (vec_t)srcField.nrows / (vec_t)dstField.nrows;
-	//vec_t incLon = (vec_t)srcField.ncols / (vec_t)dstField.ncols;
 
 	double incLat_merc, incLon_merc;
 	incLat_merc = incLon_merc = 2.0 * POLE / (double)(dstFieldSize - 1);
@@ -183,8 +179,6 @@ void main( int argc, char* argv[] )
 
 					fwrite( quadHeightData_fl, sizeof(float), quadSize * quadSize, fp);
 					delete[] quadHeightData_fl;
-					//fwrite( quadHeightData, sizeof(vec_t), quadSize * quadSize, fp);
-					//fflush(fp);
 					fclose(fp);
 				}
 
@@ -194,5 +188,4 @@ void main( int argc, char* argv[] )
 	delete[] quadHeightData;
 
 	LogAll("Adaptaion successfully complete.\n");
-//	_getch();
 }

@@ -101,5 +101,4 @@ void main( int argc, char* argv[] )
 	BufFixer899999(path.c_str(), 14335);
 
 	Log("Done.");
-	//_getch();
 }

@@ -98,7 +98,6 @@ void main( int argc, char* argv[] )
 	std::string path(argv[1]);
 
 	std::cout << path.c_str() << " " << quadsCount << " " << zoomIndex ;
-	//_getch();
 	const int ddmGridSize = 33;
 	int ddmGridSize2 = ddmGridSize * ddmGridSize;
 	const int sz = ddmGridSize * 2 - 1;
@@ -183,5 +182,4 @@ void main( int argc, char* argv[] )
 
 	delete[] zeroField;
 	Log("Done.");
-	//_getch();
 }
