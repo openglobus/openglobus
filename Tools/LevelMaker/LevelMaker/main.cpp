@@ -97,12 +97,6 @@ void main( int argc, char* argv[] )
 	int zoomIndex = atoi(argv[3]);//14;
 	std::string path(argv[1]);
 
-	//BufFixer899999(path.c_str(), 6143);
-	//BufFixer899999(path.c_str(), 12287);
-	//BufFixer899999(path.c_str(), 14335);
-
-	//return;
-
 	std::cout << path.c_str() << " " << quadsCount << " " << zoomIndex ;
 	//_getch();
 	const int ddmGridSize = 33;
