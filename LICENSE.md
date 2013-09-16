@@ -1,4 +1,4 @@
-Copyright (c) 2013-2013, Michael Gevlich
+Copyright (c) 2013, Michael Gevlich
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
