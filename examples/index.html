@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>LEM2</title>
+    <link rel="stylesheet" href="./Css/lem3d.css" type="text/css"/>
+
+
+    <script src="src/og/og.js"></script>
+    <script src="src/og/class.js"></script>
+    <script src="src/og/ajax.js"></script>
+
+    <script src="src/og/math/math.js"></script>
+    <script src="src/og/math/glMatrix-0.9.5.min.js"></script>
+    <script src="src/og/math/matrix4.js"></script>
+    <script src="src/og/math/vector3.js"></script>
+
+    <script src="src/og/extent/extent.js"></script>
+    <script src="src/og/utils/utils.js"></script>
+
+    <script src="src/og/webglContext.js"></script>
+
+    <script src="src/og/input/input.js"></script>
+
+    <script src="src/og/bv/bv.js"></script>
+    <script src="src/og/bv/box.js"></script>
+    <script src="src/og/bv/sphere.js"></script>
+
+    <script src="src/og/layer/layer.js"></script>
+    <script src="src/og/layer/xyz.js"></script>
+    <script src="src/og/layer/wms.js"></script>
+
+    <script src="src/og/terrainProvider/terrainProvider.js"></script>
+    <script src="src/og/ellipsoid/ellipsoid.js"></script>
+
+    <script src="src/og/node/node.js"></script>
+    <script src="src/og/node/node3D.js"></script>
+    <script src="src/og/node/skyBox.js"></script>
+    <script src="src/og/node/planet/planet.js"></script>
+    <script src="src/og/node/planet/planetSegment.js"></script>
+    <script src="src/og/node/planet/planetSegmentHelper.js"></script>
+    <script src="src/og/node/planet/quadTree.js"></script>
+
+    <script src="src/og/control/control.js"></script>
+    <script src="src/og/control/mouseNavigation.js"></script>
+    <script src="src/og/control/keyboardNavigation.js"></script>
+
+    <script src="src/og/camera.js"></script>
+    <script src="src/og/frustum.js"></script>
+    <script src="src/og/renderer.js"></script>
+
+    <script src="main.js"></script>
+
+
+    <script id="shader-fs" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec2 vTextureCoord;
+
+        uniform sampler2D uSampler;
+
+
+        void main(void) {
+            gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+        }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        uniform vec2 texOffset;
+        uniform float texScale;
+
+        varying vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = texScale*(aTextureCoord + texOffset);
+        }
+    </script>
+
+</head>
+
+<body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="main();">
+
+    <canvas id="canvas" style="width: 100%; height: 100%; display: block"></canvas>
+    <div id="lbFps" class="defaultText"></div>
+    <div id="lbAltitude" class="defaultText"></div>
+    <div id="lbCoords" class="defaultText"></div>
+    <div id="lbLatLon" class="defaultText"></div>
+    <div id="lbCounter" class="defaultText"></div>
+    <div id="lbRenderedTiles" class="defaultText"></div>
+    <div id="lbLoadingTiles" class="defaultText"></div>
+
+</body>
+
+</html>
