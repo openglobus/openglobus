@@ -13,7 +13,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     }
 
     //Initialization indexes table
-    og.node.planet.PlanetSegmentHelper.initIndexesTables(5);
+    og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
 
     og.terrainProvider.TerrainProvider.layersCounter++;
     this.id = og.terrainProvider.TerrainProvider.layersCounter;
@@ -83,7 +83,7 @@ og.terrainProvider.TerrainProvider.prototype.whilePendings = function () {
     while (this.pendingsQueue.length) {
         var pseg = this.pendingsQueue.pop();
         if (pseg) {
-            if (pseg.node.getState() != og.node.planet.quadTree.QuadNode.NOTRENDERING) {
+            if (pseg.node.getState() != og.quadTree.NOTRENDERING) {
                 return pseg;
             } else {
                 pseg.terrainIsLoading = false;

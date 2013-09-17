@@ -1,13 +1,11 @@
-﻿og.node.planet = { };
-
-/* class Planet
+﻿/* class Planet
  *
  *
  *
  *
  */
-og.node.planet.Planet = function (ellipsoid) {
-    og.node.planet.Planet.superclass.constructor.call(this, "Earth Planet");
+og.node.Planet = function (ellipsoid) {
+    og.node.Planet.superclass.constructor.call(this, "Planet");
     this.ellipsoid = ellipsoid;
     this.quadTree;
 
@@ -26,17 +24,17 @@ og.node.planet.Planet = function (ellipsoid) {
     this.heightFactor = 1.47;
 };
 
-og._class_.extend(og.node.planet.Planet, og.node.Node3D);
+og._class_.extend(og.node.Planet, og.node.Node3D);
 
-og.node.planet.Planet.prototype.addLayer = function (layer) {
+og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);
 };
 
-og.node.planet.Planet.prototype.addLayers = function (layers) {
+og.node.Planet.prototype.addLayers = function (layers) {
     this.layers.push.apply(this.layers, layers);
 };
 
-og.node.planet.Planet.prototype.setBaseLayer = function (layer) {
+og.node.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
         if (layer.url != this.baseLayer.url) {
             this.baseLayer = layer;
@@ -47,30 +45,30 @@ og.node.planet.Planet.prototype.setBaseLayer = function (layer) {
     }
 };
 
-og.node.planet.Planet.prototype.setHeightFactor = function (factor) {
+og.node.Planet.prototype.setHeightFactor = function (factor) {
     if (this.heightFactor !== factor) {
         this.heightFactor = factor;
         this.quadTree.reloadTerrain();
     }
 };
 
-og.node.planet.Planet.prototype.setTerrainProvider = function (terrain) {
+og.node.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
 };
 
 
-og.node.planet.Planet.prototype.removeLayer = function (layer) {
+og.node.Planet.prototype.removeLayer = function (layer) {
     //...
 };
 
-og.node.planet.Planet.prototype.initialization = function () {
-    this.quadTree = og.node.planet.quadTree.QuadNode.createNode(this, og.node.planet.quadTree.QuadNode.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
+og.node.Planet.prototype.initialization = function () {
+    this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
     this.drawMode = og.webglContext.GL_TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
 };
 
-og.node.planet.Planet.prototype.initTransformationToSphere = function () {
+og.node.Planet.prototype.initTransformationToSphere = function () {
     var rx = 1.0;
     var ry = this.ellipsoid._a / this.ellipsoid._b;
     var rz = 1.0;
@@ -91,14 +89,14 @@ og.node.planet.Planet.prototype.initTransformationToSphere = function () {
                               0,   0,   0, 1.0]);
 };
 
-og.node.planet.Planet.prototype.getInverseTransformationSphereMatrix = function () {
+og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
     var mxtr = mat4.create();
     mat4.multiply(this.mxTranslation, this.mxRotation, mxtr);
     mat4.multiply(mxtr, this.mxScale, this.mxTransformation);
     mat4.inverse(this.mxTransformation, this.invMxTransformation);
 };
 
-og.node.planet.Planet.prototype.getRayEllipsoidIntersection = function (position, direction) {
+og.node.Planet.prototype.getRayEllipsoidIntersection = function (position, direction) {
     var kpos = vec3.create();
     var kdir = vec3.create();
     var mxTr = mat4.create();
@@ -123,7 +121,7 @@ og.node.planet.Planet.prototype.getRayEllipsoidIntersection = function (position
     }
 };
 
-og.node.planet.Planet.prototype.frame = function () {
+og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
     this.renderNodes();
@@ -148,7 +146,7 @@ og.node.planet.Planet.prototype.frame = function () {
     this.renderedNodes.length = 0;
 };
 
-og.node.planet.Planet.prototype.renderNodes = function () {
+og.node.Planet.prototype.renderNodes = function () {
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++)
     {

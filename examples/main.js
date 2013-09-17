@@ -6,7 +6,7 @@ function main() {
     renderer.init();
 
     var ellipsoid = new og.ellipsoid.Ellipsoid();
-    var planet = new og.node.planet.Planet(ellipsoid);
+    var planet = new og.node.Planet(ellipsoid);
 
     var layer = new og.layer.XYZ("Openstreetmap", { isBaseLayer: true, url: og.layer.MapServersProxy.OSMb.url });
     var satlayer = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServersProxy.MapQuestSat.url });

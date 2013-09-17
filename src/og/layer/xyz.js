@@ -81,7 +81,7 @@ og.layer.XYZ.prototype.whilePendings = function () {
     while (this.pendingsQueue.length) {
         var pseg = this.pendingsQueue.pop();
         if (pseg) {
-            if (pseg.node.getState() != og.node.planet.quadTree.QuadNode.NOTRENDERING) {
+            if (pseg.node.getState() != og.quadTree.NOTRENDERING) {
                 return pseg;
             } else {
                 pseg.imageIsLoading = false;

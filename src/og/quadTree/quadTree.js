@@ -1,4 +1,36 @@
-og.node.planet.quadTree = { };
+og.quadTree = { };
+
+og.quadTree.NW = 0;
+og.quadTree.NE = 1;
+og.quadTree.SW = 2;
+og.quadTree.SE = 3;
+
+og.quadTree.N = 0;
+og.quadTree.E = 1;
+og.quadTree.S = 2;
+og.quadTree.W = 3;
+
+og.quadTree.WALKTHROUGH = 0;
+og.quadTree.RENDERING = 1;
+og.quadTree.NOTRENDERING = 2;
+
+og.quadTree.ADJ = [[true, true, false, false],
+                [false, true, false, true],
+                [false, false, true, true],
+                [true, false, true, false]];
+
+og.quadTree.REFLECT = [[og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
+                    [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
+                    [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
+                    [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW]];
+
+og.quadTree.COMMONSIDE = [[-1, og.quadTree.N, og.quadTree.W, -1],
+                       [og.quadTree.N, -1, -1, og.quadTree.E],
+                       [og.quadTree.W, -1, -1, og.quadTree.S],
+                       [-1, og.quadTree.E, og.quadTree.S, -1]];
+
+og.quadTree.OPQUAD = [og.quadTree.SE, og.quadTree.SW, og.quadTree.NE, og.quadTree.NW];
+
 
 /* class QuadNode
  *
@@ -6,7 +38,7 @@ og.node.planet.quadTree = { };
  *
  */
 
-og.node.planet.quadTree.QuadNode = function () {
+og.quadTree.QuadNode = function () {
     this.parentNode;
     this.nodes = [];
     this.planetSegment;
@@ -18,45 +50,13 @@ og.node.planet.quadTree.QuadNode = function () {
     this.appliedTextureNodeId;
 };
 
-og.node.planet.quadTree.QuadNode.NW = 0;
-og.node.planet.quadTree.QuadNode.NE = 1;
-og.node.planet.quadTree.QuadNode.SW = 2;
-og.node.planet.quadTree.QuadNode.SE = 3;
-
-og.node.planet.quadTree.QuadNode.N = 0;
-og.node.planet.quadTree.QuadNode.E = 1;
-og.node.planet.quadTree.QuadNode.S = 2;
-og.node.planet.quadTree.QuadNode.W = 3;
-
-og.node.planet.quadTree.QuadNode.WALKTHROUGH = 0;
-og.node.planet.quadTree.QuadNode.RENDERING = 1;
-og.node.planet.quadTree.QuadNode.NOTRENDERING = 2;
-
-og.node.planet.quadTree.QuadNode.ADJ = [[true, true, false, false],
-                [false, true, false, true],
-                [false, false, true, true],
-                [true, false, true, false]];
-
-og.node.planet.quadTree.QuadNode.REFLECT = [[og.node.planet.quadTree.QuadNode.SW, og.node.planet.quadTree.QuadNode.SE, og.node.planet.quadTree.QuadNode.NW, og.node.planet.quadTree.QuadNode.NE],
-                    [og.node.planet.quadTree.QuadNode.NE, og.node.planet.quadTree.QuadNode.NW, og.node.planet.quadTree.QuadNode.SE, og.node.planet.quadTree.QuadNode.SW],
-                    [og.node.planet.quadTree.QuadNode.SW, og.node.planet.quadTree.QuadNode.SE, og.node.planet.quadTree.QuadNode.NW, og.node.planet.quadTree.QuadNode.NE],
-                    [og.node.planet.quadTree.QuadNode.NE, og.node.planet.quadTree.QuadNode.NW, og.node.planet.quadTree.QuadNode.SE, og.node.planet.quadTree.QuadNode.SW]];
-
-og.node.planet.quadTree.QuadNode.COMMONSIDE = [[-1, og.node.planet.quadTree.QuadNode.N, og.node.planet.quadTree.QuadNode.W, -1],
-                       [og.node.planet.quadTree.QuadNode.N, -1, -1, og.node.planet.quadTree.QuadNode.E],
-                       [og.node.planet.quadTree.QuadNode.W, -1, -1, og.node.planet.quadTree.QuadNode.S],
-                       [-1, og.node.planet.quadTree.QuadNode.E, og.node.planet.quadTree.QuadNode.S, -1]];
-
-og.node.planet.quadTree.QuadNode.OPQUAD = [og.node.planet.quadTree.QuadNode.SE, og.node.planet.quadTree.QuadNode.SW, og.node.planet.quadTree.QuadNode.NE, og.node.planet.quadTree.QuadNode.NW];
-
-
-og.node.planet.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
-    var node = new og.node.planet.quadTree.QuadNode();
+og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
+    var node = new og.quadTree.QuadNode();
     node.partId = partId;
     node.parentNode = parent;
     node.nodeId = id;
     node.planet = planet;
-    node.planetSegment = new og.node.planet.PlanetSegment();
+    node.planetSegment = new og.planetSegment.PlanetSegment();
     node.planetSegment.node = node;
     node.planetSegment.planet = planet;
     node.planetSegment._ctx = planet.renderer.ctx;
@@ -66,37 +66,37 @@ og.node.planet.quadTree.QuadNode.createNode = function (planet, partId, parent, 
     return node;
 };
 
-og.node.planet.quadTree.QuadNode.prototype.createChildrenNodes = function () {
+og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
 
     var lnSize = this.planetSegment.extent[og.extent.RIGHT] - this.planetSegment.extent[og.extent.LEFT];
     var ltSize = this.planetSegment.extent[og.extent.TOP] - this.planetSegment.extent[og.extent.BOTTOM];
 
-    this.nodes[og.node.planet.quadTree.QuadNode.NW] = og.node.planet.quadTree.QuadNode.createNode(this.planet, og.node.planet.quadTree.QuadNode.NW, this,
-        this.nodeId * 4 + og.node.planet.quadTree.QuadNode.NW + 1, this.planetSegment.zoomIndex + 1, 
+    this.nodes[og.quadTree.NW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NW, this,
+        this.nodeId * 4 + og.quadTree.NW + 1, this.planetSegment.zoomIndex + 1, 
         [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
             this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.TOP]]);
 
-    this.nodes[og.node.planet.quadTree.QuadNode.NE] = og.node.planet.quadTree.QuadNode.createNode(this.planet, og.node.planet.quadTree.QuadNode.NE, this,
-        this.nodeId * 4 + og.node.planet.quadTree.QuadNode.NE + 1, this.planetSegment.zoomIndex + 1, 
+    this.nodes[og.quadTree.NE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NE, this,
+        this.nodeId * 4 + og.quadTree.NE + 1, this.planetSegment.zoomIndex + 1, 
         [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
             this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.TOP]]);
 
-    this.nodes[og.node.planet.quadTree.QuadNode.SW] = og.node.planet.quadTree.QuadNode.createNode(this.planet, og.node.planet.quadTree.QuadNode.SW, this,
-        this.nodeId * 4 + og.node.planet.quadTree.QuadNode.SW + 1, this.planetSegment.zoomIndex + 1, 
+    this.nodes[og.quadTree.SW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SW, this,
+        this.nodeId * 4 + og.quadTree.SW + 1, this.planetSegment.zoomIndex + 1, 
         [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM],
             this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
 
-    this.nodes[og.node.planet.quadTree.QuadNode.SE] = og.node.planet.quadTree.QuadNode.createNode(this.planet, og.node.planet.quadTree.QuadNode.SE, this,
-        this.nodeId * 4 + og.node.planet.quadTree.QuadNode.SE + 1, this.planetSegment.zoomIndex + 1, 
+    this.nodes[og.quadTree.SE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SE, this,
+        this.nodeId * 4 + og.quadTree.SE + 1, this.planetSegment.zoomIndex + 1, 
         [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM],
             this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
 };
 
-og.node.planet.quadTree.QuadNode.prototype.reloadTextures = function () {
+og.quadTree.QuadNode.prototype.reloadTextures = function () {
 
     this.planetSegment.deleteTexture();
 
-    if (this.getState() === og.node.planet.quadTree.QuadNode.WALKTHROUGH) {
+    if (this.getState() === og.quadTree.WALKTHROUGH) {
         this.planetSegment.loadTileImage();
     }
 
@@ -105,12 +105,12 @@ og.node.planet.quadTree.QuadNode.prototype.reloadTextures = function () {
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.reloadTerrain = function () {
+og.quadTree.QuadNode.prototype.reloadTerrain = function () {
 
     this.planetSegment.clearBuffers();
     this.planetSegment.deleteElevations();
 
-    if (this.getState() === og.node.planet.quadTree.QuadNode.WALKTHROUGH) {
+    if (this.getState() === og.quadTree.WALKTHROUGH) {
         this.planetSegment.loadTerrain();
     }
 
@@ -119,52 +119,52 @@ og.node.planet.quadTree.QuadNode.prototype.reloadTerrain = function () {
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.getState = function () {
+og.quadTree.QuadNode.prototype.getState = function () {
     var pn = this.parentNode;
     while (pn) {
-        if (pn.state != og.node.planet.quadTree.QuadNode.WALKTHROUGH) {
-            return og.node.planet.quadTree.QuadNode.NOTRENDERING;
+        if (pn.state != og.quadTree.WALKTHROUGH) {
+            return og.quadTree.NOTRENDERING;
         }
         pn = pn.parentNode;
     }
     return this.state;
 };
 
-og.node.planet.quadTree.QuadNode.acceptableForRender = function (camera, sphere, lodEps) {
+og.quadTree.QuadNode.acceptableForRender = function (camera, sphere, lodEps) {
     return camera.projectedSize(sphere.center) > lodEps * sphere.radius;
 };
 
-og.node.planet.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
+og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
     if (cam.altitude < 3000.0) {
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
         var horizon = 113.0 * Math.sqrt(this.planet.renderer.activeCamera.altitude);
         if (distance < horizon) {
             this.renderNode();
         } else {
-            this.state = og.node.planet.quadTree.QuadNode.NOTRENDERING;
+            this.state = og.quadTree.NOTRENDERING;
         }
     } else {
         this.renderNode();
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.traverseNodes = function () {
+og.quadTree.QuadNode.prototype.traverseNodes = function () {
     if (!this.nodes.length) {
         this.createChildrenNodes();
     }
-    this.nodes[og.node.planet.quadTree.QuadNode.NW].renderTree();
-    this.nodes[og.node.planet.quadTree.QuadNode.NE].renderTree();
-    this.nodes[og.node.planet.quadTree.QuadNode.SW].renderTree();
-    this.nodes[og.node.planet.quadTree.QuadNode.SE].renderTree();
+    this.nodes[og.quadTree.NW].renderTree();
+    this.nodes[og.quadTree.NE].renderTree();
+    this.nodes[og.quadTree.SW].renderTree();
+    this.nodes[og.quadTree.SE].renderTree();
 };
 
-og.node.planet.quadTree.QuadNode.prototype.renderTree = function () {
-    this.state = og.node.planet.quadTree.QuadNode.WALKTHROUGH;
+og.quadTree.QuadNode.prototype.renderTree = function () {
+    this.state = og.quadTree.WALKTHROUGH;
 
     var cam = this.planet.renderer.activeCamera;
     
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
-        if (og.node.planet.quadTree.QuadNode.acceptableForRender(cam, this.planetSegment.bsphere, 1.0)) {
+        if (og.quadTree.QuadNode.acceptableForRender(cam, this.planetSegment.bsphere, 1.0)) {
             this.prepareForRendering(cam);
         }
         else {
@@ -176,13 +176,13 @@ og.node.planet.quadTree.QuadNode.prototype.renderTree = function () {
             }
         }
     } else {
-        this.state = og.node.planet.quadTree.QuadNode.NOTRENDERING;
+        this.state = og.quadTree.NOTRENDERING;
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.renderNode = function () {
+og.quadTree.QuadNode.prototype.renderNode = function () {
 
-    this.state = og.node.planet.quadTree.QuadNode.RENDERING;
+    this.state = og.quadTree.RENDERING;
 
     if (!this.planetSegment.ready) {
         var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.planetSegment.zoomIndex];
@@ -213,7 +213,7 @@ og.node.planet.quadTree.QuadNode.prototype.renderNode = function () {
     this.planet.renderedNodes.push(this);
 };
 
-og.node.planet.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
+og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
     var pn = this,
         scale = 0,
@@ -221,12 +221,12 @@ og.node.planet.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         offsetY = 0;
 
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
-        if (pn.partId === og.node.planet.quadTree.QuadNode.NW) {
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.NE) {
+        if (pn.partId === og.quadTree.NW) {
+        } else if (pn.partId === og.quadTree.NE) {
             offsetX += Math.pow(2, scale);
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.SW) {
+        } else if (pn.partId === og.quadTree.SW) {
             offsetY += Math.pow(2, scale);
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.SE) {
+        } else if (pn.partId === og.quadTree.SE) {
             offsetX += Math.pow(2, scale);
             offsetY += Math.pow(2, scale);
         }
@@ -279,19 +279,19 @@ og.node.planet.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 };
 
 
-og.node.planet.quadTree.QuadNode.prototype.whileTextureLoading = function () {
+og.quadTree.QuadNode.prototype.whileTextureLoading = function () {
     var pn = this,
         texScale = 0,
         texOffsetX = 0,
         texOffsetY = 0;
 
     while (pn.parentNode && !pn.planetSegment.imageReady) {
-        if (pn.partId === og.node.planet.quadTree.QuadNode.NW) {
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.NE) {
+        if (pn.partId === og.quadTree.NW) {
+        } else if (pn.partId === og.quadTree.NE) {
             texOffsetX += Math.pow(2, texScale);
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.SW) {
+        } else if (pn.partId === og.quadTree.SW) {
             texOffsetY += Math.pow(2, texScale);
-        } else if (pn.partId === og.node.planet.quadTree.QuadNode.SE) {
+        } else if (pn.partId === og.quadTree.SE) {
             texOffsetX += Math.pow(2, texScale);
             texOffsetY += Math.pow(2, texScale);
         }
@@ -307,13 +307,13 @@ og.node.planet.quadTree.QuadNode.prototype.whileTextureLoading = function () {
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.clearTree = function () {
+og.quadTree.QuadNode.prototype.clearTree = function () {
 
     var state = this.getState();
 
-    if (state === og.node.planet.quadTree.QuadNode.NOTRENDERING) {
+    if (state === og.quadTree.NOTRENDERING) {
         this.destroyBranches(true);
-    } else if (state === og.node.planet.quadTree.QuadNode.RENDERING) {
+    } else if (state === og.quadTree.RENDERING) {
         this.destroyBranches(false);
     }
     else {
@@ -323,7 +323,7 @@ og.node.planet.quadTree.QuadNode.prototype.clearTree = function () {
     }
 };
 
-og.node.planet.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
+og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
     if (cls) {
         this.planetSegment.clearSegment();
