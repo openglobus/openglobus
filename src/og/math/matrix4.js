@@ -104,16 +104,16 @@ og.math.Matrix4.identity = function () {
     return res;
 };
 
-og.math.Matrix4.prototype.mul = function (m) {
+og.math.Matrix4.prototype.mul = function (mx) {
     var d = this._m[0], e = this._m[1], g = this._m[2], f = this._m[3],
         h = this._m[4], i = this._m[5], j = this._m[6], k = this._m[7],
         l = this._m[8], o = this._m[9], m = this._m[10], n = this._m[11],
         p = this._m[12], r = this._m[13], s = this._m[14]; a = this._m[15];
 
-    var A = m._m[0], B = m._m[1], t = m._m[2], u = m._m[3],
-        v = m._m[4], w = m._m[5], x = m._m[6], y = m._m[7],
-        z = m._m[8], C = m._m[9], D = m._m[10], E = m._m[11],
-        q = m._m[12], F = m._m[13], G = m._m[14]; b = m._m[15];
+    var A = mx._m[0], B = mx._m[1], t = mx._m[2], u = mx._m[3],
+        v = mx._m[4], w = mx._m[5], x = mx._m[6], y = mx._m[7],
+        z = mx._m[8], C = mx._m[9], D = mx._m[10], E = mx._m[11],
+        q = mx._m[12], F = mx._m[13], G = mx._m[14]; b = mx._m[15];
 
     var res = new og.math.Matrix4();
     res._m[0] = A * d + B * h + t * l + u * p; res._m[1] = A * e + B * i + t * o + u * r; res._m[2] = A * g + B * j + t * m + u * s; res._m[3] = A * f + B * k + t * n + u * a;
