@@ -1,36 +1,36 @@
 ﻿og.ellipsoid = function() { };
 
-og.ellipsoid.Ellipsoid = function () {
-    //WGS84
-    var a = this._a = 6378137.0000 / 1000;
-    var b = this._b = 6356752.3142 / 1000;
+og.ellipsoid.Ellipsoid = function (equatorialSize, polarSize) {
+    var a = this._a = equatorialSize / 1000;
+    var b = this._b = polarSize / 1000;
     this.a2 = a * a;
     this.b2 = b * b;
     this._e = Math.sqrt(this.a2 - this.b2) / a;
-    this._e2 = Math.pow(this._e, 2); //6.694 379 990 14x10−3
-}
+    this._e2 = Math.pow(this._e, 2); //6.694 379 990 14x10−3 for Eath
+    this._k = Math.sqrt(this.a2 - this.b2) / b;
+    this._k2 = Math.pow(this._k, 2); //6.739 496 742 28x10-3 for Earth
+};
 
 og.ellipsoid.Ellipsoid.prototype.N = function (phi) {
     var ss = Math.pow(Math.sin(phi), 2);
     var ss2 = this._e2 * ss;
     var ss3 = Math.sqrt(1 - ss2);
     return this._a / ss3;
-}
+};
 
 og.ellipsoid.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
     var latrad = og.math.DEG2RAD(lat),
         lonrad = og.math.DEG2RAD(lon);
-
     var x = (this.N(latrad) + h) * Math.cos(latrad) * Math.cos(lonrad);
     var y = (this.N(latrad) + h) * Math.cos(latrad) * Math.sin(lonrad);
     var z = (this.N(latrad) * (1 - this._e2) + h) * Math.sin(latrad);
     return [x, y, z];
-}
+};
 
 
 og.ellipsoid.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
-    var ecc2 = 6.69437999014E-3;
-    var ecc22 = 6.73949674228E-3;
+    var ecc2 = this._e2;
+    var ecc22 = this._k2;
     var r2 = x * x + y * y;
     var r = Math.sqrt(r2);
     var e2 = this.a2 - this.b2;
@@ -52,4 +52,4 @@ og.ellipsoid.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
     var lat = phi / Math.PI * 180;
     var lon = lambda / Math.PI * 180;
     return [lat, lon];
-}
+};

@@ -4,8 +4,8 @@
  *
  *
  */
-og.node.Planet = function (ellipsoid) {
-    og.node.Planet.superclass.constructor.call(this, "Planet");
+og.node.Planet = function (name, ellipsoid) {
+    og.node.Planet.superclass.constructor.call(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
 

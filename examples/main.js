@@ -5,8 +5,7 @@ function main() {
     renderer = new og.Renderer(context);
     renderer.init();
 
-    var ellipsoid = new og.ellipsoid.Ellipsoid();
-    var planet = new og.node.Planet(ellipsoid);
+    var planet = new og.node.Planet("Earth", og.ellipsoid.wgs84ellipsoid);
 
     var layer = new og.layer.XYZ("Openstreetmap", { isBaseLayer: true, url: og.layer.MapServersProxy.OSMb.url });
     var satlayer = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServersProxy.MapQuestSat.url });
@@ -25,13 +24,9 @@ function main() {
 
 //    var skybox = new SkyBox();
 
-    //render.addRenderNode(new StripNode(10));
     renderer.addRenderNode(planet);
 //    renderer.addRenderNode(skybox);
     renderer.addControls([new og.control.MouseNavigation({ autoActivate: true }), new og.control.KeyboardNavigation({ autoActivate: true })]);
-    //render.activeCamera.setPlanetEllipsoid(ellipsoid);
-    //render.activeCamera.setLatLonToPosition();
-    //render.activeCamera.movespeed = 0.1;
-    //render.activeCamera.position.z = 20;
+
     renderer.Start();
 }
