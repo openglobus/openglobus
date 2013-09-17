@@ -245,7 +245,7 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     var gr = og.utils.inverseMercator(extent[og.extent.LEFT] + (extent[og.extent.RIGHT] - extent[og.extent.LEFT]) / 2, extent[og.extent.BOTTOM] + (extent[og.extent.TOP] - extent[og.extent.BOTTOM]) / 2);
-    var tile = og.utils.lonlat2tile(gr[og.utils.LON], gr[og.utils.LAT], zoomIndex);
+    var tile = og.layer.lonlat2tile(gr[og.utils.LON], gr[og.utils.LAT], zoomIndex);
     this.tileX = tile[og.math.X];
     this.tileY = tile[og.math.Y];
 };
