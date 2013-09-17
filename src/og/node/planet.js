@@ -13,11 +13,11 @@ og.node.Planet = function (ellipsoid) {
     this.baseLayer;
     this.terrainProvider;
 
-    this.mxScale = mat4.create();
-    this.mxRotation = mat4.create();
-    this.mxTranslation = mat4.create();
-    this.mxTransformation = mat4.create();
-    this.invMxTransformation = mat4.create();
+    this.mxScale = new og.math.Matrix4();//mat4.create();
+    this.mxRotation = new og.math.Matrix4();//mat4.create();
+    this.mxTranslation = new og.math.Matrix4();//mat4.create();
+    this.mxTransformation = new og.math.Matrix4();//mat4.create();
+    this.invMxTransformation = new og.math.Matrix4();//mat4.create();
 
     this.createdNodesCount = 0;
     this.renderedNodes = [];
@@ -90,35 +90,20 @@ og.node.Planet.prototype.initTransformationToSphere = function () {
 };
 
 og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
-    var mxtr = mat4.create();
-    mat4.multiply(this.mxTranslation, this.mxRotation, mxtr);
-    mat4.multiply(mxtr, this.mxScale, this.mxTransformation);
-    mat4.inverse(this.mxTransformation, this.invMxTransformation);
+    this.mxTransformation = this.mxTranslation.mul(this.mxRotation).mul(this.mxScale);
+    this.invMxTransformation = this.mxTransformation.inverse();
 };
 
 og.node.Planet.prototype.getRayEllipsoidIntersection = function (position, direction) {
-    var kpos = vec3.create();
-    var kdir = vec3.create();
-    var mxTr = mat4.create();
-
-    mat4.transpose(this.mxTransformation, mxTr);
-
-    mat4.multiplyVec3(mxTr, position.toVec(), kpos);
-    mat4.multiplyVec3(mxTr, direction.toVec(), kdir);
-
+    var mxTr = this.mxTransformation.transpose();
     var spheroid = new og.bv.Sphere();
     spheroid.center.set(0, 0, 0);
     spheroid.radius = this.ellipsoid._a;
-    var nkdir = new og.math.Vector3(kdir[og.math.X], kdir[og.math.Y], kdir[og.math.Z]);
-
-    var sx = spheroid.rayIntersect(new og.math.Vector3(kpos[og.math.X], kpos[og.math.Y], kpos[og.math.Z]), nkdir.normal());
+    var sx = spheroid.rayIntersect(mxTr.mulVec3(position), mxTr.mulVec3(direction).normalize());
     if (sx) {
-        var res = vec3.create();
-        mat4.multiplyVec3(this.invMxTransformation, sx.toVec(), res);
-        return new og.math.Vector3(res[0], res[1], res[2]);
-    } else {
-        return null;
+        return this.invMxTransformation.mulVec3(sx);
     }
+    return null;
 };
 
 og.node.Planet.prototype.frame = function () {
