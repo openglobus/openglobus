@@ -13,11 +13,11 @@ og.node.Planet = function (ellipsoid) {
     this.baseLayer;
     this.terrainProvider;
 
-    this.mxScale = new og.math.Matrix4();//mat4.create();
-    this.mxRotation = new og.math.Matrix4();//mat4.create();
-    this.mxTranslation = new og.math.Matrix4();//mat4.create();
-    this.mxTransformation = new og.math.Matrix4();//mat4.create();
-    this.invMxTransformation = new og.math.Matrix4();//mat4.create();
+    this.mxScale = new og.math.Matrix4();
+    this.mxRotation = new og.math.Matrix4();
+    this.mxTranslation = new og.math.Matrix4();
+    this.mxTransformation = new og.math.Matrix4();
+    this.invMxTransformation = new og.math.Matrix4();
 
     this.createdNodesCount = 0;
     this.renderedNodes = [];

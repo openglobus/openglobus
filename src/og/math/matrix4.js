@@ -143,3 +143,30 @@ og.math.Matrix4.prototype.scale = function (v) {
     res._m[12] = this._m[12]; res._m[13] = this._m[13]; res._m[14] = this._m[14]; res._m[15] = this._m[15];
     return res;
 };
+
+og.math.Matrix4.prototype.setFrustum = function (a, b, c, d, e, g) {
+    var h = b - a, i = d - c, j = g - e;
+    this._m[0] = e * 2 / h;
+    this._m[1] = 0;
+    this._m[2] = 0;
+    this._m[3] = 0;
+    this._m[4] = 0;
+    this._m[5] = e * 2 / i;
+    this._m[6] = 0;
+    this._m[7] = 0;
+    this._m[8] = (b + a) / h;
+    this._m[9] = (d + c) / i;
+    this._m[10] = -(g + e) / j;
+    this._m[11] = -1;
+    this._m[12] = 0;
+    this._m[13] = 0;
+    this._m[14] = -(g * e * 2) / j;
+    this._m[15] = 0;
+    return this;
+};
+
+og.math.Matrix4.prototype.setPerspective = function (angle, aspect, near, far) {
+    angle = near * Math.tan(angle * Math.PI / 360);
+    aspect = angle * aspect;
+    return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
+};

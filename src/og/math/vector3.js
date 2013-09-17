@@ -108,6 +108,10 @@ og.math.Vector3.prototype.dot = function (point3) {
     return point3.x * this.x + point3.y * this.y + point3.z * this.z;
 }
 
+og.math.Vector3.prototype.dotArr = function (arr) {
+    return arr[0] * this.x + arr[1] * this.y + arr[2] * this.z;
+}
+
 og.math.Vector3.prototype.cross = function (point3) {
     var res = new og.math.Vector3();
     res.set(
