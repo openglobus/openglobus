@@ -72,8 +72,8 @@ og.webglContext.WebGLContext = function (htmlId) {
     this.drawback = function (x) { };
 
     //viewport matrixes
-    this.mvMatrix = mat4.create();
-    this.pMatrix = mat4.create();
+    this.mvMatrix = new og.math.glMatrixArrayType(16);//mat4.create();
+    this.pMatrix = new og.math.glMatrixArrayType(16);//mat4.create();
     this.mvMatrixStack = [];
     this.shaderProgram;
     this._drawMode;
@@ -123,14 +123,14 @@ og.webglContext.WebGLContext.prototype.initAnysotropicFiltering = function () {
     }
     this.anisotropicFilteringEnabled = true;
     return ext;
-}
+};
 
 og.webglContext.WebGLContext.prototype.assignMatrices = function (pm, mvm) {
-    this.pMatrix.set(pm);
-    this.mvMatrix.set(mvm);
-}
+    og.webglContext.WebGLContext.copyMatrix(this.pMatrix, pm);
+    og.webglContext.WebGLContext.copyMatrix(this.mvMatrix, mvm);
+};
 
-og.webglContext.getExtension = function(gl, name) {
+og.webglContext.getExtension = function (gl, name) {
     var i, ext;
     for (i in og.webglContext.vendorPrefixes) {
         ext = gl.getExtension(og.webglContext.vendorPrefixes[i] + name);
@@ -139,20 +139,39 @@ og.webglContext.getExtension = function(gl, name) {
         }
     }
     return null;
-}
+};
+
+og.webglContext.WebGLContext.copyMatrix = function (dst, src) {
+    dst[0] = src[0];
+    dst[1] = src[1];
+    dst[2] = src[2];
+    dst[3] = src[3];
+    dst[4] = src[4];
+    dst[5] = src[5];
+    dst[6] = src[6];
+    dst[7] = src[7];
+    dst[8] = src[8];
+    dst[9] = src[9];
+    dst[10] = src[10];
+    dst[11] = src[11];
+    dst[12] = src[12];
+    dst[13] = src[13];
+    dst[14] = src[14];
+    dst[15] = src[15];
+};
 
 og.webglContext.WebGLContext.prototype.mvPushMatrix = function () {
-    var copy = mat4.create();
-    mat4.set(this.mvMatrix, copy);
+    var copy = new og.math.glMatrixArrayType(16);
+    og.webglContext.WebGLContext.copyMatrix(copy, this.mvMatrix);
     this.mvMatrixStack.push(copy);
-}
+};
 
 og.webglContext.WebGLContext.prototype.mvPopMatrix = function () {
     if (this.mvMatrixStack.length == 0) {
         throw "Invalid popMatrix!";
     }
     this.mvMatrix = this.mvMatrixStack.pop();
-}
+};
 
 og.webglContext.WebGLContext.prototype.initCanvas = function (htmlCanvasId) {
     var canvas = document.getElementById(htmlCanvasId);
