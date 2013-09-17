@@ -51,6 +51,16 @@ og.math.Matrix4.prototype.mulVec3 = function (p) {
     );
 };
 
+og.math.Matrix4.prototype.mulVec4 = function (p) {
+    var d = p.x, e = p.y, g = p.z, f = p.w;
+    return new og.math.Vector4(
+        this._m[0] * d + this._m[4] * e + this._m[8] * g + this._m[12] * f,
+        this._m[1] * d + this._m[5] * e + this._m[9] * g + this._m[13] * f,
+        this._m[2] * d + this._m[6] * e + this._m[10] * g + this._m[14] * f,
+        this._m[3] * d + this._m[7] * e + this._m[11] * g + this._m[15] * f
+    );
+};
+
 og.math.Matrix4.prototype.inverse = function () {
     var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
         f = this._m[4], h = this._m[5], i = this._m[6], j = this._m[7],

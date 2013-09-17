@@ -77,8 +77,6 @@ og.Camera.prototype.update = function () {
     this.setModelViewMatrix();
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
     this.ipmvMatrix = this.pmvMatrix.inverse();
-    //mat4.multiply(this.pMatrix, this.mvMatrix, this.pmvMatrix);
-    //mat4.inverse(this.pmvMatrix, this.ipmvMatrix);
     this.frustum.setFrustum(this.pmvMatrix._m);
 };
 
@@ -91,12 +89,6 @@ og.Camera.prototype.setModelViewMatrix = function () {
                        this.u.y, this.v.y, this.n.y, 0,
                        this.u.z, this.v.z, this.n.z, 0,
                        -this.eye.dot(this.u), -this.eye.dot(this.v), -this.eye.dot(this.n), 1.0]);
-
-    //mat4.set([this.u.x, this.v.x, this.n.x, 0,
-    //           this.u.y, this.v.y, this.n.y, 0,
-    //           this.u.z, this.v.z, this.n.z, 0,
-    //           -this.eye.dot(this.u), -this.eye.dot(this.v), -this.eye.dot(this.n), 1.0],
-    //           this.mvMatrix);
 };
 
 og.Camera.prototype.refresh = function () {
@@ -168,25 +160,18 @@ og.Camera.prototype.yaw = function (angle) {
 };
 
 og.Camera.prototype.unproject = function (x, y) {
-    var world1 = [0, 0, 0, 0],
-        world2 = [0, 0, 0, 0],
-        dir = [0, 0, 0, 0],
-        px = (x - this.renderer.ctx.gl._viewportWidth / 2) / (this.renderer.ctx.gl._viewportWidth / 2),
+    var px = (x - this.renderer.ctx.gl._viewportWidth / 2) / (this.renderer.ctx.gl._viewportWidth / 2),
         py = -(y - this.renderer.ctx.gl._viewportHeight / 2) / (this.renderer.ctx.gl._viewportHeight / 2);
 
-    mat4.multiplyVec4(this.ipmvMatrix._m, [px, py, -1, 1], world1);
-    vec3.scale(world1, 1 / world1[3]);
-    mat4.multiplyVec4(this.ipmvMatrix._m, [px, py, 0, 1], world2);
-    vec3.scale(world2, 1 / world2[3]);
-    vec3.subtract(world2, world1, dir);
-    vec3.normalize(dir);
-    return new og.math.Vector3(dir[og.math.X], dir[og.math.Y], dir[og.math.Z]);
+    var world1 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
+        world2 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();
+
+    return world2.sub(world1).toVector3().normalize();
 };
 
 og.Camera.prototype.project = function (v) {
-    var r = [0, 0, 0, 1];
-    mat4.multiplyVec4(this.pmvMatrix._m, [v[0], v[1], v[2], 1], r);
-    return [(1 + r[0] / r[3]) * this.gl._viewportWidth / 2, (1 - r[1] / r[3]) * this.gl._viewportHeight / 2];
+    var r = this.pmvMatrix.mulVec4(v.toVector4());
+    return [(1 + r.x / r.w) * this.gl._viewportWidth / 2, (1 - r.y / r.w) * this.gl._viewportHeight / 2];
 };
 
 og.Camera.prototype.setgp = function (ellipsoid, lat, lon, alt) {
