@@ -1,18 +1,17 @@
 og.bv.Sphere = function () {
     this.center = new og.math.Vector3();
     this.radius;
-}
+};
 
 og.bv.Sphere.prototype.rayIntersect = function (pos, direction) {
     var vpc = og.math.Vector3.sub(this.center, pos);
     if (vpc.dot(direction) < 0) {
         var l = vpc.length();
-        if (l > this.radius)
+        if (l > this.radius) {
             return null;
-        else if (l === this.radius) {
+        } else if (l === this.radius) {
             return pos;
         }
-
         var pc = this.center.projToRay(pos, vpc);
         var lc = og.math.Vector3.sub(pc, this.center).length();
         var dist = Math.sqrt(this.radius * this.radius - lc * lc);
@@ -37,5 +36,4 @@ og.bv.Sphere.prototype.rayIntersect = function (pos, direction) {
             return intersection;
         }
     }
-
-}
+};
