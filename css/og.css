@@ -5,5 +5,13 @@
     z-index: 1000;
     top: 0px;
     left: 0px;
-    color: /*#008213*/red;
+    color: green;
+}
+
+#ogShowFpsControl {
+    color: red; 
+}
+
+#ogMousePositionControl {
+    color: white; 
 }

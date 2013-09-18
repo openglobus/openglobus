@@ -30,8 +30,9 @@ function main() {
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
-        new og.control.ShowFps({ autoActivate: true })
-    ]);
+        new og.control.ShowFps({ autoActivate: true }),
+        new og.control.MousePosition({ autoActivate: true })
+]);
 
     renderer.Start();
 }
