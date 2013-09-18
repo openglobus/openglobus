@@ -1,10 +1,10 @@
 og.webgl.Handler = function (htmlId) {
-    this._lastAnimationFrameTime = 0;
-    this._fps;
-    this._delta;
-    this._animSpeed = 1.0;
-    this._backgroundColor = { r: 0.48, g: 0.48, b: 0.48, a: 1.0 };
-    this._canvasHtml = htmlId;
+    this.lastAnimationFrameTime = 0;
+    this.fps;
+    this.delta;
+    this.animSpeed = 1.0;
+    this.backgroundColor = { r: 0.48, g: 0.48, b: 0.48, a: 1.0 };
+    this.htmlCanvasId = htmlId;
     this.gl;
     this.drawback = function (x) { };
 
@@ -92,7 +92,7 @@ og.webgl.Handler.prototype.mvPopMatrix = function () {
 };
 
 og.webgl.Handler.prototype.init = function () {
-    this.gl = og.webgl.initCanvas(this._canvasHtml);
+    this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this.shaderProgram = og.webgl.initShaders(this.gl);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
@@ -179,10 +179,6 @@ og.webgl.Handler.prototype.fillBackGroundColor = function (color) {
     this.gl.clearColor(color.r, color.g, color.b, color.a);
 };
 
-og.webgl.Handler.prototype.showFPS = function (fps) {
-    print2d("lbFps", fps.toFixed(1), this.gl._viewportWidth - 40, 0);
-};
-
 function print2d(id, text, x, y) {
     var el = document.getElementById(id);
     el.innerHTML = text;
@@ -191,16 +187,16 @@ function print2d(id, text, x, y) {
 };
 
 og.webgl.Handler.prototype.calculateFPS = function (now) {
-    this._fps = 1000 / (now - this._lastAnimationFrameTime);
-    this._lastAnimationFrameTime = now;
-    this._delta = this._animSpeed / this._fps;
+    this.fps = 1000 / (now - this.lastAnimationFrameTime);
+    this.lastAnimationFrameTime = now;
+    this.delta = this.animSpeed / this.fps;
 };
 
 og.webgl.Handler.prototype.setBackgroundColor = function (color) {
-    this._backgroundColor.r = color.r;
-    this._backgroundColor.g = color.g;
-    this._backgroundColor.b = color.b;
-    this._backgroundColor.a = color.a;
+    this.backgroundColor.r = color.r;
+    this.backgroundColor.g = color.g;
+    this.backgroundColor.b = color.b;
+    this.backgroundColor.a = color.a;
 };
 
 og.webgl.Handler.prototype.applyViewport = function (width, height) {
@@ -220,10 +216,9 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
         sender.onCanvasResize();
     }
     sender.calculateFPS(now);
-    sender.fillBackGroundColor(sender._backgroundColor);
+    sender.fillBackGroundColor(sender.backgroundColor);
     sender.gl.clear(sender.gl.COLOR_BUFFER_BIT | sender.gl.DEPTH_BUFFER_BIT);
     sender.drawback(sender);
-    sender.showFPS(sender._fps);
     requestAnimationFrame(sender.drawFrame, sender);
 };
 
