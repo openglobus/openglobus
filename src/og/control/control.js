@@ -33,7 +33,7 @@ og.control.Control.prototype.initialize = function () {
         this.init();
     }
     this.activated = true;
-}
+};
 
 og.control.Control.prototype.activate = function () {
     this.active = true;

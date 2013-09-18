@@ -26,7 +26,12 @@ function main() {
 
     renderer.addRenderNode(planet);
 //    renderer.addRenderNode(skybox);
-    renderer.addControls([new og.control.MouseNavigation({ autoActivate: true }), new og.control.KeyboardNavigation({ autoActivate: true }), new og.control.ToggleWireframe({ autoActivate: true })]);
+    renderer.addControls([
+        new og.control.MouseNavigation({ autoActivate: true }),
+        new og.control.KeyboardNavigation({ autoActivate: true }),
+        new og.control.ToggleWireframe({ autoActivate: true }),
+        new og.control.ShowFps({ autoActivate: true })
+    ]);
 
     renderer.Start();
 }
