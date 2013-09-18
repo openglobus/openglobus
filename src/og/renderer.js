@@ -32,9 +32,8 @@ og.Renderer.prototype.init = function () {
     this.ctx.drawback = function () {
         that.draw();
     }
-    this.input.setEvent("oncharkeypressed", this, null, this.toogleWireframe, og.input.KEY_X);
+
     this.input.setEvent("oncharkeypressed", this, null, this.toogleClearPlanet, og.input.KEY_C);
-    this.input.setEvent("oncharkeypressed", this, null, this.showHelpDialog, og.input.KEY_H);
 
     var camera = new og.Camera();
     camera.init(this, { eye: new og.math.Vector3(0, 0, 12000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
@@ -42,18 +41,6 @@ og.Renderer.prototype.init = function () {
 
     this.ctx.onCanvasResize = function () {
         that.activeCamera.refresh();
-    }
-};
-
-og.Renderer.prototype.showHelpDialog = function (e) {
-    alert("[Shift + W] - вперед \n[Shift + S] - назад \n[A] - влево \n[D] - вправо \n[Up] - поворот вверх \n[Down] - поворот вниз \n[Left] - поворот влево \n[Right] - поворт вправо");
-};
-
-og.Renderer.prototype.toogleWireframe = function (e) {
-    if (this.renderNodes[0].drawMode === og.webgl.GL_LINE_STRIP) {
-        this.renderNodes[0].setDrawMode(og.webgl.GL_TRIANGLE_STRIP);
-    } else {
-        this.renderNodes[0].setDrawMode(og.webgl.GL_LINE_STRIP);
     }
 };
 
