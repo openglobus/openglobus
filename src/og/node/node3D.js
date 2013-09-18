@@ -1,7 +1,7 @@
 og.node.Node3D = function(name) {
     og.node.Node3D.superclass.constructor.call(this, name);
     this.renderer = null;
-    this.drawMode = og.webglContext.GL_TRIANGLES;
+    this.drawMode = og.webgl.GL_TRIANGLES;
     this.show = true;
     this._isActive = true;
 }

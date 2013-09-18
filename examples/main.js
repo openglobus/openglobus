@@ -1,6 +1,6 @@
 function main() {
-    context = new og.webglContext.WebGLContext("canvas");
-    context.Init();
+    context = new og.webgl.Handler("canvas");
+    context.init();
 
     renderer = new og.Renderer(context);
     renderer.init();

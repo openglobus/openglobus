@@ -50,10 +50,10 @@ og.Renderer.prototype.showHelpDialog = function (e) {
 };
 
 og.Renderer.prototype.toogleWireframe = function (e) {
-    if (this.renderNodes[0].drawMode === og.webglContext.GL_LINE_STRIP) {
-        this.renderNodes[0].setDrawMode(og.webglContext.GL_TRIANGLE_STRIP);
+    if (this.renderNodes[0].drawMode === og.webgl.GL_LINE_STRIP) {
+        this.renderNodes[0].setDrawMode(og.webgl.GL_TRIANGLE_STRIP);
     } else {
-        this.renderNodes[0].setDrawMode(og.webglContext.GL_LINE_STRIP);
+        this.renderNodes[0].setDrawMode(og.webgl.GL_LINE_STRIP);
     }
 };
 
