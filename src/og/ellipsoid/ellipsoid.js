@@ -1,6 +1,4 @@
-﻿og.ellipsoid = function() { };
-
-og.ellipsoid.Ellipsoid = function (equatorialSize, polarSize) {
+﻿og.Ellipsoid = function (equatorialSize, polarSize) {
     var a = this._a = equatorialSize / 1000;
     var b = this._b = polarSize / 1000;
     this.a2 = a * a;
@@ -11,14 +9,14 @@ og.ellipsoid.Ellipsoid = function (equatorialSize, polarSize) {
     this._k2 = Math.pow(this._k, 2); //6.739 496 742 28x10-3 for Earth
 };
 
-og.ellipsoid.Ellipsoid.prototype.N = function (phi) {
+og.Ellipsoid.prototype.N = function (phi) {
     var ss = Math.pow(Math.sin(phi), 2);
     var ss2 = this._e2 * ss;
     var ss3 = Math.sqrt(1 - ss2);
     return this._a / ss3;
 };
 
-og.ellipsoid.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
+og.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
     var latrad = og.math.DEG2RAD(lat),
         lonrad = og.math.DEG2RAD(lon);
     var x = (this.N(latrad) + h) * Math.cos(latrad) * Math.cos(lonrad);
@@ -28,7 +26,7 @@ og.ellipsoid.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
 };
 
 
-og.ellipsoid.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
+og.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
     var ecc2 = this._e2;
     var ecc22 = this._k2;
     var r2 = x * x + y * y;
