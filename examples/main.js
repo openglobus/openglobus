@@ -1,3 +1,18 @@
+goog.require('og.webgl.Handler');
+goog.require('og.Renderer');
+goog.require('og.node.Planet');
+goog.require('og.layer');
+goog.require('og.layer.XYZ');
+goog.require('og.layer.WMS');
+goog.require('og.terrainProvider.TerrainProvider');
+goog.require('og.control.MouseNavigation');
+goog.require('og.control.KeyboardNavigation');
+goog.require('og.control.ToggleWireframe');
+goog.require('og.control.ShowFps');
+goog.require('og.control.MousePosition');
+goog.require('og.ellipsoid.wgs84');
+
+
 function main() {
     context = new og.webgl.Handler("canvas");
     context.init();
@@ -36,3 +51,5 @@ function main() {
 
     renderer.Start();
 }
+
+//goog.exportSymbol('og', og);

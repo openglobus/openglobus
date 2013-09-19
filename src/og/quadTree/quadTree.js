@@ -1,4 +1,8 @@
-og.quadTree = { };
+goog.provide('og.quadTree');
+goog.provide('og.quadTree.QuadNode');
+
+goog.require('og.planetSegment.PlanetSegment');
+goog.require('og.extent');
 
 og.quadTree.NW = 0;
 og.quadTree.NE = 1;

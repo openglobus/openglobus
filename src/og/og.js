@@ -1,1 +1,1 @@
-var og = { };
+goog.provide('og');

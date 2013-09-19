@@ -1,5 +1,11 @@
+goog.provide('og.control.MousePosition');
+
+goog.require('og.control.Control');
+goog.require('og.planetSegment');
+goog.require('og._class_');
+
 og.control.MousePosition = function (options) {
-    og.control.MouseNavigation.superclass.constructor.call(this, options);
+    og.control.MousePosition.superclass.constructor.call(this, options);
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
 };

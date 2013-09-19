@@ -3,57 +3,9 @@
     <title>OpenGlobus - Earth planet</title>
     <link rel="stylesheet" href="../css/og.css" type="text/css"/>
 
-
-    <script src="../src/og/og.js"></script>
-    <script src="../src/og/class.js"></script>
-    <script src="../src/og/ajax.js"></script>
-
-    <script src="../src/og/math/math.js"></script>
-    <script src="../src/og/math/matrix4.js"></script>
-    <script src="../src/og/math/vector3.js"></script>
-    <script src="../src/og/math/vector4.js"></script>
-
-    <script src="../src/og/extent/extent.js"></script>
-
-    <script src="../src/og/webgl/webgl.js"></script>
-    <script src="../src/og/webgl/handler.js"></script>
-
-    <script src="../src/og/input/input.js"></script>
-
-    <script src="../src/og/bv/bv.js"></script>
-    <script src="../src/og/bv/box.js"></script>
-    <script src="../src/og/bv/sphere.js"></script>
-
-    <script src="../src/og/layer/layer.js"></script>
-    <script src="../src/og/layer/xyz.js"></script>
-    <script src="../src/og/layer/wms.js"></script>
-
-    <script src="../src/og/terrainProvider/terrainProvider.js"></script>
-    <script src="../src/og/ellipsoid/ellipsoid.js"></script>
-    <script src="../src/og/ellipsoid/wgs84ellipsoid.js"></script>
-
-    <script src="../src/og/node/node.js"></script>
-    <script src="../src/og/node/node3D.js"></script>
-    <script src="../src/og/node/skyBox.js"></script>
-
-    <script src="../src/og/node/planet.js"></script>
-    <script src="../src/og/planetSegment/planetSegment.js"></script>
-    <script src="../src/og/planetSegment/planetSegmentHelper.js"></script>
-    <script src="../src/og/quadTree/quadTree.js"></script>
-
-    <script src="../src/og/control/control.js"></script>
-    <script src="../src/og/control/mouseNavigation.js"></script>
-    <script src="../src/og/control/keyboardNavigation.js"></script>
-    <script src="../src/og/control/toggleWireframe.js"></script>
-    <script src="../src/og/control/showFps.js"></script>
-    <script src="../src/og/control/mousePosition.js"></script>
-
-    <script src="../src/og/camera.js"></script>
-    <script src="../src/og/frustum.js"></script>
-    <script src="../src/og/renderer.js"></script>
-
+    <script src="http://127.0.0.1/closure-library/closure/goog/base.js"></script>
+    <script src="og-deps.js"></script>
     <script src="main.js"></script>
-
 
     <script id="shader-fs" type="x-shader/x-fragment">
         precision mediump float;
@@ -88,15 +40,13 @@
 
 </head>
 
-<body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="main();">
-
+<body style="width: 100%; height: 100%; padding: 0; margin: 0;">
     <canvas id="canvas" style="width: 100%; height: 100%; display: block"></canvas>
     <div id="lbAltitude" class="defaultText"></div>
     <div id="lbCoords" class="defaultText"></div>
     <div id="lbCounter" class="defaultText"></div>
     <div id="lbRenderedTiles" class="defaultText"></div>
     <div id="lbLoadingTiles" class="defaultText"></div>
-
 </body>
 
 </html>

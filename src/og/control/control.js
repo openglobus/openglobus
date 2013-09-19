@@ -1,3 +1,5 @@
+goog.provide('og.control.Control');
+
 /**
  * Class Control
  * Controls affect the display or behaviour of the render. They allow everything
@@ -8,8 +10,6 @@
  * >
  * >
  */
-
-og.control = function() { };
 
 og.control.Control = function (options) {
     this.renderer = null;

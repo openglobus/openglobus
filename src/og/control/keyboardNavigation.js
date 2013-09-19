@@ -1,3 +1,9 @@
+goog.provide('og.control.KeyboardNavigation');
+
+goog.require('og.control.Control');
+goog.require('og.input');
+goog.require('og._class_');
+
 og.control.KeyboardNavigation = function (options) {
     og.control.KeyboardNavigation.superclass.constructor.call(this, options);
 };

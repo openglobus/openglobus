@@ -1,4 +1,14 @@
-og.planetSegment = { };
+goog.provide('og.planetSegment');
+goog.provide('og.planetSegment.PlanetSegment');
+
+goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.math');
+goog.require('og.math.Vector3');
+goog.require('og.quadTree');
+goog.require('og.layer');
+goog.require('og.extent');
+goog.require('og.bv.Box');
+goog.require('og.bv.Sphere');
 
 og.planetSegment.LON = 0;
 og.planetSegment.LAT = 1;

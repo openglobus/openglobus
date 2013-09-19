@@ -1,3 +1,7 @@
+goog.provide('og.math.Vector3');
+
+goog.require('og.math.Matrix4');
+
 og.math.Vector3 = function (x, y, z) {
     this.x = x ? x : 0.0;
     this.y = y ? y : 0.0;

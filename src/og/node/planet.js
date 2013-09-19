@@ -1,9 +1,14 @@
-﻿/* class Planet
- *
- *
- *
- *
- */
+goog.provide('og.node.Planet');
+
+goog.require('og.node.Node3D');
+goog.require('og.webgl');
+goog.require('og.math.Matrix4');
+goog.require('og.math.Vector3');
+goog.require('og.quadTree');
+goog.require('og.quadTree.QuadNode');
+goog.require('og.bv.Sphere');
+goog.require('og._class_');
+
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
     this.ellipsoid = ellipsoid;

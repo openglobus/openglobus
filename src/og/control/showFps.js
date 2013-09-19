@@ -1,3 +1,8 @@
+goog.provide('og.control.ShowFps');
+
+goog.require('og.control.Control');
+goog.require('og._class_');
+
 og.control.ShowFps = function (options) {
     og.control.ShowFps.superclass.constructor.call(this, options);
 };

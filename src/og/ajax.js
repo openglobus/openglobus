@@ -1,3 +1,5 @@
+goog.provide('og.Ajax');
+
 og.Ajax = {
     ReadyState:
     {

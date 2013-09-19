@@ -1,12 +1,16 @@
-﻿og.Ellipsoid = function (equatorialSize, polarSize) {
+goog.provide('og.Ellipsoid');
+
+goog.require('og.math');
+
+og.Ellipsoid = function (equatorialSize, polarSize) {
     var a = this._a = equatorialSize / 1000;
     var b = this._b = polarSize / 1000;
     this.a2 = a * a;
     this.b2 = b * b;
     this._e = Math.sqrt(this.a2 - this.b2) / a;
-    this._e2 = Math.pow(this._e, 2); //6.694 379 990 14x10−3 for Eath
+    this._e2 = Math.pow(this._e, 2);
     this._k = Math.sqrt(this.a2 - this.b2) / b;
-    this._k2 = Math.pow(this._k, 2); //6.739 496 742 28x10-3 for Earth
+    this._k2 = Math.pow(this._k, 2);
 };
 
 og.Ellipsoid.prototype.N = function (phi) {

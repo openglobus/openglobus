@@ -1,4 +1,5 @@
-og.extent = { };
+goog.provide('og.extent');
+goog.provide('og.extent.Extent');
 
 og.extent.LEFT = 0;
 og.extent.BOTTOM = 1;

@@ -1,4 +1,4 @@
-og.node = function() { };
+goog.provide('og.node.Node');
 
 og.node.Node = function (name) {
     this.name = name;

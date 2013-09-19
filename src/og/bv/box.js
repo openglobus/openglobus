@@ -1,3 +1,7 @@
+goog.provide('og.bv.Box');
+
+goog.require('og.math.Vector3');
+
 og.bv.Box = function () {
     this.vertices = [ new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3() ];
 };

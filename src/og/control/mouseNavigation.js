@@ -1,3 +1,11 @@
+goog.provide('og.control.MouseNavigation');
+
+goog.require('og.control.Control');
+goog.require('og.math');
+goog.require('og.math.Vector3');
+goog.require('og.math.Matrix4');
+goog.require('og._class_');
+
 og.control.MouseNavigation = function (options) {
     og.control.MouseNavigation.superclass.constructor.call(this, options);
     this.hitMousePositionOnEarth = new og.math.Vector3();

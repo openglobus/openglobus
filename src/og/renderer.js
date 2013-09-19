@@ -1,4 +1,11 @@
-﻿og.Renderer = function (glcontext) {
+goog.provide('og.Renderer');
+
+goog.require('og.math.Vector3');
+goog.require('og.input');
+goog.require('og.input.Input');
+goog.require('og.Camera');
+
+og.Renderer = function (glcontext) {
     this.ctx = glcontext;
     this.renderNodes = [];
     this.cameras = [];

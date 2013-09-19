@@ -1,3 +1,8 @@
+goog.provide('og.layer.WMS');
+
+goog.require('og.layer.XYZ');
+goog.require('og._class_');
+
 og.layer.WMS = function (name, options) {
     og.layer.WMS.superclass.constructor.call(this, name, options);
     this.layers = options.layers;

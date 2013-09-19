@@ -1,3 +1,9 @@
+goog.provide('og.Camera');
+
+goog.require('og.math.Vector3');
+goog.require('og.math.Matrix4');
+goog.require('og.Frustum');
+
 og.Camera = function (options) {
 
     this.eye = new og.math.Vector3();

@@ -1,4 +1,6 @@
-og.input = { };
+
+goog.provide('og.input');
+goog.provide('og.input.Input');
 
 og.input.KEY_SPACE = 32;
 og.input.KEY_H = 72;
@@ -28,7 +30,7 @@ og.input.Input = function () {
     var that = this;
     document.onkeydown = function (event) { that.handleKeyDown.call(that, event) };
     document.onkeyup = function (event) { that.handleKeyUp.call(that, event) };
-}
+};
 
 og.input.Input.prototype.setEvent = function (event, sender, htmlObject, callback, keyCode) {
     var handle = this;
@@ -61,12 +63,12 @@ og.input.Input.prototype.setEvent = function (event, sender, htmlObject, callbac
             this.charkeysCallbacks[keyCode] = { callback: callback, sender: sender, ch:String.fromCharCode(keyCode) };
             break;
     }
-}
+};
 
 
 og.input.Input.prototype.isKeyPressed = function (keyCode) {
     return this.currentlyPressedKeys[keyCode];
-}
+};
 
 og.input.Input.prototype.handleKeyDown = function (event) {
     //DEBUG
@@ -81,11 +83,11 @@ og.input.Input.prototype.handleKeyDown = function (event) {
             ccl.callback.call(ccl.sender);
         }
     }
-}
+};
 
 og.input.Input.prototype.handleKeyUp = function (event) {
     this.currentlyPressedKeys[event.keyCode] = false;
-}
+};
 
 og.input.Input.prototype.handleEvents = function () {
     for (var pk in this.pressedKeysCallbacks) {
@@ -94,4 +96,4 @@ og.input.Input.prototype.handleEvents = function () {
             cpk.callback.call(cpk.sender);
         }
     }
-}
+};

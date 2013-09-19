@@ -1,3 +1,8 @@
+goog.provide('og.webgl.Handler');
+
+goog.require('og.webgl');
+goog.require('og.math');
+
 og.webgl.Handler = function (htmlId) {
     this.lastAnimationFrameTime = 0;
     this.fps;

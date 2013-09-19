@@ -1,4 +1,4 @@
-og._class_ = { };
+goog.provide('og._class_');
 
 og._class_.extend = function(Child, Parent) {
     var F = function () { };
@@ -7,4 +7,4 @@ og._class_.extend = function(Child, Parent) {
     Child.prototype.constructor = Child;
     Child.superclass = Parent.prototype;
     Child.superclass.constructor = Parent;
-}
+};

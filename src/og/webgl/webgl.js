@@ -1,4 +1,4 @@
-﻿og.webgl = { };
+goog.provide('og.webgl');
 
 (function () {
     var lastTime = 0;
@@ -17,7 +17,6 @@
 }());
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-
 og.webgl.GL_POINTS = 0;
 og.webgl.GL_LINE_STRIP = 1;
 og.webgl.GL_LINE_LOOP = 2;

@@ -1,3 +1,7 @@
+goog.provide('og.bv.Sphere');
+
+goog.require('og.math.Vector3');
+
 og.bv.Sphere = function () {
     this.center = new og.math.Vector3();
     this.radius;

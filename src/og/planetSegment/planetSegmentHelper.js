@@ -1,4 +1,6 @@
-og.planetSegment.PlanetSegmentHelper = function () { };
+goog.provide('og.planetSegment.PlanetSegmentHelper');
+
+goog.require('og.quadTree');
 
 og.planetSegment.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
     if (powerOfTwo != og.planetSegment.PlanetSegmentHelper.powerOfTwo) {

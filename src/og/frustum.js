@@ -1,3 +1,5 @@
+goog.provide('og.Frustum');
+
 og.Frustum = function () {
     this._f = new Array(6);
     for (var i = 0; i < 6; i++)
