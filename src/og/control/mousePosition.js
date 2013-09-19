@@ -2,7 +2,6 @@ og.control.MousePosition = function (options) {
     og.control.MouseNavigation.superclass.constructor.call(this, options);
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
-    this.mouseIsMoving = false;
 };
 
 og._class_.extend(og.control.MousePosition, og.control.Control);
@@ -54,6 +53,6 @@ og.control.MousePosition.prototype.draw = function () {
         var ll = this.renderer.renderNodes[0].ellipsoid.ECEF2LatLon(this.renderer.mousePositionOnEarth.z, this.renderer.mousePositionOnEarth.x, this.renderer.mousePositionOnEarth.y);
         print2d("ogMousePositionControl", this.converter(ll), this.renderer.ctx.gl._viewportWidth - 480, this.renderer.ctx.gl._viewportHeight - 35);
     } else {
-        print2d("ogMousePositionControl", "__._____ __._____", this.renderer.ctx.gl._viewportWidth - 480, this.renderer.ctx.gl._viewportHeight - 35);
+        print2d("ogMousePositionControl", "_________________________", this.renderer.ctx.gl._viewportWidth - 480, this.renderer.ctx.gl._viewportHeight - 35);
     }
 };
