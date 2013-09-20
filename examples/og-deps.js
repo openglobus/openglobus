@@ -27,7 +27,7 @@ goog.addDependency('../../../openglobus/src/og/node/node.js', ['og.node.Node'], 
 goog.addDependency('../../../openglobus/src/og/node/node3D.js', ['og.node.Node3D'], ['og._class_', 'og.node.Node', 'og.webgl']);
 goog.addDependency('../../../openglobus/src/og/node/planet.js', ['og.node.Planet'], ['og._class_', 'og.bv.Sphere', 'og.math.Matrix4', 'og.math.Vector3', 'og.node.Node3D', 'og.quadTree', 'og.quadTree.QuadNode', 'og.webgl']);
 goog.addDependency('../../../openglobus/src/og/og.js', ['og'], []);
-goog.addDependency('../../../openglobus/src/og/planetSegment/planetSegment.js', ['og.planetSegment', 'og.planetSegment.PlanetSegment'], ['og.extent', 'og.layer', 'og.math', 'og.math.Vector3', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree', 'og.bv.Box', 'og.bv.Sphere']);
+goog.addDependency('../../../openglobus/src/og/planetSegment/planetSegment.js', ['og.planetSegment', 'og.planetSegment.PlanetSegment'], ['og.bv.Box', 'og.bv.Sphere', 'og.extent', 'og.layer', 'og.math', 'og.math.Vector3', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree']);
 goog.addDependency('../../../openglobus/src/og/planetSegment/planetSegmentHelper.js', ['og.planetSegment.PlanetSegmentHelper'], ['og.quadTree']);
 goog.addDependency('../../../openglobus/src/og/quadTree/quadTree.js', ['og.quadTree', 'og.quadTree.QuadNode'], ['og.extent', 'og.planetSegment.PlanetSegment']);
 goog.addDependency('../../../openglobus/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.input', 'og.input.Input', 'og.math.Vector3']);
