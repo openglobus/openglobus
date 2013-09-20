@@ -57,8 +57,8 @@ og.control.MousePosition.prototype.init = function () {
 og.control.MousePosition.prototype.draw = function () {
     if (this.renderer.mousePositionOnEarth) {
         var ll = this.renderer.renderNodes[0].ellipsoid.ECEF2LatLon(this.renderer.mousePositionOnEarth.z, this.renderer.mousePositionOnEarth.x, this.renderer.mousePositionOnEarth.y);
-        print2d("ogMousePositionControl", this.converter(ll), this.renderer.ctx.gl._viewportWidth - 480, this.renderer.ctx.gl._viewportHeight - 35);
+        print2d("ogMousePositionControl", this.converter(ll), 20, this.renderer.ctx.gl._viewportHeight - 35);
     } else {
-        print2d("ogMousePositionControl", "_________________________", this.renderer.ctx.gl._viewportWidth - 480, this.renderer.ctx.gl._viewportHeight - 35);
+        print2d("ogMousePositionControl", "_________________________", 20, this.renderer.ctx.gl._viewportHeight - 35);
     }
 };

@@ -13,5 +13,58 @@
 }
 
 #ogMousePositionControl {
-    color: white; 
+    color: white;
+    cursor: pointer;
+}
+
+.ogLayerSwitcherButton {
+    top: 50px;
+    right: 0px;
+    width: 19px;
+    height: 19px;
+    position: absolute;
+    background-color: rgba(22, 76, 155, 0.2) !important;
+    z-index: 12000;
+}
+
+#ogLayerSwitcherButtonMinimize {
+    background:url(http://127.0.0.1/openglobus/resources/images/controls/ogMinimize.png) top left no-repeat;
+}
+
+#ogLayerSwitcherButtonMaximize {
+    background:url(http://127.0.0.1/openglobus/resources/images/controls/ogMaximize.png) top left no-repeat;
+}
+
+#ogLayerSwitcherDialog {
+    position: absolute;
+    bottom: 25px;
+    top: 50px;
+    right: 0px;
+    width: 25em;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: smaller;
+    background-color: rgba(22, 76, 155, 0.4);
+    z-index: 5000;
+}
+
+.displayNone {
+    display: none;
+}
+
+.displayBlock {
+    display: block;
+}
+
+.layersDiv {
+    margin-top: 3px;
+    margin-left: 3px;
+    margin-bottom: 3px;
+    color: white;
+}
+
+.ogLayerSwitcherInput {
+}
+
+.ogLayerSwitcherLabel {
 }

@@ -7,6 +7,7 @@ goog.addDependency('../../../openglobus/src/og/camera.js', ['og.Camera'], ['og.F
 goog.addDependency('../../../openglobus/src/og/class.js', ['og._class_'], []);
 goog.addDependency('../../../openglobus/src/og/control/control.js', ['og.control.Control'], []);
 goog.addDependency('../../../openglobus/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og._class_', 'og.control.Control', 'og.input']);
+goog.addDependency('../../../openglobus/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], ['og._class_']);
 goog.addDependency('../../../openglobus/src/og/control/mouseNavigation.js', ['og.control.MouseNavigation'], ['og._class_', 'og.control.Control', 'og.math', 'og.math.Matrix4', 'og.math.Vector3']);
 goog.addDependency('../../../openglobus/src/og/control/mousePosition.js', ['og.control.MousePosition'], ['og._class_', 'og.control.Control', 'og.planetSegment']);
 goog.addDependency('../../../openglobus/src/og/control/showFps.js', ['og.control.ShowFps'], ['og._class_', 'og.control.Control']);

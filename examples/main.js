@@ -27,7 +27,7 @@ og.start = function() {
 
     var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: og.layer.MapServersProxy.OSMb.url });
     var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: og.layer.MapServersProxy.MapQuestSat.url, visibility: true });
-    var kosmosnim = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServersProxy.Cosmosnimki.url });
+    var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServersProxy.Cosmosnimki.url });
     var kray5m = new og.layer.WMS("geoserver:Kray5m", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/gwc/service/", layers: "lem3d:kray5m" });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
