@@ -23,7 +23,7 @@
     width: 19px;
     height: 19px;
     position: absolute;
-    background-color: rgba(22, 76, 155, 0.2) !important;
+    background-color: rgba(22, 76, 155, 1) !important;
     z-index: 12000;
 }
 
