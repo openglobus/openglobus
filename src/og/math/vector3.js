@@ -1,7 +1,5 @@
 goog.provide('og.math.Vector3');
 
-goog.require('og.math.Matrix4');
-
 og.math.Vector3 = function (x, y, z) {
     this.x = x ? x : 0.0;
     this.y = y ? y : 0.0;
@@ -188,10 +186,6 @@ og.math.Vector3.prototype.negate = function () {
 
 og.math.Vector3.prototype.getNegate = function () {
     return new og.math.Vector3(-this.x, -this.y, -this.z);
-};
-
-og.math.Vector3.rotate = function (vec, angle) {
-    return og.math.Matrix4.mul3(og.math.Matrix4.rotate(vec, angle), this);
 };
 
 og.math.Vector3.proj_b_to_a = function (b, a) {

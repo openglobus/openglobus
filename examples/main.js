@@ -1,3 +1,5 @@
+goog.provide('og.start');
+
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
@@ -13,7 +15,7 @@ goog.require('og.control.MousePosition');
 goog.require('og.ellipsoid.wgs84');
 
 
-function main() {
+og.start = function() {
     context = new og.webgl.Handler("canvas");
     context.init();
 
@@ -50,6 +52,6 @@ function main() {
 ]);
 
     renderer.Start();
-}
+};
 
-//goog.exportSymbol('og', og);
+goog.exportSymbol('og.start', og.start);

@@ -4,7 +4,6 @@ goog.provide('og.planetSegment.PlanetSegment');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.math');
 goog.require('og.math.Vector3');
-goog.require('og.quadTree');
 goog.require('og.layer');
 goog.require('og.extent');
 goog.require('og.bv.Box');
@@ -232,40 +231,6 @@ og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (northGr
     og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(indexes, gridSize, northGridSize, westGridSize, southGridSize, eastGridSize);
     this.vertexIndexBuffer = this._ctx.createElementArrayBuffer(new Uint16Array(indexes), 1, indexes.length);
     indexes.length = 0;
-};
-
-og.planetSegment.PlanetSegment.prototype.createBounds = function () {
-    var pn = this.node,
-        scale = 0,
-        offsetX = 0,
-        offsetY = 0;
-
-    while (pn.parentNode && !pn.planetSegment.terrainReady) {
-        if (pn.partId === og.quadTree.NW) {
-        } else if (pn.partId === og.quadTree.NE) {
-            offsetX += Math.pow(2, scale);
-        } else if (pn.partId === og.quadTree.SW) {
-            offsetY += Math.pow(2, scale);
-        } else if (pn.partId === og.quadTree.SE) {
-            offsetX += Math.pow(2, scale);
-            offsetY += Math.pow(2, scale);
-        }
-        scale++;
-        pn = pn.parentNode;
-    }
-
-    var partGridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
-    if (pn.planetSegment.terrainReady && partGridSize > 1) {
-        var pVerts = pn.planetSegment.terrainVertices;
-        var i0 = partGridSize * offsetY;
-        var j0 = partGridSize * offsetX;
-        var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
-        var ind2 = 3 * ((i0 + partGridSize) * (pn.planetSegment.gridSize + 1) + j0 + partGridSize);
-
-        this.setBoundVolumes(pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]);
-    } else {
-        this.createBoundsByExtent();
-    }
 };
 
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {

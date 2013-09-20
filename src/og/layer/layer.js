@@ -13,7 +13,7 @@ og.layer.MapServers = {
     "ArcGISWorldImagery": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
     "ArcGISWorldStreetMap": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
     "ArcGISNatGeo": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
-    "Cosmosnimki": { url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", maxZoom: -1 },
+    "Cosmosnimki": { url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", maxZoom: -1 }
 };
 
 og.layer.MapServersProxy = {
@@ -28,7 +28,7 @@ og.layer.MapServersProxy = {
     "ArcGISWorldImagery": { url: "http://127.0.0.1/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{tiley}/{tilex}", maxZoom: -1 },
     "ArcGISWorldStreetMap": { url: "http://127.0.0.1/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{zoom}/{tiley}/{tilex}", maxZoom: -1 },
     "ArcGISNatGeo": { url: "http://127.0.0.1/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{zoom}/{tiley}/{tilex}", maxZoom: -1 },
-    "Cosmosnimki": { url: "http://127.0.0.1/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", maxZoom: -1 },
+    "Cosmosnimki": { url: "http://127.0.0.1/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", maxZoom: -1 }
 };
 
 og.layer.lonlat2tile = function (lon, lat, zoom) {
