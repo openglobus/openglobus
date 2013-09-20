@@ -58,7 +58,7 @@ og.layer.Layer = function (name, options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
         this.numZoomLevels = options.numZoomLevels ? options.numZoomLevels : -1;
         this.url = options.url ? options.url : "";
-        this.visibility = options.visibility ? options.visibility : true;
+        this.visibility = options.visibility ? options.visibility : false;
     }
 
     og.layer.Layer.layersCounter++;

@@ -42,6 +42,12 @@ og.node.Planet.prototype.addLayers = function (layers) {
 og.node.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
         if (layer.url != this.baseLayer.url) {
+            for (var i = 0; i < this.layers.length; i++) {
+                if (this.layers[i].isBaseLayer) {
+                    this.layers[i].visibility = false;
+                }
+            }
+            layer.visibility = true;
             this.baseLayer = layer;
             this.quadTree.reloadTextures();
         }
