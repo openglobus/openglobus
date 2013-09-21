@@ -40,12 +40,11 @@
     bottom: 25px;
     top: 50px;
     right: 0px;
-    width: 25em;
-    font-family: sans-serif;
-    font-weight: bold;
-    font-size: smaller;
+    width: 17em;
     background-color: rgba(22, 76, 155, 0.4);
     z-index: 5000;
+    padding: 0 0 0 10px;
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 .displayNone {
@@ -57,14 +56,15 @@
 }
 
 .layersDiv {
-    margin-top: 3px;
     margin-left: 3px;
-    margin-bottom: 3px;
+    margin-bottom: 5px;
     color: white;
+    font-size: 1.2em;
 }
 
 .ogLayerSwitcherInput {
 }
 
 .ogLayerSwitcherLabel {
+    font-size: 0.8em;
 }
