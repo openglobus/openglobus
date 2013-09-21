@@ -170,7 +170,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     var cam = this.planet.renderer.activeCamera;
     
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
-        if (og.quadTree.QuadNode.acceptableForRender(cam, this.planetSegment.bsphere, 1.0)) {
+        if (og.quadTree.QuadNode.acceptableForRender(cam, this.planetSegment.bsphere, 1.1)) {
             this.prepareForRendering(cam);
         }
         else {
