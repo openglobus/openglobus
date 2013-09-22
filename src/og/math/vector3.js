@@ -162,7 +162,11 @@ og.math.Vector3.prototype.normalize = function () {
 
 
 og.math.Vector3.prototype.toVec = function () {
-    return [this.x, this.y, this.z];
+    var x = new og.math.glMatrixArrayType(3);
+    x[0] = this.x;
+    x[1] = this.y;
+    x[2] = this.z;
+    return x;
 };
 
 og.math.Vector3.prototype.distance = function (point3) {

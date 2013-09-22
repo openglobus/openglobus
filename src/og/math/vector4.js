@@ -29,8 +29,13 @@ og.math.Vector4.prototype.copy = function (v) {
     return this;
 };
 
-og.math.Vector4.prototype.toVec = function () {
-    return [this.x, this.y, this.z, this.w];
+og.math.Vector3.prototype.toVec = function () {
+    var x = new og.math.glMatrixArrayType(4);
+    x[0] = this.x;
+    x[1] = this.y;
+    x[2] = this.z;
+    x[3] = this.w;
+    return x;
 };
 
 og.math.Vector4.prototype.set = function (x, y, z, w) {
