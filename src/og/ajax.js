@@ -22,7 +22,8 @@ og.Ajax = {
         ServerError: 500
     },
     Method: { Get: "GET", Post: "POST" },
-    Asynchronous: true
+    Asynchronous: true,
+    Synchronous: false
 };
 
 
@@ -54,7 +55,7 @@ og.Ajax.request = function (url, params) {
         p = og.Ajax.defaultParams;
     
     var xhr = og.Ajax.createXMLHttp();
-    xhr.open(p.type ? p.type : og.Ajax.defaultParams.type, url, true);
+    xhr.open(p.type ? p.type : og.Ajax.defaultParams.type, url, p.async);
     if (p.type === og.Ajax.Method.Post) {
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     }
