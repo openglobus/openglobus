@@ -12,11 +12,6 @@
     color: red; 
 }
 
-#ogMousePositionControl {
-    color: white;
-    cursor: pointer;
-}
-
 .ogLayerSwitcherButton {
     top: 50px;
     right: 0px;
@@ -36,6 +31,8 @@
 }
 
 #ogLayerSwitcherDialog {
+    overflow: auto;
+    height: 70%;
     position: absolute;
     bottom: 25px;
     top: 50px;
@@ -67,4 +64,17 @@
 
 .ogLayerSwitcherLabel {
     font-size: 0.8em;
+}
+
+.ogMousePositionControl {
+    color: white;
+    cursor: pointer;
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    background-color: rgba(128, 128, 128, 0.5);
+    bottom: 35px;
+    right: 15px;
+    font-size: 0.9em;
+    position: absolute;
+    z-index: 5000;
+    padding: 3px;
 }

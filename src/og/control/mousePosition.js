@@ -8,23 +8,24 @@ og.control.MousePosition = function (options) {
     og.control.MousePosition.superclass.constructor.call(this, options);
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
+    this.display = null;
 };
 
 og._class_.extend(og.control.MousePosition, og.control.Control);
 
 og.control.MousePosition.toDecimal = function (ll) {
-    var str = ll[0].toFixed(5) + " " + ll[1].toFixed(5);
+    var str = ll[0].toFixed(5) + ", " + ll[1].toFixed(5);
     return str;
 };
 
 og.control.MousePosition.toDegrees = function (ll) {
-    var str = og.control.MousePosition.dec2deg(ll[0]) + " " + og.control.MousePosition.dec2deg(ll[1]);
+    var str = og.control.MousePosition.dec2deg(ll[0]) + ", " + og.control.MousePosition.dec2deg(ll[1]);
     return str;
 };
 
 og.control.MousePosition.toMercator = function (ll) {
     var m = og.planetSegment.forwardMercator(ll[1], ll[0]);
-    var str = m[1].toFixed(5) + " " + m[0].toFixed(5);
+    var str = m[1].toFixed(5) + ", " + m[0].toFixed(5);
     return str;
 };
 
@@ -36,29 +37,38 @@ og.control.MousePosition.dec2deg = function (base) {
     var minutes = Math.floor(t = (base - degrees) * 60);
     var seconds = Math.floor(t2 = (t - minutes) * 6000);
     seconds = seconds / 100.00;
-    return (degrees + "\u00B0&nbsp;" + minutes + "\u0027&nbsp;" + seconds.toFixed(2) + "\u0022");
+    return (og.control.MousePosition.numToFixedString(degrees, 3) + "\u00B0" +
+        og.control.MousePosition.numToFixedString(minutes, 2) + "\u0027" +
+        og.control.MousePosition.numToFixedString(seconds.toFixed(2), 2) + "\u0022");
+};
+
+og.control.MousePosition.numToFixedString = function (num, fixed) {
+    var dl = num.toString().split('.')[0].length;
+    var white = "&nbsp;";
+    for (var i = dl; i < fixed; i++) {
+        white += '&nbsp;&nbsp;';
+    }
+    return white + num.toString();
 };
 
 og.control.MousePosition.prototype.init = function () {
-    var d = document.createElement('div');
-    d.className = 'defaultText';
+    this.display = document.createElement('div');
+    this.display.className = 'ogMousePositionControl';
     var that = this;
-    d.onclick = function (e) {
+    this.display.onclick = function (e) {
         that.displayType += 1;
         if (that.displayType >= og.control.MousePosition.DisplayTypesConverters.length)
             that.displayType = 0;
         that.converter = og.control.MousePosition.DisplayTypesConverters[that.displayType];
     };
-
-    d.id = "ogMousePositionControl";
-    document.body.appendChild(d);
+    document.body.appendChild(this.display);
 };
 
 og.control.MousePosition.prototype.draw = function () {
     if (this.renderer.mousePositionOnEarth) {
         var ll = this.renderer.renderNodes[0].ellipsoid.ECEF2LatLon(this.renderer.mousePositionOnEarth.z, this.renderer.mousePositionOnEarth.x, this.renderer.mousePositionOnEarth.y);
-        print2d("ogMousePositionControl", this.converter(ll), 20, this.renderer.ctx.gl._viewportHeight - 35);
+        this.display.innerHTML = "Lat/Lon: " + this.converter(ll);
     } else {
-        print2d("ogMousePositionControl", "_________________________", 20, this.renderer.ctx.gl._viewportHeight - 35);
+        this.display.innerHTML = "Lat/Lon: " + "____________";
     }
 };
