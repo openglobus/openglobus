@@ -69,6 +69,6 @@ og.control.MousePosition.prototype.draw = function () {
         var ll = this.renderer.renderNodes[0].ellipsoid.ECEF2LatLon(this.renderer.mousePositionOnEarth.z, this.renderer.mousePositionOnEarth.x, this.renderer.mousePositionOnEarth.y);
         this.display.innerHTML = "Lat/Lon: " + this.converter(ll);
     } else {
-        this.display.innerHTML = "Lat/Lon: " + "____________";
+        this.display.innerHTML = "Lat/Lon: " + "_____________________";
     }
 };
