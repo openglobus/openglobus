@@ -5,7 +5,7 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 
 og.math.Matrix4 = function () {
-    this._m = new og.math.glMatrixArrayType(16);
+    this._m = new og.math.GLArray(16);
 };
 
 og.math.Matrix4.prototype.set = function (m) {

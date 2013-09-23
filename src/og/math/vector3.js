@@ -162,7 +162,7 @@ og.math.Vector3.prototype.normalize = function () {
 
 
 og.math.Vector3.prototype.toVec = function () {
-    var x = new og.math.glMatrixArrayType(3);
+    var x = new og.math.GLArray(3);
     x[0] = this.x;
     x[1] = this.y;
     x[2] = this.z;

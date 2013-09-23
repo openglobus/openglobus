@@ -30,7 +30,7 @@ og.math.Vector4.prototype.copy = function (v) {
 };
 
 og.math.Vector3.prototype.toVec = function () {
-    var x = new og.math.glMatrixArrayType(4);
+    var x = new og.math.GLArray(4);
     x[0] = this.x;
     x[1] = this.y;
     x[2] = this.z;

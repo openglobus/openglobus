@@ -1,6 +1,6 @@
 goog.provide('og.math');
 
-og.math.glMatrixArrayType = typeof Float32Array != "undefined" ? Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
+og.math.GLArray = typeof Float32Array != "undefined" ? Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
 
 og.math.X = 0;
 og.math.Y = 1;

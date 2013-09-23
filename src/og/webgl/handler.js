@@ -14,8 +14,8 @@ og.webgl.Handler = function (htmlId) {
     this.drawback = function (x) { };
 
     //viewport matrixes
-    this.mvMatrix = new og.math.glMatrixArrayType(16);
-    this.pMatrix = new og.math.glMatrixArrayType(16);
+    this.mvMatrix = new og.math.GLArray(16);
+    this.pMatrix = new og.math.GLArray(16);
     this.mvMatrixStack = [];
     this.shaderProgram;
     this._drawMode;
@@ -84,7 +84,7 @@ og.webgl.Handler.copyMatrix = function (dst, src) {
 };
 
 og.webgl.Handler.prototype.mvPushMatrix = function () {
-    var copy = new og.math.glMatrixArrayType(16);
+    var copy = new og.math.GLArray(16);
     og.webgl.Handler.copyMatrix(copy, this.mvMatrix);
     this.mvMatrixStack.push(copy);
 };
