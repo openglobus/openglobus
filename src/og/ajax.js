@@ -47,25 +47,28 @@ og.Ajax.createXMLHttp = function () {
 };
 
 og.Ajax.request = function (url, params) {
-    var p;
+    var p = og.Ajax.defaultParams;
 
-    if (params)
-        p = params;
-    else
-        p = og.Ajax.defaultParams;
-    
+    for (var i in params)
+        p[i] = params[i];
+
     var xhr = og.Ajax.createXMLHttp();
-    xhr.open(p.type ? p.type : og.Ajax.defaultParams.type, url, p.async);
+    xhr.open(p.type, url, p.async);
     if (p.type === og.Ajax.Method.Post) {
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     }
-    xhr.responseType = p.responseType ? p.responseType : og.Ajax.defaultParams.responseType;
+    if (p.async)
+        xhr.responseType = p.responseType;
+
+    xhr.overrideMimeType("text/plain");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === og.Ajax.ReadyState.Complete) {
             if (xhr.status === og.Ajax.Status.OK) {
-                params.success.call(p.sender ? p.sender : this, xhr.response);
+                if (params.success)
+                    params.success.call(p.sender ? p.sender : this, xhr.response);
             } else {
-                params.error.call(p.sender ? p.sender : this, xhr.response, xhr.status);
+                if (params.error)
+                    params.error.call(p.sender ? p.sender : this, xhr.response, xhr.status);
             }
         } else {
             //still loading
