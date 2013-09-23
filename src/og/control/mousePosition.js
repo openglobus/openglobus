@@ -33,8 +33,8 @@ og.control.MousePosition.DisplayTypesConverters = [og.control.MousePosition.toDe
 
 og.control.MousePosition.dec2deg = function (base) {
     var t, t2;
-    var degrees = Math.floor(base);
-    var minutes = Math.floor(t = (base - degrees) * 60);
+    var degrees = base < 0 ? Math.ceil(base) : Math.floor(base);
+    var minutes = Math.floor(t = Math.abs((base - degrees)) * 60);
     var seconds = Math.floor(t2 = (t - minutes) * 6000);
     seconds = seconds / 100.00;
     return (og.control.MousePosition.numToFixedString(degrees, 3) + "\u00B0" +
