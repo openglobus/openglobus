@@ -37,6 +37,10 @@ og.terrainProvider.TerrainProvider.defaultGridSizeByZoom = [32, 32, 32, 32, 8, 8
 og.terrainProvider.TerrainProvider.defaultFileGridSize = 33;
 og.terrainProvider.TerrainProvider.layersCounter = 0;
 
+og.terrainProvider.TerrainProvider.prototype.abort = function () {
+    this.pendingsQueue.length = 0;
+};
+
 og.terrainProvider.TerrainProvider.prototype.setUrl = function (url) {
     this.url = url;
 };
