@@ -3,6 +3,7 @@ goog.provide('og.control.MousePosition');
 goog.require('og.control.Control');
 goog.require('og.planetSegment');
 goog.require('og._class_');
+goog.require('og.geo');
 
 og.control.MousePosition = function (options) {
     og.control.MousePosition.superclass.constructor.call(this, options);
@@ -24,7 +25,7 @@ og.control.MousePosition.toDegrees = function (ll) {
 };
 
 og.control.MousePosition.toMercator = function (ll) {
-    var m = og.planetSegment.forwardMercator(ll[1], ll[0]);
+    var m = og.geo.forwardMercator(ll[1], ll[0]);
     var str = m[1].toFixed(5) + ", " + m[0].toFixed(5);
     return str;
 };

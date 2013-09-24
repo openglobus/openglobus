@@ -66,9 +66,11 @@ og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
         var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
         var ind2 = 3 * ((i0 + partGridSize) * (pn.planetSegment.gridSize + 1) + j0 + partGridSize);
 
-        planetSeg.setBoundVolumes(pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]);
+        planetSeg.bbox.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+        planetSeg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
     } else {
-        planetSeg.createBoundsByExtent();
+        planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+        planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
     }
 };
 
