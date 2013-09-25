@@ -30,3 +30,9 @@ og.quadTree.COMMONSIDE = [[-1, og.quadTree.N, og.quadTree.W, -1],
                        [-1, og.quadTree.E, og.quadTree.S, -1]];
 
 og.quadTree.OPQUAD = [og.quadTree.SE, og.quadTree.SW, og.quadTree.NE, og.quadTree.NW];
+
+og.quadTree.ratioLOD = 1.1;
+
+og.quadTree.acceptableForRender = function (camera, sphere, lodEps) {
+    return camera.projectedSize(sphere.center) > lodEps * sphere.radius;
+};

@@ -138,10 +138,6 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
-og.quadTree.QuadNode.acceptableForRender = function (camera, sphere, lodEps) {
-    return camera.projectedSize(sphere.center) > lodEps * sphere.radius;
-};
-
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
     if (cam.altitude < 3000.0) {
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
@@ -172,7 +168,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     var cam = this.planet.renderer.activeCamera;
     
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
-        if (og.quadTree.QuadNode.acceptableForRender(cam, this.planetSegment.bsphere, 1.1)) {
+        if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere, og.quadTree.ratioLOD)) {
             this.prepareForRendering(cam);
         }
         else {
