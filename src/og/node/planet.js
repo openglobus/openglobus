@@ -48,6 +48,7 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
                 }
             }
             layer.visibility = true;
+            this.baseLayer.abortLoading();
             this.baseLayer = layer;
             this.quadTree.reloadTextures();
         }

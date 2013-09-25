@@ -71,7 +71,7 @@ og.layer.Layer = function (name, options) {
 
 og.layer.Layer.layersCounter = 0;
 
-og.layer.Layer.prototype.abort = function () {
+og.layer.Layer.prototype.abortLoading = function () {
     this.pendingsQueue.length = 0;
 };
 
