@@ -1,5 +1,10 @@
+goog.provide('og.node.SkyBox');
+
+goog.require('og.node.Node3D');
+goog.require('og.webgl');
+
 og.node.SkyBox = function () {
-    og.node.SkyBox.superclass.constructor.call(this, og.node.SkyBox);
+    og.node.SkyBox.superclass.constructor.call(this, "skybox");
     this.size = 100000;
 
     this.vertexPositionBuffers = new Array(6);
@@ -9,8 +14,6 @@ og.node.SkyBox = function () {
     this.textures = new Array(6);
     this.texturesFileName = new Array(6);
     this.spath = "Resources\\Images\\Skyboxes\\Tycho\\";
-
-    this.orientation = new Orientation3();
 };
 
 og._class_.extend(og.node.SkyBox, og.node.Node3D);
@@ -31,10 +34,8 @@ og.node.SkyBox.prototype.initialization = function () {
     this.initTexture(this.spath + "px.jpg", og.node.SkyBox.RIGHT_PLANE);
     this.initTexture(this.spath + "nx.jpg", og.node.SkyBox.LEFT_PLANE);
 
-    this.orientation.setAngles(0, -10, -40);
-
     this.createBuffers();
-    this.drawMode = WebGLContext.GL_TRIANGLES;
+    this.drawMode = og.webgl.GL_TRIANGLES;
 }
 
 og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
@@ -49,10 +50,6 @@ og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
 og.node.SkyBox.prototype.frame = function () {
     this.renderer.ctx.setTextureBias([0,0,1]);
     this.renderer.ctx.mvPushMatrix();
-    mat4.translate(this.renderer.ctx.mvMatrix, this.renderer.activeCamera.eye.toVec());
-    mat4.rotate(this.renderer.ctx.mvMatrix, DEG2RAD(this.orientation.roll), [0.0, 0.0, 1.0]);
-    mat4.rotate(this.renderer.ctx.mvMatrix, DEG2RAD(this.orientation.pitch), [1.0, 0.0, 0.0]);
-    mat4.rotate(this.renderer.ctx.mvMatrix, DEG2RAD(this.orientation.yaw), [0.0, 1.0, 0.0]);
 
     for (var i = 0; i < 6; i++) {
         this.renderer.ctx.bindTexture(this.textures[i]);
@@ -101,9 +98,9 @@ og.node.SkyBox.prototype.createBuffers = function () {
       -1.0 * this.size, 1.0 * this.size, -1.0 * this.size]];
 
     var vertexIndices = [
-      [0, 3, 2, 0, 2, 1],    // Front face
-      [0, 3, 2, 0, 2, 1],    // Back face
-      [0, 3, 2, 0, 2, 1],  // Top face
+      [0, 3, 2, 0, 2, 1], // Front face
+      [0, 3, 2, 0, 2, 1], // Back face
+      [0, 3, 2, 0, 2, 1], // Top face
       [0, 3, 2, 0, 2, 1], // Bottom face
       [0, 3, 2, 0, 2, 1], // Right face
       [0, 3, 2, 0, 2, 1]  // Left face

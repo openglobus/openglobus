@@ -14,6 +14,7 @@ goog.require('og.control.ToggleWireframe');
 goog.require('og.control.ShowFps');
 goog.require('og.control.MousePosition');
 goog.require('og.ellipsoid.wgs84');
+goog.require('og.node.SkyBox');
 
 
 og.start = function() {
@@ -41,10 +42,10 @@ og.start = function() {
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
-//    var skybox = new SkyBox();
+    var skybox = new og.node.SkyBox();
 
     renderer.addRenderNode(planet);
-//    renderer.addRenderNode(skybox);
+    renderer.addRenderNode(skybox);
     renderer.addControls([
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
@@ -52,7 +53,7 @@ og.start = function() {
         new og.control.ShowFps({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
 	new og.control.LayerSwitcher({ autoActivate: true })
-]);
+    ]);
 
     renderer.Start();
 };
