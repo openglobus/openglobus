@@ -64,13 +64,10 @@
 
 #ogLoadingSpinner {
     position: absolute;
+    width: 50px;
+    height: 50px;
     top: 0;
     right: 0;
-    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(255, 131, 22, 0.7);
-    padding: 7px 10px 7px 10px;
-    font-size: 1.2em;
-    color: black;
 }
 
 .ogLayerSwitcherLabel {

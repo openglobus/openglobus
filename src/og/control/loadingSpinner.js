@@ -12,8 +12,20 @@ og._class_.extend(og.control.LoadingSpinner, og.control.Control);
 
 og.control.LoadingSpinner.prototype.init = function () {
     this.spinnerElement = document.createElement('div');
-    this.spinnerElement.innerHTML = "Loading...";
-    this.spinnerElement.id = 'ogLoadingSpinner';
+    this.spinnerElement.id = 'circleG';
+
+    var a = document.createElement('div');
+    var b = document.createElement('div');
+    var c = document.createElement('div');
+ 
+    this.spinnerElement.appendChild(a);
+    this.spinnerElement.appendChild(b);
+    this.spinnerElement.appendChild(c);
+
+    a.id = "circleG_1"; a.className = "circleG";
+    b.id = "circleG_2"; b.className = "circleG";
+    c.id = "circleG_3"; c.className = "circleG";
+
     this.spinnerElement.className = "displayBlock";
     document.body.appendChild(this.spinnerElement);
 };
