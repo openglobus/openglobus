@@ -224,9 +224,9 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
     sender.fillBackGroundColor(sender.backgroundColor);
     sender.gl.clear(sender.gl.COLOR_BUFFER_BIT | sender.gl.DEPTH_BUFFER_BIT);
     sender.drawback(sender);
-    requestAnimationFrame(sender.drawFrame, sender);
+    og.webgl.requestAnimationFrame(sender.drawFrame, sender);
 };
 
 og.webgl.Handler.prototype.Start = function () {
-    requestAnimationFrame(this.drawFrame, this);
+    og.webgl.requestAnimationFrame(this.drawFrame, this);
 };

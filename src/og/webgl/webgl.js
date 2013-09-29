@@ -1,22 +1,8 @@
 goog.provide('og.webgl');
 
-(function () {
-    var lastTime = 0;
-    window.requestAnimationFrame = function (callback, element) {
-        var currTime = new Date().getTime();
-        var timeToCall = Math.max(15, 16 - (currTime - lastTime));
-        var id = window.setTimeout(function () { callback(currTime + timeToCall, element); },
-          timeToCall);
-        lastTime = currTime + timeToCall;
-        return id;
-    };
-
-    window.cancelAnimationFrame = function (id) {
-        clearTimeout(id);
-    };
-}());
-
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
+og.webgl.MAX_FRAME_DELAY = 20;
+
 og.webgl.GL_POINTS = 0;
 og.webgl.GL_LINE_STRIP = 1;
 og.webgl.GL_LINE_LOOP = 2;
@@ -119,3 +105,18 @@ og.webgl.initCanvas = function (htmlCanvasId) {
     }
     return ctx;
 };
+
+(function () {
+    var lastTime = 0;
+    og.webgl.requestAnimationFrame = function (callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(og.webgl.MAX_FRAME_DELAY, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function () { callback(currTime + timeToCall, element); }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+    };
+
+    og.webgl.cancelAnimationFrame = function (id) {
+        clearTimeout(id);
+    };
+}());
