@@ -26,6 +26,7 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (segment) {
     var that = this;
     this.counter++;
     var img = new Image();
+    img.crossOrigin = '';
     img.onload = function () {
         segment.applyTexture.call(segment, this);
         that.dequeueRequest();
