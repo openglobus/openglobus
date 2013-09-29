@@ -30,7 +30,8 @@ og.terrainProvider.TerrainProvider = function (name, options) {
 };
 
 og.terrainProvider.TerrainServers = {
-    "OpenGlobus": { url: "http://127.0.0.1/earth3/{zoom}/{tiley}/{tilex}.ddm", dataType: og.terrainProvider.BINARY, minZoom: 2, maxZoom: 14 }
+    //"OpenGlobus": { url: "http://127.0.0.1/earth3/{zoom}/{tiley}/{tilex}.ddm", dataType: og.terrainProvider.BINARY, minZoom: 2, maxZoom: 14 }
+    "OpenGlobus": { url: "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm", dataType: og.terrainProvider.BINARY, minZoom: 2, maxZoom: 14 }
 };
 
 og.terrainProvider.TerrainProvider.defaultGridSizeByZoom = [32, 32, 32, 32, 8, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 16, 8, 4, 2, 1];

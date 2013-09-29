@@ -53,14 +53,18 @@ og.Ajax.request = function (url, params) {
         p[i] = params[i];
 
     var xhr = og.Ajax.createXMLHttp();
+
     xhr.open(p.type, url, p.async);
+
     if (p.type === og.Ajax.Method.Post) {
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     }
+
     if (p.async)
         xhr.responseType = p.responseType;
 
     xhr.overrideMimeType("text/plain");
+
     xhr.onreadystatechange = function () {
         if (xhr.readyState === og.Ajax.ReadyState.Complete) {
             if (xhr.status === og.Ajax.Status.OK) {
