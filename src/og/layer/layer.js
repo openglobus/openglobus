@@ -3,7 +3,7 @@ goog.provide('og.layer.Layer');
 
 og.layer.MapServers = {
     "MapQuest": { url: "http://otile1.mqcdn.com/tiles/1.0.0/map/{zoom}/{tilex}/{tiley}.jpg", maxZoom: -1 },
-    "MapQuestSat": { url: "http://http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", maxZoom: -1 },
+    "MapQuestSat": { url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", maxZoom: -1 },
     "GoogleMap": { url: "http://mt1.google.com/vt/lyrs=m&hl=ru&x={tilex}&y={tiley}&z={zoom}", maxZoom: -1 },
     "GoogleTerrain": { url: "http://mt1.google.com/vt/lyrs=p&hl=ru&x={tilex}&y={tiley}&z={zoom}", maxZoom: -1 },
     "GoogleSat": { url: "http://mt1.google.com/vt/lyrs=s&hl=ru&x={tilex}&y={tiley}&z={zoom}", maxZoom: -1 },
