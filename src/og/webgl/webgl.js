@@ -1,5 +1,7 @@
 goog.provide('og.webgl');
 
+goog.require('og.Ajax');
+
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 og.webgl.MAX_FRAME_DELAY = 20;
 
@@ -21,30 +23,31 @@ og.webgl.getExtension = function (gl, name) {
     return null;
 };
 
-og.webgl.getShader = function (gl, id) {
-    var shaderScript = document.getElementById(id);
+og.webgl.getShader = function (gl, fileName, type) {
+    var shaderScript;
+
+    og.Ajax.request("../src/og/shaders/" + fileName, {
+        async: false,
+        success: function (data)
+        {
+            shaderScript = data;
+        }
+    });
+
     if (!shaderScript) {
         return null;
     }
 
-    var str = "";
-    var k = shaderScript.firstChild;
-    while (k) {
-        if (k.nodeType == 3)
-            str += k.textContent;
-        k = k.nextSibling;
-    }
-
     var shader;
-    if (shaderScript.type == "x-shader/x-fragment") {
+    if (type == "fragment") {
         shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderScript.type == "x-shader/x-vertex") {
+    } else if (type == "vertex") {
         shader = gl.createShader(gl.VERTEX_SHADER);
     } else {
         return null;
     }
 
-    gl.shaderSource(shader, str);
+    gl.shaderSource(shader, shaderScript);
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -56,8 +59,8 @@ og.webgl.getShader = function (gl, id) {
 };
 
 og.webgl.initShaders = function (gl) {
-    var fragmentShader = og.webgl.getShader(gl, "shader-fs");
-    var vertexShader = og.webgl.getShader(gl, "shader-vs");
+    var fragmentShader = og.webgl.getShader(gl, "default_fs.txt", "fragment");
+    var vertexShader = og.webgl.getShader(gl, "default_vs.txt", "vertex");
     var shaderProgram = gl.createProgram();
 
     gl.attachShader(shaderProgram, vertexShader);

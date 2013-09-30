@@ -153,7 +153,9 @@ og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer,
     this.gl.uniform1i(this.shaderProgram.samplerUniform, 0);
 
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+
     this.setMatrixUniforms();
+
     this.gl.drawElements(this._drawMode, vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
 };
 
