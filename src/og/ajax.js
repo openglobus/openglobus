@@ -47,10 +47,16 @@ og.Ajax.createXMLHttp = function () {
 };
 
 og.Ajax.request = function (url, params) {
-    var p = og.Ajax.defaultParams;
 
-    for (var i in params)
+    var p = {};
+
+    for (var i in og.Ajax.defaultParams) {
+        p[i] = og.Ajax.defaultParams[i];
+    }
+
+    for (var i in params) {
         p[i] = params[i];
+    }
 
     var xhr = og.Ajax.createXMLHttp();
 
@@ -69,14 +75,14 @@ og.Ajax.request = function (url, params) {
         if (xhr.readyState === og.Ajax.ReadyState.Complete) {
             if (xhr.status === og.Ajax.Status.OK) {
                 if (params.success)
-                    params.success.call(p.sender ? p.sender : this, xhr.response);
+                    params.success.call(params.sender ? params.sender : this, xhr.response);
             } else {
                 if (params.error)
-                    params.error.call(p.sender ? p.sender : this, xhr.response, xhr.status);
+                    params.error.call(params.sender ? params.sender : this, xhr.response, xhr.status);
             }
         } else {
             //still loading
         }
     };
-    xhr.send(p.data ? p.data : og.Ajax.defaultParams.data);
+    xhr.send(params.data ? params.data : og.Ajax.defaultParams.data);
 };
