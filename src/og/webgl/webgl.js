@@ -1,6 +1,6 @@
 goog.provide('og.webgl');
 
-goog.require('og.Ajax');
+goog.require('og.utils');
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 og.webgl.MAX_FRAME_DELAY = 20;
@@ -24,15 +24,8 @@ og.webgl.getExtension = function (gl, name) {
 };
 
 og.webgl.getShader = function (gl, fileName, type) {
-    var shaderScript;
 
-    og.Ajax.request("../src/og/shaders/" + fileName, {
-        async: false,
-        success: function (data)
-        {
-            shaderScript = data;
-        }
-    });
+    var shaderScript = og.utils.readTextFile("../src/og/shaders/" + fileName);
 
     if (!shaderScript) {
         return null;
