@@ -1,4 +1,4 @@
-/*> var program = new og.shader.ShaderProgram({
+/*> var program = new og.webgl.ShaderProgram(renderer.ctx, {
  *>      uniforms : {
  *>          uMVMatrix:{ type: og.webgl.shaderTypes.MAT4, value: [] },
  *>          uPMatrix:{ type: og.webgl.shaderTypes.MAT4, value: [] },
@@ -7,8 +7,8 @@
  *>          uSampler: { type: og.webgl.shaderTypes.SAMPLER2D, value: null }
  *>          },
  *>      attributes : {
- *>          aVertexPosition:{ type: og.webgl.shaderTypes.VEC3, value: [] },
- *>          aTextureCoord:{ type: og.webgl.shaderTypes.VEC2, value: [] }
+ *>          aVertexPosition:{ type: og.webgl.shaderTypes.VEC3, enableArray: true },
+ *>          aTextureCoord:{ type: og.webgl.shaderTypes.VEC2, enableArray: true }
  *>      },
  *>      vertexShader : og.utils.readFile("../../shaders/default_vs.txt");
  *>      fragmentShader: og.utils.readFile("../../shaders/default_vs.txt");
@@ -21,10 +21,13 @@
  *
  */
 
-goog.provider('og.webgl.ShaderProgram');
+goog.provide('og.webgl.ShaderProgram');
 
 goog.require('og.webgl.shaderTypes');
 
+
+og.webgl.ShaderProgram.uniformCallbacksArray = [];
+og.webgl.ShaderProgram.attributeCallbacksArray = [];
 
 og.webgl.ShaderProgram.uniformCallbacksArray[og.webgl.shaderTypes.MAT4] = function (ctx, program, name, value) {
     ctx.uniformMatrix4fv(program[name], false, value);
@@ -55,6 +58,7 @@ og.webgl.ShaderProgram = function (handler, material) {
     this.fragmentShader = material.fragmentShader;
     this.handler = handler;
     this._p = null;
+    this.createProgram();
 };
 
 og.webgl.ShaderProgram.prototype.apply = function () {
@@ -66,7 +70,7 @@ og.webgl.ShaderProgram.prototype.apply = function () {
     }
 };
 
-og.webgl.ShaderProgram.prototype.getShaderCompileStatus = function (shader) {
+og.webgl.ShaderProgram.prototype.getShaderCompileStatus = function (shader, src) {
     var gl = this.handler.gl;
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
@@ -80,7 +84,7 @@ og.webgl.ShaderProgram.prototype.getShaderCompileStatus = function (shader) {
 og.webgl.ShaderProgram.prototype.createVertexShader = function (src) {
     var gl = this.handler.gl;
     var shader = gl.createShader(gl.VERTEX_SHADER);
-    if (!this.getShaderCompileStatus(shader)) {
+    if (!this.getShaderCompileStatus(shader, src)) {
         return null;
     }
     return shader;
@@ -89,7 +93,7 @@ og.webgl.ShaderProgram.prototype.createVertexShader = function (src) {
 og.webgl.ShaderProgram.prototype.createFragmentShader = function (src) {
     var gl = this.handler.gl;
     var shader = gl.createShader(gl.FRAGMENT_SHADER);
-    if (!this.getShaderCompileStatus(shader)) {
+    if (!this.getShaderCompileStatus(shader, src)) {
         return null;
     }
     return shader;
@@ -101,20 +105,21 @@ og.webgl.ShaderProgram.prototype.createProgram = function () {
 
     this._p = gl.createProgram();
 
-    gl.attachShader(this._p, this.createFragmentProgram(this.fragmentShader));
-    gl.attachShader(this._p, this.createVertexProgram(this.vertexShader));
+    gl.attachShader(this._p, this.createFragmentShader(this.fragmentShader));
+    gl.attachShader(this._p, this.createVertexShader(this.vertexShader));
 
     gl.linkProgram(this._p);
 
     if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
-        alert("Could not initialise shaders");
+        alert("Could not initialise shaders.");
     }
 
     gl.useProgram(this._p);
 
     for (var a in this.attributes) {
         this._p[a] = gl.getAttribLocation(this._p, a);
-        gl.enableVertexAttribArray(this._p[a]);
+        if (this.attributes[a].enableArray)
+            gl.enableVertexAttribArray(this._p[a]);
     }
 
     for (var u in this.uniforms) {
