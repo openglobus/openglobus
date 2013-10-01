@@ -108,11 +108,6 @@ og.webgl.Handler.prototype.init = function () {
     this.gl.ext = this.initAnysotropicFiltering();
 };
 
-og.webgl.Handler.prototype.setMatrixUniforms = function () {
-    this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
-    this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
-};
-
 og.webgl.Handler.prototype.setTextureBias = function (bias) {
     this.gl.uniform1f(this.shaderProgram.texScale, bias[2]);
     this.gl.uniform2f(this.shaderProgram.texOffset, bias[0], bias[1]);
@@ -142,6 +137,9 @@ og.webgl.Handler.prototype.bindTexture = function (texture) {
 
 og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer, vertexIndexBuffer) {
 
+    this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
+    this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
+
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, coordsBuffer);
     this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, coordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
@@ -153,8 +151,6 @@ og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer,
     this.gl.uniform1i(this.shaderProgram.samplerUniform, 0);
 
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
-
-    this.setMatrixUniforms();
 
     this.gl.drawElements(this._drawMode, vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
 };
