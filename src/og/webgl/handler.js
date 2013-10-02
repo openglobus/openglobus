@@ -11,6 +11,7 @@ og.webgl.Handler = function (htmlId) {
     this.backgroundColor = { r: 0.48, g: 0.48, b: 0.48, a: 1.0 };
     this.htmlCanvasId = htmlId;
     this.gl;
+    this._initialized = false;
     this.drawback = function (x) { };
 
     //viewport matrixes
@@ -18,6 +19,7 @@ og.webgl.Handler = function (htmlId) {
     this.pMatrix = new og.math.GLArray(16);
     this.mvMatrixStack = [];
     this.shaderProgram;
+    this.shaderPrograms = {};
     this._drawMode;
 
     //TODO: multitexturing(replace to array of binded textures)
@@ -48,6 +50,18 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
+};
+
+og.webgl.Handler.prototype.addShaderProgram = function (program) {
+    if (this._initialized) {
+        program.createProgram(this.gl);
+    };
+    var p = this.shaderPrograms[program.name];
+    if (!p) {
+        this.shaderPrograms[program.name] = program;
+    } else {
+        // same name program allready exists
+    }
 };
 
 og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
@@ -96,8 +110,16 @@ og.webgl.Handler.prototype.mvPopMatrix = function () {
     this.mvMatrix = this.mvMatrixStack.pop();
 };
 
+og.webgl.Handler.prototype.initShaderPrograms = function () {
+    for (var p in this.shaderPrograms) {
+        this.shaderPrograms[p].createProgram(this.gl);
+    }
+};
+
 og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
+    this._initialized = true;
+    this.initShaderPrograms();
     this.shaderProgram = og.webgl.initShaders(this.gl);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);

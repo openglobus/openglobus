@@ -1,4 +1,4 @@
-/*> var program = new og.webgl.ShaderProgram(renderer.ctx, {
+/*> var program = new og.webgl.ShaderProgram("shader name", {
  *>      uniforms : {
  *>          uMVMatrix:{ type: og.webgl.shaderTypes.MAT4, value: [] },
  *>          uPMatrix:{ type: og.webgl.shaderTypes.MAT4, value: [] },
@@ -51,39 +51,37 @@ og.webgl.ShaderProgram.attributeCallbacksArray[og.webgl.shaderTypes.MAT4] = func
     ctx.uniformMatrix4fv(program[name], false, value);
 };
 
-og.webgl.ShaderProgram = function (handler, material) {
+og.webgl.ShaderProgram = function (name, material) {
+    this.name = name;
     this.attributes = material.attributes;
     this.uniforms = material.uniforms;
     this.vertexShader = material.vertexShader;
     this.fragmentShader = material.fragmentShader;
-    this.handler = handler;
+    this.ctx = null;
     this._p = null;
-    this.createProgram();
 };
 
 og.webgl.ShaderProgram.prototype.apply = function () {
     for (var a in this.attributes) {
-        og.webgl.ShaderProgram.attributeCallbacksArray[this.attributes[a].type](this.handler.gl, this._p[a], a, this.attributes.value);
+        og.webgl.ShaderProgram.attributeCallbacksArray[this.attributes[a].type](this.ctx, this._p[a], a, this.attributes.value);
     }
     for (var u in this.uniforms) {
-        og.webgl.ShaderProgram.uniformCallbacksArray[this.attributes[a].type](this.handler.gl, this._p[a], a, this.uniforms.value);
+        og.webgl.ShaderProgram.uniformCallbacksArray[this.attributes[a].type](this.ctx, this._p[a], a, this.uniforms.value);
     }
 };
 
 og.webgl.ShaderProgram.prototype.getShaderCompileStatus = function (shader, src) {
-    var gl = this.handler.gl;
-    gl.shaderSource(shader, src);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(shader));
+    this.ctx.shaderSource(shader, src);
+    this.ctx.compileShader(shader);
+    if (!this.ctx.getShaderParameter(shader, this.ctx.COMPILE_STATUS)) {
+        alert(this.ctx.getShaderInfoLog(shader));
         return false;
     }
     return true;
 }
 
 og.webgl.ShaderProgram.prototype.createVertexShader = function (src) {
-    var gl = this.handler.gl;
-    var shader = gl.createShader(gl.VERTEX_SHADER);
+    var shader = this.ctx.createShader(this.ctx.VERTEX_SHADER);
     if (!this.getShaderCompileStatus(shader, src)) {
         return null;
     }
@@ -91,8 +89,7 @@ og.webgl.ShaderProgram.prototype.createVertexShader = function (src) {
 };
 
 og.webgl.ShaderProgram.prototype.createFragmentShader = function (src) {
-    var gl = this.handler.gl;
-    var shader = gl.createShader(gl.FRAGMENT_SHADER);
+    var shader = this.ctx.createShader(this.ctx.FRAGMENT_SHADER);
     if (!this.getShaderCompileStatus(shader, src)) {
         return null;
     }
@@ -100,29 +97,27 @@ og.webgl.ShaderProgram.prototype.createFragmentShader = function (src) {
 };
 
 
-og.webgl.ShaderProgram.prototype.createProgram = function () {
-    var gl = this.handler.gl;
+og.webgl.ShaderProgram.prototype.createProgram = function (ctx) {
+    this.ctx = ctx;
+    this._p = this.ctx.createProgram();
 
-    this._p = gl.createProgram();
+    ctx.attachShader(this._p, this.createFragmentShader(this.fragmentShader));
+    ctx.attachShader(this._p, this.createVertexShader(this.vertexShader));
+    ctx.linkProgram(this._p);
 
-    gl.attachShader(this._p, this.createFragmentShader(this.fragmentShader));
-    gl.attachShader(this._p, this.createVertexShader(this.vertexShader));
-
-    gl.linkProgram(this._p);
-
-    if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
+    if (!ctx.getProgramParameter(this._p, ctx.LINK_STATUS)) {
         alert("Could not initialise shaders.");
     }
 
-    gl.useProgram(this._p);
+    ctx.useProgram(this._p);
 
     for (var a in this.attributes) {
-        this._p[a] = gl.getAttribLocation(this._p, a);
+        this._p[a] = ctx.getAttribLocation(this._p, a);
         if (this.attributes[a].enableArray)
-            gl.enableVertexAttribArray(this._p[a]);
+            ctx.enableVertexAttribArray(this._p[a]);
     }
 
     for (var u in this.uniforms) {
-        this._p[u] = gl.getUniformLocation(this._p, u);
+        this._p[u] = ctx.getUniformLocation(this._p, u);
     }
 };
