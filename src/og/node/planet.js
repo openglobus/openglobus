@@ -85,20 +85,20 @@ og.node.Planet.prototype.initTransformationToSphere = function () {
     var ry = this.ellipsoid._a / this.ellipsoid._b;
     var rz = 1.0;
 
-    this.mxScale.set([rx,  0,  0,   0,
-                       0, ry,  0,   0,
-                       0,  0, rz,   0,
-                       0,  0,  0, 1.0]);
+    this.mxScale.set([rx, 0, 0, 0,
+                       0, ry, 0, 0,
+                       0, 0, rz, 0,
+                       0, 0, 0, 1.0]);
 
-    this.mxRotation.set([1.0,   0,   0,   0,
-                           0, 1.0,   0,   0,
-                           0,   0, 1.0,   0,
-                           0,   0,   0, 1.0]);
+    this.mxRotation.set([1.0, 0, 0, 0,
+                           0, 1.0, 0, 0,
+                           0, 0, 1.0, 0,
+                           0, 0, 0, 1.0]);
 
-    this.mxTranslation.set([1.0,   0,   0,   0,
-                              0, 1.0,   0,   0,
-                              0,   0, 1.0,   0,
-                              0,   0,   0, 1.0]);
+    this.mxTranslation.set([1.0, 0, 0, 0,
+                              0, 1.0, 0, 0,
+                              0, 0, 1.0, 0,
+                              0, 0, 0, 1.0]);
 };
 
 og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
@@ -145,10 +145,8 @@ og.node.Planet.prototype.frame = function () {
 
 og.node.Planet.prototype.renderNodes = function () {
     var nodes = this.renderedNodes;
-    for (var i = 0; i < nodes.length; i++)
-    {
-        if (nodes[i].planetSegment.refreshIndexesBuffer)
-        {
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].planetSegment.refreshIndexesBuffer) {
             //...
             nodes[i].planetSegment.createIndexesBuffer(nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize);
             //nodes[i].planetSegment.createIndexesBuffer(1, 1, 1, 1);
