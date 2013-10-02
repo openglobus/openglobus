@@ -116,11 +116,19 @@ og.webgl.Handler.prototype.initShaderPrograms = function () {
     }
 };
 
+og.webgl.Handler.prototype.useShaderProgram = function (name) {
+    this.gl.useProgram(this.shaderPrograms[name]);
+};
+
 og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this._initialized = true;
     this.initShaderPrograms();
     this.shaderProgram = og.webgl.initShaders(this.gl);
+    this.setDefaults();
+};
+
+og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
     this._drawMode = this.gl.TRIANGLE_STRIP;
