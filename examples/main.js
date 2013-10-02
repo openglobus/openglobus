@@ -16,9 +16,29 @@ goog.require('og.control.MousePosition');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
 
+goog.require('og.webgl.ShaderProgram');
+goog.require('og.utils');
 
-og.start = function() {
+og.start = function () {
+
+    var defaultProgram = new og.webgl.ShaderProgram("defaultProgram", {
+        uniforms: {
+            uMVMatrix: { type: og.webgl.shaderTypes.MAT4, value: [] },
+            uPMatrix: { type: og.webgl.shaderTypes.MAT4, value: [] },
+            texOffset: { type: og.webgl.shaderTypes.VEC2, value: [] },
+            texScale: { type: og.webgl.shaderTypes.FLOAT, value: 1.0 },
+            uSampler: { type: og.webgl.shaderTypes.SAMPLER2D, value: null }
+        },
+        attributes: {
+            aVertexPosition: { type: og.webgl.shaderTypes.VEC3, enableArray: true },
+            aTextureCoord: { type: og.webgl.shaderTypes.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("../src/og/shaders/default_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/default_fs.txt")
+    });
+
     context = new og.webgl.Handler("canvas");
+    context.addShaderProgram(defaultProgram);
     context.init();
 
     renderer = new og.Renderer(context);
