@@ -13,25 +13,27 @@ goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ToggleWireframe');
 goog.require('og.control.LoadingSpinner');
 goog.require('og.control.MousePosition');
+goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
 
-goog.require('og.webgl.ShaderProgram');
+goog.require('og.shaderProgram.ShaderProgram');
+goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
 og.start = function () {
 
-    var defaultProgram = new og.webgl.ShaderProgram("defaultProgram", {
+    var defaultProgram = new og.shaderProgram.ShaderProgram("defaultProgram", {
         uniforms: {
-            uMVMatrix: { type: og.webgl.shaderTypes.MAT4, value: [] },
-            uPMatrix: { type: og.webgl.shaderTypes.MAT4, value: [] },
-            texOffset: { type: og.webgl.shaderTypes.VEC2, value: [] },
-            texScale: { type: og.webgl.shaderTypes.FLOAT, value: 1.0 },
-            uSampler: { type: og.webgl.shaderTypes.SAMPLER2D, value: null }
+            uMVMatrix: { type: og.shaderProgram.types.MAT4, value: [] },
+            uPMatrix: { type: og.shaderProgram.types.MAT4, value: [] },
+            texOffset: { type: og.shaderProgram.types.VEC2, value: [] },
+            texScale: { type: og.shaderProgram.types.FLOAT, value: 1.0 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D, texture: null }
         },
         attributes: {
-            aVertexPosition: { type: og.webgl.shaderTypes.VEC3, enableArray: true },
-            aTextureCoord: { type: og.webgl.shaderTypes.VEC2, enableArray: true }
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("../src/og/shaders/default_vs.txt"),
         fragmentShader: og.utils.readTextFile("../src/og/shaders/default_fs.txt")
@@ -72,7 +74,9 @@ og.start = function () {
         new og.control.ToggleWireframe({ autoActivate: true }),
         new og.control.LoadingSpinner({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
-	new og.control.LayerSwitcher({ autoActivate: true })
+	new og.control.LayerSwitcher({ autoActivate: true }),
+    	new og.control.ShowFps({ autoActivate: true })
+
     ]);
 
     renderer.Start();

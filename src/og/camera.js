@@ -86,9 +86,9 @@ og.Camera.prototype.update = function () {
     this.frustum.setFrustum(this.pmvMatrix._m);
 };
 
-og.Camera.prototype.apply = function () {
-    this.renderer.ctx.assignMatrices(this.pMatrix._m, this.mvMatrix._m);
-};
+//og.Camera.prototype.apply = function () {
+//    this.renderer.ctx.assignMatrices(this.pMatrix._m, this.mvMatrix._m);
+//};
 
 og.Camera.prototype.setModelViewMatrix = function () {
     this.mvMatrix.set([this.u.x, this.v.x, this.n.x, 0,

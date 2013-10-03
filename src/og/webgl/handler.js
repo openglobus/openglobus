@@ -15,10 +15,10 @@ og.webgl.Handler = function (htmlId) {
     this.drawback = function (x) { };
 
     //viewport matrixes
-    this.mvMatrix = new og.math.GLArray(16);
-    this.pMatrix = new og.math.GLArray(16);
-    this.mvMatrixStack = [];
-    this.shaderProgram;
+    //this.mvMatrix = new og.math.GLArray(16);
+    //this.pMatrix = new og.math.GLArray(16);
+    //this.mvMatrixStack = [];
+    //this.shaderProgram;
     this.shaderPrograms = {};
     this._drawMode;
 
@@ -73,42 +73,42 @@ og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
     return ext;
 };
 
-og.webgl.Handler.prototype.assignMatrices = function (pm, mvm) {
-    og.webgl.Handler.copyMatrix(this.pMatrix, pm);
-    og.webgl.Handler.copyMatrix(this.mvMatrix, mvm);
-};
+//og.webgl.Handler.prototype.assignMatrices = function (pm, mvm) {
+//    og.webgl.Handler.copyMatrix(this.pMatrix, pm);
+//    og.webgl.Handler.copyMatrix(this.mvMatrix, mvm);
+//};
 
-og.webgl.Handler.copyMatrix = function (dst, src) {
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
-    dst[4] = src[4];
-    dst[5] = src[5];
-    dst[6] = src[6];
-    dst[7] = src[7];
-    dst[8] = src[8];
-    dst[9] = src[9];
-    dst[10] = src[10];
-    dst[11] = src[11];
-    dst[12] = src[12];
-    dst[13] = src[13];
-    dst[14] = src[14];
-    dst[15] = src[15];
-};
+//og.webgl.Handler.copyMatrix = function (dst, src) {
+//    dst[0] = src[0];
+//    dst[1] = src[1];
+//    dst[2] = src[2];
+//    dst[3] = src[3];
+//    dst[4] = src[4];
+//    dst[5] = src[5];
+//    dst[6] = src[6];
+//    dst[7] = src[7];
+//    dst[8] = src[8];
+//    dst[9] = src[9];
+//    dst[10] = src[10];
+//    dst[11] = src[11];
+//    dst[12] = src[12];
+//    dst[13] = src[13];
+//    dst[14] = src[14];
+//    dst[15] = src[15];
+//};
 
-og.webgl.Handler.prototype.mvPushMatrix = function () {
-    var copy = new og.math.GLArray(16);
-    og.webgl.Handler.copyMatrix(copy, this.mvMatrix);
-    this.mvMatrixStack.push(copy);
-};
+//og.webgl.Handler.prototype.mvPushMatrix = function () {
+//    var copy = new og.math.GLArray(16);
+//    og.webgl.Handler.copyMatrix(copy, this.mvMatrix);
+//    this.mvMatrixStack.push(copy);
+//};
 
-og.webgl.Handler.prototype.mvPopMatrix = function () {
-    if (this.mvMatrixStack.length == 0) {
-        throw "Invalid popMatrix!";
-    }
-    this.mvMatrix = this.mvMatrixStack.pop();
-};
+//og.webgl.Handler.prototype.mvPopMatrix = function () {
+//    if (this.mvMatrixStack.length == 0) {
+//        throw "Invalid popMatrix!";
+//    }
+//    this.mvMatrix = this.mvMatrixStack.pop();
+//};
 
 og.webgl.Handler.prototype.initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
@@ -124,7 +124,7 @@ og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this._initialized = true;
     this.initShaderPrograms();
-    this.shaderProgram = og.webgl.initShaders(this.gl);
+    this.shaderProgram = this.shaderPrograms["defaultProgram"]._p;
     this.setDefaults();
 };
 
@@ -138,10 +138,10 @@ og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.ext = this.initAnysotropicFiltering();
 };
 
-og.webgl.Handler.prototype.setTextureBias = function (bias) {
-    this.gl.uniform1f(this.shaderProgram.texScale, bias[2]);
-    this.gl.uniform2f(this.shaderProgram.texOffset, bias[0], bias[1]);
-};
+//og.webgl.Handler.prototype.setTextureBias = function (bias) {
+//    this.gl.uniform1f(this.shaderProgram.texScale, bias[2]);
+//    this.gl.uniform2f(this.shaderProgram.texOffset, bias[0], bias[1]);
+//};
 
 og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems) {
     var buffer = this.gl.createBuffer();
@@ -161,29 +161,29 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     return buffer;
 };
 
-og.webgl.Handler.prototype.bindTexture = function (texture) {
-    this.texture = texture;
-};
+//og.webgl.Handler.prototype.bindTexture = function (texture) {
+//    this.texture = texture;
+//};
 
-og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer, vertexIndexBuffer) {
+//og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer, vertexIndexBuffer) {
 
-    this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
-    this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
+//    this.gl.uniformMatrix4fv(this.shaderProgram.uPMatrix, false, this.pMatrix);
+//    this.gl.uniformMatrix4fv(this.shaderProgram.uMVMatrix, false, this.mvMatrix);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, coordsBuffer);
-    this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, coordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+//    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, coordsBuffer);
+//    this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, coordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordsBuffer);
-    this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, texCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+//    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordsBuffer);
+//    this.gl.vertexAttribPointer(this.shaderProgram.aTextureCoord, texCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-    this.gl.uniform1i(this.shaderProgram.samplerUniform, 0);
+//    this.gl.activeTexture(this.gl.TEXTURE0);
+//    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+//    this.gl.uniform1i(this.shaderProgram.uSampler, 0);
 
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+//    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
 
-    this.gl.drawElements(this._drawMode, vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
-};
+//    this.gl.drawElements(this._drawMode, vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
+//};
 
 og.webgl.Handler.prototype.setDrawMode = function (mode) {
     switch (mode) {
