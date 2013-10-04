@@ -13,12 +13,50 @@ goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ToggleWireframe');
 goog.require('og.control.LoadingSpinner');
 goog.require('og.control.MousePosition');
+goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
 
+goog.require('og.shaderProgram.ShaderProgram');
+goog.require('og.shaderProgram.types');
+goog.require('og.utils');
 
-og.start = function() {
+og.start = function () {
+
+    var planetShader = new og.shaderProgram.ShaderProgram("planet", {
+        uniforms: {
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            texOffset: { type: og.shaderProgram.types.VEC2},
+            texScale: { type: og.shaderProgram.types.FLOAT},
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        attributes: {
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("../src/og/shaders/planet_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/planet_fs.txt")
+    });
+
+    var skyboxShader = new og.shaderProgram.ShaderProgram("skybox", {
+        uniforms: {
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        attributes: {
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("../src/og/shaders/skybox_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/skybox_fs.txt")
+    });
+
+
     context = new og.webgl.Handler("canvas");
+    context.addShaderProgram(planetShader);
+    context.addShaderProgram(skyboxShader);
     context.init();
 
     renderer = new og.Renderer(context);
@@ -52,7 +90,9 @@ og.start = function() {
         new og.control.ToggleWireframe({ autoActivate: true }),
         new og.control.LoadingSpinner({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
-	new og.control.LayerSwitcher({ autoActivate: true })
+	new og.control.LayerSwitcher({ autoActivate: true }),
+    	new og.control.ShowFps({ autoActivate: true })
+
     ]);
 
     renderer.Start();
