@@ -25,11 +25,11 @@ og.start = function () {
 
     var defaultProgram = new og.shaderProgram.ShaderProgram("defaultProgram", {
         uniforms: {
-            uMVMatrix: { type: og.shaderProgram.types.MAT4, value: [] },
-            uPMatrix: { type: og.shaderProgram.types.MAT4, value: [] },
-            texOffset: { type: og.shaderProgram.types.VEC2, value: [] },
-            texScale: { type: og.shaderProgram.types.FLOAT, value: 1.0 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D, texture: null }
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            texOffset: { type: og.shaderProgram.types.VEC2},
+            texScale: { type: og.shaderProgram.types.FLOAT},
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

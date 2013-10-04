@@ -234,19 +234,15 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
-        var sh = this._ctx.shaderPrograms["defaultProgram"];
-
-        sh.attributes.aVertexPosition.buffer = this.vertexPositionBuffer;
-        sh.attributes.aTextureCoord.buffer = this.vertexTextureCoordBuffer;
-
-        sh.uniforms.uPMatrix.value = this.planet.renderer.activeCamera.pMatrix._m;
-        sh.uniforms.uMVMatrix.value = this.planet.renderer.activeCamera.mvMatrix._m;
-
-        sh.uniforms.texScale.value = this.texBias[2];
-        sh.uniforms.texOffset.value = [this.texBias[0],this.texBias[1]];
-        sh.uniforms.uSampler.texture = this.texture;
-
-        sh.apply();
+        this._ctx.shaderPrograms.defaultProgram.set({
+            aVertexPosition: this.vertexPositionBuffer,
+            aTextureCoord: this.vertexTextureCoordBuffer,
+            uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
+            uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
+            texScale: this.texBias[2],
+            texOffset: [this.texBias[0], this.texBias[1]],
+            uSampler: this.texture
+        });
 
         this._ctx.gl.bindBuffer(this._ctx.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
         this._ctx.gl.drawElements(this._ctx._drawMode, this.vertexIndexBuffer.numItems, this._ctx.gl.UNSIGNED_SHORT, 0);

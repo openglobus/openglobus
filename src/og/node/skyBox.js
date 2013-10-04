@@ -48,25 +48,23 @@ og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
 };
 
 og.node.SkyBox.prototype.frame = function () {
-    var sh = this.renderer.ctx.shaderPrograms["defaultProgram"];
-
-    sh.uniforms.uPMatrix.value = this.renderer.activeCamera.pMatrix._m;
-    sh.uniforms.uMVMatrix.value = this.renderer.activeCamera.mvMatrix._m;
-
-    sh.uniforms.texScale.value = 1;
-    sh.uniforms.texOffset.value = [0, 0];
+    this.renderer.ctx.shaderPrograms.defaultProgram.set({
+        uPMatrix: this.renderer.activeCamera.pMatrix._m,
+        uMVMatrix: this.renderer.activeCamera.mvMatrix._m,
+        texScale: 1,
+        texOffset: [0, 0]
+    });
 
     for (var i = 0; i < 6; i++) {
-        sh.uniforms.uSampler.texture = this.textures[i];
-        sh.attributes.aVertexPosition.buffer = this.vertexPositionBuffers[i];
-        sh.attributes.aTextureCoord.buffer = this.vertexTextureCoordBuffers[i];
-        sh.apply();
+        this.renderer.ctx.shaderPrograms.defaultProgram.set({
+            uSampler: this.textures[i],
+            aVertexPosition: this.vertexPositionBuffers[i],
+            aTextureCoord: this.vertexTextureCoordBuffers[i]
+        });
 
         this.renderer.ctx.gl.bindBuffer(this.renderer.ctx.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffers[i]);
         this.renderer.ctx.gl.drawElements(this.renderer.ctx._drawMode, this.vertexIndexBuffers[i].numItems, this.renderer.ctx.gl.UNSIGNED_SHORT, 0);
     }
-
-    //this.renderer.ctx.mvPopMatrix();
 };
 
 og.node.SkyBox.prototype.createBuffers = function () {

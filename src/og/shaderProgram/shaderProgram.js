@@ -6,27 +6,17 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.name = name;
     this.attributes = material.attributes;
     this.uniforms = material.uniforms;
+    this._variables = {};
     this.vertexShader = material.vertexShader;
     this.fragmentShader = material.fragmentShader;
     this.gl = null;
     this._p = null;
 };
 
-og.shaderProgram.ShaderProgram.prototype.apply = function () {
-
-    for (var n in this.uniforms) {
-        og.shaderProgram.callbacks[this.uniforms[n].type](this, n, this.uniforms);
-    }
-
-    for (var n in this.attributes) {
-        var an = this.attributes[n];
-        if (an.enableArray) {
-            var gl = this.gl;
-            gl.bindBuffer(gl.ARRAY_BUFFER, an.buffer);
-            gl.vertexAttribPointer(this._p[n], an.buffer.itemSize, gl.FLOAT, false, 0, 0);
-        } else {
-            og.shaderProgram.callbacks[an.type](this, n, this.attributes);
-        }
+og.shaderProgram.ShaderProgram.prototype.set = function (material) {
+    for (var i in material) {
+        this._variables[i].value = material[i];
+        og.shaderProgram.callbacks[this._variables[i].type](this, this._variables[i]);
     }
 };
 
@@ -72,12 +62,16 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     gl.useProgram(this._p);
 
     for (var a in this.attributes) {
+        this.attributes[a]._name = a;
+        this._variables[a] = this.attributes[a];
         this._p[a] = gl.getAttribLocation(this._p, a);
         if (this.attributes[a].enableArray)
             gl.enableVertexAttribArray(this._p[a]);
     }
 
     for (var u in this.uniforms) {
+        this.uniforms[u]._name = u;
+        this._variables[u] = this.uniforms[u];
         this._p[u] = gl.getUniformLocation(this._p, u);
     }
 };
