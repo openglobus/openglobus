@@ -37,6 +37,10 @@ goog.addDependency('../../../openglobus/src/og/planetSegment/planetSegmentHelper
 goog.addDependency('../../../openglobus/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.extent', 'og.planetSegment.PlanetSegment', 'og.quadTree']);
 goog.addDependency('../../../openglobus/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
 goog.addDependency('../../../openglobus/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.input', 'og.input.Input', 'og.math.Vector3']);
+goog.addDependency('../../../openglobus/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);
+goog.addDependency('../../../openglobus/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram.ShaderProgram'], ['og.shaderProgram.callbacks']);
+goog.addDependency('../../../openglobus/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
 goog.addDependency('../../../openglobus/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider', 'og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.layer', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree']);
+goog.addDependency('../../../openglobus/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);
 goog.addDependency('../../../openglobus/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.math', 'og.webgl']);
-goog.addDependency('../../../openglobus/src/og/webgl/webgl.js', ['og.webgl'], []);
+goog.addDependency('../../../openglobus/src/og/webgl/webgl.js', ['og.webgl'], ['og.utils']);

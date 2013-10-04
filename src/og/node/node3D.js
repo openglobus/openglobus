@@ -7,7 +7,7 @@ goog.require('og._class_');
 og.node.Node3D = function(name) {
     og.node.Node3D.superclass.constructor.call(this, name);
     this.renderer = null;
-    this.drawMode = og.webgl.GL_TRIANGLES;
+    this.drawMode;
     this.show = true;
     this._isActive = true;
 };
@@ -46,7 +46,6 @@ og.node.Node3D.prototype.drawNodes = function () {
 
     if(this.show)
         if (this.frame) {
-            this.renderer.ctx.setDrawMode(this.drawMode);
             this.frame();
         }
 };

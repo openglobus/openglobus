@@ -1,16 +1,9 @@
 goog.provide('og.webgl');
 
-goog.require('og.Ajax');
+goog.require('og.utils');
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 og.webgl.MAX_FRAME_DELAY = 20;
-
-og.webgl.GL_POINTS = 0;
-og.webgl.GL_LINE_STRIP = 1;
-og.webgl.GL_LINE_LOOP = 2;
-og.webgl.GL_LINES = 3;
-og.webgl.GL_TRIANGLE_STRIP = 4;
-og.webgl.GL_TRIANGLES = 5;
 
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
@@ -21,72 +14,6 @@ og.webgl.getExtension = function (gl, name) {
         }
     }
     return null;
-};
-
-og.webgl.getShader = function (gl, fileName, type) {
-    var shaderScript;
-
-    og.Ajax.request("../src/og/shaders/" + fileName, {
-        async: false,
-        success: function (data)
-        {
-            shaderScript = data;
-        }
-    });
-
-    if (!shaderScript) {
-        return null;
-    }
-
-    var shader;
-    if (type == "fragment") {
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (type == "vertex") {
-        shader = gl.createShader(gl.VERTEX_SHADER);
-    } else {
-        return null;
-    }
-
-    gl.shaderSource(shader, shaderScript);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(shader));
-        return null;
-    }
-
-    return shader;
-};
-
-og.webgl.initShaders = function (gl) {
-    var fragmentShader = og.webgl.getShader(gl, "default_fs.txt", "fragment");
-    var vertexShader = og.webgl.getShader(gl, "default_vs.txt", "vertex");
-    var shaderProgram = gl.createProgram();
-
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        alert("Could not initialise shaders");
-    }
-
-    gl.useProgram(shaderProgram);
-
-    shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-    shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
-
-    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-    shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-
-    shaderProgram.texOffset = gl.getUniformLocation(shaderProgram, "texOffset");
-    shaderProgram.texScale = gl.getUniformLocation(shaderProgram, "texScale");
-
-    return shaderProgram;
 };
 
 og.webgl.initCanvas = function (htmlCanvasId) {

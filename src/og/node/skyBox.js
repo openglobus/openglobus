@@ -13,7 +13,7 @@ og.node.SkyBox = function () {
 
     this.textures = new Array(6);
     this.texturesFileName = new Array(6);
-    this.spath = "Resources\\Images\\Skyboxes\\Tycho\\";
+    this.spath = "../Resources/Images/Skyboxes/Tycho/";
 };
 
 og._class_.extend(og.node.SkyBox, og.node.Node3D);
@@ -35,7 +35,7 @@ og.node.SkyBox.prototype.initialization = function () {
     this.initTexture(this.spath + "nx.jpg", og.node.SkyBox.LEFT_PLANE);
 
     this.createBuffers();
-    this.drawMode = og.webgl.GL_TRIANGLES;
+    this.drawMode = this.renderer.ctx.gl.TRIANGLES;
 }
 
 og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
@@ -48,15 +48,22 @@ og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
 };
 
 og.node.SkyBox.prototype.frame = function () {
-    this.renderer.ctx.setTextureBias([0,0,1]);
-    this.renderer.ctx.mvPushMatrix();
+    this.renderer.ctx.shaderPrograms.skybox.activate();
+
+    this.renderer.ctx.shaderPrograms.skybox.set({
+        uPMatrix: this.renderer.activeCamera.pMatrix._m,
+        uMVMatrix: this.renderer.activeCamera.mvMatrix._m
+    });
 
     for (var i = 0; i < 6; i++) {
-        this.renderer.ctx.bindTexture(this.textures[i]);
-        this.renderer.ctx.drawBuffer(this.vertexPositionBuffers[i], this.vertexTextureCoordBuffers[i], this.vertexIndexBuffers[i]);
-    }
+        this.renderer.ctx.shaderPrograms.skybox.set({
+            uSampler: this.textures[i],
+            aVertexPosition: this.vertexPositionBuffers[i],
+            aTextureCoord: this.vertexTextureCoordBuffers[i]
+        });
 
-    this.renderer.ctx.mvPopMatrix();
+        this.renderer.ctx.shaderPrograms.skybox.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
+    }
 };
 
 og.node.SkyBox.prototype.createBuffers = function () {

@@ -234,8 +234,16 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
-        this._ctx.bindTexture(this.texture);
-        this._ctx.setTextureBias(this.texBias);
-        this._ctx.drawBuffer(this.vertexPositionBuffer, this.vertexTextureCoordBuffer, this.vertexIndexBuffer);
+        this._ctx.shaderPrograms.planet.set({
+            aVertexPosition: this.vertexPositionBuffer,
+            aTextureCoord: this.vertexTextureCoordBuffer,
+            uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
+            uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
+            texScale: this.texBias[2],
+            texOffset: [this.texBias[0], this.texBias[1]],
+            uSampler: this.texture
+        });
+
+        this._ctx.shaderPrograms.planet.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
     }
 };

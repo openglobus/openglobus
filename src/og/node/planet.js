@@ -75,7 +75,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 
 og.node.Planet.prototype.initialization = function () {
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
-    this.drawMode = og.webgl.GL_TRIANGLE_STRIP;
+    this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
 };
@@ -85,20 +85,20 @@ og.node.Planet.prototype.initTransformationToSphere = function () {
     var ry = this.ellipsoid._a / this.ellipsoid._b;
     var rz = 1.0;
 
-    this.mxScale.set([rx,  0,  0,   0,
-                       0, ry,  0,   0,
-                       0,  0, rz,   0,
-                       0,  0,  0, 1.0]);
+    this.mxScale.set([rx, 0, 0, 0,
+                       0, ry, 0, 0,
+                       0, 0, rz, 0,
+                       0, 0, 0, 1.0]);
 
-    this.mxRotation.set([1.0,   0,   0,   0,
-                           0, 1.0,   0,   0,
-                           0,   0, 1.0,   0,
-                           0,   0,   0, 1.0]);
+    this.mxRotation.set([1.0, 0, 0, 0,
+                           0, 1.0, 0, 0,
+                           0, 0, 1.0, 0,
+                           0, 0, 0, 1.0]);
 
-    this.mxTranslation.set([1.0,   0,   0,   0,
-                              0, 1.0,   0,   0,
-                              0,   0, 1.0,   0,
-                              0,   0,   0, 1.0]);
+    this.mxTranslation.set([1.0, 0, 0, 0,
+                              0, 1.0, 0, 0,
+                              0, 0, 1.0, 0,
+                              0, 0, 0, 1.0]);
 };
 
 og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
@@ -144,11 +144,12 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
+
+    this.renderer.ctx.shaderPrograms.planet.activate();
+
     var nodes = this.renderedNodes;
-    for (var i = 0; i < nodes.length; i++)
-    {
-        if (nodes[i].planetSegment.refreshIndexesBuffer)
-        {
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].planetSegment.refreshIndexesBuffer) {
             //...
             nodes[i].planetSegment.createIndexesBuffer(nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize);
             //nodes[i].planetSegment.createIndexesBuffer(1, 1, 1, 1);

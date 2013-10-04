@@ -105,7 +105,7 @@ og.Renderer.prototype.draw = function (delta) {
 
     this.handleControls();
 
-    this.activeCamera.apply();
+    //this.activeCamera.apply();
 
     for (var i = 0; i < this.renderNodes.length; i++) {
         this.renderNodes[i].drawNode();

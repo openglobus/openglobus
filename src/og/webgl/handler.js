@@ -11,17 +11,9 @@ og.webgl.Handler = function (htmlId) {
     this.backgroundColor = { r: 0.48, g: 0.48, b: 0.48, a: 1.0 };
     this.htmlCanvasId = htmlId;
     this.gl;
+    this._initialized = false;
     this.drawback = function (x) { };
-
-    //viewport matrixes
-    this.mvMatrix = new og.math.GLArray(16);
-    this.pMatrix = new og.math.GLArray(16);
-    this.mvMatrixStack = [];
-    this.shaderProgram;
-    this._drawMode;
-
-    //TODO: multitexturing(replace to array of binded textures)
-    this.texture;
+    this.shaderPrograms = {};
     this.anisotropicFilteringEnabled = false;
 };
 
@@ -50,6 +42,18 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
     return texture;
 };
 
+og.webgl.Handler.prototype.addShaderProgram = function (program) {
+    if (this._initialized) {
+        program.createProgram(this.gl);
+    };
+    var p = this.shaderPrograms[program.name];
+    if (!p) {
+        this.shaderPrograms[program.name] = program;
+    } else {
+        // same name program allready exists
+    }
+};
+
 og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
     var ext = og.webgl.getExtension(this.gl, "EXT_texture_filter_anisotropic");
     if (!ext) {
@@ -59,63 +63,30 @@ og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
     return ext;
 };
 
-og.webgl.Handler.prototype.assignMatrices = function (pm, mvm) {
-    og.webgl.Handler.copyMatrix(this.pMatrix, pm);
-    og.webgl.Handler.copyMatrix(this.mvMatrix, mvm);
-};
-
-og.webgl.Handler.copyMatrix = function (dst, src) {
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
-    dst[4] = src[4];
-    dst[5] = src[5];
-    dst[6] = src[6];
-    dst[7] = src[7];
-    dst[8] = src[8];
-    dst[9] = src[9];
-    dst[10] = src[10];
-    dst[11] = src[11];
-    dst[12] = src[12];
-    dst[13] = src[13];
-    dst[14] = src[14];
-    dst[15] = src[15];
-};
-
-og.webgl.Handler.prototype.mvPushMatrix = function () {
-    var copy = new og.math.GLArray(16);
-    og.webgl.Handler.copyMatrix(copy, this.mvMatrix);
-    this.mvMatrixStack.push(copy);
-};
-
-og.webgl.Handler.prototype.mvPopMatrix = function () {
-    if (this.mvMatrixStack.length == 0) {
-        throw "Invalid popMatrix!";
+og.webgl.Handler.prototype.initShaderPrograms = function () {
+    for (var p in this.shaderPrograms) {
+        this.shaderPrograms[p].createProgram(this.gl);
     }
-    this.mvMatrix = this.mvMatrixStack.pop();
+};
+
+og.webgl.Handler.prototype.useShaderProgram = function (name) {
+    this.gl.useProgram(this.shaderPrograms[name]);
 };
 
 og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
-    this.shaderProgram = og.webgl.initShaders(this.gl);
+    this._initialized = true;
+    this.initShaderPrograms();
+    this.setDefaults();
+};
+
+og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-    this._drawMode = this.gl.TRIANGLE_STRIP;
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
     this.gl.ext = this.initAnysotropicFiltering();
-};
-
-og.webgl.Handler.prototype.setMatrixUniforms = function () {
-    this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform, false, this.pMatrix);
-    this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, this.mvMatrix);
-};
-
-og.webgl.Handler.prototype.setTextureBias = function (bias) {
-    this.gl.uniform1f(this.shaderProgram.texScale, bias[2]);
-    this.gl.uniform2f(this.shaderProgram.texOffset, bias[0], bias[1]);
 };
 
 og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems) {
@@ -134,52 +105,6 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;
-};
-
-og.webgl.Handler.prototype.bindTexture = function (texture) {
-    this.texture = texture;
-};
-
-og.webgl.Handler.prototype.drawBuffer = function (coordsBuffer, texCoordsBuffer, vertexIndexBuffer) {
-
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, coordsBuffer);
-    this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, coordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordsBuffer);
-    this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, texCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-    this.gl.uniform1i(this.shaderProgram.samplerUniform, 0);
-
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
-
-    this.setMatrixUniforms();
-
-    this.gl.drawElements(this._drawMode, vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
-};
-
-og.webgl.Handler.prototype.setDrawMode = function (mode) {
-    switch (mode) {
-        case og.webgl.GL_LINES:
-            this._drawMode = this.gl.LINES;
-            break;
-        case og.webgl.GL_LINE_STRIP:
-            this._drawMode = this.gl.LINE_STRIP;
-            break;
-        case og.webgl.GL_TRIANGLES:
-            this._drawMode = this.gl.TRIANGLES;
-            break;
-        case og.webgl.GL_TRIANGLE_STRIP:
-            this._drawMode = this.gl.TRIANGLE_STRIP;
-            break;
-        case og.webgl.GL_POINTS:
-            this._drawMode = this.gl.POINTS;
-            break;
-        case og.webgl.GL_LINE_LOOP:
-            this._drawMode = this.gl.LINE_LOOP;
-            break;
-    }
 };
 
 og.webgl.Handler.prototype.fillBackGroundColor = function (color) {
