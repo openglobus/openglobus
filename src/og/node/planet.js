@@ -75,7 +75,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 
 og.node.Planet.prototype.initialization = function () {
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
-    this.drawMode = og.webgl.GL_TRIANGLE_STRIP;
+    this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
 };

@@ -244,7 +244,6 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
             uSampler: this.texture
         });
 
-        this._ctx.gl.bindBuffer(this._ctx.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
-        this._ctx.gl.drawElements(this._ctx._drawMode, this.vertexIndexBuffer.numItems, this._ctx.gl.UNSIGNED_SHORT, 0);
+        this._ctx.shaderPrograms.defaultProgram.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
     }
 };

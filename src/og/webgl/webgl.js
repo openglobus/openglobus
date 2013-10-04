@@ -5,13 +5,6 @@ goog.require('og.utils');
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 og.webgl.MAX_FRAME_DELAY = 20;
 
-og.webgl.GL_POINTS = 0;
-og.webgl.GL_LINE_STRIP = 1;
-og.webgl.GL_LINE_LOOP = 2;
-og.webgl.GL_LINES = 3;
-og.webgl.GL_TRIANGLE_STRIP = 4;
-og.webgl.GL_TRIANGLES = 5;
-
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
     for (i in og.webgl.vendorPrefixes) {

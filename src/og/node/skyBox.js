@@ -35,7 +35,7 @@ og.node.SkyBox.prototype.initialization = function () {
     this.initTexture(this.spath + "nx.jpg", og.node.SkyBox.LEFT_PLANE);
 
     this.createBuffers();
-    this.drawMode = og.webgl.GL_TRIANGLES;
+    this.drawMode = this.renderer.ctx.gl.TRIANGLES;
 }
 
 og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
@@ -62,8 +62,7 @@ og.node.SkyBox.prototype.frame = function () {
             aTextureCoord: this.vertexTextureCoordBuffers[i]
         });
 
-        this.renderer.ctx.gl.bindBuffer(this.renderer.ctx.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffers[i]);
-        this.renderer.ctx.gl.drawElements(this.renderer.ctx._drawMode, this.vertexIndexBuffers[i].numItems, this.renderer.ctx.gl.UNSIGNED_SHORT, 0);
+        this.renderer.ctx.shaderPrograms.defaultProgram.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
     }
 };
 

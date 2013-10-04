@@ -14,7 +14,6 @@ og.webgl.Handler = function (htmlId) {
     this._initialized = false;
     this.drawback = function (x) { };
     this.shaderPrograms = {};
-    this._drawMode;
     this.anisotropicFilteringEnabled = false;
 };
 
@@ -85,7 +84,6 @@ og.webgl.Handler.prototype.init = function () {
 og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-    this._drawMode = this.gl.TRIANGLE_STRIP;
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
@@ -108,29 +106,6 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;
-};
-
-og.webgl.Handler.prototype.setDrawMode = function (mode) {
-    switch (mode) {
-        case og.webgl.GL_LINES:
-            this._drawMode = this.gl.LINES;
-            break;
-        case og.webgl.GL_LINE_STRIP:
-            this._drawMode = this.gl.LINE_STRIP;
-            break;
-        case og.webgl.GL_TRIANGLES:
-            this._drawMode = this.gl.TRIANGLES;
-            break;
-        case og.webgl.GL_TRIANGLE_STRIP:
-            this._drawMode = this.gl.TRIANGLE_STRIP;
-            break;
-        case og.webgl.GL_POINTS:
-            this._drawMode = this.gl.POINTS;
-            break;
-        case og.webgl.GL_LINE_LOOP:
-            this._drawMode = this.gl.LINE_LOOP;
-            break;
-    }
 };
 
 og.webgl.Handler.prototype.fillBackGroundColor = function (color) {
