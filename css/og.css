@@ -23,11 +23,11 @@
 }
 
 #ogLayerSwitcherButtonMinimize {
-    background:url(http://127.0.0.1/openglobus/resources/images/controls/ogMinimize.png) top left no-repeat;
+    background:url(../resources/images/controls/ogMinimize.png) top left no-repeat;
 }
 
 #ogLayerSwitcherButtonMaximize {
-    background:url(http://127.0.0.1/openglobus/resources/images/controls/ogMaximize.png) top left no-repeat;
+    background:url(../resources/images/controls/ogMaximize.png) top left no-repeat;
 }
 
 #ogLayerSwitcherDialog {
