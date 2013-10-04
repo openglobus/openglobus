@@ -23,6 +23,11 @@ og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     }
 };
 
+og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffer) {    
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
+    this.gl.drawElements(mode, buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
+};
+
 og.shaderProgram.ShaderProgram.prototype.getShaderCompileStatus = function (shader, src) {
     this.gl.shaderSource(shader, src);
     this.gl.compileShader(shader);
