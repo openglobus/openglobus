@@ -12,6 +12,9 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.gl = null;
     this._p = null;
 };
+og.shaderProgram.ShaderProgram.prototype.activate = function () {
+    this.gl.useProgram(this._p);
+};
 
 og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     for (var i in material) {
@@ -59,7 +62,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         alert("Could not initialise shaders.");
     }
 
-    gl.useProgram(this._p);
+    this.activate();
 
     for (var a in this.attributes) {
         this.attributes[a]._name = a;
