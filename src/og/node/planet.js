@@ -144,6 +144,9 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
+
+    this.renderer.ctx.shaderPrograms.planet.activate();
+
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
         if (nodes[i].planetSegment.refreshIndexesBuffer) {

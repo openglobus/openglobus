@@ -48,21 +48,21 @@ og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
 };
 
 og.node.SkyBox.prototype.frame = function () {
-    this.renderer.ctx.shaderPrograms.defaultProgram.set({
+    this.renderer.ctx.shaderPrograms.skybox.activate();
+
+    this.renderer.ctx.shaderPrograms.skybox.set({
         uPMatrix: this.renderer.activeCamera.pMatrix._m,
-        uMVMatrix: this.renderer.activeCamera.mvMatrix._m,
-        texScale: 1,
-        texOffset: [0, 0]
+        uMVMatrix: this.renderer.activeCamera.mvMatrix._m
     });
 
     for (var i = 0; i < 6; i++) {
-        this.renderer.ctx.shaderPrograms.defaultProgram.set({
+        this.renderer.ctx.shaderPrograms.skybox.set({
             uSampler: this.textures[i],
             aVertexPosition: this.vertexPositionBuffers[i],
             aTextureCoord: this.vertexTextureCoordBuffers[i]
         });
 
-        this.renderer.ctx.shaderPrograms.defaultProgram.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
+        this.renderer.ctx.shaderPrograms.skybox.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
     }
 };
 

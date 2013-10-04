@@ -77,7 +77,6 @@ og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this._initialized = true;
     this.initShaderPrograms();
-    this.shaderProgram = this.shaderPrograms["defaultProgram"]._p;
     this.setDefaults();
 };
 

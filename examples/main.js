@@ -23,7 +23,7 @@ goog.require('og.utils');
 
 og.start = function () {
 
-    var defaultProgram = new og.shaderProgram.ShaderProgram("defaultProgram", {
+    var planetShader = new og.shaderProgram.ShaderProgram("planet", {
         uniforms: {
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
@@ -35,12 +35,28 @@ og.start = function () {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
-        vertexShader: og.utils.readTextFile("../src/og/shaders/default_vs.txt"),
-        fragmentShader: og.utils.readTextFile("../src/og/shaders/default_fs.txt")
+        vertexShader: og.utils.readTextFile("../src/og/shaders/planet_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/planet_fs.txt")
     });
 
+    var skyboxShader = new og.shaderProgram.ShaderProgram("skybox", {
+        uniforms: {
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        attributes: {
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("../src/og/shaders/skybox_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/skybox_fs.txt")
+    });
+
+
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(defaultProgram);
+    context.addShaderProgram(planetShader);
+    context.addShaderProgram(skyboxShader);
     context.init();
 
     renderer = new og.Renderer(context);
