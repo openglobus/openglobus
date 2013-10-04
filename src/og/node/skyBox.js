@@ -1,7 +1,6 @@
 goog.provide('og.node.SkyBox');
 
 goog.require('og.node.Node3D');
-goog.require('og.webgl');
 
 og.node.SkyBox = function () {
     og.node.SkyBox.superclass.constructor.call(this, "skybox");

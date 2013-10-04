@@ -1,7 +1,6 @@
 goog.provide('og.node.Planet');
 
 goog.require('og.node.Node3D');
-goog.require('og.webgl');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 goog.require('og.quadTree');
