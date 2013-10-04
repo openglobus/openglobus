@@ -27,8 +27,8 @@ og.start = function () {
         uniforms: {
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
-            texOffset: { type: og.shaderProgram.types.VEC2},
-            texScale: { type: og.shaderProgram.types.FLOAT},
+            texOffset: { type: og.shaderProgram.types.VEC2 },
+            texScale: { type: og.shaderProgram.types.FLOAT },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
@@ -55,8 +55,7 @@ og.start = function () {
 
 
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(planetShader);
-    context.addShaderProgram(skyboxShader);
+    context.addShaderPrograms([planetShader, skyboxShader]);
     context.init();
 
     renderer = new og.Renderer(context);

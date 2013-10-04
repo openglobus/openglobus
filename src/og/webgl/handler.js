@@ -50,7 +50,13 @@ og.webgl.Handler.prototype.addShaderProgram = function (program) {
     if (!p) {
         this.shaderPrograms[program.name] = program;
     } else {
-        // same name program allready exists
+        alert(program.name + " is allready exists.");
+    }
+};
+
+og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
+    for (var i = 0; i < programsArr.length; i++) {
+        this.addShaderProgram(programsArr[i]);
     }
 };
 
