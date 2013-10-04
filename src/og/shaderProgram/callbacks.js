@@ -18,7 +18,7 @@ og.shaderProgram.callbacks[og.shaderProgram.types.VEC2] = function (program, var
         gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
         gl.vertexAttribPointer(program._p[variable._name], variable.value.itemSize, gl.FLOAT, false, 0, 0);
     } else {
-        program.gl.uniform2f(program._p[variable._name], variable.value[0], variable.value[1]);
+        program.gl.uniform2fv(program._p[variable._name], variable.value);
     }
 };
 
