@@ -16,6 +16,7 @@ goog.require('og.control.MousePosition');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
+goog.require('og.node.Axes');
 
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
@@ -53,9 +54,21 @@ og.start = function () {
         fragmentShader: og.utils.readTextFile("../src/og/shaders/skybox_fs.txt")
     });
 
+    var flatShader = new og.shaderProgram.ShaderProgram("flat", {
+        uniforms: {
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+        },
+        attributes: {
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aVertexColor: { type: og.shaderProgram.types.VEC4, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("../src/og/shaders/flat_vs.txt"),
+        fragmentShader: og.utils.readTextFile("../src/og/shaders/flat_fs.txt")
+    });
 
     context = new og.webgl.Handler("canvas");
-    context.addShaderPrograms([planetShader, skyboxShader]);
+    context.addShaderPrograms([planetShader, skyboxShader, flatShader]);
     context.init();
 
     renderer = new og.Renderer(context);
@@ -80,9 +93,12 @@ og.start = function () {
     planet.setTerrainProvider(terrain);
 
     var skybox = new og.node.SkyBox();
+    var axes = new og.node.Axes(10000);
 
     renderer.addRenderNode(planet);
     renderer.addRenderNode(skybox);
+    renderer.addRenderNode(axes);
+
     renderer.addControls([
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
