@@ -28,6 +28,10 @@ og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffe
     this.gl.drawElements(mode, buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
 };
 
+og.shaderProgram.ShaderProgram.prototype.drawArray = function (mode, numItems) {
+    this.gl.drawArrays(mode, 0, numItems);
+};
+
 og.shaderProgram.ShaderProgram.prototype.getShaderCompileStatus = function (shader, src) {
     this.gl.shaderSource(shader, src);
     this.gl.compileShader(shader);

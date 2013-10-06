@@ -2,6 +2,12 @@ goog.provide('og.shaderProgram.callbacks');
 
 goog.require('og.shaderProgram.types');
 
+og.shaderProgram.bindBuffer = function (program, variable) {
+    var gl = program.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
+    gl.vertexAttribPointer(program._p[variable._name], variable.value.itemSize, gl.FLOAT, false, 0, 0);
+};
+
 og.shaderProgram.callbacks = [];
 
 og.shaderProgram.callbacks[og.shaderProgram.types.MAT4] = function (program, variable) {
@@ -14,9 +20,7 @@ og.shaderProgram.callbacks[og.shaderProgram.types.FLOAT] = function (program, va
 
 og.shaderProgram.callbacks[og.shaderProgram.types.VEC2] = function (program, variable) {
     if (variable.enableArray) {
-        var gl = program.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
-        gl.vertexAttribPointer(program._p[variable._name], variable.value.itemSize, gl.FLOAT, false, 0, 0);
+        og.shaderProgram.bindBuffer(program, variable);
     } else {
         program.gl.uniform2fv(program._p[variable._name], variable.value);
     }
@@ -24,11 +28,17 @@ og.shaderProgram.callbacks[og.shaderProgram.types.VEC2] = function (program, var
 
 og.shaderProgram.callbacks[og.shaderProgram.types.VEC3] = function (program, variable) {
     if (variable.enableArray) {
-        var gl = program.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
-        gl.vertexAttribPointer(program._p[variable._name], variable.value.itemSize, gl.FLOAT, false, 0, 0);
+        og.shaderProgram.bindBuffer(program, variable);
     } else {
         program.gl.uniform3fv(program._p[variable._name], variable.value);
+    }
+};
+
+og.shaderProgram.callbacks[og.shaderProgram.types.VEC4] = function (program, variable) {
+    if (variable.enableArray) {
+        og.shaderProgram.bindBuffer(program, variable);
+    } else {
+        program.gl.uniform4fv(program._p[variable._name], variable.value);
     }
 };
 
