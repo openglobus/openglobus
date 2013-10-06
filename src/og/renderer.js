@@ -96,6 +96,12 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
     this.renderNodes.push(renderNode);
 };
 
+og.Renderer.prototype.addRenderNodes = function (nodesArr) {
+    for (var i = 0; i < nodesArr; i++) {
+        this.addRenderNode(nodesArr[i]);
+    }
+};
+
 og.Renderer.prototype.draw = function (delta) {
 
     this.input.handleEvents();
