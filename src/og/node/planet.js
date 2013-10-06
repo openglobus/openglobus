@@ -16,6 +16,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.layers = [];
     this.baseLayer;
     this.terrainProvider;
+    this.emptyTexture = null;
 
     this.mxScale = new og.math.Matrix4();
     this.mxRotation = new og.math.Matrix4();
@@ -77,6 +78,17 @@ og.node.Planet.prototype.initialization = function () {
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
+    this.loadDefaultTexture("../resources/images/planet/empty.jpg");
+
+};
+
+og.node.Planet.prototype.loadDefaultTexture = function (url) {
+    var that = this,
+        img = new Image();
+    img.onload = function () {
+        that.emptyTexture = that.renderer.ctx.createTextureFromImage(this);
+    };
+    img.src = url;
 };
 
 og.node.Planet.prototype.initTransformationToSphere = function () {

@@ -241,7 +241,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
             uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
             texScale: this.texBias[2],
             texOffset: [this.texBias[0], this.texBias[1]],
-            uSampler: this.texture
+            uSampler: this.texture ? this.texture : this.planet.emptyTexture
         });
 
         this._ctx.shaderPrograms.planet.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
