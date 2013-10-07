@@ -19,11 +19,11 @@ og.shaderProgram.ShaderProgram.prototype.activate = function () {
 og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     for (var i in material) {
         this._variables[i].value = material[i];
-        og.shaderProgram.callbacks[this._variables[i].type](this, this._variables[i]);
+        this._variables[i]._callback(this, this._variables[i]);
     }
 };
 
-og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffer) {    
+og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffer) {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.drawElements(mode, buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
 };
@@ -76,14 +76,25 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     for (var a in this.attributes) {
         this.attributes[a]._name = a;
         this._variables[a] = this.attributes[a];
+
+        if (this.attributes[a].enableArray)
+            this.attributes[a]._callback = og.shaderProgram.bindBuffer;
+        else
+            this.attributes[a]._callback = og.shaderProgram.callbacks[this.attributes[a].type];
+
         this._p[a] = gl.getAttribLocation(this._p, a);
+
         if (this.attributes[a].enableArray)
             gl.enableVertexAttribArray(this._p[a]);
+
+        this.attributes[a]._pName = this._p[a];
     }
 
     for (var u in this.uniforms) {
         this.uniforms[u]._name = u;
+        this.uniforms[u]._callback = og.shaderProgram.callbacks[this.uniforms[u].type];
         this._variables[u] = this.uniforms[u];
         this._p[u] = gl.getUniformLocation(this._p, u);
+        this.uniforms[u]._pName = this._p[u];
     }
 };
