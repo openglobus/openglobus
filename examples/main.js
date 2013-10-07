@@ -80,7 +80,8 @@ og.start = function () {
     var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: og.layer.MapServers.MapQuestSat.url, visibility: true });
     var mqosm = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServers.MapQuest.url });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServers.Cosmosnimki.url });
-    var kray5m = new og.layer.WMS("geoserver:Kray5m", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/gwc/service/", layers: "lem3d:kray5m" });
+    var states = new og.layer.WMS("USA States", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/", layers: "topp:states" });
+    var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/", layers: "cite:gchyp" });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
         url: og.terrainProvider.TerrainServers.OpenGlobus.url,
@@ -88,7 +89,7 @@ og.start = function () {
         minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
     });
 
-    planet.addLayers([layer, satlayer, mqosm, kosmosnim, kray5m]);
+    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon]);
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
@@ -105,9 +106,8 @@ og.start = function () {
         new og.control.ToggleWireframe({ autoActivate: true }),
         new og.control.LoadingSpinner({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
-	new og.control.LayerSwitcher({ autoActivate: true }),
+	    new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ShowFps({ autoActivate: true })
-
     ]);
 
     renderer.Start();
