@@ -6,6 +6,7 @@ og.control.LayerSwitcher = function (options) {
     og.control.LayerSwitcher.superclass.constructor.call(this, options);
     this.dialog = null;
     this.baseLayersDiv = null;
+    this.overlaysDiv = null;
 };
 
 og._class_.extend(og.control.LayerSwitcher, og.control.Control);
@@ -16,14 +17,12 @@ og.control.LayerSwitcher.prototype.init = function () {
 };
 
 og.control.LayerSwitcher.prototype.draw = function () {
+
+    //TODO: refresh layers lists
+
 };
 
-og.control.LayerSwitcher.prototype.createDialog = function () {
-    this.dialog = document.createElement('div');
-    this.dialog.id = "ogLayerSwitcherDialog";
-    this.dialog.className = "displayNone";
-    document.body.appendChild(this.dialog);
-
+og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
     var layersDiv = document.createElement('div');
     layersDiv.className = "layersDiv";
     this.dialog.appendChild(layersDiv);
@@ -34,10 +33,58 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
     layersDiv.appendChild(baseLayersLbl);
 
     this.baseLayersDiv = document.createElement('div');
-    baseLayersLbl.className = "layersDiv";
     layersDiv.appendChild(this.baseLayersDiv);
     this.createBaseLayersList(this.baseLayersDiv);
 };
+
+og.control.LayerSwitcher.prototype.createOverlaysDiv = function () {
+    var overlaysDiv = document.createElement('div');
+    overlaysDiv.className = "layersDiv";
+    this.dialog.appendChild(overlaysDiv);
+
+    var overlaysLbl = document.createElement('div');
+    overlaysLbl.className = "layersDiv";
+    overlaysLbl.innerHTML = "Overlays";
+    overlaysDiv.appendChild(overlaysLbl);
+
+    this.overlaysDiv = document.createElement('div');
+    overlaysDiv.appendChild(this.overlaysDiv);
+    this.createOverlaysList(this.overlaysDiv);
+};
+
+og.control.LayerSwitcher.prototype.createDialog = function () {
+    this.dialog = document.createElement('div');
+    this.dialog.id = "ogLayerSwitcherDialog";
+    this.dialog.className = "displayNone";
+    document.body.appendChild(this.dialog);
+
+    this.createBaseLayersDiv();
+    this.createOverlaysDiv();
+};
+
+og.control.LayerSwitcher.prototype.createOverlaysList = function (block) {
+    var i, inp, lbl, that = this,
+        layers = this.renderer.renderNodes[0].layers;
+
+    for (i = 0; i < layers.length; i++) {
+        if (!layers[i].isBaseLayer) {
+            inp = document.createElement('input');
+            inp.type = "checkbox";
+            inp.value = i;
+            inp.checked = layers[i].visibility;
+            inp.name = "ogBaseLayerCheckbox";
+            inp.className = "ogLayerSwitcherInput";
+            inp.onclick = function () { that.switchLayerVisibility.call(that, this); };
+            block.appendChild(inp);
+
+            lbl = document.createElement('label');
+            lbl.className = "ogLayerSwitcherLabel";
+            lbl.innerHTML = layers[i].name + "</br>";
+            block.appendChild(lbl);
+        }
+    }
+};
+
 
 og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
     var i, inp, lbl, that = this,
@@ -65,6 +112,12 @@ og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
 og.control.LayerSwitcher.prototype.switchLayer = function (obj) {
     var rn = this.renderer.renderNodes[0];
     rn.setBaseLayer(rn.layers[obj.value]);
+};
+
+og.control.LayerSwitcher.prototype.switchLayerVisibility = function (obj) {
+    var rn = this.renderer.renderNodes[0];
+    var lr = rn.layers[obj.value];
+    lr.setVisibility( lr.getVisibility() ? false : true );
 };
 
 og.control.LayerSwitcher.prototype.createSwitcher = function () {
