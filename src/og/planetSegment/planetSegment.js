@@ -11,10 +11,8 @@ goog.require('og.bv.Sphere');
 goog.require('og.geo');
 
 og.planetSegment.PlanetSegment = function () {
-    this.texture = null;
     this.plainVertices = [];
     this.terrainVertices = [];
-    this.texBias = [];
     this.bbox = new og.bv.Box();
     this.bsphere = new og.bv.Sphere();
 
@@ -33,39 +31,14 @@ og.planetSegment.PlanetSegment = function () {
     this._ctx = null;
 
     this.ready = false;
-    this.imageReady = false;
-    this.imageIsLoading = false;
+
+    this.materials = [];
 
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.refreshIndexesBuffer = false;
 
     this.node;
-};
-
-og.planetSegment.PlanetSegment.prototype.loadTileImage = function () {
-    if (!this.imageIsLoading) {
-        this.imageReady = false;
-        this.imageIsLoading = true;
-        this.planet.baseLayer.handleSegmentTile(this);
-    }
-};
-
-og.planetSegment.PlanetSegment.prototype.applyTexture = function (img) {
-    if (this.ready && this.imageIsLoading) {
-        this.node.appliedTextureNodeId = this.node.nodeId;
-        this.imageReady = true;
-        this.texture = this._ctx.createTextureFromImage(img);
-        this.texBias = [0, 0, 1];
-    } else {
-        this.imageReady = false;
-        this.texture = null;
-    }
-    this.imageIsLoading = false;
-};
-
-og.planetSegment.PlanetSegment.prototype.textureNotExists = function () {
-    this.imageIsLoading = true;
 };
 
 og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
@@ -163,16 +136,6 @@ og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
     this._ctx.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 };
 
-og.planetSegment.PlanetSegment.prototype.deleteTexture = function () {
-    if (this.imageReady) {
-        this.imageReady = false;
-        this._ctx.gl.deleteTexture(this.texture);
-        this.texture = null;
-        this.texBias.length = 0;
-    }
-    this.imageIsLoading = false;
-};
-
 og.planetSegment.PlanetSegment.prototype.clearBuffers = function () {
     this.ready = false;
     this.deleteBuffers();
@@ -187,7 +150,15 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
 
 og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
     this.clearBuffers();
-    this.deleteTexture();
+
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        var mi = m[i];
+        if (mi) {
+            mi.clear();
+        }
+    }
+
     this.deleteElevations();
 };
 
@@ -234,14 +205,17 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
+        var lid = this.planet.layers[0].id;
         this._ctx.shaderPrograms.planet.set({
             aVertexPosition: this.vertexPositionBuffer,
             aTextureCoord: this.vertexTextureCoordBuffer,
             uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
             uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
-            texScale: this.texBias[2],
-            texOffset: [this.texBias[0], this.texBias[1]],
-            uSampler: this.texture ? this.texture : this.planet.emptyTexture
+
+            texScale: this.materials[lid].texBias[2],
+            texOffset: [this.materials[lid].texBias[0], this.materials[lid].texBias[1]],
+            uSampler: this.materials[lid].texture ? this.materials[lid].texture : this.planet.emptyTexture
+
         });
 
         this._ctx.shaderPrograms.planet.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);

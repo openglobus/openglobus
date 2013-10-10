@@ -80,8 +80,8 @@ og.start = function () {
     var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: og.layer.MapServers.MapQuestSat.url, visibility: true });
     var mqosm = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServers.MapQuest.url });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServers.Cosmosnimki.url });
-    var states = new og.layer.WMS("USA States", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/", layers: "topp:states" });
-    var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: true, url: "http://127.0.0.1/geoserver/", layers: "cite:gchyp" });
+    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 1.0 });
+    var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "cite:gchyp", opacity: 1.0 });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
         url: og.terrainProvider.TerrainServers.OpenGlobus.url,
