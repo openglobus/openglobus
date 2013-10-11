@@ -140,7 +140,7 @@ og.node.Planet.prototype.frame = function () {
     this.renderer.activeCamera.altitude = altitude;
 
     print2d("lbAltitude", "alt: " + this.renderer.activeCamera.altitude + " proj: " + intersection.x.toFixed(12) + " " + intersection.y.toFixed(12) + " " + intersection.z.toFixed(12), 10, 10);
-    print2d("lbCounter", "ltc=" + this.baseLayer.counter + ", tqs=" + this.baseLayer.pendingsQueue.length + ", ltrc=" + this.terrainProvider.counter + ", trqs=" + this.terrainProvider.pendingsQueue.length + ", rnc: " + this.renderedNodes.length + ", vnc: " + this.visitedNodesCount + ", cnc: " + this.createdNodesCount, 10, 100);
+    print2d("lbCounter", "tqs=" + this.baseLayer.pendingsQueue.length + ", ltrc=" + this.terrainProvider.counter + ", trqs=" + this.terrainProvider.pendingsQueue.length + ", rnc: " + this.renderedNodes.length + ", vnc: " + this.visitedNodesCount + ", cnc: " + this.createdNodesCount, 10, 100);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
