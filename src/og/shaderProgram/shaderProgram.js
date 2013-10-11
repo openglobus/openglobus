@@ -12,6 +12,7 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.gl = null;
     this._p = null;
 };
+
 og.shaderProgram.ShaderProgram.prototype.activate = function () {
     this.gl.useProgram(this._p);
 };
@@ -84,6 +85,10 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
         this._p[a] = gl.getAttribLocation(this._p, a);
 
+        if (!this._p[u]) {
+            //alert("error: Shader program: attribute " + a + " is not exists.");
+        }
+
         if (this.attributes[a].enableArray)
             gl.enableVertexAttribArray(this._p[a]);
 
@@ -95,6 +100,11 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this.uniforms[u]._callback = og.shaderProgram.callbacks[this.uniforms[u].type];
         this._variables[u] = this.uniforms[u];
         this._p[u] = gl.getUniformLocation(this._p, u);
+
+        if (!this._p[u]) {
+            //alert("error: Shader program: uniform " + u + " is not exists.");
+        }
+
         this.uniforms[u]._pName = this._p[u];
     }
 };
