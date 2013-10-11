@@ -81,7 +81,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         if (this.attributes[a].enableArray)
             this.attributes[a]._callback = og.shaderProgram.bindBuffer;
         else
-            this.attributes[a]._callback = og.shaderProgram.callbacks[this.attributes[a].type];
+            this.attributes[a]._callback = og.shaderProgram.callbacks.a[this.attributes[a].type];
 
         this._p[a] = gl.getAttribLocation(this._p, a);
 
@@ -97,7 +97,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
     for (var u in this.uniforms) {
         this.uniforms[u]._name = u;
-        this.uniforms[u]._callback = og.shaderProgram.callbacks[this.uniforms[u].type];
+        this.uniforms[u]._callback = og.shaderProgram.callbacks.u[this.uniforms[u].type];
         this._variables[u] = this.uniforms[u];
         this._p[u] = gl.getUniformLocation(this._p, u);
 
