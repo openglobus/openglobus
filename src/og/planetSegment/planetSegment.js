@@ -205,15 +205,15 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
+
         var lid = this.planet.layers[0].id;
+
         this._ctx.shaderPrograms.planet.set({
             aVertexPosition: this.vertexPositionBuffer,
             aTextureCoord: this.vertexTextureCoordBuffer,
             uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
             uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
-
-            texScale: this.materials[lid].texBias[2],
-            texOffset: [this.materials[lid].texBias[0], this.materials[lid].texBias[1]],
+            texBias:this.materials[lid].texBias,
             uSampler: this.materials[lid].texture ? this.materials[lid].texture : this.planet.emptyTexture
 
         });

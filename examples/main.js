@@ -28,8 +28,7 @@ og.start = function () {
         uniforms: {
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
-            texOffset: { type: og.shaderProgram.types.VEC2 },
-            texScale: { type: og.shaderProgram.types.FLOAT },
+            texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
@@ -81,7 +80,8 @@ og.start = function () {
     var mqosm = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServers.MapQuest.url });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServers.Cosmosnimki.url });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 1.0 });
-    var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "cite:gchyp", opacity: 1.0 });
+    var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:gchyp", opacity: 1.0 });
+    var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 1.0 });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
         url: og.terrainProvider.TerrainServers.OpenGlobus.url,
@@ -89,7 +89,7 @@ og.start = function () {
         minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
     });
 
-    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon]);
+    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean]);
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
