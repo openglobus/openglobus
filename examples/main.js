@@ -28,8 +28,10 @@ og.start = function () {
         uniforms: {
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
-            texBias: { type: og.shaderProgram.types.VEC3 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+
+            uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
+            texBiasArr: { type: og.shaderProgram.types.VEC3 },
+            numTex: { type: og.shaderProgram.types.INT }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
