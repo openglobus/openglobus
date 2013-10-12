@@ -206,18 +206,28 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
 
-        var lid = this.planet.layers[0].id;
-
-        this._ctx.shaderPrograms.planet.set({
+        var surface = {
             aVertexPosition: this.vertexPositionBuffer,
             aTextureCoord: this.vertexTextureCoordBuffer,
             uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
             uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
-            texBias:this.materials[lid].texBias,
-            uSampler: this.materials[lid].texture ? this.materials[lid].texture : this.planet.emptyTexture
+            texBiasArr: [],
+            uSamplerArr: []            
+        };
 
-        });
+        var layers = this.planet.layers;
+        var i = 0;
+        for (var l in layers) {
+            if (layers[l].visibility) {
+                var mat = this.materials[layers[l].id];
+                surface.texBiasArr.push.apply(surface.texBiasArr, mat.texBias);
+                surface.uSamplerArr.push(mat.texture);
+                i++;
+            }
+        };
+        surface.numTex = i;
 
+        this._ctx.shaderPrograms.planet.set(surface);
         this._ctx.shaderPrograms.planet.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
     }
 };

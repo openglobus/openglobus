@@ -26,6 +26,10 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.FLOAT] = function (program, 
     program.gl.uniform1f(variable._pName, variable.value);
 };
 
+og.shaderProgram.callbacks.u[og.shaderProgram.types.INT] = function (program, variable) {
+    program.gl.uniform1i(variable._pName, variable.value);
+};
+
 og.shaderProgram.callbacks.u[og.shaderProgram.types.VEC2] = function (program, variable) {
     program.gl.uniform2fv(variable._pName, variable.value);
 };
@@ -40,11 +44,23 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.VEC4] = function (program, v
 
 og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLER2D] = function (program, variable) {
     var pgl = program.gl;
-    pgl.activeTexture(pgl.TEXTURE0);
+    pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
     pgl.bindTexture(pgl.TEXTURE_2D, variable.value);
-    pgl.uniform1i(variable._pName, 0);
+    pgl.uniform1i(variable._pName, program._textureID);
+    program._textureID++;
 };
 
+og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLER2DXX] = function (program, variable) {
+    var pgl = program.gl,
+        size = variable.value.length;
+    var samplerArr = new Int32Array(size);
+    for (var i = 0; i < size; i++) {
+        pgl.activeTexture(pgl.TEXTURE0 + program._textureID + i);
+        pgl.bindTexture(pgl.TEXTURE_2D, variable.value[i]);
+        samplerArr[i] = i;
+    }
+    pgl.uniform1iv(variable._pName, samplerArr);
+};
 
 /*
  * Attributes callbacks

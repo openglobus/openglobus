@@ -11,6 +11,7 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.fragmentShader = material.fragmentShader;
     this.gl = null;
     this._p = null;
+    this._textureID = 0;
 };
 
 og.shaderProgram.ShaderProgram.prototype.activate = function () {
@@ -18,6 +19,7 @@ og.shaderProgram.ShaderProgram.prototype.activate = function () {
 };
 
 og.shaderProgram.ShaderProgram.prototype.set = function (material) {
+    this._textureID = 0;
     for (var i in material) {
         this._variables[i].value = material[i];
         this._variables[i]._callback(this, this._variables[i]);
