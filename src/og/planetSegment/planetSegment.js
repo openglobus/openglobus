@@ -212,7 +212,9 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
             uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
             uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
             texBiasArr: [],
-            uSamplerArr: []            
+            uSamplerArr: [],
+            tcolorArr: [],
+            alfaArr: []
         };
 
         var layers = this.planet.layers;
@@ -222,6 +224,8 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
                 var mat = this.materials[layers[l].id];
                 surface.texBiasArr.push.apply(surface.texBiasArr, mat.texBias);
                 surface.uSamplerArr.push(mat.texture);
+                surface.tcolorArr.push.apply(layers[l].transparentColor);
+                surface.alfaArr.push(layers[l].opacity);
                 i++;
             }
         };

@@ -1,12 +1,15 @@
 precision highp float;
 precision highp int;
 
-const int MAX_TEX = 8;
+const int MAX_TEX = 16;
 
-varying vec2 vTextureCoordArr[MAX_TEX];
+varying vec2 vTextureCoord;
 
 uniform int numTex;
-uniform sampler2D uSamplerArr[8];
+uniform sampler2D uSamplerArr[MAX_TEX];
+uniform float alfaArr[MAX_TEX];
+uniform vec4 tcolorArr[MAX_TEX];
+uniform vec3 texBiasArr[MAX_TEX];
 
 void main(void) {
 
@@ -17,7 +20,8 @@ void main(void) {
 		
     for( int i=0; i < MAX_TEX; i++ ) {
 	    if( i < numTex ) {
-	        c = texture2D(uSamplerArr[i], vec2(vTextureCoordArr[i].s, vTextureCoordArr[i].t));
+			vec2 tc = texBiasArr[i].z * (vTextureCoord + vec2(texBiasArr[i].x, texBiasArr[i].y));
+	        c = texture2D(uSamplerArr[i], vec2(tc.s, tc.t));
 		    c = c == black ? white : c;
 		    res *= c;
 		}

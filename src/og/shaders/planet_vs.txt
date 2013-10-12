@@ -1,21 +1,13 @@
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
 
-const int MAX_TEX = 8;
-
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
-uniform vec3 texBiasArr[MAX_TEX];
-uniform int numTex;
-
-varying vec2 vTextureCoordArr[MAX_TEX];
+varying vec2 vTextureCoord;
 
 void main(void) {
-    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-	for( int i = 0; i < MAX_TEX; i++ ) {
-	    if( i < numTex ) {
-	        vTextureCoordArr[i] = texBiasArr[i].z * (aTextureCoord + vec2(texBiasArr[i].x, texBiasArr[i].y));
-		}
-	}
+    
+	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+	vTextureCoord = aTextureCoord;
 }
