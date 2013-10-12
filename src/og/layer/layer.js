@@ -51,7 +51,15 @@ og.layer.getTileExtent = function (x, y, zoom) {
     return [left, bottom, right, top];
 };
 
+og.layer.MAX_REQUESTS_COUNT = 15;
+og.layer.layersCounter = 0;
+og.layer.DEFAILT_Z_INDEX = 1000;
+og.layer.DEFAILT_OPACITY = 1.0;
+
 og.layer.Layer = function (name, options) {
+
+    og.layer.layersCount++;
+
     this.name = name ? name : "noname";
 
     if (options) {
@@ -59,19 +67,18 @@ og.layer.Layer = function (name, options) {
         this.numZoomLevels = options.numZoomLevels ? options.numZoomLevels : -1;
         this.url = options.url ? options.url : "";
         this.visibility = options.visibility ? options.visibility : false;
-        this.opacity = options.opacity ? options.opacity : 1.0;
+        this.opacity = options.opacity ? options.opacity : og.layer.DEFAILT_OPACITY;
         this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
+        this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
     }
 
-    og.layer.Layer.layersCounter++;
-    this.id = og.layer.Layer.layersCounter;
+    og.layer.layersCounter++;
+    this.id = og.layer.layersCounter;
 
     this.counter = 0;
     this.pendingsQueue = [];
-    this.MAX_LOADING_TILES = 5;
+    this.MAX_LOADING_TILES = og.layer.MAX_REQUESTS_COUNT;
 };
-
-og.layer.Layer.layersCounter = 0;
 
 og.layer.Layer.prototype.abortLoading = function () {
     this.pendingsQueue.length = 0;
