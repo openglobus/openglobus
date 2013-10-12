@@ -35,7 +35,8 @@ goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og
 goog.addDependency('../../../og/src/og/og.js', ['og'], []);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegment.js', ['og.planetSegment', 'og.planetSegment.PlanetSegment'], ['og.bv.Box', 'og.bv.Sphere', 'og.extent', 'og.geo', 'og.layer', 'og.math', 'og.math.Vector3', 'og.planetSegment.PlanetSegmentHelper']);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegmentHelper.js', ['og.planetSegment.PlanetSegmentHelper'], ['og.quadTree']);
-goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.extent', 'og.planetSegment.PlanetSegment', 'og.quadTree']);
+goog.addDependency('../../../og/src/og/planetSegment/planetSegmentMaterial.js', ['og.planetSegment.PlanetSegmentMaterial'], []);
+goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.extent', 'og.planetSegment.PlanetSegment', 'og.planetSegment.PlanetSegmentMaterial', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
 goog.addDependency('../../../og/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.input', 'og.input.Input', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);

@@ -1,9 +1,24 @@
-precision mediump float;
+precision highp float;
 
-varying vec2 vTextureCoord;
+varying vec2 vTextureCoordArr[8];
+varying vec2 vTextureCoord0;
 
-uniform sampler2D uSampler;
+uniform int numTex;
+uniform sampler2D uSamplerArr[8];
 
 void main(void) {
-    gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+
+	vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+	vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4 res = vec4(1.0, 1.0, 1.0, 1.0);
+		
+    for( int i=0; i < 8; i++ ) {
+	    if( i < numTex ) {
+	        vec4 c = texture2D(uSamplerArr[i], vec2(vTextureCoordArr[i].s, vTextureCoordArr[i].t));			
+		    c = c == black ? white : c;
+		    res *= c;
+		}
+	}
+
+	gl_FragColor = res;
 }

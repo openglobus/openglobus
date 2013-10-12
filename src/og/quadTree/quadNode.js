@@ -1,15 +1,15 @@
 goog.provide('og.quadTree.QuadNode');
 
 goog.require('og.planetSegment.PlanetSegment');
+goog.require('og.planetSegment.PlanetSegmentMaterial');
 goog.require('og.extent');
-
 goog.require('og.quadTree');
+
 /* class QuadNode
  *
  *
  *
  */
-
 og.quadTree.QuadNode = function () {
     this.parentNode;
     this.nodes = [];
@@ -80,38 +80,38 @@ og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
     var ltSize = this.planetSegment.extent[og.extent.TOP] - this.planetSegment.extent[og.extent.BOTTOM];
 
     this.nodes[og.quadTree.NW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NW, this,
-        this.nodeId * 4 + og.quadTree.NW + 1, this.planetSegment.zoomIndex + 1, 
+        this.nodeId * 4 + og.quadTree.NW + 1, this.planetSegment.zoomIndex + 1,
         [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
             this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.TOP]]);
 
     this.nodes[og.quadTree.NE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NE, this,
-        this.nodeId * 4 + og.quadTree.NE + 1, this.planetSegment.zoomIndex + 1, 
+        this.nodeId * 4 + og.quadTree.NE + 1, this.planetSegment.zoomIndex + 1,
         [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
             this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.TOP]]);
 
     this.nodes[og.quadTree.SW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SW, this,
-        this.nodeId * 4 + og.quadTree.SW + 1, this.planetSegment.zoomIndex + 1, 
+        this.nodeId * 4 + og.quadTree.SW + 1, this.planetSegment.zoomIndex + 1,
         [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM],
             this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
 
     this.nodes[og.quadTree.SE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SE, this,
-        this.nodeId * 4 + og.quadTree.SE + 1, this.planetSegment.zoomIndex + 1, 
+        this.nodeId * 4 + og.quadTree.SE + 1, this.planetSegment.zoomIndex + 1,
         [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM],
             this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
 };
 
-og.quadTree.QuadNode.prototype.reloadTextures = function () {
+//og.quadTree.QuadNode.prototype.reloadTextures = function () {
 
-    this.planetSegment.deleteTexture();
+//    this.planetSegment.deleteTexture();
 
-    if (this.getState() === og.quadTree.WALKTHROUGH) {
-        this.planetSegment.loadTileImage();
-    }
+//    if (this.getState() === og.quadTree.WALKTHROUGH) {
+//        this.planetSegment.loadTileImage();
+//    }
 
-    for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].reloadTextures();
-    }
-};
+//    for (var i = 0; i < this.nodes.length; i++) {
+//        this.nodes[i].reloadTextures();
+//    }
+//};
 
 og.quadTree.QuadNode.prototype.reloadTerrain = function () {
 
@@ -166,7 +166,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     this.state = og.quadTree.WALKTHROUGH;
 
     var cam = this.planet.renderer.activeCamera;
-    
+
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
         if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere, og.quadTree.ratioLOD)) {
             this.prepareForRendering(cam);
@@ -200,18 +200,24 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
     if (!this.planetSegment.terrainReady) {
         this.planetSegment.loadTerrain();
-    }
-
-    if (!this.planetSegment.imageReady) {
-        this.planetSegment.loadTileImage();
-    }
-
-    if (!this.planetSegment.imageReady) {
-        this.whileTextureLoading();
-    }
-
-    if (!this.planetSegment.terrainReady) {
         this.whileTerrainLoading();
+    }
+
+    var l = this.planet.layers,
+        pm = this.planetSegment.materials;
+
+    for (var i = 0; i < l.length; i++) {
+        var li = l[i],
+            pml_id = pm[li.id];
+
+        if (!pml_id) {
+            pml_id = this.planetSegment.materials[li.id] = new og.planetSegment.PlanetSegmentMaterial(this.planetSegment, li);
+        }
+
+        if (!pml_id.imageReady && li.visibility) {
+            pml_id.loadTileImage();
+            this.whileTextureLoading(li.id);
+        }
     }
 
     this.planet.renderedNodes.push(this);
@@ -283,13 +289,23 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 };
 
 
-og.quadTree.QuadNode.prototype.whileTextureLoading = function () {
+og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,
         texScale = 0,
         texOffsetX = 0,
-        texOffsetY = 0;
+        texOffsetY = 0,
+        notEmpty = false;
 
-    while (pn.parentNode && !pn.planetSegment.imageReady) {
+    while (1) {
+        if (!pn.parentNode)
+            break;
+        else if (pn.planetSegment.materials[mId]) {
+            if (pn.planetSegment.materials[mId].imageReady) {
+                notEmpty = true;
+                break;
+            }
+        }
+
         if (pn.partId === og.quadTree.NW) {
         } else if (pn.partId === og.quadTree.NE) {
             texOffsetX += Math.pow(2, texScale);
@@ -303,10 +319,12 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function () {
         pn = pn.parentNode;
     }
 
-    if (this.planetSegment.imageIsLoading) {
-        if (pn.nodeId != this.appliedTextureNodeId) {
-            this.planetSegment.texture = pn.planetSegment.texture;
-            this.planetSegment.texBias = [texOffsetX, texOffsetY, 1 / Math.pow(2, texScale)];
+    if (this.planetSegment.materials[mId].imageIsLoading) {
+        if (notEmpty) {
+            if (pn.nodeId != this.appliedTextureNodeId) {
+                this.planetSegment.materials[mId].texture = pn.planetSegment.materials[mId].texture;
+                this.planetSegment.materials[mId].texBias = [texOffsetX, texOffsetY, 1 / Math.pow(2, texScale)];
+            }
         }
     }
 };

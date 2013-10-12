@@ -11,12 +11,15 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.fragmentShader = material.fragmentShader;
     this.gl = null;
     this._p = null;
+    this._textureID = 0;
 };
+
 og.shaderProgram.ShaderProgram.prototype.activate = function () {
     this.gl.useProgram(this._p);
 };
 
 og.shaderProgram.ShaderProgram.prototype.set = function (material) {
+    this._textureID = 0;
     for (var i in material) {
         this._variables[i].value = material[i];
         this._variables[i]._callback(this, this._variables[i]);
@@ -80,9 +83,13 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         if (this.attributes[a].enableArray)
             this.attributes[a]._callback = og.shaderProgram.bindBuffer;
         else
-            this.attributes[a]._callback = og.shaderProgram.callbacks[this.attributes[a].type];
+            this.attributes[a]._callback = og.shaderProgram.callbacks.a[this.attributes[a].type];
 
         this._p[a] = gl.getAttribLocation(this._p, a);
+
+        if (!this._p[u]) {
+            //alert("error: Shader program: attribute " + a + " is not exists.");
+        }
 
         if (this.attributes[a].enableArray)
             gl.enableVertexAttribArray(this._p[a]);
@@ -92,9 +99,14 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
     for (var u in this.uniforms) {
         this.uniforms[u]._name = u;
-        this.uniforms[u]._callback = og.shaderProgram.callbacks[this.uniforms[u].type];
+        this.uniforms[u]._callback = og.shaderProgram.callbacks.u[this.uniforms[u].type];
         this._variables[u] = this.uniforms[u];
         this._p[u] = gl.getUniformLocation(this._p, u);
+
+        if (!this._p[u]) {
+            //alert("error: Shader program: uniform " + u + " is not exists.");
+        }
+
         this.uniforms[u]._pName = this._p[u];
     }
 };
