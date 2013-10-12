@@ -86,16 +86,19 @@ og.start = function () {
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 1.0 });
     var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:gchyp", opacity: 1.0 });
     var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 1.0 });
-    var countries = new og.layer.WMS("Ñountries", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 1.0 });
+    var countries = new og.layer.WMS("Countries", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 1.0 });
+    var regions = new og.layer.WMS("Geography regions", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_geography_regions_polys", opacity: 1.0 });
     var bl0 = new og.layer.WMS("Bathimetry-L-0", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_bathymetry_L_0", opacity: 1.0 });
-    
+    var gpoints = new og.layer.WMS("Geography points", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_geography_regions_points", opacity: 1.0 });
+    var pop = new og.layer.WMS("Populated places", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_populated_places", opacity: 1.0 });
+
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
         url: og.terrainProvider.TerrainServers.OpenGlobus.url,
         maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
         minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
     });
 
-    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean, countries, bl0]);
+    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean, countries, regions, bl0, gpoints, pop]);
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
