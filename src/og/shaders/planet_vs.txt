@@ -4,12 +4,19 @@ attribute vec2 aTextureCoord;
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 
-uniform vec2 texOffset;
-uniform float texScale;
+uniform vec3 texBiasArr[8];
+uniform int numTex;
 
-varying vec2 vTextureCoord;
+varying vec2 vTextureCoordArr[8];
+varying vec2 vTextureCoord0;
 
 void main(void) {
     gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    vTextureCoord = texScale*(aTextureCoord + texOffset);
+	vec2 texCoords[8];
+	for( int i = 0; i < 8; i++ ) {
+	    if( i < numTex ) {
+	        vTextureCoordArr[i] = texBiasArr[i].z * (aTextureCoord + vec2(texBiasArr[i].x, texBiasArr[i].y));
+		}
+	}
+	vTextureCoord0 =  vTextureCoordArr[0];
 }

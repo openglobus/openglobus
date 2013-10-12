@@ -76,7 +76,11 @@ og.layer.Layer.prototype.abortLoading = function () {
 };
 
 og.layer.Layer.prototype.setVisibility = function (visibility) {
-    this.setVisibility = visibility;
+    this.visibility = visibility;
+};
+
+og.layer.Layer.prototype.getVisibility = function () {
+    return this.visibility;
 };
 
 og.layer.replaceTemplate = function (template, params) {
