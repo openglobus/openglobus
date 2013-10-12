@@ -25,7 +25,7 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.createdNodesCount = 0;
     this.renderedNodes = [];
-    this.heightFactor = 1.47;
+    this.heightFactor = 1.0;
 };
 
 og._class_.extend(og.node.Planet, og.node.Node3D);
