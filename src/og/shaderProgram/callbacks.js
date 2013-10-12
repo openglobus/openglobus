@@ -62,6 +62,14 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLER2DXX] = function (pro
     pgl.uniform1iv(variable._pName, samplerArr);
 };
 
+og.shaderProgram.callbacks.u[og.shaderProgram.types.INTXX] = function (program, variable) {
+    pgl.uniform1iv(variable._pName, variable.value);
+};
+
+og.shaderProgram.callbacks.u[og.shaderProgram.types.FLOATXX] = function (program, variable) {
+    program.gl.uniform1fv(variable._pName, variable.value);
+};
+
 /*
  * Attributes callbacks
  *

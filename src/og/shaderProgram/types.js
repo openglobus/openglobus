@@ -5,7 +5,7 @@ og.shaderProgram.types._declarations = ["FLOAT", "DOUBLE", "BOOL", "INT", "UINT"
                                "UVEC3", "UVEC4", "MAT2", "DMAT2", "MAT3", "DMAT3", "MAT4", "DMAT4", "MAT2X3",
                                "MAT2X4", "MAT3X2", "MAT3X4", "MAT4X2", "MAT4X3", "DMAT2X3", "DMAT2X4", "DMAT3X2", "DMAT3X4",
                                "DMAT4X2", "DMAT4X3", "SAMPLER1D", "SAMPLER2D", "SAMPLER3D", "SAMPLERCUBE", "SAMPLER2DSHADOW",
-                               "SAMPLER2DXX"];
+                               "SAMPLER2DXX", "INTXX", "FLOATXX"];
 
 
 (function () {
