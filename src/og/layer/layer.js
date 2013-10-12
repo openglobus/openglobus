@@ -59,6 +59,8 @@ og.layer.Layer = function (name, options) {
         this.numZoomLevels = options.numZoomLevels ? options.numZoomLevels : -1;
         this.url = options.url ? options.url : "";
         this.visibility = options.visibility ? options.visibility : false;
+        this.opacity = options.opacity ? options.opacity : 1.0;
+        this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
     }
 
     og.layer.Layer.layersCounter++;
@@ -66,7 +68,7 @@ og.layer.Layer = function (name, options) {
 
     this.counter = 0;
     this.pendingsQueue = [];
-    this.MAX_LOADING_TILES = 10;
+    this.MAX_LOADING_TILES = 5;
 };
 
 og.layer.Layer.layersCounter = 0;
