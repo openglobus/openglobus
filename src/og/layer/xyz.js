@@ -11,7 +11,8 @@ og.layer.XYZ = function (name, options) {
 og._class_.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
-    if (this.counter >= this.MAX_LOADING_TILES) {
+    
+    if ( og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter > 0) {
         this.pendingsQueue.push(material);
     } else {
         this.loadSegmentTileImage(material);
@@ -25,6 +26,7 @@ og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
 og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     var that = this;
     this.counter++;
+    og.layer.requestsCounter++;
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
@@ -44,8 +46,9 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
 
 og.layer.XYZ.prototype.dequeueRequest = function () {
     this.counter--;
+    og.layer.requestsCounter--;
     if (this.pendingsQueue.length) {
-        if (this.counter < this.MAX_LOADING_TILES) {
+        if (og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
             var pmat;
             if (pmat = this.whilePendings())
                 this.loadSegmentTileImage.call(this, pmat);

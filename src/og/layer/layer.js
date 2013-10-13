@@ -51,8 +51,9 @@ og.layer.getTileExtent = function (x, y, zoom) {
     return [left, bottom, right, top];
 };
 
-og.layer.MAX_REQUESTS_COUNT = 15;
+og.layer.MAX_REQUESTS = 15;
 og.layer.layersCounter = 0;
+og.layer.requestsCounter = 0;
 og.layer.DEFAILT_Z_INDEX = 1000;
 og.layer.DEFAILT_OPACITY = 1.0;
 
