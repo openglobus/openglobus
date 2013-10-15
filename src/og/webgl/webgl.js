@@ -3,7 +3,7 @@ goog.provide('og.webgl');
 goog.require('og.utils');
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
-og.webgl.MAX_FRAME_DELAY = 20;
+og.webgl.MAX_FRAME_DELAY = 24;
 
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
