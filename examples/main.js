@@ -32,7 +32,7 @@ og.start = function () {
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             alfaArr: { type: og.shaderProgram.types.FLOATXX },
-            tcolorArr: { type: og.shaderProgram.types.VEC4 },
+            tcolorArr: { type: og.shaderProgram.types.VEC3 },
             numTex: { type: og.shaderProgram.types.INT }
         },
         attributes: {
@@ -85,12 +85,13 @@ og.start = function () {
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServers.Cosmosnimki.url });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 1.0 });
     var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:gchyp", opacity: 1.0 });
-    var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 1.0 });
+    var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 1.0, transparentColor:[0.67, 0.67, 0.67] });
     var countries = new og.layer.WMS("Countries", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 1.0 });
     var regions = new og.layer.WMS("Geography regions", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_geography_regions_polys", opacity: 1.0 });
     var bl0 = new og.layer.WMS("Bathimetry-L-0", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_bathymetry_L_0", opacity: 1.0 });
     var gpoints = new og.layer.WMS("Geography points", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_geography_regions_points", opacity: 1.0 });
     var pop = new og.layer.WMS("Populated places", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_populated_places", opacity: 1.0 });
+    var bf5 = new og.layer.WMS("Bathimetry-F-5000", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_bathymetry_F_5000", opacity: 1.0 });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
         url: og.terrainProvider.TerrainServers.OpenGlobus.url,
@@ -98,7 +99,7 @@ og.start = function () {
         minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
     });
 
-    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean, countries, regions, bl0, gpoints, pop]);
+    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean, countries, regions, bl0, bf5, gpoints, pop]);
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
