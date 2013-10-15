@@ -77,11 +77,11 @@ og.node.Planet.prototype.initialization = function () {
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
-    this.loadDefaultTexture("../resources/images/planet/empty.jpg");
+    this.loadEmptyTexture("../resources/images/planet/empty.jpg");
 
 };
 
-og.node.Planet.prototype.loadDefaultTexture = function (url) {
+og.node.Planet.prototype.loadEmptyTexture = function (url) {
     var that = this,
         img = new Image();
     img.onload = function () {
