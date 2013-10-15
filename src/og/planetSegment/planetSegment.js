@@ -224,7 +224,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
                 var mat = this.materials[layers[l].id];
                 surface.texBiasArr.push.apply(surface.texBiasArr, mat.texBias);
                 surface.uSamplerArr.push(mat.texture);
-                surface.tcolorArr.push.apply(layers[l].transparentColor);
+                surface.tcolorArr.push.apply(surface.tcolorArr, layers[l].transparentColor);
                 surface.alfaArr.push(layers[l].opacity);
                 i++;
             }
