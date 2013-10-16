@@ -10,8 +10,8 @@ og.layer.MapServers = {
     "GoogleHibrid": { url: "http://mt1.google.com/vt/lyrs=y&hl=ru&x={tilex}&y={tiley}&z={zoom}", maxZoom: -1 },
     "OSM": { url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", maxZoom: -1 },
     "OSMb": { url: "http://b.tile.opencyclemap.org/cycle/{zoom}/{tilex}/{tiley}.png", maxZoom: -1 },
-    "ArcGISWorldImagery": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
-    "ArcGISWorldStreetMap": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
+    "ArcGISWorldImagery": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{zoom}/{tilex}/{tiley}", maxZoom: -1 },
+    "ArcGISWorldStreetMap": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{zoom}/{tilex}/{tiley}", maxZoom: -1 },
     "ArcGISNatGeo": { url: "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{zoom}/{tilx}/{tiley}", maxZoom: -1 },
     "Cosmosnimki": { url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", maxZoom: -1 }
 };
