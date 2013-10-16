@@ -26,6 +26,14 @@ og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     }
 };
 
+og.shaderProgram.ShaderProgram.prototype.apply = function () {
+    this._textureID = 0;
+    var v = this._variables;
+    for (var i in v) {
+        v[i]._callback(this, v[i]);
+    }
+};
+
 og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffer) {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.drawElements(mode, buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
