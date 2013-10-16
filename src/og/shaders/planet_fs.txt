@@ -1,5 +1,5 @@
-precision highp float;
-precision highp int;
+precision mediump float;
+precision lowp int;
 
 const int MAX_TEX = 16;
 const float COLOR_DIFF_EPS = 0.4;
