@@ -41,7 +41,7 @@ og.Camera.clone = function (cam) {
 };
 
 og.Camera.defaultOptions = {
-    viewAngle: 45,
+    viewAngle: 47,
     nearDist: 0.1,
     farDist: 1000000.0,
     eye: new og.math.Vector3(0, 0, 0),
