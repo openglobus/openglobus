@@ -51,7 +51,7 @@ og.layer.getTileExtent = function (x, y, zoom) {
     return [left, bottom, right, top];
 };
 
-og.layer.MAX_REQUESTS = 15;
+og.layer.MAX_REQUESTS = 12;
 og.layer.layersCounter = 0;
 og.layer.requestsCounter = 0;
 og.layer.DEFAILT_Z_INDEX = 1000;
@@ -78,7 +78,6 @@ og.layer.Layer = function (name, options) {
 
     this.counter = 0;
     this.pendingsQueue = [];
-    this.MAX_LOADING_TILES = og.layer.MAX_REQUESTS_COUNT;
 };
 
 og.layer.Layer.prototype.abortLoading = function () {
