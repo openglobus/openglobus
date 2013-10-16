@@ -21,8 +21,7 @@ og.node.Axes.prototype.frame = function () {
     this.renderer.ctx.shaderPrograms.flat.activate();
 
     this.renderer.ctx.shaderPrograms.flat.set({
-        uPMatrix: this.renderer.activeCamera.pMatrix._m,
-        uMVMatrix: this.renderer.activeCamera.mvMatrix._m,
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
         aVertexPosition: this.axisBuffer,
         aVertexColor: this.axisColorBuffer
     });

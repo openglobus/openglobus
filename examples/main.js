@@ -26,9 +26,7 @@ og.start = function () {
 
     var planetShader = new og.shaderProgram.ShaderProgram("planet", {
         uniforms: {
-            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uPMatrix: { type: og.shaderProgram.types.MAT4 },
-
+            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             alfaArr: { type: og.shaderProgram.types.FLOATXX },
@@ -45,9 +43,9 @@ og.start = function () {
 
     var skyboxShader = new og.shaderProgram.ShaderProgram("skybox", {
         uniforms: {
-            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uPMatrix: { type: og.shaderProgram.types.MAT4 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D },
+            pos: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -59,8 +57,7 @@ og.start = function () {
 
     var flatShader = new og.shaderProgram.ShaderProgram("flat", {
         uniforms: {
-            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMVMatrix: { type: og.shaderProgram.types.MAT4 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -81,6 +78,7 @@ og.start = function () {
 
     var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: og.layer.MapServersProxy.OSMb.url });
     var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: og.layer.MapServers.MapQuestSat.url, visibility: true });
+    var arcgis = new og.layer.XYZ("ArcGIS World Imagery",{ isBaseLayer: true, url: og.layer.MapServersProxy.ArcGISWorldImagery.url });
     var mqosm = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: og.layer.MapServers.MapQuest.url });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: og.layer.MapServers.Cosmosnimki.url });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 1.0 });
@@ -99,7 +97,7 @@ og.start = function () {
         minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
     });
 
-    planet.addLayers([layer, satlayer, mqosm, kosmosnim, states, canyon, ocean, countries, regions, bl0, bf5, gpoints, pop]);
+    planet.addLayers([layer, satlayer, mqosm, arcgis, kosmosnim, states, canyon, ocean, countries, regions, bl0, bf5, gpoints, pop]);
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
@@ -108,7 +106,7 @@ og.start = function () {
 
     renderer.addRenderNode(planet);
     renderer.addRenderNode(skybox);
-    renderer.addRenderNode(axes);
+    //renderer.addRenderNode(axes);
 
     renderer.addControls([
         new og.control.MouseNavigation({ autoActivate: true }),

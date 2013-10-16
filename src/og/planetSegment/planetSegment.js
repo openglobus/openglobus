@@ -205,33 +205,33 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
-
-        var surface = {
-            aVertexPosition: this.vertexPositionBuffer,
-            aTextureCoord: this.vertexTextureCoordBuffer,
-            uPMatrix: this.planet.renderer.activeCamera.pMatrix._m,
-            uMVMatrix: this.planet.renderer.activeCamera.mvMatrix._m,
-            texBiasArr: [],
-            uSamplerArr: [],
-            tcolorArr: [],
-            alfaArr: []
-        };
+        var sh = this._ctx.shaderPrograms.planet;
+        sh.attributes.aVertexPosition.value = this.vertexPositionBuffer;
+        sh.attributes.aTextureCoord.value = this.vertexTextureCoordBuffer;
+        //sh.uniforms.uPMatrix.value = this.planet.renderer.activeCamera.pMatrix._m;
+        //sh.uniforms.uMVMatrix.value = this.planet.renderer.activeCamera.mvMatrix._m;
+        sh.uniforms.uPMVMatrix.value = this.planet.renderer.activeCamera.pmvMatrix._m;
+        sh.uniforms.texBiasArr.value = [];
+        sh.uniforms.uSamplerArr.value = [];
+        sh.uniforms.tcolorArr.value = [];
+        sh.uniforms.alfaArr.value = [];
 
         var layers = this.planet.layers;
         var i = 0;
         for (var l in layers) {
             if (layers[l].visibility) {
                 var mat = this.materials[layers[l].id];
-                surface.texBiasArr.push.apply(surface.texBiasArr, mat.texBias);
-                surface.uSamplerArr.push(mat.texture);
-                surface.tcolorArr.push.apply(surface.tcolorArr, layers[l].transparentColor);
-                surface.alfaArr.push(layers[l].opacity);
+                sh.uniforms.texBiasArr.value.push.apply(sh.uniforms.texBiasArr.value, mat.texBias);
+                sh.uniforms.uSamplerArr.value.push(mat.texture);
+                sh.uniforms.tcolorArr.value.push.apply(sh.uniforms.tcolorArr.value, layers[l].transparentColor);
+                sh.uniforms.alfaArr.value.push(layers[l].opacity);
                 i++;
             }
         };
-        surface.numTex = i;
 
-        this._ctx.shaderPrograms.planet.set(surface);
-        this._ctx.shaderPrograms.planet.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
+        sh.uniforms.numTex.value = i;
+        sh.apply();
+
+        sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
     }
 };

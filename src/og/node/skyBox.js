@@ -50,8 +50,8 @@ og.node.SkyBox.prototype.frame = function () {
     this.renderer.ctx.shaderPrograms.skybox.activate();
 
     this.renderer.ctx.shaderPrograms.skybox.set({
-        uPMatrix: this.renderer.activeCamera.pMatrix._m,
-        uMVMatrix: this.renderer.activeCamera.mvMatrix._m
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
+        pos: this.renderer.activeCamera.eye.toVec()
     });
 
     for (var i = 0; i < 6; i++) {
