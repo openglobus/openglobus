@@ -10,37 +10,6 @@
 
 <!--    <script src="og-compiled.js"></script> -->
     
-    <script id="shader-fs" type="x-shader/x-fragment">
-        precision mediump float;
-
-        varying vec2 vTextureCoord;
-
-        uniform sampler2D uSampler;
-
-
-        void main(void) {
-            gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        }
-    </script>
-
-    <script id="shader-vs" type="x-shader/x-vertex">
-        attribute vec3 aVertexPosition;
-        attribute vec2 aTextureCoord;
-
-        uniform mat4 uMVMatrix;
-        uniform mat4 uPMatrix;
-
-        uniform vec2 texOffset;
-        uniform float texScale;
-
-        varying vec2 vTextureCoord;
-
-        void main(void) {
-            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-            vTextureCoord = texScale*(aTextureCoord + texOffset);
-        }
-    </script>
-
 </head>
 
 <body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="og.start();">
