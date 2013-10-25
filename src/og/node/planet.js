@@ -158,16 +158,44 @@ og.node.Planet.prototype.renderNodes = function () {
     this.renderer.ctx.shaderPrograms.planet.activate();
 
     var nodes = this.renderedNodes;
-    for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].planetSegment.refreshIndexesBuffer) {
-            //...
-            nodes[i].planetSegment.createIndexesBuffer(nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize);
-            //nodes[i].planetSegment.createIndexesBuffer(1, 1, 1, 1);
-            //...
 
-            nodes[i].planetSegment.refreshIndexesBuffer = false;
+    for (var i = 0; i < nodes.length; i++) {
+        var s = nodes[i].planetSegment.gridSize;
+        nodes[i].kith = [s, s, s, s];
+    }
+
+    for (var i = 0; i < nodes.length; i++) {
+        var a = nodes[i];
+
+        for (var j = i + 1; j < nodes.length; j++) {
+            var b = nodes[j];
+
+            for (var as = 0; as < 4; as++) {
+                if (a.isNeighbourBySide(b, as)) {
+                    ap = a.planetSegment;
+                    bp = b.planetSegment;
+                    var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+                    if (ld == 1) {
+                        a.kith[as] = ap.gridSize / ld;
+                        b.kith[og.quadTree.OPSIDE[as]] = bp.gridSize / ld;
+                    } else if (ld < 1) {
+                        a.kith[as] = ap.gridSize;
+                        b.kith[og.quadTree.OPSIDE[as]] = bp.gridSize * ld;
+                    } else if (ld > 1) {
+                        a.kith[as] = ap.gridSize / ld;
+                        b.kith[og.quadTree.OPSIDE[as]] = bp.gridSize;
+                    }
+                    break;
+                }
+            }
         }
 
-        nodes[i].planetSegment.draw();
+        a.planetSegment.createIndexesBuffer(a.kith[og.quadTree.N], a.kith[og.quadTree.W], a.kith[og.quadTree.S], a.kith[og.quadTree.E], a.planetSegment.gridSize);
+
+        //if (nodes[i].planetSegment.refreshIndexesBuffer) {
+        //    nodes[i].planetSegment.refreshIndexesBuffer = false;
+        //}
+
+        a.planetSegment.draw();
     }
 };
