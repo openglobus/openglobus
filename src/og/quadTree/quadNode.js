@@ -20,6 +20,7 @@ og.quadTree.QuadNode = function () {
     this.state;
     this.appliedTerrainNodeId;
     this.appliedTextureNodeId;
+    this.kith = [];
 };
 
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
@@ -36,6 +37,46 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     node.createBounds(node.planetSegment);
     node.planet.createdNodesCount++;
     return node;
+};
+
+og.quadTree.QuadNode.prototype.isEqualIsAdjacent = function (node, side) {
+    var a = this, b = node;
+    
+    do{
+        if (og.quadTree.REF[side][a.partId] != b.partId)
+            return false;
+        a = a.parentNode;
+        b = b.parentNode;
+    } while (a.nodeId != b.nodeId);
+
+    return true;
+};
+
+og.quadTree.QuadNode.prototype.isNeighbourBySide = function (node, side) {
+    if (this.planetSegment.zoomIndex == node.planetSegment.zoomIndex) {
+        return this.isEqualIsAdjacent(node, side);
+    } else {
+        var nMin = this,
+            nMax = node,
+            vside = og.quadTree.OPSIDE[side];
+
+        var dz = nMax.planetSegment.zoomIndex - nMin.planetSegment.zoomIndex;
+
+        if (dz < 0) {
+            nMin = node;
+            nMax = this;
+            dz = Math.abs(dz);
+            vside = side;
+        }
+
+        while (dz--) {
+            if (!og.quadTree.ADJ[vside][nMax.partId])
+                return false;
+            nMax = nMax.parentNode;
+        }
+
+        return nMax.isEqualIsAdjacent(nMin, vside);
+    }
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
@@ -194,7 +235,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.planetSegment.createPlainVertices(gridSize);
         this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
         this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
-        this.planetSegment.createIndexesBuffer(gridSize, gridSize, gridSize, gridSize, gridSize);
+        //this.planetSegment.createIndexesBuffer(gridSize, gridSize, gridSize, gridSize, gridSize);
         this.planetSegment.ready = true;
     }
 
@@ -220,6 +261,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
     }
 
+    //?TODO: Descended sort insertion by planetSegment.zoomIndex
     this.planet.renderedNodes.push(this);
 };
 
