@@ -20,7 +20,7 @@ og.quadTree.QuadNode = function () {
     this.state;
     this.appliedTerrainNodeId;
     this.appliedTextureNodeId;
-    this.kith = [];
+    this.neighbors = [null, null, null, null];
 };
 
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
@@ -41,12 +41,28 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
 
 og.quadTree.QuadNode.prototype.isEqualIsAdjacent = function (node, side) {
     var a = this, b = node;
-    
-    do{
+
+    if (a.parentNode != b.parentNode) {
+        if (!og.quadTree.ADJ[side][a.partId])
+            return false;
+    }
+
+
+    do {
         if (og.quadTree.REF[side][a.partId] != b.partId)
             return false;
+
+        if (a.parentNode.nodeId != b.parentNode.nodeId) {
+            if (!og.quadTree.ADJ[side][a.partId])
+                return false;
+        } else {
+            break;
+        }
+
+
         a = a.parentNode;
         b = b.parentNode;
+
     } while (a.nodeId != b.nodeId);
 
     return true;
@@ -261,8 +277,24 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
     }
 
-    //?TODO: Descended sort insertion by planetSegment.zoomIndex
-    this.planet.renderedNodes.push(this);
+    this.addToRender();
+};
+
+og.quadTree.QuadNode.prototype.addToRender = function () {
+    var nodes = this.planet.renderedNodes;
+    for (var i = 0; i < nodes.length; i++) {
+        for (var s = 0; s < 4; s++) {
+            var rs = og.quadTree.OPSIDE[s];
+            if (!nodes[i].neighbors[rs]) {
+                if (this.isNeighbourBySide(nodes[i], s)) {
+                    this.neighbors[s] = nodes[i];
+                    nodes[i].neighbors[rs] = this;
+                    break;
+                }
+            }
+        }
+    }
+    nodes.push(this);
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
