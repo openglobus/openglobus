@@ -159,46 +159,25 @@ og.node.Planet.prototype.renderNodes = function () {
 
     var nodes = this.renderedNodes;
 
+
     for (var i = 0; i < nodes.length; i++) {
+
         var a = nodes[i];
         var ap = a.planetSegment;
 
-        //    var as = og.quadTree.N;
-        //    for (var as = 0; as < 4; as++) {
-        //        for (var j = i + 1; j < nodes.length; j++) {
-        //            var b = nodes[j];
-        //            if (a.isNeighbourBySide(b, as)) {
-        //                a.lodDiff[as]++;
-        //                b.lodDiff[og.quadTree.OPSIDE[as]]++;
-        //                ap = a.planetSegment;
-        //                bp = b.planetSegment;
-        //                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
-        //                if (ld == 1) {
-        //                    a.lodDiff[as] = ap.gridSize;
-        //                    b.lodDiff[og.quadTree.OPSIDE[as]] = bp.gridSize;
-        //                } else if (ld < 1) {
-        //                    a.lodDiff[as] = ap.gridSize;
-        //                    b.lodDiff[og.quadTree.OPSIDE[as]] = bp.gridSize * ld;
-        //                } else if (ld > 1) {
-        //                    a.lodDiff[as] = ap.gridSize / ld;
-        //                    b.lodDiff[og.quadTree.OPSIDE[as]] = bp.gridSize;
-        //                }
-        //            }
-        //        }
-        //    }
+        var sideSize = [ap.gridSize, ap.gridSize, ap.gridSize, ap.gridSize];
 
-        var size = [ap.gridSize, ap.gridSize, ap.gridSize, ap.gridSize];
-        for (var s = 0 ; s < 4; s++) {
-            if (a.neighbors[s]) {
-                var bp = a.neighbors[s].planetSegment;
-                ld = ap.gridSize / (ap.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+        for (var side = 0; side < 4; side++) {
+            if (a.neighbors[side]) {
+                var bp = a.neighbors[side].planetSegment;
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));               
                 if (ld > 1) {
-                    size[s] = ap.gridSize / ld;
+                    sideSize[side] /= ld;
                 }
             }
         }
-        a.planetSegment.createIndexesBuffer(size[og.quadTree.N], size[og.quadTree.W], size[og.quadTree.S], size[og.quadTree.E], a.planetSegment.gridSize);
+        ap.createIndexesBuffer(sideSize[og.quadTree.N], sideSize[og.quadTree.W], sideSize[og.quadTree.S], sideSize[og.quadTree.E], ap.gridSize);
 
-        a.planetSegment.draw();
+        ap.draw();
     }
 };

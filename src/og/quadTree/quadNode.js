@@ -39,60 +39,32 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     return node;
 };
 
-og.quadTree.QuadNode.prototype.isEqualIsAdjacent = function (node, side) {
-    var a = this, b = node;
+og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
+    var a = this.planetSegment,
+        b = node.planetSegment;
 
-    if (a.parentNode != b.parentNode) {
-        if (!og.quadTree.ADJ[side][a.partId])
-            return false;
+    if (a.extent[og.extent.RIGHT] == b.extent[og.extent.LEFT]) {
+        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
+            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+            return og.quadTree.E;
+        }
+    } else if (a.extent[og.extent.LEFT] == b.extent[og.extent.RIGHT]) {
+        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
+            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+            return og.quadTree.W;
+        }
+    } else if (a.extent[og.extent.TOP] == b.extent[og.extent.BOTTOM]) {
+        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
+            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+            return og.quadTree.N;
+        }
+    } else if (a.extent[og.extent.BOTTOM] == b.extent[og.extent.TOP]) {
+        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
+            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+            return og.quadTree.S;
+        }
     }
-
-
-    do {
-        if (og.quadTree.REF[side][a.partId] != b.partId)
-            return false;
-
-        if (a.parentNode.nodeId != b.parentNode.nodeId) {
-            if (!og.quadTree.ADJ[side][a.partId])
-                return false;
-        } else {
-            break;
-        }
-
-
-        a = a.parentNode;
-        b = b.parentNode;
-
-    } while (a.nodeId != b.nodeId);
-
-    return true;
-};
-
-og.quadTree.QuadNode.prototype.isNeighbourBySide = function (node, side) {
-    if (this.planetSegment.zoomIndex == node.planetSegment.zoomIndex) {
-        return this.isEqualIsAdjacent(node, side);
-    } else {
-        var nMin = this,
-            nMax = node,
-            vside = og.quadTree.OPSIDE[side];
-
-        var dz = nMax.planetSegment.zoomIndex - nMin.planetSegment.zoomIndex;
-
-        if (dz < 0) {
-            nMin = node;
-            nMax = this;
-            dz = Math.abs(dz);
-            vside = side;
-        }
-
-        while (dz--) {
-            if (!og.quadTree.ADJ[vside][nMax.partId])
-                return false;
-            nMax = nMax.parentNode;
-        }
-
-        return nMax.isEqualIsAdjacent(nMin, vside);
-    }
+    return -1;
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
@@ -283,15 +255,10 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 og.quadTree.QuadNode.prototype.addToRender = function () {
     var nodes = this.planet.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
-        for (var s = 0; s < 4; s++) {
-            var rs = og.quadTree.OPSIDE[s];
-            if (!nodes[i].neighbors[rs]) {
-                if (this.isNeighbourBySide(nodes[i], s)) {
-                    this.neighbors[s] = nodes[i];
-                    nodes[i].neighbors[rs] = this;
-                    break;
-                }
-            }
+        var cs = this.getCommonSide(nodes[i]);
+        if (cs != -1) {
+            this.neighbors[cs] = nodes[i];
+            nodes[i].neighbors[og.quadTree.OPSIDE[cs]] = this;
         }
     }
     nodes.push(this);
@@ -361,7 +328,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
     }
 };
-
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,
