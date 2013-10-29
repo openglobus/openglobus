@@ -14,24 +14,9 @@ og.quadTree.WALKTHROUGH = 0;
 og.quadTree.RENDERING = 1;
 og.quadTree.NOTRENDERING = 2;
 
-og.quadTree.ADJ = [[true, true, false, false],
-                [false, true, false, true],
-                [false, false, true, true],
-                [true, false, true, false]];
-
-og.quadTree.REFLECT = [[og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
-                    [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
-                    [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
-                    [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW]];
-
-og.quadTree.COMMONSIDE = [[-1, og.quadTree.N, og.quadTree.W, -1],
-                       [og.quadTree.N, -1, -1, og.quadTree.E],
-                       [og.quadTree.W, -1, -1, og.quadTree.S],
-                       [-1, og.quadTree.E, og.quadTree.S, -1]];
-
-og.quadTree.OPQUAD = [og.quadTree.SE, og.quadTree.SW, og.quadTree.NE, og.quadTree.NW];
-
 og.quadTree.ratioLOD = 1.18;
+
+og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
 
 og.quadTree.acceptableForRender = function (camera, sphere, lodEps) {
     return camera.projectedSize(sphere.center) > lodEps * sphere.radius;

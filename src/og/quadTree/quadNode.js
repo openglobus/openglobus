@@ -20,6 +20,7 @@ og.quadTree.QuadNode = function () {
     this.state;
     this.appliedTerrainNodeId;
     this.appliedTextureNodeId;
+    this.neighbors = [null, null, null, null];
 };
 
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
@@ -36,6 +37,34 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     node.createBounds(node.planetSegment);
     node.planet.createdNodesCount++;
     return node;
+};
+
+og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
+    var a = this.planetSegment,
+        b = node.planetSegment;
+
+    if (a.extent[og.extent.RIGHT] == b.extent[og.extent.LEFT]) {
+        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
+            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+            return og.quadTree.E;
+        }
+    } else if (a.extent[og.extent.LEFT] == b.extent[og.extent.RIGHT]) {
+        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
+            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+            return og.quadTree.W;
+        }
+    } else if (a.extent[og.extent.TOP] == b.extent[og.extent.BOTTOM]) {
+        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
+            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+            return og.quadTree.N;
+        }
+    } else if (a.extent[og.extent.BOTTOM] == b.extent[og.extent.TOP]) {
+        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
+            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+            return og.quadTree.S;
+        }
+    }
+    return -1;
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
@@ -194,7 +223,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.planetSegment.createPlainVertices(gridSize);
         this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
         this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
-        this.planetSegment.createIndexesBuffer(gridSize, gridSize, gridSize, gridSize, gridSize);
+        //this.planetSegment.createIndexesBuffer(gridSize, gridSize, gridSize, gridSize, gridSize);
         this.planetSegment.ready = true;
     }
 
@@ -220,7 +249,19 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
     }
 
-    this.planet.renderedNodes.push(this);
+    this.addToRender();
+};
+
+og.quadTree.QuadNode.prototype.addToRender = function () {
+    var nodes = this.planet.renderedNodes;
+    for (var i = 0; i < nodes.length; i++) {
+        var cs = this.getCommonSide(nodes[i]);
+        if (cs != -1) {
+            this.neighbors[cs] = nodes[i];
+            nodes[i].neighbors[og.quadTree.OPSIDE[cs]] = this;
+        }
+    }
+    nodes.push(this);
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
@@ -287,7 +328,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
     }
 };
-
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,

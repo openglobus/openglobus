@@ -140,7 +140,7 @@ og.node.Planet.prototype.frame = function () {
     this.renderer.activeCamera.altitude = altitude;
 
     print2d("lbAltitude", "alt: " + this.renderer.activeCamera.altitude + " proj: " + intersection.x.toFixed(12) + " " + intersection.y.toFixed(12) + " " + intersection.z.toFixed(12), 10, 10);
-    print2d("lbCounter", "tqs=" + this.baseLayer.pendingsQueue.length + ", ltrc=" + this.terrainProvider.counter + ", trqs=" + this.terrainProvider.pendingsQueue.length + ", rnc: " + this.renderedNodes.length + ", vnc: " + this.visitedNodesCount + ", cnc: " + this.createdNodesCount, 10, 100);
+    //print2d("lbCounter", "tqs=" + this.baseLayer.pendingsQueue.length + ", ltrc=" + this.terrainProvider.counter + ", trqs=" + this.terrainProvider.pendingsQueue.length + ", rnc: " + this.renderedNodes.length + ", vnc: " + this.visitedNodesCount + ", cnc: " + this.createdNodesCount, 10, 100);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
@@ -158,16 +158,26 @@ og.node.Planet.prototype.renderNodes = function () {
     this.renderer.ctx.shaderPrograms.planet.activate();
 
     var nodes = this.renderedNodes;
+
+
     for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].planetSegment.refreshIndexesBuffer) {
-            //...
-            nodes[i].planetSegment.createIndexesBuffer(nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize, nodes[i].planetSegment.gridSize);
-            //nodes[i].planetSegment.createIndexesBuffer(1, 1, 1, 1);
-            //...
 
-            nodes[i].planetSegment.refreshIndexesBuffer = false;
+        var a = nodes[i];
+        var ap = a.planetSegment;
+
+        var sideSize = [ap.gridSize, ap.gridSize, ap.gridSize, ap.gridSize];
+
+        for (var side = 0; side < 4; side++) {
+            if (a.neighbors[side]) {
+                var bp = a.neighbors[side].planetSegment;
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));               
+                if (ld > 1) {
+                    sideSize[side] /= ld;
+                }
+            }
         }
+        ap.createIndexesBuffer(sideSize[og.quadTree.N], sideSize[og.quadTree.W], sideSize[og.quadTree.S], sideSize[og.quadTree.E], ap.gridSize);
 
-        nodes[i].planetSegment.draw();
+        ap.draw();
     }
 };

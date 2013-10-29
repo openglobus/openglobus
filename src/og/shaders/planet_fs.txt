@@ -12,17 +12,14 @@ uniform vec3 tcolorArr[MAX_TEX];
 uniform vec3 texBiasArr[MAX_TEX];
 
 void main(void) {
-
 	vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord + vec2(texBiasArr[0].x, texBiasArr[0].y)));
 
     for( int i=1; i < MAX_TEX; i++ ) {
 	    if( i < numTex ) {
+		vec3 empty = vec3(0.0, 0.0, 0.0);
 	        vec4 ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + vec2(texBiasArr[i].x, texBiasArr[i].y)));
-		    if( alfaArr[i]!= 0.0 &&  ti.rgb != vec3(0.0, 0.0, 0.0)) {
-			    vec3 csub = ti.rgb - tcolorArr[i];
-			    float cdiff = length(csub);
-
-			    if(cdiff > COLOR_DIFF_EPS) {
+		    if( alfaArr[i] != 0.0 && ti.rgb != empty) {
+			    if( length( ti.rgb - tcolorArr[i] ) > COLOR_DIFF_EPS ) {
 				    if( alfaArr[i] != 1.0 ) {
 					    res = mix(res, ti, alfaArr[i]);
 				    }else{
@@ -30,6 +27,8 @@ void main(void) {
 				    }
 			    }
 			}
+		}else{
+			break;
 		}
 	}
 
