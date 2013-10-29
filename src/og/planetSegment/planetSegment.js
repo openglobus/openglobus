@@ -56,7 +56,6 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
 
         if (this.zoomIndex > 5) {
             this.createCoordsBuffers(og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize), 1);
-            this.createIndexesBuffer(1, 1, 1, 1, 1);
             this.gridSize = 1;
             this.refreshIndexesBuffer = false;
         } else {
@@ -206,29 +205,41 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 og.planetSegment.PlanetSegment.prototype.draw = function () {
     if (this.ready) {
         var sh = this._ctx.shaderPrograms.planet;
-        sh.attributes.aVertexPosition.value = this.vertexPositionBuffer;
-        sh.attributes.aTextureCoord.value = this.vertexTextureCoordBuffer;
-        sh.uniforms.uPMVMatrix.value = this.planet.renderer.activeCamera.pmvMatrix._m;
-        sh.uniforms.texBiasArr.value = [];
-        sh.uniforms.uSamplerArr.value = [];
-        sh.uniforms.tcolorArr.value = [];
-        sh.uniforms.alfaArr.value = [];
+        var gl = this._ctx.gl;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        texBiasArr = [];
+        samplerArr = [];
+        tcolorArr = [];
+        alfaArr = [];
 
         var layers = this.planet.layers;
-        var i = 0;
-        for (var l in layers) {
+        var size = 0;
+        for (var l = 0; l < layers.length; l++) {
             if (layers[l].visibility) {
                 var mat = this.materials[layers[l].id];
-                sh.uniforms.texBiasArr.value.push.apply(sh.uniforms.texBiasArr.value, mat.texBias);
-                sh.uniforms.uSamplerArr.value.push(mat.texture);
-                sh.uniforms.tcolorArr.value.push.apply(sh.uniforms.tcolorArr.value, layers[l].transparentColor);
-                sh.uniforms.alfaArr.value.push(layers[l].opacity);
-                i++;
+                texBiasArr.push.apply(texBiasArr, mat.texBias);
+                tcolorArr.push.apply(tcolorArr, layers[l].transparentColor);
+                alfaArr.push(layers[l].opacity);
+                gl.activeTexture(gl.TEXTURE0 + sh._textureID + size);
+                gl.bindTexture(gl.TEXTURE_2D, mat.texture);
+                samplerArr.push(size);
+                size++;
             }
-        };
+        }
 
-        sh.uniforms.numTex.value = i;
-        sh.apply();
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, this.planet.renderer.activeCamera.pmvMatrix._m);
+        gl.uniform1i(shu.numTex._pName, size);
+        gl.uniform3fv(shu.texBiasArr._pName, texBiasArr);
+        gl.uniform3fv(shu.tcolorArr._pName, tcolorArr);
+        gl.uniform1fv(shu.alfaArr._pName, alfaArr);
+        gl.uniform1iv(shu.uSamplerArr._pName, samplerArr);
 
         sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
     }
