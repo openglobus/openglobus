@@ -219,19 +219,17 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
         tcolorArr = [];
         alfaArr = [];
 
-        var layers = this.planet.layers;
+        var layers = this.planet.visibleLayers;
         var size = 0;
         for (var l = 0; l < layers.length; l++) {
-            if (layers[l].visibility) {
-                var mat = this.materials[layers[l].id];
-                texBiasArr.push.apply(texBiasArr, mat.texBias);
-                tcolorArr.push.apply(tcolorArr, layers[l].transparentColor);
-                alfaArr.push(layers[l].opacity);
-                gl.activeTexture(gl.TEXTURE0 + sh._textureID + size);
-                gl.bindTexture(gl.TEXTURE_2D, mat.texture);
-                samplerArr.push(size);
-                size++;
-            }
+            var mat = this.materials[layers[l].id];
+            texBiasArr.push.apply(texBiasArr, mat.texBias);
+            tcolorArr.push.apply(tcolorArr, layers[l].transparentColor);
+            alfaArr.push(layers[l].opacity);
+            gl.activeTexture(gl.TEXTURE0 + sh._textureID + size);
+            gl.bindTexture(gl.TEXTURE_2D, mat.texture);
+            samplerArr.push(size);
+            size++;
         }
 
         gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, this.planet.renderer.activeCamera.pmvMatrix._m);

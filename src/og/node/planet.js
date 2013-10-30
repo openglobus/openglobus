@@ -13,6 +13,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.quadTree;
 
     this.layers = [];
+    this.visibleLayers = [];
     this.baseLayer;
     this.terrainProvider;
     this.emptyTexture = null;
@@ -128,8 +129,17 @@ og.node.Planet.prototype.getRayEllipsoidIntersection = function (position, direc
     return null;
 };
 
-og.node.Planet.prototype.frame = function () {
+og.node.Planet.prototype.updateVisibleLayers = function () {
+    this.visibleLayers.length = 0;
+    for (var i = 0; i < this.layers.length; i++) {
+        if (this.layers[i].visibility) {
+            this.visibleLayers.push(this.layers[i]);
+        }
+    }
+};
 
+og.node.Planet.prototype.frame = function () {
+    this.updateVisibleLayers();
     this.quadTree.renderTree();
     this.renderNodes();
 
@@ -140,7 +150,6 @@ og.node.Planet.prototype.frame = function () {
     this.renderer.activeCamera.altitude = altitude;
 
     print2d("lbAltitude", "alt: " + this.renderer.activeCamera.altitude + " proj: " + intersection.x.toFixed(12) + " " + intersection.y.toFixed(12) + " " + intersection.z.toFixed(12), 10, 10);
-    //print2d("lbCounter", "tqs=" + this.baseLayer.pendingsQueue.length + ", ltrc=" + this.terrainProvider.counter + ", trqs=" + this.terrainProvider.pendingsQueue.length + ", rnc: " + this.renderedNodes.length + ", vnc: " + this.visitedNodesCount + ", cnc: " + this.createdNodesCount, 10, 100);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;

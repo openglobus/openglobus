@@ -223,7 +223,6 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.planetSegment.createPlainVertices(gridSize);
         this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
         this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
-        //this.planetSegment.createIndexesBuffer(gridSize, gridSize, gridSize, gridSize, gridSize);
         this.planetSegment.ready = true;
     }
 
@@ -232,18 +231,18 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileTerrainLoading();
     }
 
-    var l = this.planet.layers,
+    var vl = this.planet.visibleLayers,
         pm = this.planetSegment.materials;
 
-    for (var i = 0; i < l.length; i++) {
-        var li = l[i],
+    for (var i = 0; i < vl.length; i++) {
+        var li = vl[i],
             pml_id = pm[li.id];
 
         if (!pml_id) {
             pml_id = this.planetSegment.materials[li.id] = new og.planetSegment.PlanetSegmentMaterial(this.planetSegment, li);
         }
 
-        if (!pml_id.imageReady && li.visibility) {
+        if (!pml_id.imageReady) {
             pml_id.loadTileImage();
             this.whileTextureLoading(li.id);
         }
