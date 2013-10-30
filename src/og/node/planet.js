@@ -50,7 +50,6 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
             layer.visibility = true;
             this.baseLayer.abortLoading();
             this.baseLayer = layer;
-            //this.quadTree.reloadTextures();
         }
     } else {
         this.baseLayer = layer;
@@ -68,7 +67,6 @@ og.node.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
 };
 
-
 og.node.Planet.prototype.removeLayer = function (layer) {
     //...
 };
@@ -78,7 +76,7 @@ og.node.Planet.prototype.initialization = function () {
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
-    this.loadEmptyTexture("../resources/images/planet/empty.jpg");
+    this.loadEmptyTexture("../../resources/images/planet/empty.jpg");
 
 };
 
@@ -149,8 +147,6 @@ og.node.Planet.prototype.frame = function () {
     var altitude = pos.distance(intersection);
     this.renderer.activeCamera.altitude = altitude;
 
-    print2d("lbAltitude", "alt: " + this.renderer.activeCamera.altitude + " proj: " + intersection.x.toFixed(12) + " " + intersection.y.toFixed(12) + " " + intersection.z.toFixed(12), 10, 10);
-
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
 
@@ -186,7 +182,6 @@ og.node.Planet.prototype.renderNodes = function () {
             }
         }
         ap.createIndexesBuffer(sideSize[og.quadTree.N], sideSize[og.quadTree.W], sideSize[og.quadTree.S], sideSize[og.quadTree.E], ap.gridSize);
-
         ap.draw();
     }
 };
