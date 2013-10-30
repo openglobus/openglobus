@@ -129,19 +129,6 @@ og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
             this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
 };
 
-//og.quadTree.QuadNode.prototype.reloadTextures = function () {
-
-//    this.planetSegment.deleteTexture();
-
-//    if (this.getState() === og.quadTree.WALKTHROUGH) {
-//        this.planetSegment.loadTileImage();
-//    }
-
-//    for (var i = 0; i < this.nodes.length; i++) {
-//        this.nodes[i].reloadTextures();
-//    }
-//};
-
 og.quadTree.QuadNode.prototype.reloadTerrain = function () {
 
     this.planetSegment.clearBuffers();
