@@ -1,5 +1,6 @@
 goog.provide('og.node.SkyBox');
 
+goog.require('og');
 goog.require('og.node.Node3D');
 
 og.node.SkyBox = function () {
@@ -12,7 +13,7 @@ og.node.SkyBox = function () {
 
     this.textures = new Array(6);
     this.texturesFileName = new Array(6);
-    this.spath = "../Resources/Images/Skyboxes/Tycho/";
+    this.spath = og.RESOURCES_URL + "images/skyboxes/tycho/";
 };
 
 og._class_.extend(og.node.SkyBox, og.node.Node3D);

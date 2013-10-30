@@ -1,5 +1,6 @@
 goog.provide('og.node.Planet');
 
+goog.require('og');
 goog.require('og.node.Node3D');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
@@ -76,7 +77,7 @@ og.node.Planet.prototype.initialization = function () {
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
-    this.loadEmptyTexture("../../resources/images/planet/empty.jpg");
+    this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
 
 };
 

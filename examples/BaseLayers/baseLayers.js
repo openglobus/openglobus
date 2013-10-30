@@ -1,7 +1,6 @@
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
-goog.require('og.layer');
 goog.require('og.layer.XYZ');
 goog.require('og.terrainProvider.TerrainProvider');
 goog.require('og.control.MouseNavigation');

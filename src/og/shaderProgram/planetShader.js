@@ -1,5 +1,6 @@
 goog.provide('og.shaderProgram.planetShader');
 
+goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
@@ -17,6 +18,6 @@ og.shaderProgram.planetShader = new og.shaderProgram.ShaderProgram("planet", {
         aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
         aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
     },
-    vertexShader: og.utils.readTextFile("../../src/og/shaders/planet_vs.txt"),
-    fragmentShader: og.utils.readTextFile("../../src/og/shaders/planet_fs.txt")
+    vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "planet_vs.txt"),
+    fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "planet_fs.txt")
 });

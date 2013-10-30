@@ -30,8 +30,8 @@ goog.addDependency('../../../og/src/og/math/vector4.js', ['og.math.Vector4'], ['
 goog.addDependency('../../../og/src/og/node/axes.js', ['og.node.Axes'], ['og.node.Node3D']);
 goog.addDependency('../../../og/src/og/node/node.js', ['og.node.Node'], []);
 goog.addDependency('../../../og/src/og/node/node3D.js', ['og.node.Node3D'], ['og._class_', 'og.node.Node', 'og.webgl']);
-goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og.bv.Sphere', 'og.math.Matrix4', 'og.math.Vector3', 'og.node.Node3D', 'og.quadTree', 'og.quadTree.QuadNode']);
-goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og.node.Node3D']);
+goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og', 'og.bv.Sphere', 'og.math.Matrix4', 'og.math.Vector3', 'og.node.Node3D', 'og.quadTree', 'og.quadTree.QuadNode']);
+goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og', 'og.node.Node3D']);
 goog.addDependency('../../../og/src/og/og.js', ['og'], []);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegment.js', ['og.planetSegment', 'og.planetSegment.PlanetSegment'], ['og.bv.Box', 'og.bv.Sphere', 'og.extent', 'og.geo', 'og.layer', 'og.math', 'og.math.Vector3', 'og.planetSegment.PlanetSegmentHelper']);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegmentHelper.js', ['og.planetSegment.PlanetSegmentHelper'], ['og.quadTree']);
@@ -40,7 +40,9 @@ goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.Quad
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
 goog.addDependency('../../../og/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.input', 'og.input.Input', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);
-goog.addDependency('../../../og/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram.ShaderProgram'], ['og.shaderProgram.callbacks']);
+goog.addDependency('../../../og/src/og/shaderProgram/planetShader.js', ['og.shaderProgram.planetShader'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
+goog.addDependency('../../../og/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram', 'og.shaderProgram.ShaderProgram'], ['og.shaderProgram.callbacks']);
+goog.addDependency('../../../og/src/og/shaderProgram/skyboxShader.js', ['og.shaderProgram.skyboxShader'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
 goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider', 'og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.layer', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);
