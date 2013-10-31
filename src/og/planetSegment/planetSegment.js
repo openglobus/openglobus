@@ -55,8 +55,8 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
         this.deleteBuffers();
 
         if (this.zoomIndex > 5) {
-            this.createCoordsBuffers(og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize), 1);
-            this.gridSize = 1;
+            this.createCoordsBuffers(og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize), 2);
+            this.gridSize = 2;
             this.refreshIndexesBuffer = false;
         } else {
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
@@ -65,13 +65,14 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.getCornersVertices = function (vertiesArray, gridSize) {
-    var grx3 = 3 * gridSize;
-    var ind2 = grx3 * (gridSize + 1);
-    return [vertiesArray[0], vertiesArray[1], vertiesArray[2],
-                vertiesArray[grx3], vertiesArray[grx3 + 1], vertiesArray[grx3 + 2],
-                vertiesArray[ind2], vertiesArray[ind2 + 1], vertiesArray[ind2 + 2],
-                vertiesArray[ind2 + grx3], vertiesArray[ind2 + grx3 + 1], vertiesArray[ind2 + grx3 + 2]];
+og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
+    var step = 3 * gridSize;
+    var step2 = step * 0.5;
+    var lb = step * (gridSize + 1);
+    var ml = step2 * (gridSize + 1);
+    return [v[0],  v[1],       v[2],        v[step2],      v[step2 + 1],      v[step2 + 2],        v[step],      v[step + 1],      v[step + 2],
+            v[ml], v[ml + 1],  v[ml + 2],   v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2],   v[ml + step], v[ml + step + 1], v[ml + step + 2],
+            v[lb], v[lb + 1],  v[lb + 2],   v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2],   v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 };
 
 

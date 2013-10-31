@@ -276,7 +276,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
-            if (gridSize >= 1) {
+            if (gridSize > 1) {
                 this.planetSegment.gridSize = gridSize;
                 var i0 = gridSize * offsetY;
                 var j0 = gridSize * offsetX;
