@@ -1,5 +1,3 @@
-goog.provide('og.start');
-
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
@@ -20,7 +18,7 @@ goog.require('og.node.Axes');
 goog.require('og.shaderProgram.planetShader');
 
 
-og.start = function () {
+function start() {
 
     //var flatShader = new og.shaderProgram.ShaderProgram("flat", {
     //    uniforms: {
@@ -51,7 +49,7 @@ og.start = function () {
     var arcgisBounds = new og.layer.XYZ("ALPHA TEST: ArcGIS Boundaries", { isBaseLayer: false, url: "http://127.0.0.1/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{zoom}/{tiley}/{tilex}", transparentColor: [0, 0, 0], opacity: 0.9 });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "topp:states", opacity: 0.5 });
     var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:gchyp", opacity: 0.5 });
-    var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 0.5, transparentColor:[0.67, 0.67, 0.67] });
+    var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_110m_ocean", opacity: 0.5, transparentColor:[1, 1, 1] });
     var countries = new og.layer.WMS("Countries", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 0.5 });
     var regions = new og.layer.WMS("Geography regions", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_geography_regions_polys", opacity: 0.5 });
     var bl0 = new og.layer.WMS("Bathimetry-L-0", { isBaseLayer: false, url: "http://127.0.0.1/geoserver/", layers: "og:ne_10m_bathymetry_L_0", opacity: 0.5 });
@@ -88,5 +86,3 @@ og.start = function () {
 
     renderer.Start();
 };
-
-goog.exportSymbol('og.start', og.start);
