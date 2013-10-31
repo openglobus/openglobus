@@ -3,6 +3,7 @@ precision lowp int;
 
 const int MAX_TEX = 16;
 const float COLOR_DIFF_EPS = 0.4;
+
 varying vec2 vTextureCoord;
 
 uniform int numTex;
@@ -22,7 +23,7 @@ void main(void)
 		{
 			if( i < numTex ) 
 			{
-				ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + vec2(texBiasArr[i].x, texBiasArr[i].y)));
+				ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + texBiasArr[i].xy));
 
 				if( length( ti.rgb - tcolorArr[i] ) > COLOR_DIFF_EPS ) 
 				{
