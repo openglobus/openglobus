@@ -160,29 +160,12 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
-
     this.renderer.ctx.shaderPrograms.planet.activate();
-
     var nodes = this.renderedNodes;
-
-
     for (var i = 0; i < nodes.length; i++) {
-
         var a = nodes[i];
         var ap = a.planetSegment;
-
-        var sideSize = [ap.gridSize, ap.gridSize, ap.gridSize, ap.gridSize];
-
-        for (var side = 0; side < 4; side++) {
-            if (a.neighbors[side]) {
-                var bp = a.neighbors[side].planetSegment;
-                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));               
-                if (ld > 1) {
-                    sideSize[side] /= ld;
-                }
-            }
-        }
-        ap.createIndexesBuffer(sideSize[og.quadTree.N], sideSize[og.quadTree.W], sideSize[og.quadTree.S], sideSize[og.quadTree.E], ap.gridSize);
+        ap.createIndexesBuffer(a.sideSize, ap.gridSize);
         ap.draw();
     }
 };

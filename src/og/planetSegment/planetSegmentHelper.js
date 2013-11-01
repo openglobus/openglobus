@@ -11,17 +11,17 @@ og.planetSegment.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
     }
 };
 
-og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (indexes, size, northSize, westSize, southSize, eastSize) {
+og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (indexes, size, sidesSizes) {
     indexes.length = 0;
-    if (size != 1) {
-        indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size]);
-        indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][westSize]);
-        indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][northSize]);
-        indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][eastSize]);
-        indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][southSize]);
-    } else {
-        indexes.push(0,2,1,3);
-    }
+    //if (size != 1) {
+    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size]);
+    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]]);
+    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]]);
+    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]]);
+    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]]);
+    //} else {
+    //    indexes.push(0,2,1,3);
+    //}
 };
 
 og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes = function (size, indexes) {

@@ -20,7 +20,7 @@ og.quadTree.QuadNode = function () {
     this.state;
     this.appliedTerrainNodeId;
     this.appliedTextureNodeId;
-    this.neighbors = [null, null, null, null];
+    this.sideSize = [0, 0, 0, 0];
 };
 
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
@@ -243,8 +243,21 @@ og.quadTree.QuadNode.prototype.addToRender = function () {
     for (var i = 0; i < nodes.length; i++) {
         var cs = this.getCommonSide(nodes[i]);
         if (cs != -1) {
-            this.neighbors[cs] = nodes[i];
-            nodes[i].neighbors[og.quadTree.OPSIDE[cs]] = this;
+            var opcs = og.quadTree.OPSIDE[cs];
+            var ap = this.planetSegment;
+            var bp = nodes[i].planetSegment;
+            var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+            if (ld > 1) {
+                this.sideSize[cs] = ap.gridSize / ld;
+                nodes[i].sideSize[opcs] = bp.gridSize;
+            }
+            else if (ld < 1) {
+                this.sideSize[cs] = ap.gridSize;
+                nodes[i].sideSize[opcs] = bp.gridSize * ld;
+            } else {
+                this.sideSize[cs] = ap.gridSize;
+                nodes[i].sideSize[opcs] = bp.gridSize;
+            }
         }
     }
     nodes.push(this);
