@@ -1,9 +1,12 @@
-attribute vec3 aVertexPosition;
-attribute vec2 aTextureCoord;
+precision mediump float;
+precision lowp int;
 
-uniform mat4 uPMVMatrix;
+attribute lowp vec3 aVertexPosition;
+attribute lowp vec2 aTextureCoord;
 
-varying vec2 vTextureCoord;
+uniform lowp mat4 uPMVMatrix;
+
+varying lowp vec2 vTextureCoord;
 
 void main(void) {
     

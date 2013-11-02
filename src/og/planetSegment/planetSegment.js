@@ -41,7 +41,7 @@ og.planetSegment.PlanetSegment = function () {
     var NUM_TEX = 8;
     this._texBiasArr = new Float32Array(NUM_TEX * 3);
     this._samplerArr = new Int32Array(NUM_TEX);
-    this._tcolorArr = new Float32Array(NUM_TEX * 3);
+    this._tcolorArr = new Float32Array(NUM_TEX * 4);
     this._alfaArr = new Float32Array(NUM_TEX);
 
     this.node;
@@ -232,10 +232,17 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
             var ll = layers[l];
             var mat = this.materials[ll.id];
             var nt3 = l * 3;
+            var nt4 = l * 4;
 
-            texBiasArr[nt3] = mat.texBias[0]; texBiasArr[nt3 + 1] = mat.texBias[1]; texBiasArr[nt3 + 2] = mat.texBias[2];
-            tcolorArr[nt3] = ll.transparentColor[0]; tcolorArr[nt3 + 1] = ll.transparentColor[1]; tcolorArr[nt3 + 2] = ll.transparentColor[2];
-            alfaArr[l] = ll.opacity;
+            texBiasArr[nt3] = mat.texBias[0];
+            texBiasArr[nt3 + 1] = mat.texBias[1];
+            texBiasArr[nt3 + 2] = mat.texBias[2];
+
+            tcolorArr[nt4] = ll.transparentColor[0];
+            tcolorArr[nt4 + 1] = ll.transparentColor[1];
+            tcolorArr[nt4 + 2] = ll.transparentColor[2];
+            tcolorArr[nt4 + 3] = ll.opacity;
+
             samplerArr[l] = l;
 
             gl.activeTexture(gl.TEXTURE0 + sh._textureID + l);
@@ -245,8 +252,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
         gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, this.planet.renderer.activeCamera.pmvMatrix._m);
         gl.uniform1i(shu.numTex._pName, layers.length);
         gl.uniform3fv(shu.texBiasArr._pName, texBiasArr);
-        gl.uniform3fv(shu.tcolorArr._pName, tcolorArr);
-        gl.uniform1fv(shu.alfaArr._pName, alfaArr);
+        gl.uniform4fv(shu.tcolorArr._pName, tcolorArr);
         gl.uniform1iv(shu.uSamplerArr._pName, samplerArr);
 
         sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);

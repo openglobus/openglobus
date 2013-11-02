@@ -1,33 +1,27 @@
 precision mediump float;
 precision lowp int;
 
-const int MAX_TEX = 16;
-const float COLOR_DIFF_EPS = 0.4;
+#define MAX_TEX 8
 
 varying vec2 vTextureCoord;
 
 uniform int numTex;
 uniform sampler2D uSamplerArr[MAX_TEX];
-uniform float alfaArr[MAX_TEX];
-uniform vec3 tcolorArr[MAX_TEX];
-uniform vec3 texBiasArr[MAX_TEX];
+uniform vec4 tcolorArr[MAX_TEX];
+uniform lowp vec3 texBiasArr[MAX_TEX];
 
 void main(void) 
 {
-	vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord + vec2(texBiasArr[0].x, texBiasArr[0].y)));
+	lowp vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord + vec2(texBiasArr[0].x, texBiasArr[0].y)));
 
-	if(numTex > 1)
-	{
-		vec4 ti;
 		for( int i = 1; i < MAX_TEX; i++ ) 
 		{
-			if( i < numTex ) 
+			if( i < numTex) 
 			{
-				ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + texBiasArr[i].xy));
-
-				if( length( ti.rgb - tcolorArr[i] ) > COLOR_DIFF_EPS ) 
+				lowp vec4 ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + texBiasArr[i].xy));
+				if(length( ti.rgb - tcolorArr[i].xyz ) >  0.4) 
 				{
-					res = mix(res, ti, alfaArr[i]);
+					res = mix(res, ti, tcolorArr[i].w);
 				}
 			}
 			else
@@ -35,6 +29,5 @@ void main(void)
 				break;
 			}
 		}
-	}
 	gl_FragColor = res;
 }

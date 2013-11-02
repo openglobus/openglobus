@@ -10,8 +10,7 @@ og.shaderProgram.planetShader = new og.shaderProgram.ShaderProgram("planet", {
         uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
         uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
         texBiasArr: { type: og.shaderProgram.types.VEC3 },
-        alfaArr: { type: og.shaderProgram.types.FLOATXX },
-        tcolorArr: { type: og.shaderProgram.types.VEC3 },
+        tcolorArr: { type: og.shaderProgram.types.VEC4 },
         numTex: { type: og.shaderProgram.types.INT }
     },
     attributes: {
