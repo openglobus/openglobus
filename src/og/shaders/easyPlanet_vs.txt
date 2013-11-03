@@ -1,0 +1,14 @@
+precision mediump float;
+
+attribute vec3 aVertexPosition;
+attribute vec2 aTextureCoord;
+
+uniform mat4 uPMVMatrix;
+uniform vec3 texBias;
+
+varying vec2 vTextureCoord;
+
+void main(void) {
+    gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
+}

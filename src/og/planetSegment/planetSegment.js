@@ -39,10 +39,10 @@ og.planetSegment.PlanetSegment = function () {
     this.refreshIndexesBuffer = false;
 
     var NUM_TEX = 8;
-    this._texBiasArr = new Float32Array(NUM_TEX * 3);
-    this._samplerArr = new Int32Array(NUM_TEX);
-    this._tcolorArr = new Float32Array(NUM_TEX * 4);
-    this._alfaArr = new Float32Array(NUM_TEX);
+    this.texBiasArr = new Float32Array(NUM_TEX * 3);
+    this.samplerArr = new Int32Array(NUM_TEX);
+    this.tcolorArr = new Float32Array(NUM_TEX * 4);
+    this.alfaArr = new Float32Array(NUM_TEX);
 
     this.node;
 };
@@ -181,10 +181,8 @@ og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertice
 };
 
 og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
-    var indexes = [];
-    og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(indexes, gridSize, sidesSizes);
-    this.vertexIndexBuffer = this._ctx.createElementArrayBuffer(new Uint16Array(indexes), 1, indexes.length);
-    indexes.length = 0;
+    var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, sidesSizes);
+    this.vertexIndexBuffer = this._ctx.createElementArrayBuffer(indexes, 1, indexes.length);
 };
 
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
@@ -209,54 +207,78 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.draw = function () {
-    if (this.ready) {
-        var sh = this._ctx.shaderPrograms.planet;
-        var gl = this._ctx.gl;
+og.planetSegment.drawSingle = function (sh, segment) {
+    if (segment.ready) {
+        var gl = segment._ctx.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
+        var layers = segment.planet.visibleLayers;
 
-        var texBiasArr = this._texBiasArr;
-        var samplerArr = this._samplerArr;
-        var tcolorArr = this._tcolorArr;
-        var alfaArr = this._alfaArr;
+        var baseMat = segment.materials[layers[0].id];
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
+        gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
+        gl.uniform1i(shu.uSampler._pName, 0);
 
-        var layers = this.planet.visibleLayers;
- 
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, segment.planet.renderer.activeCamera.pmvMatrix._m);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord._pName, segment.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        segment.createIndexesBuffer(segment.node.sideSize, segment.gridSize);
+
+        sh.drawIndexBuffer(segment.planet.drawMode, segment.vertexIndexBuffer);
+
+        segment.node.sideSize = [0, 0, 0, 0];
+    }
+};
+
+og.planetSegment.drawOverlays = function (sh, segment) {
+    if (segment.ready) {
+        var gl = segment._ctx.gl;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+        var layers = segment.planet.visibleLayers;
+
         for (var l = 0; l < layers.length; l++) {
             var ll = layers[l];
-            var mat = this.materials[ll.id];
+            var mat = segment.materials[ll.id];
             var nt3 = l * 3;
             var nt4 = l * 4;
 
-            texBiasArr[nt3] = mat.texBias[0];
-            texBiasArr[nt3 + 1] = mat.texBias[1];
-            texBiasArr[nt3 + 2] = mat.texBias[2];
+            segment.texBiasArr[nt3] = mat.texBias[0];
+            segment.texBiasArr[nt3 + 1] = mat.texBias[1];
+            segment.texBiasArr[nt3 + 2] = mat.texBias[2];
 
-            tcolorArr[nt4] = ll.transparentColor[0];
-            tcolorArr[nt4 + 1] = ll.transparentColor[1];
-            tcolorArr[nt4 + 2] = ll.transparentColor[2];
-            tcolorArr[nt4 + 3] = ll.opacity;
+            segment.tcolorArr[nt4] = ll.transparentColor[0];
+            segment.tcolorArr[nt4 + 1] = ll.transparentColor[1];
+            segment.tcolorArr[nt4 + 2] = ll.transparentColor[2];
+            segment.tcolorArr[nt4 + 3] = ll.opacity;
 
-            samplerArr[l] = l;
+            segment.samplerArr[l] = l;
 
             gl.activeTexture(gl.TEXTURE0 + sh._textureID + l);
             gl.bindTexture(gl.TEXTURE_2D, mat.texture);
         }
 
-        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, this.planet.renderer.activeCamera.pmvMatrix._m);
         gl.uniform1i(shu.numTex._pName, layers.length);
-        gl.uniform3fv(shu.texBiasArr._pName, texBiasArr);
-        gl.uniform4fv(shu.tcolorArr._pName, tcolorArr);
-        gl.uniform1iv(shu.uSamplerArr._pName, samplerArr);
+        gl.uniform3fv(shu.texBiasArr._pName, segment.texBiasArr);
+        gl.uniform4fv(shu.tcolorArr._pName, segment.tcolorArr);
+        gl.uniform1iv(shu.uSamplerArr._pName, segment.samplerArr);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-        gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, segment.planet.renderer.activeCamera.pmvMatrix._m);
 
-        sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord._pName, segment.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        this.node.sideSize.length = 0;
+        segment.createIndexesBuffer(segment.node.sideSize, segment.gridSize);
+
+        sh.drawIndexBuffer(segment.planet.drawMode, segment.vertexIndexBuffer);
+
+        segment.node.sideSize = [0, 0, 0, 0];
     }
 };

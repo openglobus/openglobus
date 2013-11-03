@@ -7,6 +7,7 @@ goog.require('og.math.Vector3');
 goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
+goog.require('og.planetSegment');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -160,12 +161,18 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
-    this.renderer.ctx.shaderPrograms.planet.activate();
+    if (this.visibleLayers.length > 1) {
+        this.renderer.ctx.shaderPrograms.planet.activate();
+        sh = this.renderer.ctx.shaderPrograms.planet;
+        drawCallback = og.planetSegment.drawOverlays;
+    } else {
+        this.renderer.ctx.shaderPrograms.EasyPlanet.activate();
+        sh = this.renderer.ctx.shaderPrograms.EasyPlanet;
+        drawCallback = og.planetSegment.drawSingle;
+    }
+
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
-        var a = nodes[i];
-        var ap = a.planetSegment;
-        ap.createIndexesBuffer(a.sideSize, ap.gridSize);
-        ap.draw();
+        drawCallback(sh, nodes[i].planetSegment);
     }
 };

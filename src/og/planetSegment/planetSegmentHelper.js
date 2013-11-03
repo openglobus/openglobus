@@ -9,19 +9,39 @@ og.planetSegment.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
         og.planetSegment.PlanetSegmentHelper.textureCoordsTable = og.planetSegment.PlanetSegmentHelper.initTextureCoordsTable(powerOfTwo);
         og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable = og.planetSegment.PlanetSegmentHelper.initIndexesBodySkirts(powerOfTwo);
     }
+    og.planetSegment.PlanetSegmentHelper.centerIndexesTable[0] = [];
+    og.planetSegment.PlanetSegmentHelper.textureCoordsTable[0] = [];
 };
 
-og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (indexes, size, sidesSizes) {
-    indexes.length = 0;
-    //if (size != 1) {
-    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size]);
-    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]]);
-    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]]);
-    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]]);
-    indexes.push.apply(indexes, og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]]);
-    //} else {
-    //    indexes.push(0,2,1,3);
-    //}
+og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (size, sidesSizes) {
+    var indexes = [];
+    if (size != 1) {
+        var c = og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size],
+            w = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]],
+            n = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]],
+            e = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]],
+            s = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]];
+
+        var i = 0, k = 0;
+        for (k = 0; k < c.length; k++, i++) {
+            indexes.push(c[k]);
+        }
+        for (k = 0; k < w.length; k++, i++) {
+            indexes.push(w[k]);
+        }
+        for (k = 0; k < n.length; k++, i++) {
+            indexes.push(n[k]);
+        }
+        for (k = 0; k < e.length; k++, i++) {
+            indexes.push(e[k]);
+        }
+        for (k = 0; k < s.length; k++, i++) {
+            indexes.push(s[k]);
+        }
+    } else {
+        indexes.push(0, 2, 1, 3);
+    }
+    return new Uint16Array(indexes);
 };
 
 og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes = function (size, indexes) {
@@ -127,12 +147,23 @@ og.planetSegment.PlanetSegmentHelper.initIndexesBodySkirts = function (pow) {
     table[og.quadTree.S] = [];
     table[og.quadTree.E] = [];
 
+    table[og.quadTree.N][0] = [];
+    table[og.quadTree.W][0] = [];
+    table[og.quadTree.S][0] = [];
+    table[og.quadTree.E][0] = [];
+
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
         table[og.quadTree.N][d] = [];
         table[og.quadTree.W][d] = [];
         table[og.quadTree.S][d] = [];
         table[og.quadTree.E][d] = [];
+
+        table[og.quadTree.N][d][0] = [];
+        table[og.quadTree.W][d][0] = [];
+        table[og.quadTree.S][d][0] = [];
+        table[og.quadTree.E][d][0] = [];
+
         for (var j = 0; j <= pow; j++) {
             var dd = Math.pow(2, j);
             var nt = table[og.quadTree.N][d][dd] = [];

@@ -32,9 +32,23 @@ function start() {
     //    fragmentShader: og.utils.readTextFile("../src/og/shaders/flat_fs.txt")
     //});
 
+    var easyPlanet = new og.shaderProgram.ShaderProgram("EasyPlanet", {
+        uniforms: {
+            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            texBias: { type: og.shaderProgram.types.VEC3 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        attributes: {
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "easyPlanet_vs.txt"),
+        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "easyPlanet_fs.txt")
+    });
     context = new og.webgl.Handler("canvas");
     context.addShaderProgram(og.shaderProgram.planetShader);
     context.addShaderProgram(og.shaderProgram.skyboxShader);
+    context.addShaderProgram(easyPlanet);
     context.init();
 
     renderer = new og.Renderer(context);
@@ -72,7 +86,7 @@ function start() {
     //var axes = new og.node.Axes(10000);
 
     renderer.addRenderNode(planet);
-    renderer.addRenderNode(skybox);
+    //renderer.addRenderNode(skybox);
     //renderer.addRenderNode(axes);
 
     renderer.addControls([
