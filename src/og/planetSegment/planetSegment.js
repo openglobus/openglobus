@@ -216,11 +216,6 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-        gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         var texBiasArr = this._texBiasArr;
         var samplerArr = this._samplerArr;
         var tcolorArr = this._tcolorArr;
@@ -255,6 +250,13 @@ og.planetSegment.PlanetSegment.prototype.draw = function () {
         gl.uniform4fv(shu.tcolorArr._pName, tcolorArr);
         gl.uniform1iv(shu.uSamplerArr._pName, samplerArr);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
+
+        this.node.sideSize.length = 0;
     }
 };
