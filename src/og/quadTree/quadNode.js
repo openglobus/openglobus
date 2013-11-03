@@ -63,7 +63,12 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
             a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
             return og.quadTree.S;
         }
+    } else if (a.extent[og.extent.RIGHT] == 20037508.34 && b.extent[og.extent.LEFT] == -20037508.34) {
+        return og.quadTree.E;
+    } else if (a.extent[og.extent.LEFT] == -20037508.34 && b.extent[og.extent.RIGHT] == 20037508.34) {
+        return og.quadTree.W;
     }
+
     return -1;
 };
 
@@ -241,22 +246,25 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 og.quadTree.QuadNode.prototype.addToRender = function () {
     var nodes = this.planet.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
-        var cs = this.getCommonSide(nodes[i]);
+        var ni = nodes[i];
+        var cs = this.getCommonSide(ni);
         if (cs != -1) {
             var opcs = og.quadTree.OPSIDE[cs];
-            var ap = this.planetSegment;
-            var bp = nodes[i].planetSegment;
-            var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
-            if (ld > 1) {
-                this.sideSize[cs] = ap.gridSize / ld;
-                nodes[i].sideSize[opcs] = bp.gridSize;
-            }
-            else if (ld < 1) {
-                this.sideSize[cs] = ap.gridSize;
-                nodes[i].sideSize[opcs] = bp.gridSize * ld;
-            } else {
-                this.sideSize[cs] = ap.gridSize;
-                nodes[i].sideSize[opcs] = bp.gridSize;
+            if (!(this.sideSize[cs] && ni.sideSize[opcs])) {
+                var ap = this.planetSegment;
+                var bp = ni.planetSegment;
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+                if (ld > 1) {
+                    this.sideSize[cs] = ap.gridSize / ld;
+                    ni.sideSize[opcs] = bp.gridSize;
+                }
+                else if (ld < 1) {
+                    this.sideSize[cs] = ap.gridSize;
+                    ni.sideSize[opcs] = bp.gridSize * ld;
+                } else {
+                    this.sideSize[cs] = ap.gridSize;
+                    ni.sideSize[opcs] = bp.gridSize;
+                }
             }
         }
     }
