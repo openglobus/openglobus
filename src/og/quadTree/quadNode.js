@@ -189,7 +189,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     var cam = this.planet.renderer.activeCamera;
 
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
-        if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere, og.quadTree.ratioLOD)) {
+        if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere)) {
             this.prepareForRendering(cam);
         }
         else {

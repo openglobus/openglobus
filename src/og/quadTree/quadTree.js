@@ -14,10 +14,10 @@ og.quadTree.WALKTHROUGH = 0;
 og.quadTree.RENDERING = 1;
 og.quadTree.NOTRENDERING = 2;
 
-og.quadTree.ratioLOD = 1.18;
+og.quadTree.RATIO_LOD = 0.96;
 
 og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
 
-og.quadTree.acceptableForRender = function (camera, sphere, lodEps) {
-    return camera.projectedSize(sphere.center) > lodEps * sphere.radius;
+og.quadTree.acceptableForRender = function (camera, sphere) {
+    return camera.projectedSize(sphere.center) > og.quadTree.RATIO_LOD * sphere.radius;
 };

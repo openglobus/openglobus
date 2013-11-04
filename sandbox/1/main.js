@@ -14,8 +14,9 @@ goog.require('og.control.MousePosition');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
-goog.require('og.shaderProgram.planetShader');
-goog.require('og.shaderProgram.skyboxShader');
+goog.require('og.shaderProgram.overlays');
+goog.require('og.shaderProgram.single');
+goog.require('og.shaderProgram.skybox');
 
 
 function start() {
@@ -32,23 +33,11 @@ function start() {
     //    fragmentShader: og.utils.readTextFile("../src/og/shaders/flat_fs.txt")
     //});
 
-    var easyPlanet = new og.shaderProgram.ShaderProgram("EasyPlanet", {
-        uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            texBias: { type: og.shaderProgram.types.VEC3 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
-        },
-        attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "easyPlanet_vs.txt"),
-        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "easyPlanet_fs.txt")
-    });
+
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(og.shaderProgram.planetShader);
-    context.addShaderProgram(og.shaderProgram.skyboxShader);
-    context.addShaderProgram(easyPlanet);
+    context.addShaderProgram(og.shaderProgram.overlays);
+    context.addShaderProgram(og.shaderProgram.single);
+    context.addShaderProgram(og.shaderProgram.skybox);
     context.init();
 
     renderer = new og.Renderer(context);

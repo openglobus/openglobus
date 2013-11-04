@@ -1,11 +1,11 @@
-goog.provide('og.shaderProgram.planetShader');
+goog.provide('og.shaderProgram.overlays');
 
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
-og.shaderProgram.planetShader = new og.shaderProgram.ShaderProgram("planet", {
+og.shaderProgram.overlays = new og.shaderProgram.ShaderProgram("overlays", {
     uniforms: {
         uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
         uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
@@ -17,6 +17,6 @@ og.shaderProgram.planetShader = new og.shaderProgram.ShaderProgram("planet", {
         aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
         aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
     },
-    vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "planet_vs.txt"),
-    fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "planet_fs.txt")
+    vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_vs.txt"),
+    fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_fs.txt")
 });

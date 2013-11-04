@@ -162,12 +162,12 @@ og.node.Planet.prototype.frame = function () {
 
 og.node.Planet.prototype.renderNodes = function () {
     if (this.visibleLayers.length > 1) {
-        this.renderer.ctx.shaderPrograms.planet.activate();
-        sh = this.renderer.ctx.shaderPrograms.planet;
+        this.renderer.ctx.shaderPrograms.overlays.activate();
+        sh = this.renderer.ctx.shaderPrograms.overlays;
         drawCallback = og.planetSegment.drawOverlays;
     } else {
-        this.renderer.ctx.shaderPrograms.EasyPlanet.activate();
-        sh = this.renderer.ctx.shaderPrograms.EasyPlanet;
+        this.renderer.ctx.shaderPrograms.single.activate();
+        sh = this.renderer.ctx.shaderPrograms.single;
         drawCallback = og.planetSegment.drawSingle;
     }
 

@@ -1,11 +1,11 @@
-goog.provide('og.shaderProgram.skyboxShader');
+goog.provide('og.shaderProgram.skybox');
 
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
-og.shaderProgram.skyboxShader = new og.shaderProgram.ShaderProgram("skybox", {
+og.shaderProgram.skybox = new og.shaderProgram.ShaderProgram("skybox", {
     uniforms: {
         uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
         uSampler: { type: og.shaderProgram.types.SAMPLER2D },
