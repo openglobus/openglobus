@@ -8,6 +8,8 @@ goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.planetSegment');
+goog.require('og.shaderProgram.overlays');
+goog.require('og.shaderProgram.single');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -79,7 +81,8 @@ og.node.Planet.prototype.initialization = function () {
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();
     this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
-
+    this.renderer.ctx.addShaderProgram(og.shaderProgram.overlays);
+    this.renderer.ctx.addShaderProgram(og.shaderProgram.single);
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {

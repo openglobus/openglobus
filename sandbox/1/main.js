@@ -14,8 +14,6 @@ goog.require('og.control.MousePosition');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
-goog.require('og.shaderProgram.overlays');
-goog.require('og.shaderProgram.single');
 goog.require('og.shaderProgram.skybox');
 
 
@@ -35,8 +33,6 @@ function start() {
 
 
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(og.shaderProgram.overlays);
-    context.addShaderProgram(og.shaderProgram.single);
     context.addShaderProgram(og.shaderProgram.skybox);
     context.init();
 
@@ -75,7 +71,7 @@ function start() {
     //var axes = new og.node.Axes(10000);
 
     renderer.addRenderNode(planet);
-    //renderer.addRenderNode(skybox);
+    renderer.addRenderNode(skybox);
     //renderer.addRenderNode(axes);
 
     renderer.addControls([
