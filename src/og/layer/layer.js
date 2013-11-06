@@ -20,8 +20,8 @@ og.layer.getTileExtent = function (x, y, zoom) {
 
     return [left, bottom, right, top];
 };
-
-og.layer.MAX_REQUESTS = 8;
+og.layer.MAX_OVERLAYS = 8;
+og.layer.MAX_REQUESTS = 10;
 og.layer.layersCounter = 0;
 og.layer.requestsCounter = 0;
 og.layer.DEFAILT_Z_INDEX = 1000;

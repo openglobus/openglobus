@@ -38,11 +38,9 @@ og.planetSegment.PlanetSegment = function () {
     this.terrainIsLoading = false;
     this.refreshIndexesBuffer = false;
 
-    var NUM_TEX = 8;
-    this.texBiasArr = new Float32Array(NUM_TEX * 3);
-    this.samplerArr = new Int32Array(NUM_TEX);
-    this.tcolorArr = new Float32Array(NUM_TEX * 4);
-    this.alfaArr = new Float32Array(NUM_TEX);
+    this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
+    this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
+    this.alfaArr = new Float32Array(og.layer.MAX_OVERLAYS);
 
     this.node;
 };
@@ -220,8 +218,6 @@ og.planetSegment.drawSingle = function (sh, segment) {
         gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
         gl.uniform1i(shu.uSampler._pName, 0);
 
-        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, segment.planet.renderer.activeCamera.pmvMatrix._m);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexTextureCoordBuffer);
@@ -252,23 +248,14 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             segment.texBiasArr[nt3 + 1] = mat.texBias[1];
             segment.texBiasArr[nt3 + 2] = mat.texBias[2];
 
-            segment.tcolorArr[nt4] = ll.transparentColor[0];
-            segment.tcolorArr[nt4 + 1] = ll.transparentColor[1];
-            segment.tcolorArr[nt4 + 2] = ll.transparentColor[2];
-            segment.tcolorArr[nt4 + 3] = ll.opacity;
-
             segment.samplerArr[l] = l;
 
             gl.activeTexture(gl.TEXTURE0 + sh._textureID + l);
             gl.bindTexture(gl.TEXTURE_2D, mat.texture);
         }
 
-        gl.uniform1i(shu.numTex._pName, layers.length);
         gl.uniform3fv(shu.texBiasArr._pName, segment.texBiasArr);
-        gl.uniform4fv(shu.tcolorArr._pName, segment.tcolorArr);
         gl.uniform1iv(shu.uSamplerArr._pName, segment.samplerArr);
-
-        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, segment.planet.renderer.activeCamera.pmvMatrix._m);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

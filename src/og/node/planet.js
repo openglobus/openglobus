@@ -10,6 +10,7 @@ goog.require('og.bv.Sphere');
 goog.require('og.planetSegment');
 goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
+goog.require('og.layer');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -18,6 +19,7 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.layers = [];
     this.visibleLayers = [];
+    this.tcolorArr = new Float32Array(og.layer.MAX_OVERLAYS * 4);
     this.baseLayer;
     this.terrainProvider;
     this.emptyTexture = null;
@@ -164,15 +166,29 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
+    var sh;
     if (this.visibleLayers.length > 1) {
         this.renderer.ctx.shaderPrograms.overlays.activate();
         sh = this.renderer.ctx.shaderPrograms.overlays;
         drawCallback = og.planetSegment.drawOverlays;
+        var layers = this.visibleLayers;
+        for (var l = 0; l < layers.length; l++) {
+            var ll = layers[l];
+            var nt4 = l * 4;
+            this.tcolorArr[nt4] = ll.transparentColor[0];
+            this.tcolorArr[nt4 + 1] = ll.transparentColor[1];
+            this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
+            this.tcolorArr[nt4 + 3] = ll.opacity;
+        }
+        this.renderer.ctx.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
+        this.renderer.ctx.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
     } else {
         this.renderer.ctx.shaderPrograms.single.activate();
         sh = this.renderer.ctx.shaderPrograms.single;
         drawCallback = og.planetSegment.drawSingle;
     }
+
+    this.renderer.ctx.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, this.renderer.activeCamera.pmvMatrix._m);
 
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
