@@ -33,6 +33,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.createdNodesCount = 0;
     this.renderedNodes = [];
     this.heightFactor = 1.0;
+
+    this.mousePositionOnEarth = new og.math.Vector3();
 };
 
 og._class_.extend(og.node.Planet, og.node.Node3D);
@@ -152,7 +154,8 @@ og.node.Planet.prototype.frame = function () {
     var direction = new og.math.Vector3(-pos.x, -pos.y, -pos.z);
     var intersection = this.getRayEllipsoidIntersection(pos, direction.normal());
     var altitude = pos.distance(intersection);
-    this.renderer.activeCamera.altitude = altitude;
+    this.renderer.activeCamera.altitude = altitude;    
+    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseDirection);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;

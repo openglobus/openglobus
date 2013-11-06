@@ -66,8 +66,9 @@ og.control.MousePosition.prototype.init = function () {
 };
 
 og.control.MousePosition.prototype.draw = function () {
-    if (this.renderer.mousePositionOnEarth) {
-        var ll = this.renderer.renderNodes[0].ellipsoid.ECEF2LatLon(this.renderer.mousePositionOnEarth.z, this.renderer.mousePositionOnEarth.x, this.renderer.mousePositionOnEarth.y);
+    var planetNode = this.renderer.renderNodes[0];
+    if (planetNode.mousePositionOnEarth) {
+        var ll = planetNode.ellipsoid.ECEF2LatLon(planetNode.mousePositionOnEarth.z, planetNode.mousePositionOnEarth.x, planetNode.mousePositionOnEarth.y);
         this.display.innerHTML = "Lat/Lon: " + this.converter(ll);
     } else {
         this.display.innerHTML = "Lat/Lon: " + "_____________________";

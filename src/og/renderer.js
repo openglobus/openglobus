@@ -22,7 +22,6 @@ og.Renderer = function (handler) {
     this.mouseX = 0;
     this.mouseY = 0;
     this.mouseDirection = new og.math.Vector3();
-    this.mousePositionOnEarth = new og.math.Vector3();
 };
 
 og.Renderer.prototype.addControl = function (control) {
@@ -107,27 +106,24 @@ og.Renderer.prototype.draw = function (delta) {
     this.input.handleEvents();
 
     this.mouseDirection = this.activeCamera.unproject(this.mouseX, this.mouseY);
-    this.mousePositionOnEarth = this.renderNodes[0].getRayEllipsoidIntersection(this.activeCamera.eye, this.mouseDirection);
-
-    this.handleControls();
-
-    //this.activeCamera.apply();
 
     for (var i = 0; i < this.renderNodes.length; i++) {
         this.renderNodes[i].drawNode();
     }
+
+    this.handleControls();
 };
 
 og.Renderer.prototype.handleControls = function () {
     for (var cnt in this.controls) {
         if (this.mouseIsMoving) {
-            var sending = { x: this.mouseX, y: this.mouseY, xyz: this.mousePositionOnEarth, direction: this.mouseDirection };
+            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
             if (this.controls[cnt].onMouseMoving)
                 this.controls[cnt].onMouseMoving(this, sending);
         }
 
         if (this.mouseLeftButtonDown) {
-            var sending = { x: this.mouseX, y: this.mouseY, xyz: this.mousePositionOnEarth, direction: this.mouseDirection };
+            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
             if (!this.holdMouseLeftButtonDown) {
                 this.holdMouseLeftButtonDown = true;
                 if (this.controls[cnt].onMouseLeftButtonClick)
@@ -139,7 +135,7 @@ og.Renderer.prototype.handleControls = function () {
         }
 
         if (this.mouseRightButtonDown) {
-            var sending = { x: this.mouseX, y: this.mouseY, xyz: this.mousePositionOnEarth, direction: this.mouseDirection };
+            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
             if (!this.holdMouseRightButtonDown) {
                 this.holdMouseRightButtonDown = true;
                 if (this.controls[cnt].onMouseRightButtonClick)

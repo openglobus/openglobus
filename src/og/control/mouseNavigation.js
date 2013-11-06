@@ -21,9 +21,10 @@ og.control.MouseNavigation = function (options) {
 og._class_.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
-    if (this.renderer.mousePositionOnEarth) {
+    var planetNode = this.renderer.renderNodes[0];
+    if (planetNode.mousePositionOnEarth) {
         var cam = this.renderer.activeCamera;
-        var d = this.distDiff * cam.eye.distance(this.renderer.mousePositionOnEarth);
+        var d = this.distDiff * cam.eye.distance(planetNode.mousePositionOnEarth);
         var dv = new og.math.Vector3(this.renderer.mouseDirection.x * d, this.renderer.mouseDirection.y * d, this.renderer.mouseDirection.z * d);
         if (event.wheelDelta > 0) {
             cam.eye.add(dv);
@@ -40,14 +41,15 @@ og.control.MouseNavigation.prototype.init = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (sender, object) {
-    this.hitMousePositionOnEarth.copy(object.xyz);
+    this.hitMousePositionOnEarth.copy(this.renderer.renderNodes[0].mousePositionOnEarth);
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (sender, object) {
     if (sender.mouseIsMoving) {
+        var planetNode = this.renderer.renderNodes[0];
         var cam = sender.activeCamera;
         var p0 = og.math.Vector3.add(this.hitMousePositionOnEarth.normal().scaleTo(cam.altitude), this.hitMousePositionOnEarth);
-        var p1 = og.math.Vector3.add(object.xyz.normal().scaleTo(cam.altitude), object.xyz);
+        var p1 = og.math.Vector3.add(planetNode.mousePositionOnEarth.normal().scaleTo(cam.altitude), planetNode.mousePositionOnEarth);
 
         var d = og.math.Vector3.sub(p0, p1);
         cam.eye.add(d);
