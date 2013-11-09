@@ -218,16 +218,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
         gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
         gl.uniform1i(shu.uSampler._pName, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexTextureCoordBuffer);
-        gl.vertexAttribPointer(sha.aTextureCoord._pName, segment.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        segment.createIndexesBuffer(segment.node.sideSize, segment.gridSize);
-
-        sh.drawIndexBuffer(segment.planet.drawMode, segment.vertexIndexBuffer);
-
-        segment.node.sideSize = [0, 0, 0, 0];
+        segment.draw(sh);
     }
 };
 
@@ -257,15 +248,28 @@ og.planetSegment.drawOverlays = function (sh, segment) {
         gl.uniform3fv(shu.texBiasArr._pName, segment.texBiasArr);
         gl.uniform1iv(shu.uSamplerArr._pName, segment.samplerArr);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition._pName, segment.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexTextureCoordBuffer);
-        gl.vertexAttribPointer(sha.aTextureCoord._pName, segment.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        segment.createIndexesBuffer(segment.node.sideSize, segment.gridSize);
-
-        sh.drawIndexBuffer(segment.planet.drawMode, segment.vertexIndexBuffer);
-
-        segment.node.sideSize = [0, 0, 0, 0];
+        segment.draw(sh);
     }
+};
+
+og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
+    var gl = this._ctx.gl;
+    var sha = sh.attributes;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+
+    if ((this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
+        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E] ) == this.gridSize) {
+        sh.drawIndexBuffer(this.planet.drawMode, this.planet.indexesBuffers[this.gridSize]);
+    } else {
+        this.createIndexesBuffer(this.node.sideSize, this.gridSize);
+        sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
+    }
+
+    this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
+    this.node.hasNeighbor.length = 0;
 };

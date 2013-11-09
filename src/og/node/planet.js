@@ -11,6 +11,7 @@ goog.require('og.planetSegment');
 goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
 goog.require('og.layer');
+goog.require('og.planetSegment.PlanetSegmentHelper');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -35,6 +36,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.heightFactor = 1.0;
 
     this.mousePositionOnEarth = new og.math.Vector3();
+
+    this.indexesBuffers = [];
 };
 
 og._class_.extend(og.node.Planet, og.node.Node3D);
@@ -80,6 +83,16 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 };
 
 og.node.Planet.prototype.initialization = function () {
+    //Initialization indexes table
+    og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
+
+    //Iniytialize indexes buffers array
+    for (var i = 0; i <= 5; i++) {
+        var gridSize = Math.pow(2, i);
+        var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
+        this.indexesBuffers[gridSize] = this.renderer.ctx.createElementArrayBuffer(indexes, 1, indexes.length);
+    }
+
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
@@ -154,7 +167,7 @@ og.node.Planet.prototype.frame = function () {
     var direction = new og.math.Vector3(-pos.x, -pos.y, -pos.z);
     var intersection = this.getRayEllipsoidIntersection(pos, direction.normal());
     var altitude = pos.distance(intersection);
-    this.renderer.activeCamera.altitude = altitude;    
+    this.renderer.activeCamera.altitude = altitude;
     this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseDirection);
 
     this.visitedNodesCount = 0;

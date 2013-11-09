@@ -1,7 +1,6 @@
 goog.provide('og.terrainProvider');
 goog.provide('og.terrainProvider.TerrainProvider');
 
-goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.layer');
 goog.require('og.quadTree');
 goog.require('og.Ajax');
@@ -17,9 +16,6 @@ og.terrainProvider.TerrainProvider = function (name, options) {
         this.gridSizeByZoom = options.gridSizeByZoom ? options.gridSizeByZoom : og.terrainProvider.TerrainProvider.defaultGridSizeByZoom;
         this.fileGridSize = options.fileGridSize ? options.fileGridSize : og.terrainProvider.TerrainProvider.defaultFileGridSize;
     }
-
-    //Initialization indexes table
-    og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
 
     og.terrainProvider.TerrainProvider.layersCounter++;
     this.id = og.terrainProvider.TerrainProvider.layersCounter;

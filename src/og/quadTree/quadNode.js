@@ -21,6 +21,7 @@ og.quadTree.QuadNode = function () {
     this.appliedTerrainNodeId;
     this.appliedTextureNodeId;
     this.sideSize = [0, 0, 0, 0];
+    this.hasNeighbor = [];
 };
 
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
@@ -216,6 +217,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
         this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
         this.planetSegment.ready = true;
+        this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     }
 
     if (!this.planetSegment.terrainReady) {
@@ -250,10 +252,14 @@ og.quadTree.QuadNode.prototype.addToRender = function () {
         var cs = this.getCommonSide(ni);
         if (cs != -1) {
             var opcs = og.quadTree.OPSIDE[cs];
-            if (!(this.sideSize[cs] && ni.sideSize[opcs])) {
+            if (!(this.hasNeighbor[cs]&&ni.hasNeighbor[opcs])/*!(this.sideSize[cs] && ni.sideSize[opcs])*/) {
                 var ap = this.planetSegment;
                 var bp = ni.planetSegment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+
+                this.hasNeighbor[cs] = true;
+                ni.hasNeighbor[opcs] = true;
+
                 if (ld > 1) {
                     this.sideSize[cs] = ap.gridSize / ld;
                     ni.sideSize[opcs] = bp.gridSize;
@@ -261,10 +267,10 @@ og.quadTree.QuadNode.prototype.addToRender = function () {
                 else if (ld < 1) {
                     this.sideSize[cs] = ap.gridSize;
                     ni.sideSize[opcs] = bp.gridSize * ld;
-                } else {
+                }/* else {
                     this.sideSize[cs] = ap.gridSize;
                     ni.sideSize[opcs] = bp.gridSize;
-                }
+                }*/
             }
         }
     }
@@ -299,6 +305,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
             if (gridSize > 1) {
                 this.planetSegment.gridSize = gridSize;
+                this.sideSize = [gridSize, gridSize, gridSize, gridSize];
                 var i0 = gridSize * offsetY;
                 var j0 = gridSize * offsetX;
 
