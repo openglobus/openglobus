@@ -36,7 +36,6 @@ og.planetSegment.PlanetSegment = function () {
 
     this.terrainReady = false;
     this.terrainIsLoading = false;
-    this.refreshIndexesBuffer = false;
 
     this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
     this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
@@ -61,10 +60,8 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
         if (this.zoomIndex > 5) {
             this.createCoordsBuffers(og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize), 2);
             this.gridSize = 2;
-            this.refreshIndexesBuffer = false;
         } else {
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
-            this.refreshIndexesBuffer = true;
         }
     }
 };
@@ -123,7 +120,6 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 
         this.deleteBuffers();
         this.createCoordsBuffers(this.terrainVertices, this.gridSize);
-        this.refreshIndexesBuffer = true;
 
         elevations.length = 0;
 
