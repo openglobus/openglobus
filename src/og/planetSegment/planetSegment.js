@@ -262,8 +262,8 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 
-    if ((this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
-        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E] ) == this.gridSize) {
+    if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
+        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
         sh.drawIndexBuffer(this.planet.drawMode, this.planet.indexesBuffers[this.gridSize]);
     } else {
         this.createIndexesBuffer(this.node.sideSize, this.gridSize);
