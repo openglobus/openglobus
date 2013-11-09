@@ -267,10 +267,10 @@ og.quadTree.QuadNode.prototype.addToRender = function () {
                 else if (ld < 1) {
                     this.sideSize[cs] = ap.gridSize;
                     ni.sideSize[opcs] = bp.gridSize * ld;
-                }/* else {
+                } else {
                     this.sideSize[cs] = ap.gridSize;
                     ni.sideSize[opcs] = bp.gridSize;
-                }*/
+                }
             }
         }
     }
