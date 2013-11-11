@@ -16,12 +16,6 @@ og.control.LayerSwitcher.prototype.init = function () {
     this.createDialog();
 };
 
-og.control.LayerSwitcher.prototype.draw = function () {
-
-    //TODO: refresh layers lists
-
-};
-
 og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
     var layersDiv = document.createElement('div');
     layersDiv.className = "layersDiv";
@@ -84,7 +78,6 @@ og.control.LayerSwitcher.prototype.createOverlaysList = function (block) {
         }
     }
 };
-
 
 og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
     var i, inp, lbl, that = this,

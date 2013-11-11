@@ -38,16 +38,20 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
 og.control.MouseNavigation.prototype.init = function () {
     this.renderer.input.setEvent("onmousewheel", this, canvas, this.onMouseWheel);
+    this.renderer.addEvent("onmouselbuttondown", this, this.onMouseLeftButtonDown);
+    this.renderer.addEvent("onmouserbuttondown", this, this.onMouseRightButtonDown);
+    this.renderer.addEvent("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
+    this.renderer.addEvent("onmouserbuttonclick", this, this.onMouseRightButtonClick);
 };
 
-og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (sender, object) {
+og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (object) {
     this.hitMousePositionOnEarth.copy(this.renderer.renderNodes[0].mousePositionOnEarth);
 };
 
-og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (sender, object) {
-    if (sender.mouseIsMoving) {
+og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (object) {
+    if (this.renderer.mouseIsMoving) {
         var planetNode = this.renderer.renderNodes[0];
-        var cam = sender.activeCamera;
+        var cam = this.renderer.activeCamera;
         var p0 = og.math.Vector3.add(this.hitMousePositionOnEarth.normal().scaleTo(cam.altitude), this.hitMousePositionOnEarth);
         var p1 = og.math.Vector3.add(planetNode.mousePositionOnEarth.normal().scaleTo(cam.altitude), planetNode.mousePositionOnEarth);
 
@@ -66,29 +70,29 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (sender, o
     }
 };
 
-og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (sender, object) {
+og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (object) {
     this.x0 = object.x;
     this.y0 = object.y;
     this.camAngleX = 0;
     this.camAngleY = 0;
-    this.screenCenterOnEarth = sender.renderNodes[0].getRayEllipsoidIntersection(sender.activeCamera.eye, sender.activeCamera.n.getNegate());
+    this.screenCenterOnEarth = this.renderer.renderNodes[0].getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate());
     this.earthUp = this.screenCenterOnEarth.normal();
 };
 
-og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (sender, object) {
-    if (sender.mouseIsMoving) {
+og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (object) {
+    if (this.renderer.mouseIsMoving) {
         this.camAngleX = og.math.DEG2RAD((object.x - this.x0) * 0.4);
         this.camAngleY = og.math.DEG2RAD((object.y - this.y0) * 0.4);
         this.x0 = object.x;
         this.y0 = object.y;
 
         var rot = new og.math.Matrix4();
-        var rx = rot.rotate(this.earthUp, this.camAngleX).mulVec3(og.math.Vector3.sub(sender.activeCamera.eye, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
-        var ry = rot.rotate(sender.activeCamera.u, this.camAngleY).mulVec3(og.math.Vector3.sub(rx, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
+        var rx = rot.rotate(this.earthUp, this.camAngleX).mulVec3(og.math.Vector3.sub(this.renderer.activeCamera.eye, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
+        var ry = rot.rotate(this.renderer.activeCamera.u, this.camAngleY).mulVec3(og.math.Vector3.sub(rx, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
 
-        if (og.math.RAD2DEG(this.earthUp.angle(sender.activeCamera.n)) > 1) {
+        if (og.math.RAD2DEG(this.earthUp.angle(this.renderer.activeCamera.n)) > 1) {
         }
 
-        sender.activeCamera.set(ry, this.screenCenterOnEarth, this.earthUp);
+        this.renderer.activeCamera.set(ry, this.screenCenterOnEarth, this.earthUp);
     }
 };

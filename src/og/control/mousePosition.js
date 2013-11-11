@@ -63,6 +63,8 @@ og.control.MousePosition.prototype.init = function () {
         that.converter = og.control.MousePosition.DisplayTypesConverters[that.displayType];
     };
     document.body.appendChild(this.display);
+
+    this.renderer.addEvent("ondraw", this, this.draw);
 };
 
 og.control.MousePosition.prototype.draw = function () {

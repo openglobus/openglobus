@@ -14,6 +14,7 @@ og.control.ShowFps.prototype.init = function () {
     d.className = 'defaultText ';
     d.id = "ogShowFpsControl";
     document.body.appendChild(d);
+    this.renderer.addEvent("ondraw", this, this.draw);
 };
 
 
