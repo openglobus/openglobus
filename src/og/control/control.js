@@ -42,15 +42,3 @@ og.control.Control.prototype.activate = function () {
 og.control.Control.prototype.deactivate = function () {
     this.active = false;
 };
-
-og.control.Control.prototype.everyFrame = function () {
-    if (this.active) {
-        if (this.activated) {
-            if (this.draw) {
-                this.draw();
-            }
-        } else {
-            this.initialize();
-        }
-    }
-};

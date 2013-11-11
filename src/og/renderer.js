@@ -14,6 +14,8 @@ og.Renderer = function (handler) {
     this.input = new og.input.Input();
     this.controls = [];
 
+    this.events = {};
+
     this.mouseLeftButtonDown = false;
     this.mouseRightButtonDown = false;
     this.holdMouseLeftButtonDown = false;
@@ -22,6 +24,26 @@ og.Renderer = function (handler) {
     this.mouseX = 0;
     this.mouseY = 0;
     this.mouseDirection = new og.math.Vector3();
+
+    this.mouseState = {
+        x: 0,
+        y: 0,
+        mouseDirection: new og.math.Vector3()
+    };
+};
+
+og.Renderer.eventNames = [
+    "ondraw",
+    "onmousemove",
+    "onmouselbuttonclick",
+    "onmouselbuttondown",
+    "onmouserbuttonclick",
+    "onmouserbuttondown"];
+
+og.Renderer.prototype.initEvents = function () {
+    for (var i = 0; i < og.Renderer.eventNames.length; i++) {
+        this.events[og.Renderer.eventNames[i]] = [];
+    }
 };
 
 og.Renderer.prototype.addControl = function (control) {
@@ -53,6 +75,7 @@ og.Renderer.prototype.init = function () {
     }
 
     this.initMouseHandler();
+    this.initEvents();
 };
 
 og.Renderer.prototype.initMouseHandler = function () {
@@ -103,52 +126,67 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 
 og.Renderer.prototype.draw = function (delta) {
 
+    this.mouseDirection = this.activeCamera.unproject(this.mouseX, this.mouseY);
     this.input.handleEvents();
 
-    this.mouseDirection = this.activeCamera.unproject(this.mouseX, this.mouseY);
+    this.mouseState.x = this.mouseX;
+    this.mouseState.y = this.mouseY;
+    this.mouseState.mouseDirection = this.mouseDirection;
+
+    this.handleMouseEvents();
+
+    for (var i = 0; i < this.events.ondraw.length; i++) {
+        var e = this.events.ondraw[i];
+        e.callback.call(e.sender);
+    }
 
     for (var i = 0; i < this.renderNodes.length; i++) {
         this.renderNodes[i].drawNode();
     }
 
-    this.handleControls();
 };
 
-og.Renderer.prototype.handleControls = function () {
-    for (var cnt in this.controls) {
-        if (this.mouseIsMoving) {
-            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
-            if (this.controls[cnt].onMouseMoving)
-                this.controls[cnt].onMouseMoving(this, sending);
+og.Renderer.prototype.addEvent = function (name, sender, callback) {
+    this.events[name].push({sender: sender, callback:callback});
+};
+
+og.Renderer.prototype.handleMouseEvents = function () {
+    if (this.mouseIsMoving) {
+        for (var i = 0; i < this.events.onmousemove.length; i++) {
+            var e = this.events.onmousemove[i];
+            e.callback.call(e.sender, this.mouseState);
         }
-
-        if (this.mouseLeftButtonDown) {
-            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
-            if (!this.holdMouseLeftButtonDown) {
-                this.holdMouseLeftButtonDown = true;
-                if (this.controls[cnt].onMouseLeftButtonClick)
-                    this.controls[cnt].onMouseLeftButtonClick(this, sending);
-            }
-
-            if (this.controls[cnt].onMouseLeftButtonDown)
-                this.controls[cnt].onMouseLeftButtonDown(this, sending);
-        }
-
-        if (this.mouseRightButtonDown) {
-            var sending = { x: this.mouseX, y: this.mouseY, direction: this.mouseDirection };
-            if (!this.holdMouseRightButtonDown) {
-                this.holdMouseRightButtonDown = true;
-                if (this.controls[cnt].onMouseRightButtonClick)
-                    this.controls[cnt].onMouseRightButtonClick(this, sending);
-            }
-
-            if (this.controls[cnt].onMouseRightButtonDown)
-                this.controls[cnt].onMouseRightButtonDown(this, sending);
-        }
-
-        this.controls[cnt].everyFrame();
     }
 
+    if (this.mouseLeftButtonDown) {
+        if (!this.holdMouseLeftButtonDown) {
+            this.holdMouseLeftButtonDown = true;
+            for (var i = 0; i < this.events.onmouselbuttonclick.length; i++) {
+                var e = this.events.onmouselbuttonclick[i];
+                e.callback.call(e.sender, this.mouseState);
+            }
+        } else {
+            for (var i = 0; i < this.events.onmouselbuttondown.length; i++) {
+                var e = this.events.onmouselbuttondown[i];
+                e.callback.call(e.sender, this.mouseState);
+            }
+        }
+    }
+
+    if (this.mouseRightButtonDown) {
+        if (!this.holdMouseRightButtonDown) {
+            this.holdMouseRightButtonDown = true;
+            for (var i = 0; i < this.events.onmouserbuttonclick.length; i++) {
+                var e = this.events.onmouserbuttonclick[i];
+                e.callback.call(e.sender, this.mouseState);
+            }
+        } else {
+            for (var i = 0; i < this.events.onmouserbuttondown.length; i++) {
+                var e = this.events.onmouserbuttondown[i];
+                e.callback.call(e.sender, this.mouseState);
+            }
+        }
+    }
     this.mouseIsMoving = false;
 };
 
