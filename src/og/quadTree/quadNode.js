@@ -252,7 +252,7 @@ og.quadTree.QuadNode.prototype.addToRender = function () {
         var cs = this.getCommonSide(ni);
         if (cs != -1) {
             var opcs = og.quadTree.OPSIDE[cs];
-            if (!(this.hasNeighbor[cs]&&ni.hasNeighbor[opcs])/*!(this.sideSize[cs] && ni.sideSize[opcs])*/) {
+            if (!(this.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
                 var ap = this.planetSegment;
                 var bp = ni.planetSegment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
