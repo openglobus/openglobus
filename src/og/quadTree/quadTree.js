@@ -14,7 +14,7 @@ og.quadTree.WALKTHROUGH = 0;
 og.quadTree.RENDERING = 1;
 og.quadTree.NOTRENDERING = 2;
 
-og.quadTree.RATIO_LOD = 0.96;
+og.quadTree.RATIO_LOD = 1.12;
 
 og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
 
