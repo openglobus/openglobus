@@ -30,19 +30,22 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     } else {
         this.imageReady = false;
         this.texture = null;
+        this.texBias = [0, 0, 1];
     }
     this.imageIsLoading = false;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
-    this.imageIsLoading = true;
+    //TODO: texture have to stop loading    
+    this.imageIsLoading = true;//it's not corrert
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.clear = function () {
+    this.imageIsLoading = false;
     if (this.imageReady) {
         this.imageReady = false;
         this.segment._ctx.gl.deleteTexture(this.texture);
         this.texture = null;
+        this.texBias = [0, 0, 1];
     }
-    this.imageIsLoading = false;
 };

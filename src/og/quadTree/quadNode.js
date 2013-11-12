@@ -213,11 +213,11 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     if (!this.planetSegment.ready) {
         var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.planetSegment.zoomIndex];
         this.planetSegment.gridSize = gridSize;
+        this.sideSize = [gridSize, gridSize, gridSize, gridSize];
         this.planetSegment.createPlainVertices(gridSize);
         this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
         this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
         this.planetSegment.ready = true;
-        this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     }
 
     if (!this.planetSegment.terrainReady) {
@@ -285,12 +285,11 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         offsetY = 0;
 
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
-        if (pn.partId === og.quadTree.NW) {
-        } else if (pn.partId === og.quadTree.NE) {
+        if (pn.partId == og.quadTree.NE) {
             offsetX += Math.pow(2, scale);
-        } else if (pn.partId === og.quadTree.SW) {
+        } else if (pn.partId == og.quadTree.SW) {
             offsetY += Math.pow(2, scale);
-        } else if (pn.partId === og.quadTree.SE) {
+        } else if (pn.partId == og.quadTree.SE) {
             offsetX += Math.pow(2, scale);
             offsetY += Math.pow(2, scale);
         }
@@ -360,12 +359,11 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
             }
         }
 
-        if (pn.partId === og.quadTree.NW) {
-        } else if (pn.partId === og.quadTree.NE) {
+        if (pn.partId == og.quadTree.NE) {
             texOffsetX += Math.pow(2, texScale);
-        } else if (pn.partId === og.quadTree.SW) {
+        } else if (pn.partId == og.quadTree.SW) {
             texOffsetY += Math.pow(2, texScale);
-        } else if (pn.partId === og.quadTree.SE) {
+        } else if (pn.partId == og.quadTree.SE) {
             texOffsetX += Math.pow(2, texScale);
             texOffsetY += Math.pow(2, texScale);
         }
@@ -375,10 +373,8 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
 
     if (this.planetSegment.materials[mId].imageIsLoading) {
         if (notEmpty) {
-            if (pn.nodeId != this.appliedTextureNodeId) {
-                this.planetSegment.materials[mId].texture = pn.planetSegment.materials[mId].texture;
-                this.planetSegment.materials[mId].texBias = [texOffsetX, texOffsetY, 1 / Math.pow(2, texScale)];
-            }
+            this.planetSegment.materials[mId].texture = pn.planetSegment.materials[mId].texture;
+            this.planetSegment.materials[mId].texBias = [texOffsetX, texOffsetY, 1 / Math.pow(2, texScale)];
         }
     }
 };

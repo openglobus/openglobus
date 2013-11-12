@@ -150,7 +150,11 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
 
 og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
     this.clearBuffers();
+    this.deleteMaterials();
+    this.deleteElevations();
+};
 
+og.planetSegment.PlanetSegment.prototype.deleteMaterials = function () {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
         var mi = m[i];
@@ -158,10 +162,8 @@ og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
             mi.clear();
         }
     }
-
-    this.deleteElevations();
+    m.length = 0;
 };
-
 
 og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
     this.clearSegment();
