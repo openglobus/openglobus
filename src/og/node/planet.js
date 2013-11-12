@@ -160,15 +160,16 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 
 og.node.Planet.prototype.frame = function () {
     this.updateVisibleLayers();
-    this.quadTree.renderTree();
-    this.renderNodes();
 
     var pos = this.renderer.activeCamera.eye;
     var direction = new og.math.Vector3(-pos.x, -pos.y, -pos.z);
     var intersection = this.getRayEllipsoidIntersection(pos, direction.normal());
     var altitude = pos.distance(intersection);
     this.renderer.activeCamera.altitude = altitude;
-    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseDirection);
+    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseState.mouseDirection);
+
+    this.quadTree.renderTree();
+    this.renderNodes();
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;

@@ -21,9 +21,6 @@ og.Renderer = function (handler) {
     this.holdMouseLeftButtonDown = false;
     this.holdMouseRightButtonDown = false;
     this.mouseIsMoving = false;
-    this.mouseX = 0;
-    this.mouseY = 0;
-    this.mouseDirection = new og.math.Vector3();
 
     this.mouseState = {
         x: 0,
@@ -86,8 +83,8 @@ og.Renderer.prototype.initMouseHandler = function () {
 
 og.Renderer.prototype.onMouseMove = function (event) {
     this.mouseIsMoving = true;
-    this.mouseX = event.clientX;
-    this.mouseY = event.clientY;
+    this.mouseState.x = event.clientX;
+    this.mouseState.y = event.clientY;
 };
 
 og.Renderer.prototype.onMouseDown = function (event) {
@@ -124,16 +121,12 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
     }
 };
 
-og.Renderer.prototype.draw = function (delta) {
+og.Renderer.prototype.draw = function () {
 
-    this.mouseDirection = this.activeCamera.unproject(this.mouseX, this.mouseY);
     this.input.handleEvents();
-
-    this.mouseState.x = this.mouseX;
-    this.mouseState.y = this.mouseY;
-    this.mouseState.mouseDirection = this.mouseDirection;
-
     this.handleMouseEvents();
+
+    this.mouseState.mouseDirection = this.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
 
     for (var i = 0; i < this.events.ondraw.length; i++) {
         var e = this.events.ondraw[i];
@@ -143,7 +136,6 @@ og.Renderer.prototype.draw = function (delta) {
     for (var i = 0; i < this.renderNodes.length; i++) {
         this.renderNodes[i].drawNode();
     }
-
 };
 
 og.Renderer.prototype.addEvent = function (name, sender, callback) {
@@ -151,24 +143,17 @@ og.Renderer.prototype.addEvent = function (name, sender, callback) {
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
-    if (this.mouseIsMoving) {
-        for (var i = 0; i < this.events.onmousemove.length; i++) {
-            var e = this.events.onmousemove[i];
-            e.callback.call(e.sender, this.mouseState);
-        }
-    }
-
     if (this.mouseLeftButtonDown) {
         if (!this.holdMouseLeftButtonDown) {
             this.holdMouseLeftButtonDown = true;
             for (var i = 0; i < this.events.onmouselbuttonclick.length; i++) {
                 var e = this.events.onmouselbuttonclick[i];
-                e.callback.call(e.sender, this.mouseState);
+                e.callback.call(e.sender);
             }
         } else {
             for (var i = 0; i < this.events.onmouselbuttondown.length; i++) {
                 var e = this.events.onmouselbuttondown[i];
-                e.callback.call(e.sender, this.mouseState);
+                e.callback.call(e.sender);
             }
         }
     }
@@ -178,16 +163,23 @@ og.Renderer.prototype.handleMouseEvents = function () {
             this.holdMouseRightButtonDown = true;
             for (var i = 0; i < this.events.onmouserbuttonclick.length; i++) {
                 var e = this.events.onmouserbuttonclick[i];
-                e.callback.call(e.sender, this.mouseState);
+                e.callback.call(e.sender);
             }
         } else {
             for (var i = 0; i < this.events.onmouserbuttondown.length; i++) {
                 var e = this.events.onmouserbuttondown[i];
-                e.callback.call(e.sender, this.mouseState);
+                e.callback.call(e.sender);
             }
         }
     }
-    this.mouseIsMoving = false;
+
+    if (this.mouseIsMoving) {
+        for (var i = 0; i < this.events.onmousemove.length; i++) {
+            var e = this.events.onmousemove[i];
+            e.callback.call(e.sender);
+        }
+        this.mouseIsMoving = false;
+    }
 };
 
 og.Renderer.prototype.Start = function () {
