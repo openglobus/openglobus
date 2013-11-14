@@ -10,12 +10,15 @@ og.math.W = 3;
 og.math.MAX = 100000000;
 og.math.MIN = -100000000;
 
+og.math.RADIANS = Math.PI / 180;
+og.math.DEGREES = 180 / Math.PI;
+
 og.math.DEG2RAD = function(degrees) {
-    return degrees * Math.PI / 180;
+    return degrees * og.math.RADIANS;
 };
 
 og.math.RAD2DEG = function(angle) {
-    return (angle / Math.PI) * 180;
+    return angle * og.math.DEGREES;
 };
 
 og.math.isPowerOfTwo = function(x) {
