@@ -20,6 +20,7 @@ og.layer.getTileExtent = function (x, y, zoom) {
 
     return [left, bottom, right, top];
 };
+
 og.layer.MAX_OVERLAYS = 8;
 og.layer.MAX_REQUESTS = 10;
 og.layer.layersCounter = 0;
@@ -28,8 +29,6 @@ og.layer.DEFAILT_Z_INDEX = 1000;
 og.layer.DEFAILT_OPACITY = 1.0;
 
 og.layer.Layer = function (name, options) {
-
-    og.layer.layersCount++;
 
     this.name = name ? name : "noname";
 
@@ -42,9 +41,8 @@ og.layer.Layer = function (name, options) {
         this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
         this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
     }
-
-    og.layer.layersCounter++;
-    this.id = og.layer.layersCounter;
+    
+    this.id = og.layer.layersCounter++;
 
     this.counter = 0;
     this.pendingsQueue = [];

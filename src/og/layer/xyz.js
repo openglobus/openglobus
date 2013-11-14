@@ -11,8 +11,7 @@ og.layer.XYZ = function (name, options) {
 og._class_.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
-    
-    if ( og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter > 0) {
+    if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
         this.pendingsQueue.push(material);
     } else {
         this.loadSegmentTileImage(material);
@@ -47,12 +46,10 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
 og.layer.XYZ.prototype.dequeueRequest = function () {
     this.counter--;
     og.layer.requestsCounter--;
-    if (this.pendingsQueue.length) {
-        if (og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
-            var pmat;
-            if (pmat = this.whilePendings())
-                this.loadSegmentTileImage.call(this, pmat);
-        }
+    if (this.pendingsQueue.length && og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
+        var pmat;
+        if (pmat = this.whilePendings())
+            this.loadSegmentTileImage.call(this, pmat);
     }
 };
 
