@@ -216,23 +216,23 @@ og.math.Matrix4.prototype.setFromEuler = function (ax, ay, az) {
 
 og.math.Matrix4.prototype.toEuler = function () {
     var mat = this._m;
-    var d;
-    var angle_y = d = -Math.asin(mat[2]);
+    var d, tx, ty;
+    var angle_x, angle_z,
+        angle_y = d = -Math.asin(mat[2]);
     var c = Math.cos(angle_y);
     angle_y *= og.math.RADIANS;
-    var tx, ty;
 
     //Gimball lock?
     if (Math.abs(c) > 0.005) {
         tx = mat[10] / c;
         ty = -mat[6] / c;
 
-        angle_x = atan2(ty, tx) * RADIANS;
+        angle_x = Math.atan2(ty, tx) * RADIANS;
 
         tx = mat[0] / c;
         ty = -mat[1] / c;
 
-        angle_z = atan2(ty, tx) * RADIANS;
+        angle_z = Math.atan2(ty, tx) * RADIANS;
     }
     else {
         angle_x = 0;
@@ -240,7 +240,7 @@ og.math.Matrix4.prototype.toEuler = function () {
         tx = mat[5];
         ty = mat[4];
 
-        angle_z = atan2(ty, tx) * RADIANS;
+        angle_z = Math.atan2(ty, tx) * RADIANS;
     }
 
     return new og.math.Vector3(
