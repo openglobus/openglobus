@@ -186,3 +186,66 @@ og.math.Matrix4.prototype.setPerspective = function (angle, aspect, near, far) {
     aspect = angle * aspect;
     return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
 };
+
+og.math.Matrix4.prototype.setFromEuler = function (ax, ay, az) {
+    var a = Math.cos(ax),
+        b = Math.sin(ax),
+        c = Math.cos(ay),
+        d = Math.sin(ay),
+        e = Math.cos(az),
+        f = Math.sin(az);
+
+    var ad = a * d,
+        db = b * d;
+
+    var mat = this._m;
+
+    mat[0] = c * e;
+    mat[1] = -c * f;
+    mat[2] = -d;
+    mat[4] = -bd * e + a * f;
+    mat[5] = bd * f + a * e;
+    mat[6] = -b * c;
+    mat[8] = ad * e + b * f;
+    mat[9] = -ad * f + b * e;
+    mat[10] = a * c;
+    mat[3] = mat[7] = mat[11] = mat[12] = mat[13] = mat[14] = 0;
+    mat[15] = 1;
+};
+
+
+og.math.Matrix4.prototype.toEuler = function () {
+    var mat = this._m;
+    var d;
+    var angle_y = d = -Math.asin(mat[2]);
+    var c = Math.cos(angle_y);
+    angle_y *= og.math.RADIANS;
+    var tx, ty;
+
+    //Gimball lock?
+    if (Math.abs(c) > 0.005) {
+        tx = mat[10] / c;
+        ty = -mat[6] / c;
+
+        angle_x = atan2(ty, tx) * RADIANS;
+
+        tx = mat[0] / c;
+        ty = -mat[1] / c;
+
+        angle_z = atan2(ty, tx) * RADIANS;
+    }
+    else {
+        angle_x = 0;
+
+        tx = mat[5];
+        ty = mat[4];
+
+        angle_z = atan2(ty, tx) * RADIANS;
+    }
+
+    return new og.math.Vector3(
+        og.math.clamp(angle_x, 0, 360),
+        og.math.clamp(angle_y, 0, 360),
+        og.math.clamp(angle_z, 0, 360));
+};
+
