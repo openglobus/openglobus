@@ -13,19 +13,28 @@ og.math.MIN = -100000000;
 og.math.RADIANS = Math.PI / 180;
 og.math.DEGREES = 180 / Math.PI;
 
-og.math.DEG2RAD = function(degrees) {
+og.math.clamp = function (val, from, to) {
+    if (val < from) {
+        return to + val - from;
+    } else if (val > to) {
+        return from + val - to;
+    }
+    return val;
+};
+
+og.math.DEG2RAD = function (degrees) {
     return degrees * og.math.RADIANS;
 };
 
-og.math.RAD2DEG = function(angle) {
+og.math.RAD2DEG = function (angle) {
     return angle * og.math.DEGREES;
 };
 
-og.math.isPowerOfTwo = function(x) {
+og.math.isPowerOfTwo = function (x) {
     return (x & (x - 1)) == 0;
 };
 
-og.math.nextHighestPowerOfTwo = function(x) {
+og.math.nextHighestPowerOfTwo = function (x) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
         x = x | x >> i;

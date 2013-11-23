@@ -26,19 +26,16 @@ og.math.Quaternion.prototype.copy = function (q) {
     return this;
 };
 
+og.math.Quaternion.prototype.clone = function () {
+    return new og.math.Quaternion(this.x, this.y, this.z, this.w);
+};
+
 og.math.Quaternion.prototype.add = function (q) {
     return new og.math.Quaternion(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
 };
 
 og.math.Quaternion.prototype.sub = function (q) {
     return new og.math.Quaternion(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
-};
-
-og.math.Quaternion.prototype.conjugate = function (q) {
-    this.x = -q.x;
-    this.y = -q.y;
-    this.z = -q.z;
-    return this;
 };
 
 og.math.Quaternion.prototype.toVec = function () {
@@ -66,6 +63,30 @@ og.math.Quaternion.prototype.setFromSpherical = function (lat, lon, angle) {
     this.z = sin_a * sin_lat * cos_long;
     this.w = cos_a;
     return this;
+};
+
+og.math.Quaternion.prototype.setFromAxisAngle = function (axis, angle) {
+    var v = axis.normal();
+    var half_angle = angle * 0.5;
+    var sin_a = Math.sin(half_angle);
+    this.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
+};
+
+og.math.Quaternion.prototype.toAxisAngle = function () {
+    var vl = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    var axis, angle;
+    if (vl > 0.0000001) {
+        var ivl = 1.0 / vl;
+        axis = new og.math.Vector3(x * ivl, y * ivl, z * ivl);
+        if (this.w < 0)
+            angle = 2.0 * Math.atan2(-vl, -w); //-PI,0 
+        else
+            angle = 2.0 * Math.atan2(vl, w); //0,PI 
+    } else {
+        axis = new og.math.Vector3(0, 0, 0);
+        angle = 0;
+    }
+    return { axis: axis, angle: angle };
 };
 
 og.math.Quaternion.prototype.setFromEuler = function (pitch, yaw, roll) {
@@ -152,18 +173,28 @@ og.math.Quaternion.protoype.mul_v2 = function (q) {
         b + (-e - f + g + h) * 0.5);
 };
 
-og.math.Quaternion.protoype.inverse = function () {
-    this.x = -this.x;
-    this.y = -this.y;
-    this.z = -this.z;
-    return this;
+og.math.Quaternion.protoype.conjugate = function () {
+    return new og.math.Quaternion(-this.x, -this.y, -this.z, this.w);
 };
 
+og.math.Quaternion.prototype.inverse = function () {
+    var n = 1 / this.norm();
+    return new og.math.Quaternion(-this.x * n, -this.y * n, -this.z * n, this.w * n);
+};
+
+//magnitude
 og.math.Quaternion.prototype.length = function () {
     var b = this.x, c = this.y, d = this.z, a = this.w;
     return Math.sqrt(b * b + c * c + d * d + a * a);
 };
 
+//norm
+og.math.Quaternion.prototype.norm = function () {
+    var b = this.x, c = this.y, d = this.z, a = this.w;
+    return b * b + c * c + d * d + a * a;
+};
+
+//normalize
 og.math.Quaternion.prototype.normalize = function () {
     var c = this.x, d = this.y, e = this.z, g = this.w,
         f = Math.sqrt(c * c + d * d + e * e + g * g);

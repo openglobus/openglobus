@@ -6,5 +6,10 @@ og.extent.BOTTOM = 1;
 og.extent.RIGHT = 2;
 og.extent.TOP = 3;
 
-og.extent.Extent = function() { };
+og.extent.Extent = function(l, b, r, t) {
+    this.left = l;
+    this.bottom = b;
+    this.right = r;
+    this.top = t;
+ };
 
