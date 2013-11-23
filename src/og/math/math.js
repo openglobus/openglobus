@@ -13,13 +13,8 @@ og.math.MIN = -100000000;
 og.math.RADIANS = Math.PI / 180;
 og.math.DEGREES = 180 / Math.PI;
 
-og.math.clamp = function (val, from, to) {
-    if (val < from) {
-        return to + val - from;
-    } else if (val > to) {
-        return from + val - to;
-    }
-    return val;
+og.math.clamp = function (number, min, max) {
+    return Math.max(min, Math.min(number, max));
 };
 
 og.math.DEG2RAD = function (degrees) {
