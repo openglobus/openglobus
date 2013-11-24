@@ -187,7 +187,7 @@ og.math.Matrix4.prototype.setPerspective = function (angle, aspect, near, far) {
     return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
 };
 
-og.math.Matrix4.prototype.setFromEuler = function (ax, ay, az) {
+og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
     var a = Math.cos(ax),
         b = Math.sin(ax),
         c = Math.cos(ay),
@@ -213,8 +213,7 @@ og.math.Matrix4.prototype.setFromEuler = function (ax, ay, az) {
     mat[15] = 1;
 };
 
-
-og.math.Matrix4.prototype.toEuler = function () {
+og.math.Matrix4.prototype.getEulerAngles = function () {
     var mat = this._m;
     var d, tx, ty;
     var angle_x, angle_z,
@@ -227,12 +226,12 @@ og.math.Matrix4.prototype.toEuler = function () {
         tx = mat[10] / c;
         ty = -mat[6] / c;
 
-        angle_x = Math.atan2(ty, tx) * RADIANS;
+        angle_x = Math.atan2(ty, tx) * og.math.RADIANS;
 
         tx = mat[0] / c;
         ty = -mat[1] / c;
 
-        angle_z = Math.atan2(ty, tx) * RADIANS;
+        angle_z = Math.atan2(ty, tx) * og.math.RADIANS;
     }
     else {
         angle_x = 0;
@@ -240,7 +239,7 @@ og.math.Matrix4.prototype.toEuler = function () {
         tx = mat[5];
         ty = mat[4];
 
-        angle_z = Math.atan2(ty, tx) * RADIANS;
+        angle_z = Math.atan2(ty, tx) * og.math.RADIANS;
     }
 
     return new og.math.Vector3(

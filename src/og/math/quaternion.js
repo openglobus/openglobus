@@ -50,7 +50,7 @@ og.math.Quaternion.prototype.toVec = function () {
 /**
  * Convertion from sherical coordinates to quaternion
  */
-og.math.Quaternion.prototype.setFromSpherical = function (lat, lon, angle) {
+og.math.Quaternion.prototype.sphericalToQuat = function (lat, lon, angle) {
     var sin_a = Math.sin(angle / 2);
     var cos_a = Math.cos(angle / 2);
     var sin_lat = Math.sin(lat);
@@ -65,14 +65,14 @@ og.math.Quaternion.prototype.setFromSpherical = function (lat, lon, angle) {
     return this;
 };
 
-og.math.Quaternion.prototype.setFromAxisAngle = function (axis, angle) {
+og.math.Quaternion.prototype.axisAngleToQuat = function (axis, angle) {
     var v = axis.normal();
     var half_angle = angle * 0.5;
     var sin_a = Math.sin(half_angle);
     this.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
 };
 
-og.math.Quaternion.prototype.toAxisAngle = function () {
+og.math.Quaternion.prototype.getAxisAngle = function () {
     var vl = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     var axis, angle;
     if (vl > 0.0000001) {
@@ -89,11 +89,39 @@ og.math.Quaternion.prototype.toAxisAngle = function () {
     return { axis: axis, angle: angle };
 };
 
-og.math.Quaternion.prototype.setFromEuler = function (pitch, yaw, roll) {
-    //...
+og.math.Quaternion.prototype.eulerToQuat = function (pitch, yaw, roll) {
+    var ex, ey, ez;
+    var cr, cp, cy, sr, sp, sy, cpcy, spsy;
+
+    ex = x * og.Math.RADIANS / 2.0;
+    ey = y * og.Math.RADIANS / 2.0;
+    ez = z * og.Math.RADIANS / 2.0;
+
+    cr = Math.cos(ex);
+    cp = Math.cos(ey);
+    cy = Math.cos(ez);
+
+    sr = Math.sin(ex);
+    sp = Math.sin(ey);
+    sy = Math.sin(ez);
+
+    cpcy = cp * cy;
+    spsy = sp * sy;
+
+    this.w = cr * cpcy + sr * spsy;
+    this.x = sr * cpcy - cr * spsy;
+    this.y = cr * sp * cy + sr * cp * sy;
+    this.z = cr * cp * sy - sr * sp * cy;
+
+    return this.normalize();
 };
 
-og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
+og.math.Quaternion.prototype.getEulerAngles = function () {
+    var matrix = this.getMatrix4();
+    return matrix.getEulerAngles();
+};
+
+og.math.Quaternion.prototype.matrix4ToQuat = function (m) {
     var tr, s, q = new Float32Array(4);
     var i, j, k;
 
@@ -133,6 +161,79 @@ og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
     }
     return this;
 };
+
+og.math.Quaternion.prototype.getMatrix4 = function () {
+    var x2, y2, z2, w2, xy, xz, yz, wx, wy, wz;
+
+    var matrix = new og.math.Matrix4();
+    matrix._m[15] = 1;
+
+    x2 = x * x; y2 = y * y; z2 = z * z; w2 = w * w;
+
+    xy = x * y;
+    xz = x * z;
+    yz = y * z;
+    wx = w * x;
+    wy = w * y;
+    wz = w * z;
+
+    matrix._m[0] = 1 - 2 * (y2 + z2);
+    matrix._m[1] = 2 * (xy + wz);
+    matrix._m[2] = 2 * (xz - wy);
+
+    matrix._m[4] = 2 * (xy - wz);
+    matrix._m[5] = 1 - 2 * (x2 + z2);
+    matrix._m[6] = 2 * (yz + wx);
+
+    matrix._m[8] = 2 * (xz + wy);
+    matrix._m[9] = 2 * (yz - wx);
+    matrix._m[10] = 1 - 2 * (x2 + y2);
+
+    return matrix;
+};
+
+//og.math.Quaternion.prototype.getMatrix4_v1 = function () {
+//    var m = new og.math.Matrix4();
+//    var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;
+//    c = c * i;
+//    var l = d * h;
+//    d = d * i;
+//    e = e * i;
+//    f = g * f;
+//    h = g * h;
+//    g = g * i;
+//    m._m[0] = 1 - (l + e); m._m[1] = k - g; m._m[2] = c + h; m._m[3] = 0;
+//    m._m[4] = k + g; m._m[5] = 1 - (j + e); m._m[6] = d - f; m._m[7] = 0;
+//    m._m[8] = c - h; m._m[9] = d + f; m._m[10] = 1 - (j + l); m._m[11] = 0;
+//    m._m[12] = 0; m._m[13] = 0; m._m[14] = 0; m._m[15] = 1;
+//    return m;
+//};
+
+//og.math.Quaternion.prototype.getMatrix4_v2 = function () {
+//    var m = new og.math.Matrix4();
+
+//    var x2 = this.x + this.x,
+//        y2 = this.y + this.y,
+//        z2 = this.z + this.z;
+
+//    var xx = this.x * x2,
+//        xy = this.x * y2,
+//        xz = this.x * z2,
+//        yy = this.y * y2,
+//        yz = this.y * z2,
+//        zz = this.z * z2,
+//        wx = this.w * x2,
+//        wy = this.w * y2,
+//        wz = this.w * z2;
+
+//    m._m[0] = 1.0 - (yy + zz); m._m[1] = xy - wz; m._m[2] = xz + wy;
+//    m._m[4] = xy + wz; m._m[5] = 1.0 - (xx + zz); m._m[6] = yz - wx;
+//    m._m[8] = xz - wy; m._m[9] = yz + wx; m._m[10] = 1.0 - (xx + yy);
+//    m._m[3] = m._m[7] = m._m[11] = 0;
+//    m._m[12] = m._m[13] = m._m[14] = 0;
+//    m._m[15] = 1;
+//    return m;
+//};
 
 og.math.Quaternion.protoype.mulVec3 = function (v) {
     var d = v.x, e = v.y, g = v.z;
@@ -178,18 +279,18 @@ og.math.Quaternion.protoype.conjugate = function () {
 };
 
 og.math.Quaternion.prototype.inverse = function () {
-    var n = 1 / this.norm();
+    var n = 1 / this.norm2();
     return new og.math.Quaternion(-this.x * n, -this.y * n, -this.z * n, this.w * n);
 };
 
 //magnitude
-og.math.Quaternion.prototype.length = function () {
+og.math.Quaternion.prototype.norm = function () {
     var b = this.x, c = this.y, d = this.z, a = this.w;
     return Math.sqrt(b * b + c * c + d * d + a * a);
 };
 
 //norm
-og.math.Quaternion.prototype.norm = function () {
+og.math.Quaternion.prototype.norm2 = function () {
     var b = this.x, c = this.y, d = this.z, a = this.w;
     return b * b + c * c + d * d + a * a;
 };
@@ -212,51 +313,6 @@ og.math.Quaternion.prototype.normalize = function () {
     this.w = g * f;
     return this;
 };
-
-og.math.Quaternion.prototype.toMatrix4 = function () {
-    var m = new og.math.Matrix4();
-    var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;
-    c = c * i;
-    var l = d * h;
-    d = d * i;
-    e = e * i;
-    f = g * f;
-    h = g * h;
-    g = g * i;
-    m._m[0] = 1 - (l + e); m._m[1] = k - g; m._m[2] = c + h; m._m[3] = 0;
-    m._m[4] = k + g; m._m[5] = 1 - (j + e); m._m[6] = d - f; m._m[7] = 0;
-    m._m[8] = c - h; m._m[9] = d + f; m._m[10] = 1 - (j + l); m._m[11] = 0;
-    m._m[12] = 0; m._m[13] = 0; m._m[14] = 0; m._m[15] = 1;
-    return m;
-};
-
-og.math.Quaternion.prototype.toMatrix4_v2 = function () {
-    var m = new og.math.Matrix4();
-
-    var x2 = this.x + this.x,
-        y2 = this.y + this.y,
-        z2 = this.z + this.z;
-
-    var xx = this.x * x2,
-        xy = this.x * y2,
-        xz = this.x * z2,
-        yy = this.y * y2,
-        yz = this.y * z2,
-        zz = this.z * z2,
-        wx = this.w * x2,
-        wy = this.w * y2,
-        wz = this.w * z2;
-
-    m._m[0] = 1.0 - (yy + zz); m._m[1] = xy - wz; m._m[2] = xz + wy;
-    m._m[4] = xy + wz; m._m[5] = 1.0 - (xx + zz); m._m[6] = yz - wx;
-    m._m[8] = xz - wy; m._m[9] = yz + wx; m._m[10] = 1.0 - (xx + yy);
-    m._m[3] = m._m[7] = m._m[11] = 0;
-    m._m[12] = m._m[13] = m._m[14] = 0;
-    m._m[15] = 1;
-    return m;
-};
-
-
 
 og.math.Quaternion.prototype.slerp = function () {
     var e = c;
