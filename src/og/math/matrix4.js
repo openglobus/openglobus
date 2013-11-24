@@ -38,17 +38,6 @@ og.math.Matrix4.prototype.copy = function (a) {
     this.set(a._m);
 };
 
-og.math.Matrix4.prototype.rotate = function (u, angle) {
-    var c = Math.cos(angle),
-        s = Math.sin(angle);
-
-    this._m[0] = c + (1 - c) * u.x * u.x; this._m[1] = (1 - c) * u.y * u.x - s * u.z; this._m[2] = (1 - c) * u.z * u.x + s * u.y; this._m[3] = 0;
-    this._m[4] = (1 - c) * u.x * u.y + s * u.z; this._m[5] = c + (1 - c) * u.y * u.y; this._m[6] = (1 - c) * u.z * u.y - s * u.x; this._m[7] = 0;
-    this._m[8] = (1 - c) * u.x * u.z - s * u.y; this._m[9] = (1 - c) * u.y * u.z + s * u.x; this._m[10] = c + (1 - c) * u.z * u.z; this._m[11] = 0;
-    this._m[12] = 0; this._m[13] = 0; this._m[14] = 0; this._m[15] = 1;
-    return this;
-};
-
 og.math.Matrix4.prototype.mulVec3 = function (p) {
     return new og.math.Vector3(
         this._m[0] * p.x + this._m[4] * p.y + this._m[8] * p.z + this._m[12],
@@ -149,6 +138,17 @@ og.math.Matrix4.prototype.translate = function (v) {
     res._m[8] = m; res._m[9] = n; res._m[10] = p; res._m[11] = r;
     res._m[12] = g * v.x + j * v.y + m * v.z + a[12]; res._m[13] = f * d + k * v.y + n * v.z + a[13]; res._m[14] = h * d + l * v.y + p * v.z + a[14]; res._m[15] = i * d + o * v.y + r * v.z + a[15];
     return res;
+};
+
+og.math.Matrix4.prototype.rotate = function (u, angle) {
+    var c = Math.cos(angle),
+        s = Math.sin(angle);
+
+    this._m[0] = c + (1 - c) * u.x * u.x; this._m[1] = (1 - c) * u.y * u.x - s * u.z; this._m[2] = (1 - c) * u.z * u.x + s * u.y; this._m[3] = 0;
+    this._m[4] = (1 - c) * u.x * u.y + s * u.z; this._m[5] = c + (1 - c) * u.y * u.y; this._m[6] = (1 - c) * u.z * u.y - s * u.x; this._m[7] = 0;
+    this._m[8] = (1 - c) * u.x * u.z - s * u.y; this._m[9] = (1 - c) * u.y * u.z + s * u.x; this._m[10] = c + (1 - c) * u.z * u.z; this._m[11] = 0;
+    this._m[12] = 0; this._m[13] = 0; this._m[14] = 0; this._m[15] = 1;
+    return this;
 };
 
 og.math.Matrix4.prototype.scale = function (v) {
