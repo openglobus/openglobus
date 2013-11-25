@@ -5,11 +5,10 @@ goog.require('og.math.Matrix4');
 goog.require('og.Frustum');
 
 og.Camera = function (options) {
-
-    this.eye = new og.math.Vector3();
-    this.u = new og.math.Vector3(); //up x n
-    this.v = new og.math.Vector3(); //n x u
-    this.n = new og.math.Vector3(); //eye - look
+    this.eye = new og.math.Vector3(0, 0, 0);
+    this.u = new og.math.Vector3(0, 1, 0); //up x n
+    this.v = new og.math.Vector3(1, 0, 0); //n x u
+    this.n = new og.math.Vector3(0, 0, 1); //eye - look
     this.aspect = 0;
     this.nearDist = 0;
     this.farDist = 0;
@@ -19,7 +18,6 @@ og.Camera = function (options) {
     this.mvMatrix = new og.math.Matrix4();
     this.pmvMatrix = new og.math.Matrix4();
     this.ipmvMatrix = new og.math.Matrix4();
-
     this.frustum = new og.Frustum();
     this.altitude = 0;
 };
