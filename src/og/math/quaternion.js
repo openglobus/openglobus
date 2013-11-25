@@ -241,6 +241,10 @@ og.math.Quaternion.prototype.norm2 = function () {
     return b * b + c * c + d * d + a * a;
 };
 
+og.math.Quaternion.prototype.dot = function (q) {
+    return this.x * q.x + this.y * q.y + this.z * q.z;
+};
+
 //normalize
 og.math.Quaternion.prototype.normalize = function () {
     var c = this.x, d = this.y, e = this.z, g = this.w,
@@ -258,6 +262,14 @@ og.math.Quaternion.prototype.normalize = function () {
     this.z = e * f;
     this.w = g * f;
     return this;
+};
+
+og.math.Quaternion.prototype.isEqual = function (q) {
+    var matching = this.dot(q);
+    if (Math.abs(matching - 1.0) < 0.001) {
+        return true;
+    }
+    return false;
 };
 
 og.math.Quaternion.prototype.slerp = function () {
