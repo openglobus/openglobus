@@ -1,9 +1,9 @@
 goog.provide('og.math.Vector3');
 
 og.math.Vector3 = function (x, y, z) {
-    this.x = x ? x : 0.0;
-    this.y = y ? y : 0.0;
-    this.z = z ? z : 0.0;
+    this.x = x || 0.0;
+    this.y = y || 0.0;
+    this.z = z || 0.0;
 }
 
 og.math.Vector3.prototype.toVector4 = function () {
