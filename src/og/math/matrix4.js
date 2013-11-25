@@ -129,35 +129,33 @@ og.math.Matrix4.prototype.mul = function (mx) {
 };
 
 og.math.Matrix4.prototype.translate = function (v) {
-    var g = this._m[0], f = this._m[1], h = this._m[2], i = this._m[3],
-        j = this._m[4], k = this._m[5], l = this._m[6], o = this._m[7],
-        m = this._m[8], n = this._m[9], p = this._m[10], r = this._m[11];
-    var res = new og.math.Matrix4();
-    res._m[0] = g; res._m[1] = f; res._m[2] = h; res._m[3] = i;
-    res._m[4] = j; res._m[5] = k; res._m[6] = l; res._m[7] = o;
-    res._m[8] = m; res._m[9] = n; res._m[10] = p; res._m[11] = r;
-    res._m[12] = g * v.x + j * v.y + m * v.z + a[12]; res._m[13] = f * d + k * v.y + n * v.z + a[13]; res._m[14] = h * d + l * v.y + p * v.z + a[14]; res._m[15] = i * d + o * v.y + r * v.z + a[15];
-    return res;
+    var d = v.x, e = v.y, b = v.z;
+    var a = this._m;
+    a[12] = a[0] * d + a[4] * e + a[8] * b + a[12];
+    a[13] = a[1] * d + a[5] * e + a[9] * b + a[13];
+    a[14] = a[2] * d + a[6] * e + a[10] * b + a[14];
+    a[15] = a[3] * d + a[7] * e + a[11] * b + a[15];
+    return this;
 };
 
 og.math.Matrix4.prototype.rotate = function (u, angle) {
     var c = Math.cos(angle),
         s = Math.sin(angle);
-
-    this._m[0] = c + (1 - c) * u.x * u.x; this._m[1] = (1 - c) * u.y * u.x - s * u.z; this._m[2] = (1 - c) * u.z * u.x + s * u.y; this._m[3] = 0;
-    this._m[4] = (1 - c) * u.x * u.y + s * u.z; this._m[5] = c + (1 - c) * u.y * u.y; this._m[6] = (1 - c) * u.z * u.y - s * u.x; this._m[7] = 0;
-    this._m[8] = (1 - c) * u.x * u.z - s * u.y; this._m[9] = (1 - c) * u.y * u.z + s * u.x; this._m[10] = c + (1 - c) * u.z * u.z; this._m[11] = 0;
-    this._m[12] = 0; this._m[13] = 0; this._m[14] = 0; this._m[15] = 1;
+    var mx = this._m;
+    mx[0] = c + (1 - c) * u.x * u.x; mx[1] = (1 - c) * u.y * u.x - s * u.z; mx[2] = (1 - c) * u.z * u.x + s * u.y; mx[3] = 0;
+    mx[4] = (1 - c) * u.x * u.y + s * u.z; mx[5] = c + (1 - c) * u.y * u.y; mx[6] = (1 - c) * u.z * u.y - s * u.x; mx[7] = 0;
+    mx[8] = (1 - c) * u.x * u.z - s * u.y; mx[9] = (1 - c) * u.y * u.z + s * u.x; mx[10] = c + (1 - c) * u.z * u.z; mx[11] = 0;
+    mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
     return this;
 };
 
 og.math.Matrix4.prototype.scale = function (v) {
-    var res = new og.math.Matrix4();
-    res._m[0] = this._m[0] * v.x; res._m[1] = this._m[1] * v.x; res._m[2] = this._m[2] * v.x; res._m[3] = this._m[3] * v.x;
-    res._m[4] = this._m[4] * v.y; res._m[5] = this._m[5] * v.y; res._m[6] = this._m[6] * v.y; res._m[7] = this._m[7] * v.y;
-    res._m[8] = this._m[8] * v.z; res._m[9] = this._m[9] * v.z; res._m[10] = this._m[10] * v.z; res._m[11] = this._m[11] * v.z;
-    res._m[12] = this._m[12]; res._m[13] = this._m[13]; res._m[14] = this._m[14]; res._m[15] = this._m[15];
-    return res;
+    var mx = this._m;
+    mx[0] = mx[0] * v.x; mx[1] = mx[1] * v.x; mx[2] = mx[2] * v.x; mx[3] = mx[3] * v.x;
+    mx[4] = mx[4] * v.y; mx[5] = mx[5] * v.y; mx[6] = mx[6] * v.y; mx[7] = mx[7] * v.y;
+    mx[8] = mx[8] * v.z; mx[9] = mx[9] * v.z; mx[10] = mx[10] * v.z; mx[11] = mx[11] * v.z;
+    mx[12] = mx[12]; mx[13] = mx[13]; mx[14] = mx[14]; mx[15] = mx[15];
+    return this;
 };
 
 og.math.Matrix4.prototype.setFrustum = function (a, b, c, d, e, g) {
