@@ -5,6 +5,9 @@ goog.require('og._class_');
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
+goog.require('og.math.Matrix4');
+goog.require('og.math.Vector3');
+goog.require('og.math.Vector3');
 
 my.Cube = function (size) {
     my.Cube.superclass.constructor.call(this, "Cube");
