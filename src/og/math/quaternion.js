@@ -70,6 +70,7 @@ og.math.Quaternion.prototype.axisAngleToQuat = function (axis, angle) {
     var half_angle = angle * 0.5;
     var sin_a = Math.sin(half_angle);
     this.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
+    return this;
 };
 
 og.math.Quaternion.prototype.getAxisAngle = function () {
@@ -163,77 +164,22 @@ og.math.Quaternion.prototype.matrix4ToQuat = function (m) {
 };
 
 og.math.Quaternion.prototype.getMatrix4 = function () {
-    var x2, y2, z2, w2, xy, xz, yz, wx, wy, wz;
-
-    var matrix = new og.math.Matrix4();
-    matrix._m[15] = 1;
-
-    x2 = x * x; y2 = y * y; z2 = z * z; w2 = w * w;
-
-    xy = x * y;
-    xz = x * z;
-    yz = y * z;
-    wx = w * x;
-    wy = w * y;
-    wz = w * z;
-
-    matrix._m[0] = 1 - 2 * (y2 + z2);
-    matrix._m[1] = 2 * (xy + wz);
-    matrix._m[2] = 2 * (xz - wy);
-
-    matrix._m[4] = 2 * (xy - wz);
-    matrix._m[5] = 1 - 2 * (x2 + z2);
-    matrix._m[6] = 2 * (yz + wx);
-
-    matrix._m[8] = 2 * (xz + wy);
-    matrix._m[9] = 2 * (yz - wx);
-    matrix._m[10] = 1 - 2 * (x2 + y2);
-
-    return matrix;
+    var m = new og.math.Matrix4();
+    var mx = m._m;
+    var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;
+    c = c * i;
+    var l = d * h;
+    d = d * i;
+    e = e * i;
+    f = g * f;
+    h = g * h;
+    g = g * i;
+    mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h; mx[3] = 0;
+    mx[4] = k + g; mx[5] = 1 - (j + e); mx[6] = d - f; mx[7] = 0;
+    mx[8] = c - h; mx[9] = d + f; mx[10] = 1 - (j + l); mx[11] = 0;
+    mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
+    return m;
 };
-
-//og.math.Quaternion.prototype.getMatrix4_v1 = function () {
-//    var m = new og.math.Matrix4();
-//    var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;
-//    c = c * i;
-//    var l = d * h;
-//    d = d * i;
-//    e = e * i;
-//    f = g * f;
-//    h = g * h;
-//    g = g * i;
-//    m._m[0] = 1 - (l + e); m._m[1] = k - g; m._m[2] = c + h; m._m[3] = 0;
-//    m._m[4] = k + g; m._m[5] = 1 - (j + e); m._m[6] = d - f; m._m[7] = 0;
-//    m._m[8] = c - h; m._m[9] = d + f; m._m[10] = 1 - (j + l); m._m[11] = 0;
-//    m._m[12] = 0; m._m[13] = 0; m._m[14] = 0; m._m[15] = 1;
-//    return m;
-//};
-
-//og.math.Quaternion.prototype.getMatrix4_v2 = function () {
-//    var m = new og.math.Matrix4();
-
-//    var x2 = this.x + this.x,
-//        y2 = this.y + this.y,
-//        z2 = this.z + this.z;
-
-//    var xx = this.x * x2,
-//        xy = this.x * y2,
-//        xz = this.x * z2,
-//        yy = this.y * y2,
-//        yz = this.y * z2,
-//        zz = this.z * z2,
-//        wx = this.w * x2,
-//        wy = this.w * y2,
-//        wz = this.w * z2;
-
-//    m._m[0] = 1.0 - (yy + zz); m._m[1] = xy - wz; m._m[2] = xz + wy;
-//    m._m[4] = xy + wz; m._m[5] = 1.0 - (xx + zz); m._m[6] = yz - wx;
-//    m._m[8] = xz - wy; m._m[9] = yz + wx; m._m[10] = 1.0 - (xx + yy);
-//    m._m[3] = m._m[7] = m._m[11] = 0;
-//    m._m[12] = m._m[13] = m._m[14] = 0;
-//    m._m[15] = 1;
-//    return m;
-//};
 
 og.math.Quaternion.protoype.mulVec3 = function (v) {
     var d = v.x, e = v.y, g = v.z;
