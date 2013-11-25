@@ -4,8 +4,11 @@ goog.require('og.node.Node3D');
 goog.require('og.control.KeyboardNavigation');
 goog.require('og.shaderProgram');
 goog.require('og.node.Axes');
+goog.require('my.Cube');
 
 function start() {
+
+    og.webgl.MAX_FRAME_DELAY = 15;
 
     var flatShader = new og.shaderProgram.ShaderProgram("flat", {
         uniforms: {
@@ -30,6 +33,7 @@ function start() {
     var axes = new og.node.Axes(10000);
 
     renderer.addRenderNode(axes);
+    renderer.addRenderNode(new my.Cube(1000));
 
     renderer.addControls([
         new og.control.KeyboardNavigation({ autoActivate: true }),
