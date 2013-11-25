@@ -5,6 +5,8 @@ goog.require('og._class_');
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
+goog.require('og.math');
+goog.require('og.math.Quaternion');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector3');
@@ -15,6 +17,15 @@ my.Cube = function (size) {
     this.cubeVertexColorBuffer = null;
     this.cubeVertexPositionBuffer = null;
     this.cubeVertexIndexBuffer = null;
+
+    this.mxRotation = new og.math.Matrix4().setIdentity();
+    this.mxTranslation = new og.math.Matrix4().setIdentity();
+    this.mxScale = new og.math.Matrix4().setIdentity();
+    this.mxTRS = new og.math.Matrix4();
+
+    this.orientation = new og.math.Quaternion(0, 0, 0, 0);
+
+    this.rot = 0;
 };
 
 og._class_.extend(my.Cube, og.node.Node3D);
@@ -49,6 +60,9 @@ my.Cube.prototype.initialization = function () {
     this.initShaderProgram();
     this.createBuffers();
     this.drawMode = this.renderer.ctx.gl.TRIANGLES;
+
+    this.mxTranslation.translate(new og.math.Vector3(1000, 1000, 1000));
+
 };
 
 my.Cube.prototype.createBuffers = function () {
@@ -121,11 +135,13 @@ my.Cube.prototype.createBuffers = function () {
     this.cubeVertexIndexBuffer = this.renderer.ctx.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, 36);
 };
 
-my.Cube.prototype.frame = function () {
+my.Cube.prototype.frame = function () {   
     this.renderer.ctx.shaderPrograms.myCube.activate();
 
+    this.mxTRS = this.mxTranslation.mul(this.orientation.axisAngleToQuat(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
+
     this.renderer.ctx.shaderPrograms.myCube.set({
-        uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
         aVertexPosition: this.cubeVertexPositionBuffer,
         aVertexColor: this.cubeVertexColorBuffer
     });
