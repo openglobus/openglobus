@@ -4,10 +4,10 @@ goog.require('og.math');
 goog.require('og.math.Matrix4');
 
 og.math.Quaternion = function (x, y, z, w) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.w = w;
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
+    this.w = w || 0;
 };
 
 og.math.Quaternion.prototype.set = function (x, y, z, w) {
@@ -47,9 +47,6 @@ og.math.Quaternion.prototype.toVec = function () {
     return x;
 };
 
-/**
- * Convertion from sherical coordinates to quaternion
- */
 og.math.Quaternion.prototype.sphericalToQuat = function (lat, lon, angle) {
     var sin_a = Math.sin(angle / 2);
     var cos_a = Math.cos(angle / 2);
@@ -63,6 +60,37 @@ og.math.Quaternion.prototype.sphericalToQuat = function (lat, lon, angle) {
     this.z = sin_a * sin_lat * cos_long;
     this.w = cos_a;
     return this;
+};
+
+og.math.Quaternion.prototype.toSpherical = function() {
+    var cos_a  = this.w;
+    var sin_a  = Math.sqrt( 1.0 - cos_a * cos_a );
+    var angle  = Math.acos( cos_a ) * 2;
+    if ( Math.abs( sin_a ) < 0.0005 )
+        sin_a = 1;
+    var tx = this.x / sin_a;
+    var ty = this.y / sin_a;
+    var tz = this.z / sin_a;
+    
+    var lon, lat = -Math.asin( ty );
+    if ( tx * tx + tz * tz < 0.0005 )
+        lon   = 0;
+    else
+        lon  = Math.atan2( tx, tz );
+    if ( lon < 0 )
+        lon += 360.0;
+
+    return { lat: lat, lon: lon };
+};
+
+
+og.math.Quaternion.axisAngleToQuat = function (axis, angle) {
+    var res = new og.math.Quaternion();
+    var v = axis.normal();
+    var half_angle = angle * 0.5;
+    var sin_a = Math.sin(half_angle);
+    res.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
+    return res;
 };
 
 og.math.Quaternion.prototype.axisAngleToQuat = function (axis, angle) {
@@ -204,21 +232,21 @@ og.math.Quaternion.protoype.mul = function (q) {
         a * b - d * f - e * h - g * i);
 };
 
-og.math.Quaternion.protoype.mul_v2 = function (q) {
-    var a = (this.w + this.x) * (q.w + q.x),
-        b = (this.z - this.y) * (q.y - q.z),
-        c = (this.x - this.w) * (q.y + q.z),
-        d = (this.y + this.z) * (q.x - q.w),
-        e = (this.x + this.z) * (q.x + q.y),
-        f = (this.x - this.z) * (q.x - q.y),
-        g = (this.w + this.y) * (q.w - q.z),
-        h = (this.w - this.y) * (q.w + q.z);
-    return new og.math.Quaternion(
-        a - (e + f + g + h) * 0.5,
-        -c + (e - f + g - h) * 0.5,
-        -d + (e - f - g + h) * 0.5,
-        b + (-e - f + g + h) * 0.5);
-};
+//og.math.Quaternion.protoype.mul_v2 = function (q) {
+//    var a = (this.w + this.x) * (q.w + q.x),
+//        b = (this.z - this.y) * (q.y - q.z),
+//        c = (this.x - this.w) * (q.y + q.z),
+//        d = (this.y + this.z) * (q.x - q.w),
+//        e = (this.x + this.z) * (q.x + q.y),
+//        f = (this.x - this.z) * (q.x - q.y),
+//        g = (this.w + this.y) * (q.w - q.z),
+//        h = (this.w - this.y) * (q.w + q.z);
+//    return new og.math.Quaternion(
+//        a - (e + f + g + h) * 0.5,
+//        -c + (e - f + g - h) * 0.5,
+//        -d + (e - f - g + h) * 0.5,
+//        b + (-e - f + g + h) * 0.5);
+//};
 
 og.math.Quaternion.protoype.conjugate = function () {
     return new og.math.Quaternion(-this.x, -this.y, -this.z, this.w);
@@ -245,7 +273,6 @@ og.math.Quaternion.prototype.dot = function (q) {
     return this.x * q.x + this.y * q.y + this.z * q.z;
 };
 
-//normalize
 og.math.Quaternion.prototype.normalize = function () {
     var c = this.x, d = this.y, e = this.z, g = this.w,
         f = Math.sqrt(c * c + d * d + e * e + g * g);
@@ -281,4 +308,128 @@ og.math.Quaternion.prototype.slerp = function () {
     this.z = 1 - c * this.z + e * b.z;
     this.w = 1 - c * this.w + e * b.w;
     return this;
+};
+
+og.math.Quatrnion.lookAtTargetUp = function(target, up) {
+    var forward = target.normal();
+    forward = og.math.Vector3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
+    var right = up.cross(forward);
+    var ret = new og.math.Quaternion();
+    ret.w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
+    var w4_recip = 1.0 / (4.0 * ret.w);
+    ret.x = (forward.y - up.z) * w4_recip;
+    ret.y = (right.z - forward.x) * w4_recip;
+    ret.z = (up.x - right.y) * w4_recip;
+    return ret;
+};
+
+og.math.Quaternion.prototype.lookAtSourceDest = function(sourcePoint, destPoint){
+    var forwardVector = destPoint.sub(sourcePoint).normalize();
+    var dot = og.math.Vector3.FORWARD.dot(forwardVector);
+    if (Math.abs(dot - (-1.0)) < 0.000001)
+    {
+        return og.math.Quaternion.axisAngleToQuat(og.math.Vector3.UP, Math.PI);
+    }
+    if (Math.Abs(dot - (1.0)) < 0.000001)
+    {
+        return new og.math.Quaternion(0,0,0,1);
+    }
+    var rotAngle = Math.acos(dot);
+    var rotAxis = og.math.Vector3.FORWARD.cross(forwardVector).normalize();
+    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
+};
+
+og.math.Quaternion.getRotationBetweenVectors = function(u,v){
+    var k_cos_theta = og.math.Vector3.dot(u, v);
+    var k = Math.sqrt(u.length2() * v.length2());
+    if (k_cos_theta / k == -1) {
+        // 180 degree rotation around any orthogonal vector
+        var other = (abs(dot(u, og.math.Vector3.RIGHT)) < 1.0) ? new og.math.Vector3(1,0,0) : new og.math.Vector3(0,1,0);
+        return og.math.Quaternion.axisAngleToQuat(u.cross(other).normalize(), Math.PI);
+    }    
+    return og.math.Quaternion.axisAngleToQuat(u.cross(v).normalize(), k_cos_theta + k).normalize();
+};
+
+//og.math.Quaternion.getRotationBetweenVectors2 = function(start, dest) {
+//    start = start.normal();
+//    dest = dest.normal(); 
+//    var cosTheta = start.dot(dest);
+//    var rotationAxis;
+//    if (cosTheta < -1 + 0.001) {
+//        // special case when vectors in opposite directions:
+//        // there is no "ideal" rotation axis
+//        // So guess one; any will do as long as it's perpendicular to start
+//        rotationAxis = og.math.Vector3.BACKWARD.cross(start);
+//        if (rotationAxis.length2() < 0.01 )// bad luck, they were parallel, try again!
+//            rotationAxis = og.math.Vector3.RIGHT.cross(start);         
+//        return og.math.Quaternion.axisAngleToQuat(rotationAxis.normalize(), Math.PI);
+//    } 
+//    rotationAxis = start.cross(dest); 
+//    var s = Math.sqrt((1+cosTheta)*2 );
+//    var invs = 1 / s;
+//    return og.math.Quaternion( rotationAxis.x * invs, rotationAxis.y * invs, rotationAxis.z * invs, s * 0.5 );
+//};
+
+og.math.Quaternion.GetRotationBetweenVectorsUp = function(source, dest, up)
+{
+    var dot = source.dot(dest);
+    if (Math.abs(dot - (-1.0)) < 0.000001) {
+        // vector a and b point exactly in the opposite direction, 
+        // so it is a 180 degrees turn around the up-axis
+        return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
+    }
+    if (Math.abs(dot - (1.0)) < 0.000001) {
+        // vector a and b point exactly in the same direction
+        // so we return the identity quaternion
+        return new og.math.Quaternion(0,0,0,1);
+    }
+    var rotAngle = Math.acos(dot);
+    var rotAxis = source.cross(dest).normalize();
+    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
+};
+
+og.math.Quaternion.prototype.getRoll = function(reprojectAxis) {
+    var x = this.x, y = this.y, z = this.z;
+    if (reprojectAxis) {
+        var fTy  = 2.0*y;
+        var fTz  = 2.0*z;
+        var fTwz = fTz*w;
+        var fTxy = fTy*x;
+        var fTyy = fTy*y;
+        var fTzz = fTz*z;
+        return Math.atan2(fTxy+fTwz, 1.0f-(fTyy+fTzz)) * og.math.RADIANS;
+    } else {
+        return Math.atan2(2*(x*y + w*z), w*w + x*x - y*y - z*z) * og.math.RADIANS;
+    }
+};
+
+og.math.Quaternion.prototype.getPitch = function(reprojectAxis) {
+    var x = this.x, y = this.y, z = this.z;
+    if (reprojectAxis) {
+        var fTx  = 2.0*x;
+        var fTz  = 2.0*z;
+        var fTwx = fTx*w;
+        var fTxx = fTx*x;
+        var fTyz = fTz*y;
+        var fTzz = fTz*z;
+        return Math.atan2(fTyz+fTwx, 1.0-(fTxx+fTzz)) * og.math.RADIANS;
+    } else {
+        return Math.atan2(2*(y*z + w*x), w*w - x*x - y*y + z*z) * og.math.RADIANS;
+    }
+};
+
+og.math.Quaternion.prototype.getYaw = function(reprojectAxis) {
+    var x = this.x, y = this.y, z = this.z;
+    if (reprojectAxis) {
+        var fTx  = 2.0*x;
+        var fTy  = 2.0*y;
+        var fTz  = 2.0*z;
+        var fTwy = fTy*w;
+        var fTxx = fTx*x;
+        var fTxz = fTz*x;
+        var fTyy = fTy*y;
+        return Math.atan2(fTxz+fTwy, 1.0f-(fTxx+fTyy)) * og.math.RADIANS;
+    } else {
+        return Math.asin(-2*(x*z - w*y)) * og.math.RADIANS;
+    }
 };
