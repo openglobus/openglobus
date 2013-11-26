@@ -250,3 +250,9 @@ og.math.Vector3.prototype.slerp = function (v1, v2, t) {
 
     return og.math.Vector3.add(v1.scale(scale0), v2.scale(scale1));
 };
+
+og.math.Vector3.prototype.orthoNormalize = function (normal, tangent) {
+    normal = normal.normal();
+    normal.scale(tangent.dot(normal));
+    return tangent.sub(normal).normalize();
+};
