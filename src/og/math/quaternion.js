@@ -165,8 +165,7 @@ og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
         this.x = (m[6] - m[9]) * s;
         this.y = (m[8] - m[2]) * s;
         this.z = (m[1] - m[4]) * s;
-    }
-    else {
+    } else {
         i = 0;
         if (m[5] > m[0]) i = 1;
         if (m[10] > m[i * 5]) i = 2;
@@ -323,7 +322,7 @@ og.math.Quaternion.lookAtTargetUp = function(target, up) {
     return ret;
 };
 
-og.math.Quaternion.prototype.lookAtSourceDest = function(sourcePoint, destPoint){
+og.math.Quaternion.lookAtSourceDest = function(sourcePoint, destPoint){
     var forwardVector = destPoint.sub(sourcePoint).normalize();
     var dot = og.math.Vector3.FORWARD.dot(forwardVector);
     if (Math.abs(dot - (-1.0)) < 0.000001)
