@@ -152,18 +152,19 @@ og.math.Quaternion.prototype.getEulerAngles = function () {
 og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
     var tr, s, q = new Float32Array(4);
     var i, j, k;
+    m = m._m;
 
     var nxt = [1, 2, 0];
 
-    tr = m._m[0] + m._m[5] + m._m[10];
+    tr = m[0] + m[5] + m[10];
 
     if (tr > 0.0) {
         s = Math.sqrt(tr + 1.0);
         this.w = s / 2.0;
         s = 0.5 / s;
-        this.x = (m._m[6] - m._m[9]) * s;
-        this.y = (m._m[8] - m._m[2]) * s;
-        this.z = (m._m[1] - m._m[4]) * s;
+        this.x = (m[6] - m[9]) * s;
+        this.y = (m[8] - m[2]) * s;
+        this.z = (m[1] - m[4]) * s;
     }
     else {
         i = 0;
@@ -172,7 +173,7 @@ og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
         j = nxt[i];
         k = nxt[j];
 
-        s = sqrt((m[i * 5] - (m[j * 5] + m[k * 5])) + 1.0);
+        s = Math.sqrt((m[i * 5] - (m[j * 5] + m[k * 5])) + 1.0);
 
         q[i] = s * 0.5;
 
@@ -388,7 +389,7 @@ og.math.Quaternion.GetRotationBetweenVectorsUp = function(source, dest, up)
 };
 
 og.math.Quaternion.prototype.getRoll = function(reprojectAxis) {
-    var x = this.x, y = this.y, z = this.z;
+    var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {
         var fTy  = 2.0*y;
         var fTz  = 2.0*z;
@@ -396,14 +397,14 @@ og.math.Quaternion.prototype.getRoll = function(reprojectAxis) {
         var fTxy = fTy*x;
         var fTyy = fTy*y;
         var fTzz = fTz*z;
-        return Math.atan2(fTxy+fTwz, 1.0-(fTyy+fTzz)) * og.math.RADIANS;
+        return Math.atan2(fTxy+fTwz, 1.0-(fTyy+fTzz));
     } else {
-        return Math.atan2(2*(x*y + w*z), w*w + x*x - y*y - z*z) * og.math.RADIANS;
+        return Math.atan2(2*(x*y + w*z), w*w + x*x - y*y - z*z);
     }
 };
 
 og.math.Quaternion.prototype.getPitch = function(reprojectAxis) {
-    var x = this.x, y = this.y, z = this.z;
+    var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {
         var fTx  = 2.0*x;
         var fTz  = 2.0*z;
@@ -411,14 +412,14 @@ og.math.Quaternion.prototype.getPitch = function(reprojectAxis) {
         var fTxx = fTx*x;
         var fTyz = fTz*y;
         var fTzz = fTz*z;
-        return Math.atan2(fTyz+fTwx, 1.0-(fTxx+fTzz)) * og.math.RADIANS;
+        return Math.atan2(fTyz+fTwx, 1.0-(fTxx+fTzz));
     } else {
-        return Math.atan2(2*(y*z + w*x), w*w - x*x - y*y + z*z) * og.math.RADIANS;
+        return Math.atan2(2*(y*z + w*x), w*w - x*x - y*y + z*z);
     }
 };
 
 og.math.Quaternion.prototype.getYaw = function(reprojectAxis) {
-    var x = this.x, y = this.y, z = this.z;
+    var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {
         var fTx  = 2.0*x;
         var fTy  = 2.0*y;
@@ -427,8 +428,8 @@ og.math.Quaternion.prototype.getYaw = function(reprojectAxis) {
         var fTxx = fTx*x;
         var fTxz = fTz*x;
         var fTyy = fTy*y;
-        return Math.atan2(fTxz+fTwy, 1.0-(fTxx+fTyy)) * og.math.RADIANS;
+        return Math.atan2(fTxz+fTwy, 1.0-(fTxx+fTyy));
     } else {
-        return Math.asin(-2*(x*z - w*y)) * og.math.RADIANS;
+        return Math.asin(-2*(x*z - w*y));
     }
 };
