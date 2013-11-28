@@ -209,7 +209,7 @@ og.math.Quaternion.prototype.getMatrix4 = function () {
     return m;
 };
 
-og.math.Quaternion.protoype.mulVec3 = function (v) {
+og.math.Quaternion.prototype.mulVec3 = function (v) {
     var d = v.x, e = v.y, g = v.z;
     var b = this.x, f = this.y, h = this.z, a = this.w;
     var i = a * d + f * g - h * e,
@@ -222,7 +222,7 @@ og.math.Quaternion.protoype.mulVec3 = function (v) {
         k * a + d * -h + i * -f - j * -b);
 };
 
-og.math.Quaternion.protoype.mul = function (q) {
+og.math.Quaternion.prototype.mul = function (q) {
     var d = this.x, e = this.y, g = this.z, a = this.w;
     var f = q.x, h = q.y, i = q.z, b = q.w;
     return new og.math.Quaternion(
@@ -232,7 +232,7 @@ og.math.Quaternion.protoype.mul = function (q) {
         a * b - d * f - e * h - g * i);
 };
 
-//og.math.Quaternion.protoype.mul_v2 = function (q) {
+//og.math.Quaternion.prototype.mul_v2 = function (q) {
 //    var a = (this.w + this.x) * (q.w + q.x),
 //        b = (this.z - this.y) * (q.y - q.z),
 //        c = (this.x - this.w) * (q.y + q.z),
@@ -248,7 +248,7 @@ og.math.Quaternion.protoype.mul = function (q) {
 //        b + (-e - f + g + h) * 0.5);
 //};
 
-og.math.Quaternion.protoype.conjugate = function () {
+og.math.Quaternion.prototype.conjugate = function () {
     return new og.math.Quaternion(-this.x, -this.y, -this.z, this.w);
 };
 
@@ -310,7 +310,7 @@ og.math.Quaternion.prototype.slerp = function () {
     return this;
 };
 
-og.math.Quatrnion.lookAtTargetUp = function(target, up) {
+og.math.Quaternion.lookAtTargetUp = function(target, up) {
     var forward = target.normal();
     forward = og.math.Vector3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
     var right = up.cross(forward);
@@ -397,7 +397,7 @@ og.math.Quaternion.prototype.getRoll = function(reprojectAxis) {
         var fTxy = fTy*x;
         var fTyy = fTy*y;
         var fTzz = fTz*z;
-        return Math.atan2(fTxy+fTwz, 1.0f-(fTyy+fTzz)) * og.math.RADIANS;
+        return Math.atan2(fTxy+fTwz, 1.0-(fTyy+fTzz)) * og.math.RADIANS;
     } else {
         return Math.atan2(2*(x*y + w*z), w*w + x*x - y*y - z*z) * og.math.RADIANS;
     }
@@ -428,7 +428,7 @@ og.math.Quaternion.prototype.getYaw = function(reprojectAxis) {
         var fTxx = fTx*x;
         var fTxz = fTz*x;
         var fTyy = fTy*y;
-        return Math.atan2(fTxz+fTwy, 1.0f-(fTxx+fTyy)) * og.math.RADIANS;
+        return Math.atan2(fTxz+fTwy, 1.0-(fTxx+fTyy)) * og.math.RADIANS;
     } else {
         return Math.asin(-2*(x*z - w*y)) * og.math.RADIANS;
     }
