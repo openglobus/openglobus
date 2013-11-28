@@ -138,7 +138,7 @@ my.Cube.prototype.createBuffers = function () {
 my.Cube.prototype.frame = function () {   
     this.renderer.ctx.shaderPrograms.myCube.activate();
 
-    this.mxTRS = this.mxTranslation.mul(this.orientation.axisAngleToQuat(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
+    this.mxTRS = this.mxTranslation.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
 
     this.renderer.ctx.shaderPrograms.myCube.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,

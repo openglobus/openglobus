@@ -47,14 +47,13 @@ og.math.Quaternion.prototype.toVec = function () {
     return x;
 };
 
-og.math.Quaternion.prototype.sphericalToQuat = function (lat, lon, angle) {
+og.math.Quaternion.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     var sin_a = Math.sin(angle / 2);
     var cos_a = Math.cos(angle / 2);
     var sin_lat = Math.sin(lat);
     var cos_lat = Math.cos(lat);
     var sin_long = Math.sin(lon);
     var cos_long = Math.cos(lon);
-
     this.x = sin_a * cos_lat * sin_long;
     this.y = sin_a * sin_lat;
     this.z = sin_a * sin_lat * cos_long;
@@ -62,7 +61,7 @@ og.math.Quaternion.prototype.sphericalToQuat = function (lat, lon, angle) {
     return this;
 };
 
-og.math.Quaternion.prototype.toSpherical = function() {
+og.math.Quaternion.prototype.toSphericalCoords = function() {
     var cos_a  = this.w;
     var sin_a  = Math.sqrt( 1.0 - cos_a * cos_a );
     var angle  = Math.acos( cos_a ) * 2;
@@ -93,7 +92,7 @@ og.math.Quaternion.axisAngleToQuat = function (axis, angle) {
     return res;
 };
 
-og.math.Quaternion.prototype.axisAngleToQuat = function (axis, angle) {
+og.math.Quaternion.prototype.setFromAxisAngle = function (axis, angle) {
     var v = axis.normal();
     var half_angle = angle * 0.5;
     var sin_a = Math.sin(half_angle);
@@ -118,7 +117,7 @@ og.math.Quaternion.prototype.getAxisAngle = function () {
     return { axis: axis, angle: angle };
 };
 
-og.math.Quaternion.prototype.eulerToQuat = function (pitch, yaw, roll) {
+og.math.Quaternion.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex, ey, ez;
     var cr, cp, cy, sr, sp, sy, cpcy, spsy;
 
@@ -150,7 +149,7 @@ og.math.Quaternion.prototype.getEulerAngles = function () {
     return matrix.getEulerAngles();
 };
 
-og.math.Quaternion.prototype.matrix4ToQuat = function (m) {
+og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
     var tr, s, q = new Float32Array(4);
     var i, j, k;
 
