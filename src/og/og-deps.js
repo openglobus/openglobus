@@ -10,7 +10,7 @@ goog.addDependency('../../../og/src/og/control/control.js', ['og.control.Control
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og._class_', 'og.control.Control', 'og.input']);
 goog.addDependency('../../../og/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], ['og._class_']);
 goog.addDependency('../../../og/src/og/control/loadingSpinner.js', ['og.control.LoadingSpinner'], ['og._class_', 'og.control.Control']);
-goog.addDependency('../../../og/src/og/control/mouseNavigation.js', ['og.control.MouseNavigation'], ['og._class_', 'og.control.Control', 'og.math', 'og.math.Matrix4', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/control/mouseNavigation.js', ['og.control.MouseNavigation'], ['og._class_', 'og.bv.Sphere', 'og.control.Control', 'og.math', 'og.math.Matrix4', 'og.math.Quaternion', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/control/mousePosition.js', ['og.control.MousePosition'], ['og._class_', 'og.control.Control', 'og.geo', 'og.planetSegment']);
 goog.addDependency('../../../og/src/og/control/showFps.js', ['og.control.ShowFps'], ['og._class_', 'og.control.Control']);
 goog.addDependency('../../../og/src/og/control/toggleWireframe.js', ['og.control.ToggleWireframe'], ['og._class_', 'og.input', 'og.webgl']);

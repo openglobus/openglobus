@@ -4,6 +4,8 @@ goog.require('og.control.Control');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
+goog.require('og.math.Quaternion');
+goog.require('og.bv.Sphere');
 goog.require('og._class_');
 
 og.control.MouseNavigation = function (options) {
@@ -17,6 +19,7 @@ og.control.MouseNavigation = function (options) {
     this.screenCenterOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
     this.distDiff = 0.09;
+    this.planetSpheroid = new og.bv.Sphere();
 };
 
 og._class_.extend(og.control.MouseNavigation, og.control.Control);
@@ -43,11 +46,14 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.addEvent("onmouserbuttondown", this, this.onMouseRightButtonDown);
     this.renderer.addEvent("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
     this.renderer.addEvent("onmouserbuttonclick", this, this.onMouseRightButtonClick);
+
+    this.planetSpheroid.center.set(0, 0, 0);
+    this.planetSpheroid.radius = this.renderer.renderNodes[0].ellipsoid._a;
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     if (this.renderer.renderNodes[0].mousePositionOnEarth) {
-        this.grabbedPoint.copy(this.renderer.renderNodes[0].mousePositionOnEarth);
+        this.grabbedPoint = this.planetSpheroid.rayIntersect(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection);
     }
 };
 
@@ -56,7 +62,8 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
     if (this.renderer.mouseIsMoving) {
         if (planetNode.mousePositionOnEarth) {
             var cam = this.renderer.activeCamera;
-            var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), planetNode.mousePositionOnEarth.normal());
+            var targetPoint = this.planetSpheroid.rayIntersect(cam.eye, this.renderer.mouseState.mouseDirection);
+            var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
             cam.eye = rot.getMatrix4().mulVec3(cam.eye);
             var look, up;
             if (cam.altitude < 500) {

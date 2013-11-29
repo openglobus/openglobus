@@ -166,6 +166,7 @@ og.node.Planet.prototype.frame = function () {
     var intersection = this.getRayEllipsoidIntersection(pos, direction.normal());
     var altitude = pos.distance(intersection);
     this.renderer.activeCamera.altitude = altitude;
+
     this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseState.mouseDirection);
 
     this.quadTree.renderTree();
