@@ -63,13 +63,14 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
         if (planetNode.mousePositionOnEarth) {
             var cam = this.renderer.activeCamera;
             var targetPoint = this.planetSpheroid.rayIntersect(cam.eye, this.renderer.mouseState.mouseDirection);
-            var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
-            cam.eye = rot.getMatrix4().mulVec3(cam.eye);
             var look, up;
             if (cam.altitude < 500) {
+                cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
                 look = og.math.Vector3.sub(cam.eye, cam.n);
                 up = cam.v;
             } else {
+                var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
+                cam.eye = rot.getMatrix4().mulVec3(cam.eye);
                 look = og.math.Vector3.ZERO;
                 up = og.math.Vector3.UP;
             }
