@@ -8,7 +8,8 @@ goog.require('og._class_');
 
 og.control.MouseNavigation = function (options) {
     og.control.MouseNavigation.superclass.constructor.call(this, options);
-    this.hitMousePositionOnEarth = new og.math.Vector3();
+    this.grabbedPoint = new og.math.Vector3();
+    this.hasGrabbedPoint = false;
     this.x0 = 0;
     this.y0 = 0;
     this.camAngleX = 0;
@@ -45,28 +46,30 @@ og.control.MouseNavigation.prototype.init = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    this.hitMousePositionOnEarth.copy(this.renderer.renderNodes[0].mousePositionOnEarth);
+    if (this.renderer.renderNodes[0].mousePositionOnEarth) {
+        this.grabbedPoint.copy(this.renderer.renderNodes[0].mousePositionOnEarth);
+    }
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
+    var planetNode = this.renderer.renderNodes[0];
     if (this.renderer.mouseIsMoving) {
-        var planetNode = this.renderer.renderNodes[0];
-        var cam = this.renderer.activeCamera;
-        var p0 = og.math.Vector3.add(this.hitMousePositionOnEarth.normal().scaleTo(cam.altitude), this.hitMousePositionOnEarth);
-        var p1 = og.math.Vector3.add(planetNode.mousePositionOnEarth.normal().scaleTo(cam.altitude), planetNode.mousePositionOnEarth);
-
-        var d = og.math.Vector3.sub(p0, p1);
-        cam.eye.add(d);
-
-        var look, up;
-        if (cam.altitude < 500) {
-            look = og.math.Vector3.sub(cam.eye, cam.n);
-            up = cam.v;
+        if (planetNode.mousePositionOnEarth) {
+            var cam = this.renderer.activeCamera;
+            var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), planetNode.mousePositionOnEarth.normal());
+            cam.eye = rot.getMatrix4().mulVec3(cam.eye);
+            var look, up;
+            if (cam.altitude < 500) {
+                look = og.math.Vector3.sub(cam.eye, cam.n);
+                up = cam.v;
+            } else {
+                look = og.math.Vector3.ZERO;
+                up = og.math.Vector3.UP;
+            }
+            cam.set(cam.eye, look, up);
         } else {
-            look = og.math.Vector3.ZERO;
-            up = new og.math.Vector3(0, 1, 0)
+            //TODO: Have to continue rotation
         }
-        cam.set(cam.eye, look, up);
     }
 };
 
