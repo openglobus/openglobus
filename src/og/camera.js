@@ -40,8 +40,8 @@ og.Camera.clone = function (cam) {
 
 og.Camera.defaultOptions = {
     viewAngle: 35,
-    nearDist: 0.1,
-    farDist: 1000000.0,
+    nearDist: 100,
+    farDist: 15000.0,
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
     up: new og.math.Vector3(0, 1, 0)
@@ -95,6 +95,27 @@ og.Camera.prototype.refresh = function () {
     this.setProjectionMatrix(this.viewAngle, this.renderer.ctx.gl._viewportWidth / this.renderer.ctx.gl._viewportHeight, this.nearDist, this.farDist);
     this.update();
 };
+
+og.Camera.prototype.setFarVisibilityDistance = function (distance) {
+    this.farDist = distance;
+    this.refresh();
+};
+
+og.Camera.prototype.setNearVisibilityDistance = function (distance) {
+    this.nearDist = distance;
+    this.refresh();
+};
+
+og.Camera.prototype.setNearPointVisibility = function (near, distance) {
+    this.nearDist = near;
+    if (distance) {
+        this.farDist = near + distance;
+    } else {
+        this.farDist = near + this.farDist - this.nearDist;
+    }
+    this.refresh();
+};
+
 
 og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this.viewAngle = angle;
