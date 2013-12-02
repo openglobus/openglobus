@@ -31,10 +31,12 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         var d = this.distDiff * cam.eye.distance(planetNode.mousePositionOnEarth);
         var dv = new og.math.Vector3(this.renderer.mouseState.mouseDirection.x * d, this.renderer.mouseState.mouseDirection.y * d, this.renderer.mouseState.mouseDirection.z * d);
         if (event.wheelDelta > 0) {
-            cam.eye.add(dv);
+            if (cam.altitude > 0.5)
+                cam.eye.add(dv);
         }
         else {
-            cam.eye.sub(dv);
+            if (cam.altitude < 6000)
+                cam.eye.sub(dv);
         }
         cam.update();
     }
@@ -48,7 +50,7 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.addEvent("onmouserbuttonclick", this, this.onMouseRightButtonClick);
 
     this.planetSpheroid.center.set(0, 0, 0);
-    this.planetSpheroid.radius = this.renderer.renderNodes[0].ellipsoid._a;
+    this.planetSpheroid.radius = this.renderer.renderNodes[0].ellipsoid._b;
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
