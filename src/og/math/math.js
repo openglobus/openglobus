@@ -13,6 +13,9 @@ og.math.MIN = -100000000;
 og.math.RADIANS = Math.PI / 180;
 og.math.DEGREES = 180 / Math.PI;
 
+//Float round-off PI
+Math.PI = 3.1415927410125732;
+
 og.math.clamp = function (number, min, max) {
     return Math.max(min, Math.min(number, max));
 };
