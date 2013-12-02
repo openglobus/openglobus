@@ -158,16 +158,17 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
     }
 };
 
+og.node.Planet.prototype.getAltitude = function (p) {
+    var direction = new og.math.Vector3(-p.x, -p.y, -p.z);
+    var intersection = this.getRayEllipsoidIntersection(p, direction.normal());
+    return p.distance(intersection);
+};
+
 og.node.Planet.prototype.frame = function () {
     this.updateVisibleLayers();
 
-    var pos = this.renderer.activeCamera.eye;
-    var direction = new og.math.Vector3(-pos.x, -pos.y, -pos.z);
-    var intersection = this.getRayEllipsoidIntersection(pos, direction.normal());
-    var altitude = pos.distance(intersection);
-    this.renderer.activeCamera.altitude = altitude;
-
-    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(pos, this.renderer.mouseState.mouseDirection);
+    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection);
+    this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     this.quadTree.renderTree();
     this.renderNodes();
