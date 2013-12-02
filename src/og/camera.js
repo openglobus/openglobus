@@ -9,16 +9,22 @@ og.Camera = function (options) {
     this.u = new og.math.Vector3(0, 1, 0); //up x n
     this.v = new og.math.Vector3(1, 0, 0); //n x u
     this.n = new og.math.Vector3(0, 0, 1); //eye - look
+
     this.aspect = 0;
     this.nearDist = 0;
     this.farDist = 0;
     this.viewAngle = 0;
     this.renderer = null;
+
     this.pMatrix = new og.math.Matrix4();
     this.mvMatrix = new og.math.Matrix4();
     this.pmvMatrix = new og.math.Matrix4();
     this.ipmvMatrix = new og.math.Matrix4();
-    this.frustum = new og.Frustum();
+    this.frustum = new og.Frustum();    
+
+    this.pMatrixRot = new og.math.Matrix4();
+    this.pmvMatrixRot = new og.math.Matrix4();
+
     this.altitude = 0;
 };
 
@@ -40,8 +46,8 @@ og.Camera.clone = function (cam) {
 
 og.Camera.defaultOptions = {
     viewAngle: 35,
-    nearDist: 100,
-    farDist: 15000.0,
+    nearDist: 0.1,
+    farDist: 10000,
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
     up: new og.math.Vector3(0, 1, 0)
@@ -80,8 +86,10 @@ og.Camera.prototype.initDefaults = function () {
 og.Camera.prototype.update = function () {
     this.setModelViewMatrix();
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
-    this.ipmvMatrix = this.pmvMatrix.inverse();
     this.frustum.setFrustum(this.pmvMatrix._m);
+
+    this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
+    this.ipmvMatrix = this.pmvMatrixRot.inverse();
 };
 
 og.Camera.prototype.setModelViewMatrix = function () {
@@ -116,13 +124,13 @@ og.Camera.prototype.setNearPointVisibility = function (near, distance) {
     this.refresh();
 };
 
-
 og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this.viewAngle = angle;
     this.aspect = aspect;
     this.nearDist = near;
     this.farDist = far;
     this.pMatrix.setPerspective(angle, aspect, near, far);
+    this.pMatrixRot.setPerspective(angle, aspect, 1, 10000);
 };
 
 og.Camera.prototype.setViewAngle = function (angle) {
