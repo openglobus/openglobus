@@ -58,7 +58,7 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
 
 og.control.LayerSwitcher.prototype.createOverlaysList = function (block) {
     var i, inp, lbl, that = this,
-        layers = this.renderer.renderNodes[0].layers;
+        layers = this.renderer.renderNodes.Earth.layers;
 
     for (i = 0; i < layers.length; i++) {
         if (!layers[i].isBaseLayer) {
@@ -81,7 +81,7 @@ og.control.LayerSwitcher.prototype.createOverlaysList = function (block) {
 
 og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
     var i, inp, lbl, that = this,
-        layers = this.renderer.renderNodes[0].layers;
+        layers = this.renderer.renderNodes.Earth.layers;
 
     for (i = 0; i < layers.length; i++) {
         if (layers[i].isBaseLayer) {
@@ -103,12 +103,12 @@ og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
 };
 
 og.control.LayerSwitcher.prototype.switchLayer = function (obj) {
-    var rn = this.renderer.renderNodes[0];
+    var rn = this.renderer.renderNodes.Earth;
     rn.setBaseLayer(rn.layers[obj.value]);
 };
 
 og.control.LayerSwitcher.prototype.switchLayerVisibility = function (obj) {
-    var rn = this.renderer.renderNodes[0];
+    var rn = this.renderer.renderNodes.Earth;
     var lr = rn.layers[obj.value];
     lr.setVisibility( lr.getVisibility() ? false : true );
 };

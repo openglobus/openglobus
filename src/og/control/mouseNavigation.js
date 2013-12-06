@@ -25,7 +25,7 @@ og.control.MouseNavigation = function (options) {
 og._class_.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
-    var planetNode = this.renderer.renderNodes[0];
+    var planetNode = this.renderer.renderNodes.Earth;
     if (planetNode.mousePositionOnEarth) {
         var cam = this.renderer.activeCamera;
         var d = this.distDiff * cam.eye.distance(planetNode.mousePositionOnEarth);
@@ -50,17 +50,17 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.addEvent("onmouserbuttonclick", this, this.onMouseRightButtonClick);
 
     this.planetSpheroid.center.set(0, 0, 0);
-    this.planetSpheroid.radius = this.renderer.renderNodes[0].ellipsoid._b;
+    this.planetSpheroid.radius = this.renderer.renderNodes.Earth.ellipsoid._b;
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    if (this.renderer.renderNodes[0].mousePositionOnEarth) {
+    if (this.renderer.renderNodes.Earth.mousePositionOnEarth) {
         this.grabbedPoint = this.planetSpheroid.rayIntersect(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection);
     }
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
-    var planetNode = this.renderer.renderNodes[0];
+    var planetNode = this.renderer.renderNodes.Earth;
     if (this.renderer.mouseIsMoving) {
         if (planetNode.mousePositionOnEarth) {
             var cam = this.renderer.activeCamera;
@@ -88,7 +88,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
     this.y0 = this.renderer.mouseState.y;
     this.camAngleX = 0;
     this.camAngleY = 0;
-    this.screenCenterOnEarth = this.renderer.renderNodes[0].getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate());
+    this.screenCenterOnEarth = this.renderer.renderNodes.Earth.getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate());
     this.earthUp = this.screenCenterOnEarth.normal();
 };
 

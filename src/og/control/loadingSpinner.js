@@ -33,7 +33,7 @@ og.control.LoadingSpinner.prototype.init = function () {
 
 og.control.LoadingSpinner.prototype.draw = function () {
     var spinning = false, 
-        p = this.renderer.renderNodes[0],
+        p = this.renderer.renderNodes.Earth,
         l = p.layers,
         i = 0;
 

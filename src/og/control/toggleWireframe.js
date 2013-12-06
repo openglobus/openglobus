@@ -16,9 +16,9 @@ og.control.ToggleWireframe.prototype.init = function () {
 };
 
 og.control.ToggleWireframe.prototype.toogleWireframe = function (e) {
-    if (this.renderer.renderNodes[0].drawMode === this.renderer.ctx.gl.LINE_STRIP) {
-        this.renderer.renderNodes[0].setDrawMode(this.renderer.ctx.gl.TRIANGLE_STRIP);
+    if (this.renderer.renderNodes.Earth.drawMode === this.renderer.ctx.gl.LINE_STRIP) {
+        this.renderer.renderNodes.Earth.setDrawMode(this.renderer.ctx.gl.TRIANGLE_STRIP);
     } else {
-        this.renderer.renderNodes[0].setDrawMode(this.renderer.ctx.gl.LINE_STRIP);
+        this.renderer.renderNodes.Earth.setDrawMode(this.renderer.ctx.gl.LINE_STRIP);
     }
 };

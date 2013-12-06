@@ -5,7 +5,7 @@ goog.require('og.node.Node3D');
 
 og.node.SkyBox = function () {
     og.node.SkyBox.superclass.constructor.call(this, "skybox");
-    this.size = 100000;
+    this.size = 1;
 
     this.vertexPositionBuffers = new Array(6);
     this.vertexIndexBuffers = new Array(6);
@@ -48,6 +48,8 @@ og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
 };
 
 og.node.SkyBox.prototype.frame = function () {
+
+    this.renderer.ctx.gl.disable(this.renderer.ctx.gl.DEPTH_TEST);
     this.renderer.ctx.shaderPrograms.skybox.activate();
 
     this.renderer.ctx.shaderPrograms.skybox.set({
@@ -64,6 +66,7 @@ og.node.SkyBox.prototype.frame = function () {
 
         this.renderer.ctx.shaderPrograms.skybox.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
     }
+    this.renderer.ctx.gl.enable(this.renderer.ctx.gl.DEPTH_TEST);
 };
 
 og.node.SkyBox.prototype.createBuffers = function () {

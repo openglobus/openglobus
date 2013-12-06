@@ -7,7 +7,8 @@ goog.require('og.Camera');
 
 og.Renderer = function (handler) {
     this.ctx = handler;
-    this.renderNodes = [];
+    this._renderNodesArr = [];
+    this.renderNodes = {};
     this.cameras = [];
     this.activeCamera;
 
@@ -61,8 +62,6 @@ og.Renderer.prototype.init = function () {
         that.draw();
     }
 
-    this.input.setEvent("oncharkeypressed", this, null, this.toogleClearPlanet, og.input.KEY_C);
-
     var camera = new og.Camera();
     camera.init(this, { eye: new og.math.Vector3(0, 0, 12000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
     this.activeCamera = camera;
@@ -105,14 +104,15 @@ og.Renderer.prototype.onMouseUp = function (event) {
     }
 };
 
-og.Renderer.prototype.toogleClearPlanet = function (e) {
-    this.renderNodes[0].quadTree.clearTree();
-};
-
 og.Renderer.prototype.addRenderNode = function (renderNode) {
-    renderNode.assignRenderer(this);
-    renderNode.initialization();
-    this.renderNodes.push(renderNode);
+    if (!this.renderNodes[renderNode.name]) {
+        renderNode.assignRenderer(this);
+        renderNode.initialization();
+        this._renderNodesArr.push(renderNode);
+        this.renderNodes[renderNode.name] = renderNode;
+    } else {
+        alert("Node name: " + renderNode.name + " allready exists.");
+    }
 };
 
 og.Renderer.prototype.addRenderNodes = function (nodesArr) {
@@ -133,13 +133,14 @@ og.Renderer.prototype.draw = function () {
         e.callback.call(e.sender);
     }
 
-    for (var i = 0; i < this.renderNodes.length; i++) {
-        this.renderNodes[i].drawNode();
+    for (var i = 0; i < this._renderNodesArr.length; i++) {
+        this._renderNodesArr[i].drawNode();
     }
+
 };
 
 og.Renderer.prototype.addEvent = function (name, sender, callback) {
-    this.events[name].push({sender: sender, callback:callback});
+    this.events[name].push({ sender: sender, callback: callback });
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
