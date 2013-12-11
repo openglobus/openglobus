@@ -22,16 +22,16 @@ og.Ellipsoid.prototype.N = function (phi) {
     return this._a / ss3;
 };
 
-og.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
-    var latrad = og.math.DEG2RAD(lat),
-        lonrad = og.math.DEG2RAD(lon);
+og.Ellipsoid.prototype.LonLat2ECEF = function (lonlat, h) {
+    var latrad = og.math.DEG2RAD(lonlat.lat),
+        lonrad = og.math.DEG2RAD(lonlat.lon);
     var x = (this.N(latrad) + h) * Math.cos(latrad) * Math.cos(lonrad);
     var y = (this.N(latrad) + h) * Math.cos(latrad) * Math.sin(lonrad);
     var z = (this.N(latrad) * (1 - this._e2) + h) * Math.sin(latrad);
     return new og.math.Vector3(x, y, z);
 };
 
-og.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
+og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
     var ecc2 = this._e2;
     var ecc22 = this._k2;
     var r2 = x * x + y * y;

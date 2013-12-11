@@ -199,7 +199,7 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
         for (var j = 0; j <= gridSize; j++) {
             var gr = og.mercator.inverseMercator(this.extent.southWest.lon + j * llStep,
                 this.extent.northEast.lat - i * llStep);
-            var v = this.planet.ellipsoid.LatLon2ECEF(gr.lat, gr.lon, 0);
+            var v = this.planet.ellipsoid.LonLat2ECEF(gr, 0);
             this.plainVertices.push(v.y, v.z, v.x);
         }
     }
