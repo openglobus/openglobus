@@ -49,25 +49,21 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
         b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
-    if (a_ne_lon == b_sw_lon) {
-        if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
-            return og.quadTree.E;
-        }
-    }else if (a_sw_lon == b_ne_lon) {
-        if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
-            return og.quadTree.W;
-        }
-    }else  if (a_ne_lat == b_sw_lat) {
-        if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
-            return og.quadTree.N;
-        }
-    }else if (a_sw_lat == b_ne_lat) {
-        if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
-            return og.quadTree.S;
-        }
-    }else if (a_ne_lon == 20037508.34 && b_sw_lon == -20037508.34) {
+    if (a_ne_lon == b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
         return og.quadTree.E;
-    }else if (a_sw.lon == -20037508.34 && b_ne.lon == 20037508.34) {
+    } else if (a_sw_lon == b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        return og.quadTree.W;
+    } else if (a_ne_lat == b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return og.quadTree.N;
+    } else if (a_sw_lat == b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return og.quadTree.S;
+    } else if (a_ne_lon == 20037508.34 && b_sw_lon == -20037508.34) {
+        return og.quadTree.E;
+    } else if (a_sw.lon == -20037508.34 && b_ne.lon == 20037508.34) {
         return og.quadTree.W;
     }
 
