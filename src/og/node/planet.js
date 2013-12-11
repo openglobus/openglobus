@@ -12,6 +12,7 @@ goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
 goog.require('og.layer');
 goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.Extent');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -93,7 +94,7 @@ og.node.Planet.prototype.initialization = function () {
         this.indexesBuffers[gridSize] = this.renderer.ctx.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
-    this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, [-20037508.34, -20037508.34, 20037508.34, 20037508.34]);
+    this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
     this.initTransformationToSphere();
     this.getInverseTransformationSphereMatrix();

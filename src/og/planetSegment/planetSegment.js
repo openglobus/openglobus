@@ -5,10 +5,10 @@ goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.layer');
-goog.require('og.extent');
+goog.require('og.Extent');
 goog.require('og.bv.Box');
 goog.require('og.bv.Sphere');
-goog.require('og.geo');
+goog.require('og.mercator');
 
 og.planetSegment.PlanetSegment = function () {
     this.plainVertices = [];
@@ -20,7 +20,7 @@ og.planetSegment.PlanetSegment = function () {
     this.vertexIndexBuffer;
     this.vertexTextureCoordBuffer;
 
-    this.extent = [];
+    this.extent;
     this.gridSize;
 
     this.zoomIndex;
@@ -167,7 +167,7 @@ og.planetSegment.PlanetSegment.prototype.deleteMaterials = function () {
 
 og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
     this.clearSegment();
-    this.extent.length = 0;
+    this.extent = null;
 };
 
 og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {
@@ -184,21 +184,23 @@ og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSi
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
-    var gr = og.geo.inverseMercator(extent[og.extent.LEFT] + (extent[og.extent.RIGHT] - extent[og.extent.LEFT]) / 2, extent[og.extent.BOTTOM] + (extent[og.extent.TOP] - extent[og.extent.BOTTOM]) / 2);
-    var tile = og.layer.lonlat2tile(gr[og.geo.LON], gr[og.geo.LAT], zoomIndex);
+    var c = extent.getCenter();
+    var gr = og.mercator.inverseMercator(c.lon, c.lat);
+    var tile = og.layer.lonlat2tile(gr.lon, gr.lat, zoomIndex);
     this.tileX = tile[og.math.X];
     this.tileY = tile[og.math.Y];
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
     this.plainVertices.length = 0;
-    var lonSize = this.extent[og.extent.RIGHT] - this.extent[og.extent.LEFT];
+    var lonSize = this.extent.getWidth();
     var llStep = lonSize / gridSize;
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
-            var gr = og.geo.inverseMercator(this.extent[og.extent.LEFT] + j * llStep, this.extent[og.extent.TOP] - i * llStep);
-            var v = this.planet.ellipsoid.LatLon2ECEF(gr[og.geo.LAT], gr[og.geo.LON], 0);
-            this.plainVertices.push(v[og.math.Y], v[og.math.Z], v[og.math.X]);
+            var gr = og.mercator.inverseMercator(this.extent.southWest.lon + j * llStep,
+                this.extent.northEast.lat - i * llStep);
+            var v = this.planet.ellipsoid.LatLon2ECEF(gr.lat, gr.lon, 0);
+            this.plainVertices.push(v.y, v.z, v.x);
         }
     }
 };

@@ -2,7 +2,8 @@ goog.provide('og.quadTree.QuadNode');
 
 goog.require('og.planetSegment.PlanetSegment');
 goog.require('og.planetSegment.PlanetSegmentMaterial');
-goog.require('og.extent');
+goog.require('og.Extent');
+goog.require('og.LonLat');
 goog.require('og.quadTree');
 
 /* class QuadNode
@@ -28,7 +29,7 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     var node = new og.quadTree.QuadNode();
     node.partId = partId;
     node.parentNode = parent;
-    node.nodeId = id;
+    node.nodeId = partId + id;
     node.planet = planet;
     node.planetSegment = new og.planetSegment.PlanetSegment();
     node.planetSegment.node = node;
@@ -44,29 +45,29 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     var a = this.planetSegment,
         b = node.planetSegment;
 
-    if (a.extent[og.extent.RIGHT] == b.extent[og.extent.LEFT]) {
-        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
-            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+    if (a.extent.northEast.lon == b.extent.southWest.lon) {
+        if (a.extent.northEast.lat <= b.extent.northEast.lat && a.extent.southWest.lat >= b.extent.southWest.lat ||
+            a.extent.northEast.lat >= b.extent.northEast.lat && a.extent.southWest.lat <= b.extent.southWest.lat) {
             return og.quadTree.E;
         }
-    } else if (a.extent[og.extent.LEFT] == b.extent[og.extent.RIGHT]) {
-        if (a.extent[og.extent.TOP] <= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] >= b.extent[og.extent.BOTTOM] ||
-            a.extent[og.extent.TOP] >= b.extent[og.extent.TOP] && a.extent[og.extent.BOTTOM] <= b.extent[og.extent.BOTTOM]) {
+    } else if (a.extent.southWest.lon == b.extent.northEast.lon) {
+        if (a.extent.northEast.lat <= b.extent.northEast.lat && a.extent.southWest.lat >= b.extent.southWest.lat ||
+            a.extent.northEast.lat >= b.extent.northEast.lat && a.extent.southWest.lat <= b.extent.southWest.lat) {
             return og.quadTree.W;
         }
-    } else if (a.extent[og.extent.TOP] == b.extent[og.extent.BOTTOM]) {
-        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
-            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+    } else if (a.extent.northEast.lat == b.extent.southWest.lat) {
+        if (a.extent.southWest.lon >= b.extent.southWest.lon && a.extent.northEast.lon <= b.extent.northEast.lon ||
+            a.extent.southWest.lon <= b.extent.southWest.lon && a.extent.northEast.lon >= b.extent.northEast.lon) {
             return og.quadTree.N;
         }
-    } else if (a.extent[og.extent.BOTTOM] == b.extent[og.extent.TOP]) {
-        if (a.extent[og.extent.LEFT] >= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] <= b.extent[og.extent.RIGHT] ||
-            a.extent[og.extent.LEFT] <= b.extent[og.extent.LEFT] && a.extent[og.extent.RIGHT] >= b.extent[og.extent.RIGHT]) {
+    } else if (a.extent.southWest.lat == b.extent.northEast.lat) {
+        if (a.extent.southWest.lon >= b.extent.southWest.lon && a.extent.northEast.lon <= b.extent.northEast.lon ||
+            a.extent.southWest.lon <= b.extent.southWest.lon && a.extent.northEast.lon >= b.extent.northEast.lon) {
             return og.quadTree.S;
         }
-    } else if (a.extent[og.extent.RIGHT] == 20037508.34 && b.extent[og.extent.LEFT] == -20037508.34) {
+    } else if (a.extent.northEast.lon == 20037508.34 && b.extent.southWest.lon == -20037508.34) {
         return og.quadTree.E;
-    } else if (a.extent[og.extent.LEFT] == -20037508.34 && b.extent[og.extent.RIGHT] == 20037508.34) {
+    } else if (a.extent.southWest.lon == -20037508.34 && b.extent.northEast.lon == 20037508.34) {
         return og.quadTree.W;
     }
 
@@ -110,29 +111,27 @@ og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
 };
 
 og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
+    var p = this.planet;
+    var ps = this.planetSegment;
+    var ext = ps.extent;
+    var size = ext.getWidth() * 0.5;
+    var ne = ext.northEast, sw = ext.southWest;
+    var z = ps.zoomIndex + 1;
+    var id = this.nodeId * 4 + 1;
+    var c = new og.LonLat(sw.lon + size, sw.lat + size);
+    var nd = this.nodes;
 
-    var lnSize = this.planetSegment.extent[og.extent.RIGHT] - this.planetSegment.extent[og.extent.LEFT];
-    var ltSize = this.planetSegment.extent[og.extent.TOP] - this.planetSegment.extent[og.extent.BOTTOM];
+    nd[og.quadTree.NW] = og.quadTree.QuadNode.createNode(p, og.quadTree.NW, this, id, z,
+        new og.Extent(new og.LonLat(sw.lon, sw.lat + size), new og.LonLat(sw.lon + size, ne.lat)));
 
-    this.nodes[og.quadTree.NW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NW, this,
-        this.nodeId * 4 + og.quadTree.NW + 1, this.planetSegment.zoomIndex + 1,
-        [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
-            this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.TOP]]);
+    nd[og.quadTree.NE] = og.quadTree.QuadNode.createNode(p, og.quadTree.NE, this, id, z,
+        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)));
 
-    this.nodes[og.quadTree.NE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.NE, this,
-        this.nodeId * 4 + og.quadTree.NE + 1, this.planetSegment.zoomIndex + 1,
-        [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2,
-            this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.TOP]]);
+    nd[og.quadTree.SW] = og.quadTree.QuadNode.createNode(p, og.quadTree.SW, this, id, z,
+        new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
 
-    this.nodes[og.quadTree.SW] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SW, this,
-        this.nodeId * 4 + og.quadTree.SW + 1, this.planetSegment.zoomIndex + 1,
-        [this.planetSegment.extent[og.extent.LEFT], this.planetSegment.extent[og.extent.BOTTOM],
-            this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
-
-    this.nodes[og.quadTree.SE] = og.quadTree.QuadNode.createNode(this.planet, og.quadTree.SE, this,
-        this.nodeId * 4 + og.quadTree.SE + 1, this.planetSegment.zoomIndex + 1,
-        [this.planetSegment.extent[og.extent.LEFT] + lnSize / 2, this.planetSegment.extent[og.extent.BOTTOM],
-            this.planetSegment.extent[og.extent.RIGHT], this.planetSegment.extent[og.extent.BOTTOM] + ltSize / 2]);
+    nd[og.quadTree.SE] = og.quadTree.QuadNode.createNode(p, og.quadTree.SE, this, id, z,
+         new og.Extent(new og.LonLat(sw.lon + size, sw.lat), new og.LonLat(ne.lon, sw.lat + size)));
 };
 
 og.quadTree.QuadNode.prototype.reloadTerrain = function () {

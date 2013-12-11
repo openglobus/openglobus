@@ -1,6 +1,8 @@
 goog.provide('og.Ellipsoid');
 
 goog.require('og.math');
+goog.require('og.math.Vector3');
+goog.require('og.LonLat');
 
 og.Ellipsoid = function (equatorialSize, polarSize) {
     var a = this._a = equatorialSize / 1000;
@@ -26,9 +28,8 @@ og.Ellipsoid.prototype.LatLon2ECEF = function (lat, lon, h) {
     var x = (this.N(latrad) + h) * Math.cos(latrad) * Math.cos(lonrad);
     var y = (this.N(latrad) + h) * Math.cos(latrad) * Math.sin(lonrad);
     var z = (this.N(latrad) * (1 - this._e2) + h) * Math.sin(latrad);
-    return [x, y, z];
+    return new og.math.Vector3(x, y, z);
 };
-
 
 og.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
     var ecc2 = this._e2;
@@ -53,5 +54,5 @@ og.Ellipsoid.prototype.ECEF2LatLon = function (x, y, z) {
     var lambda = Math.atan2(y, x);
     var lat = phi / Math.PI * 180;
     var lon = lambda / Math.PI * 180;
-    return [lat, lon];
+    return og.LonLat(lon, lat, h);
 };
