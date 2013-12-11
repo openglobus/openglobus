@@ -42,32 +42,32 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
 };
 
 og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
-    var a = this.planetSegment,
-        b = node.planetSegment;
+    var a = this.planetSegment.extent,
+        b = node.planetSegment.extent;
+    var a_ne = a.northEast, a_sw = a.southWest,
+        b_ne = b.northEast, b_sw = b.southWest;
+    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
-    if (a.extent.northEast.lon == b.extent.southWest.lon) {
-        if (a.extent.northEast.lat <= b.extent.northEast.lat && a.extent.southWest.lat >= b.extent.southWest.lat ||
-            a.extent.northEast.lat >= b.extent.northEast.lat && a.extent.southWest.lat <= b.extent.southWest.lat) {
+    if (a_ne_lon == b_sw_lon) {
+        if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
             return og.quadTree.E;
         }
-    } else if (a.extent.southWest.lon == b.extent.northEast.lon) {
-        if (a.extent.northEast.lat <= b.extent.northEast.lat && a.extent.southWest.lat >= b.extent.southWest.lat ||
-            a.extent.northEast.lat >= b.extent.northEast.lat && a.extent.southWest.lat <= b.extent.southWest.lat) {
+    }else if (a_sw_lon == b_ne_lon) {
+        if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
             return og.quadTree.W;
         }
-    } else if (a.extent.northEast.lat == b.extent.southWest.lat) {
-        if (a.extent.southWest.lon >= b.extent.southWest.lon && a.extent.northEast.lon <= b.extent.northEast.lon ||
-            a.extent.southWest.lon <= b.extent.southWest.lon && a.extent.northEast.lon >= b.extent.northEast.lon) {
+    }else  if (a_ne_lat == b_sw_lat) {
+        if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
             return og.quadTree.N;
         }
-    } else if (a.extent.southWest.lat == b.extent.northEast.lat) {
-        if (a.extent.southWest.lon >= b.extent.southWest.lon && a.extent.northEast.lon <= b.extent.northEast.lon ||
-            a.extent.southWest.lon <= b.extent.southWest.lon && a.extent.northEast.lon >= b.extent.northEast.lon) {
+    }else if (a_sw_lat == b_ne_lat) {
+        if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
             return og.quadTree.S;
         }
-    } else if (a.extent.northEast.lon == 20037508.34 && b.extent.southWest.lon == -20037508.34) {
+    }else if (a_ne_lon == 20037508.34 && b_sw_lon == -20037508.34) {
         return og.quadTree.E;
-    } else if (a.extent.southWest.lon == -20037508.34 && b.extent.northEast.lon == 20037508.34) {
+    }else if (a_sw.lon == -20037508.34 && b_ne.lon == 20037508.34) {
         return og.quadTree.W;
     }
 
