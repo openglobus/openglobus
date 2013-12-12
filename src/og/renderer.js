@@ -143,42 +143,35 @@ og.Renderer.prototype.addEvent = function (name, sender, callback) {
     this.events[name].push({ sender: sender, callback: callback });
 };
 
+og.Renderer.prototype._callEvents = function (events) {
+    var i = events.length;
+    while (i--) {
+        var e = events[i];
+        e.callback.call(e.sender);
+    }
+};
+
 og.Renderer.prototype.handleMouseEvents = function () {
     if (this.mouseLeftButtonDown) {
         if (!this.holdMouseLeftButtonDown) {
             this.holdMouseLeftButtonDown = true;
-            for (var i = 0; i < this.events.onmouselbuttonclick.length; i++) {
-                var e = this.events.onmouselbuttonclick[i];
-                e.callback.call(e.sender);
-            }
+            this._callEvents(this.events.onmouselbuttonclick);
         } else {
-            for (var i = 0; i < this.events.onmouselbuttondown.length; i++) {
-                var e = this.events.onmouselbuttondown[i];
-                e.callback.call(e.sender);
-            }
+            this._callEvents(this.events.onmouselbuttondown);
         }
     }
 
     if (this.mouseRightButtonDown) {
         if (!this.holdMouseRightButtonDown) {
             this.holdMouseRightButtonDown = true;
-            for (var i = 0; i < this.events.onmouserbuttonclick.length; i++) {
-                var e = this.events.onmouserbuttonclick[i];
-                e.callback.call(e.sender);
-            }
+            this._callEvents(this.events.onmouserbuttonclick);
         } else {
-            for (var i = 0; i < this.events.onmouserbuttondown.length; i++) {
-                var e = this.events.onmouserbuttondown[i];
-                e.callback.call(e.sender);
-            }
+            this._callEvents(this.events.onmouserbuttondown);
         }
     }
 
     if (this.mouseIsMoving) {
-        for (var i = 0; i < this.events.onmousemove.length; i++) {
-            var e = this.events.onmousemove[i];
-            e.callback.call(e.sender);
-        }
+        this._callEvents(this.events.onmousemove);
         this.mouseIsMoving = false;
     }
 };
