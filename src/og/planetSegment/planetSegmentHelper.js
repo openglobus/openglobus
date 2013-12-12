@@ -20,7 +20,7 @@ og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (size, side
             n = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]],
             e = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]],
             s = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]];
-        indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
+        var indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
         var k = 0, i = 0;
         for (k = 0; k < c.length; k++) {
             indexes[i++] = c[k];
