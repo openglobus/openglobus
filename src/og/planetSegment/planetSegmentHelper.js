@@ -14,34 +14,33 @@ og.planetSegment.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
 };
 
 og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (size, sidesSizes) {
-    var indexes = [];
     if (size != 1) {
         var c = og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size],
             w = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]],
             n = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]],
             e = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]],
             s = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]];
-
-        var i = 0, k = 0;
-        for (k = 0; k < c.length; k++, i++) {
-            indexes.push(c[k]);
+        indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
+        var k = 0, i = 0;
+        for (k = 0; k < c.length; k++) {
+            indexes[i++] = c[k];
         }
-        for (k = 0; k < w.length; k++, i++) {
-            indexes.push(w[k]);
+        for (k = 0; k < w.length; k++) {
+            indexes[i++] = w[k];
         }
-        for (k = 0; k < n.length; k++, i++) {
-            indexes.push(n[k]);
+        for (k = 0; k < n.length; k++) {
+            indexes[i++] = n[k];
         }
-        for (k = 0; k < e.length; k++, i++) {
-            indexes.push(e[k]);
+        for (k = 0; k < e.length; k++) {
+            indexes[i++] = e[k];
         }
-        for (k = 0; k < s.length; k++, i++) {
-            indexes.push(s[k]);
+        for (k = 0; k < s.length; k++) {
+            indexes[i++] = s[k];
         }
+        return indexes;
     } else {
-        indexes.push(0, 2, 1, 3);
+        return new Uint16Array([0, 2, 1, 3]);
     }
-    return new Uint16Array(indexes);
 };
 
 og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes = function (size, indexes) {
