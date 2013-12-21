@@ -18,8 +18,8 @@ og.math.Vector3.FORWARD = new og.math.Vector3(0, 0, -1);
 og.math.Vector3.BACKWARD = new og.math.Vector3(0, 0, 1);
 og.math.Vector3.ZERO = new og.math.Vector3();
 
-og.math.Vector3.clone = function (v) {
-    return new og.math.Vector3(v.x, v.y, v.z);
+og.math.Vector3.prototype.clone = function () {
+    return new og.math.Vector3(this.x, this.y, this.z);
 };
 
 og.math.Vector3.add = function (a, b) {

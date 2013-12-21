@@ -28,9 +28,9 @@ og.math.Matrix4.prototype.set = function (m) {
     return this;
 };
 
-og.math.Matrix4.clone = function (m) {
+og.math.Matrix4.prototype.clone = function () {
     var res = new og.math.Matrix4();
-    res.set(m);
+    res.set(this);
     return res;
 };
 

@@ -13,8 +13,8 @@ og.math.Vector4.prototype.toVector3 = function () {
     return new og.math.Vector3(this.x, this.y, this.z);
 };
 
-og.math.Vector4.clone = function (v) {
-    return new og.math.Vector4(v.x, v.y, v.z, v.w);
+og.math.Vector4.prototype.clone = function (v) {
+    return new og.math.Vector4(this.x, this.y, this.z, this.w);
 };
 
 og.math.Vector4.prototype.equal = function (v) {
