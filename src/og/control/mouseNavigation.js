@@ -7,6 +7,7 @@ goog.require('og.math.Matrix4');
 goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
 goog.require('og._class_');
+goog.require('og.math.Ray');
 
 og.control.MouseNavigation = function (options) {
     og.control.MouseNavigation.superclass.constructor.call(this, options);
@@ -55,7 +56,7 @@ og.control.MouseNavigation.prototype.init = function () {
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     if (this.renderer.renderNodes.Earth.mousePositionOnEarth) {
-        this.grabbedPoint = this.planetSpheroid.rayIntersect(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection);
+        this.grabbedPoint = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection).hitSphere(this.planetSpheroid);
     }
 };
 
@@ -64,7 +65,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
     if (this.renderer.mouseIsMoving) {
         if (planetNode.mousePositionOnEarth) {
             var cam = this.renderer.activeCamera;
-            var targetPoint = this.planetSpheroid.rayIntersect(cam.eye, this.renderer.mouseState.mouseDirection);
+            var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.mouseDirection).hitSphere(this.planetSpheroid);
             var look, up;
             if (cam.altitude < 500) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));

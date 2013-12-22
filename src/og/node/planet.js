@@ -13,6 +13,7 @@ goog.require('og.shaderProgram.single');
 goog.require('og.layer');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.Extent');
+goog.require('og.math.Ray');
 
 og.node.Planet = function (name, ellipsoid) {
     og.node.Planet.superclass.constructor.call(this, name);
@@ -143,7 +144,7 @@ og.node.Planet.prototype.getRayEllipsoidIntersection = function (position, direc
     var spheroid = new og.bv.Sphere();
     spheroid.center.set(0, 0, 0);
     spheroid.radius = this.ellipsoid._a;
-    var sx = spheroid.rayIntersect(mxTr.mulVec3(position), mxTr.mulVec3(direction).normalize());
+    var sx = new og.math.Ray(mxTr.mulVec3(position), mxTr.mulVec3(direction).normalize()).hitSphere(spheroid);
     if (sx) {
         return this.invMxTransformation.mulVec3(sx);
     }
