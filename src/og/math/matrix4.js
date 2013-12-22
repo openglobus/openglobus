@@ -194,7 +194,7 @@ og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
         f = Math.sin(az);
 
     var ad = a * d,
-        db = b * d;
+        bd = b * d;
 
     var mat = this._m;
 
