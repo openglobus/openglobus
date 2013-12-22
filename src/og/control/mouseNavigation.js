@@ -89,7 +89,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
     this.y0 = this.renderer.mouseState.y;
     this.camAngleX = 0;
     this.camAngleY = 0;
-    this.screenCenterOnEarth = this.renderer.renderNodes.Earth.getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate());
+    this.screenCenterOnEarth = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate()).hitPlanetEllipsoid(this.renderer.renderNodes.Earth);
     this.earthUp = this.screenCenterOnEarth.normal();
 };
 

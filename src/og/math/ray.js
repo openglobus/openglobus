@@ -61,7 +61,17 @@ og.math.Ray.prototype.hitSphere = function (sphere) {
     }
 };
 
-og.math.Ray.prototype.hitEllipsoid = function (ellipsoid) {
+og.math.Ray.prototype.hitPlanetEllipsoid = function (planet) {
+    var mxTr = planet.mxTransformation.transpose();
+    var spheroid = new og.bv.Sphere(planet.ellipsoid._a);
+    var sx = new og.math.Ray(mxTr.mulVec3(this.origin), mxTr.mulVec3(this.direction)).hitSphere(spheroid);
+    if (sx) {
+        return planet.invMxTransformation.mulVec3(sx);
+    }
+    return null;
+};
+
+og.math.Ray.prototype.hitPlanet = function (planet) {
 
 };
 

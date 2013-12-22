@@ -139,18 +139,6 @@ og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
     this.invMxTransformation = this.mxTransformation.inverse();
 };
 
-og.node.Planet.prototype.getRayEllipsoidIntersection = function (position, direction) {
-    var mxTr = this.mxTransformation.transpose();
-    var spheroid = new og.bv.Sphere();
-    spheroid.center.set(0, 0, 0);
-    spheroid.radius = this.ellipsoid._a;
-    var sx = new og.math.Ray(mxTr.mulVec3(position), mxTr.mulVec3(direction).normalize()).hitSphere(spheroid);
-    if (sx) {
-        return this.invMxTransformation.mulVec3(sx);
-    }
-    return null;
-};
-
 og.node.Planet.prototype.updateVisibleLayers = function () {
     this.visibleLayers.length = 0;
     for (var i = 0; i < this.layers.length; i++) {
@@ -162,14 +150,13 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 
 og.node.Planet.prototype.getAltitude = function (p) {
     var direction = new og.math.Vector3(-p.x, -p.y, -p.z);
-    var intersection = this.getRayEllipsoidIntersection(p, direction.normal());
+    var intersection = new og.math.Ray(p, direction).hitPlanetEllipsoid(this);
     return p.distance(intersection);
 };
 
 og.node.Planet.prototype.frame = function () {
     this.updateVisibleLayers();
-
-    this.mousePositionOnEarth = this.getRayEllipsoidIntersection(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection);
+    this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection).hitPlanetEllipsoid(this);
     this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     this.quadTree.renderTree();
