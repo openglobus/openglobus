@@ -66,7 +66,7 @@ og.math.Ray.prototype.hitPlanetEllipsoid = function (planet) {
     var spheroid = new og.bv.Sphere(planet.ellipsoid._a);
     var sx = new og.math.Ray(mxTr.mulVec3(this.origin), mxTr.mulVec3(this.direction)).hitSphere(spheroid);
     if (sx) {
-        return planet.invMxTransformation.mulVec3(sx);
+        return planet.imxTransformation.mulVec3(sx);
     }
     return null;
 };

@@ -27,12 +27,6 @@ og.node.Planet = function (name, ellipsoid) {
     this.terrainProvider;
     this.emptyTexture = null;
 
-    this.mxScale = new og.math.Matrix4();
-    this.mxRotation = new og.math.Matrix4();
-    this.mxTranslation = new og.math.Matrix4();
-    this.mxTransformation = new og.math.Matrix4();
-    this.invMxTransformation = new og.math.Matrix4();
-
     this.createdNodesCount = 0;
     this.renderedNodes = [];
     this.heightFactor = 1.0;
@@ -97,8 +91,8 @@ og.node.Planet.prototype.initialization = function () {
 
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
     this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
-    this.initTransformationToSphere();
-    this.getInverseTransformationSphereMatrix();
+    this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
+    this.updateMatrices();
     this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
     this.renderer.ctx.addShaderProgram(og.shaderProgram.overlays);
     this.renderer.ctx.addShaderProgram(og.shaderProgram.single);
@@ -111,32 +105,6 @@ og.node.Planet.prototype.loadEmptyTexture = function (url) {
         that.emptyTexture = that.renderer.ctx.createTextureFromImage(this);
     };
     img.src = url;
-};
-
-og.node.Planet.prototype.initTransformationToSphere = function () {
-    var rx = 1.0;
-    var ry = this.ellipsoid._a / this.ellipsoid._b;
-    var rz = 1.0;
-
-    this.mxScale.set([rx, 0, 0, 0,
-                       0, ry, 0, 0,
-                       0, 0, rz, 0,
-                       0, 0, 0, 1.0]);
-
-    this.mxRotation.set([1.0, 0, 0, 0,
-                           0, 1.0, 0, 0,
-                           0, 0, 1.0, 0,
-                           0, 0, 0, 1.0]);
-
-    this.mxTranslation.set([1.0, 0, 0, 0,
-                              0, 1.0, 0, 0,
-                              0, 0, 1.0, 0,
-                              0, 0, 0, 1.0]);
-};
-
-og.node.Planet.prototype.getInverseTransformationSphereMatrix = function () {
-    this.mxTransformation = this.mxTranslation.mul(this.mxRotation).mul(this.mxScale);
-    this.invMxTransformation = this.mxTransformation.inverse();
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {
