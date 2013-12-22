@@ -62,9 +62,9 @@ og.Camera.prototype.init = function (renderer, options) {
             options.nearDist ? options.nearDist : og.Camera.defaultOptions.nearDist,
             options.farDist ? options.farDist : og.Camera.defaultOptions.farDist);
         this.set(
-            options.eye ? options.eye : og.math.Vector3.clone(og.Camera.defaultOptions.eye),
-            options.look ? options.look : og.math.Vector3.clone(og.Camera.defaultOptions.look),
-            options.up ? options.up : og.math.Vector3.clone(og.Camera.defaultOptions.up));
+            options.eye ? options.eye : og.Camera.defaultOptions.eye.clone(),
+            options.look ? options.look : og.Camera.defaultOptions.look.clone(),
+            options.up ? options.up : og.Camera.defaultOptions.up.clone());
     } else {
         this.initDefaults();
     }
@@ -78,9 +78,9 @@ og.Camera.prototype.initDefaults = function () {
         og.Camera.defaultOptions.nearDist,
         og.Camera.defaultOptions.farDist);
     this.set(
-        og.math.Vector3.clone(Camera.defaultOptions.eye),
-        og.math.Vector3.clone(Camera.defaultOptions.look),
-        og.math.Vector3.clone(Camera.defaultOptions.up));
+        Camera.defaultOptions.eye.clone(),
+        Camera.defaultOptions.look.clone(),
+        Camera.defaultOptions.up.clone());
 };
 
 og.Camera.prototype.update = function () {
@@ -164,7 +164,7 @@ og.Camera.prototype.slide = function (du, dv, dn) {
 og.Camera.prototype.roll = function (angle) {
     var cs = Math.cos(Math.PI / 180 * angle);
     var sn = Math.sin(Math.PI / 180 * angle);
-    var t = og.math.Vector3.clone(this.u);
+    var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
     this.update();
@@ -173,7 +173,7 @@ og.Camera.prototype.roll = function (angle) {
 og.Camera.prototype.pitch = function (angle) {
     var cs = Math.cos(Math.PI / 180 * angle);
     var sn = Math.sin(Math.PI / 180 * angle);
-    var t = og.math.Vector3.clone(this.n);
+    var t = this.n.clone();
     this.n.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
     this.update();
@@ -182,7 +182,7 @@ og.Camera.prototype.pitch = function (angle) {
 og.Camera.prototype.yaw = function (angle) {
     var cs = Math.cos(Math.PI / 180 * angle);
     var sn = Math.sin(Math.PI / 180 * angle);
-    var t = og.math.Vector3.clone(this.u);
+    var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.n.x, cs * t.y - sn * this.n.y, cs * t.z - sn * this.n.z);
     this.n.set(sn * t.x + cs * this.n.x, sn * t.y + cs * this.n.y, sn * t.z + cs * this.n.z);
     this.update();
