@@ -3,9 +3,9 @@ goog.provide('og.bv.Sphere');
 goog.require('og.bv');
 goog.require('og.math.Vector3');
 
-og.bv.Sphere = function () {
-    this.center = new og.math.Vector3();
-    this.radius = 0;
+og.bv.Sphere = function (radius, center) {
+    this.radius = radius || 0;
+    this.center = center ? center.clone() : new og.math.Vector3();
 };
 
 og.bv.Sphere.prototype.setFromBounds = function (bounds) {
