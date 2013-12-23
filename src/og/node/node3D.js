@@ -14,30 +14,30 @@ og.node.Node3D = function (name) {
     this._isActive = true;
     this._zIndex = 1000;
 
-    this.mxScale = new og.math.Matrix4().setIdentity();
-    this.mxRotation = new og.math.Matrix4().setIdentity();
-    this.mxTranslation = new og.math.Matrix4().setIdentity();
-    this.mxTransformation = new og.math.Matrix4().setIdentity();
-    this.imxTransformation = new og.math.Matrix4().setIdentity();
+    this.scaleMatrix = new og.math.Matrix4().setIdentity();
+    this.rotationMatrix = new og.math.Matrix4().setIdentity();
+    this.translationMatrix = new og.math.Matrix4().setIdentity();
+    this.transformationMatrix = new og.math.Matrix4().setIdentity();
+    this.itransformationMatrix = new og.math.Matrix4().setIdentity();
 };
 
 og._class_.extend(og.node.Node3D, og.node.Node);
 
 og.node.Node3D.prototype.setScale = function (xyz) {
-    this.mxScale.scale(xyz);
+    this.scaleMatrix.scale(xyz);
 };
 
 og.node.Node3D.prototype.setOrigin = function (origin) {
-    this.mxTranslation.translate(origin);
+    this.translationMatrix.translate(origin);
 };
 
 og.node.Node3D.prototype.setAngles = function (ax, ay, az) {
-    this.mxRotation.eulerToMatrix(ax, ay, az);
+    this.rotationMatrix.eulerToMatrix(ax, ay, az);
 };
 
 og.node.Node3D.prototype.updateMatrices = function () {
-    this.mxTransformation = this.mxTranslation.mul(this.mxRotation).mul(this.mxScale);
-    this.imxTransformation = this.mxTransformation.inverse();
+    this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
+    this.itransformationMatrix = this.transformationMatrix.inverse();
 };
 
 og.node.Node3D.prototype.drawNode = function () {
