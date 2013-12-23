@@ -1,6 +1,6 @@
 goog.provide('og.node.Axes');
 
-goog.require('og.node.Node3D');
+goog.require('og.node.RenderNode');
 
 og.node.Axes = function (size) {
     og.node.Axes.superclass.constructor.call(this, "Axes");
@@ -9,7 +9,7 @@ og.node.Axes = function (size) {
     this.axesColorBuffer;
 };
 
-og._class_.extend(og.node.Axes, og.node.Node3D);
+og._class_.extend(og.node.Axes, og.node.RenderNode);
 
 og.node.Axes.prototype.initialization = function () {
     this.createAxisBuffer(this.size);

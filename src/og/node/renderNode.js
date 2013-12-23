@@ -1,4 +1,4 @@
-goog.provide('og.node.Node3D');
+goog.provide('og.node.RenderNode');
 
 goog.require('og.node.Node');
 goog.require('og.webgl');
@@ -6,8 +6,8 @@ goog.require('og._class_');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 
-og.node.Node3D = function (name) {
-    og.node.Node3D.superclass.constructor.call(this, name);
+og.node.RenderNode = function (name) {
+    og.node.RenderNode.superclass.constructor.call(this, name);
     this.renderer = null;
     this.drawMode;
     this.show = true;
@@ -21,58 +21,58 @@ og.node.Node3D = function (name) {
     this.itransformationMatrix = new og.math.Matrix4().setIdentity();
 };
 
-og._class_.extend(og.node.Node3D, og.node.Node);
+og._class_.extend(og.node.RenderNode, og.node.Node);
 
-og.node.Node3D.prototype.setScale = function (xyz) {
+og.node.RenderNode.prototype.setScale = function (xyz) {
     this.scaleMatrix.scale(xyz);
 };
 
-og.node.Node3D.prototype.setOrigin = function (origin) {
+og.node.RenderNode.prototype.setOrigin = function (origin) {
     this.translationMatrix.translate(origin);
 };
 
-og.node.Node3D.prototype.setAngles = function (ax, ay, az) {
+og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
     this.rotationMatrix.eulerToMatrix(ax, ay, az);
 };
 
-og.node.Node3D.prototype.updateMatrices = function () {
+og.node.RenderNode.prototype.updateMatrices = function () {
     this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
     this.itransformationMatrix = this.transformationMatrix.inverse();
 };
 
-og.node.Node3D.prototype.drawNode = function () {
+og.node.RenderNode.prototype.drawNode = function () {
     if (this._isActive) {
         this.drawNodes();
     }
 };
 
-og.node.Node3D.prototype.setZIndex = function (zindex) {
+og.node.RenderNode.prototype.setZIndex = function (zindex) {
     this._zIndex = zindex;
 };
 
-og.node.Node3D.prototype.getZIndex = function () {
+og.node.RenderNode.prototype.getZIndex = function () {
     return this._zIndex;
 };
 
-og.node.Node3D.prototype.isActive = function () {
+og.node.RenderNode.prototype.isActive = function () {
     return this._isActive;
 };
 
-og.node.Node3D.prototype.setActive = function (isActive) {
+og.node.RenderNode.prototype.setActive = function (isActive) {
     this._isActive = isActive;
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].setActive(isActive);
     }
 };
 
-og.node.Node3D.prototype.setDrawMode = function (mode) {
+og.node.RenderNode.prototype.setDrawMode = function (mode) {
     this.drawMode = mode;
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].setDrawMode(mode);
     }
 };
 
-og.node.Node3D.prototype.drawNodes = function () {
+og.node.RenderNode.prototype.drawNodes = function () {
     for (var i = 0; i < this.childNodes.length; i++) {
         if (this.childNodes[i]._isActive)
             this.childNodes[i].drawNodes();
@@ -84,6 +84,6 @@ og.node.Node3D.prototype.drawNodes = function () {
         }
 };
 
-og.node.Node3D.prototype.assignRenderer = function (renderer) {
+og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
 };

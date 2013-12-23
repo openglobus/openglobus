@@ -30,11 +30,11 @@ goog.addDependency('../../../og/src/og/math/ray.js', ['og.math.Ray'], ['og.math.
 goog.addDependency('../../../og/src/og/math/vector3.js', ['og.math.Vector3'], []);
 goog.addDependency('../../../og/src/og/math/vector4.js', ['og.math.Vector4'], ['og.math.Vector3']);
 goog.addDependency('../../../og/src/og/mercator.js', ['og.mercator'], ['og.LonLat']);
-goog.addDependency('../../../og/src/og/node/axes.js', ['og.node.Axes'], ['og.node.Node3D']);
+goog.addDependency('../../../og/src/og/node/axes.js', ['og.node.Axes'], ['og.node.RenderNode']);
 goog.addDependency('../../../og/src/og/node/node.js', ['og.node.Node'], []);
-goog.addDependency('../../../og/src/og/node/node3D.js', ['og.node.Node3D'], ['og._class_', 'og.math.Matrix4', 'og.math.Vector3', 'og.node.Node', 'og.webgl']);
-goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og', 'og.Extent', 'og.bv.Sphere', 'og.layer', 'og.math.Matrix4', 'og.math.Ray', 'og.math.Vector3', 'og.node.Node3D', 'og.planetSegment', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree', 'og.quadTree.QuadNode', 'og.shaderProgram.overlays', 'og.shaderProgram.single']);
-goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og', 'og.node.Node3D']);
+goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og', 'og.Extent', 'og.bv.Sphere', 'og.layer', 'og.math.Matrix4', 'og.math.Ray', 'og.math.Vector3', 'og.node.RenderNode', 'og.planetSegment', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree', 'og.quadTree.QuadNode', 'og.shaderProgram.overlays', 'og.shaderProgram.single']);
+goog.addDependency('../../../og/src/og/node/renderNode.js', ['og.node.RenderNode'], ['og._class_', 'og.math.Matrix4', 'og.math.Vector3', 'og.node.Node', 'og.webgl']);
+goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og', 'og.node.RenderNode']);
 goog.addDependency('../../../og/src/og/og.js', ['og'], []);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegment.js', ['og.planetSegment', 'og.planetSegment.PlanetSegment'], ['og.Extent', 'og.bv.Box', 'og.bv.Sphere', 'og.layer', 'og.math', 'og.math.Vector3', 'og.mercator', 'og.planetSegment.PlanetSegmentHelper']);
 goog.addDependency('../../../og/src/og/planetSegment/planetSegmentHelper.js', ['og.planetSegment.PlanetSegmentHelper'], ['og.quadTree']);

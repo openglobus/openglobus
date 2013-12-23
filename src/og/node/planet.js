@@ -1,7 +1,7 @@
 goog.provide('og.node.Planet');
 
 goog.require('og');
-goog.require('og.node.Node3D');
+goog.require('og.node.RenderNode');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 goog.require('og.quadTree');
@@ -36,7 +36,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.indexesBuffers = [];
 };
 
-og._class_.extend(og.node.Planet, og.node.Node3D);
+og._class_.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);

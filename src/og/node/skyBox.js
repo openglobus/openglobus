@@ -1,7 +1,7 @@
 goog.provide('og.node.SkyBox');
 
 goog.require('og');
-goog.require('og.node.Node3D');
+goog.require('og.node.RenderNode');
 
 og.node.SkyBox = function () {
     og.node.SkyBox.superclass.constructor.call(this, "skybox");
@@ -16,7 +16,7 @@ og.node.SkyBox = function () {
     this.spath = og.RESOURCES_URL + "images/skyboxes/tycho/";
 };
 
-og._class_.extend(og.node.SkyBox, og.node.Node3D);
+og._class_.extend(og.node.SkyBox, og.node.RenderNode);
 
 og.node.SkyBox.FRONT_PLANE = 0;
 og.node.SkyBox.BACK_PLANE = 1;
