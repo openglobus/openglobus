@@ -124,7 +124,10 @@ og.node.Planet.prototype.getAltitude = function (p) {
 
 og.node.Planet.prototype.frame = function () {
     this.updateVisibleLayers();
-    this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection).hitPlanetEllipsoid(this);
+
+    this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye,
+        this.renderer.mouseState.mouseDirection)
+        .hitPlanetEllipsoid(this);
     this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     this.quadTree.renderTree();
@@ -142,10 +145,13 @@ og.node.Planet.prototype.frame = function () {
 };
 
 og.node.Planet.prototype.renderNodes = function () {
-    var sh;
+    var sh, drawCallback;
+    var renderer = this.renderer;
+    var ctx = renderer.ctx;
+
     if (this.visibleLayers.length > 1) {
-        this.renderer.ctx.shaderPrograms.overlays.activate();
-        sh = this.renderer.ctx.shaderPrograms.overlays;
+        ctx.shaderPrograms.overlays.activate();
+        sh = ctx.shaderPrograms.overlays;
         drawCallback = og.planetSegment.drawOverlays;
         var layers = this.visibleLayers;
         for (var l = 0; l < layers.length; l++) {
@@ -156,15 +162,15 @@ og.node.Planet.prototype.renderNodes = function () {
             this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
             this.tcolorArr[nt4 + 3] = ll.opacity;
         }
-        this.renderer.ctx.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
-        this.renderer.ctx.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
+        ctx.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
+        ctx.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
     } else {
-        this.renderer.ctx.shaderPrograms.single.activate();
-        sh = this.renderer.ctx.shaderPrograms.single;
+        ctx.shaderPrograms.single.activate();
+        sh = ctx.shaderPrograms.single;
         drawCallback = og.planetSegment.drawSingle;
     }
 
-    this.renderer.ctx.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, this.renderer.activeCamera.pmvMatrix._m);
+    ctx.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
