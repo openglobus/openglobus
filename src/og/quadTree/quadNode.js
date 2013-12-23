@@ -204,31 +204,32 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 og.quadTree.QuadNode.prototype.renderNode = function () {
 
     this.state = og.quadTree.RENDERING;
+    var seg = this.planetSegment;
 
-    if (!this.planetSegment.ready) {
-        var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.planetSegment.zoomIndex];
-        this.planetSegment.gridSize = gridSize;
+    if (!seg.ready) {
+        var gridSize = this.planet.terrainProvider.gridSizeByZoom[seg.zoomIndex];
+        seg.gridSize = gridSize;
         this.sideSize = [gridSize, gridSize, gridSize, gridSize];
-        this.planetSegment.createPlainVertices(gridSize);
-        this.planetSegment.terrainVertices = this.planetSegment.plainVertices;
-        this.planetSegment.createCoordsBuffers(this.planetSegment.plainVertices, gridSize);
-        this.planetSegment.ready = true;
+        seg.createPlainVertices(gridSize);
+        seg.terrainVertices = seg.plainVertices;
+        seg.createCoordsBuffers(seg.plainVertices, gridSize);
+        seg.ready = true;
     }
 
-    if (!this.planetSegment.terrainReady) {
-        this.planetSegment.loadTerrain();
+    if (!seg.terrainReady) {
+        seg.loadTerrain();
         this.whileTerrainLoading();
     }
 
     var vl = this.planet.visibleLayers,
-        pm = this.planetSegment.materials;
+        pm = seg.materials;
 
     for (var i = 0; i < vl.length; i++) {
         var li = vl[i],
             pml_id = pm[li.id];
 
         if (!pml_id) {
-            pml_id = this.planetSegment.materials[li.id] = new og.planetSegment.PlanetSegmentMaterial(this.planetSegment, li);
+            pml_id = seg.materials[li.id] = new og.planetSegment.PlanetSegmentMaterial(seg, li);
         }
 
         if (!pml_id.imageReady) {
@@ -298,36 +299,35 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
             if (gridSize > 1) {
-                this.planetSegment.gridSize = gridSize;
+                var seg = this.planetSegment,
+                    pseg = pn.planetSegment;
+
+                seg.gridSize = gridSize;
                 this.sideSize = [gridSize, gridSize, gridSize, gridSize];
                 var i0 = gridSize * offsetY;
                 var j0 = gridSize * offsetX;
 
                 var tempVertices = [];
+                var psegVerts = pseg.terrainVertices;
                 for (var i = i0; i <= i0 + gridSize; i++) {
                     for (var j = j0; j <= j0 + gridSize; j++) {
-                        var ind = 3 * (i * (pn.planetSegment.gridSize + 1) + j);
-                        var x = pn.planetSegment.terrainVertices[ind],
-                            y = pn.planetSegment.terrainVertices[ind + 1],
-                            z = pn.planetSegment.terrainVertices[ind + 2];
-
-                        tempVertices.push(x, y, z);
+                        var ind = 3 * (i * (pseg.gridSize + 1) + j);
+                        tempVertices.push(psegVerts[ind], psegVerts[ind + 1], psegVerts[ind + 2]);
                     }
                 }
+                seg.deleteBuffers();
+                seg.createCoordsBuffers(tempVertices, gridSize);
+                seg.refreshIndexesBuffer = true;
 
-                this.planetSegment.deleteBuffers();
-                this.planetSegment.createCoordsBuffers(tempVertices, gridSize);
-                this.planetSegment.refreshIndexesBuffer = true;
-
-                if (this.planetSegment.zoomIndex > this.planet.terrainProvider.maxZoom) {
+                if (seg.zoomIndex > this.planet.terrainProvider.maxZoom) {
                     pn = this;
-                    while (pn.planetSegment.zoomIndex >= this.planet.terrainProvider.maxZoom && !this.planetSegment.terrainReady) {
+                    while (pseg.zoomIndex >= this.planet.terrainProvider.maxZoom && !seg.terrainReady) {
                         pn = pn.parentNode;
-                        this.planetSegment.terrainReady = pn.planetSegment.terrainReady;
-                        this.planetSegment.terrainIsLoading = pn.planetSegment.terrainIsLoading;
+                        seg.terrainReady = pseg.terrainReady;
+                        seg.terrainIsLoading = pseg.terrainIsLoading;
                     }
-                    this.planetSegment.terrainVertices.length = 0;
-                    this.planetSegment.terrainVertices = tempVertices;
+                    seg.terrainVertices.length = 0;
+                    seg.terrainVertices = tempVertices;
                 } else {
                     this.appliedTerrainNodeId = pn.nodeId;
                     tempVertices.length = 0;
