@@ -44,18 +44,18 @@ og.Extent.prototype.getSouthEast = function () {
     return new og.LonLat(this.southWest.lon, this.northEast.lat);
 };
 
-og.Extent.prototype.getTop = function () {
+og.Extent.prototype.getNorth = function () {
     return this.northEast.lat;
 };
 
-og.Extent.prototype.getRight = function () {
+og.Extent.prototype.getEast = function () {
     return this.northEast.lon;
 };
 
-og.Extent.prototype.getLeft = function () {
+og.Extent.prototype.getWest = function () {
     return this.southWest.lon;
 };
 
-og.Extent.prototype.getBottom = function () {
+og.Extent.prototype.getSouth = function () {
     return this.southWest.lat;
 };
