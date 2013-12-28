@@ -16,7 +16,7 @@ goog.require('og.Extent');
 goog.require('og.math.Ray');
 
 og.node.Planet = function (name, ellipsoid) {
-    og.node.Planet.superclass.constructor.call(this, name);
+    og.class.base(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
 
@@ -36,7 +36,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.indexesBuffers = [];
 };
 
-og._class_.extend(og.node.Planet, og.node.RenderNode);
+og.class.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);

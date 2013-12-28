@@ -1,13 +1,13 @@
 goog.provide('og.control.ShowFps');
 
 goog.require('og.control.Control');
-goog.require('og._class_');
+goog.require('og.class');
 
 og.control.ShowFps = function (options) {
-    og.control.ShowFps.superclass.constructor.call(this, options);
+    og.class.base(this, options);
 };
 
-og._class_.extend(og.control.ShowFps, og.control.Control);
+og.class.extend(og.control.ShowFps, og.control.Control);
 
 og.control.ShowFps.prototype.init = function () {
     var d = document.createElement('div');

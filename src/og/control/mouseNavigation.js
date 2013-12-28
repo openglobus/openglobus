@@ -6,11 +6,11 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
-goog.require('og._class_');
+goog.require('og.class');
 goog.require('og.math.Ray');
 
 og.control.MouseNavigation = function (options) {
-    og.control.MouseNavigation.superclass.constructor.call(this, options);
+    og.class.base(this, options);
     this.grabbedPoint = new og.math.Vector3();
     this.hasGrabbedPoint = false;
     this.x0 = 0;
@@ -23,7 +23,7 @@ og.control.MouseNavigation = function (options) {
     this.planetSpheroid = new og.bv.Sphere();
 };
 
-og._class_.extend(og.control.MouseNavigation, og.control.Control);
+og.class.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
     var planetNode = this.renderer.renderNodes.Earth;
@@ -69,8 +69,8 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
             var look, up;
             if (cam.altitude < 500) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
+                up = og.math.Vector3.sub(cam.eye, og.math.Vector3.ZERO).normalize();
                 look = og.math.Vector3.sub(cam.eye, cam.n);
-                up = cam.v;
             } else {
                 var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
                 cam.eye = rot.getMatrix4().mulVec3(cam.eye);

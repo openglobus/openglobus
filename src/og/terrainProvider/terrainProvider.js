@@ -31,6 +31,7 @@ og.terrainProvider.TerrainServers = {
 };
 
 og.terrainProvider.TerrainProvider.defaultGridSizeByZoom = [32, 32, 32, 32, 8, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 16, 8, 4, 2, 2];
+//og.terrainProvider.TerrainProvider.defaultGridSizeByZoom = [32, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
 og.terrainProvider.TerrainProvider.defaultFileGridSize = 33;
 og.terrainProvider.TerrainProvider.layersCounter = 0;
 

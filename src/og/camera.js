@@ -7,8 +7,8 @@ goog.require('og.Frustum');
 og.Camera = function (options) {
     this.eye = new og.math.Vector3(0, 0, 0);
     this.u = new og.math.Vector3(0, 1, 0); //up x n
-    this.v = new og.math.Vector3(1, 0, 0); //n x u
-    this.n = new og.math.Vector3(0, 0, 1); //eye - look
+    this.v = new og.math.Vector3(1, 0, 0); //n x u - UP
+    this.n = new og.math.Vector3(0, 0, 1); //eye - look - FORWARD
 
     this.aspect = 0;
     this.nearDist = 0;

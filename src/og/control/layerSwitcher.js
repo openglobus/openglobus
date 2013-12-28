@@ -1,15 +1,15 @@
 goog.provide('og.control.LayerSwitcher');
 
-goog.require('og._class_');
+goog.require('og.class');
 
 og.control.LayerSwitcher = function (options) {
-    og.control.LayerSwitcher.superclass.constructor.call(this, options);
+    og.class.base(this, options);
     this.dialog = null;
     this.baseLayersDiv = null;
     this.overlaysDiv = null;
 };
 
-og._class_.extend(og.control.LayerSwitcher, og.control.Control);
+og.class.extend(og.control.LayerSwitcher, og.control.Control);
 
 og.control.LayerSwitcher.prototype.init = function () {
     this.createSwitcher();

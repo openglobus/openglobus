@@ -2,13 +2,13 @@ goog.provide('og.layer.XYZ');
 
 goog.require('og.layer.Layer');
 goog.require('og.quadTree');
-goog.require('og._class_');
+goog.require('og.class');
 
 og.layer.XYZ = function (name, options) {
-    og.layer.XYZ.superclass.constructor.call(this, name, options);
+    og.class.base(this, name, options);
 };
 
-og._class_.extend(og.layer.XYZ, og.layer.Layer);
+og.class.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {

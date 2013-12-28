@@ -1,14 +1,14 @@
 goog.provide('og.layer.WMS');
 
 goog.require('og.layer.XYZ');
-goog.require('og._class_');
+goog.require('og.class');
 
 og.layer.WMS = function (name, options) {
-    og.layer.WMS.superclass.constructor.call(this, name, options);
+    og.class.base(this, name, options);
     this.layers = options.layers;
 }
 
-og._class_.extend(og.layer.WMS, og.layer.XYZ);
+og.class.extend(og.layer.WMS, og.layer.XYZ);
 
 og.layer.WMS.prototype.GetHTTPRequestString = function (segment) {
     return this.url + "wms?" + "LAYERS=" + this.layers +
