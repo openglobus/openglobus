@@ -22,14 +22,14 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    if (!og.math.isPowerOfTwo(image.width) || !og.math.isPowerOfTwo(image.height)) {
-        var canvas = document.createElement("canvas");
-        canvas.width = og.math.nextHighestPowerOfTwo(image.width);
-        canvas.height = og.math.nextHighestPowerOfTwo(image.height);
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(image, 0, 0, image.width, image.height);
-        image = canvas;
-    }
+    //if (!og.math.isPowerOfTwo(image.width) || !og.math.isPowerOfTwo(image.height)) {
+    //    var canvas = document.createElement("canvas");
+    //    canvas.width = og.math.nextHighestPowerOfTwo(image.width);
+    //    canvas.height = og.math.nextHighestPowerOfTwo(image.height);
+    //    var ctx = canvas.getContext("2d");
+    //    ctx.drawImage(image, 0, 0, image.width, image.height);
+    //    image = canvas;
+    //}
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
