@@ -36,7 +36,9 @@ og.Renderer.eventNames = [
     "onmouselbuttonclick",
     "onmouselbuttondown",
     "onmouserbuttonclick",
-    "onmouserbuttondown"];
+    "onmouserbuttondown",
+    "onresize"
+];
 
 og.Renderer.prototype.initEvents = function () {
     for (var i = 0; i < og.Renderer.eventNames.length; i++) {
@@ -66,8 +68,8 @@ og.Renderer.prototype.init = function () {
     camera.init(this, { eye: new og.math.Vector3(0, 0, 12000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
     this.activeCamera = camera;
 
-    this.ctx.onCanvasResize = function () {
-        that.activeCamera.refresh();
+    this.ctx.onCanvasResize = function (obj) {
+        that.handleResizeEvents.call(that, obj);
     }
 
     this.initMouseHandler();
@@ -143,12 +145,19 @@ og.Renderer.prototype.addEvent = function (name, sender, callback) {
     this.events[name].push({ sender: sender, callback: callback });
 };
 
-og.Renderer.prototype._callEvents = function (events) {
-    var i = events.length;
-    while (i--) {
-        var e = events[i];
-        e.callback.call(e.sender);
+og.Renderer.prototype._callEvents = function (events, obj) {
+    if (events) {
+        var i = events.length;
+        while (i--) {
+            var e = events[i];
+            e.callback.call(e.sender, obj);
+        }
     }
+};
+
+og.Renderer.prototype.handleResizeEvents = function (obj) {
+    this.activeCamera.refresh();
+    this._callEvents(this.events.onresize, obj);
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {

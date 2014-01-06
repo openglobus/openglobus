@@ -92,7 +92,7 @@ og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
-   // this.gl.enable(this.gl.BLEND);
+    // this.gl.enable(this.gl.BLEND);
     this.gl.ext = this.initAnysotropicFiltering();
 };
 
@@ -152,7 +152,7 @@ og.webgl.Handler.prototype.viewportResized = function () {
 og.webgl.Handler.prototype.drawFrame = function (now, sender) {
     if (sender.viewportResized()) {
         sender.applyViewport(sender.gl.canvas.clientWidth, sender.gl.canvas.clientHeight);
-        sender.onCanvasResize();
+        sender.onCanvasResize(sender.gl.canvas);
     }
     sender.calculateFPS(now);
     sender.fillBackGroundColor(sender.backgroundColor);
