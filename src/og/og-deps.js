@@ -50,5 +50,6 @@ goog.addDependency('../../../og/src/og/shaderProgram/skybox.js', ['og.shaderProg
 goog.addDependency('../../../og/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
 goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider', 'og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.layer', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);
+goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.webgl']);
 goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.math', 'og.webgl']);
 goog.addDependency('../../../og/src/og/webgl/webgl.js', ['og.webgl'], ['og.utils']);

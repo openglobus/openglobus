@@ -6,6 +6,8 @@ goog.require('og.math');
 goog.require('og.math.Quaternion');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
+goog.require('og.webgl.Framebuffer');
+
 
 my.Cubes = function (name, size) {
     og.class.base(this, name);
@@ -24,6 +26,7 @@ my.Cubes = function (name, size) {
     this.mxTRS = new og.math.Matrix4();
     this.orientation = new og.math.Quaternion(0, 0, 0, 0);
     this.rot = 0;
+    this.framebuffer;
 };
 
 og.class.extend(my.Cubes, og.node.RenderNode);
@@ -35,9 +38,12 @@ my.Cubes.prototype.initialization = function () {
     this.mxTranslation2.translate(new og.math.Vector3(1000, 1000, 1000));
     this.mxTranslation3.translate(new og.math.Vector3(2000, 2000, 2000));
     this.renderer.addEvent("onresize", this, this.onResize);
+    this.framebuffer = new og.webgl.Framebuffer(this.renderer.ctx);
+    this.framebuffer.initialize();
 };
 
 my.Cubes.prototype.onResize = function (obj) {
+    this.framebuffer.setSize(obj.clientWidth, obj.clientHeight);
 };
 
 my.Cubes.prototype.createBuffers = function () {
@@ -99,10 +105,10 @@ my.Cubes.prototype.createBuffers = function () {
 
 };
 
-my.Cubes.prototype.frame = function () {
+my.Cubes.prototype.draw = function () {
     this.renderer.ctx.shaderPrograms.colorShader.activate();
 
-    this.mxTRS = this.mxTranslation1.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
+    this.mxTRS = this.mxTranslation1.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot * og.math.RADIANS).getMatrix4());
     this.renderer.ctx.shaderPrograms.colorShader.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
         aVertexPosition: this.cubeVertexPositionBuffer1,
@@ -111,7 +117,7 @@ my.Cubes.prototype.frame = function () {
     this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer1);
 
 
-    this.mxTRS = this.mxTranslation2.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
+    this.mxTRS = this.mxTranslation2.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot * og.math.RADIANS).getMatrix4());
     this.renderer.ctx.shaderPrograms.colorShader.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
         aVertexPosition: this.cubeVertexPositionBuffer2,
@@ -120,13 +126,19 @@ my.Cubes.prototype.frame = function () {
     this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer2);
 
 
-    this.mxTRS = this.mxTranslation3.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot++ * og.math.RADIANS).getMatrix4());
+    this.mxTRS = this.mxTranslation3.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot * og.math.RADIANS).getMatrix4());
     this.renderer.ctx.shaderPrograms.colorShader.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
         aVertexPosition: this.cubeVertexPositionBuffer3,
         uColor: [0, 0, 1, 1]
     });
     this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer3);
+};
 
-
+my.Cubes.prototype.frame = function () {
+    this.framebuffer.startFrame();
+    this.draw();
+    this.framebuffer.endFrame();
+    this.draw();
+    this.rot++;
 };
