@@ -155,10 +155,15 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
         sender.onCanvasResize(sender.gl.canvas);
     }
     sender.calculateFPS(now);
-    sender.fillBackGroundColor(sender.backgroundColor);
-    sender.gl.clear(sender.gl.COLOR_BUFFER_BIT | sender.gl.DEPTH_BUFFER_BIT);
+    sender.clearFrame();
     sender.drawback(sender);
     og.webgl.requestAnimationFrame(sender.drawFrame, sender);
+};
+
+og.webgl.Handler.prototype.clearFrame = function () {
+    var gl = this.gl;
+    this.fillBackGroundColor(this.backgroundColor);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
 og.webgl.Handler.prototype.Start = function () {
