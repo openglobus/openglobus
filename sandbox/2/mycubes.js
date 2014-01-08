@@ -40,6 +40,27 @@ my.Cubes.prototype.initialization = function () {
     this.renderer.addEvent("onresize", this, this.onResize);
     this.framebuffer = new og.webgl.Framebuffer(this.renderer.ctx);
     this.framebuffer.initialize();
+    this.renderer.addEvent("onmouselbuttonclick", this, function (e) {
+        var x = e.x,
+            y = e.y;
+        this.framebuffer.activate();
+        if (this.framebuffer.isComplete()) {
+            var gl = this.renderer.ctx.gl;
+            var pixelValues = new Uint8Array(4);
+            gl.readPixels(x, this.renderer.ctx.gl.canvas.height - y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+            if (pixelValues[0] == 255 && pixelValues[1] == 0 && pixelValues[2] == 0) {
+                console.log("Location: (" + x + ", " + y +
+                ") is in the RED!");
+            } else if (pixelValues[0] == 0 && pixelValues[1] == 255 && pixelValues[2] == 0) {
+                console.log("Location: (" + x + ", " + y +
+                ") is in the GREEN!");
+            } else if (pixelValues[0] == 0 && pixelValues[1] == 0 && pixelValues[2] == 255) {
+                console.log("Location: (" + x + ", " + y +
+                ") is in the BLUE!");
+            }
+        }
+        this.framebuffer.deactivate();
+    });
 };
 
 my.Cubes.prototype.onResize = function (obj) {
@@ -136,9 +157,10 @@ my.Cubes.prototype.draw = function () {
 };
 
 my.Cubes.prototype.frame = function () {
-    this.framebuffer.startFrame();
+    this.framebuffer.activate();
+    this.renderer.ctx.clearFrame();
     this.draw();
-    this.framebuffer.endFrame();
+    this.framebuffer.deactivate();
     this.draw();
     this.rot++;
 };
