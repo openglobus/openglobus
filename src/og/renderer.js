@@ -164,23 +164,23 @@ og.Renderer.prototype.handleMouseEvents = function () {
     if (this.mouseLeftButtonDown) {
         if (!this.holdMouseLeftButtonDown) {
             this.holdMouseLeftButtonDown = true;
-            this._callEvents(this.events.onmouselbuttonclick);
+            this._callEvents(this.events.onmouselbuttonclick, this.mouseState);
         } else {
-            this._callEvents(this.events.onmouselbuttondown);
+            this._callEvents(this.events.onmouselbuttondown, this.mouseState);
         }
     }
 
     if (this.mouseRightButtonDown) {
         if (!this.holdMouseRightButtonDown) {
             this.holdMouseRightButtonDown = true;
-            this._callEvents(this.events.onmouserbuttonclick);
+            this._callEvents(this.events.onmouserbuttonclick, this.mouseState);
         } else {
-            this._callEvents(this.events.onmouserbuttondown);
+            this._callEvents(this.events.onmouserbuttondown, this.mouseState);
         }
     }
 
     if (this.mouseIsMoving) {
-        this._callEvents(this.events.onmousemove);
+        this._callEvents(this.events.onmousemove, this.mouseState);
         this.mouseIsMoving = false;
     }
 };
