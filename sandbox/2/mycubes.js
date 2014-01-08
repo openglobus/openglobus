@@ -38,32 +38,26 @@ my.Cubes.prototype.initialization = function () {
     this.mxTranslation2.translate(new og.math.Vector3(1000, 1000, 1000));
     this.mxTranslation3.translate(new og.math.Vector3(2000, 2000, 2000));
     this.renderer.addEvent("onresize", this, this.onResize);
-    this.framebuffer = new og.webgl.Framebuffer(this.renderer.ctx);
+    this.framebuffer = new og.webgl.Framebuffer(this.renderer.ctx.gl);
     this.framebuffer.initialize();
 
-    this.ff = new og.webgl.Framebuffer(this.renderer.ctx);
+    this.ff = new og.webgl.Framebuffer(this.renderer.ctx.gl);
     this.ff.initialize();
 
     this.renderer.addEvent("onmouselbuttonclick", this, function (e) {
         var x = e.x,
             y = e.y;
-        this.framebuffer.activate();
-        if (this.framebuffer.isComplete()) {
-            var gl = this.renderer.ctx.gl;
-            var pixelValues = new Uint8Array(4);
-            gl.readPixels(x, this.renderer.ctx.gl.canvas.height - y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-            if (pixelValues[0] == 255 && pixelValues[1] == 0 && pixelValues[2] == 0) {
-                console.log("Location: (" + x + ", " + y +
-                ") is in the RED!");
-            } else if (pixelValues[0] == 0 && pixelValues[1] == 255 && pixelValues[2] == 0) {
-                console.log("Location: (" + x + ", " + y +
-                ") is in the GREEN!");
-            } else if (pixelValues[0] == 0 && pixelValues[1] == 0 && pixelValues[2] == 255) {
-                console.log("Location: (" + x + ", " + y +
-                ") is in the BLUE!");
-            }
+        var pixelValues = this.framebuffer.readPixels(x, this.renderer.ctx.gl.canvas.height - y);
+        if (pixelValues[0] == 255 && pixelValues[1] == 0 && pixelValues[2] == 0) {
+            console.log("Location: (" + x + ", " + y +
+            ") is in the RED!");
+        } else if (pixelValues[0] == 0 && pixelValues[1] == 255 && pixelValues[2] == 0) {
+            console.log("Location: (" + x + ", " + y +
+            ") is in the GREEN!");
+        } else if (pixelValues[0] == 0 && pixelValues[1] == 0 && pixelValues[2] == 255) {
+            console.log("Location: (" + x + ", " + y +
+            ") is in the BLUE!");
         }
-        this.framebuffer.deactivate();
     });
 };
 
