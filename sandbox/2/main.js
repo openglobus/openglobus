@@ -53,8 +53,8 @@ function start() {
 
     var axes = new og.node.Axes(10000);
 
-    renderer.addRenderNode(axes);
     renderer.addRenderNode(new my.Cubes("Cubes", 500));
+    renderer.addRenderNode(axes);
 
     renderer.addControls([
         new og.control.KeyboardNavigation({ autoActivate: true }),

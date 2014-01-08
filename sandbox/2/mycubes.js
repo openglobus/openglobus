@@ -158,7 +158,7 @@ my.Cubes.prototype.draw = function () {
 
 my.Cubes.prototype.frame = function () {
     this.framebuffer.activate();
-    this.renderer.ctx.clearFrame();
+    this.framebuffer.clear();
     this.draw();
     this.framebuffer.deactivate();
     this.draw();
