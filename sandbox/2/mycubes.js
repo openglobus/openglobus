@@ -40,6 +40,10 @@ my.Cubes.prototype.initialization = function () {
     this.renderer.addEvent("onresize", this, this.onResize);
     this.framebuffer = new og.webgl.Framebuffer(this.renderer.ctx);
     this.framebuffer.initialize();
+
+    this.ff = new og.webgl.Framebuffer(this.renderer.ctx);
+    this.ff.initialize();
+
     this.renderer.addEvent("onmouselbuttonclick", this, function (e) {
         var x = e.x,
             y = e.y;
@@ -161,6 +165,14 @@ my.Cubes.prototype.frame = function () {
     this.framebuffer.clear();
     this.draw();
     this.framebuffer.deactivate();
+
+    this.ff.activate();
+    this.ff.clear();
+    //this.draw();
+    this.ff.deactivate();
+
+
+
     this.draw();
     this.rot++;
 };
