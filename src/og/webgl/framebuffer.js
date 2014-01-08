@@ -45,12 +45,21 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this.createBufferTexture();
 };
 
-og.webgl.Framebuffer.prototype.startFrame = function () {
+og.webgl.Framebuffer.prototype.isComplete = function () {
+    var gl = this.handler.gl;
+    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status == gl.FRAMEBUFFER_COMPLETE)
+        return true;
+    return false;
+};
+
+
+og.webgl.Framebuffer.prototype.activate = function () {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
 };
 
-og.webgl.Framebuffer.prototype.endFrame = function () {
+og.webgl.Framebuffer.prototype.deactivate = function () {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
