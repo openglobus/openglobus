@@ -35,38 +35,38 @@ og.node.SkyBox.prototype.initialization = function () {
     this.initTexture(this.spath + "nx.jpg", og.node.SkyBox.LEFT_PLANE);
 
     this.createBuffers();
-    this.drawMode = this.renderer.ctx.gl.TRIANGLES;
+    this.drawMode = this.renderer.handler.gl.TRIANGLES;
 }
 
 og.node.SkyBox.prototype.initTexture = function (fileName, plane) {
     var image = new Image();
     var that = this;
     image.onload = function () {
-        that.textures[plane] = that.renderer.ctx.createTextureFromImage(image);
+        that.textures[plane] = that.renderer.handler.createTextureFromImage(image);
     }
     image.src = this.texturesFileName[plane] = fileName;
 };
 
 og.node.SkyBox.prototype.frame = function () {
 
-    this.renderer.ctx.gl.disable(this.renderer.ctx.gl.DEPTH_TEST);
-    this.renderer.ctx.shaderPrograms.skybox.activate();
+    this.renderer.handler.gl.disable(this.renderer.handler.gl.DEPTH_TEST);
+    this.renderer.handler.shaderPrograms.skybox.activate();
 
-    this.renderer.ctx.shaderPrograms.skybox.set({
+    this.renderer.handler.shaderPrograms.skybox.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
         pos: this.renderer.activeCamera.eye.toVec()
     });
 
     for (var i = 0; i < 6; i++) {
-        this.renderer.ctx.shaderPrograms.skybox.set({
+        this.renderer.handler.shaderPrograms.skybox.set({
             uSampler: this.textures[i],
             aVertexPosition: this.vertexPositionBuffers[i],
             aTextureCoord: this.vertexTextureCoordBuffers[i]
         });
 
-        this.renderer.ctx.shaderPrograms.skybox.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
+        this.renderer.handler.shaderPrograms.skybox.drawIndexBuffer(this.drawMode, this.vertexIndexBuffers[i]);
     }
-    this.renderer.ctx.gl.enable(this.renderer.ctx.gl.DEPTH_TEST);
+    this.renderer.handler.gl.enable(this.renderer.handler.gl.DEPTH_TEST);
 };
 
 og.node.SkyBox.prototype.createBuffers = function () {
@@ -155,8 +155,8 @@ og.node.SkyBox.prototype.createBuffers = function () {
     ];
 
     for (var i = 0; i < 6; i++) {
-        this.vertexPositionBuffers[i] = this.renderer.ctx.createArrayBuffer(new Float32Array(vertices[i]), 3, 4);
-        this.vertexTextureCoordBuffers[i] = this.renderer.ctx.createArrayBuffer(new Float32Array(textureCoords[i]), 2, 4);
-        this.vertexIndexBuffers[i] = this.renderer.ctx.createElementArrayBuffer(new Uint16Array(vertexIndices[i]), 1, 6);
+        this.vertexPositionBuffers[i] = this.renderer.handler.createArrayBuffer(new Float32Array(vertices[i]), 3, 4);
+        this.vertexTextureCoordBuffers[i] = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords[i]), 2, 4);
+        this.vertexIndexBuffers[i] = this.renderer.handler.createElementArrayBuffer(new Uint16Array(vertexIndices[i]), 1, 6);
     }
 };

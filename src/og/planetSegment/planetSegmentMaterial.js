@@ -25,7 +25,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     if (this.segment.ready && this.imageIsLoading) {
         this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
         this.imageReady = true;
-        this.texture = this.segment._ctx.createTextureFromImage(img);
+        this.texture = this.segment.handler.createTextureFromImage(img);
         this.texBias = [0, 0, 1];
     } else {
         this.imageReady = false;
@@ -37,14 +37,15 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
     //TODO: texture have to stop loading    
-    this.imageIsLoading = true;//it's not corrert
+    //This is not corrert
+    this.imageIsLoading = true;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.clear = function () {
     this.imageIsLoading = false;
     if (this.imageReady) {
         this.imageReady = false;
-        this.segment._ctx.gl.deleteTexture(this.texture);
+        this.segment.handler.gl.deleteTexture(this.texture);
         this.texture = null;
         this.texBias = [0, 0, 1];
     }

@@ -34,7 +34,7 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     node.planetSegment = new og.planetSegment.PlanetSegment();
     node.planetSegment.node = node;
     node.planetSegment.planet = planet;
-    node.planetSegment._ctx = planet.renderer.ctx;
+    node.planetSegment.handler = planet.renderer.handler;
     node.planetSegment.assignTileIndexes(zoomIndex, extent);
     node.createBounds(node.planetSegment);
     node.planet.createdNodesCount++;

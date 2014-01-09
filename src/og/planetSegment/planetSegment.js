@@ -28,7 +28,7 @@ og.planetSegment.PlanetSegment = function () {
     this.tileY;
 
     this.planet;
-    this._ctx = null;
+    this.handler = null;
 
     this.ready = false;
 
@@ -131,9 +131,9 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 };
 
 og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
-    this._ctx.gl.deleteBuffer(this.vertexPositionBuffer);
-    this._ctx.gl.deleteBuffer(this.vertexIndexBuffer);
-    this._ctx.gl.deleteBuffer(this.vertexTextureCoordBuffer);
+    this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
+    this.handler.gl.deleteBuffer(this.vertexIndexBuffer);
+    this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 };
 
 og.planetSegment.PlanetSegment.prototype.clearBuffers = function () {
@@ -172,13 +172,13 @@ og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
 
 og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
-    this.vertexTextureCoordBuffer = this._ctx.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
-    this.vertexPositionBuffer = this._ctx.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
+    this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
+    this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
 };
 
 og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
     var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, sidesSizes);
-    this.vertexIndexBuffer = this._ctx.createElementArrayBuffer(indexes, 1, indexes.length);
+    this.vertexIndexBuffer = this.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 };
 
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
@@ -207,7 +207,7 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
 
 og.planetSegment.drawSingle = function (sh, segment) {
     if (segment.ready) {
-        var gl = segment._ctx.gl;
+        var gl = segment.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
         var layers = segment.planet.visibleLayers;
@@ -224,7 +224,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
 
 og.planetSegment.drawOverlays = function (sh, segment) {
     if (segment.ready) {
-        var gl = segment._ctx.gl;
+        var gl = segment.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
         var layers = segment.planet.visibleLayers;
@@ -253,7 +253,7 @@ og.planetSegment.drawOverlays = function (sh, segment) {
 };
 
 og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
-    var gl = this._ctx.gl;
+    var gl = this.handler.gl;
     var sha = sh.attributes;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);

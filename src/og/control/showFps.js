@@ -19,6 +19,6 @@ og.control.ShowFps.prototype.init = function () {
 
 
 og.control.ShowFps.prototype.draw = function () {
-    print2d("ogShowFpsControl", this.renderer.ctx.fps.toFixed(1), this.renderer.ctx.gl._viewportWidth - 40, 0);
+    print2d("ogShowFpsControl", this.renderer.handler.fps.toFixed(1), this.renderer.handler.gl._viewportWidth - 40, 0);
 };
 

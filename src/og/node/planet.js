@@ -86,23 +86,23 @@ og.node.Planet.prototype.initialization = function () {
     for (var i = 0; i <= 5; i++) {
         var gridSize = Math.pow(2, i);
         var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
-        this.indexesBuffers[gridSize] = this.renderer.ctx.createElementArrayBuffer(indexes, 1, indexes.length);
+        this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-    this.drawMode = this.renderer.ctx.gl.TRIANGLE_STRIP;
+    this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
     this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
-    this.renderer.ctx.addShaderProgram(og.shaderProgram.overlays);
-    this.renderer.ctx.addShaderProgram(og.shaderProgram.single);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.single);
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
     var that = this,
         img = new Image();
     img.onload = function () {
-        that.emptyTexture = that.renderer.ctx.createTextureFromImage(this);
+        that.emptyTexture = that.renderer.handler.createTextureFromImage(this);
     };
     img.src = url;
 };
@@ -147,11 +147,11 @@ og.node.Planet.prototype.frame = function () {
 og.node.Planet.prototype.renderNodes = function () {
     var sh, drawCallback;
     var renderer = this.renderer;
-    var ctx = renderer.ctx;
+    var h = renderer.handler;
 
     if (this.visibleLayers.length > 1) {
-        ctx.shaderPrograms.overlays.activate();
-        sh = ctx.shaderPrograms.overlays;
+        h.shaderPrograms.overlays.activate();
+        sh = h.shaderPrograms.overlays;
         drawCallback = og.planetSegment.drawOverlays;
         var layers = this.visibleLayers;
         for (var l = 0; l < layers.length; l++) {
@@ -162,15 +162,15 @@ og.node.Planet.prototype.renderNodes = function () {
             this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
             this.tcolorArr[nt4 + 3] = ll.opacity;
         }
-        ctx.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
-        ctx.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
+        h.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
+        h.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
     } else {
-        ctx.shaderPrograms.single.activate();
-        sh = ctx.shaderPrograms.single;
+        h.shaderPrograms.single.activate();
+        sh = h.shaderPrograms.single;
         drawCallback = og.planetSegment.drawSingle;
     }
 
-    ctx.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+    h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {

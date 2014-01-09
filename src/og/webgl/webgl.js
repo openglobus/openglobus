@@ -26,6 +26,7 @@ og.webgl.initCanvas = function (htmlCanvasId) {
         canvas.height = canvas.scrollHeight;
         ctx._viewportWidth = canvas.width;
         ctx._viewportHeight = canvas.height;
+        ctx._aspectRatio = canvas.width / canvas.height;
     }
     catch (ex) {
         alert("Exception during the GL context initialization");

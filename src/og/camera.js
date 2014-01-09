@@ -58,7 +58,7 @@ og.Camera.prototype.init = function (renderer, options) {
     if (options) {
         this.setProjectionMatrix(
             options.viewAngle ? options.viewAngle : og.Camera.defaultOptions.viewAngle,
-            this.renderer.ctx.gl._viewportWidth / this.renderer.ctx.gl._viewportHeight,
+            this.renderer.handler.gl._viewportWidth / this.renderer.handler.gl._viewportHeight,
             options.nearDist ? options.nearDist : og.Camera.defaultOptions.nearDist,
             options.farDist ? options.farDist : og.Camera.defaultOptions.farDist);
         this.set(
@@ -74,7 +74,7 @@ og.Camera.prototype.init = function (renderer, options) {
 og.Camera.prototype.initDefaults = function () {
     this.setProjectionMatrix(
         og.Camera.defaultOptions.viewAngle,
-        this.renderer.ctx.gl._viewportWidth / this.renderer.ctx.gl._viewportHeight,
+        this.renderer.handler.gl._viewportWidth / this.renderer.handler.gl._viewportHeight,
         og.Camera.defaultOptions.nearDist,
         og.Camera.defaultOptions.farDist);
     this.set(
@@ -100,7 +100,7 @@ og.Camera.prototype.setModelViewMatrix = function () {
 };
 
 og.Camera.prototype.refresh = function () {
-    this.setProjectionMatrix(this.viewAngle, this.renderer.ctx.gl._viewportWidth / this.renderer.ctx.gl._viewportHeight, this.nearDist, this.farDist);
+    this.setProjectionMatrix(this.viewAngle, this.renderer.handler.gl._viewportWidth / this.renderer.handler.gl._viewportHeight, this.nearDist, this.farDist);
     this.update();
 };
 
@@ -189,8 +189,8 @@ og.Camera.prototype.yaw = function (angle) {
 };
 
 og.Camera.prototype.unproject = function (x, y) {
-    var px = (x - this.renderer.ctx.gl._viewportWidth / 2) / (this.renderer.ctx.gl._viewportWidth / 2),
-        py = -(y - this.renderer.ctx.gl._viewportHeight / 2) / (this.renderer.ctx.gl._viewportHeight / 2);
+    var px = (x - this.renderer.handler.gl._viewportWidth / 2) / (this.renderer.handler.gl._viewportWidth / 2),
+        py = -(y - this.renderer.handler.gl._viewportHeight / 2) / (this.renderer.handler.gl._viewportHeight / 2);
 
     var world1 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
         world2 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();

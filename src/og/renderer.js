@@ -6,7 +6,7 @@ goog.require('og.input.Input');
 goog.require('og.Camera');
 
 og.Renderer = function (handler) {
-    this.ctx = handler;
+    this.handler = handler;
     this._renderNodesArr = [];
     this.renderNodes = {};
     this.cameras = [];
@@ -60,7 +60,7 @@ og.Renderer.prototype.addControls = function (cArr) {
 
 og.Renderer.prototype.init = function () {
     var that = this;
-    this.ctx.drawback = function () {
+    this.handler.drawback = function () {
         that.draw();
     }
 
@@ -68,7 +68,7 @@ og.Renderer.prototype.init = function () {
     camera.init(this, { eye: new og.math.Vector3(0, 0, 12000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
     this.activeCamera = camera;
 
-    this.ctx.onCanvasResize = function (obj) {
+    this.handler.onCanvasResize = function (obj) {
         that.handleResizeEvents.call(that, obj);
     }
 
@@ -186,5 +186,5 @@ og.Renderer.prototype.handleMouseEvents = function () {
 };
 
 og.Renderer.prototype.Start = function () {
-    this.ctx.Start();
+    this.handler.Start();
 };
