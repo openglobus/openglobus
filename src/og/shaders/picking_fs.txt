@@ -1,0 +1,5 @@
+uniform lowp vec3 uColor;
+
+void main(void) {
+    gl_FragColor = uColor;
+}
