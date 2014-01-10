@@ -2,6 +2,7 @@ goog.provide('og.webgl.Handler');
 
 goog.require('og.webgl');
 goog.require('og.math');
+goog.require('og.webgl.ShaderController');
 
 og.webgl.Handler = function (htmlId) {
     this.lastAnimationFrameTime = 0;
@@ -14,6 +15,7 @@ og.webgl.Handler = function (htmlId) {
     this._initialized = false;
     this.drawback = function (x) { };
     this.shaderPrograms = {};
+    this.activeShaderProgram = null;
     this.anisotropicFilteringEnabled = false;
 };
 
@@ -48,7 +50,7 @@ og.webgl.Handler.prototype.addShaderProgram = function (program) {
     };
     var p = this.shaderPrograms[program.name];
     if (!p) {
-        this.shaderPrograms[program.name] = program;
+        this.activeShaderProgram = this.shaderPrograms[program.name] = new og.webgl.ShaderController(this, program);
     } else {
         alert(program.name + " is allready exists.");
     }
@@ -71,12 +73,8 @@ og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
 
 og.webgl.Handler.prototype.initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
-        this.shaderPrograms[p].createProgram(this.gl);
+        this.shaderPrograms[p].initialize();
     }
-};
-
-og.webgl.Handler.prototype.useShaderProgram = function (name) {
-    this.gl.useProgram(this.shaderPrograms[name]);
 };
 
 og.webgl.Handler.prototype.init = function () {
