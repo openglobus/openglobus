@@ -15,6 +15,7 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this.gl = null;
     this._p = null;
     this._textureID = 0;
+    this._attribArrays = [];
 };
 
 og.shaderProgram.ShaderProgram.prototype.activate = function () {
@@ -72,6 +73,23 @@ og.shaderProgram.ShaderProgram.prototype.createFragmentShader = function (src) {
     return shader;
 };
 
+og.shaderProgram.ShaderProgram.prototype.disableAttribArrays = function () {
+    var gl = this.gl;
+    var a = this._attribArrays;
+    var i = a.length;
+    while (i--) {
+        gl.disableVertexAttribArray(a[i]);
+    }
+};
+
+og.shaderProgram.ShaderProgram.prototype.enableAttribArrays = function () {
+    var gl = this.gl;
+    var a = this._attribArrays;
+    var i = a.length;
+    while (i--) {
+        gl.enableVertexAttribArray(a[i]);
+    }
+};
 
 og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     this.gl = gl;
@@ -102,8 +120,10 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
             //alert("error: Shader program: attribute " + a + " is not exists.");
         }
 
-        if (this.attributes[a].enableArray)
+        if (this.attributes[a].enableArray) {
+            this._attribArrays.push(this._p[a]);
             gl.enableVertexAttribArray(this._p[a]);
+        }
 
         this.attributes[a]._pName = this._p[a];
     }
