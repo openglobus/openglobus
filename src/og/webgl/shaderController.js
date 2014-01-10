@@ -10,12 +10,17 @@ og.webgl.ShaderController = function (handler, shaderProgram) {
 og.webgl.ShaderController.prototype.activate = function () {
     if (!this._activated) {
         this._activated = true;
-        this.handler.activeShaderProgram.program.disableAttribArrays();
-        this.handler.activeShaderProgram._activated = false;
+        this.handler.activeShaderProgram.deactivate();
         this.handler.activeShaderProgram = this;
-        this.program.enableAttribArrays();
-        this.program.activate();
+        var p = this.program;
+        p.enableAttribArrays();
+        p.activate();
     }
+};
+
+og.webgl.ShaderController.prototype.deactivate = function () {
+    this.program.disableAttribArrays();
+    this._activated = false;
 };
 
 og.webgl.ShaderController.prototype.isActive = function () {
