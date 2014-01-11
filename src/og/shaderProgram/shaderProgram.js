@@ -18,7 +18,7 @@ og.shaderProgram.ShaderProgram = function (name, material) {
     this._attribArrays = [];
 };
 
-og.shaderProgram.ShaderProgram.prototype.activate = function () {
+og.shaderProgram.ShaderProgram.prototype.use = function () {
     this.gl.useProgram(this._p);
 };
 
@@ -103,7 +103,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         alert("Could not initialise shaders.");
     }
 
-    this.activate();
+    this.use();
 
     for (var a in this.attributes) {
         this.attributes[a]._name = a;
@@ -122,7 +122,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
         if (this.attributes[a].enableArray) {
             this._attribArrays.push(this._p[a]);
-            gl.enableVertexAttribArray(this._p[a]);
+            //gl.enableVertexAttribArray(this._p[a]);
         }
 
         this.attributes[a]._pName = this._p[a];
