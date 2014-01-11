@@ -99,19 +99,17 @@ my.Plane.prototype.createBuffers = function () {
 
 my.Plane.prototype.draw = function () {
     this.mxTRS = this.mxTranslation.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot * og.math.RADIANS).getMatrix4());
-    this.renderer.handler.shaderPrograms.colorShader.set({
+    this.renderer.handler.shaderPrograms.picking.set({
         uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
-        vertices: this.cubeVertexPositionBuffer,
-        uColor: [0, 0, 1, 1]
+        aVertexPosition: this.cubeVertexPositionBuffer,
+        uColor: [0, 0, 1]
     });
-    this.renderer.handler.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer);
+    this.renderer.handler.shaderPrograms.picking.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer);
 };
 
 
 my.Plane.prototype.frame = function () {
-    this.renderer.handler.shaderPrograms.colorShader.activate();
-    //this.renderer.handler.shaderPrograms.flat.disableAttribArrays();
-    //this.renderer.handler.shaderPrograms.colorShader.enableAttribArrays();
+    this.renderer.handler.shaderPrograms.picking.activate();
     this.draw();
     this.rot = 0;
 };

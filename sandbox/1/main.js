@@ -34,7 +34,7 @@ og.webgl.MAX_FRAME_DELAY = 15;
 
 
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(og.shaderProgram.skybox);
+    //context.addShaderProgram(og.shaderProgram.skybox);
     context.init();
 
     renderer = new og.Renderer(context);

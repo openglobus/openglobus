@@ -1,3 +1,5 @@
+precision mediump float;
+
 attribute vec3 aVertexPosition;
 
 uniform mat4 uPMVMatrix;

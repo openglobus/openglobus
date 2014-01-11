@@ -260,16 +260,38 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
     gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-
-    if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
-        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
-        sh.drawIndexBuffer(this.planet.drawMode, this.planet.indexesBuffers[this.gridSize]);
-    } else {
-        this.createIndexesBuffer(this.node.sideSize, this.gridSize);
-        sh.drawIndexBuffer(this.planet.drawMode, this.vertexIndexBuffer);
-    }
-
+    this._setVIb();
+    sh.drawIndexBuffer(this.planet.drawMode, this._vib);
     this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
     this.node.hasNeighbor.length = 0;
+};
+
+og.planetSegment.PlanetSegment.prototype._setVIb = function () {
+    if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
+        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
+        this._vib = this.planet.indexesBuffers[this.gridSize];
+    } else {
+        this.createIndexesBuffer(this.node.sideSize, this.gridSize);
+        this._vib = this.vertexIndexBuffer;
+    }
+};
+
+og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
+    if (this.ready) {
+        var gl = this.handler.gl;
+        var sh = this.handler.shaderPrograms.picking.program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform3fv(shu.uColor._pName, [0, 0, 1]);
+
+        this._setVIb();
+
+        sh.drawIndexBuffer(this.planet.drawMode, this._vib);
+
+        this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
+        this.node.hasNeighbor.length = 0;
+    }
 };

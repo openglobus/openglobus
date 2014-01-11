@@ -125,7 +125,6 @@ my.Cubes.prototype.createBuffers = function () {
 };
 
 my.Cubes.prototype.draw = function () {
-    this.renderer.ctx.shaderPrograms.colorShader.activate();
 
     this.mxTRS = this.mxTranslation1.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), this.rot * og.math.RADIANS).getMatrix4());
     this.renderer.ctx.shaderPrograms.colorShader.set({
@@ -154,7 +153,41 @@ my.Cubes.prototype.draw = function () {
     this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer3);
 };
 
+my.Cubes.prototype.draw2 = function () {
+
+    this.mxTRS = this.mxTranslation1.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), 2 * this.rot * og.math.RADIANS).getMatrix4());
+    this.renderer.ctx.shaderPrograms.colorShader.set({
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
+        aVertexPosition: this.cubeVertexPositionBuffer1,
+        uColor: [1, 0, 0, 1]
+    });
+    this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer1);
+
+
+    this.mxTRS = this.mxTranslation2.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), 3 * this.rot * og.math.RADIANS).getMatrix4());
+    this.renderer.ctx.shaderPrograms.colorShader.set({
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
+        aVertexPosition: this.cubeVertexPositionBuffer2,
+        uColor: [0, 1, 0, 1]
+    });
+    this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer2);
+
+
+    this.mxTRS = this.mxTranslation3.mul(this.orientation.setFromAxisAngle(new og.math.Vector3(1, 1, 1), 5 * this.rot * og.math.RADIANS).getMatrix4());
+    this.renderer.ctx.shaderPrograms.colorShader.set({
+        uPMVMatrix: this.renderer.activeCamera.pmvMatrix.mul(this.mxTRS)._m,
+        aVertexPosition: this.cubeVertexPositionBuffer3,
+        uColor: [0, 0, 1, 1]
+    });
+    this.renderer.ctx.shaderPrograms.colorShader.drawIndexBuffer(this.drawMode, this.cubeVertexIndexBuffer3);
+};
+
+
+
 my.Cubes.prototype.frame = function () {
+
+    this.renderer.ctx.shaderPrograms.colorShader.activate();
+
     this.framebuffer.activate();
     this.framebuffer.clear();
     this.draw();
@@ -162,10 +195,8 @@ my.Cubes.prototype.frame = function () {
 
     this.ff.activate();
     this.ff.clear();
-    //this.draw();
+    this.draw2();
     this.ff.deactivate();
-
-
 
     this.draw();
     this.rot++;

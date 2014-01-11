@@ -10,10 +10,12 @@ goog.require('og.bv.Sphere');
 goog.require('og.planetSegment');
 goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
+goog.require('og.shaderProgram.picking');
 goog.require('og.layer');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
+goog.require('og.webgl.Framebuffer');
 
 og.node.Planet = function (name, ellipsoid) {
     og.class.base(this, name);
@@ -34,6 +36,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.mousePositionOnEarth = new og.math.Vector3();
 
     this.indexesBuffers = [];
+    this.backbuffer;
 };
 
 og.class.extend(og.node.Planet, og.node.RenderNode);
@@ -94,8 +97,13 @@ og.node.Planet.prototype.initialization = function () {
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
     this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
+
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays);
     this.renderer.handler.addShaderProgram(og.shaderProgram.single);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.picking);
+
+    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
+    this.backbuffer.initialize();
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
@@ -132,6 +140,7 @@ og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
     this.renderNodes();
+    //this.renderPickingBackbuffer();
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
@@ -151,7 +160,7 @@ og.node.Planet.prototype.renderNodes = function () {
 
     if (this.visibleLayers.length > 1) {
         h.shaderPrograms.overlays.activate();
-        sh = h.shaderPrograms.overlays;
+        sh = h.shaderPrograms.overlays.program;
         drawCallback = og.planetSegment.drawOverlays;
         var layers = this.visibleLayers;
         for (var l = 0; l < layers.length; l++) {
@@ -166,7 +175,7 @@ og.node.Planet.prototype.renderNodes = function () {
         h.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
     } else {
         h.shaderPrograms.single.activate();
-        sh = h.shaderPrograms.single;
+        sh = h.shaderPrograms.single.program;
         drawCallback = og.planetSegment.drawSingle;
     }
 
@@ -176,4 +185,20 @@ og.node.Planet.prototype.renderNodes = function () {
     for (var i = 0; i < nodes.length; i++) {
         drawCallback(sh, nodes[i].planetSegment);
     }
+};
+
+og.node.Planet.prototype.renderPickingBackbuffer = function () {
+    //this.backbuffer.activate();
+    //this.backbuffer.clear();
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    h.shaderPrograms.picking.activate();
+    var sh = h.shaderPrograms.picking.program;
+    h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+
+    var nodes = this.renderedNodes;
+    for (var i = 0; i < nodes.length; i++) {
+        nodes[i].planetSegment.drawPicking();
+    }
+    //this.backbuffer.deactivate();
 };

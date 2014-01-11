@@ -5,6 +5,9 @@ goog.require('og.shaderProgram');
 goog.require('og.node.Axes');
 goog.require('my.Plane');
 goog.require('og.math.Vector3');
+goog.require('og.shaderProgram.single');
+goog.require('og.shaderProgram.overlays');
+goog.require('og.shaderProgram.picking');
 
 function start() {
 
@@ -22,29 +25,32 @@ function start() {
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "flat_fs.txt")
     });
 
-    var colorShader = new og.shaderProgram.ShaderProgram("colorShader", {
-        uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uColor: { type: og.shaderProgram.types.VEC4 }
-        },
-        attributes: {
-            vertices: { type: og.shaderProgram.types.VEC3, enableArray: true }
-        },
-        vertexShader: "attribute vec3 vertices; \
-                    uniform mat4 uPMVMatrix; \
-                    void main(void) { \
-                        gl_Position = uPMVMatrix * vec4(vertices, 1.0); \
-                    }",
-        fragmentShader: "precision mediump float; \
-                    uniform vec4 uColor; \
-                    void main(void) { \
-                        gl_FragColor = uColor; \
-                    }"
-    });
+    //var colorShader = new og.shaderProgram.ShaderProgram("colorShader", {
+    //    uniforms: {
+    //        uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+    //        uColor: { type: og.shaderProgram.types.VEC4 }
+    //    },
+    //    attributes: {
+    //        vertices: { type: og.shaderProgram.types.VEC3, enableArray: true }
+    //    },
+    //    vertexShader: "attribute vec3 vertices; \
+    //                uniform mat4 uPMVMatrix; \
+    //                void main(void) { \
+    //                    gl_Position = uPMVMatrix * vec4(vertices, 1.0); \
+    //                }",
+    //    fragmentShader: "precision mediump float; \
+    //                uniform vec4 uColor; \
+    //                void main(void) { \
+    //                    gl_FragColor = uColor; \
+    //                }"
+    //});
 
     context = new og.webgl.Handler("canvas");
+    context.addShaderProgram(og.shaderProgram.overlays);
+    context.addShaderProgram(og.shaderProgram.single);
+    context.addShaderProgram(og.shaderProgram.picking);
     context.addShaderProgram(flatShader);
-    context.addShaderProgram(colorShader);
+    //context.addShaderProgram(colorShader);
     context.init();
 
     renderer = new og.Renderer(context);
@@ -52,7 +58,7 @@ function start() {
 
     var axes = new og.node.Axes(10000);
 
-    renderer.addRenderNode(axes);
+    //renderer.addRenderNode(axes);
     renderer.addRenderNode(new my.Plane("Plane"));
 
     renderer.addControls([

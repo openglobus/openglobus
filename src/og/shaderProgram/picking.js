@@ -3,7 +3,6 @@ goog.provide('og.shaderProgram.picking');
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
-goog.require('og.utils');
 
 og.shaderProgram.picking = new og.shaderProgram.ShaderProgram("picking", {
     uniforms: {
