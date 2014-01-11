@@ -160,7 +160,7 @@ og.node.Planet.prototype.renderNodes = function () {
 
     if (this.visibleLayers.length > 1) {
         h.shaderPrograms.overlays.activate();
-        sh = h.shaderPrograms.overlays.program;
+        sh = h.shaderPrograms.overlays._program;
         drawCallback = og.planetSegment.drawOverlays;
         var layers = this.visibleLayers;
         for (var l = 0; l < layers.length; l++) {
@@ -175,7 +175,7 @@ og.node.Planet.prototype.renderNodes = function () {
         h.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
     } else {
         h.shaderPrograms.single.activate();
-        sh = h.shaderPrograms.single.program;
+        sh = h.shaderPrograms.single._program;
         drawCallback = og.planetSegment.drawSingle;
     }
 
@@ -193,7 +193,7 @@ og.node.Planet.prototype.renderPickingBackbuffer = function () {
     var renderer = this.renderer;
     var h = renderer.handler;
     h.shaderPrograms.picking.activate();
-    var sh = h.shaderPrograms.picking.program;
+    var sh = h.shaderPrograms.picking._program;
     h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
     var nodes = this.renderedNodes;

@@ -279,7 +279,7 @@ og.planetSegment.PlanetSegment.prototype._setVIb = function () {
 og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
     if (this.ready) {
         var gl = this.handler.gl;
-        var sh = this.handler.shaderPrograms.picking.program;
+        var sh = this.handler.shaderPrograms.picking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

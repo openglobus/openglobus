@@ -45,20 +45,22 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
 };
 
 og.webgl.Handler.prototype.addShaderProgram = function (program) {
-    var p = this.shaderPrograms[program.name];
-    if (!p) {
-        var ph = new og.webgl.ShaderController(this, program);
-        ph.initialize();
-        this.shaderPrograms[program.name] = ph;
-        if (!this.activeShaderProgram) {
-            this.activeShaderProgram = ph;
-            ph.activate();
-            //ph._activated = true;
-            //ph.program.enableAttribArrays();
-            //ph.program.use();
-        }
+    if (!this.shaderPrograms[program.name]) {
+        var sc = new og.webgl.ShaderController(this, program);
+        this.shaderPrograms[program.name] = sc;
+        this._initShaderController(sc);
     } else {
         alert(program.name + " is allready exists.");
+    }
+};
+
+og.webgl.Handler.prototype._initShaderController = function (sc) {
+    if (this._initialized) {
+        sc.initialize();
+        if (!this.activeShaderProgram) {
+            this.activeShaderProgram = sc;
+            sc.activate();
+        }
     }
 };
 
@@ -79,7 +81,7 @@ og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
 
 og.webgl.Handler.prototype.initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
-        this.shaderPrograms[p].initialize();
+        this._initShaderController(this.shaderPrograms[p]);
     }
 };
 
