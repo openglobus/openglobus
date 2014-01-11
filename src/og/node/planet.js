@@ -140,7 +140,7 @@ og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
     this.renderNodes();
-    //this.renderPickingBackbuffer();
+    this.renderPickingBackbuffer();
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
@@ -188,8 +188,8 @@ og.node.Planet.prototype.renderNodes = function () {
 };
 
 og.node.Planet.prototype.renderPickingBackbuffer = function () {
-    //this.backbuffer.activate();
-    //this.backbuffer.clear();
+    this.backbuffer.activate();
+    this.backbuffer.clear();
     var renderer = this.renderer;
     var h = renderer.handler;
     h.shaderPrograms.picking.activate();
@@ -200,5 +200,5 @@ og.node.Planet.prototype.renderPickingBackbuffer = function () {
     for (var i = 0; i < nodes.length; i++) {
         nodes[i].planetSegment.drawPicking();
     }
-    //this.backbuffer.deactivate();
+    this.backbuffer.deactivate();
 };
