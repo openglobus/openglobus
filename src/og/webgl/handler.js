@@ -45,12 +45,18 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
 };
 
 og.webgl.Handler.prototype.addShaderProgram = function (program) {
-    if (this._initialized) {
-        program.createProgram(this.gl);
-    };
     var p = this.shaderPrograms[program.name];
     if (!p) {
-        this.activeShaderProgram = this.shaderPrograms[program.name] = new og.webgl.ShaderController(this, program);
+        var ph = new og.webgl.ShaderController(this, program);
+        ph.initialize();
+        this.shaderPrograms[program.name] = ph;
+        if (!this.activeShaderProgram) {
+            this.activeShaderProgram = ph;
+            ph.activate();
+            //ph._activated = true;
+            //ph.program.enableAttribArrays();
+            //ph.program.use();
+        }
     } else {
         alert(program.name + " is allready exists.");
     }

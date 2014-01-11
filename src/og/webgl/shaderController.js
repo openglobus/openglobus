@@ -9,12 +9,12 @@ og.webgl.ShaderController = function (handler, shaderProgram) {
 
 og.webgl.ShaderController.prototype.activate = function () {
     if (!this._activated) {
-        this._activated = true;
         this.handler.activeShaderProgram.deactivate();
         this.handler.activeShaderProgram = this;
         var p = this.program;
+        this._activated = true;
         p.enableAttribArrays();
-        p.activate();
+        p.use();
     }
 };
 
@@ -41,5 +41,4 @@ og.webgl.ShaderController.prototype.drawArray = function (mode, numItems) {
 
 og.webgl.ShaderController.prototype.initialize = function () {
     this.program.createProgram(this.handler.gl);
-    this.activate();
 };
