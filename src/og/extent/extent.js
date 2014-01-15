@@ -3,8 +3,8 @@ goog.provide('og.Extent');
 goog.require('og.LonLat');
 
 og.Extent = function (sw, ne) {
-    this.southWest = sw;
-    this.northEast = ne;
+    this.southWest = sw || new og.LonLat();
+    this.northEast = ne || new og.LonLat();
 };
 
 og.Extent.createFromArray = function (arr) {
@@ -58,4 +58,18 @@ og.Extent.prototype.getWest = function () {
 
 og.Extent.prototype.getSouth = function () {
     return this.southWest.lat;
+};
+
+og.Extent.fromTile = function (x, y, z) {
+    var H = Math.pow(2, zoom),
+        W = Math.pow(2, zoom),
+        lnSize = 360 / W,
+        ltSize = 180.0 / H;
+
+    var left = -180.0 + x * lnSize,
+        top = 90 - y * ltSize,
+        bottom = top - ltSize,
+        right = left + lnSize;
+
+    return new og.Extent(new og.LonLat(left, bottom), new og.LonLat(right, top));
 };

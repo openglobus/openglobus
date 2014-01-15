@@ -186,9 +186,9 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.extent = extent;
     var c = extent.getCenter();
     var gr = og.mercator.inverseMercator(c.lon, c.lat);
-    var tile = og.layer.lonlat2tile(gr.lon, gr.lat, zoomIndex);
-    this.tileX = tile[og.math.X];
-    this.tileY = tile[og.math.Y];
+    var tile = gr.toTile(zoomIndex);
+    this.tileX = tile.x;
+    this.tileY = tile.y;
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
