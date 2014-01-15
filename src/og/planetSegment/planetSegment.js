@@ -185,24 +185,27 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     var c = extent.getCenter();
-    var gr = og.mercator.inverseMercator(c.lon, c.lat);
-    var tile = gr.toTile(zoomIndex);
+    var tile = og.mercator.inverseMercator(c.lon, c.lat).toTile(zoomIndex);
     this.tileX = tile.x;
     this.tileY = tile.y;
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
-    this.plainVertices.length = 0;
-    var lonSize = this.extent.getWidth();
+    var verts = [];
+    var ind = 0;
+    var e = this.extent;
+    var lonSize = e.getWidth();
     var llStep = lonSize / gridSize;
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
-            var gr = og.mercator.inverseMercator(this.extent.southWest.lon + j * llStep,
-                this.extent.northEast.lat - i * llStep);
+            var gr = og.mercator.inverseMercator(e.southWest.lon + j * llStep, e.northEast.lat - i * llStep);
             var v = this.planet.ellipsoid.LonLat2ECEF(gr, 0);
-            this.plainVertices.push(v.y, v.z, v.x);
+            verts[ind++] = v.y;
+            verts[ind++] = v.z;
+            verts[ind++] = v.x;
         }
     }
+    this.plainVertices = verts;
 };
 
 og.planetSegment.drawSingle = function (sh, segment) {
