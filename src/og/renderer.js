@@ -82,9 +82,10 @@ og.Renderer.prototype.initMouseHandler = function () {
 };
 
 og.Renderer.prototype.onMouseMove = function (event) {
-    this.mouseState.moving = true;
-    this.mouseState.x = event.clientX;
-    this.mouseState.y = event.clientY;
+    var ms = this.mouseState;
+    ms.moving = true;
+    ms.x = event.clientX;
+    ms.y = event.clientY;
 };
 
 og.Renderer.prototype.onMouseDown = function (event) {
@@ -127,7 +128,8 @@ og.Renderer.prototype.draw = function () {
     this.input.handleEvents();
     this.handleMouseEvents();
 
-    this.mouseState.direction = this.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
+    var ms = this.mouseState;
+    ms.direction = this.activeCamera.unproject(ms.x, ms.y);
 
     this._callEvents(this.events.ondraw, this);
 
@@ -157,27 +159,31 @@ og.Renderer.prototype.handleResizeEvents = function (obj) {
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
-    if (this.mouseState.leftButtonDown) {
-        if (!this.mouseState.leftButtonHold) {
-            this.mouseState.leftButtonHold = true;
-            this._callEvents(this.events.onmouselbuttonclick, this.mouseState);
+    var ms = this.mouseState,
+        e = this.events,
+        ce = this._callEvents;
+
+    if (ms.leftButtonDown) {
+        if (ms.leftButtonHold) {
+            ce(e.onmouselbuttondown, ms);
         } else {
-            this._callEvents(this.events.onmouselbuttondown, this.mouseState);
+            ms.leftButtonHold = true;
+            ce(e.onmouselbuttonclick, ms);
         }
     }
 
-    if (this.mouseState.rightButtonDown) {
-        if (!this.mouseState.rightButtonHold) {
-            this.mouseState.rightButtonHold = true;
-            this._callEvents(this.events.onmouserbuttonclick, this.mouseState);
+    if (ms.rightButtonDown) {
+        if (ms.rightButtonHold) {
+            ce(e.onmouserbuttondown, ms);
         } else {
-            this._callEvents(this.events.onmouserbuttondown, this.mouseState);
+            ms.rightButtonHold = true;
+            ce(e.onmouserbuttonclick, ms);
         }
     }
 
-    if (this.mouseState.moving) {
-        this._callEvents(this.events.onmousemove, this.mouseState);
-        this.mouseState.moving = false;
+    if (ms.moving) {
+        ce(e.onmousemove, ms);
+        ms.moving = false;
     }
 };
 
