@@ -30,7 +30,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
     if (planetNode.mousePositionOnEarth) {
         var cam = this.renderer.activeCamera;
         var d = this.distDiff * cam.eye.distance(planetNode.mousePositionOnEarth);
-        var dv = new og.math.Vector3(this.renderer.mouseState.mouseDirection.x * d, this.renderer.mouseState.mouseDirection.y * d, this.renderer.mouseState.mouseDirection.z * d);
+        var dv = new og.math.Vector3(this.renderer.mouseState.direction.x * d, this.renderer.mouseState.direction.y * d, this.renderer.mouseState.direction.z * d);
         if (event.wheelDelta > 0) {
             if (cam.altitude > 0.5)
                 cam.eye.add(dv);
@@ -56,16 +56,16 @@ og.control.MouseNavigation.prototype.init = function () {
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     if (this.renderer.renderNodes.Earth.mousePositionOnEarth) {
-        this.grabbedPoint = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.mouseDirection).hitSphere(this.planetSpheroid);
+        this.grabbedPoint = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.direction).hitSphere(this.planetSpheroid);
     }
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
     var planetNode = this.renderer.renderNodes.Earth;
-    if (this.renderer.mouseIsMoving) {
+    if (this.renderer.mouseState.moving) {
         if (planetNode.mousePositionOnEarth) {
             var cam = this.renderer.activeCamera;
-            var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.mouseDirection).hitSphere(this.planetSpheroid);
+            var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.direction).hitSphere(this.planetSpheroid);
             var look, up;
             if (cam.altitude < 500) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
@@ -94,7 +94,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function () {
-    if (this.renderer.mouseIsMoving) {
+    if (this.renderer.mouseState.moving) {
         this.camAngleX = og.math.DEG2RAD((this.renderer.mouseState.x - this.x0) * 0.4);
         this.camAngleY = og.math.DEG2RAD((this.renderer.mouseState.y - this.y0) * 0.4);
         this.x0 = this.renderer.mouseState.x;

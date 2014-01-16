@@ -17,16 +17,15 @@ og.Renderer = function (handler) {
 
     this.events = {};
 
-    this.mouseLeftButtonDown = false;
-    this.mouseRightButtonDown = false;
-    this.holdMouseLeftButtonDown = false;
-    this.holdMouseRightButtonDown = false;
-    this.mouseIsMoving = false;
-
     this.mouseState = {
         x: 0,
         y: 0,
-        mouseDirection: new og.math.Vector3()
+        direction: new og.math.Vector3(),
+        leftButtonDown: false,
+        rightButtonDown: false,
+        leftButtonHold: false,
+        rightButtonHold: false,
+        moving: false
     };
 };
 
@@ -83,26 +82,26 @@ og.Renderer.prototype.initMouseHandler = function () {
 };
 
 og.Renderer.prototype.onMouseMove = function (event) {
-    this.mouseIsMoving = true;
+    this.mouseState.moving = true;
     this.mouseState.x = event.clientX;
     this.mouseState.y = event.clientY;
 };
 
 og.Renderer.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
-        this.mouseLeftButtonDown = true;
+        this.mouseState.leftButtonDown = true;
     } else {
-        this.mouseRightButtonDown = true;
+        this.mouseState.rightButtonDown = true;
     }
 };
 
 og.Renderer.prototype.onMouseUp = function (event) {
     if (event.button === og.input.MB_LEFT) {
-        this.mouseLeftButtonDown = false;
-        this.holdMouseLeftButtonDown = false;
+        this.mouseState.leftButtonDown = false;
+        this.mouseState.leftButtonHold = false;
     } else {
-        this.mouseRightButtonDown = false;
-        this.holdMouseRightButtonDown = false;
+        this.mouseState.rightButtonDown = false;
+        this.mouseState.rightButtonHold = false;
     }
 };
 
@@ -128,7 +127,7 @@ og.Renderer.prototype.draw = function () {
     this.input.handleEvents();
     this.handleMouseEvents();
 
-    this.mouseState.mouseDirection = this.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
+    this.mouseState.direction = this.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
 
     this._callEvents(this.events.ondraw, this);
 
@@ -158,27 +157,27 @@ og.Renderer.prototype.handleResizeEvents = function (obj) {
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
-    if (this.mouseLeftButtonDown) {
-        if (!this.holdMouseLeftButtonDown) {
-            this.holdMouseLeftButtonDown = true;
+    if (this.mouseState.leftButtonDown) {
+        if (!this.mouseState.leftButtonHold) {
+            this.mouseState.leftButtonHold = true;
             this._callEvents(this.events.onmouselbuttonclick, this.mouseState);
         } else {
             this._callEvents(this.events.onmouselbuttondown, this.mouseState);
         }
     }
 
-    if (this.mouseRightButtonDown) {
-        if (!this.holdMouseRightButtonDown) {
-            this.holdMouseRightButtonDown = true;
+    if (this.mouseState.rightButtonDown) {
+        if (!this.mouseState.rightButtonHold) {
+            this.mouseState.rightButtonHold = true;
             this._callEvents(this.events.onmouserbuttonclick, this.mouseState);
         } else {
             this._callEvents(this.events.onmouserbuttondown, this.mouseState);
         }
     }
 
-    if (this.mouseIsMoving) {
+    if (this.mouseState.moving) {
         this._callEvents(this.events.onmousemove, this.mouseState);
-        this.mouseIsMoving = false;
+        this.mouseState.moving = false;
     }
 };
 
