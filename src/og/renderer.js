@@ -130,10 +130,7 @@ og.Renderer.prototype.draw = function () {
 
     this.mouseState.mouseDirection = this.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
 
-    for (var i = 0; i < this.events.ondraw.length; i++) {
-        var e = this.events.ondraw[i];
-        e.callback.call(e.sender);
-    }
+    this._callEvents(this.events.ondraw, this);
 
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
