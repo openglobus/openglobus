@@ -2,13 +2,12 @@ goog.provide('og.layer.XYZ');
 
 goog.require('og.layer.Layer');
 goog.require('og.quadTree');
-goog.require('og.class');
 
 og.layer.XYZ = function (name, options) {
-    og.class.base(this, name, options);
+    og.base(this, name, options);
 };
 
-og.class.extend(og.layer.XYZ, og.layer.Layer);
+og.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {

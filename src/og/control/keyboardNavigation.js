@@ -2,13 +2,12 @@ goog.provide('og.control.KeyboardNavigation');
 
 goog.require('og.control.Control');
 goog.require('og.input');
-goog.require('og.class');
 
 og.control.KeyboardNavigation = function (options) {
-    og.class.base(this, options);
+    og.base(this, options);
 };
 
-og.class.extend(og.control.KeyboardNavigation, og.control.Control);
+og.extend(og.control.KeyboardNavigation, og.control.Control);
 
 og.control.KeyboardNavigation.prototype.init = function () {
     this.renderer.input.setEvent("onkeypressed", this, null, this.onCameraMoveForward, og.input.KEY_W);

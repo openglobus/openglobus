@@ -3,13 +3,13 @@ goog.provide('og.node.Axes');
 goog.require('og.node.RenderNode');
 
 og.node.Axes = function (size) {
-    og.class.base(this, "Axes");
+    og.base(this, "Axes");
     this.size = size;
     this.axesBuffer;
     this.axesColorBuffer;
 };
 
-og.class.extend(og.node.Axes, og.node.RenderNode);
+og.extend(og.node.Axes, og.node.RenderNode);
 
 og.node.Axes.prototype.initialization = function () {
     this.createAxisBuffer(this.size);

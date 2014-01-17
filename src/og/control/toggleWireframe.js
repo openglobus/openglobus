@@ -2,14 +2,12 @@ goog.provide('og.control.ToggleWireframe');
 
 goog.require('og.webgl');
 goog.require('og.input');
-goog.require('og.class');
-
 
 og.control.ToggleWireframe = function (options) {
-    og.class.base(this, options);
+    og.base(this, options);
 };
 
-og.class.extend(og.control.ToggleWireframe, og.control.Control);
+og.extend(og.control.ToggleWireframe, og.control.Control);
 
 og.control.ToggleWireframe.prototype.init = function () {
     this.renderer.input.setEvent("oncharkeypressed", this, null, this.toogleWireframe, og.input.KEY_X);

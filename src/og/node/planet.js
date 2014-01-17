@@ -18,7 +18,7 @@ goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
 
 og.node.Planet = function (name, ellipsoid) {
-    og.class.base(this, name);
+    og.base(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
 
@@ -39,7 +39,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.backbuffer;
 };
 
-og.class.extend(og.node.Planet, og.node.RenderNode);
+og.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);
@@ -134,7 +134,7 @@ og.node.Planet.prototype.frame = function () {
     this.updateVisibleLayers();
 
     this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye,
-        this.renderer.mouseState.mouseDirection)
+        this.renderer.mouseState.direction)
         .hitPlanetEllipsoid(this);
     this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
@@ -188,7 +188,7 @@ og.node.Planet.prototype.renderNodes = function () {
 };
 
 og.node.Planet.prototype.renderPickingBackbuffer = function () {
-    this.backbuffer.activate();
+    //this.backbuffer.activate();
     this.backbuffer.clear();
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -200,5 +200,5 @@ og.node.Planet.prototype.renderPickingBackbuffer = function () {
     for (var i = 0; i < nodes.length; i++) {
         nodes[i].planetSegment.drawPicking();
     }
-    this.backbuffer.deactivate();
+    //this.backbuffer.deactivate();
 };

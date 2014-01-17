@@ -2,16 +2,15 @@ goog.provide('og.control.MousePosition');
 
 goog.require('og.control.Control');
 goog.require('og.planetSegment');
-goog.require('og.class');
 
 og.control.MousePosition = function (options) {
-    og.class.base(this, options);
+    og.base(this, options);
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
     this.display = null;
 };
 
-og.class.extend(og.control.MousePosition, og.control.Control);
+og.extend(og.control.MousePosition, og.control.Control);
 
 og.control.MousePosition.toDecimal = function (ll) {
     var str = ll[0].toFixed(5) + ", " + ll[1].toFixed(5);
