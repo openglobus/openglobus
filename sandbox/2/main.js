@@ -1,3 +1,4 @@
+goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.control.KeyboardNavigation');
