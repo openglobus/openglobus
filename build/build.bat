@@ -1,0 +1,1 @@
+"d:\my projects\closure-library\closure\bin\build\closurebuilder.py" --root="d:/my projects/closure-library/" --root="d:/my projects/openglobus/src/og/" --root="d:/my projects/openglobus/build/" --namespace="og.all" --output_mode=compiled --compiler_jar="d:/my projects/closure-library/compiler.jar" > "og.js"
