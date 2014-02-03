@@ -41,12 +41,23 @@ og.node.Planet = function (name, ellipsoid) {
 
 og.extend(og.node.Planet, og.node.RenderNode);
 
+og.node.Planet.prototype.sortLayersByZIndex = function () {
+    this.layers.sort(function (a, b) {
+        return b.zIndex - a.zIndex;
+    })
+};
+
 og.node.Planet.prototype.addLayer = function (layer) {
+    layer.planet = this;
     this.layers.push(layer);
+    //TODO: Optimization. Remake to binary insertion to the array.
+    this.sortLayersByZIndex();
 };
 
 og.node.Planet.prototype.addLayers = function (layers) {
-    this.layers.push.apply(this.layers, layers);
+    for (var i = 0; i < layers.length; i++) {
+        this.addLayer(layers[i]);
+    }
 };
 
 og.node.Planet.prototype.setBaseLayer = function (layer) {
@@ -188,7 +199,7 @@ og.node.Planet.prototype.renderNodes = function () {
 };
 
 og.node.Planet.prototype.renderPickingBackbuffer = function () {
-    //this.backbuffer.activate();
+    this.backbuffer.activate();
     this.backbuffer.clear();
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -200,5 +211,5 @@ og.node.Planet.prototype.renderPickingBackbuffer = function () {
     for (var i = 0; i < nodes.length; i++) {
         nodes[i].planetSegment.drawPicking();
     }
-    //this.backbuffer.deactivate();
+    this.backbuffer.deactivate();
 };

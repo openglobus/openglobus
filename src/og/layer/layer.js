@@ -5,12 +5,13 @@ og.layer.MAX_OVERLAYS = 8;
 og.layer.MAX_REQUESTS = 10;
 og.layer.layersCounter = 0;
 og.layer.requestsCounter = 0;
-og.layer.DEFAILT_Z_INDEX = 1000;
+og.layer.DEFAILT_Z_INDEX = 0;
 og.layer.DEFAILT_OPACITY = 1.0;
 
 og.layer.Layer = function (name, options) {
 
     this.name = name ? name : "noname";
+    this.planet = null;
 
     if (options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
@@ -26,6 +27,17 @@ og.layer.Layer = function (name, options) {
 
     this.counter = 0;
     this.pendingsQueue = [];
+};
+
+og.layer.Layer.prototype.clone = function () {
+    //...
+    //TODO: clone function is very important!
+    //..
+};
+
+og.layer.Layer.prototype.setZIndex = function (zIndex) {
+    this.zIndex = zIndex;
+    this.planet.sortLayersByZIndex();
 };
 
 og.layer.Layer.prototype.abortLoading = function () {
