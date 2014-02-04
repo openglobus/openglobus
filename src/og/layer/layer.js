@@ -38,6 +38,7 @@ og.layer.Layer.prototype.clone = function () {
 og.layer.Layer.prototype.setZIndex = function (zIndex) {
     this.zIndex = zIndex;
     this.planet.sortLayersByZIndex();
+    this.planet.updateVisibleLayers();
 };
 
 og.layer.Layer.prototype.abortLoading = function () {
@@ -46,6 +47,7 @@ og.layer.Layer.prototype.abortLoading = function () {
 
 og.layer.Layer.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
+    this.planet.updateVisibleLayers();
 };
 
 og.layer.Layer.prototype.getVisibility = function () {

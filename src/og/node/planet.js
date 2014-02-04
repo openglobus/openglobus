@@ -43,8 +43,17 @@ og.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.sortLayersByZIndex = function () {
     this.layers.sort(function (a, b) {
-        return b.zIndex - a.zIndex;
+        return a.zIndex - b.zIndex;
     })
+};
+
+og.node.Planet.prototype.getLayerByName = function (name) {
+    var i = this.layers.length - 1;
+    while (i--) {
+        if (this.layers[i].name === name)
+            return this.layers[i];
+    }
+    return null;
 };
 
 og.node.Planet.prototype.addLayer = function (layer) {
@@ -52,6 +61,7 @@ og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);
     //TODO: Optimization. Remake to binary insertion to the array.
     this.sortLayersByZIndex();
+    this.updateVisibleLayers();
 };
 
 og.node.Planet.prototype.addLayers = function (layers) {
@@ -115,6 +125,7 @@ og.node.Planet.prototype.initialization = function () {
 
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
+    this.updateVisibleLayers();
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
@@ -142,8 +153,6 @@ og.node.Planet.prototype.getAltitude = function (p) {
 };
 
 og.node.Planet.prototype.frame = function () {
-    this.updateVisibleLayers();
-
     this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye,
         this.renderer.mouseState.direction)
         .hitPlanetEllipsoid(this);
@@ -156,10 +165,11 @@ og.node.Planet.prototype.frame = function () {
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
 
-    if (this.createdNodesCount > 140) {
-        this.quadTree.clearTree();
-        this.createdNodesCount = 0;
-    }
+    //NOT WORKING!
+    //if (this.createdNodesCount > 140) {
+    //    this.quadTree.clearTree();
+    //    this.createdNodesCount = 0;
+    //}
 
     this.renderedNodes.length = 0;
 };
@@ -192,9 +202,9 @@ og.node.Planet.prototype.renderNodes = function () {
 
     h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
-    var nodes = this.renderedNodes;
-    for (var i = 0; i < nodes.length; i++) {
-        drawCallback(sh, nodes[i].planetSegment);
+    var i = this.renderedNodes.length - 1;
+    while(--i){
+        drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
 };
 
