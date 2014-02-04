@@ -183,9 +183,10 @@ og.node.Planet.prototype.renderNodes = function () {
         sh = h.shaderPrograms.overlays._program;
         drawCallback = og.planetSegment.drawOverlays;
         var layers = this.visibleLayers;
-        for (var l = 0; l < layers.length; l++) {
-            var ll = layers[l];
-            var nt4 = l * 4;
+        var i = layers.length;
+        while (i--) {
+            var ll = layers[i];
+            var nt4 = i * 4;
             this.tcolorArr[nt4] = ll.transparentColor[0];
             this.tcolorArr[nt4 + 1] = ll.transparentColor[1];
             this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
