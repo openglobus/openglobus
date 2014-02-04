@@ -23,10 +23,10 @@ og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
 
 og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     if (this.segment.ready && this.imageIsLoading) {
-        this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
-        this.imageReady = true;
         this.texture = this.segment.handler.createTextureFromImage(img);
         this.texBias = [0, 0, 1];
+        this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
+        this.imageReady = true;
     } else {
         this.imageReady = false;
         this.texture = null;

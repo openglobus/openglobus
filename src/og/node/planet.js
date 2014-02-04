@@ -43,7 +43,7 @@ og.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;
-    while (--i) {
+    while (i--) {
         if (this.layers[i].name === name)
             return this.layers[i];
     }
@@ -164,11 +164,11 @@ og.node.Planet.prototype.frame = function () {
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
 
-    //NOT WORKING!
-    //if (this.createdNodesCount > 140) {
-    //    this.quadTree.clearTree();
-    //    this.createdNodesCount = 0;
-    //}
+    //NOT WORKING! BUG IS HERE!
+    if (this.createdNodesCount > 140) {
+        this.quadTree.clearTree();
+        this.createdNodesCount = 0;
+    }
 
     this.renderedNodes.length = 0;
 };
@@ -202,7 +202,7 @@ og.node.Planet.prototype.renderNodes = function () {
     h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
     var i = this.renderedNodes.length;
-    while (--i) {
+    while (i--) {
         drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
 };
