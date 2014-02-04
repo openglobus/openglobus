@@ -201,7 +201,7 @@ og.node.Planet.prototype.renderNodes = function () {
 
     h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
-    var i = this.renderedNodes.length - 1;
+    var i = this.renderedNodes.length;
     while(--i){
         drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
