@@ -41,12 +41,6 @@ og.node.Planet = function (name, ellipsoid) {
 
 og.extend(og.node.Planet, og.node.RenderNode);
 
-og.node.Planet.prototype.sortLayersByZIndex = function () {
-    this.layers.sort(function (a, b) {
-        return a.zIndex - b.zIndex;
-    })
-};
-
 og.node.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length - 1;
     while (i--) {
@@ -59,8 +53,6 @@ og.node.Planet.prototype.getLayerByName = function (name) {
 og.node.Planet.prototype.addLayer = function (layer) {
     layer.planet = this;
     this.layers.push(layer);
-    //TODO: Optimization. Remake to binary insertion to the array.
-    this.sortLayersByZIndex();
     this.updateVisibleLayers();
 };
 
@@ -144,6 +136,13 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
             this.visibleLayers.push(this.layers[i]);
         }
     }
+    this.sortVisibleLayersByZIndex();
+};
+
+og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
+    this.visibleLayers.sort(function (a, b) {
+        return a.zIndex - b.zIndex;
+    })
 };
 
 og.node.Planet.prototype.getAltitude = function (p) {

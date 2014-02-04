@@ -37,7 +37,6 @@ og.layer.Layer.prototype.clone = function () {
 
 og.layer.Layer.prototype.setZIndex = function (zIndex) {
     this.zIndex = zIndex;
-    this.planet.sortLayersByZIndex();
     this.planet.updateVisibleLayers();
 };
 
