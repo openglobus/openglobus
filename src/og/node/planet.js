@@ -42,8 +42,8 @@ og.node.Planet = function (name, ellipsoid) {
 og.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.getLayerByName = function (name) {
-    var i = this.layers.length - 1;
-    while (i--) {
+    var i = this.layers.length;
+    while (--i) {
         if (this.layers[i].name === name)
             return this.layers[i];
     }
@@ -141,7 +141,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     this.visibleLayers.sort(function (a, b) {
-        return a.zIndex - b.zIndex;
+        return a.isBaseLayer ? -1 : a.zIndex - b.zIndex;
     })
 };
 
@@ -202,7 +202,7 @@ og.node.Planet.prototype.renderNodes = function () {
     h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
 
     var i = this.renderedNodes.length;
-    while(--i){
+    while (--i) {
         drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
 };
