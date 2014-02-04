@@ -39,7 +39,12 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
         that.dequeueRequest();
     };
 
-    img.src = this.GetHTTPRequestString(material.segment);
+    if (material.segment.materials.length) {
+        img.src = this.GetHTTPRequestString(material.segment);
+    } else {
+        //Have to be that segment was clearified
+        this.dequeueRequest();
+    }
 };
 
 og.layer.XYZ.prototype.dequeueRequest = function () {
