@@ -70,7 +70,7 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
                     this.layers[i].visibility = false;
                 }
             }
-            layer.visibility = true;
+            layer.setVisibility(true);
             this.baseLayer.abortLoading();
             this.baseLayer = layer;
         }
