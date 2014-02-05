@@ -18,7 +18,11 @@ og.layer.XYZ.prototype.handleSegmentTile = function (material) {
 };
 
 og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
-    return og.layer.replaceTemplate(this.url, { "tilex": segment.tileX.toString(), "tiley": segment.tileY.toString(), "zoom": segment.zoomIndex.toString() });
+    return og.layer.replaceTemplate(this.url, {
+        "tilex": segment.tileX.toString(),
+        "tiley": segment.tileY.toString(),
+        "zoom": segment.zoomIndex.toString()
+    });
 };
 
 og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
@@ -28,6 +32,10 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
+        that.events.callEvents(that.events.onload, {
+            "image": this,
+            "segment": material.segment
+        });
         material.applyTexture.call(material, this);
         that.dequeueRequest();
     };

@@ -19,7 +19,7 @@ goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent'], ['og.LonLat']);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], []);
 goog.addDependency('../../../og/src/og/input/input.js', ['og.input', 'og.input.Input'], []);
-goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], []);
+goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events']);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.layer.XYZ']);
 goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.layer.Layer', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/lonlat.js', ['og.LonLat'], []);

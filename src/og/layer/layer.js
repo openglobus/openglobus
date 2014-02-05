@@ -1,6 +1,8 @@
 goog.provide('og.layer');
 goog.provide('og.layer.Layer');
 
+goog.require('og.Events');
+
 og.layer.MAX_OVERLAYS = 8;
 og.layer.MAX_REQUESTS = 10;
 og.layer.layersCounter = 0;
@@ -13,7 +15,8 @@ og.layer.Layer = function (name, options) {
     this.name = name ? name : "noname";
     this.planet = null;
 
-    this.events = {};
+    this.events = new og.Events();
+    this.events.registerNames(["onload"]);
 
     if (options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
@@ -24,7 +27,7 @@ og.layer.Layer = function (name, options) {
         this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
         this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
     }
-    
+
     this.id = og.layer.layersCounter++;
 
     this.counter = 0;
