@@ -15,6 +15,7 @@ goog.addDependency('../../../og/src/og/control/showFps.js', ['og.control.ShowFps
 goog.addDependency('../../../og/src/og/control/toggleWireframe.js', ['og.control.ToggleWireframe'], ['og.input', 'og.webgl']);
 goog.addDependency('../../../og/src/og/ellipsoid/ellipsoid.js', ['og.Ellipsoid'], ['og.LonLat', 'og.math', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellipsoid.wgs84'], ['og.Ellipsoid']);
+goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent'], ['og.LonLat']);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], []);
 goog.addDependency('../../../og/src/og/input/input.js', ['og.input', 'og.input.Input'], []);
@@ -41,7 +42,7 @@ goog.addDependency('../../../og/src/og/planetSegment/planetSegmentHelper.js', ['
 goog.addDependency('../../../og/src/og/planetSegment/planetSegmentMaterial.js', ['og.planetSegment.PlanetSegmentMaterial'], []);
 goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.planetSegment.PlanetSegment', 'og.planetSegment.PlanetSegmentMaterial', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
-goog.addDependency('../../../og/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.input', 'og.input.Input', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.Events', 'og.input', 'og.input.Input', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);
 goog.addDependency('../../../og/src/og/shaderProgram/overlays.js', ['og.shaderProgram.overlays'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/picking.js', ['og.shaderProgram.picking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types']);

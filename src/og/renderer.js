@@ -4,6 +4,7 @@ goog.require('og.math.Vector3');
 goog.require('og.input');
 goog.require('og.input.Input');
 goog.require('og.Camera');
+goog.require('og.Events');
 
 og.Renderer = function (handler) {
     this.handler = handler;
@@ -15,7 +16,7 @@ og.Renderer = function (handler) {
     this.input = new og.input.Input();
     this.controls = [];
 
-    this.events = {};
+    this.events = new og.Events();
 
     this.mouseState = {
         x: 0,
@@ -27,22 +28,6 @@ og.Renderer = function (handler) {
         rightButtonHold: false,
         moving: false
     };
-};
-
-og.Renderer.eventNames = [
-    "ondraw",
-    "onmousemove",
-    "onmouselbuttonclick",
-    "onmouselbuttondown",
-    "onmouserbuttonclick",
-    "onmouserbuttondown",
-    "onresize"
-];
-
-og.Renderer.prototype.initEvents = function () {
-    for (var i = 0; i < og.Renderer.eventNames.length; i++) {
-        this.events[og.Renderer.eventNames[i]] = [];
-    }
 };
 
 og.Renderer.prototype.addControl = function (control) {
@@ -72,7 +57,16 @@ og.Renderer.prototype.init = function () {
     }
 
     this.initMouseHandler();
-    this.initEvents();
+
+    this.events.registerNames([
+        "ondraw",
+        "onmousemove",
+        "onmouselbuttonclick",
+        "onmouselbuttondown",
+        "onmouserbuttonclick",
+        "onmouserbuttondown",
+        "onresize"
+    ]);
 };
 
 og.Renderer.prototype.initMouseHandler = function () {
@@ -131,7 +125,7 @@ og.Renderer.prototype.draw = function () {
     var ms = this.mouseState;
     ms.direction = this.activeCamera.unproject(ms.x, ms.y);
 
-    this._callEvents(this.events.ondraw, this);
+    this.events.callEvents(this.events.ondraw, this);
 
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
@@ -140,28 +134,18 @@ og.Renderer.prototype.draw = function () {
 };
 
 og.Renderer.prototype.addEvent = function (name, sender, callback) {
-    this.events[name].push({ sender: sender, callback: callback });
-};
-
-og.Renderer.prototype._callEvents = function (events, obj) {
-    if (events) {
-        var i = events.length;
-        while (i--) {
-            var e = events[i];
-            e.callback.call(e.sender, obj);
-        }
-    }
+    this.events.addEvent(name, sender, callback);
 };
 
 og.Renderer.prototype.handleResizeEvents = function (obj) {
     this.activeCamera.refresh();
-    this._callEvents(this.events.onresize, obj);
+    this.events.callEvents(this.events.onresize, obj);
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
         e = this.events,
-        ce = this._callEvents;
+        ce = this.events.callEvents;
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {

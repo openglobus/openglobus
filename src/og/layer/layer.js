@@ -13,6 +13,8 @@ og.layer.Layer = function (name, options) {
     this.name = name ? name : "noname";
     this.planet = null;
 
+    this.events = {};
+
     if (options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
         this.numZoomLevels = options.numZoomLevels ? options.numZoomLevels : -1;
