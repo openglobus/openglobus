@@ -13,11 +13,9 @@ og.Events.prototype.addEvent = function (name, sender, callback) {
 };
 
 og.Events.prototype.callEvents = function (events, obj) {
-    if (events) {
-        var i = events.length;
-        while (i--) {
-            var e = events[i];
-            e.callback.call(e.sender, obj);
-        }
+    var i = events.length;
+    while (i--) {
+        var e = events[i];
+        e.callback.call(e.sender, obj);
     }
 };
