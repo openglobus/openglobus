@@ -32,10 +32,13 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
-        that.events.callEvents(that.events.onload, {
-            "image": this,
-            "segment": material.segment
-        });
+        var e = that.events.onload;
+        if (e.length) {
+            that.events.callEvents(e, {
+                "image": this,
+                "segment": material.segment
+            });
+        }
         material.applyTexture.call(material, this);
         that.dequeueRequest();
     };
