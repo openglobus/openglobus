@@ -22,6 +22,8 @@ og.Renderer = function (handler) {
         x: 0,
         y: 0,
         direction: new og.math.Vector3(),
+        leftButtonUp: false,
+        rightButtonUp: false,
         leftButtonDown: false,
         rightButtonDown: false,
         leftButtonHold: false,
@@ -65,6 +67,8 @@ og.Renderer.prototype.init = function () {
         "onmouselbuttondown",
         "onmouserbuttonclick",
         "onmouserbuttondown",
+        "onmouselbuttonup",
+        "onmouserbuttonup",
         "onresize"
     ]);
 };
@@ -94,9 +98,11 @@ og.Renderer.prototype.onMouseUp = function (event) {
     if (event.button === og.input.MB_LEFT) {
         this.mouseState.leftButtonDown = false;
         this.mouseState.leftButtonHold = false;
+        this.mouseState.leftButtonUp = true;
     } else {
         this.mouseState.rightButtonDown = false;
         this.mouseState.rightButtonHold = false;
+        this.mouseState.rightButtonUp = true;
     }
 };
 
@@ -163,6 +169,16 @@ og.Renderer.prototype.handleMouseEvents = function () {
             ms.rightButtonHold = true;
             ce(e.onmouserbuttonclick, ms);
         }
+    }
+
+    if (ms.leftButtonUp) {
+        ms.leftButtonUp = false;
+        ce(e.onmouselbuttonup, ms);
+    }
+
+    if (ms.rightButtonUp) {
+        ms.rightButtonUp = false;
+        ce(e.onmouserbuttonup, ms);
     }
 
     if (ms.moving) {
