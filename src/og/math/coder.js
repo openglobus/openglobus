@@ -3,7 +3,7 @@ goog.provide('og.math.coder');
 goog.require('og.math');
 goog.require('og.math.Vector4');
 
-og.math.coder.encodeFloatToVector4 = function (f) {
+og.math.coder.encodeFloatToRGBA = function (f) {
     var F = Math.abs(f);
     var s = og.math.step(0.0, -f);
     var e = Math.floor(og.math.log2(F));
@@ -17,7 +17,7 @@ og.math.coder.encodeFloatToVector4 = function (f) {
 	);
 };
 
-og.math.coder.decodeFloatFromVector4 = function (rgba) {
+og.math.coder.decodeFloatFromRGBA = function (rgba) {
     var s = 1.0 - og.math.step(128.0, rgba.x) * 2.0;
     var e = 2.0 * og.math.mod(rgba.x, 128.0) + og.math.step(128.0, rgba.y) - 127.0;
     var m = og.math.mod(rgba.y, 128.0) * 65536.0 + rgba.z * 256.0 + rgba.w + 8388608.00;
