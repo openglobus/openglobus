@@ -2,6 +2,7 @@ goog.provide('og.control.MousePosition');
 
 goog.require('og.control.Control');
 goog.require('og.planetSegment');
+goog.require('og.mercator');
 
 og.control.MousePosition = function (options) {
     og.base(this, options);
@@ -13,18 +14,18 @@ og.control.MousePosition = function (options) {
 og.extend(og.control.MousePosition, og.control.Control);
 
 og.control.MousePosition.toDecimal = function (ll) {
-    var str = ll[0].toFixed(5) + ", " + ll[1].toFixed(5);
+    var str = ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);
     return str;
 };
 
 og.control.MousePosition.toDegrees = function (ll) {
-    var str = og.control.MousePosition.dec2deg(ll[0]) + ", " + og.control.MousePosition.dec2deg(ll[1]);
+    var str = og.control.MousePosition.dec2deg(ll.lat) + ", " + og.control.MousePosition.dec2deg(ll.lon);
     return str;
 };
 
 og.control.MousePosition.toMercator = function (ll) {
-    var m = og.geo.forwardMercator(ll[1], ll[0]);
-    var str = m[1].toFixed(5) + ", " + m[0].toFixed(5);
+    var m = og.mercator.forwardMercator(ll.lon, ll.lat);
+    var str = m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
     return str;
 };
 
@@ -68,7 +69,7 @@ og.control.MousePosition.prototype.init = function () {
 og.control.MousePosition.prototype.draw = function () {
     var planetNode = this.renderer.renderNodes.Earth;
     if (planetNode.mousePositionOnEarth) {
-        var ll = planetNode.ellipsoid.ECEF2LatLon(planetNode.mousePositionOnEarth.z, planetNode.mousePositionOnEarth.x, planetNode.mousePositionOnEarth.y);
+        var ll = planetNode.ellipsoid.ECEF2LonLat(planetNode.mousePositionOnEarth.z, planetNode.mousePositionOnEarth.x, planetNode.mousePositionOnEarth.y);
         this.display.innerHTML = "Lat/Lon: " + this.converter(ll);
     } else {
         this.display.innerHTML = "Lat/Lon: " + "_____________________";
