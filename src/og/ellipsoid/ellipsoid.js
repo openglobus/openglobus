@@ -54,5 +54,5 @@ og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
     var lambda = Math.atan2(y, x);
     var lat = phi / Math.PI * 180;
     var lon = lambda / Math.PI * 180;
-    return og.LonLat(lon, lat, h);
+    return new og.LonLat(lon, lat, h);
 };
