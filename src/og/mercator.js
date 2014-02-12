@@ -12,6 +12,6 @@ og.mercator.inverseMercator = function (x, y) {
 
 og.mercator.forwardMercator = function (lon, lat) {
     var x = lon * og.mercator.POLE / 180;
-    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * pole;
+    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * og.mercator.POLE;
     return new og.LonLat(x, y);
 };
