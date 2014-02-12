@@ -7,6 +7,8 @@ og.math.Y = 1;
 og.math.Z = 2;
 og.math.W = 3;
 
+og.math.LOG2 = Math.log(2);
+
 og.math.MAX = 100000000;
 og.math.MIN = -100000000;
 
@@ -38,4 +40,24 @@ og.math.nextHighestPowerOfTwo = function (x) {
         x = x | x >> i;
     }
     return x + 1;
+};
+
+og.math.mod = function(x, y) {
+	return x - y * Math.floor(x / y);
+};
+
+og.math.step = function(edge, x) {
+	return x < edge ? 0.0 : 1.0;
+};
+
+og.math.frac = function(v) {
+	return v - floor(v);
+};
+
+og.math.log2 = function(x) {
+	return Math.log(x) / og.math.LOG2;
+};
+
+og.math.exp2 = function(x) {
+	return Math.pow(2, x);
 };

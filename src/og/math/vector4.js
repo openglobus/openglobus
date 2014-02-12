@@ -1,6 +1,7 @@
 goog.provide('og.math.Vector4');
 
 goog.require('og.math.Vector3');
+goog.require('og.math');
 
 og.math.Vector4 = function (x, y, z, w) {
     this.x = x || 0.0;
@@ -81,4 +82,22 @@ og.math.Vector4.prototype.affinity = function () {
 
 og.math.Vector4.prototype.scaleTo = function (scale) {
     return new og.math.Vector4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
+};
+
+og.math.Vector4.prototype.getStep = function (edge) {
+    return new og.math.Vector4(
+        this.x < edge ? 0.0 : 1.0,
+		this.y < edge ? 0.0 : 1.0,
+		this.z < edge ? 0.0 : 1.0,
+		this.w < edge ? 0.0 : 1.0
+    );
+};
+
+og.math.Vector4.prototype.getFrac = function (v) {
+    return new og.math.Vector4(
+        og.math.frac(v.x),
+        og.math.frac(v.y),
+        og.math.frac(v.z),
+        og.math.frac(v.w)
+    );
 };
