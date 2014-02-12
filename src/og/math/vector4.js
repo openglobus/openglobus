@@ -39,6 +39,10 @@ og.math.Vector4.prototype.toVec = function () {
     return x;
 };
 
+og.math.Vector4.fromVec = function (arr) {
+    return new og.math.Vector4(arr[0], arr[1], arr[2], arr[3]);
+}
+
 og.math.Vector4.prototype.set = function (x, y, z, w) {
     this.x = x;
     this.y = y;
