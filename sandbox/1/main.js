@@ -11,6 +11,7 @@ goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ToggleWireframe');
 goog.require('og.control.LoadingSpinner');
 goog.require('og.control.MousePosition');
+goog.require('og.math.coder');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
@@ -80,8 +81,8 @@ og.webgl.MAX_FRAME_DELAY = 15;
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
-        /*new og.control.MousePosition({ autoActivate: true }),*/
-	    new og.control.LayerSwitcher({ autoActivate: true }),
+        new og.control.MousePosition({ autoActivate: true }),
+        new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ShowFps({ autoActivate: true })
     ]);
 
