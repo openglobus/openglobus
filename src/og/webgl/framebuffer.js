@@ -53,11 +53,11 @@ og.webgl.Framebuffer.prototype.readPixels = function (x, y, sizeX, sizeY) {
     var res;
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+    //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
         var pixelValues = new Uint8Array(4);
         gl.readPixels(x, y, sizeX || 1, sizeY || 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
         res = pixelValues;
-    }
+    //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return res;
 };
