@@ -7,7 +7,7 @@ goog.require('og.shaderProgram.types');
 og.shaderProgram.picking = new og.shaderProgram.ShaderProgram("picking", {
     uniforms: {
         uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
-        uColor: { type: og.shaderProgram.types.VEC3 }
+        camPos: { type: og.shaderProgram.types.VEC3 }
     },
     attributes: {
         aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true }
