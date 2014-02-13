@@ -4,6 +4,7 @@ goog.require('og');
 goog.require('og.node.RenderNode');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
+goog.require('og.math.coder');
 goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
@@ -161,6 +162,19 @@ og.node.Planet.prototype.frame = function () {
     this.renderNodes();
     this.renderPickingBackbuffer();
 
+    var ms = this.renderer.mouseState;
+    if (ms.moving) {
+        var x = ms.x,
+            y = ms.y;
+        var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y));
+        var distance = og.math.coder.decodeFloatFromRGBA(color);
+        var pos = ms.direction.scaleTo(distance);
+        pos.add(this.renderer.activeCamera.eye);
+        var ll = this.ellipsoid.ECEF2LonLat(pos.z, pos.x, pos.y);
+        print2d("lbCoords", "distance = " + distance + ", pos = [" + pos.x + "," + pos.y + "," + pos.z + "], " + "latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
+    }
+
+
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
 
@@ -215,7 +229,9 @@ og.node.Planet.prototype.renderPickingBackbuffer = function () {
     var h = renderer.handler;
     h.shaderPrograms.picking.activate();
     var sh = h.shaderPrograms.picking._program;
-    h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+    var shu = sh.uniforms;
+
+    h.gl.uniform3fv(shu.camPos._pName, renderer.activeCamera.eye.toVec());
 
     var nodes = this.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
