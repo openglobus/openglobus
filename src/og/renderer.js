@@ -131,12 +131,13 @@ og.Renderer.prototype.draw = function () {
     var ms = this.mouseState;
     ms.direction = this.activeCamera.unproject(ms.x, ms.y);
 
-    this.events.callEvents(this.events.ondraw, this);
-
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
     }
 
+    this.events.callEvents(this.events.ondraw, this);
+
+    this.mouseState.moving = false;
 };
 
 og.Renderer.prototype.addEvent = function (name, sender, callback) {
@@ -183,7 +184,6 @@ og.Renderer.prototype.handleMouseEvents = function () {
 
     if (ms.moving) {
         ce(e.onmousemove, ms);
-        ms.moving = false;
     }
 };
 
