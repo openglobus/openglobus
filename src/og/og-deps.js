@@ -34,7 +34,7 @@ goog.addDependency('../../../og/src/og/math/vector4.js', ['og.math.Vector4'], ['
 goog.addDependency('../../../og/src/og/mercator.js', ['og.mercator'], ['og.LonLat']);
 goog.addDependency('../../../og/src/og/node/axes.js', ['og.node.Axes'], ['og.node.RenderNode']);
 goog.addDependency('../../../og/src/og/node/node.js', ['og.node.Node'], []);
-goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og', 'og.Extent', 'og.bv.Sphere', 'og.layer', 'og.math.Matrix4', 'og.math.Ray', 'og.math.Vector3', 'og.math.coder', 'og.node.RenderNode', 'og.planetSegment', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree', 'og.quadTree.QuadNode', 'og.shaderProgram.overlays', 'og.shaderProgram.picking', 'og.shaderProgram.single', 'og.webgl.Framebuffer']);
+goog.addDependency('../../../og/src/og/node/planet.js', ['og.node.Planet'], ['og', 'og.Events', 'og.Extent', 'og.bv.Sphere', 'og.layer', 'og.math.Matrix4', 'og.math.Ray', 'og.math.Vector3', 'og.math.coder', 'og.node.RenderNode', 'og.planetSegment', 'og.planetSegment.PlanetSegmentHelper', 'og.quadTree', 'og.quadTree.QuadNode', 'og.shaderProgram.overlays', 'og.shaderProgram.picking', 'og.shaderProgram.single', 'og.webgl.Framebuffer']);
 goog.addDependency('../../../og/src/og/node/renderNode.js', ['og.node.RenderNode'], ['og.math.Matrix4', 'og.math.Vector3', 'og.node.Node', 'og.webgl']);
 goog.addDependency('../../../og/src/og/node/skyBox.js', ['og.node.SkyBox'], ['og', 'og.node.RenderNode']);
 goog.addDependency('../../../og/src/og/og.js', ['og'], []);

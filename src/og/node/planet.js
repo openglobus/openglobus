@@ -17,11 +17,13 @@ goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
+goog.require('og.Events');
 
 og.node.Planet = function (name, ellipsoid) {
     og.base(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
+    this.events = new og.Events();
 
     this.layers = [];
     this.visibleLayers = [];
@@ -119,6 +121,10 @@ og.node.Planet.prototype.initialization = function () {
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
     this.updateVisibleLayers();
+
+    this.events.registerNames([
+        "ondraw"
+    ]);
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
@@ -160,20 +166,18 @@ og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
     this.renderNodes();
-    this.renderPickingBackbuffer();
 
     var ms = this.renderer.mouseState;
     if (ms.moving) {
-        var x = ms.x,
-            y = ms.y;
-        var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y));
-        var distance = og.math.coder.decodeFloatFromRGBA(color);
+        var distance = this.getMouseDistance(ms.x, ms.y);
         var pos = ms.direction.scaleTo(distance);
         pos.add(this.renderer.activeCamera.eye);
         var ll = this.ellipsoid.ECEF2LonLat(pos.z, pos.x, pos.y);
-        print2d("lbCoords", "distance = " + distance + ", pos = [" + pos.x + "," + pos.y + "," + pos.z + "], " + "latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
+        print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
     }
 
+    //Here is the planet node dispatche a draw event before clearing.
+    this.events.callEvents(this.events.ondraw, this);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;
@@ -222,20 +226,25 @@ og.node.Planet.prototype.renderNodes = function () {
     }
 };
 
-og.node.Planet.prototype.renderPickingBackbuffer = function () {
-    this.backbuffer.activate();
-    this.backbuffer.clear();
-    var renderer = this.renderer;
-    var h = renderer.handler;
-    h.shaderPrograms.picking.activate();
-    var sh = h.shaderPrograms.picking._program;
-    var shu = sh.uniforms;
-
-    h.gl.uniform3fv(shu.camPos._pName, renderer.activeCamera.eye.toVec());
-
-    var nodes = this.renderedNodes;
-    for (var i = 0; i < nodes.length; i++) {
-        nodes[i].planetSegment.drawPicking();
+og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
+    var b = this.backbuffer,
+        r = this.renderer;
+    var h = r.handler;
+    var pp = h.shaderPrograms.picking;
+    b.activate();
+    b.clear();
+    pp.activate();
+    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
+    var i = this.renderedNodes.length;
+    while (i--) {
+        this.renderedNodes[i].planetSegment.drawPicking();
     }
-    this.backbuffer.deactivate();
+    b.deactivate();
 };
+
+og.node.Planet.prototype.getMouseDistance = function (x, y) {
+    this.renderDistanceBackbufferPASS();
+    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y));
+    return og.math.coder.decodeFloatFromRGBA(color);
+};
+
