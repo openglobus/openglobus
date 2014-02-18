@@ -97,6 +97,10 @@ og.node.Planet.prototype.removeLayer = function (layer) {
     //...
 };
 
+og.node.Planet.prototype.addEvent = function (name, sender, callback) {
+    this.events.addEvent(name, sender, callback);
+};
+
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
     og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
@@ -159,22 +163,19 @@ og.node.Planet.prototype.getAltitude = function (p) {
 };
 
 og.node.Planet.prototype.frame = function () {
-    this.mousePositionOnEarth = new og.math.Ray(this.renderer.activeCamera.eye,
-        this.renderer.mouseState.direction)
-        .hitPlanetEllipsoid(this);
-    this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     this.quadTree.renderTree();
     this.renderNodes();
 
-    var ms = this.renderer.mouseState;
-    if (ms.moving) {
-        var distance = this.getMouseDistance(ms.x, ms.y);
-        var pos = ms.direction.scaleTo(distance);
-        pos.add(this.renderer.activeCamera.eye);
-        var ll = this.ellipsoid.ECEF2LonLat(pos.z, pos.x, pos.y);
-        print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
-    }
+    //re
+    var r = this.renderer;
+    var cam = r.activeCamera;
+    this.mousePositionOnEarth = new og.math.Ray(cam.eye, r.mouseState.direction).hitPlanetEllipsoid(this);
+    this.renderer.activeCamera.altitude = this.getAltitude(cam.eye);
+
+    //var ll = this.getLonLatFromPixelTerrain(new og.math.Pixel(this.renderer.mouseState.x, this.renderer.mouseState.y));
+    //var distance = 0;
+    //print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
 
     //Here is the planet node dispatche a draw event before clearing.
     this.events.callEvents(this.events.ondraw, this);
@@ -242,9 +243,46 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
     b.deactivate();
 };
 
-og.node.Planet.prototype.getMouseDistance = function (x, y) {
-    this.renderDistanceBackbufferPASS();
-    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y));
-    return og.math.coder.decodeFloatFromRGBA(color);
+og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
+    var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+    var mxTr = this.transformationMatrix.transpose();
+    var sx = new og.math.Ray(
+        mxTr.mulVec3(this.renderer.activeCamera.eye),
+        mxTr.mulVec3(direction))
+    .hitSphere(new og.bv.Sphere(this.ellipsoid._a));
+    if (sx) {
+        return this.itransformationMatrix.mulVec3(sx);
+    }
+    return null;
 };
 
+og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
+    var coords = this.getCartesianFromPixelEllipsoid(px);
+    return this.ellipsoid.ECEF2LonLat(coords.z, coords.x, coords.y);
+};
+
+og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
+    var distance = this.getDistanceFromPixel(px);
+    var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+    return direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+};
+
+og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
+    var coords = this.getCartesianFromPixelTerrain(px);
+    return this.ellipsoid.ECEF2LonLat(coords.z, coords.x, coords.y);
+};
+
+og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
+    return this.renderer.activeCamera.project(coords);
+};
+
+og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
+    var coords = this.ellipsoid.LonLat2ECEF(lonlat);
+    return this.renderer.activeCamera.project(coords);
+};
+
+og.node.Planet.prototype.getDistanceFromPixel = function (px) {
+    this.renderDistanceBackbufferPASS();
+    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.renderer.handler.gl.canvas.height - px.y));
+    return og.math.coder.decodeFloatFromRGBA(color);
+};
