@@ -63,7 +63,7 @@ og.control.MousePosition.prototype.init = function () {
     };
     document.body.appendChild(this.display);
 
-    this.renderer.addEvent("ondraw", this, this.draw);
+    this.renderer.renderNodes.Earth.addEvent("ondraw", this, this.draw);
 };
 
 og.control.MousePosition.prototype.draw = function () {
