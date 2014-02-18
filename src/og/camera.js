@@ -3,6 +3,7 @@ goog.provide('og.Camera');
 goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
 goog.require('og.Frustum');
+goog.require('og.math.Pixel');
 
 og.Camera = function (options) {
     this.eye = new og.math.Vector3(0, 0, 0);
@@ -200,11 +201,12 @@ og.Camera.prototype.unproject = function (x, y) {
 
 og.Camera.prototype.project = function (v) {
     var r = this.pmvMatrix.mulVec4(v.toVector4());
-    return [(1 + r.x / r.w) * this.gl._viewportWidth / 2, (1 - r.y / r.w) * this.gl._viewportHeight / 2];
+    return new og.math.Pixel((1 + r.x / r.w) * this.gl._viewportWidth / 2, (1 - r.y / r.w) * this.gl._viewportHeight / 2);
 };
 
-og.Camera.prototype.setgp = function (ellipsoid, lat, lon, alt) {
-    var v = ellipsoid.LatLon2ECEF(lat, lon, (alt ? this.altitude = alt : this.altitude));
+og.Camera.prototype.setgp = function (ellipsoid, lonlat) {
+    this.altitude = lonlat.height;
+    var v = ellipsoid.LonLat2ECEF(lonlat);
     this.eye.set(v[Y], v[Z], v[X]);
     this.update();
 };
