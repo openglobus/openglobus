@@ -158,7 +158,7 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 
 og.node.Planet.prototype.getAltitude = function (p) {
     var direction = new og.math.Vector3(-p.x, -p.y, -p.z);
-    var intersection = new og.math.Ray(p, direction).hitPlanetEllipsoid(this);
+    var intersection = this.getRayIntersectionEllipsoid(new og.math.Ray(this.renderer.activeCamera.eye, direction));
     return p.distance(intersection);
 };
 
@@ -170,12 +170,12 @@ og.node.Planet.prototype.frame = function () {
     //re
     var r = this.renderer;
     var cam = r.activeCamera;
-    this.mousePositionOnEarth = new og.math.Ray(cam.eye, r.mouseState.direction).hitPlanetEllipsoid(this);
+    this.mousePositionOnEarth = this.getCartesianFromPixelEllipsoid(r.mouseState);
     this.renderer.activeCamera.altitude = this.getAltitude(cam.eye);
 
-    //var ll = this.getLonLatFromPixelTerrain(new og.math.Pixel(this.renderer.mouseState.x, this.renderer.mouseState.y));
-    //var distance = 0;
-    //print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
+    var ll = this.getLonLatFromPixelTerrain(new og.math.Pixel(this.renderer.mouseState.x, this.renderer.mouseState.y));
+    var distance = 0;
+    print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
 
     //Here is the planet node dispatche a draw event before clearing.
     this.events.callEvents(this.events.ondraw, this);
@@ -246,10 +246,8 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
 og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var direction = this.renderer.activeCamera.unproject(px.x, px.y);
     var mxTr = this.transformationMatrix.transpose();
-    var sx = new og.math.Ray(
-        mxTr.mulVec3(this.renderer.activeCamera.eye),
-        mxTr.mulVec3(direction))
-    .hitSphere(new og.bv.Sphere(this.ellipsoid._a));
+    var sx = new og.math.Ray( mxTr.mulVec3(this.renderer.activeCamera.eye),
+        mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
     if (sx) {
         return this.itransformationMatrix.mulVec3(sx);
     }
@@ -259,6 +257,16 @@ og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
 og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     return this.ellipsoid.ECEF2LonLat(coords.z, coords.x, coords.y);
+};
+
+og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
+    var mxTr = this.transformationMatrix.transpose();
+    var sx = new og.math.Ray(mxTr.mulVec3(ray.origin),
+        mxTr.mulVec3(ray.direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
+    if (sx) {
+        return this.itransformationMatrix.mulVec3(sx);
+    }
+    return null;
 };
 
 og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
