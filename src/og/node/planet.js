@@ -40,6 +40,7 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.indexesBuffers = [];
     this.backbuffer;
+    this._currentDistanceFromPixel = 0;
 };
 
 og.extend(og.node.Planet, og.node.RenderNode);
@@ -125,10 +126,13 @@ og.node.Planet.prototype.initialization = function () {
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
     this.updateVisibleLayers();
-
     this.events.registerNames([
         "ondraw"
     ]);
+
+    this.renderer.addEvent("onresize", this.backbuffer, function (e) {
+        this.setSize(e.width, e.height);
+    });
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
@@ -227,26 +231,10 @@ og.node.Planet.prototype.renderNodes = function () {
     }
 };
 
-og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
-    var b = this.backbuffer,
-        r = this.renderer;
-    var h = r.handler;
-    var pp = h.shaderPrograms.picking;
-    b.activate();
-    b.clear();
-    pp.activate();
-    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    var i = this.renderedNodes.length;
-    while (i--) {
-        this.renderedNodes[i].planetSegment.drawPicking();
-    }
-    b.deactivate();
-};
-
 og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var direction = this.renderer.activeCamera.unproject(px.x, px.y);
     var mxTr = this.transformationMatrix.transpose();
-    var sx = new og.math.Ray( mxTr.mulVec3(this.renderer.activeCamera.eye),
+    var sx = new og.math.Ray(mxTr.mulVec3(this.renderer.activeCamera.eye),
         mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
     if (sx) {
         return this.itransformationMatrix.mulVec3(sx);
@@ -291,6 +279,22 @@ og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
 
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     this.renderDistanceBackbufferPASS();
-    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.renderer.handler.gl.canvas.height - px.y));
-    return og.math.coder.decodeFloatFromRGBA(color);
+    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.backbuffer.height - px.y));
+    return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+};
+
+og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
+    var b = this.backbuffer,
+        r = this.renderer;
+    var h = r.handler;
+    var pp = h.shaderPrograms.picking;
+    b.activate();
+    b.clear();
+    pp.activate();
+    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
+    var i = this.renderedNodes.length;
+    while (i--) {
+        this.renderedNodes[i].planetSegment.drawPicking();
+    }
+    b.deactivate();
 };
