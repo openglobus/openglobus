@@ -60,7 +60,7 @@ og.input.Input.prototype.setEvent = function (event, sender, htmlObject, callbac
             this.pressedKeysCallbacks[keyCode] = { callback: callback, sender: sender };
             break;
         case "oncharkeypressed":
-            this.charkeysCallbacks[keyCode] = { callback: callback, sender: sender, ch:String.fromCharCode(keyCode) };
+            this.charkeysCallbacks[keyCode] = { callback: callback, sender: sender, ch: String.fromCharCode(keyCode) };
             break;
     }
 };
