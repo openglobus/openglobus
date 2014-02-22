@@ -76,3 +76,19 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
+
+og.webgl.Framebuffer.prototype.getImage = function () {
+    var data = this.readPixels(0, 0, this.width, this.height);
+    var canvas = document.createelement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    var context = canvas.getcontext('2d');
+
+    var imagedata = context.createImageData(this.width, this.height);
+    imagedata.data.set(data);
+    context.putImageData(imagedata, 0, 0);
+
+    var img = new Image();
+    img.src = canvas.toDatUrl();
+    return img;
+};
