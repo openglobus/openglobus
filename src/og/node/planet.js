@@ -41,6 +41,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.indexesBuffers = [];
     this.backbuffer;
     this._currentDistanceFromPixel = 0;
+    this._viewChanged = true;
 };
 
 og.extend(og.node.Planet, og.node.RenderNode);
@@ -133,6 +134,10 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.addEvent("onresize", this.backbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
+
+    this.renderer.addEvent("onmousemove", this, function (e) {
+        this._viewChanged = true;
+    });
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {
@@ -177,8 +182,8 @@ og.node.Planet.prototype.frame = function () {
     this.mousePositionOnEarth = this.getCartesianFromPixelEllipsoid(r.mouseState);
     this.renderer.activeCamera.altitude = this.getAltitude(cam.eye);
 
-    var ll = this.getLonLatFromPixelTerrain(new og.math.Pixel(this.renderer.mouseState.x, this.renderer.mouseState.y));
-    var distance = 0;
+    var ll = this.getLonLatFromPixelTerrain(this.renderer.mouseState);
+    var distance = this.getDistanceFromPixel(this.renderer.mouseState);
     print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
 
     //Here is the planet node dispatche a draw event before clearing.
@@ -278,9 +283,13 @@ og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
 };
 
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
-    this.renderDistanceBackbufferPASS();
-    var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.backbuffer.height - px.y));
-    return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+    if (this._viewChanged) {
+        this._viewChanged = false;
+        this.renderDistanceBackbufferPASS();
+        var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.backbuffer.height - px.y));
+        return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+    }
+    return this._currentDistanceFromPixel;
 };
 
 og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
