@@ -28,8 +28,10 @@ og.Renderer = function (handler) {
         rightButtonDown: false,
         leftButtonHold: false,
         rightButtonHold: false,
-        moving: false
+        moving: false,
+        justStopped: false,
     };
+    this._mousestopThread = null;
 };
 
 og.Renderer.prototype.addControl = function (control) {
@@ -63,6 +65,7 @@ og.Renderer.prototype.init = function () {
     this.events.registerNames([
         "ondraw",
         "onmousemove",
+        "onmousestop",
         "onmouselbuttonclick",
         "onmouselbuttondown",
         "onmouserbuttonclick",
@@ -84,6 +87,13 @@ og.Renderer.prototype.onMouseMove = function (event) {
     ms.moving = true;
     ms.x = event.clientX;
     ms.y = event.clientY;
+
+    //dispatch stop mouse event
+    clearTimeout(this._mousestopThread);
+    var that = this;
+    this._mousestopThread = setTimeout(function () {
+        ms.justStopped = true;
+    }, 100);
 };
 
 og.Renderer.prototype.onMouseDown = function (event) {
@@ -184,6 +194,11 @@ og.Renderer.prototype.handleMouseEvents = function () {
 
     if (ms.moving) {
         ce(e.onmousemove, ms);
+    }
+
+    if (ms.justStopped) {
+        ce(e.onmousestop, ms);
+        ms.justStopped = false;
     }
 };
 
