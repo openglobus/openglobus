@@ -135,9 +135,14 @@ og.node.Planet.prototype.initialization = function () {
         this.setSize(e.width, e.height);
     });
 
+    this.renderer.activeCamera.events.addEvent("onviewchanged", this, function (e) {
+        this._viewChanged = true;
+    });
+
     this.renderer.addEvent("onmousemove", this, function (e) {
         this._viewChanged = true;
     });
+
 };
 
 og.node.Planet.prototype.loadEmptyTexture = function (url) {

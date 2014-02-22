@@ -4,7 +4,7 @@ goog.addDependency('../../../og/src/og/ajax.js', ['og.Ajax'], []);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.math', 'og.mercator']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);
-goog.addDependency('../../../og/src/og/camera.js', ['og.Camera'], ['og.Frustum', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/control/control.js', ['og.control.Control'], []);
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og.control.Control', 'og.input']);
 goog.addDependency('../../../og/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], []);

@@ -4,8 +4,16 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
 goog.require('og.Frustum');
 goog.require('og.math.Pixel');
+goog.require('og.Events');
 
 og.Camera = function (options) {
+
+    this.events = new og.Events();
+
+    this.events.registerNames([
+    "onviewchanged",
+    ]);
+
     this.eye = new og.math.Vector3(0, 0, 0);
     this.u = new og.math.Vector3(0, 1, 0); //up x n
     this.v = new og.math.Vector3(1, 0, 0); //n x u - UP
@@ -21,7 +29,7 @@ og.Camera = function (options) {
     this.mvMatrix = new og.math.Matrix4();
     this.pmvMatrix = new og.math.Matrix4();
     this.ipmvMatrix = new og.math.Matrix4();
-    this.frustum = new og.Frustum();    
+    this.frustum = new og.Frustum();
 
     this.pMatrixRot = new og.math.Matrix4();
     this.pmvMatrixRot = new og.math.Matrix4();
@@ -69,6 +77,7 @@ og.Camera.prototype.init = function (renderer, options) {
     } else {
         this.initDefaults();
     }
+
     this.update();
 };
 
@@ -91,6 +100,7 @@ og.Camera.prototype.update = function () {
 
     this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
     this.ipmvMatrix = this.pmvMatrixRot.inverse();
+    this.events.callEvents(this.events.onviewchanged, this);
 };
 
 og.Camera.prototype.setModelViewMatrix = function () {
