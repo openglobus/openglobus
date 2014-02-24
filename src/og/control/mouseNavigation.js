@@ -44,10 +44,10 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
 og.control.MouseNavigation.prototype.init = function () {
     this.renderer.input.setEvent("onmousewheel", this, canvas, this.onMouseWheel);
-    this.renderer.addEvent("onmouselbuttondown", this, this.onMouseLeftButtonDown);
-    this.renderer.addEvent("onmouserbuttondown", this, this.onMouseRightButtonDown);
-    this.renderer.addEvent("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
-    this.renderer.addEvent("onmouserbuttonclick", this, this.onMouseRightButtonClick);
+    this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonDown);
+    this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonDown);
+    this.renderer.events.on("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("onmouserbuttonclick", this, this.onMouseRightButtonClick);
 
     this.planetSpheroid.center.set(0, 0, 0);
     this.planetSpheroid.radius = this.renderer.renderNodes.Earth.ellipsoid._b;

@@ -145,24 +145,20 @@ og.Renderer.prototype.draw = function () {
         this._renderNodesArr[i].drawNode();
     }
 
-    this.events.callEvents(this.events.ondraw, this);
+    this.events.dispatch(this.events.ondraw, this);
 
     this.mouseState.moving = false;
 };
 
-og.Renderer.prototype.addEvent = function (name, sender, callback) {
-    this.events.addEvent(name, sender, callback);
-};
-
 og.Renderer.prototype.handleResizeEvents = function (obj) {
     this.activeCamera.refresh();
-    this.events.callEvents(this.events.onresize, obj);
+    this.events.dispatch(this.events.onresize, obj);
 };
 
 og.Renderer.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
         e = this.events,
-        ce = this.events.callEvents;
+        ce = this.events.dispatch;
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {

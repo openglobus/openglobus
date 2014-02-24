@@ -99,10 +99,6 @@ og.node.Planet.prototype.removeLayer = function (layer) {
     //...
 };
 
-og.node.Planet.prototype.addEvent = function (name, sender, callback) {
-    this.events.addEvent(name, sender, callback);
-};
-
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
     og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
@@ -131,15 +127,15 @@ og.node.Planet.prototype.initialization = function () {
         "ondraw"
     ]);
 
-    this.renderer.addEvent("onresize", this.backbuffer, function (e) {
+    this.renderer.events.on("onresize", this.backbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
 
-    this.renderer.activeCamera.events.addEvent("onviewchanged", this, function (e) {
+    this.renderer.activeCamera.events.on("onviewchanged", this, function (e) {
         this._viewChanged = true;
     });
 
-    this.renderer.addEvent("onmousemove", this, function (e) {
+    this.renderer.events.on("onmousemove", this, function (e) {
         this._viewChanged = true;
     });
 
@@ -192,7 +188,7 @@ og.node.Planet.prototype.frame = function () {
     print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
 
     //Here is the planet node dispatche a draw event before clearing.
-    this.events.callEvents(this.events.ondraw, this);
+    this.events.dispatch(this.events.ondraw, this);
 
     this.visitedNodesCount = 0;
     this.renderedNodesCount = 0;

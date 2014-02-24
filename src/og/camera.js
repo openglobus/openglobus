@@ -100,7 +100,7 @@ og.Camera.prototype.update = function () {
 
     this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
     this.ipmvMatrix = this.pmvMatrixRot.inverse();
-    this.events.callEvents(this.events.onviewchanged, this);
+    this.events.dispatch(this.events.onviewchanged, this);
 };
 
 og.Camera.prototype.setModelViewMatrix = function () {

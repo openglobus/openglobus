@@ -8,15 +8,15 @@ og.Events.prototype.registerNames = function (eventNames) {
     }
 };
 
-og.Events.prototype.addEvent = function (name, sender, callback) {
+og.Events.prototype.on = function (name, sender, callback) {
     this[name].handlers.push({ sender: sender, callback: callback });
 };
 
-og.Events.prototype.stopListen = function (event) {
+og.Events.prototype.off = function (event) {
     event.ready = false;
 };
 
-og.Events.prototype.callEvents = function (event, obj) {
+og.Events.prototype.dispatch = function (event, obj) {
     if (event.ready) {
         var h = event.handlers;
         var i = h.length;
