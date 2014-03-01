@@ -19,16 +19,17 @@ og.control.MouseNavigation = function (options) {
     this.screenCenterOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
     this.distDiff = 0.09;
-    this.planetSpheroid = new og.bv.Sphere();
+    this.grabbedSpheroid = new og.bv.Sphere();
+    this.planet;
 };
 
 og.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
-    var planetNode = this.renderer.renderNodes.Earth;
-    if (planetNode.mousePositionOnEarth) {
+    var pos = this.planet.getCartesianFromPixelTerrain(this.renderer.mouseState);
+    if (pos) {
         var cam = this.renderer.activeCamera;
-        var d = this.distDiff * cam.eye.distance(planetNode.mousePositionOnEarth);
+        var d = this.distDiff * cam.eye.distance(pos);
         var dv = new og.math.Vector3(this.renderer.mouseState.direction.x * d, this.renderer.mouseState.direction.y * d, this.renderer.mouseState.direction.z * d);
         if (event.wheelDelta > 0) {
             if (cam.altitude > 0.5)
@@ -48,23 +49,19 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonDown);
     this.renderer.events.on("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
     this.renderer.events.on("onmouserbuttonclick", this, this.onMouseRightButtonClick);
-
-    this.planetSpheroid.center.set(0, 0, 0);
-    this.planetSpheroid.radius = this.renderer.renderNodes.Earth.ellipsoid._b;
+    this.planet = this.renderer.renderNodes.Earth;
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    if (this.renderer.renderNodes.Earth.mousePositionOnEarth) {
-        this.grabbedPoint = new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.mouseState.direction).hitSphere(this.planetSpheroid);
-    }
+    this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(this.renderer.mouseState);
+    this.grabbedSpheroid.radius = this.grabbedPoint.length();
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
-    var planetNode = this.renderer.renderNodes.Earth;
     if (this.renderer.mouseState.moving) {
-        if (planetNode.mousePositionOnEarth) {
+        if (this.grabbedPoint) {
             var cam = this.renderer.activeCamera;
-            var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.direction).hitSphere(this.planetSpheroid);
+            var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.direction).hitSphere(this.grabbedSpheroid);
             var look, up;
             if (cam.altitude < 500) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
@@ -88,7 +85,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
     this.y0 = this.renderer.mouseState.y;
     this.camAngleX = 0;
     this.camAngleY = 0;
-    this.screenCenterOnEarth = this.renderer.renderNodes.Earth.getRayIntersectionEllipsoid(new og.math.Ray(this.renderer.activeCamera.eye, this.renderer.activeCamera.n.getNegate()));
+    this.screenCenterOnEarth = this.planet.getCartesianFromPixelTerrain({ x: this.renderer.handler.gl._viewportWidth / 2, y: this.renderer.handler.gl._viewportHeight / 2 });
     this.earthUp = this.screenCenterOnEarth.normal();
 };
 

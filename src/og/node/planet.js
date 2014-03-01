@@ -177,21 +177,10 @@ og.node.Planet.prototype.frame = function () {
     this.quadTree.renderTree();
     this.renderNodes();
 
-    //re
-    var r = this.renderer;
-    var cam = r.activeCamera;
-    this.mousePositionOnEarth = this.getCartesianFromPixelEllipsoid(r.mouseState);
-    this.renderer.activeCamera.altitude = this.getAltitude(cam.eye);
-
-    var ll = this.getLonLatFromPixelTerrain(this.renderer.mouseState);
-    var distance = this.getDistanceFromPixel(this.renderer.mouseState);
-    print2d("lbCoords", "distance = " + distance + ", latlon = " + ll.lat.toFixed(5) + "," + ll.lon.toFixed(5) + ", height = " + ll.height, 10, 10);
+    this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     //Here is the planet node dispatche a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
-
-    this.visitedNodesCount = 0;
-    this.renderedNodesCount = 0;
 
     //NOT WORKING! BUG IS HERE!
     if (this.createdNodesCount > 140) {
@@ -294,6 +283,7 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px) {
 };
 
 og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
+    this.quadTree.renderTree();
     var b = this.backbuffer,
         r = this.renderer;
     var h = r.handler;
@@ -307,4 +297,5 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
         this.renderedNodes[i].planetSegment.drawPicking();
     }
     b.deactivate();
+    this.renderedNodes.length = 0;
 };
