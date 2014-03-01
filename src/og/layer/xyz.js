@@ -34,7 +34,7 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     img.onload = function () {
         var e = that.events.onload;
         if (e.length) {
-            that.events.callEvents(e, {
+            that.events.dispatch(e, {
                 "image": this,
                 "segment": material.segment
             });
@@ -61,10 +61,14 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
 og.layer.XYZ.prototype.dequeueRequest = function () {
     this.counter--;
     og.layer.requestsCounter--;
-    if (this.pendingsQueue.length && og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
-        var pmat;
-        if (pmat = this.whilePendings())
-            this.loadSegmentTileImage.call(this, pmat);
+    if (this.pendingsQueue.length ) {
+        if(og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
+            var pmat;
+            if (pmat = this.whilePendings())
+                this.loadSegmentTileImage.call(this, pmat);
+        }
+    } else {
+        this.events.dispatch(this.events.onloadend);
     }
 };
 

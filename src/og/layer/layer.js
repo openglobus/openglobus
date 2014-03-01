@@ -16,7 +16,7 @@ og.layer.Layer = function (name, options) {
     this.planet = null;
 
     this.events = new og.Events();
-    this.events.registerNames(["onload"]);
+    this.events.registerNames(["onload","onloadend"]);
 
     if (options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
