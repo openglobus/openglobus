@@ -43,7 +43,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 };
 
 og.control.MouseNavigation.prototype.init = function () {
-    this.renderer.input.setEvent("onmousewheel", this, canvas, this.onMouseWheel);
+    this.renderer.input.setEvent("onmousewheel", this, this.onMouseWheel);
     this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonDown);
     this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonDown);
     this.renderer.events.on("onmouselbuttonclick", this, this.onMouseLeftButtonClick);

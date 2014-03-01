@@ -13,7 +13,7 @@ og.Renderer = function (handler) {
     this.cameras = [];
     this.activeCamera;
 
-    this.input = new og.input.Input();
+    this.input = new og.input.Input(handler.gl.canvas);
     this.controls = [];
 
     this.events = new og.Events();
@@ -77,9 +77,9 @@ og.Renderer.prototype.init = function () {
 };
 
 og.Renderer.prototype.initMouseHandler = function () {
-    this.input.setEvent("onmouseup", this, canvas, this.onMouseUp);
-    this.input.setEvent("onmousemove", this, canvas, this.onMouseMove);
-    this.input.setEvent("onmousedown", this, canvas, this.onMouseDown);
+    this.input.setEvent("onmouseup", this, this.onMouseUp);
+    this.input.setEvent("onmousemove", this, this.onMouseMove);
+    this.input.setEvent("onmousedown", this, this.onMouseDown);
 };
 
 og.Renderer.prototype.onMouseMove = function (event) {

@@ -22,39 +22,37 @@ og.input.MB_LEFT = 0;
 og.input.MB_RIGHT = 2;
 og.input.MB_MIDDLE = 1;
 
-og.input.Input = function () {
+og.input.Input = function (htmlObject) {
     this.currentlyPressedKeys = {};
     this.pressedKeysCallbacks = {};
     this.charkeysCallbacks = {};
+    this._htmlObject = htmlObject;
 
     var that = this;
     document.onkeydown = function (event) { that.handleKeyDown.call(that, event) };
     document.onkeyup = function (event) { that.handleKeyUp.call(that, event) };
 };
 
-og.input.Input.prototype.setEvent = function (event, sender, htmlObject, callback, keyCode) {
+og.input.Input.prototype.setEvent = function (event, sender, callback, keyCode) {
     var handle = this;
     switch (event) {
         case "onmousewheel": {
             var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-
-            if (htmlObject.attachEvent) //if IE (and Opera depending on user setting)
-                htmlObject.attachEvent("on" + mousewheelevt, function (evt) { callback.call(sender, evt); })
-            else if (htmlObject.addEventListener) //WC3 browsers
-                htmlObject.addEventListener(mousewheelevt, function (evt) { evt.wheelDelta = evt.detail * (-120); callback.call(sender, evt); }, false)
-
-            //htmlObject.onmousewheel = function (event) { callback.call(sender, event); };
+            if (this._htmlObject.attachEvent) //if IE (and Opera depending on user setting)
+                this._htmlObject.attachEvent("on" + mousewheelevt, function (evt) { callback.call(sender, evt); })
+            else if (this._htmlObject.addEventListener) //WC3 browsers
+                this._htmlObject.addEventListener(mousewheelevt, function (evt) { evt.wheelDelta = evt.detail * (-120); callback.call(sender, evt); }, false)
         }
             break;
         case "onmousedown":
-            htmlObject.onmousedown = function (event) { callback.call(sender, event); };
-            htmlObject.oncontextmenu = function (event) { return false; };
+            this._htmlObject.onmousedown = function (event) { callback.call(sender, event); };
+            this._htmlObject.oncontextmenu = function (event) { return false; };
             break;
         case "onmouseup":
-            htmlObject.onmouseup = function (event) { callback.call(sender, event); };
+            this._htmlObject.onmouseup = function (event) { callback.call(sender, event); };
             break;
         case "onmousemove":
-            htmlObject.onmousemove = function (event) { callback.call(sender, event); };
+            this._htmlObject.onmousemove = function (event) { callback.call(sender, event); };
             break;
         case "onkeypressed":
             this.pressedKeysCallbacks[keyCode] = { callback: callback, sender: sender };
@@ -71,12 +69,7 @@ og.input.Input.prototype.isKeyPressed = function (keyCode) {
 };
 
 og.input.Input.prototype.handleKeyDown = function (event) {
-    //DEBUG
-    //console.log(event.keyCode);
-    //END DEBUG
-
     this.currentlyPressedKeys[event.keyCode] = true;
-
     for (var ch in this.charkeysCallbacks) {
         if (String.fromCharCode(event.keyCode) == this.charkeysCallbacks[ch].ch) {
             var ccl = this.charkeysCallbacks[ch];
