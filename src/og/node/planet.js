@@ -175,7 +175,8 @@ og.node.Planet.prototype.getAltitude = function (p) {
 og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
-    this.renderNodes();
+    this.renderNodesPASS();
+    this.renderDistanceBackbufferPASS();
 
     this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
@@ -191,7 +192,7 @@ og.node.Planet.prototype.frame = function () {
     this.renderedNodes.length = 0;
 };
 
-og.node.Planet.prototype.renderNodes = function () {
+og.node.Planet.prototype.renderNodesPASS = function () {
     var sh, drawCallback;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -269,21 +270,29 @@ og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
 
 og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
     var coords = this.ellipsoid.LonLat2ECEF(lonlat);
-    return this.renderer.activeCamera.project(coords);
+    if (coords)
+        return this.renderer.activeCamera.project(coords);
+    return null;
+};
+
+og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
+    var coords = this.getCartesianFromPixelEllipsoid(px);
+    return coords.distance(this.renderer.activeCamera.eye);
 };
 
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     if (this._viewChanged) {
         this._viewChanged = false;
-        this.renderDistanceBackbufferPASS();
         var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.backbuffer.height - px.y));
+        if (!(color.x | color.y | color.z | color.w)) {
+            return this.getDistanceFromPixelEllipsoid(px);
+        }
         return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
     }
     return this._currentDistanceFromPixel;
 };
 
 og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
-    this.quadTree.renderTree();
     var b = this.backbuffer,
         r = this.renderer;
     var h = r.handler;
