@@ -67,12 +67,13 @@ og.control.MousePosition.prototype.init = function () {
 };
 
 og.control.MousePosition.prototype.draw = function () {
-    var planetNode = this.renderer.renderNodes.Earth;
-
-    if (planetNode.mousePositionOnEarth) {
-        var ll = planetNode.ellipsoid.ECEF2LonLat(planetNode.mousePositionOnEarth.z, planetNode.mousePositionOnEarth.x, planetNode.mousePositionOnEarth.y);
-        this.display.innerHTML = "Lat/Lon: " + this.converter(ll);
-    } else {
-        this.display.innerHTML = "Lat/Lon: " + "_____________________";
+    var ms = this.renderer.mouseState;
+    if (!(ms.leftButtonDown || ms.rightButtonDown)) {
+        var ll = this.renderer.renderNodes.Earth.getLonLatFromPixelTerrain(ms);
+        if (ll) {
+            this.display.innerHTML = "Lat/Lon: " + this.converter(ll) + " Height(m): " + (ll.height > 0 ? "~" + Math.round(ll.height * 1000) : "-");
+        } else {
+            this.display.innerHTML = "Lat/Lon: " + "_____________________";
+        }
     }
 };
