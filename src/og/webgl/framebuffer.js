@@ -54,9 +54,9 @@ og.webgl.Framebuffer.prototype.readPixels = function (x, y, sizeX, sizeY) {
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
     //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-        var pixelValues = new Uint8Array(4);
-        gl.readPixels(x, y, sizeX || 1, sizeY || 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-        res = pixelValues;
+    var pixelValues = new Uint8Array(4);
+    gl.readPixels(x, y, sizeX || 1, sizeY || 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    res = pixelValues;
     //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return res;
@@ -69,6 +69,7 @@ og.webgl.Framebuffer.prototype.activate = function () {
 
 og.webgl.Framebuffer.prototype.clear = function () {
     var gl = this.gl;
+    gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
