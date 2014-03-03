@@ -52,7 +52,10 @@ og.input.Input.prototype.setEvent = function (event, sender, callback, keyCode) 
             this._htmlObject.onmouseup = function (event) { callback.call(sender, event); };
             break;
         case "onmousemove":
-            this._htmlObject.onmousemove = function (event) { callback.call(sender, event); };
+            this._htmlObject.onmousemove = function (event) {
+                var rect = this.getBoundingClientRect();
+                callback.call(sender, { clientX: event.clientX - rect.left, clientY: event.clientY - rect.top });
+            };
             break;
         case "onkeypressed":
             this.pressedKeysCallbacks[keyCode] = { callback: callback, sender: sender };
