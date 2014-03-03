@@ -94,7 +94,7 @@ og.webgl.Handler.prototype.init = function () {
 
 og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
-    this.applyViewport(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+    this.applyViewport(this.gl.canvas.width, this.gl.canvas.height);
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
@@ -147,12 +147,14 @@ og.webgl.Handler.prototype.setBackgroundColor = function (color) {
 og.webgl.Handler.prototype.applyViewport = function (width, height) {
     var w = width, h = Math.max(1, height);
     this.gl.viewport(0, 0, w, h);
-    this.gl.canvas.width = this.gl._viewportWidth = w;
-    this.gl.canvas.height = this.gl._viewportHeight = h;
+    this.gl.canvas.width = w;
+    this.gl.canvas.height = h;
+    this.gl.canvas.aspect = w / h;
 };
 
 og.webgl.Handler.prototype.viewportResized = function () {
-    return this.gl.canvas.clientWidth != this.gl._viewportWidth || this.gl.canvas.clientHeight != this.gl._viewportHeight;
+    return  this.gl.canvas.clientWidth  != this.gl.canvas.width ||
+            this.gl.canvas.clientHeight != this.gl.canvas.height;
 };
 
 og.webgl.Handler.prototype.drawFrame = function (now, sender) {

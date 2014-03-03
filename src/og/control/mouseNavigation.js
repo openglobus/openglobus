@@ -85,7 +85,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
     this.y0 = this.renderer.mouseState.y;
     this.camAngleX = 0;
     this.camAngleY = 0;
-    this.screenCenterOnEarth = this.planet.getCartesianFromPixelTerrain({ x: this.renderer.handler.gl._viewportWidth / 2, y: this.renderer.handler.gl._viewportHeight / 2 });
+    this.screenCenterOnEarth = this.planet.getCartesianFromPixelTerrain({ x: this.renderer.handler.gl.canvas.width / 2, y: this.renderer.handler.gl.canvas.height / 2 });
     this.earthUp = this.screenCenterOnEarth.normal();
 };
 

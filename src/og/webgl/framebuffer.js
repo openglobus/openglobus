@@ -13,8 +13,8 @@ og.webgl.Framebuffer = function (gl) {
 og.webgl.Framebuffer.prototype.initialize = function () {
     var gl = this.gl;
     this.fbo = gl.createFramebuffer();
-    this.width = gl._viewportWidth;
-    this.height = gl._viewportHeight;
+    this.width = gl.canvas.width;
+    this.height = gl.canvas.height;
     this._createTexture();
 };
 
