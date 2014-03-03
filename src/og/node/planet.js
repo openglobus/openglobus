@@ -277,7 +277,7 @@ og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
 
 og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
-    return coords.distance(this.renderer.activeCamera.eye);
+    return coords ? coords.distance(this.renderer.activeCamera.eye) : null;
 };
 
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
