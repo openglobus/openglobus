@@ -10,9 +10,7 @@ og.Camera = function (options) {
 
     this.events = new og.Events();
 
-    this.events.registerNames([
-    "onviewchanged",
-    ]);
+    this.events.registerNames(["onviewchanged"]);
 
     this.eye = new og.math.Vector3(0, 0, 0);
     this.u = new og.math.Vector3(0, 1, 0); //up x n

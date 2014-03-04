@@ -29,7 +29,7 @@ og.Renderer = function (handler) {
         leftButtonHold: false,
         rightButtonHold: false,
         moving: false,
-        justStopped: false,
+        justStopped: false
     };
     this._mousestopThread = null;
 };
