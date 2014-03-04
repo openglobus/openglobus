@@ -1,6 +1,6 @@
 goog.provide('og.node.Planet');
 
-goog.require('og');
+goog.require('og.inheritance');
 goog.require('og.node.RenderNode');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
@@ -20,7 +20,7 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.Events');
 
 og.node.Planet = function (name, ellipsoid) {
-    og.base(this, name);
+    og.inheritance.base(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
     this.events = new og.Events();
@@ -44,7 +44,7 @@ og.node.Planet = function (name, ellipsoid) {
     this._viewChanged = true;
 };
 
-og.extend(og.node.Planet, og.node.RenderNode);
+og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;

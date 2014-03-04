@@ -1,5 +1,6 @@
 goog.provide('og.all');
 
+goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');

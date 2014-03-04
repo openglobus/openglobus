@@ -1,16 +1,17 @@
 goog.provide('og.control.ToggleWireframe');
 
+goog.require('og.inheritance');
 goog.require('og.webgl');
 goog.require('og.input');
 
 og.control.ToggleWireframe = function (options) {
-    og.base(this, options);
+    og.inheritance.base(this, options);
 };
 
-og.extend(og.control.ToggleWireframe, og.control.Control);
+og.inheritance.extend(og.control.ToggleWireframe, og.control.Control);
 
 og.control.ToggleWireframe.prototype.init = function () {
-    this.renderer.input.setEvent("oncharkeypressed", this, null, this.toogleWireframe, og.input.KEY_X);
+    this.renderer.input.setEvent("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 };
 
 og.control.ToggleWireframe.prototype.toogleWireframe = function (e) {

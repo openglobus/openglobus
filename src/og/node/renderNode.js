@@ -1,12 +1,14 @@
 goog.provide('og.node.RenderNode');
 
+
+goog.require('og.inheritance');
 goog.require('og.node.Node');
 goog.require('og.webgl');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 
 og.node.RenderNode = function (name) {
-    og.base(this, name);
+    og.inheritance.base(this, name);
     this.renderer = null;
     this.drawMode;
     this.show = true;
@@ -20,7 +22,7 @@ og.node.RenderNode = function (name) {
     this.itransformationMatrix = new og.math.Matrix4().setIdentity();
 };
 
-og.extend(og.node.RenderNode, og.node.Node);
+og.inheritance.extend(og.node.RenderNode, og.node.Node);
 
 og.node.RenderNode.prototype.setScale = function (xyz) {
     this.scaleMatrix.scale(xyz);

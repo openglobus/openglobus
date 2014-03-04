@@ -1,15 +1,17 @@
 goog.provide('og.node.Axes');
 
+
+goog.require('og.inheritance');
 goog.require('og.node.RenderNode');
 
 og.node.Axes = function (size) {
-    og.base(this, "Axes");
+    og.inheritance.base(this, "Axes");
     this.size = size;
     this.axesBuffer;
     this.axesColorBuffer;
 };
 
-og.extend(og.node.Axes, og.node.RenderNode);
+og.inheritance.extend(og.node.Axes, og.node.RenderNode);
 
 og.node.Axes.prototype.initialization = function () {
     this.createAxisBuffer(this.size);

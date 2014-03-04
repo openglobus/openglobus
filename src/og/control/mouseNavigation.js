@@ -1,5 +1,6 @@
 goog.provide('og.control.MouseNavigation');
 
+goog.require('og.inheritance');
 goog.require('og.control.Control');
 goog.require('og.math');
 goog.require('og.math.Vector3');
@@ -9,7 +10,7 @@ goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
 
 og.control.MouseNavigation = function (options) {
-    og.base(this, options);
+    og.inheritance.base(this, options);
     this.grabbedPoint = new og.math.Vector3();
     this.hasGrabbedPoint = false;
     this.x0 = 0;
@@ -23,7 +24,7 @@ og.control.MouseNavigation = function (options) {
     this.planet;
 };
 
-og.extend(og.control.MouseNavigation, og.control.Control);
+og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
     var pos = this.planet.getCartesianFromPixelTerrain(this.renderer.mouseState);

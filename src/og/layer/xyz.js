@@ -1,13 +1,14 @@
 goog.provide('og.layer.XYZ');
 
+goog.require('og.inheritance');
 goog.require('og.layer.Layer');
 goog.require('og.quadTree');
 
 og.layer.XYZ = function (name, options) {
-    og.base(this, name, options);
+    og.inheritance.base(this, name, options);
 };
 
-og.extend(og.layer.XYZ, og.layer.Layer);
+og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {

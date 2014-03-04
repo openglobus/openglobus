@@ -1,13 +1,14 @@
 goog.provide('og.layer.WMS');
 
+goog.require('og.inheritance');
 goog.require('og.layer.XYZ');
 
 og.layer.WMS = function (name, options) {
-    og.base(this, name, options);
+    og.inheritance.base(this, name, options);
     this.layers = options.layers;
 }
 
-og.extend(og.layer.WMS, og.layer.XYZ);
+og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
 
 og.layer.WMS.prototype.GetHTTPRequestString = function (segment) {
     return this.url + "wms?" + "LAYERS=" + this.layers +

@@ -1,17 +1,18 @@
 goog.provide('og.control.MousePosition');
 
+goog.require('og.inheritance');
 goog.require('og.control.Control');
 goog.require('og.planetSegment');
 goog.require('og.mercator');
 
 og.control.MousePosition = function (options) {
-    og.base(this, options);
+    og.inheritance.base(this, options);
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
     this.display = null;
 };
 
-og.extend(og.control.MousePosition, og.control.Control);
+og.inheritance.extend(og.control.MousePosition, og.control.Control);
 
 og.control.MousePosition.toDecimal = function (ll) {
     var str = ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);
