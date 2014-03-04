@@ -64,10 +64,10 @@ og.control.MousePosition.prototype.init = function () {
     };
     document.body.appendChild(this.display);
 
-    this.renderer.renderNodes.Earth.events.on("ondraw", this, this.draw);
+    this.renderer.events.on("onmousemove", this, this.onMouseMove);
 };
 
-og.control.MousePosition.prototype.draw = function () {
+og.control.MousePosition.prototype.onMouseMove = function () {
     var ms = this.renderer.mouseState;
     if (!(ms.leftButtonDown || ms.rightButtonDown)) {
         var ll = this.renderer.renderNodes.Earth.getLonLatFromPixelTerrain(ms);
