@@ -257,7 +257,7 @@ og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
     northEast.sub(center);
     southWest.sub(center);
 
-    var direction = ellipsoid.getSurfaceNormal(center).negate().normalize();//center.normal();
+    var direction = center.normal();//ellipsoid.getSurfaceNormal(center).negate().normalize();
     var right = direction.cross(og.math.Vector3.UP).normalize();
     var up = right.cross(direction).normalize();
 
