@@ -223,7 +223,6 @@ og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * Math.tan(og.math.DEG2RAD(this.viewAngle) * 0.5);
 };
 
-//camera, extent, ellipsoid, result, positionOnly
 og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
 
     var north = extent.getNorth();
@@ -258,8 +257,8 @@ og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
     northEast.sub(center);
     southWest.sub(center);
 
-    var direction = center.normal();
-    var right = direction.cross(og.math.Vector3.BACKWARD).normalize();
+    var direction = ellipsoid.getSurfaceNormal(center).negate().normalize();//center.normal();
+    var right = direction.cross(og.math.Vector3.UP).normalize();
     var up = right.cross(direction).normalize();
 
     var height = Math.max(
