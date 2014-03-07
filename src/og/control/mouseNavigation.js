@@ -66,7 +66,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
             var look, up;
             if (cam.altitude < 500) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
-                up = og.math.Vector3.sub(cam.eye, og.math.Vector3.ZERO).normalize();
+                up = cam.v;
                 look = og.math.Vector3.sub(cam.eye, cam.n);
             } else {
                 var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
