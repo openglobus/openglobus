@@ -13,6 +13,10 @@ og.Ellipsoid = function (equatorialSize, polarSize) {
     this._e2 = Math.pow(this._e, 2);
     this._k = Math.sqrt(this.a2 - this.b2) / b;
     this._k2 = Math.pow(this._k, 2);
+    this._radii = new og.math.Vector3(equatorialSize, polarSize, equatorialSize);
+    this._radii2 = new og.math.Vector3(equatorialSize * equatorialSize, polarSize * polarSize, equatorialSize * equatorialSize);
+    this._invRadii = new og.math.Vector3(1 / equatorialSize, 1 / polarSize, 1 / equatorialSize);
+    this._invRadii2 = new og.math.Vector3(1 / (equatorialSize * equatorialSize), 1 / (polarSize * polarSize), 1 / (equatorialSize * equatorialSize));
 };
 
 og.Ellipsoid.prototype.N = function (phi) {
@@ -57,6 +61,6 @@ og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
     return new og.LonLat(lon, lat, h);
 };
 
-og.Ellipsoid.prototype.getSurfaceNormal = function (lonlat) {
-    return this.LonLat2ECEF(lonlat).normalize();
+og.Ellipsoid.prototype.getSurfaceNormal = function (cartesian) {
+    return og.math.Vector3.mull(cartesian, this._invRadii2).normalize();
 };
