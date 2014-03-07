@@ -14,8 +14,8 @@ og.bv.getBoundsFromExtent = function (ellipsoid, extent) {
         og.mercator.inverseMercator(extent.northEast.lon, extent.southWest.lat));
 
     for (var i = 0; i < v.length; i++) {
-        var coord = ellipsoid.LonLat2ECEF(v[i], 0);
-        var x = coord.y, y = coord.z, z = coord.x;
+        var coord = ellipsoid.LonLat2ECEF(v[i]);
+        var x = coord.x, y = coord.y, z = coord.z;
         if (x < xmin) xmin = x;
         if (x > xmax) xmax = x;
         if (y < ymin) ymin = y;

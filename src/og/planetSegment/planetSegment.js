@@ -199,10 +199,10 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
             var gr = og.mercator.inverseMercator(e.southWest.lon + j * llStep, e.northEast.lat - i * llStep);
-            var v = this.planet.ellipsoid.LonLat2ECEF(gr, 0);
+            var v = this.planet.ellipsoid.LonLat2ECEF(gr);
+            verts[ind++] = v.x;
             verts[ind++] = v.y;
             verts[ind++] = v.z;
-            verts[ind++] = v.x;
         }
     }
     this.plainVertices = verts;

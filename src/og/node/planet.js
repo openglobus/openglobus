@@ -308,3 +308,9 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
     b.deactivate();
     this.renderedNodes.length = 0;
 };
+
+og.node.Planet.prototype.viewToExtent = function (extent) {
+    var cam = this.renderer.activeCamera;
+    var pos = cam.getExtentPosition(extent, this.ellipsoid);
+    cam.set(pos, og.math.Vector3.ZERO, og.math.Vector3.UP);
+};

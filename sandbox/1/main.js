@@ -33,7 +33,16 @@ og.webgl.MAX_FRAME_DELAY = 15;
     //    fragmentShader: og.utils.readTextFile("../src/og/shaders/flat_fs.txt")
     //});
 
-
+/*
+	var space = new og.Scene({
+		layers:[],
+		terrains:[],
+		nodes: [],
+		autoActivate: true,
+		target: 'globus',
+		cameras: [],		
+	});
+*/
     context = new og.webgl.Handler("canvas");
     context.addShaderProgram(og.shaderProgram.skybox);
     context.init();

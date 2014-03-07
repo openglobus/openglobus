@@ -28,7 +28,7 @@ og.Ellipsoid.prototype.LonLat2ECEF = function (lonlat) {
     var x = (this.N(latrad) + lonlat.height) * Math.cos(latrad) * Math.cos(lonrad);
     var y = (this.N(latrad) + lonlat.height) * Math.cos(latrad) * Math.sin(lonrad);
     var z = (this.N(latrad) * (1 - this._e2) + lonlat.height) * Math.sin(latrad);
-    return new og.math.Vector3(x, y, z);
+    return new og.math.Vector3(y, z, x);
 };
 
 og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
@@ -55,4 +55,8 @@ og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
     var lat = phi / Math.PI * 180;
     var lon = lambda / Math.PI * 180;
     return new og.LonLat(lon, lat, h);
+};
+
+og.Ellipsoid.prototype.getSurfaceNormal = function (lonlat) {
+    return this.LonLat2ECEF(lonlat).normalize();
 };

@@ -215,11 +215,72 @@ og.Camera.prototype.project = function (v) {
 
 og.Camera.prototype.setgp = function (ellipsoid, lonlat) {
     this.altitude = lonlat.height;
-    var v = ellipsoid.LonLat2ECEF(lonlat);
-    this.eye.set(v[Y], v[Z], v[X]);
+    this.eye = ellipsoid.LonLat2ECEF(lonlat);
     this.update();
 };
 
 og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * Math.tan(og.math.DEG2RAD(this.viewAngle) * 0.5);
+};
+
+//camera, extent, ellipsoid, result, positionOnly
+og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
+
+    var north = extent.getNorth();
+    var south = extent.getSouth();
+    var east = extent.getEast();
+    var west = extent.getWest();
+
+    if (west > east) {
+        east += 360;
+    }
+
+    var cart = new og.LonLat(east, north);
+    var northEast = ellipsoid.LonLat2ECEF(cart);
+    cart.lat = south;
+    var southEast = ellipsoid.LonLat2ECEF(cart);
+    cart.lon = west;
+    var southWest = ellipsoid.LonLat2ECEF(cart);
+    cart.lat = north;
+    var northWest = ellipsoid.LonLat2ECEF(cart);
+
+    var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
+
+    var mag = center.length();
+    if (mag < 0.000001) {
+        cart.lon = (east + west) * 0.5;
+        cart.lat = (north + south) * 0.5;
+        center = ellipsoid.LonLat2ECEF(cart);
+    }
+
+    northWest.sub(center);
+    southEast.sub(center);
+    northEast.sub(center);
+    southWest.sub(center);
+
+    var direction = center.normal();
+    var right = direction.cross(og.math.Vector3.BACKWARD).normalize();
+    var up = right.cross(direction).normalize();
+
+    var height = Math.max(
+      Math.abs(up.dot(northWest)),
+      Math.abs(up.dot(southEast)),
+      Math.abs(up.dot(northEast)),
+      Math.abs(up.dot(southWest))
+    );
+
+    var width = Math.max(
+      Math.abs(right.dot(northWest)),
+      Math.abs(right.dot(southEast)),
+      Math.abs(right.dot(northEast)),
+      Math.abs(right.dot(southWest))
+    );
+
+    var tanPhi = Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
+    var tanTheta = this.aspect * tanPhi;
+    var d = Math.max(width / tanTheta, height / tanPhi);
+
+    center.normalize();
+    center.scale(mag + d);
+    return center;
 };
