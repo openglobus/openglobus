@@ -9,10 +9,11 @@ goog.require('og.Events');
 og.Camera = function (options) {
 
     this.events = new og.Events();
+    this.renderer = null;
 
     this.events.registerNames(["onviewchanged"]);
 
-    this.eye = new og.math.Vector3(0, 0, 0);
+    this.eye = new og.math.Vector3();
     this.u = new og.math.Vector3(0, 1, 0); //up x n
     this.v = new og.math.Vector3(1, 0, 0); //n x u - UP
     this.n = new og.math.Vector3(0, 0, 1); //eye - look - FORWARD
@@ -21,7 +22,6 @@ og.Camera = function (options) {
     this.nearDist = 0;
     this.farDist = 0;
     this.viewAngle = 0;
-    this.renderer = null;
 
     this.pMatrix = new og.math.Matrix4();
     this.mvMatrix = new og.math.Matrix4();
@@ -220,7 +220,7 @@ og.Camera.prototype.setgp = function (ellipsoid, lonlat) {
 };
 
 og.Camera.prototype.projectedSize = function (p) {
-    return this.eye.distance(p) * Math.tan(og.math.DEG2RAD(this.viewAngle) * 0.5);
+    return this.eye.distance(p) * Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
 };
 
 og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {

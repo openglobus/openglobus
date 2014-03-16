@@ -35,7 +35,10 @@ og.Ellipsoid.prototype.LonLat2ECEF = function (lonlat) {
     return new og.math.Vector3(y, z, x);
 };
 
-og.Ellipsoid.prototype.ECEF2LonLat = function (x, y, z) {
+og.Ellipsoid.prototype.ECEF2LonLat = function (cartesian) {
+    var x = cartesian.z,
+        y = cartesian.x,
+        z = cartesian.y;
     var ecc2 = this._e2;
     var ecc22 = this._k2;
     var r2 = x * x + y * y;
