@@ -10,6 +10,7 @@ og.control.MousePosition = function (options) {
     this.displayType = 0;
     this.converter = og.control.MousePosition.DisplayTypesConverters[0];
     this.display = null;
+    this.position = null;
 };
 
 og.inheritance.extend(og.control.MousePosition, og.control.Control);
@@ -61,20 +62,25 @@ og.control.MousePosition.prototype.init = function () {
         if (that.displayType >= og.control.MousePosition.DisplayTypesConverters.length)
             that.displayType = 0;
         that.converter = og.control.MousePosition.DisplayTypesConverters[that.displayType];
+        that.showPosition();
     };
     document.body.appendChild(this.display);
 
     this.renderer.events.on("onmousemove", this, this.onMouseMove);
 };
 
+og.control.MousePosition.prototype.showPosition = function () {
+    if (this.position) {
+        this.display.innerHTML = "Lat/Lon: " + this.converter(this.position) + " Height(m): " + (this.position.height > 0 ? "~" + Math.round(this.position.height * 1000) : "-");
+    } else {
+        this.display.innerHTML = "Lat/Lon: " + "_____________________";
+    }
+};
+
 og.control.MousePosition.prototype.onMouseMove = function () {
     var ms = this.renderer.mouseState;
     if (!(ms.leftButtonDown || ms.rightButtonDown)) {
-        var ll = this.renderer.renderNodes.Earth.getLonLatFromPixelTerrain(ms);
-        if (ll) {
-            this.display.innerHTML = "Lat/Lon: " + this.converter(ll) + " Height(m): " + (ll.height > 0 ? "~" + Math.round(ll.height * 1000) : "-");
-        } else {
-            this.display.innerHTML = "Lat/Lon: " + "_____________________";
-        }
+        this.position = this.renderer.renderNodes.Earth.getLonLatFromPixelTerrain(ms);
+        this.showPosition();
     }
 };
