@@ -30,7 +30,6 @@ og.node.Planet = function (name, ellipsoid) {
     this.tcolorArr = new Float32Array(og.layer.MAX_OVERLAYS * 4);
     this.baseLayer;
     this.terrainProvider;
-    this.emptyTexture = null;
 
     this.createdNodesCount = 0;
     this.renderedNodes = [];
@@ -114,11 +113,10 @@ og.node.Planet.prototype.initialization = function () {
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
-    this.loadEmptyTexture(og.RESOURCES_URL + "images/planet/empty.jpg");
 
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.single);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.picking);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays, true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.single, true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.picking, true);
 
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
@@ -139,15 +137,6 @@ og.node.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     });
 
-};
-
-og.node.Planet.prototype.loadEmptyTexture = function (url) {
-    var that = this,
-        img = new Image();
-    img.onload = function () {
-        that.emptyTexture = that.renderer.handler.createTextureFromImage(this);
-    };
-    img.src = url;
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {
