@@ -1,6 +1,7 @@
 goog.provide('og.webgl.Framebuffer');
 
 goog.require('og.webgl');
+goog.require('og.ImageCanvas');
 
 og.webgl.Framebuffer = function (gl) {
     this.gl = gl;
@@ -8,6 +9,7 @@ og.webgl.Framebuffer = function (gl) {
     this.width;
     this.height;
     this.texture = null;
+    this._imageCanvas = null;
 };
 
 og.webgl.Framebuffer.prototype.initialize = function () {
@@ -15,6 +17,7 @@ og.webgl.Framebuffer.prototype.initialize = function () {
     this.fbo = gl.createFramebuffer();
     this.width = gl.canvas.width;
     this.height = gl.canvas.height;
+    this._imageCanvas = new og.ImageCanvas(this.width, this.height);
     this._createTexture();
 };
 
@@ -39,6 +42,7 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
     this._createTexture();
+    this._imageCanvas.resize(width, height);
 };
 
 og.webgl.Framebuffer.prototype.isComplete = function () {
@@ -80,16 +84,6 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
 
 og.webgl.Framebuffer.prototype.getImage = function () {
     var data = this.readPixels(0, 0, this.width, this.height);
-    var canvas = document.createelement('canvas');
-    canvas.width = this.width;
-    canvas.height = this.height;
-    var context = canvas.getcontext('2d');
-
-    var imagedata = context.createImageData(this.width, this.height);
-    imagedata.data.set(data);
-    context.putImageData(imagedata, 0, 0);
-
-    var img = new Image();
-    img.src = canvas.toDatUrl();
-    return img;
+    this._imageCanvas.setData(data);
+    return this._imageCanvas.getImage();
 };
