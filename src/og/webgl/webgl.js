@@ -4,6 +4,8 @@ goog.require('og.utils');
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 og.webgl.MAX_FRAME_DELAY = 24;
+og.webgl.RESOURCES_URL = "../../resources/";
+
 
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
