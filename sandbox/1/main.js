@@ -15,23 +15,10 @@ goog.require('og.math.coder');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.node.SkyBox');
-goog.require('og.shaderProgram.skybox');
 
 
 function start() {
 og.webgl.MAX_FRAME_DELAY = 15;
-
-    //var flatShader = new og.shaderProgram.ShaderProgram("flat", {
-    //    uniforms: {
-    //        uPMVMatrix: { type: og.shaderProgram.types.MAT4 }
-    //    },
-    //    attributes: {
-    //        aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-    //        aVertexColor: { type: og.shaderProgram.types.VEC4, enableArray: true }
-    //    },
-    //    vertexShader: og.utils.readTextFile("../src/og/shaders/flat_vs.txt"),
-    //    fragmentShader: og.utils.readTextFile("../src/og/shaders/flat_fs.txt")
-    //});
 
 /*
 	var space = new og.Scene({
@@ -43,8 +30,8 @@ og.webgl.MAX_FRAME_DELAY = 15;
 		cameras: [],		
 	});
 */
+
     context = new og.webgl.Handler("canvas");
-    context.addShaderProgram(og.shaderProgram.skybox);
     context.init();
 
     renderer = new og.Renderer(context);
@@ -78,11 +65,18 @@ og.webgl.MAX_FRAME_DELAY = 15;
     planet.setBaseLayer(satlayer);
     planet.setTerrainProvider(terrain);
 
-    var skybox = new og.node.SkyBox();
+    var skybox = new og.node.SkyBox({
+	"positiveX":"../../resources/images/skyboxes/tycho/px.jpg",
+	"negativeX":"../../resources/images/skyboxes/tycho/nx.jpg",
+	"positiveY":"../../resources/images/skyboxes/tycho/py.jpg",
+	"negativeY":"../../resources/images/skyboxes/tycho/ny.jpg",
+	"positiveZ":"../../resources/images/skyboxes/tycho/pz.jpg",
+	"negativeZ":"../../resources/images/skyboxes/tycho/nz.jpg"
+    });
     //var axes = new og.node.Axes(10000);
 
+    renderer.addRenderNode(skybox);
     renderer.addRenderNode(planet);
-    //renderer.addRenderNode(skybox);
     //renderer.addRenderNode(axes);
 
     renderer.addControls([
