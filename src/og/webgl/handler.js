@@ -3,6 +3,7 @@ goog.provide('og.webgl.Handler');
 goog.require('og.webgl');
 goog.require('og.math');
 goog.require('og.webgl.ShaderController');
+goog.require('og.ImageCanvas');
 
 og.webgl.Handler = function (htmlId) {
     this.lastAnimationFrameTime = 0;
@@ -13,6 +14,7 @@ og.webgl.Handler = function (htmlId) {
     this.htmlCanvasId = htmlId;
     this.gl;
     this._initialized = false;
+    this.emptyTexture = null;
     this.drawback = function (x) { };
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
@@ -44,11 +46,61 @@ og.webgl.Handler.prototype.createTextureFromImage = function (image) {
     return texture;
 };
 
-og.webgl.Handler.prototype.addShaderProgram = function (program) {
+og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    var faces = [[params.positiveX, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+                 [params.negativeX, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+                 [params.positiveY, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+                 [params.negativeY, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+                 [params.positiveZ, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+                 [params.negativeZ, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
+
+    var imageCanvas = new og.ImageCanvas();
+    imageCanvas.fillEmpty();
+    var emptyImage = imageCanvas.getImage();
+
+    for (var i = 0; i < faces.length; i++) {
+        var face = faces[i][1];
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
+    }
+
+    for (var i = 0; i < faces.length; i++) {
+        var face = faces[i][1];
+        var image = new Image();
+        image.onload = function (texture, face, image) {
+            return function () {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            }
+        }(texture, face, image);
+        image.src = faces[i][0];
+    }
+    return texture;
+};
+
+og.webgl.Handler.prototype.createEmptyTexture = function (url) {
+    var imageCanvas = new og.ImageCanvas();
+    imageCanvas.fillEmpty();
+    this.emptyTexture = this.createTextureFromImage(imageCanvas.getImage());
+};
+
+og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     if (!this.shaderPrograms[program.name]) {
         var sc = new og.webgl.ShaderController(this, program);
         this.shaderPrograms[program.name] = sc;
         this._initShaderController(sc);
+        if (notActivate)
+            sc._activated = false;
     } else {
         alert(program.name + " is allready exists.");
     }
@@ -88,6 +140,7 @@ og.webgl.Handler.prototype.initShaderPrograms = function () {
 og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this._initialized = true;
+    this.createEmptyTexture();
     this.initShaderPrograms();
     this.setDefaults();
 };
@@ -153,7 +206,7 @@ og.webgl.Handler.prototype.applyViewport = function (width, height) {
 };
 
 og.webgl.Handler.prototype.viewportResized = function () {
-    return  this.gl.canvas.clientWidth  != this.gl.canvas.width ||
+    return this.gl.canvas.clientWidth != this.gl.canvas.width ||
             this.gl.canvas.clientHeight != this.gl.canvas.height;
 };
 
