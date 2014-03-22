@@ -50,6 +50,14 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLER2D] = function (progr
     program._textureID++;
 };
 
+og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLERCUBE] = function (program, variable) {
+    var pgl = program.gl;
+    pgl.activeTexture(pgl.TEXTURE0 + program._textureID);
+    pgl.bindTexture(pgl.TEXTURE_CUBE_MAP, variable.value);
+    pgl.uniform1i(variable._pName, program._textureID);
+    program._textureID++;
+};
+
 og.shaderProgram.callbacks.u[og.shaderProgram.types.SAMPLER2DXX] = function (program, variable) {
     var pgl = program.gl,
         size = variable.value.length;
