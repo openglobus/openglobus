@@ -54,16 +54,45 @@ og.node.Planet.prototype.getLayerByName = function (name) {
     return null;
 };
 
+/**
+ * Adds the given layer to the top of this map.
+ * @param {og.layer.Layer} layer Layer.
+ */
 og.node.Planet.prototype.addLayer = function (layer) {
     layer.planet = this;
+    if (layer.isBaseLayer && layer.visibility) {
+        this.setBaseLayer(layer);
+    }
     this.layers.push(layer);
     this.updateVisibleLayers();
 };
 
+/**
+ * Adds the given layers array to the top of this map.
+ * @param {og.layer.Layer} layer Layer.
+ */
 og.node.Planet.prototype.addLayers = function (layers) {
     for (var i = 0; i < layers.length; i++) {
         this.addLayer(layers[i]);
     }
+};
+
+/**
+ * Removes the given layer from the map.
+ * @param {og.layer.Layer} layer Layer.
+ * @return {og.layer.Layer|undefined} The removed layer or undefined if the
+ *     layer was not found.
+ */
+og.node.Planet.prototype.removeLayer = function (layer) {
+
+};
+
+/**
+ * Get the collection of layers associated with this planet.
+ * @return {Array|undefined} Layers.
+ */
+og.node.Planet.prototype.getLayers = function () {
+    return this.layers;
 };
 
 og.node.Planet.prototype.setBaseLayer = function (layer) {
@@ -74,13 +103,15 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
                     this.layers[i].visibility = false;
                 }
             }
-            layer.setVisibility(true);
+            layer.visibility = true;
             this.baseLayer.abortLoading();
             this.baseLayer = layer;
         }
     } else {
         this.baseLayer = layer;
+        this.baseLayer.setVisibility(true);
     }
+    this.updateVisibleLayers();
 };
 
 og.node.Planet.prototype.setHeightFactor = function (factor) {
@@ -143,6 +174,9 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
     this.visibleLayers.length = 0;
     for (var i = 0; i < this.layers.length; i++) {
         if (this.layers[i].visibility) {
+            if (this.layers[i].isBaseLayer) {
+                this.baseLayer = this.layers[i];
+            }
             this.visibleLayers.push(this.layers[i]);
         }
     }

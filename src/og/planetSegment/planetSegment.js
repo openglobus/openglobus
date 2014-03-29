@@ -214,13 +214,13 @@ og.planetSegment.drawSingle = function (sh, segment) {
         var sha = sh.attributes,
             shu = sh.uniforms;
         var layers = segment.planet.visibleLayers;
-
-        var baseMat = segment.materials[layers[0].id];
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
-        gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
-        gl.uniform1i(shu.uSampler._pName, 0);
-
+        if (layers.length) {
+            var baseMat = segment.materials[layers[0].id];
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
+            gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
+            gl.uniform1i(shu.uSampler._pName, 0);
+        }
         segment.draw(sh);
     }
 };

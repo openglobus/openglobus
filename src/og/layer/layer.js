@@ -16,7 +16,7 @@ og.layer.Layer = function (name, options) {
     this.planet = null;
 
     this.events = new og.Events();
-    this.events.registerNames(["onload","onloadend"]);
+    this.events.registerNames(["onload", "onloadend"]);
 
     if (options) {
         this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
@@ -50,6 +50,9 @@ og.layer.Layer.prototype.abortLoading = function () {
 };
 
 og.layer.Layer.prototype.setVisibility = function (visibility) {
+    if (this.isBaseLayer && visibility) {
+        this.planet.setBaseLayer(this);
+    }
     this.visibility = visibility;
     this.planet.updateVisibleLayers();
 };
