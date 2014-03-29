@@ -18,6 +18,7 @@ goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellips
 goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent'], ['og.LonLat']);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], []);
+goog.addDependency('../../../og/src/og/globus.js', ['og.Globus'], ['og.Renderer', 'og.ellipsoid.wgs84', 'og.node.Planet', 'og.webgl.Handler']);
 goog.addDependency('../../../og/src/og/imageCanvas/imageCanvas.js', ['og.ImageCanvas'], []);
 goog.addDependency('../../../og/src/og/inheritance.js', ['og.inheritance'], []);
 goog.addDependency('../../../og/src/og/input/input.js', ['og.input', 'og.input.Input'], []);
