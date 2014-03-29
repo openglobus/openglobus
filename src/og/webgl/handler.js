@@ -217,7 +217,7 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
     }
     sender.calculateFPS(now);
     sender.clearFrame();
-    sender.drawback(sender);
+    sender.drawback();
     og.webgl.requestAnimationFrame(sender.drawFrame, sender);
 };
 
@@ -227,6 +227,6 @@ og.webgl.Handler.prototype.clearFrame = function () {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
-og.webgl.Handler.prototype.Start = function () {
+og.webgl.Handler.prototype.start = function () {
     og.webgl.requestAnimationFrame(this.drawFrame, this);
 };

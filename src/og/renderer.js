@@ -34,17 +34,36 @@ og.Renderer = function (handler) {
     this._mousestopThread = null;
 };
 
+/**
+ * Add the given control to the renderer.
+ * @param {og.control.Control} control Control.
+ */
 og.Renderer.prototype.addControl = function (control) {
     control.setRenderer(this);
     this.controls.push(control);
 };
 
+/**
+ * Add the given controls array to the planet node.
+ * @param {og.control.Control} control Control.
+ */
 og.Renderer.prototype.addControls = function (cArr) {
     for (var i = 0; i < cArr.length; i++) {
         cArr[i].setRenderer(this);
         this.controls.push(cArr[i]);
     }
 };
+
+/**
+ * Remove the given control from the renderer.
+ * @param {og.control.Control} control Control.
+ * @return {og.control.Control|undefined} The removed control of undefined
+ *     if the control was not found.
+ */
+og.Renderer.prototype.removeControl = function (control) {
+
+};
+
 
 og.Renderer.prototype.init = function () {
     var that = this;
@@ -198,6 +217,6 @@ og.Renderer.prototype.handleMouseEvents = function () {
     }
 };
 
-og.Renderer.prototype.Start = function () {
-    this.handler.Start();
+og.Renderer.prototype.start = function () {
+    this.handler.start();
 };
