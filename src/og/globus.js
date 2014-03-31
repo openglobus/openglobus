@@ -38,6 +38,10 @@ og.Globus = function (options) {
      */
     this.div = document.getElementById(options.target);
     this.div.appendChild(_canvas);
+    function _disableWheel() { return false; };
+    function _enableWheel() { return true; };
+    this.div.onmouseenter = function () { document.onmousewheel = _disableWheel };
+    this.div.onmouseleave = function () { document.onmousewheel = _enableWheel };
 
     //WegGL handler creation
     var _handler = new og.webgl.Handler(_canvasId);
