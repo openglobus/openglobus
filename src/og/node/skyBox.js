@@ -15,7 +15,7 @@ og.node.SkyBox = function (params) {
 og.inheritance.extend(og.node.SkyBox, og.node.RenderNode);
 
 og.node.SkyBox.prototype.initialization = function () {
-    this.renderer.handler.addShaderProgram(og.shaderProgram.skybox, true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.skybox(), true);
     this.texture = this.renderer.handler.loadCubeMapTexture(this.params);
     this.createBuffers();
     this.drawMode = this.renderer.handler.gl.TRIANGLES;

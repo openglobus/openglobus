@@ -145,9 +145,9 @@ og.node.Planet.prototype.initialization = function () {
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
 
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays, true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.single, true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.picking, true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.single(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
