@@ -76,6 +76,7 @@ og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     for (var i = 0; i < faces.length; i++) {
         var face = faces[i][1];
         var image = new Image();
+        image.crossOrigin = '';
         image.onload = function (texture, face, image) {
             return function () {
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
