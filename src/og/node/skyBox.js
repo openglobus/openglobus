@@ -7,7 +7,6 @@ goog.require('og.shaderProgram.skybox');
 og.node.SkyBox = function (params) {
     og.inheritance.base(this, "skybox");
     this.params = params;
-
     this.vertexPositionBuffer = null;
     this.texture = null;
 };
@@ -39,14 +38,6 @@ og.node.SkyBox.prototype.frame = function () {
     gl.vertexAttribPointer(sh.attributes.aVertexPosition._pName, buf.itemSize, gl.FLOAT, false, 0, 0);
     gl.drawArrays(this.drawMode, 0, buf.numItems);
     h.gl.enable(h.gl.DEPTH_TEST);
-    //The same but slower
-    //h.shaderPrograms.skybox.set({
-    //    uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
-    //    pos: this.renderer.activeCamera.eye.toVec(),
-    //    uSampler: this.texture,
-    //    aVertexPosition: this.vertexPositionBuffer
-    //});
-    //h.shaderPrograms.skybox.drawArray(this.drawMode, this.vertexPositionBuffer.numItems);
 };
 
 og.node.SkyBox.prototype.createBuffers = function () {
