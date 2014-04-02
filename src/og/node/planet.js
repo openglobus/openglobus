@@ -51,7 +51,7 @@ og.node.Planet.prototype.getLayerByName = function (name) {
         if (this.layers[i].name === name)
             return this.layers[i];
     }
-    return null;
+    return undefined;
 };
 
 /**
@@ -84,12 +84,21 @@ og.node.Planet.prototype.addLayers = function (layers) {
  *     layer was not found.
  */
 og.node.Planet.prototype.removeLayer = function (layer) {
-
+    for (var i = 0; i < this.layers.length; i++) {
+        if (this.layers[i] === layer) {            
+            this.layers.splice(i, 1);
+            layer.setVisibility(false);
+            layer.abortLoading();
+            //TODO: remove from materials
+            return layer;
+        }
+    }
+    return undefined;
 };
 
 /**
  * Get the collection of layers associated with this planet.
- * @return {Array|undefined} Layers.
+ * @return {Array} Layers.
  */
 og.node.Planet.prototype.getLayers = function () {
     return this.layers;
@@ -123,10 +132,6 @@ og.node.Planet.prototype.setHeightFactor = function (factor) {
 
 og.node.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
-};
-
-og.node.Planet.prototype.removeLayer = function (layer) {
-    //...
 };
 
 og.node.Planet.prototype.initialization = function () {

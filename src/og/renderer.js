@@ -64,7 +64,14 @@ og.Renderer.prototype.addControls = function (cArr) {
  *     if the control was not found.
  */
 og.Renderer.prototype.removeControl = function (control) {
-
+    for (var i = 0; i < this.controls.length; i++) {
+        if (this.controls[i] == control) {
+            this.controls.splice(i, 1);
+            control.deactivate();
+            return control;
+        }
+    }
+    return undefined;
 };
 
 
