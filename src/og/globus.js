@@ -38,6 +38,7 @@ og.Globus = function (options) {
      */
     this.div = document.getElementById(options.target);
     this.div.appendChild(_canvas);
+    this.div.classList.add("ogViewport");
     function _disableWheel() { return false; };
     function _enableWheel() { return true; };
     this.div.onmouseenter = function () { document.onmousewheel = _disableWheel };
@@ -53,6 +54,7 @@ og.Globus = function (options) {
      */
     this.renderer = new og.Renderer(_handler);
     this.renderer.init();
+    this.renderer.div = this.div;
 
     //Skybox
     if (options.skybox) {

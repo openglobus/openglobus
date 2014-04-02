@@ -8,6 +8,7 @@ goog.require('og.Camera');
 goog.require('og.Events');
 
 og.Renderer = function (handler) {
+    this.div = null;
     this.handler = handler;
     this._renderNodesArr = [];
     this.renderNodes = {};

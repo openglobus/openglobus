@@ -64,7 +64,7 @@ og.control.MousePosition.prototype.init = function () {
         that.converter = og.control.MousePosition.DisplayTypesConverters[that.displayType];
         that.showPosition();
     };
-    document.body.appendChild(this.display);
+    this.renderer.div.appendChild(this.display);
 
     this.renderer.events.on("onmousemove", this, this.onMouseMove);
 };

@@ -50,7 +50,7 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
     this.dialog = document.createElement('div');
     this.dialog.id = "ogLayerSwitcherDialog";
     this.dialog.className = "displayNone";
-    document.body.appendChild(this.dialog);
+    this.renderer.div.appendChild(this.dialog);
 
     this.createBaseLayersDiv();
     this.createOverlaysDiv();
@@ -127,6 +127,6 @@ og.control.LayerSwitcher.prototype.createSwitcher = function () {
             that.dialog.className = "displayNone";
         }
     };
-    document.body.appendChild(button);
+   this.renderer.div.appendChild(button);
 };
 
