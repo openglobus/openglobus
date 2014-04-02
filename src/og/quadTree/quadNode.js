@@ -405,3 +405,10 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
     }
     this.nodes.length = 0;
 };
+
+og.quadTree.QuadNode.prototype.traverseTree = function (callback) {
+    callback(this);
+    for (var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].traverseTree(callback);
+    }
+};

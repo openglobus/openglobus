@@ -85,11 +85,13 @@ og.node.Planet.prototype.addLayers = function (layers) {
  */
 og.node.Planet.prototype.removeLayer = function (layer) {
     for (var i = 0; i < this.layers.length; i++) {
-        if (this.layers[i] === layer) {            
+        if (this.layers[i] === layer) {
             this.layers.splice(i, 1);
             layer.setVisibility(false);
             layer.abortLoading();
-            //TODO: remove from materials
+            this.quadTree.traverseTree(function (node) {
+                node.planetSegment.materials[layer.id] = null;
+            });
             return layer;
         }
     }
