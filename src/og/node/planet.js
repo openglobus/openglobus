@@ -64,6 +64,7 @@ og.node.Planet.prototype.addLayer = function (layer) {
         this.setBaseLayer(layer);
     }
     this.layers.push(layer);
+    this.events.dispatch(this.events.onlayeradded, layer);
     this.updateVisibleLayers();
 };
 
@@ -84,14 +85,20 @@ og.node.Planet.prototype.addLayers = function (layers) {
  *     layer was not found.
  */
 og.node.Planet.prototype.removeLayer = function (layer) {
+    var lid = layer.id;
     for (var i = 0; i < this.layers.length; i++) {
-        if (this.layers[i] === layer) {
+        if (this.layers[i].id == lid) {
             this.layers.splice(i, 1);
             layer.setVisibility(false);
             layer.abortLoading();
             this.quadTree.traverseTree(function (node) {
-                node.planetSegment.materials[layer.id] = null;
+                var mats = node.planetSegment.materials;
+                if (mats[lid]) {
+                    mats[lid].clear();
+                    mats[lid] = null;
+                }                
             });
+            this.events.dispatch(this.events.onlayerremoved, layer);
             return layer;
         }
     }
@@ -160,7 +167,11 @@ og.node.Planet.prototype.initialization = function () {
     this.backbuffer.initialize();
     this.updateVisibleLayers();
     this.events.registerNames([
-        "ondraw"
+        "ondraw",
+        "onlayeradded",
+        "onchangebaselayer",
+        "onchangelayer",
+        "onlayerremoved"
     ]);
 
     this.renderer.events.on("onresize", this.backbuffer, function (e) {
