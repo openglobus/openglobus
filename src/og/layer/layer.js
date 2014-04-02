@@ -12,7 +12,7 @@ og.layer.DEFAILT_OPACITY = 1.0;
 
 og.layer.Layer = function (name, options) {
 
-    this.name = (name ? name : "noname");
+    this.name = name ? name : "noname";
     this.planet = null;
 
     this.events = new og.Events();
@@ -27,6 +27,8 @@ og.layer.Layer = function (name, options) {
         this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
         this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
     }
+
+    this.id = og.layer.layersCounter++;
 
     this.counter = 0;
     this.pendingsQueue = [];
