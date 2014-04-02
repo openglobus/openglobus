@@ -13,7 +13,7 @@ og.Events.prototype.on = function (name, sender, callback) {
 };
 
 og.Events.prototype.dispatch = function (event, obj) {
-    if (event.active) {
+    if (event && event.active) {
         var h = event.handlers;
         var i = h.length;
         while (i--) {
