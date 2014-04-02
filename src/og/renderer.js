@@ -2,7 +2,8 @@ goog.provide('og.Renderer');
 
 goog.require('og.math.Vector3');
 goog.require('og.input');
-goog.require('og.input.Input');
+goog.require('og.input.MouseHandler');
+goog.require('og.input.KeyboardHandler');
 goog.require('og.Camera');
 goog.require('og.Events');
 
@@ -13,7 +14,8 @@ og.Renderer = function (handler) {
     this.cameras = [];
     this.activeCamera;
 
-    this.input = new og.input.Input(handler.gl.canvas);
+    this.mouseHandler = new og.input.MouseHandler(handler.gl.canvas);
+    this.keyboardHandler = new og.input.KeyboardHandler(handler.gl.canvas);
     this.controls = [];
 
     this.events = new og.Events();
@@ -96,9 +98,9 @@ og.Renderer.prototype.init = function () {
 };
 
 og.Renderer.prototype.initMouseHandler = function () {
-    this.input.setEvent("onmouseup", this, this.onMouseUp);
-    this.input.setEvent("onmousemove", this, this.onMouseMove);
-    this.input.setEvent("onmousedown", this, this.onMouseDown);
+    this.mouseHandler.setEvent("onmouseup", this, this.onMouseUp);
+    this.mouseHandler.setEvent("onmousemove", this, this.onMouseMove);
+    this.mouseHandler.setEvent("onmousedown", this, this.onMouseDown);
 };
 
 og.Renderer.prototype.onMouseMove = function (event) {
@@ -154,7 +156,7 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 
 og.Renderer.prototype.draw = function () {
 
-    this.input.handleEvents();
+    this.keyboardHandler.handleEvents();
     this.handleMouseEvents();
 
     var ms = this.mouseState;
