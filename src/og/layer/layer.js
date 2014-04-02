@@ -52,6 +52,8 @@ og.layer.Layer.prototype.abortLoading = function () {
 og.layer.Layer.prototype.setVisibility = function (visibility) {
     if (this.isBaseLayer && visibility) {
         this.planet.setBaseLayer(this);
+    } else if (!visibility) {
+        this.abortLoading();
     }
     this.visibility = visibility;
     this.planet.updateVisibleLayers();
