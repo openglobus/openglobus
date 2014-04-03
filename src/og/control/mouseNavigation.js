@@ -33,12 +33,9 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         var d = this.distDiff * cam.eye.distance(pos);
         var dv = new og.math.Vector3(this.renderer.mouseState.direction.x * d, this.renderer.mouseState.direction.y * d, this.renderer.mouseState.direction.z * d);
         if (event.wheelDelta > 0) {
-            if (cam.altitude > 0.5)
-                cam.eye.add(dv);
-        }
-        else {
-            if (cam.altitude < 6000)
-                cam.eye.sub(dv);
+            cam.eye.add(dv);
+        } else {
+            cam.eye.sub(dv);
         }
         cam.update();
     }
