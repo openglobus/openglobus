@@ -5,8 +5,8 @@ goog.require('og.math.Vector3');
 goog.require('og.LonLat');
 
 og.Ellipsoid = function (equatorialSize, polarSize) {
-    var a = this._a = equatorialSize / 1000;
-    var b = this._b = polarSize / 1000;
+    var a = this._a = equatorialSize;
+    var b = this._b = polarSize;
     this.a2 = a * a;
     this.b2 = b * b;
     this._e = Math.sqrt(this.a2 - this.b2) / a;
