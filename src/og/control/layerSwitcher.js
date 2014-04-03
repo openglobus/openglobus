@@ -7,13 +7,26 @@ og.control.LayerSwitcher = function (options) {
     this.dialog = null;
     this.baseLayersDiv = null;
     this.overlaysDiv = null;
+    this._id = og.control.LayerSwitcher.numSwitches++;
 };
+
+og.control.LayerSwitcher.numSwitches = 0;
 
 og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
 
 og.control.LayerSwitcher.prototype.init = function () {
+    this.renderer.renderNodes.Earth.events.on("onlayeradded", this, this.onLayerAdded);
+    this.renderer.renderNodes.Earth.events.on("onlayerremoved", this, this.onLayerRemoved);
     this.createSwitcher();
     this.createDialog();
+};
+
+og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
+
+};
+
+og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
+
 };
 
 og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
@@ -89,7 +102,7 @@ og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
             inp.type = "radio";
             inp.value = i;
             inp.checked = layers[i].visibility;
-            inp.name = "ogBaseLayerCheckbox";
+            inp.name = "ogBaseLayerRadiosId" + this._id;
             inp.className = "ogLayerSwitcherInput";
             inp.onclick = function () { that.switchLayer.call(that, this); };
             block.appendChild(inp);
@@ -110,7 +123,7 @@ og.control.LayerSwitcher.prototype.switchLayer = function (obj) {
 og.control.LayerSwitcher.prototype.switchLayerVisibility = function (obj) {
     var rn = this.renderer.renderNodes.Earth;
     var lr = rn.layers[obj.value];
-    lr.setVisibility( lr.getVisibility() ? false : true );
+    lr.setVisibility(lr.getVisibility() ? false : true);
 };
 
 og.control.LayerSwitcher.prototype.createSwitcher = function () {
@@ -127,6 +140,6 @@ og.control.LayerSwitcher.prototype.createSwitcher = function () {
             that.dialog.className = "displayNone";
         }
     };
-   this.renderer.div.appendChild(button);
+    this.renderer.div.appendChild(button);
 };
 
