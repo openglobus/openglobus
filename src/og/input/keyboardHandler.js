@@ -32,7 +32,7 @@ og.input.KeyboardHandler = function () {
 
     this.handleKeyDown = function (event) {
         _currentlyPressedKeys[event.keyCode] = true;
-        for (var ch in this.charkeysCallbacks) {
+        for (var ch in _charkeysCallbacks) {
             if (String.fromCharCode(event.keyCode) == _charkeysCallbacks[ch].ch) {
                 var ccl = _charkeysCallbacks[ch];
                 ccl.callback.call(ccl.sender);
