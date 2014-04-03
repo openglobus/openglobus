@@ -60,12 +60,17 @@ og.node.Planet.prototype.getLayerByName = function (name) {
  */
 og.node.Planet.prototype.addLayer = function (layer) {
     layer.planet = this;
+    layer.events.on("onvisibilitychanged", this, this._onLayerVisibilityChanged);
     if (layer.isBaseLayer && layer.visibility) {
         this.setBaseLayer(layer);
     }
     this.layers.push(layer);
     this.events.dispatch(this.events.onlayeradded, layer);
     this.updateVisibleLayers();
+};
+
+og.node.Planet.prototype._onLayerVisibilityChanged = function (layer) {
+    this.events.dispatch(this.events.onlayervisibilitychanged, layer);
 };
 
 /**
@@ -96,7 +101,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
                 if (mats[lid]) {
                     mats[lid].clear();
                     mats[lid] = null;
-                }                
+                }
             });
             this.events.dispatch(this.events.onlayerremoved, layer);
             return layer;
@@ -119,9 +124,12 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
             for (var i = 0; i < this.layers.length; i++) {
                 if (this.layers[i].isBaseLayer) {
                     this.layers[i].visibility = false;
+                    if (this.layers[i].id != layer.id)
+                        this.layers[i].events.dispatch(this.layers[i].events.onvisibilitychanged, this.layers[i]);
                 }
             }
             layer.visibility = true;
+            layer.events.dispatch(layer.events.onvisibilitychanged, layer);
             this.baseLayer.abortLoading();
             this.baseLayer = layer;
         }
@@ -129,6 +137,7 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
         this.baseLayer = layer;
         this.baseLayer.setVisibility(true);
     }
+    this.events.dispatch(this.events.onbaselayerchanged, layer);
     this.updateVisibleLayers();
 };
 
@@ -169,9 +178,9 @@ og.node.Planet.prototype.initialization = function () {
     this.events.registerNames([
         "ondraw",
         "onlayeradded",
-        "onchangebaselayer",
-        "onchangelayer",
-        "onlayerremoved"
+        "onbaselayerchanged",
+        "onlayerremoved",
+        "onlayervisibilitychanged"
     ]);
 
     this.renderer.events.on("onresize", this.backbuffer, function (e) {
@@ -185,7 +194,6 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("onmousemove", this, function (e) {
         this._viewChanged = true;
     });
-
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {

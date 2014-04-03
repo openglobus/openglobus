@@ -17,16 +17,26 @@ og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
 og.control.LayerSwitcher.prototype.init = function () {
     this.renderer.renderNodes.Earth.events.on("onlayeradded", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("onlayerremoved", this, this.onLayerRemoved);
+    this.renderer.renderNodes.Earth.events.on("onbaselayerchanged", this, this.onBaseLayerChanged);
+    this.renderer.renderNodes.Earth.events.on("onlayervisibilitychanged", this, this.onLayerVisibilityChanged);
     this.createSwitcher();
     this.createDialog();
 };
 
 og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
-
+    console.log("added");
 };
 
 og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
+    console.log("removed");
+};
 
+og.control.LayerSwitcher.prototype.onBaseLayerChanged = function (layer) {
+    console.log("basechanged");
+};
+
+og.control.LayerSwitcher.prototype.onLayerVisibilityChanged = function (layer) {
+    console.log("changed " + layer.id);
 };
 
 og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
