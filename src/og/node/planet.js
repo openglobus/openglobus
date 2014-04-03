@@ -122,10 +122,11 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
         if (layer.id != this.baseLayer.id) {
             for (var i = 0; i < this.layers.length; i++) {
-                if (this.layers[i].isBaseLayer) {
-                    this.layers[i].visibility = false;
-                    if (this.layers[i].id != layer.id)
-                        this.layers[i].events.dispatch(this.layers[i].events.onvisibilitychanged, this.layers[i]);
+                var li = this.layers[i];
+                if (li.isBaseLayer) {
+                    li.visibility = false;
+                    if (li.id != layer.id)
+                        li.events.dispatch(li.events.onvisibilitychanged, li);
                 }
             }
             layer.visibility = true;
