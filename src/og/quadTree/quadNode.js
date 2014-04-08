@@ -309,10 +309,13 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
                 var tempVertices = [];
                 var psegVerts = pseg.terrainVertices;
+                var vInd = 0;
                 for (var i = i0; i <= i0 + gridSize; i++) {
                     for (var j = j0; j <= j0 + gridSize; j++) {
                         var ind = 3 * (i * (pseg.gridSize + 1) + j);
-                        tempVertices.push(psegVerts[ind], psegVerts[ind + 1], psegVerts[ind + 2]);
+                        tempVertices[vInd++] = psegVerts[ind];
+                        tempVertices[vInd++] = psegVerts[ind + 1];
+                        tempVertices[vInd++] = psegVerts[ind + 2];
                     }
                 }
                 seg.deleteBuffers();
@@ -332,6 +335,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     this.appliedTerrainNodeId = pn.nodeId;
                     tempVertices.length = 0;
                 }
+            } else {
+                //todo
             }
         }
     }
