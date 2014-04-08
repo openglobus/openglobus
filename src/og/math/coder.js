@@ -23,3 +23,17 @@ og.math.coder.decodeFloatFromRGBA = function (rgba) {
     var m = og.math.mod(rgba.y, 128.0) * 65536.0 + rgba.z * 256.0 + rgba.w + 8388608.00;
     return s * og.math.exp2(e) * (m * og.math.exp2(-23.0));
 };
+
+og.math.coder.doubleToTwoFloats = function (value) {
+    var high, low;
+    if (value >= 0.0) {
+        var doubleHigh = Math.floor(value / 65536.0) * 65536.0;
+        high = Math.fround(doubleHigh);
+        low = Math.fround(value - doubleHigh);
+    } else {
+        var doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
+        high = Math.fround(-doubleHigh);
+        low = Math.fround(value + doubleHigh);
+    }
+    return [high, low];
+};
