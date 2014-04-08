@@ -10,6 +10,8 @@ og.math.Vector4 = function (x, y, z, w) {
     this.w = w || 0.0;
 };
 
+og.math.Vector4.identity = new og.math.Vector4(0, 0, 0, 1);
+
 og.math.Vector4.prototype.toVector3 = function () {
     return new og.math.Vector3(this.x, this.y, this.z);
 };

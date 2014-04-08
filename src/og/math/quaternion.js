@@ -150,7 +150,7 @@ og.math.Quaternion.prototype.getEulerAngles = function () {
 };
 
 og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
-    var tr, s, q = new Float32Array(4);
+    var tr, s, q = [];
     var i, j, k;
     m = m._m;
 
