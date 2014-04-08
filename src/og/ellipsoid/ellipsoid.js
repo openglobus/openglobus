@@ -7,6 +7,7 @@ goog.require('og.LonLat');
 og.Ellipsoid = function (equatorialSize, polarSize) {
     var a = this._a = equatorialSize;
     var b = this._b = polarSize;
+    this.flattening = a / b;
     this.a2 = a * a;
     this.b2 = b * b;
     this._e = Math.sqrt(this.a2 - this.b2) / a;
