@@ -1,5 +1,6 @@
 goog.provide('og.Camera');
 
+goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
 goog.require('og.Frustum');
@@ -53,8 +54,8 @@ og.Camera.clone = function (cam) {
 
 og.Camera.defaultOptions = {
     viewAngle: 35,
-    nearDist: 0.1,
-    farDist: 10000,
+    nearDist: 1,
+    farDist: og.math.MAX,
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
     up: new og.math.Vector3(0, 1, 0)
@@ -85,6 +86,7 @@ og.Camera.prototype.initDefaults = function () {
         this.renderer.handler.gl.canvas.aspect,
         og.Camera.defaultOptions.nearDist,
         og.Camera.defaultOptions.farDist);
+
     this.set(
         Camera.defaultOptions.eye.clone(),
         Camera.defaultOptions.look.clone(),
@@ -123,8 +125,8 @@ og.Camera.prototype.setNearVisibilityDistance = function (distance) {
     this.refresh();
 };
 
-og.Camera.prototype.setNearPointVisibility = function (near, distance) {
-    this.nearDist = near;
+og.Camera.prototype.setDistanceVisibility = function (distance, near) {
+    this.nearDist = near || this.nearDist;
     if (distance) {
         this.farDist = near + distance;
     } else {
@@ -139,7 +141,7 @@ og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this.nearDist = near;
     this.farDist = far;
     this.pMatrix.setPerspective(angle, aspect, near, far);
-    this.pMatrixRot.setPerspective(angle, aspect, 1, 10000);
+    this.pMatrixRot.setPerspective(angle, aspect, 0.1, 10);
 };
 
 og.Camera.prototype.setViewAngle = function (angle) {
@@ -172,8 +174,8 @@ og.Camera.prototype.slide = function (du, dv, dn) {
 };
 
 og.Camera.prototype.roll = function (angle) {
-    var cs = Math.cos(Math.PI / 180 * angle);
-    var sn = Math.sin(Math.PI / 180 * angle);
+    var cs = Math.cos(og.math.RADIANS * angle);
+    var sn = Math.sin(og.math.RADIANS * angle);
     var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
@@ -181,8 +183,8 @@ og.Camera.prototype.roll = function (angle) {
 };
 
 og.Camera.prototype.pitch = function (angle) {
-    var cs = Math.cos(Math.PI / 180 * angle);
-    var sn = Math.sin(Math.PI / 180 * angle);
+    var cs = Math.cos(og.math.RADIANS * angle);
+    var sn = Math.sin(og.math.RADIANS * angle);
     var t = this.n.clone();
     this.n.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
@@ -190,8 +192,8 @@ og.Camera.prototype.pitch = function (angle) {
 };
 
 og.Camera.prototype.yaw = function (angle) {
-    var cs = Math.cos(Math.PI / 180 * angle);
-    var sn = Math.sin(Math.PI / 180 * angle);
+    var cs = Math.cos(og.math.RADIANS * angle);
+    var sn = Math.sin(og.math.RADIANS * angle);
     var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.n.x, cs * t.y - sn * this.n.y, cs * t.z - sn * this.n.z);
     this.n.set(sn * t.x + cs * this.n.x, sn * t.y + cs * this.n.y, sn * t.z + cs * this.n.z);
