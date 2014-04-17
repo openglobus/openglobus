@@ -27,7 +27,7 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.layers = [];
     this.visibleLayers = [];
-    this.tcolorArr = new Float32Array(og.layer.MAX_OVERLAYS * 4);
+    this.tcolorArr = [];
     this.baseLayer;
     this.terrainProvider;
 
