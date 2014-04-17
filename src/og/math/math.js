@@ -9,8 +9,8 @@ og.math.W = 3;
 
 og.math.LOG2 = Math.log(2);
 
-og.math.MAX = 100000000;
-og.math.MIN = -100000000;
+og.math.MAX = 549755748352;
+og.math.MIN = -og.math.MAX;
 
 og.math.RADIANS = Math.PI / 180;
 og.math.DEGREES = 180 / Math.PI;
