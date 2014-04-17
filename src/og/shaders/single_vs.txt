@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
@@ -8,14 +8,12 @@ uniform vec3 texBias;
 
 varying vec2 vTextureCoord;
 
-const float C = 0.001;
+const float C = 0.1;
 const float far = 149.6e+9;
 float logc = 2.0 / log( C * far + 1.0 );
 
 void main(void) {
-    gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);
-	
-	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-
+    gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);		
+    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
     vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
 }
