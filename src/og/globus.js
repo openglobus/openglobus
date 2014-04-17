@@ -77,12 +77,13 @@ og.Globus = function (options) {
     if (options.layers) {
         this.planet.addLayers(options.layers);
     }
-    this.renderer.addRenderNode(this.planet);
 
     //Attach terrain provider
     if (options.terrain) {
         this.planet.setTerrainProvider(options.terrain);
     }
+
+    this.renderer.addRenderNode(this.planet);
 
     //Add controls
     if (options.controls) {
