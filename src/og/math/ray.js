@@ -44,7 +44,7 @@ og.math.Ray.prototype.hitSphere = function (sphere) {
     } else {
         var pc = c.projToRay(o, d);
         var cpcl = og.math.Vector3.sub(c, pc).length();
-        if (cpcl > this.radius) {
+        if (cpcl > sphere.radius) {
             return null;
         } else {
             var dist = Math.sqrt(r * r - cpcl * cpcl);
