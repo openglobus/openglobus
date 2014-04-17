@@ -19,7 +19,7 @@ og.control.MouseNavigation = function (options) {
     this.camAngleY = 0;
     this.screenCenterOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
-    this.distDiff = 0.09;
+    this.distDiff = 0.12;
     this.grabbedSpheroid = new og.bv.Sphere();
     this.planet;
 };
@@ -61,7 +61,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
             var cam = this.renderer.activeCamera;
             var targetPoint = new og.math.Ray(cam.eye, this.renderer.mouseState.direction).hitSphere(this.grabbedSpheroid);
             var look, up;
-            if (cam.altitude < 500) {
+            if (cam.altitude < 500000) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
                 up = cam.v;
                 look = og.math.Vector3.sub(cam.eye, cam.n);

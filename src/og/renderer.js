@@ -82,7 +82,7 @@ og.Renderer.prototype.init = function () {
     }
 
     var camera = new og.Camera();
-    camera.init(this, { eye: new og.math.Vector3(0, 0, 12000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
+    camera.init(this, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
     this.activeCamera = camera;
 
     this.handler.onCanvasResize = function (obj) {

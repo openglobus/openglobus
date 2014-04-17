@@ -36,6 +36,7 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     node.planetSegment.planet = planet;
     node.planetSegment.handler = planet.renderer.handler;
     node.planetSegment.assignTileIndexes(zoomIndex, extent);
+    node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[zoomIndex];
     node.createBounds(node.planetSegment);
     node.planet.createdNodesCount++;
     return node;
@@ -71,6 +72,13 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
+
+    if (!planetSeg.zoomIndex) {
+        planetSeg.bsphere.radius = planetSeg.planet.ellipsoid._a;
+        planetSeg.bsphere.center = new og.math.Vector3();
+        return;
+    };
+
     var pn = this,
         scale = 0,
         offsetX = 0,
@@ -156,9 +164,9 @@ og.quadTree.QuadNode.prototype.getState = function () {
 };
 
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
-    if (cam.altitude < 3000.0) {
+    if (cam.altitude < 3000000.0) {
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
-        var horizon = 113.0 * Math.sqrt(this.planet.renderer.activeCamera.altitude);
+        var horizon = 3570 * Math.sqrt(cam.altitude);
         if (distance < horizon) {
             this.renderNode();
         } else {

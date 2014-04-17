@@ -103,7 +103,7 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                 var vInd = (iv * (this.gridSize + 1) + jv) * 3;
                 var v0 = new og.math.Vector3(this.plainVertices[vInd], this.plainVertices[vInd + 1], this.plainVertices[vInd + 2]);
                 var v0_len = v0.length();
-                v0.scale((v0_len + this.planet.heightFactor * elevations[i * fileGridSize + j] * 0.001) / v0_len);
+                v0.scale((v0_len + this.planet.heightFactor * elevations[i * fileGridSize + j]) / v0_len);
 
                 this.terrainVertices[vInd] = v0.x;
                 this.terrainVertices[vInd + 1] = v0.y;
