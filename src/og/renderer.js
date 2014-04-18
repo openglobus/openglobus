@@ -31,8 +31,11 @@ og.Renderer = function (handler) {
         rightButtonDown: false,
         leftButtonHold: false,
         rightButtonHold: false,
+        leftButtonDoubleClick: false,
         moving: false,
-        justStopped: false
+        justStopped: false,
+        doubleClickDelay: 300,
+        _dblClkBegins: 0
     };
     this._mousestopThread = null;
 };
@@ -95,6 +98,7 @@ og.Renderer.prototype.init = function () {
         "ondraw",
         "onmousemove",
         "onmousestop",
+        "onmouselbuttondoubleclick",
         "onmouselbuttonclick",
         "onmouselbuttondown",
         "onmouserbuttonclick",
@@ -134,14 +138,26 @@ og.Renderer.prototype.onMouseDown = function (event) {
 };
 
 og.Renderer.prototype.onMouseUp = function (event) {
+    var ms = this.mouseState;
     if (event.button === og.input.MB_LEFT) {
-        this.mouseState.leftButtonDown = false;
-        this.mouseState.leftButtonHold = false;
-        this.mouseState.leftButtonUp = true;
+        ms.leftButtonDown = false;
+        ms.leftButtonHold = false;
+        ms.leftButtonUp = true;
+
+        if (ms._dblClkBegins) {
+            var deltatime = new Date().getTime() - ms._dblClkBegins;
+            if (deltatime <= ms.doubleClickDelay) {
+                ms.leftButtonDoubleClick = true;
+            }
+            ms._dblClkBegins = 0;
+        } else {
+            ms._dblClkBegins = new Date().getTime();
+        }
+
     } else {
-        this.mouseState.rightButtonDown = false;
-        this.mouseState.rightButtonHold = false;
-        this.mouseState.rightButtonUp = true;
+        ms.rightButtonDown = false;
+        ms.rightButtonHold = false;
+        ms.rightButtonUp = true;
     }
 };
 
@@ -195,6 +211,7 @@ og.Renderer.prototype.handleMouseEvents = function () {
         } else {
             ms.leftButtonHold = true;
             ce(e.onmouselbuttonclick, ms);
+            ms._dblClkBegins = 0;
         }
     }
 
@@ -217,8 +234,14 @@ og.Renderer.prototype.handleMouseEvents = function () {
         ce(e.onmouserbuttonup, ms);
     }
 
+    if (ms.leftButtonDoubleClick) {
+        ce(e.onmouselbuttondoubleclick, ms);
+        ms.leftButtonDoubleClick = false;
+    }
+
     if (ms.moving) {
         ce(e.onmousemove, ms);
+        ms._dblClkBegins = 0;
     }
 
     if (ms.justStopped) {
