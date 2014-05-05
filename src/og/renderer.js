@@ -16,7 +16,7 @@ og.Renderer = function (handler) {
     this.activeCamera;
 
     this.mouseHandler = new og.input.MouseHandler(handler.gl.canvas);
-    this.keyboardHandler = new og.input.KeyboardHandler(handler.gl.canvas);
+    this.keyboardHandler = new og.input.KeyboardHandler();
     this.controls = [];
 
     this.events = new og.Events();
@@ -76,7 +76,6 @@ og.Renderer.prototype.removeControl = function (control) {
     }
     return undefined;
 };
-
 
 og.Renderer.prototype.init = function () {
     var that = this;
