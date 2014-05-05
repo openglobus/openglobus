@@ -15,14 +15,29 @@ og.input.KeyboardHandler = function () {
         document.onkeyup = function (event) { _that.handleKeyUp.call(_that, event) };
     }
 
-    this.setEvent = function (event, sender, callback, keyCode) {
+    var _sortByPriority = function (a, b) {
+        return a.priority < b.priority;
+    };
+
+    this.addEvent = function (event, sender, callback, keyCode, priority) {
+        if (priority === undefined) {
+            priority = 1600;
+        }
         switch (event) {
-            case "onkeypressed":
-                _pressedKeysCallbacks[keyCode] = { callback: callback, sender: sender };
-                break;
-            case "oncharkeypressed":
-                _charkeysCallbacks[keyCode] = { callback: callback, sender: sender, ch: String.fromCharCode(keyCode) };
-                break;
+            case "onkeypressed": {
+                if (!_pressedKeysCallbacks[keyCode]) {
+                    _pressedKeysCallbacks[keyCode] = [];
+                }
+                _pressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
+            } break;
+            case "oncharkeypressed": {
+                if (!_charkeysCallbacks[keyCode]) {
+                    _charkeysCallbacks[keyCode] = [];
+                }
+                _charkeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                _charkeysCallbacks[keyCode].sort(_sortByPriority);
+            } break;
         }
     };
 
@@ -33,9 +48,11 @@ og.input.KeyboardHandler = function () {
     this.handleKeyDown = function (event) {
         _currentlyPressedKeys[event.keyCode] = true;
         for (var ch in _charkeysCallbacks) {
-            if (String.fromCharCode(event.keyCode) == _charkeysCallbacks[ch].ch) {
+            if (String.fromCharCode(event.keyCode) == String.fromCharCode(ch)) {
                 var ccl = _charkeysCallbacks[ch];
-                ccl.callback.call(ccl.sender);
+                for (var i = 0; i < ccl.length; i++) {
+                    ccl[i].callback.call(ccl[i].sender);
+                }
             }
         }
     };
@@ -48,7 +65,9 @@ og.input.KeyboardHandler = function () {
         for (var pk in _pressedKeysCallbacks) {
             if (_currentlyPressedKeys[pk]) {
                 var cpk = _pressedKeysCallbacks[pk];
-                cpk.callback.call(cpk.sender);
+                for (var i = 0; i < cpk.length; i++) {
+                    cpk[i].callback.call(cpk[i].sender);
+                }
             }
         }
     };
