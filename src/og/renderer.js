@@ -32,10 +32,13 @@ og.Renderer = function (handler) {
         leftButtonHold: false,
         rightButtonHold: false,
         leftButtonDoubleClick: false,
+        click: false,
         moving: false,
         justStopped: false,
         doubleClickDelay: 300,
-        _dblClkBegins: 0
+        _dblClkBegins: 0,
+        clickX: 0,
+        clickY: 0
     };
     this._mousestopThread = null;
 };
@@ -98,6 +101,7 @@ og.Renderer.prototype.init = function () {
         "onmousemove",
         "onmousestop",
         "onmouselbuttondoubleclick",
+        "onmouseclick",
         "onmouselbuttondown",
         "onmouselbuttonhold",
         "onmouserbuttondown",
@@ -136,6 +140,8 @@ og.Renderer.prototype.onMouseMove = function (event) {
 
 og.Renderer.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
+        this.mouseState.clickX = event.clientX;
+        this.mouseState.clickY = event.clientY;
         this.mouseState.leftButtonDown = true;
     } else {
         this.mouseState.rightButtonDown = true;
@@ -158,6 +164,11 @@ og.Renderer.prototype.onMouseUp = function (event) {
         } else {
             ms._dblClkBegins = new Date().getTime();
         }
+
+        if (ms.clickX == event.clientX && ms.clickY == event.clientY) {
+            ms.click = true;
+        }
+
     } else {
         ms.rightButtonDown = false;
         ms.rightButtonHold = false;
@@ -208,6 +219,11 @@ og.Renderer.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
         e = this.events,
         ce = this.events.dispatch;
+
+    if (ms.click) {
+        ce(e.onmouseclick, ms);
+        ms.click = false;
+    }
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
