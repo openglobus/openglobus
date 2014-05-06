@@ -14,18 +14,18 @@ og.input.MouseHandler.prototype.setEvent = function (event, sender, callback, ke
                 this._htmlObject.addEventListener(mousewheelevt, function (evt) { evt.wheelDelta = evt.detail * (-120); callback.call(sender, evt); }, false)
         }
             break;
-        case "onmousedown":
+        case "onmousedown": {
             this._htmlObject.onmousedown = function (event) { callback.call(sender, event); };
             this._htmlObject.oncontextmenu = function (event) { return false; };
-            break;
-        case "onmouseup":
+        } break;
+        case "onmouseup": {
             this._htmlObject.onmouseup = function (event) { callback.call(sender, event); };
-            break;
-        case "onmousemove":
+        } break;
+        case "onmousemove": {
             this._htmlObject.onmousemove = function (event) {
                 var rect = this.getBoundingClientRect();
                 callback.call(sender, { clientX: event.clientX - rect.left, clientY: event.clientY - rect.top });
             };
-            break;
+        } break;
     }
 };

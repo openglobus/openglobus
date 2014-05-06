@@ -116,9 +116,15 @@ og.Renderer.prototype.initMouseHandler = function () {
 
 og.Renderer.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
-    ms.moving = true;
+
+    if (ms.x == event.clientX && ms.y == event.clientY) {
+        return;
+    }
+
     ms.x = event.clientX;
     ms.y = event.clientY;
+
+    ms.moving = true;
 
     //dispatch stop mouse event
     clearTimeout(this._mousestopThread);
@@ -152,7 +158,6 @@ og.Renderer.prototype.onMouseUp = function (event) {
         } else {
             ms._dblClkBegins = new Date().getTime();
         }
-
     } else {
         ms.rightButtonDown = false;
         ms.rightButtonHold = false;
@@ -210,7 +215,6 @@ og.Renderer.prototype.handleMouseEvents = function () {
         } else {
             ms.leftButtonHold = true;
             ce(e.onmouselbuttonclick, ms);
-            ms._dblClkBegins = 0;
         }
     }
 
