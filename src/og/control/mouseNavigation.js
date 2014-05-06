@@ -43,11 +43,16 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
 og.control.MouseNavigation.prototype.init = function () {
     this.renderer.mouseHandler.setEvent("onmousewheel", this, this.onMouseWheel);
-    this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonDown);
-    this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonDown);
-    this.renderer.events.on("onmouselbuttonclick", this, this.onMouseLeftButtonClick);
-    this.renderer.events.on("onmouserbuttonclick", this, this.onMouseRightButtonClick);
+    this.renderer.events.on("onmouselbuttonhold", this, this.onMouseLeftButtonDown);
+    this.renderer.events.on("onmouserbuttonhold", this, this.onMouseRightButtonDown);
+    this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonClick);
+    this.renderer.events.on("onmouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
     this.planet = this.renderer.renderNodes.Earth;
+};
+
+og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
+    console.log("doubleclick");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {

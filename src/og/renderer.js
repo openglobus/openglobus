@@ -98,10 +98,10 @@ og.Renderer.prototype.init = function () {
         "onmousemove",
         "onmousestop",
         "onmouselbuttondoubleclick",
-        "onmouselbuttonclick",
         "onmouselbuttondown",
-        "onmouserbuttonclick",
+        "onmouselbuttonhold",
         "onmouserbuttondown",
+        "onmouserbuttonhold",
         "onmouselbuttonup",
         "onmouserbuttonup",
         "onresize"
@@ -211,19 +211,19 @@ og.Renderer.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
-            ce(e.onmouselbuttondown, ms);
+            ce(e.onmouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
-            ce(e.onmouselbuttonclick, ms);
+            ce(e.onmouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
-            ce(e.onmouserbuttondown, ms);
+            ce(e.onmouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
-            ce(e.onmouserbuttonclick, ms);
+            ce(e.onmouserbuttondown, ms);
         }
     }
 
