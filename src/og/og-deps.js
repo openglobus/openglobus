@@ -4,7 +4,7 @@ goog.addDependency('../../../og/src/og/ajax.js', ['og.Ajax'], []);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.math', 'og.mercator']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);
-goog.addDependency('../../../og/src/og/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/control/control.js', ['og.control.Control'], []);
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og.control.Control', 'og.inheritance', 'og.input']);
 goog.addDependency('../../../og/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], ['og.inheritance']);
@@ -49,7 +49,8 @@ goog.addDependency('../../../og/src/og/planetSegment/planetSegmentHelper.js', ['
 goog.addDependency('../../../og/src/og/planetSegment/planetSegmentMaterial.js', ['og.planetSegment.PlanetSegmentMaterial'], []);
 goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.planetSegment.PlanetSegment', 'og.planetSegment.PlanetSegmentMaterial', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
-goog.addDependency('../../../og/src/og/renderer.js', ['og.Renderer'], ['og.Camera', 'og.Events', 'og.input', 'og.input.KeyboardHandler', 'og.input.MouseHandler', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/renderer/renderer.js', ['og.Renderer'], ['og.Camera', 'og.RendererEvents', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/renderer/rendererEvents.js', ['og.RendererEvents'], ['og.Events', 'og.inheritance', 'og.input', 'og.input.KeyboardHandler', 'og.input.MouseHandler']);
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);
 goog.addDependency('../../../og/src/og/shaderProgram/overlays.js', ['og.shaderProgram.overlays'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/picking.js', ['og.shaderProgram.picking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types']);

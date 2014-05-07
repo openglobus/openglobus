@@ -11,7 +11,7 @@ og.control.ToggleWireframe = function (options) {
 og.inheritance.extend(og.control.ToggleWireframe, og.control.Control);
 
 og.control.ToggleWireframe.prototype.init = function () {
-    this.renderer.keyboardHandler.addEvent("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
+    this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 };
 
 og.control.ToggleWireframe.prototype.toogleWireframe = function (e) {

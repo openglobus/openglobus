@@ -78,7 +78,7 @@ og.control.MousePosition.prototype.showPosition = function () {
 };
 
 og.control.MousePosition.prototype.onMouseMove = function () {
-    var ms = this.renderer.mouseState;
+    var ms = this.renderer.events.mouseState;
     if (!(ms.leftButtonDown || ms.rightButtonDown)) {
         this.position = this.renderer.renderNodes.Earth.getLonLatFromPixelTerrain(ms);
         this.showPosition();

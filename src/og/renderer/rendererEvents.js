@@ -1,25 +1,16 @@
-goog.provide('og.Renderer');
+goog.provide('og.RendererEvents');
 
-goog.require('og.math.Vector3');
 goog.require('og.input');
 goog.require('og.input.MouseHandler');
 goog.require('og.input.KeyboardHandler');
-goog.require('og.Camera');
 goog.require('og.Events');
+goog.require('og.inheritance');
 
-og.Renderer = function (handler) {
-    this.div = null;
-    this.handler = handler;
-    this._renderNodesArr = [];
-    this.renderNodes = {};
-    this.cameras = [];
-    this.activeCamera;
+og.RendererEvents = function (canvas) {
+    og.inheritance.base(this);
 
-    this.mouseHandler = new og.input.MouseHandler(handler.gl.canvas);
+    this.mouseHandler = new og.input.MouseHandler(canvas);
     this.keyboardHandler = new og.input.KeyboardHandler();
-    this.controls = [];
-
-    this.events = new og.Events();
 
     this.mouseState = {
         x: 0,
@@ -40,63 +31,32 @@ og.Renderer = function (handler) {
         clickX: 0,
         clickY: 0
     };
+
     this._mousestopThread = null;
 };
 
-/**
- * Add the given control to the renderer.
- * @param {og.control.Control} control Control.
- */
-og.Renderer.prototype.addControl = function (control) {
-    control.setRenderer(this);
-    this.controls.push(control);
+og.inheritance.extend(og.RendererEvents, og.Events);
+
+og.RendererEvents.prototype.handleEvents = function () {
+    this.keyboardHandler.handleEvents();
+    this.handleMouseEvents();
 };
 
-/**
- * Add the given controls array to the planet node.
- * @param {og.control.Control} control Control.
- */
-og.Renderer.prototype.addControls = function (cArr) {
-    for (var i = 0; i < cArr.length; i++) {
-        cArr[i].setRenderer(this);
-        this.controls.push(cArr[i]);
+og.RendererEvents.prototype.on = function (name, sender, callback, key, priority) {
+    if (!this[name]) {
+        this.keyboardHandler.addEvent(name, sender, callback, key, priority);
+    } else {
+        this.constructor.superclass.on.call(this, name, sender, callback);
     }
 };
 
-/**
- * Remove the given control from the renderer.
- * @param {og.control.Control} control Control.
- * @return {og.control.Control|undefined} The removed control of undefined
- *     if the control was not found.
- */
-og.Renderer.prototype.removeControl = function (control) {
-    for (var i = 0; i < this.controls.length; i++) {
-        if (this.controls[i] == control) {
-            this.controls.splice(i, 1);
-            control.deactivate();
-            return control;
-        }
-    }
-    return undefined;
+og.RendererEvents.prototype.isKeyPressed = function (keyCode) {
+    return this.keyboardHandler.isKeyPressed(keyCode);
 };
 
-og.Renderer.prototype.init = function () {
-    var that = this;
-    this.handler.drawback = function () {
-        that.draw();
-    }
+og.RendererEvents.prototype.initialize = function () {
 
-    var camera = new og.Camera();
-    camera.init(this, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
-    this.activeCamera = camera;
-
-    this.handler.onCanvasResize = function (obj) {
-        that.handleResizeEvents.call(that, obj);
-    }
-
-    this.initMouseHandler();
-
-    this.events.registerNames([
+    this.registerNames([
         "ondraw",
         "onmousemove",
         "onmousestop",
@@ -108,17 +68,21 @@ og.Renderer.prototype.init = function () {
         "onmouserbuttonhold",
         "onmouselbuttonup",
         "onmouserbuttonup",
-        "onresize"
+        "onresize",
+        "onmousewheel"
     ]);
-};
 
-og.Renderer.prototype.initMouseHandler = function () {
     this.mouseHandler.setEvent("onmouseup", this, this.onMouseUp);
     this.mouseHandler.setEvent("onmousemove", this, this.onMouseMove);
     this.mouseHandler.setEvent("onmousedown", this, this.onMouseDown);
+    this.mouseHandler.setEvent("onmousewheel", this, this.onMouseWheel);
 };
 
-og.Renderer.prototype.onMouseMove = function (event) {
+og.RendererEvents.prototype.onMouseWheel = function (event) {
+    this.dispatch(this.onmousewheel, event);
+};
+
+og.RendererEvents.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
 
     if (ms.x == event.clientX && ms.y == event.clientY) {
@@ -138,7 +102,7 @@ og.Renderer.prototype.onMouseMove = function (event) {
     }, 100);
 };
 
-og.Renderer.prototype.onMouseDown = function (event) {
+og.RendererEvents.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
         this.mouseState.clickX = event.clientX;
         this.mouseState.clickY = event.clientY;
@@ -148,7 +112,7 @@ og.Renderer.prototype.onMouseDown = function (event) {
     }
 };
 
-og.Renderer.prototype.onMouseUp = function (event) {
+og.RendererEvents.prototype.onMouseUp = function (event) {
     var ms = this.mouseState;
     if (event.button === og.input.MB_LEFT) {
         ms.leftButtonDown = false;
@@ -176,49 +140,10 @@ og.Renderer.prototype.onMouseUp = function (event) {
     }
 };
 
-og.Renderer.prototype.addRenderNode = function (renderNode) {
-    if (!this.renderNodes[renderNode.name]) {
-        renderNode.assignRenderer(this);
-        renderNode.initialization();
-        this._renderNodesArr.push(renderNode);
-        this.renderNodes[renderNode.name] = renderNode;
-    } else {
-        alert("Node name: " + renderNode.name + " allready exists.");
-    }
-};
-
-og.Renderer.prototype.addRenderNodes = function (nodesArr) {
-    for (var i = 0; i < nodesArr; i++) {
-        this.addRenderNode(nodesArr[i]);
-    }
-};
-
-og.Renderer.prototype.draw = function () {
-
-    this.keyboardHandler.handleEvents();
-    this.handleMouseEvents();
-
-    var ms = this.mouseState;
-    ms.direction = this.activeCamera.unproject(ms.x, ms.y);
-
-    for (var i = 0; i < this._renderNodesArr.length; i++) {
-        this._renderNodesArr[i].drawNode();
-    }
-
-    this.events.dispatch(this.events.ondraw, this);
-
-    this.mouseState.moving = false;
-};
-
-og.Renderer.prototype.handleResizeEvents = function (obj) {
-    this.activeCamera.refresh();
-    this.events.dispatch(this.events.onresize, obj);
-};
-
-og.Renderer.prototype.handleMouseEvents = function () {
+og.RendererEvents.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
-        e = this.events,
-        ce = this.events.dispatch;
+        e = this,
+        ce = this.dispatch;
 
     if (ms.click) {
         ce(e.onmouseclick, ms);
@@ -267,8 +192,4 @@ og.Renderer.prototype.handleMouseEvents = function () {
         ce(e.onmousestop, ms);
         ms.justStopped = false;
     }
-};
-
-og.Renderer.prototype.start = function () {
-    this.handler.start();
 };
