@@ -65,7 +65,8 @@ og.Renderer.prototype.init = function () {
     this.events.initialize();
 
     this.handler.onCanvasResize = function (obj) {
-        that.handleResizeEvents.call(that, obj);
+        that.activeCamera.refresh();
+        that.events.dispatch(that.events.onresize, obj);
     }
 };
 
@@ -97,11 +98,6 @@ og.Renderer.prototype.draw = function () {
 
     this.events.dispatch(this.events.ondraw, this);
     this.events.mouseState.moving = false;
-};
-
-og.Renderer.prototype.handleResizeEvents = function (obj) {
-    this.activeCamera.refresh();
-    this.events.dispatch(this.events.onresize, obj);
 };
 
 og.Renderer.prototype.start = function () {
