@@ -246,39 +246,39 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
     }
 
-    this.addToRender();
+    this.addToRender(this);
 };
 
-og.quadTree.QuadNode.prototype.addToRender = function () {
+og.quadTree.QuadNode.prototype.addToRender = function (node) {
     var nodes = this.planet.renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
-        var cs = this.getCommonSide(ni);
+        var cs = node.getCommonSide(ni);
         if (cs != -1) {
             var opcs = og.quadTree.OPSIDE[cs];
-            if (!(this.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
-                var ap = this.planetSegment;
+            if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
+                var ap = node.planetSegment;
                 var bp = ni.planetSegment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
 
-                this.hasNeighbor[cs] = true;
+                node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
 
                 if (ld > 1) {
-                    this.sideSize[cs] = ap.gridSize / ld;
+                    node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
                     ni.sideSize[opcs] = bp.gridSize;
                 }
                 else if (ld < 1) {
-                    this.sideSize[cs] = ap.gridSize;
-                    ni.sideSize[opcs] = bp.gridSize * ld;
+                    node.sideSize[cs] = ap.gridSize;
+                    ni.sideSize[opcs] = Math.ceil(bp.gridSize * ld);
                 } else {
-                    this.sideSize[cs] = ap.gridSize;
+                    node.sideSize[cs] = ap.gridSize;
                     ni.sideSize[opcs] = bp.gridSize;
                 }
             }
         }
     }
-    nodes.push(this);
+    nodes.push(node);
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
@@ -306,7 +306,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
-            if (gridSize > 1) {
+            if (gridSize >= 1) {
                 var seg = this.planetSegment,
                     pseg = pn.planetSegment;
 
@@ -314,18 +314,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 this.sideSize = [gridSize, gridSize, gridSize, gridSize];
                 var i0 = gridSize * offsetY;
                 var j0 = gridSize * offsetX;
+                var tempVertices = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
 
-                var tempVertices = [];
-                var psegVerts = pseg.terrainVertices;
-                var vInd = 0;
-                for (var i = i0; i <= i0 + gridSize; i++) {
-                    for (var j = j0; j <= j0 + gridSize; j++) {
-                        var ind = 3 * (i * (pseg.gridSize + 1) + j);
-                        tempVertices[vInd++] = psegVerts[ind];
-                        tempVertices[vInd++] = psegVerts[ind + 1];
-                        tempVertices[vInd++] = psegVerts[ind + 2];
-                    }
-                }
                 seg.deleteBuffers();
                 seg.createCoordsBuffers(tempVertices, gridSize);
                 seg.refreshIndexesBuffer = true;
@@ -344,11 +334,106 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     tempVertices.length = 0;
                 }
             } else {
-                //todo
+                var seg = this.planetSegment,
+                    pseg = pn.planetSegment;
+
+                seg.gridSize = 1;
+                this.sideSize = [1, 1, 1, 1];
+
+                var i0 = Math.floor(gridSize * offsetY);
+                var j0 = Math.floor(gridSize * offsetX);
+
+                var insideSize = 1 / gridSize;
+                var fullSize = insideSize * pseg.gridSize;
+
+
+                //v0(x,y,z)             vn 
+                //    *---------------------------------->*       insideSize = 4
+                //    |        |        |        |     .  ^       fullSize = 16
+                //    |        |        |        |   .    |       i0 = 0
+                //    |        |        |        | .      |       j0 = 3
+                //    *--------*--------*--------*--------*       ofX(offsetX) = 14, t_j0 = 14 % 4 = 2 
+                //    |        |        |     .  |        |       ofY(offsetY) = 2,  t_i0 = 2 % 4 = 2 
+                //    |        |        |   .    |        |
+                //    |        |        |ofX, ofY|        |
+                //  vw*--------*--------*--------*--------*ve
+                //    |        |      . |        |        |
+                //    |        |   .    |        |        |
+                //    |        |.       |        |        |
+                //    *--------*--------*--------*--------*
+                //    |      . |        |        |        |
+                //    |   .    |        |        |        |
+                //    V.       |        |        |        |
+                //    *<----------------------------------*
+                //                  vs
+
+                var t_i0 = Math.floor(offsetY / insideSize),
+                    t_j0 = Math.floor(offsetX / insideSize);
+
+                //get triangle vertices
+                var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+
+                //bigOne - 012 345 678 91011
+                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
+                    v_rb = new og.math.Vector3(bigOne[10], bigOne[11], bigOne[12]);
+
+                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+
+                var vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
+                var resVerts = [];
+                var coords = new og.math.Vector3();
+
+                for (var i = 0; i < vertOrder.length; i++) {
+                    var vi_y = vertOrder[i].y + t_i0,
+                        vi_x = vertOrder[i].x + t_j0;
+                    if (vi_y + vi_x <= insideSize) {
+                        //left top triange
+                        var vvi = og.math.Vector3.add(vn.scale(vi_x / insideSize), vw.scale(vi_y / insideSize));
+                        coords = v_lt.add(vvi);
+                    } else {
+                        //rigth bottom triangle
+                        var vvi = og.math.Vector3.add(vs.scale(vi_x / insideSize), ve.scale(vi_y / insideSize));
+                        coords = v_rb.add(vvi);
+                    }
+                    resVerts[i * 3] = coords.x;
+                    resVerts[i * 3 + 1] = coords.y;
+                    resVerts[i * 3 + 2] = coords.z;
+                }
+
+                seg.deleteBuffers();
+                seg.createCoordsBuffers(resVerts, 1);
+                seg.refreshIndexesBuffer = true;
             }
         }
     }
 };
+
+/**
+ * Static function returns triangles coordinates array due the source triangles array.
+ * @param {Array} sourceArr Source array
+ * @param {Integer} gridSize SourceArray square matrix size
+ * @param {Integer} i0 First row index source array matrix
+ * @param {Integer} j0 First column index
+ * @param {Integer} size Square matrix result size.
+ * @return{Array} The inside quad triangles array.
+ */
+og.quadTree.getVerticesArray = function (sourceArr, gridSize, i0, j0, size) {
+    var res = [];
+    var vInd = 0;
+    for (var i = i0; i <= i0 + size; i++) {
+        for (var j = j0; j <= j0 + size; j++) {
+            var ind = 3 * (i * (gridSize + 1) + j);
+            res[vInd++] = sourceArr[ind];
+            res[vInd++] = sourceArr[ind + 1];
+            res[vInd++] = sourceArr[ind + 2];
+        }
+    }
+    return res;
+};
+
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,
