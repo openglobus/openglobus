@@ -26,13 +26,13 @@ og.RendererEvents = function (canvas) {
         click: false,
         moving: false,
         justStopped: false,
-        doubleClickDelay: 300,
-        _dblClkBegins: 0,
-        clickX: 0,
-        clickY: 0
+        doubleClickDelay: 300
     };
 
     this._mousestopThread = null;
+    this._dblClkBegins = 0;
+    this._clickX = 0;
+    this._clickY = 0;
 };
 
 og.inheritance.extend(og.RendererEvents, og.Events);
@@ -104,8 +104,8 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
 
 og.RendererEvents.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
-        this.mouseState.clickX = event.clientX;
-        this.mouseState.clickY = event.clientY;
+        this._clickX = event.clientX;
+        this._clickY = event.clientY;
         this.mouseState.leftButtonDown = true;
     } else {
         this.mouseState.rightButtonDown = true;
@@ -119,17 +119,18 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.leftButtonHold = false;
         ms.leftButtonUp = true;
 
-        if (ms._dblClkBegins) {
-            var deltatime = new Date().getTime() - ms._dblClkBegins;
+        if (this._dblClkBegins) {
+            var deltatime = new Date().getTime() - this._dblClkBegins;
             if (deltatime <= ms.doubleClickDelay) {
                 ms.leftButtonDoubleClick = true;
             }
-            ms._dblClkBegins = 0;
+            this._dblClkBegins = 0;
         } else {
-            ms._dblClkBegins = new Date().getTime();
+            this._dblClkBegins = new Date().getTime();
         }
 
-        if (ms.clickX == event.clientX && ms.clickY == event.clientY) {
+        if (this._clickX == event.clientX &&
+            this._clickY == event.clientY) {
             ms.click = true;
         }
 
@@ -142,54 +143,53 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
 
 og.RendererEvents.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
-        e = this,
         ce = this.dispatch;
 
     if (ms.click) {
-        ce(e.onmouseclick, ms);
+        ce(this.onmouseclick, ms);
         ms.click = false;
     }
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
-            ce(e.onmouselbuttonhold, ms);
+            ce(this.onmouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
-            ce(e.onmouselbuttondown, ms);
+            ce(this.onmouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
-            ce(e.onmouserbuttonhold, ms);
+            ce(this.onmouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
-            ce(e.onmouserbuttondown, ms);
+            ce(this.onmouserbuttondown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
         ms.leftButtonUp = false;
-        ce(e.onmouselbuttonup, ms);
+        ce(this.onmouselbuttonup, ms);
     }
 
     if (ms.rightButtonUp) {
         ms.rightButtonUp = false;
-        ce(e.onmouserbuttonup, ms);
+        ce(this.onmouserbuttonup, ms);
     }
 
     if (ms.leftButtonDoubleClick) {
-        ce(e.onmouselbuttondoubleclick, ms);
+        ce(this.onmouselbuttondoubleclick, ms);
         ms.leftButtonDoubleClick = false;
     }
 
     if (ms.moving) {
-        ce(e.onmousemove, ms);
-        ms._dblClkBegins = 0;
+        ce(this.onmousemove, ms);
+        this._dblClkBegins = 0;
     }
 
     if (ms.justStopped) {
-        ce(e.onmousestop, ms);
+        ce(this.onmousestop, ms);
         ms.justStopped = false;
     }
 };
