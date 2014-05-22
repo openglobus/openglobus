@@ -25,6 +25,9 @@ og.quadTree.QuadNode = function () {
     this.hasNeighbor = [];
 };
 
+og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
+og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.length) - 1;
+
 og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomIndex, extent) {
     var node = new og.quadTree.QuadNode();
     node.partId = partId;
@@ -337,8 +340,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 var seg = this.planetSegment,
                     pseg = pn.planetSegment;
 
-                seg.gridSize = 1;
-                this.sideSize = [1, 1, 1, 1];
+                seg.gridSize = og.quadTree.QuadNode._neGridSize;
+                this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
 
                 var i0 = Math.floor(gridSize * offsetY);
                 var j0 = Math.floor(gridSize * offsetX);
@@ -373,7 +376,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 //get triangle vertices
                 var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                //bigOne - 012 345 678 91011
                 var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
 
@@ -382,29 +384,17 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
                     vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                var vnl = vn.length() / insideSize,
-                    vwl = vw.length() / insideSize,
-                    vel = ve.length() / insideSize,
-                    vsl = vs.length() / insideSize;
-
-                vn.normalize().scale(vnl);
-                vw.normalize().scale(vwl);
-                ve.normalize().scale(vel);
-                vs.normalize().scale(vsl);
-
-                var vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
                 var resVerts = [];
                 var coords = new og.math.Vector3();
+                var vo = og.quadTree.QuadNode._vertOrder;
 
-                for (var i = 0; i < vertOrder.length; i++) {
-                    var vi_y = vertOrder[i].y + t_i0,
-                        vi_x = vertOrder[i].x + t_j0;
+                for (var i = 0; i < vo.length; i++) {
+                    var vi_y = vo[i].y + t_i0,
+                        vi_x = vo[i].x + t_j0;
                     if (vi_y + vi_x < insideSize) {
-                        var vvi = og.math.Vector3.add(vn.scaleTo(vi_x), vw.scaleTo(vi_y));
-                        coords = vvi.add(v_lt);
+                        coords = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
                     } else {
-                        var vvi = og.math.Vector3.add(vs.scaleTo(insideSize - vi_x), ve.scaleTo(insideSize - vi_y));
-                        coords = vvi.add(v_rb);
+                        coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
                     }
                     resVerts[i * 3] = coords.x;
                     resVerts[i * 3 + 1] = coords.y;
@@ -412,7 +402,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 }
 
                 seg.deleteBuffers();
-                seg.createCoordsBuffers(resVerts, 1);
+                seg.createCoordsBuffers(resVerts, seg.gridSize);
                 seg.refreshIndexesBuffer = true;
             }
         }
