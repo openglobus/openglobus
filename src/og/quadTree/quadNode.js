@@ -367,20 +367,30 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 //    *<----------------------------------*
                 //                  vs
 
-                var t_i0 = Math.floor(offsetY / insideSize),
-                    t_j0 = Math.floor(offsetX / insideSize);
+                var t_i0 = offsetY - insideSize * i0,
+                    t_j0 = offsetX - insideSize * j0;
 
                 //get triangle vertices
                 var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
                 //bigOne - 012 345 678 91011
                 var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new og.math.Vector3(bigOne[10], bigOne[11], bigOne[12]);
+                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
 
                 var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
                     vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
                     ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
                     vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+
+                var vnl = vn.length() / insideSize,
+                    vwl = vw.length() / insideSize,
+                    vel = ve.length() / insideSize,
+                    vsl = vs.length() / insideSize;
+
+                vn.normalize().scale(vnl);
+                vw.normalize().scale(vwl);
+                ve.normalize().scale(vel);
+                vs.normalize().scale(vsl);
 
                 var vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
                 var resVerts = [];
@@ -389,14 +399,12 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 for (var i = 0; i < vertOrder.length; i++) {
                     var vi_y = vertOrder[i].y + t_i0,
                         vi_x = vertOrder[i].x + t_j0;
-                    if (vi_y + vi_x <= insideSize) {
-                        //left top triange
-                        var vvi = og.math.Vector3.add(vn.scale(vi_x / insideSize), vw.scale(vi_y / insideSize));
-                        coords = v_lt.add(vvi);
+                    if (vi_y + vi_x < insideSize) {
+                        var vvi = og.math.Vector3.add(vn.scaleTo(vi_x), vw.scaleTo(vi_y));
+                        coords = vvi.add(v_lt);
                     } else {
-                        //rigth bottom triangle
-                        var vvi = og.math.Vector3.add(vs.scale(vi_x / insideSize), ve.scale(vi_y / insideSize));
-                        coords = v_rb.add(vvi);
+                        var vvi = og.math.Vector3.add(vs.scaleTo(insideSize - vi_x), ve.scaleTo(insideSize - vi_y));
+                        coords = vvi.add(v_rb);
                     }
                     resVerts[i * 3] = coords.x;
                     resVerts[i * 3 + 1] = coords.y;
