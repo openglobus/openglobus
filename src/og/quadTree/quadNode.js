@@ -23,6 +23,7 @@ og.quadTree.QuadNode = function () {
     this.appliedTextureNodeId;
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [];
+    this.neighbors = [];
 };
 
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
@@ -268,6 +269,9 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
 
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
+
+                node.neighbors[cs] = ni;
+                ni.neighbors[opcs] = node;
 
                 if (ld > 1) {
                     node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
