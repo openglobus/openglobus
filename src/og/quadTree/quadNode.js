@@ -103,16 +103,21 @@ og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
             pn = pn.parentNode;
         }
 
-        var partGridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
-        if (pn.planetSegment.terrainReady && partGridSize > 1) {
-            var pVerts = pn.planetSegment.terrainVertices;
-            var i0 = partGridSize * offsetY;
-            var j0 = partGridSize * offsetX;
-            var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
-            var ind2 = 3 * ((i0 + partGridSize) * (pn.planetSegment.gridSize + 1) + j0 + partGridSize);
+        if (pn.planetSegment.terrainReady) {
+            var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
+            if (gridSize >= 1) {
+                var pVerts = pn.planetSegment.terrainVertices;
+                var i0 = gridSize * offsetY;
+                var j0 = gridSize * offsetX;
+                var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
+                var ind2 = 3 * ((i0 + gridSize) * (pn.planetSegment.gridSize + 1) + j0 + gridSize);
 
-            planetSeg.bbox.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
-            planetSeg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+                planetSeg.bbox.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+                planetSeg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+            } else {
+                planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+                planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+            }
         } else {
             planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
             planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
