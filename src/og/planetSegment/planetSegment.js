@@ -36,6 +36,7 @@ og.planetSegment.PlanetSegment = function () {
 
     this.terrainReady = false;
     this.terrainIsLoading = false;
+    this.terrainExists = false;
 
     this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
     this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
@@ -49,6 +50,7 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
     if (this.ready && this.terrainIsLoading) {
         this.terrainIsLoading = false;
         this.terrainReady = true;
+        this.terrainExists = false;
         this.node.appliedTerrainNodeId = this.node.nodeId;
         this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
@@ -58,7 +60,8 @@ og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
         this.deleteBuffers();
 
         if (this.zoomIndex > 5) {
-            this.createCoordsBuffers(og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize), 2);
+            this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
+            this.createCoordsBuffers(this.terrainVertices, 2);
             this.gridSize = 2;
         } else {
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
@@ -93,6 +96,7 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
 
 og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
     if (this.ready && this.terrainIsLoading) {
+        this.terrainExists = true;
         var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
         this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
         var fileGridSize = this.planet.terrainProvider.fileGridSize;
