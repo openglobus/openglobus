@@ -113,6 +113,8 @@ og.webgl.Handler.prototype._initShaderController = function (sc) {
         if (!this.activeShaderProgram) {
             this.activeShaderProgram = sc;
             sc.activate();
+        } else {
+            this.activeShaderProgram._program.use();
         }
     }
 };
