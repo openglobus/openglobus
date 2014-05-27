@@ -1,0 +1,7 @@
+attribute vec3 aVertexNormal;
+attribute vec3 aVertexPosition;
+uniform mat4 uPMVMatrix;
+void main(void) {
+    vec4 x = vec4(aVertexNormal, 1.0);
+    gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);
+}
