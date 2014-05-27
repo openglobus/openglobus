@@ -3,7 +3,8 @@ goog.provide('og.shaderProgram.ShaderProgram');
 
 goog.require('og.shaderProgram.callbacks');
 
-og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
+//og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
+og.shaderProgram.SHADERS_URL = "../../src/og/shaders/";
 
 og.shaderProgram.ShaderProgram = function (name, material) {
     this.name = name;
@@ -122,7 +123,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
         if (this.attributes[a].enableArray) {
             this._attribArrays.push(this._p[a]);
-            //gl.enableVertexAttribArray(this._p[a]);
+            gl.enableVertexAttribArray(this._p[a]);
         }
 
         this.attributes[a]._pName = this._p[a];
