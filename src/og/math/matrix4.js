@@ -5,7 +5,7 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 
 og.math.Matrix4 = function () {
-    this._m = [];
+    this._m = new Array(16);
 };
 
 og.math.Matrix4.prototype.set = function (m) {
@@ -135,6 +135,14 @@ og.math.Matrix4.prototype.translate = function (v) {
     a[13] = a[1] * d + a[5] * e + a[9] * b + a[13];
     a[14] = a[2] * d + a[6] * e + a[10] * b + a[14];
     a[15] = a[3] * d + a[7] * e + a[11] * b + a[15];
+    return this;
+};
+
+og.math.Matrix4.prototype.translateToPosition = function (v) {
+    var a = this._m;
+    a[12] = v.x;
+    a[13] = v.y;
+    a[14] = v.z;
     return this;
 };
 
