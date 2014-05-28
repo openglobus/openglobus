@@ -55,9 +55,12 @@ goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderP
 goog.addDependency('../../../og/src/og/shaderProgram/overlays.js', ['og.shaderProgram.overlays'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/picking.js', ['og.shaderProgram.picking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types']);
 goog.addDependency('../../../og/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram', 'og.shaderProgram.ShaderProgram'], ['og.shaderProgram.callbacks']);
+goog.addDependency('../../../og/src/og/shaderProgram/shape.js', ['og.shaderProgram.shape'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/single.js', ['og.shaderProgram.single'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types']);
 goog.addDependency('../../../og/src/og/shaderProgram/skybox.js', ['og.shaderProgram.skybox'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);
 goog.addDependency('../../../og/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
+goog.addDependency('../../../og/src/og/shapes/baseShape.js', ['og.shapes.BaseShape'], ['og.math.Matrix4', 'og.math.Quaternion', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/shapes/sphere.js', ['og.shapes.Sphere'], ['og.shapes.BaseShape']);
 goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider', 'og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.layer', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl']);

@@ -21,9 +21,11 @@ og.shapes.BaseShape = function (renderer) {
     this._normalData = [];
     this._indexData = [];
 
-    this._mxScale = new og.math.Mathrix4().setIdentity();
-    this._mxTranslation = new og.math.Mathrix4().setIdentity();
-    this._mxTRS = new og.math.Mathrix4();
+    this._mxScale = new og.math.Matrix4().setIdentity();
+    this._mxTranslation = new og.math.Matrix4().setIdentity();
+    this._mxTRS = new og.math.Matrix4().setIdentity();
+
+    this.drawMode = renderer.handler.gl.TRIANGLES;
 };
 
 og.shapes.BaseShape.prototype.clear = function () {
@@ -54,12 +56,17 @@ og.shapes.BaseShape.prototype.deleteBuffers = function () {
 
 og.shapes.BaseShape.prototype.setPosition = function (position) {
     this.position.copy(position);
-    this._mxTanslation.translate(position);
+    this._mxTranslation.translateToPosition(position);
+};
+
+og.shapes.BaseShape.prototype.translate = function (vec) {
+    this.position.add(vec);
+    this._mxTranslation.translate(vec);
 };
 
 og.shapes.BaseShape.prototype.setScale = function (scale) {
     this.scale.copy(scale);
-    this.mxScale.scale(scale);
+    this._mxScale.scale(scale);
 };
 
 og.shapes.BaseShape.prototype.createBuffers = function () {
@@ -85,7 +92,8 @@ og.shapes.BaseShape.prototype.refresh = function () {
 };
 
 og.shapes.BaseShape.prototype.draw = function () {
-    var sh = this.renderer.handler.shaderPrograms.shapesShader;
+
+    var sh = this.renderer.handler.shaderPrograms.shape;
     var p = sh._program;
     var gl = this.renderer.handler.gl,
         sha = p.attributes,

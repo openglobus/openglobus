@@ -3,18 +3,17 @@ goog.provide('og.shapes.Sphere');
 goog.require('og.shapes.BaseShape');
 
 
-og.shapes.Sphere = function (radius, latBands, lonBands) {
+og.shapes.Sphere = function (renderer, radius, latBands, lonBands) {
+    goog.base(this, renderer);
     this._radius = radius;
     this._latBands = latBands;
-    this._latBands = lonBands;
+    this._lonBands = lonBands;
 
-    this._initialize();
-};
-
-og.shapes.Sphere.prototype._initialize = function () {
     this._createData();
     this.createBuffers();
 };
+
+goog.inherits(og.shapes.Sphere, og.shapes.BaseShape);
 
 og.shapes.Sphere.prototype._createData = function () {
 

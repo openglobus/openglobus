@@ -9,6 +9,7 @@ og.shaderProgram.shape = function () {
     return new og.shaderProgram.ShaderProgram("shape", {
         uniforms: {
             uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uTRSMatrix: { type: og.shaderProgram.types.MAT4 },
             uColor: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
