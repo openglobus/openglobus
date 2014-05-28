@@ -149,13 +149,38 @@ og.webgl.Handler.prototype.init = function () {
 };
 
 og.webgl.Handler.prototype.setDefaults = function () {
-    this.gl.enable(this.gl.DEPTH_TEST);
+    this.activateDepthTest();
     this.applyViewport(this.gl.canvas.width, this.gl.canvas.height);
     this.gl.frontFace(this.gl.CCW);
-    this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
-    // this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+    this.activateFaceCulling();
+    this.deactivateBlending();
     this.gl.ext = this.initAnysotropicFiltering();
+};
+
+og.webgl.Handler.prototype.activateDepthTest = function () {
+    this.gl.enable(this.gl.DEPTH_TEST);
+};
+
+og.webgl.Handler.prototype.deactivateDepthTest = function () {
+    this.gl.disable(this.gl.DEPTH_TEST);
+};
+
+og.webgl.Handler.prototype.activateFaceCulling = function () {
+    this.gl.enable(this.gl.CULL_FACE);
+};
+
+og.webgl.Handler.prototype.deactivateFaceCulling = function () {
+    this.gl.disable(this.gl.CULL_FACE);
+};
+
+og.webgl.Handler.prototype.activateBlending = function () {
+    this.gl.enable(this.gl.BLEND);
+};
+
+og.webgl.Handler.prototype.deactivateBlending = function () {
+    this.gl.disable(this.gl.BLEND);
 };
 
 og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems) {
