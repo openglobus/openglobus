@@ -41,7 +41,7 @@ og.quadTree.QuadNode.createNode = function (planet, partId, parent, id, zoomInde
     node.planetSegment.handler = planet.renderer.handler;
     node.planetSegment.assignTileIndexes(zoomIndex, extent);
     node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[zoomIndex];
-    node.createBounds(node.planetSegment);
+    node.createBounds();
     node.planet.createdNodesCount++;
     return node;
 };
@@ -75,14 +75,15 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     return -1;
 };
 
-og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
+og.quadTree.QuadNode.prototype.createBounds = function () {
 
-    if (!planetSeg.zoomIndex) {
-        planetSeg.bsphere.radius = planetSeg.planet.ellipsoid._a;
-        planetSeg.bsphere.center = new og.math.Vector3();
-    } else if (planetSeg.zoomIndex < this.planet.terrainProvider.minZoom) {
-        planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
-        planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+    var seg = this.planetSegment;
+
+    if (!seg.zoomIndex) {
+        seg.bsphere.radius = seg.planet.ellipsoid._a;
+        seg.bsphere.center = new og.math.Vector3();
+    } else if (seg.zoomIndex < seg.planet.terrainProvider.minZoom) {
+        seg.bsphere.setFromExtent(seg.planet.ellipsoid, seg.extent);
     } else {
         var pn = this,
             scale = 0,
@@ -111,16 +112,55 @@ og.quadTree.QuadNode.prototype.createBounds = function (planetSeg) {
                 var j0 = gridSize * offsetX;
                 var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
                 var ind2 = 3 * ((i0 + gridSize) * (pn.planetSegment.gridSize + 1) + j0 + gridSize);
-
-                planetSeg.bbox.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
-                planetSeg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+                seg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
             } else {
-                planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
-                planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+                var pseg = pn.planetSegment;
+
+                var i0 = Math.floor(gridSize * offsetY);
+                var j0 = Math.floor(gridSize * offsetX);
+
+                var insideSize = 1 / gridSize;
+                var fullSize = insideSize * pseg.gridSize;
+
+                var t_i0 = offsetY - insideSize * i0,
+                    t_j0 = offsetX - insideSize * j0;
+
+                var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+
+                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
+                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
+
+                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+
+                var vi_y = t_i0,
+                    vi_x = t_j0;
+
+                var coords_lt, coords_rb;
+
+                if (vi_y + vi_x < insideSize) {
+                    coords_lt = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                } else {
+                    coords_lt = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                }
+
+                vi_y = t_i0 + 1,
+                vi_x = t_j0 + 1;
+
+                if (vi_y + vi_x < insideSize) {
+                    coords_rb = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                } else {
+                    coords_rb = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                }
+
+                seg.bsphere.radius = coords_lt.distance(coords_rb) * 0.5;
+                seg.bsphere.center = coords_lt.add(coords_rb.sub(coords_lt).scale(0.5));
+                seg.bsphere.setFromExtent(seg.planet.ellipsoid, seg.extent);
             }
         } else {
-            planetSeg.bbox.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
-            planetSeg.bsphere.setFromExtent(planetSeg.planet.ellipsoid, planetSeg.extent);
+            seg.bsphere.setFromExtent(seg.planet.ellipsoid, seg.extent);
         }
     }
 };
