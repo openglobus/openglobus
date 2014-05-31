@@ -157,7 +157,6 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
 
                 seg.bsphere.radius = coords_lt.distance(coords_rb) * 0.5;
                 seg.bsphere.center = coords_lt.add(coords_rb.sub(coords_lt).scale(0.5));
-                seg.bsphere.setFromExtent(seg.planet.ellipsoid, seg.extent);
             }
         } else {
             seg.bsphere.setFromExtent(seg.planet.ellipsoid, seg.extent);
@@ -248,12 +247,12 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             this.prepareForRendering(cam);
         }
         else {
-            //if (this.planetSegment.zoomIndex < this.planet.terrainProvider.gridSizeByZoom.length - 1) {
+            if (this.planetSegment.zoomIndex < this.planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes();
-            //}
-            //else {
-            //    this.prepareForRendering(cam);
-            //}
+            }
+            else {
+                this.prepareForRendering(cam);
+            }
         }
     } else {
         this.state = og.quadTree.NOTRENDERING;
