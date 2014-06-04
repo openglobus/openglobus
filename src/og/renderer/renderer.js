@@ -16,6 +16,20 @@ og.Renderer = function (handler) {
 };
 
 /**
+ * Returns client width
+ */
+og.Renderer.prototype.getWidth = function () {
+    return this.handler.gl.canvas.width;
+};
+
+/**
+ * Returns client height
+ */
+og.Renderer.prototype.getHeight = function () {
+    return this.handler.gl.canvas.height;
+};
+
+/**
  * Add the given control to the renderer.
  * @param {og.control.Control} control Control.
  */
