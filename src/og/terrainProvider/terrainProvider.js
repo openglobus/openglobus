@@ -11,7 +11,7 @@ og.terrainProvider.defaultOptions = {
     minZoom: 2,
     maxZoom: 14,
     gridSizeByZoom: [32, 32, 32, 32, 8, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
-    fileGridSize: 33,
+    fileGridSize: 32,
     MAX_LOADING_TILES: 10
 };
 

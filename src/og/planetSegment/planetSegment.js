@@ -58,13 +58,13 @@ og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
 
 og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
     if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
-        if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
-            if (!this.terrainIsLoading && !this.terrainReady) {
-                this.terrainReady = false;
-                this.terrainIsLoading = true;
-                this.planet.terrainProvider.handleSegmentTerrain(this);
-            }
+        //if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+        if (!this.terrainIsLoading && !this.terrainReady) {
+            this.terrainReady = false;
+            this.terrainIsLoading = true;
+            this.planet.terrainProvider.handleSegmentTerrain(this);
         }
+        //}
     } else {
         this.terrainReady = true;
     }
@@ -75,21 +75,28 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
     if (elevations.length) {
         if (this.ready && this.terrainIsLoading) {
             this.terrainExists = true;
+
             var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
-            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+            var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
             var fileGridSize = this.planet.terrainProvider.fileGridSize;
-            var step = (fileGridSize - 1) / this.gridSize;
+            var hf = this.planet.heightFactor;
+            var plain_verts = this.plainVertices;
+            var vertices = [];
+            var dgs = fileGridSize / tgs;
+            var gs = tgs + 1;
+            var v0 = new og.math.Vector3();
+            var v0_len;
 
-            for (var i = 0, iv = 0; i < fileGridSize; i += step, iv++) {
-                for (var j = 0, jv = 0; j < fileGridSize; j += step, jv++) {
-                    var vInd = (iv * (this.gridSize + 1) + jv) * 3;
-                    var v0 = new og.math.Vector3(this.plainVertices[vInd], this.plainVertices[vInd + 1], this.plainVertices[vInd + 2]);
-                    var v0_len = v0.length();
-                    v0.scale((v0_len + this.planet.heightFactor * elevations[i * fileGridSize + j]) / v0_len);
+            for (var i = 0; i < gs; i++) {
+                for (var j = 0; j < gs; j++) {
+                    var vInd = (i * gs + j) * 3;
+                    v0.set(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2]);
+                    v0_len = v0.length();
+                    v0.scale((v0_len + hf * elevations[Math.floor(i * dgs) * (fileGridSize + 1) + Math.floor(j * dgs)]) / v0_len);
 
-                    this.terrainVertices[vInd] = v0.x;
-                    this.terrainVertices[vInd + 1] = v0.y;
-                    this.terrainVertices[vInd + 2] = v0.z;
+                    vertices[vInd] = v0.x;
+                    vertices[vInd + 1] = v0.y;
+                    vertices[vInd + 2] = v0.z;
 
                     if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
                     if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
@@ -97,11 +104,12 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                 }
             }
 
-            this.bbox.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-            this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-
             this.deleteBuffers();
-            this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+            this.createCoordsBuffers(vertices, tgs);
+            this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+            this.terrainVertices.length = 0;
+            this.terrainVertices = vertices;
+            this.gridSize = tgs;
 
             elevations.length = 0;
 
@@ -111,7 +119,11 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             this.node.appliedTerrainNodeId = this.node.nodeId;
         }
     } else {
-        this.terrainNotExists();
+        if (this.zoomIndex > this.planet.terrainProvider.maxZoom) {
+
+        } else {
+            this.terrainNotExists();
+        }
     }
 };
 
