@@ -71,7 +71,7 @@ og.control.MousePosition.prototype.init = function () {
 
 og.control.MousePosition.prototype.showPosition = function () {
     if (this.position) {
-        this.display.innerHTML = "Lat/Lon: " + this.converter(this.position) + " Height(m): " + (this.position.height > 0 ? "~" + Math.round(this.position.height * 1000) : "-");
+        this.display.innerHTML = "Lat/Lon: " + this.converter(this.position) + " Height(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
     } else {
         this.display.innerHTML = "Lat/Lon: " + "_____________________";
     }
