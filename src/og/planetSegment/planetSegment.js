@@ -107,17 +107,9 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                 }
             } else {
                 var oneSize = tgs / fileGridSize;
-                var h = 0;
-
-                var inside_i, inside_j, v_i, v_j;
-
-                var hx = function (x, size, h1, h0) {
-                    return x * (h1 - h0) / size;
-                };
+                var h, inside_i, inside_j, v_i, v_j;
 
                 for (var i = 0; i < gs; i++) {
-
-
                     if (i == gs - 1) {
                         inside_i = oneSize;
                         v_i = Math.floor(i / oneSize) - 1;
@@ -127,7 +119,6 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                     }
 
                     for (var j = 0; j < gs; j++) {
-
                         if (j == gs - 1) {
                             inside_j = oneSize;
                             v_j = Math.floor(j / oneSize) - 1;
@@ -142,9 +133,9 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                             hvrb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j + 1];
 
                         if (inside_i + inside_j < oneSize) {
-                            h = hvlt + hx(inside_j, oneSize, hvrt, hvlt) + hx(inside_i, oneSize, hvlb, hvlt);
+                            h = hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt);
                         } else {
-                            h = hvrb + hx(oneSize - inside_j, oneSize, hvlb, hvrb) + hx(oneSize - inside_i, oneSize, hvrt, hvrb);
+                            h = hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb);
                         }
 
                         var vInd = (i * gs + j) * 3;

@@ -42,22 +42,30 @@ og.math.nextHighestPowerOfTwo = function (x) {
     return x + 1;
 };
 
-og.math.mod = function(x, y) {
-	return x - y * Math.floor(x / y);
+og.math.mod = function (x, y) {
+    return x - y * Math.floor(x / y);
 };
 
-og.math.step = function(edge, x) {
-	return x < edge ? 0.0 : 1.0;
+og.math.step = function (edge, x) {
+    return x < edge ? 0.0 : 1.0;
 };
 
-og.math.frac = function(v) {
-	return v - floor(v);
+og.math.frac = function (v) {
+    return v - floor(v);
 };
 
-og.math.log2 = function(x) {
-	return Math.log(x) / og.math.LOG2;
+og.math.log2 = function (x) {
+    return Math.log(x) / og.math.LOG2;
 };
 
-og.math.exp2 = function(x) {
-	return Math.pow(2, x);
+og.math.exp2 = function (x) {
+    return Math.pow(2, x);
+};
+
+og.math.slice = function (t, h1, h0) {
+    return t * (h1 - h0);
+};
+
+og.math.lerp = function (t, h1, h0) {
+    return h0 + t * (h1 - h0);
 };
