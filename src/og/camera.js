@@ -215,10 +215,45 @@ og.Camera.prototype.project = function (v) {
     return new og.math.Pixel((1 + r.x / r.w) * this.gl.canvas.width / 2, (1 - r.y / r.w) * this.gl.canvas.height / 2);
 };
 
-og.Camera.prototype.setgp = function (ellipsoid, lonlat) {
+og.Camera.prototype.setEye = function (p) {
+    this.eye.copy(p);
+    this.update();
+};
+
+og.Camera.prototype.setLonLat = function (ellipsoid, lonlat) {
     this.altitude = lonlat.height;
     this.eye = ellipsoid.LonLat2ECEF(lonlat);
     this.update();
+};
+
+og.Camera.prototype.getLonLat = function (ellipsoid) {
+    return ellipsoid.ECEF2LonLat(this.eye);
+};
+
+og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
+    center = center || og.math.Vector3.ZERO;
+    up = up || og.math.Vector3.UP;
+
+    var rot = new og.math.Matrix4().rotate(isArc ? this.v : up, angle);
+    var tr = new og.math.Matrix4().setIdentity().translate(center);
+    var ntr = new og.math.Matrix4().setIdentity().translate(center.getNegate());
+
+    var trm = tr.mul(rot);
+    trm = trm.mul(ntr);
+
+    this.eye = trm.mulVec3(this.eye);
+    this.v = rot.mulVec3(this.v);
+    this.u = rot.mulVec3(this.u);
+    this.n = rot.mulVec3(this.n);
+    this.update();
+};
+
+og.Camera.prototype.rotateHorizontal = function (angle, isArc, center, up) {
+    this.rotateAround(angle, isArc, center, up);
+};
+
+og.Camera.prototype.rotateVertical = function (angle, center, up) {
+    this.rotateAround(angle, false, center, this.u);
 };
 
 og.Camera.prototype.projectedSize = function (p) {
