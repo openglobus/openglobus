@@ -15,6 +15,8 @@ og.RendererEvents = function (canvas) {
     this.mouseState = {
         x: 0,
         y: 0,
+        prev_x: 0,
+        prev_y: 0,
         direction: new og.math.Vector3(),
         leftButtonUp: false,
         rightButtonUp: false,
@@ -88,6 +90,9 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
     if (ms.x == event.clientX && ms.y == event.clientY) {
         return;
     }
+
+    ms.prev_x = ms.x;
+    ms.prev_y = ms.y;
 
     ms.x = event.clientX;
     ms.y = event.clientY;
@@ -190,6 +195,8 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.justStopped) {
         ce(this.onmousestop, ms);
+        ms.prev_x = ms.x;
+        ms.prev_y = ms.y;
         ms.justStopped = false;
     }
 };
