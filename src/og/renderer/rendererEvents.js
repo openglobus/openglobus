@@ -190,13 +190,13 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.moving) {
         ce(this.onmousemove, ms);
+        ms.prev_x = ms.x;
+        ms.prev_y = ms.y;
         this._dblClkBegins = 0;
     }
 
     if (ms.justStopped) {
         ce(this.onmousestop, ms);
-        ms.prev_x = ms.x;
-        ms.prev_y = ms.y;
         ms.justStopped = false;
     }
 };
