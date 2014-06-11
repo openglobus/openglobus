@@ -18,6 +18,27 @@ og.math.DEGREES = 180 / Math.PI;
 //Float round-off PI
 Math.PI = 3.1415927410125732;
 
+og.math.EPSILON1 = 0.1;
+og.math.EPSILON2 = 0.01;
+og.math.EPSILON3 = 0.001;
+og.math.EPSILON4 = 0.0001;
+og.math.EPSILON5 = 0.00001;
+og.math.EPSILON6 = 0.000001;
+og.math.EPSILON7 = 1e-7;
+og.math.EPSILON8 = 1e-8;
+og.math.EPSILON9 = 1e-9;
+og.math.EPSILON10 = 1e-10;
+og.math.EPSILON11 = 1e-11;
+og.math.EPSILON12 = 1e-12;
+og.math.EPSILON13 = 1e-13;
+og.math.EPSILON14 = 1e-14;
+og.math.EPSILON15 = 1e-15;
+og.math.EPSILON16 = 1e-16;
+og.math.EPSILON17 = 1e-17;
+og.math.EPSILON18 = 1e-18;
+og.math.EPSILON19 = 1e-19;
+og.math.EPSILON20 = 1e-20;
+
 og.math.clamp = function (number, min, max) {
     return Math.max(min, Math.min(number, max));
 };
