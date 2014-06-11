@@ -7,7 +7,7 @@ goog.require('og.Frustum');
 goog.require('og.math.Pixel');
 goog.require('og.Events');
 
-og.Camera = function (options) {
+og.Camera = function () {
 
     this.events = new og.Events();
     this.renderer = null;
@@ -33,7 +33,8 @@ og.Camera = function (options) {
     this.pMatrixRot = new og.math.Matrix4();
     this.pmvMatrixRot = new og.math.Matrix4();
 
-    this.altitude = 0;
+    this.lonLat = new og.LonLat();
+    this._ellipsoid = null;
 };
 
 og.Camera.clone = function (cam) {
@@ -48,7 +49,8 @@ og.Camera.clone = function (cam) {
     newcam.pmvMatrix.copy(cam.pmvMatrix);
     newcam.ipmvMatrix.copy(cam.ipmvMatrix);
     newcam.frustum.setFrustum(newcam.pmvMatrix);
-    newcam.altitude = cam.altitude;
+    newcam.ellipsoid = cam.ellipsoid;
+    newcam.lonLat = cam.lonLat.clone();
     return newcam;
 };
 
@@ -61,9 +63,16 @@ og.Camera.defaultOptions = {
     up: new og.math.Vector3(0, 1, 0)
 };
 
+og.Camera.prototype.bindEllipsoid = function (ellipsoid) {
+    this._ellipsoid = ellipsoid;
+    this.lonLat = ellipsoid.ECEF2LonLat(this.eye);
+};
+
 og.Camera.prototype.init = function (renderer, options) {
     this.renderer = renderer;
+
     if (options) {
+        this._ellipsoid = options.ellipsoid;
         this.setProjectionMatrix(
             options.viewAngle ? options.viewAngle : og.Camera.defaultOptions.viewAngle,
             this.renderer.handler.gl.canvas.aspect,
@@ -100,6 +109,8 @@ og.Camera.prototype.update = function () {
 
     this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
     this.ipmvMatrix = this.pmvMatrixRot.inverse();
+    if (this._ellipsoid)
+        this.lonLat = this._ellipsoid.ECEF2LonLat(this.eye);
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
@@ -220,14 +231,18 @@ og.Camera.prototype.setEye = function (p) {
     this.update();
 };
 
-og.Camera.prototype.setLonLat = function (ellipsoid, lonlat) {
-    this.altitude = lonlat.height;
-    this.eye = ellipsoid.LonLat2ECEF(lonlat);
-    this.update();
-};
+og.Camera.prototype.setLonLat = function (lonlat) {
+    this.lonLat.set(lonlat.lon, lonlat.lat, lonlat.height ? lonlat.height : this.lonLat.height);
+    var newEye = this._ellipsoid.LonLat2ECEF(this.lonLat);
+    var rot = new og.math.Matrix4().rotateBetweenVectors(newEye.normal(), this.eye.normal());
+    this.eye = newEye;
 
-og.Camera.prototype.getLonLat = function (ellipsoid) {
-    return ellipsoid.ECEF2LonLat(this.eye);
+    //what about altitude where camera rotates like arc ball?
+    this.v = rot.mulVec3(this.v);
+    this.u = rot.mulVec3(this.u);
+    this.n = rot.mulVec3(this.n);
+
+    this.update();
 };
 
 og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
@@ -259,7 +274,7 @@ og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
 };
 
-og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
+og.Camera.prototype.getExtentPosition = function (extent) {
 
     var north = extent.getNorth();
     var south = extent.getSouth();
@@ -271,13 +286,13 @@ og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
     }
 
     var cart = new og.LonLat(east, north);
-    var northEast = ellipsoid.LonLat2ECEF(cart);
+    var northEast = this._ellipsoid.LonLat2ECEF(cart);
     cart.lat = south;
-    var southEast = ellipsoid.LonLat2ECEF(cart);
+    var southEast = this._ellipsoid.LonLat2ECEF(cart);
     cart.lon = west;
-    var southWest = ellipsoid.LonLat2ECEF(cart);
+    var southWest = this._ellipsoid.LonLat2ECEF(cart);
     cart.lat = north;
-    var northWest = ellipsoid.LonLat2ECEF(cart);
+    var northWest = this._ellipsoid.LonLat2ECEF(cart);
 
     var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
 
@@ -285,7 +300,7 @@ og.Camera.prototype.getExtentPosition = function (extent, ellipsoid) {
     if (mag < 0.000001) {
         cart.lon = (east + west) * 0.5;
         cart.lat = (north + south) * 0.5;
-        center = ellipsoid.LonLat2ECEF(cart);
+        center = this._ellipsoid.LonLat2ECEF(cart);
     }
 
     northWest.sub(center);

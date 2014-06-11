@@ -155,14 +155,16 @@ og.node.Planet.prototype.setTerrainProvider = function (terrain) {
 
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
-    og.planetSegment.PlanetSegmentHelper.initIndexesTables(5);
+    og.planetSegment.PlanetSegmentHelper.initIndexesTables(6);
 
     //Iniytialize indexes buffers array
-    for (var i = 0; i <= 5; i++) {
+    for (var i = 0; i <= 6; i++) {
         var gridSize = Math.pow(2, i);
         var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
         this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
+
+    this.renderer.activeCamera.bindEllipsoid(this.ellipsoid);
 
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
@@ -216,19 +218,11 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     })
 };
 
-og.node.Planet.prototype.getAltitude = function (p) {
-    var direction = new og.math.Vector3(-p.x, -p.y, -p.z);
-    var intersection = this.getRayIntersectionEllipsoid(new og.math.Ray(this.renderer.activeCamera.eye, direction));
-    return p.distance(intersection);
-};
-
 og.node.Planet.prototype.frame = function () {
 
     this.quadTree.renderTree();
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
-
-    this.renderer.activeCamera.altitude = this.getAltitude(this.renderer.activeCamera.eye);
 
     //Here is the planet node dispatche a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);

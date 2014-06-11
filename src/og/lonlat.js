@@ -6,6 +6,12 @@ og.LonLat = function (lon, lat, height) {
     this.height = height || 0;
 };
 
+og.LonLat.prototype.set = function (lon, lat, height) {
+    this.lon = lon;
+    this.lat = lat;
+    this.height = height;
+};
+
 og.LonLat.createFromArray = function (arr) {
     return new og.LonLat(arr[0], arr[1], arr[2]);
 };

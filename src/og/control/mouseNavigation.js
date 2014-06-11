@@ -12,7 +12,6 @@ goog.require('og.math.Ray');
 og.control.MouseNavigation = function (options) {
     og.inheritance.base(this, options);
     this.grabbedPoint = new og.math.Vector3();
-    this.hasGrabbedPoint = false;
     this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
     this.distDiff = 0.12;
@@ -56,20 +55,18 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
     //  console.log("doubleclick");
 };
 
-og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
+og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (e) {
+    this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e);
     this.grabbedSpheroid.radius = this.grabbedPoint.length();
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
-    //console.log((e.x + " " + e.y) + ", " + (e.prev_x + " " + e.prev_y));
-
     if (this.renderer.events.mouseState.moving) {
         if (this.grabbedPoint) {
             var cam = this.renderer.activeCamera;
             var targetPoint = new og.math.Ray(cam.eye, this.renderer.events.mouseState.direction).hitSphere(this.grabbedSpheroid);
             var look, up;
-            if (cam.altitude < 500000) {
+            if (cam.lonLat.height < 500000) {
                 cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
                 up = cam.v;
                 look = og.math.Vector3.sub(cam.eye, cam.n);

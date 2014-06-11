@@ -214,9 +214,9 @@ og.quadTree.QuadNode.prototype.getState = function () {
 };
 
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
-    if (cam.altitude < 3000000.0) {
+    if (cam.lonLat.height < 3000000.0) {
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
-        var horizon = 3570 * Math.sqrt(cam.altitude);
+        var horizon = 3570 * Math.sqrt(cam.lonLat.height);
         if (distance < horizon) {
             this.renderNode();
         } else {
