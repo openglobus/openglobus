@@ -91,9 +91,6 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
         return;
     }
 
-    ms.prev_x = ms.x;
-    ms.prev_y = ms.y;
-
     ms.x = event.clientX;
     ms.y = event.clientY;
 
