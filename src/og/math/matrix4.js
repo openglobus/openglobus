@@ -3,6 +3,7 @@ goog.provide('og.math.Matrix4');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
+goog.require('og.math.Quaternion');
 
 og.math.Matrix4 = function () {
     this._m = new Array(16);
@@ -157,6 +158,11 @@ og.math.Matrix4.prototype.rotate = function (u, angle) {
     return this;
 };
 
+og.math.Matrix4.prototype.rotateBetweenVectors = function (a, b) {
+    var q = og.math.Quaternion.getRotationBetweenVectors(a, b);
+    return q.getMatrix4();
+};
+
 og.math.Matrix4.prototype.scale = function (v) {
     var mx = this._m;
     mx[0] = mx[0] * v.x; mx[1] = mx[1] * v.x; mx[2] = mx[2] * v.x; mx[3] = mx[3] * v.x;
@@ -216,37 +222,6 @@ og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
 };
 
 og.math.Matrix4.prototype.getEulerAngles = function () {
-    var mat = this._m;
-    var d, tx, ty;
-    var angle_x, angle_z,
-        angle_y = d = -Math.asin(mat[2]);
-    var c = Math.cos(angle_y);
-    angle_y *= og.math.RADIANS;
-
-    //Gimball lock?
-    if (Math.abs(c) > 0.005) {
-        tx = mat[10] / c;
-        ty = -mat[6] / c;
-
-        angle_x = Math.atan2(ty, tx) * og.math.RADIANS;
-
-        tx = mat[0] / c;
-        ty = -mat[1] / c;
-
-        angle_z = Math.atan2(ty, tx) * og.math.RADIANS;
-    }
-    else {
-        angle_x = 0;
-
-        tx = mat[5];
-        ty = mat[4];
-
-        angle_z = Math.atan2(ty, tx) * og.math.RADIANS;
-    }
-
-    return new og.math.Vector3(
-        og.math.clamp(angle_x, 0, 360),
-        og.math.clamp(angle_y, 0, 360),
-        og.math.clamp(angle_z, 0, 360));
+    //TODO
 };
 
