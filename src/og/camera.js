@@ -238,8 +238,7 @@ og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
     var tr = new og.math.Matrix4().setIdentity().translate(center);
     var ntr = new og.math.Matrix4().setIdentity().translate(center.getNegate());
 
-    var trm = tr.mul(rot);
-    trm = trm.mul(ntr);
+    var trm = tr.mul(rot).mul(ntr);
 
     this.eye = trm.mulVec3(this.eye);
     this.v = rot.mulVec3(this.v);
