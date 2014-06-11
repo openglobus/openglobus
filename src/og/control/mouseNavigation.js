@@ -13,11 +13,7 @@ og.control.MouseNavigation = function (options) {
     og.inheritance.base(this, options);
     this.grabbedPoint = new og.math.Vector3();
     this.hasGrabbedPoint = false;
-    this.x0 = 0;
-    this.y0 = 0;
-    this.camAngleX = 0;
-    this.camAngleY = 0;
-    this.screenCenterOnEarth = new og.math.Vector3();
+    this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
     this.distDiff = 0.12;
     this.grabbedSpheroid = new og.bv.Sphere();
@@ -53,11 +49,11 @@ og.control.MouseNavigation.prototype.init = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseClick = function () {
-    console.log("click");
+    // console.log("click");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
-    console.log("doubleclick");
+    //  console.log("doubleclick");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
@@ -65,7 +61,9 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     this.grabbedSpheroid.radius = this.grabbedPoint.length();
 };
 
-og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
+og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
+    //console.log((e.x + " " + e.y) + ", " + (e.prev_x + " " + e.prev_y));
+
     if (this.renderer.events.mouseState.moving) {
         if (this.grabbedPoint) {
             var cam = this.renderer.activeCamera;
@@ -82,35 +80,21 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function () {
                 up = og.math.Vector3.UP;
             }
             cam.set(cam.eye, look, up);
+            //console.log((e.x - e.prev_x) + ", " + (e.y - e.prev_y));
         } else {
             //TODO: Have to continue rotation
         }
     }
 };
 
-og.control.MouseNavigation.prototype.onMouseRightButtonClick = function () {
-    this.x0 = this.renderer.events.mouseState.x;
-    this.y0 = this.renderer.events.mouseState.y;
-    this.camAngleX = 0;
-    this.camAngleY = 0;
-    this.screenCenterOnEarth = this.planet.getCartesianFromPixelTerrain({ x: this.renderer.handler.gl.canvas.width / 2, y: this.renderer.handler.gl.canvas.height / 2 });
-    this.earthUp = this.screenCenterOnEarth.normal();
+og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
+    this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y });
+    this.earthUp = this.pointOnEarth.normal();
 };
 
-og.control.MouseNavigation.prototype.onMouseRightButtonDown = function () {
+og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
     if (this.renderer.events.mouseState.moving) {
-        this.camAngleX = og.math.DEG2RAD((this.renderer.events.mouseState.x - this.x0) * 0.4);
-        this.camAngleY = og.math.DEG2RAD((this.renderer.events.mouseState.y - this.y0) * 0.4);
-        this.x0 = this.renderer.events.mouseState.x;
-        this.y0 = this.renderer.events.mouseState.y;
-
-        var rot = new og.math.Matrix4();
-        var rx = rot.rotate(this.earthUp, this.camAngleX).mulVec3(og.math.Vector3.sub(this.renderer.activeCamera.eye, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
-        var ry = rot.rotate(this.renderer.activeCamera.u, this.camAngleY).mulVec3(og.math.Vector3.sub(rx, this.screenCenterOnEarth)).add(this.screenCenterOnEarth);
-
-        if (og.math.RAD2DEG(this.earthUp.angle(this.renderer.activeCamera.n)) > 1) {
-        }
-
-        this.renderer.activeCamera.set(ry, this.screenCenterOnEarth, this.earthUp);
+        this.renderer.activeCamera.rotateHorizontal((e.x - e.prev_x) * og.math.RADIANS, false, this.pointOnEarth, this.earthUp);
+        this.renderer.activeCamera.rotateVertical((e.y - e.prev_y) * og.math.RADIANS, this.pointOnEarth);
     }
 };
