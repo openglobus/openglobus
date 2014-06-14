@@ -284,7 +284,10 @@ og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
 
 og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
-    return this.ellipsoid.ECEF2LonLat(coords);
+    if (coords) {
+        return this.ellipsoid.ECEF2LonLat(coords);
+    }
+    return null;
 };
 
 og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
@@ -299,13 +302,19 @@ og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
 
 og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
     var distance = this.getDistanceFromPixel(px);
-    var direction = this.renderer.activeCamera.unproject(px.x, px.y);
-    return direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+    if (distance) {
+        var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+        return direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+    }
+    return null;
 };
 
 og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
     var coords = this.getCartesianFromPixelTerrain(px);
-    return this.ellipsoid.ECEF2LonLat(coords);
+    if (coords) {
+        return this.ellipsoid.ECEF2LonLat(coords);
+    }
+    return null;
 };
 
 og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
