@@ -22,15 +22,27 @@ og.control.MouseNavigation = function (options) {
 og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
-    var pos = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
-    if (pos) {
+    var a = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
+    if (a) {
         var cam = this.renderer.activeCamera;
-        var d = this.distDiff * cam.eye.distance(pos);
-        var dv = new og.math.Vector3(this.renderer.events.mouseState.direction.x * d, this.renderer.events.mouseState.direction.y * d, this.renderer.events.mouseState.direction.z * d);
+        var dir = this.renderer.events.mouseState.direction;
+        var d = this.distDiff * cam.eye.distance(a);
+
         if (event.wheelDelta > 0) {
-            cam.eye.add(dv);
+            d = -d;
+        }
+
+        if (cam.lonLat.height > 9000) {
+            this.grabbedSpheroid.radius = a.length();
+            cam.eye.add(cam.n.scaleTo(d));
+            var b = new og.math.Ray(cam.eye, dir).hitSphere(this.grabbedSpheroid);
+            var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
+            cam.eye = rot.mulVec3(cam.eye);
+            cam.v = rot.mulVec3(cam.v);
+            cam.u = rot.mulVec3(cam.u);
+            cam.n = rot.mulVec3(cam.n);
         } else {
-            cam.eye.sub(dv);
+            cam.eye.add(dir.scaleTo(-d));
         }
         cam.update();
     }
@@ -61,27 +73,18 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (e) {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
-    if (this.renderer.events.mouseState.moving) {
-        if (this.grabbedPoint) {
-            var cam = this.renderer.activeCamera;
-            var targetPoint = new og.math.Ray(cam.eye, this.renderer.events.mouseState.direction).hitSphere(this.grabbedSpheroid);
-            var look, up;
-            if (cam.lonLat.height < 500000) {
-                cam.eye.add(og.math.Vector3.sub(this.grabbedPoint, targetPoint));
-                up = cam.v;
-                look = og.math.Vector3.sub(cam.eye, cam.n);
-            } else {
-                var rot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
-                cam.eye = rot.getMatrix4().mulVec3(cam.eye);
-                look = og.math.Vector3.ZERO;
-                up = og.math.Vector3.UP;
-            }
-            cam.set(cam.eye, look, up);
-            //console.log((e.x - e.prev_x) + ", " + (e.y - e.prev_y));
-        } else {
-            //TODO: Have to continue rotation
-        }
-    }
+    if (!(this.renderer.events.mouseState.moving || this.grabbedPoint)) return;
+
+    var cam = this.renderer.activeCamera;
+    var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
+
+    var rot = new og.math.Matrix4().rotateBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
+    cam.eye = rot.mulVec3(cam.eye);
+    cam.v = rot.mulVec3(cam.v);
+    cam.u = rot.mulVec3(cam.u);
+    cam.n = rot.mulVec3(cam.n);
+
+    cam.update();
 };
 
 og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
