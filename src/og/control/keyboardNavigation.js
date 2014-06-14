@@ -25,61 +25,63 @@ og.control.KeyboardNavigation.prototype.init = function () {
 };
 
 og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {
-    //this.activeCamera.altitude += 0.7;
-    //this.activeCamera.setLatLonToPosition();
+
 };
 
 og.control.KeyboardNavigation.prototype.onCameraMoveForward = function (event) {
     var camera = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        camera.slide(0, 0, -50);
-    } else {
-        camera.slide(0, 0, -1);
-    }
-
+    camera.slide(0, 0, -camera.lonLat.height / 30);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraMoveBackward = function (event) {
     var camera = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        camera.slide(0, 0, 50);
-    } else {
-        camera.slide(0, 0, 1);
-    }
+    camera.slide(0, 0, camera.lonLat.height / 30);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeLeft = function (event) {
     var camera = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        camera.slide(-50, 0, 0);
-    } else {
-        camera.slide(-1, 0, 0);
-    }
+    camera.slide(-camera.lonLat.height / 30, 0, 0);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
     var camera = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        camera.slide(50, 0, 0);
-    } else {
-        camera.slide(1, 0, 0);
-    }
+    camera.slide(camera.lonLat.height / 30, 0, 0);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
-    this.renderer.activeCamera.pitch(1);
+    var cam = this.renderer.activeCamera;
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        cam.pitch(1);
+    } else {
+        cam.rotateVertical(cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
+    }
 };
 
 og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
-    this.renderer.activeCamera.pitch(-1);
+    var cam = this.renderer.activeCamera;
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        cam.pitch(-1);
+    } else {
+        cam.rotateVertical(-cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
+    }
 };
 
 og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
-    this.renderer.activeCamera.yaw(1);
+    var cam = this.renderer.activeCamera;
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        cam.yaw(1);
+    } else {
+        cam.rotateHorizontal(cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+    }
 };
 
 og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
-    this.renderer.activeCamera.yaw(-1);
+    var cam = this.renderer.activeCamera;
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        cam.yaw(-1);
+    } else {
+        cam.rotateHorizontal(-cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+    }
 };
 
 og.control.KeyboardNavigation.prototype.onCameraRollLeft = function (event) {
