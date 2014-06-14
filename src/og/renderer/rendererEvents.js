@@ -28,7 +28,8 @@ og.RendererEvents = function (canvas) {
         click: false,
         moving: false,
         justStopped: false,
-        doubleClickDelay: 300
+        doubleClickDelay: 300,
+        wheelDelta: 0
     };
 
     this._mousestopThread = null;
@@ -81,7 +82,7 @@ og.RendererEvents.prototype.initialize = function () {
 };
 
 og.RendererEvents.prototype.onMouseWheel = function (event) {
-    this.dispatch(this.onmousewheel, event);
+    this.mouseState.wheelDelta = event.wheelDelta;
 };
 
 og.RendererEvents.prototype.onMouseMove = function (event) {
@@ -183,6 +184,11 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.leftButtonDoubleClick) {
         ce(this.onmouselbuttondoubleclick, ms);
         ms.leftButtonDoubleClick = false;
+    }
+
+    if (ms.wheelDelta) {
+        ce(this.onmousewheel, ms);
+        ms.wheelDelta = 0;
     }
 
     if (ms.moving) {
