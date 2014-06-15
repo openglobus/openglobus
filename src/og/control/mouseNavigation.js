@@ -14,7 +14,7 @@ og.control.MouseNavigation = function (options) {
     this.grabbedPoint = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
-    this.distDiff = 0.12;
+    this.distDiff = 0.2;
     this.grabbedSpheroid = new og.bv.Sphere();
     this.planet;
 };
@@ -100,8 +100,10 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
 };
 
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
+    var cam = this.renderer.activeCamera;
     if (this.renderer.events.mouseState.moving) {
-        this.renderer.activeCamera.rotateHorizontal((e.x - e.prev_x) * og.math.RADIANS, false, this.pointOnEarth, this.earthUp);
-        this.renderer.activeCamera.rotateVertical((e.y - e.prev_y) * og.math.RADIANS, this.pointOnEarth);
+        var l = 0.8 / cam.eye.distance(this.pointOnEarth);
+        cam.rotateHorizontal(l * cam.lonLat.height * (e.x - e.prev_x) * og.math.RADIANS, false, this.pointOnEarth, this.earthUp);
+        cam.rotateVertical(l * cam.lonLat.height * (e.y - e.prev_y) * og.math.RADIANS, this.pointOnEarth);
     }
 };
