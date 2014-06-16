@@ -13,6 +13,7 @@ og.Renderer = function (handler) {
     this.activeCamera;
     this.events = new og.RendererEvents(handler.gl.canvas);
     this.controls = [];
+    this.controlsBag = {};
 };
 
 /**
