@@ -3,7 +3,7 @@ goog.provide('og.math.Matrix4');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
-goog.require('og.math.Quaternion');
+//goog.require('og.math.Quaternion');
 
 og.math.Matrix4 = function () {
     this._m = new Array(16);
