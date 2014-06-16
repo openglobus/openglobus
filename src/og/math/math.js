@@ -39,6 +39,10 @@ og.math.EPSILON18 = 1e-18;
 og.math.EPSILON19 = 1e-19;
 og.math.EPSILON20 = 1e-20;
 
+og.math.log = function (n, base) {
+    return Math.log(n) / Math.log(base);
+};
+
 og.math.clamp = function (number, min, max) {
     return Math.max(min, Math.min(number, max));
 };
