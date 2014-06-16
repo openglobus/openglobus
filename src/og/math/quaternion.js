@@ -10,6 +10,11 @@ og.math.Quaternion = function (x, y, z, w) {
     this.w = w || 0;
 };
 
+og.math.Quaternion.prototype.clear = function () {
+    this.x = this.y = this.z = this.w = 0;
+    return this;
+};
+
 og.math.Quaternion.prototype.set = function (x, y, z, w) {
     this.x = x;
     this.y = y;
@@ -36,6 +41,17 @@ og.math.Quaternion.prototype.add = function (q) {
 
 og.math.Quaternion.prototype.sub = function (q) {
     return new og.math.Quaternion(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
+};
+
+og.math.Quaternion.prototype.scale = function (scale) {
+    this.x *= scale;
+    this.y *= scale;
+    this.z *= scale;
+    return this;
+};
+
+og.math.Quaternion.prototype.scaleTo = function (scale) {
+    return new og.math.Quaternion(this.x * scale, this.y * scale, this.z * scale, this.w);
 };
 
 og.math.Quaternion.prototype.toVec = function () {
