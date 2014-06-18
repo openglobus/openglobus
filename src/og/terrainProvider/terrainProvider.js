@@ -8,7 +8,7 @@ goog.require('og.Events');
 og.terrainProvider.defaultOptions = {
     url: "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm",
     responseType: "arraybuffer",
-    minZoom: 2,
+    minZoom: 3,
     maxZoom: 14,
     gridSizeByZoom: [32, 32, 32, 32, 8, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
     fileGridSize: 32,

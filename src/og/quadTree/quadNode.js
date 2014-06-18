@@ -259,24 +259,28 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     }
 };
 
+og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
+    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.zoomIndex];
+    segment.gridSize = gridSize;
+    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
+    segment.createPlainVertices(gridSize);
+    segment.terrainVertices = segment.plainVertices;
+    segment.createCoordsBuffers(segment.plainVertices, gridSize);
+    segment.ready = true;
+};
+
 og.quadTree.QuadNode.prototype.renderNode = function () {
 
     this.state = og.quadTree.RENDERING;
     var seg = this.planetSegment;
 
     if (!seg.ready) {
-        var gridSize = this.planet.terrainProvider.gridSizeByZoom[seg.zoomIndex];
-        seg.gridSize = gridSize;
-        this.sideSize = [gridSize, gridSize, gridSize, gridSize];
-        seg.createPlainVertices(gridSize);
-        seg.terrainVertices = seg.plainVertices;
-        seg.createCoordsBuffers(seg.plainVertices, gridSize);
-        seg.ready = true;
+        this.createPlainSegment(seg);
     }
 
     if (!seg.terrainReady) {
-        seg.loadTerrain();
         this.whileTerrainLoading();
+        seg.loadTerrain();
     }
 
     var vl = this.planet.visibleLayers,
@@ -439,21 +443,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             }
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
-            tempVertices.length = 0;
-
-            //if (seg.zoomIndex > this.planet.terrainProvider.maxZoom) {
-            //    pn = this;
-            //    while (pseg.zoomIndex >= this.planet.terrainProvider.maxZoom && !seg.terrainReady) {
-            //        pn = pn.parentNode;
-            //        seg.terrainReady = pseg.terrainReady;
-            //        seg.terrainIsLoading = pseg.terrainIsLoading;
-            //    }
-            //    seg.terrainVertices.length = 0;
-            //    seg.terrainVertices = tempVertices;
-            //} else {
-            //    this.appliedTerrainNodeId = pn.nodeId;
-            //    tempVertices.length = 0;
-            //}
+            seg.tempVertices = tempVertices;
         }
     }
 };

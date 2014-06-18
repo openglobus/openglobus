@@ -13,6 +13,7 @@ goog.require('og.mercator');
 og.planetSegment.PlanetSegment = function () {
     this.plainVertices = [];
     this.terrainVertices = [];
+    this.tempVertices = [];
     this.bbox = new og.bv.Box();
     this.bsphere = new og.bv.Sphere();
 
@@ -57,16 +58,19 @@ og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
 
 
 og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
-    if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
-        //if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+    if (this.zoomIndex >= this.planet.terrainProvider.minZoom &&
+        this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
             this.terrainReady = false;
             this.terrainIsLoading = true;
             this.planet.terrainProvider.handleSegmentTerrain(this);
         }
-        //}
     } else {
         this.terrainReady = true;
+        if (this.tempVertices.length) {
+            this.terrainVertices = this.tempVertices;
+            this.terrainExists = true;
+        }
     }
 };
 
@@ -168,11 +172,11 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
         }
     } else {
         //terrain not exists
-        if (this.zoomIndex > this.planet.terrainProvider.maxZoom) {
+        //if (this.zoomIndex > this.planet.terrainProvider.maxZoom) {
 
-        } else {
-            this.terrainNotExists();
-        }
+        //} else {
+        this.terrainNotExists();
+        //}
     }
 };
 
@@ -214,6 +218,7 @@ og.planetSegment.PlanetSegment.prototype.clearBuffers = function () {
 og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.terrainReady = false;
     this.terrainIsLoading = false;
+    this.tempVertices.length = 0;
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
 };
