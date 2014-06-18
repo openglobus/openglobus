@@ -80,30 +80,26 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (e) {
     this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e);
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
-
         this.stopRotation();
     }
 };
 
 og.control.MouseNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
-    this.scaleRot = 0;
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
-    if (!this.grabbedPoint) return;
+    if (!this.grabbedPoint)
+        return;
 
     if (this.renderer.events.mouseState.moving) {
         var cam = this.renderer.activeCamera;
         var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
 
         if (targetPoint) {
-
             this.scaleRot = 1;
-
             this.qRot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
             var rot = this.qRot.getMatrix4();
-
             cam.eye = rot.mulVec3(cam.eye);
             cam.v = rot.mulVec3(cam.v);
             cam.u = rot.mulVec3(cam.u);
@@ -111,7 +107,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
             cam.update();
         }
     } else {
-        this.stopRotation();
+        this.scaleRot = 0;
     }
 };
 
