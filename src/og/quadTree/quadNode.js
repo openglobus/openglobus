@@ -279,8 +279,8 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     }
 
     if (!seg.terrainReady) {
-        this.whileTerrainLoading();
         seg.loadTerrain();
+        this.whileTerrainLoading();
     }
 
     var vl = this.planet.visibleLayers,
@@ -357,6 +357,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         scale++;
         pn = pn.parentNode;
     }
+
+    var maxZ = this.planet.terrainProvider.maxZoom;
 
     if (pn.planetSegment.terrainReady &&
         pn.planetSegment.terrainExists) {
@@ -444,6 +446,25 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.tempVertices = tempVertices;
+
+            if (seg.zoomIndex > maxZ && pn.planetSegment.zoomIndex >= maxZ) {
+                seg.terrainVertices = tempVertices;
+                seg.terrainReady = true;
+                seg.terrainExists = true;
+            } else {
+                pn = this;
+                while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+                    pn = pn.parentNode;
+                }
+
+                var pns = pn.planetSegment;
+
+                if (!pns.ready) {
+                    this.createPlainSegment(pns);
+                }
+
+                pns.loadTerrain();
+            }
         }
     }
 };

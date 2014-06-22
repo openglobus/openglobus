@@ -58,8 +58,7 @@ og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
 
 
 og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
-    if (this.zoomIndex >= this.planet.terrainProvider.minZoom &&
-        this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+    if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
             this.terrainReady = false;
             this.terrainIsLoading = true;
@@ -67,10 +66,6 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
         }
     } else {
         this.terrainReady = true;
-        if (this.tempVertices.length) {
-            this.terrainVertices = this.tempVertices;
-            this.terrainExists = true;
-        }
     }
 };
 
@@ -171,35 +166,27 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             elevations.length = 0;
         }
     } else {
-        //terrain not exists
-        //if (this.zoomIndex > this.planet.terrainProvider.maxZoom) {
 
-        //} else {
-        this.terrainNotExists();
-        //}
-    }
-};
+        if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+            if (this.ready && this.terrainIsLoading) {
+                this.terrainIsLoading = false;
+                this.terrainReady = true;
+                this.terrainExists = false;
+                this.node.appliedTerrainNodeId = this.node.nodeId;
+                this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
-og.planetSegment.PlanetSegment.prototype.terrainNotExists = function () {
-    this.terrainReady = false;
-    if (this.ready && this.terrainIsLoading) {
-        this.terrainIsLoading = false;
-        this.terrainReady = true;
-        this.terrainExists = false;
-        this.node.appliedTerrainNodeId = this.node.nodeId;
-        this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+                this.deleteBuffers();
 
-        this.bsphere.setFromExtent(this.planet.ellipsoid, this.extent);
-        this.bbox.setFromExtent(this.planet.ellipsoid, this.extent);
-
-        this.deleteBuffers();
-
-        if (this.zoomIndex > 5) {
-            this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
-            this.createCoordsBuffers(this.terrainVertices, 2);
-            this.gridSize = 2;
+                if (this.zoomIndex > 5) {
+                    this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
+                    this.createCoordsBuffers(this.terrainVertices, 2);
+                    this.gridSize = 2;
+                } else {
+                    this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+                }
+            }
         } else {
-            this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+
         }
     }
 };
