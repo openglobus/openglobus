@@ -16,9 +16,85 @@ og.math.Ray.prototype.getPoint = function (distance) {
     return og.Vector3.add(this.origin, this.direction.scaleTo(distance));
 };
 
-og.math.Ray.prototype.hitTriangle = function (v1, v2, v3) {
+og.math.Ray.prototype.hitTriangle = function (v0, v1, v2) {
+    var u = og.math.Vector3.sub(v1, v0);
+    var v = og.math.Vector3.sub(v2, v0);
+    var n = u.cross(v);
 
+    var w0 = og.math.Vector3.sub(this.origin, v0);
+    var a = -n.dot(w0);
+    var b = n.dot(this.direction);
+
+    // ray is  parallel to triangle plane
+    if (Math.abs(b) < og.math.EPSILON6) {
+        if (a == 0)
+            // ray lies in triangle plane
+            return this.origin;
+        else
+            // ray disjoint from plane
+            return null;
+    }
+
+    var r = a / b;
+
+    // ray goes away from triangle
+    if (r < 0.0)
+        return null;
+
+    // intersect point of ray and plane
+    var I = og.math.Vector3.add(this.origin, this.direction.scaleTo(r));
+
+    // is I inside triangle?
+    var uu = u.dot(u);
+    var uv = u.dot(v);
+    var vv = v.dot(v);
+    var w = og.math.Vector3.sub(I, v0);
+    var wu = w.dot(u);
+    var wv = w.dot(v);
+    var D = uv * uv - uu * vv;
+
+    var s = (uv * wv - vv * wu) / D;
+    if (s < 0.0 || s > 1.0)
+        return null;
+
+    var t = (uv * wu - uu * wv) / D;
+    if (t < 0.0 || (s + t) > 1.0)
+        return null;
+
+    return I;
 };
+
+//from JGT
+//og.math.Ray.prototype.hitTriangle = function (vert0, vert1, vert2) {
+//    var edge1 = og.math.Vector3.sub(vert1, vert0);
+//    var edge2 = og.math.Vector3.sub(vert2, vert0);
+
+//    var pvec = this.direction.cross(edge2);
+
+//    /* if determinant is near zero, ray lies in plane of triangle */
+//    var det = edge1.dot(pvec);
+
+//    if (det > -og.math.EPSILON6 && det < og.math.EPSILON6)
+//        return null;
+
+//    var inv_det = 1.0 / det;
+
+//    var tvec = og.math.Vector3.sub(this.origin, vert0);
+
+//    var u = tvec.dot(pvec) * inv_det;
+//    if (u < 0.0 || u > 1.0)
+//        return null;
+
+//    var qvec = tvec.cross(edge1);
+
+//    var v = this.direction.dot(qvec) * inv_det;
+//    if (v < 0.0 || u + v > 1.0)
+//        return null;
+
+//    var t = edge2.dot(qvec) * inv_det;
+
+//    return new og.math.Vector3(u, v, t);
+//};
 
 og.math.Ray.prototype.hitPlane = function (point, normal) {
 
