@@ -11,6 +11,13 @@ og.Extent.createFromArray = function (arr) {
     return new og.Extent(new og.LonLat(arr[0], arr[1]), new og.LonLat(arr[2], arr[3]));
 };
 
+og.Extent.prototype.isInside = function (lonlat) {
+    var sw = this.southWest,
+        ne = this.northEast;
+    return lonlat.lon >= sw.lon && lonlat.lon <= ne.lon &&
+           lonlat.lat >= sw.lat && lonlat.lat <= ne.lat;
+};
+
 og.Extent.prototype.getWidth = function () {
     return this.northEast.lon - this.southWest.lon;
 };
