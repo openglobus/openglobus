@@ -19,7 +19,7 @@ og.quadTree.QuadNode = function () {
     this.nodeId;
     this.planet;
     this.state;
-    this.appliedTerrainNodeId = -1;//???
+    this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [];
@@ -362,7 +362,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
     if (pn.planetSegment.terrainReady &&
         pn.planetSegment.terrainExists) {
-        if (this.appliedTerrainNodeId != pn.nodeId) {//???
+        if (this.appliedTerrainNodeId != pn.nodeId) {
 
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
@@ -446,13 +446,13 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.tempVertices = tempVertices;
-            this.appliedTerrainNodeId = pn.nodeId;//???
+            this.appliedTerrainNodeId = pn.nodeId;
 
             if (seg.zoomIndex > maxZ && pn.planetSegment.zoomIndex >= maxZ) {
                 seg.terrainVertices = tempVertices;
                 seg.terrainReady = true;
                 seg.terrainExists = true;
-                this.appliedTerrainNodeId = this.nodeId;//???
+                this.appliedTerrainNodeId = this.nodeId;
             } else {
                 pn = this;
                 while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
@@ -552,12 +552,12 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
     if (cls) {
         this.planetSegment.clearSegment();
-        this.appliedTerrainNodeId = -1;//???
+        this.appliedTerrainNodeId = -1;
     }
 
     for (var i = 0; i < this.nodes.length; i++) {
         this.nodes[i].planetSegment.destroySegment();
-        this.appliedTerrainNodeId = -1;//???
+        this.appliedTerrainNodeId = -1;
         this.nodes[i].destroyBranches(false);
     }
     this.nodes.length = 0;
