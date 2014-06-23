@@ -162,7 +162,7 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             this.gridSize = tgs;
             this.terrainReady = true;
             this.terrainIsLoading = false;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
+            this.node.appliedTerrainNodeId = this.node.nodeId;//???
             elevations.length = 0;
         }
     } else {
@@ -172,7 +172,7 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                 this.terrainIsLoading = false;
                 this.terrainReady = true;
                 this.terrainExists = false;
-                this.node.appliedTerrainNodeId = this.node.nodeId;
+                this.node.appliedTerrainNodeId = this.node.nodeId;//???
                 this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
                 this.deleteBuffers();
@@ -187,6 +187,19 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             }
         } else {
 
+            //this.terrainIsLoading = false;
+            //var pn = this.node;
+            //while (pn.parentNode && pn.planetSegment.zoomIndex >= this.planet.terrainProvider.maxZoom) {
+            //    if (pn.planetSegment.terrainReady && !pn.planetSegment.terrainExists) {
+            //        this.terrainReady = true;
+            //        this.terrainExists = false;
+            //        this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
+            //        this.createCoordsBuffers(this.terrainVertices, 2);
+            //        this.gridSize = 2;
+            //        break;
+            //    }
+            //    pn = pn.parentNode;
+            //}
         }
     }
 };
