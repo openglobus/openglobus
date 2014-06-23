@@ -41,6 +41,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.backbuffer;
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
+    this.cameraInsideNode = null;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);

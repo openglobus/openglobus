@@ -24,6 +24,7 @@ og.quadTree.QuadNode = function () {
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [];
     this.neighbors = [];
+    this.cameraInside = false;
 };
 
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
@@ -242,7 +243,20 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
     var cam = this.planet.renderer.activeCamera;
 
+    this.cameraInside = false;
+
     if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
+
+        if (this.parentNode) {
+            if (this.parentNode.cameraInside &&
+                this.planetSegment.extent.isInside(og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat))) {
+                this.cameraInside = true;
+                this.planet.cameraInsideNode = this;
+            }
+        } else {
+            this.cameraInside = true;
+        }
+
         if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere)) {
             this.prepareForRendering(cam);
         }
