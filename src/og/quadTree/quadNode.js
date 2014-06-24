@@ -374,110 +374,120 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (pn.planetSegment.terrainReady &&
-        pn.planetSegment.terrainExists) {
-        if (this.appliedTerrainNodeId != pn.nodeId) {
+    if (pn.planetSegment.terrainReady) {
 
-            var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
+        var seg = this.planetSegment,
+            pseg = pn.planetSegment;
 
-            var seg = this.planetSegment,
-                pseg = pn.planetSegment;
+        if (pn.planetSegment.terrainExists) {
+            if (this.appliedTerrainNodeId != pn.nodeId) {
 
-            var tempVertices = [];
+                var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
-            seg.deleteBuffers();
-            seg.refreshIndexesBuffer = true;
+                var tempVertices = [];
 
-            if (gridSize >= 1) {
-                seg.gridSize = gridSize;
-                this.sideSize = [gridSize, gridSize, gridSize, gridSize];
+                seg.deleteBuffers();
+                seg.refreshIndexesBuffer = true;
 
-                var i0 = gridSize * offsetY;
-                var j0 = gridSize * offsetX;
+                if (gridSize >= 1) {
+                    seg.gridSize = gridSize;
+                    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
 
-                tempVertices = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
-            } else {
-                seg.gridSize = og.quadTree.QuadNode._neGridSize;
-                this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
+                    var i0 = gridSize * offsetY;
+                    var j0 = gridSize * offsetX;
 
-                var i0 = Math.floor(gridSize * offsetY);
-                var j0 = Math.floor(gridSize * offsetX);
+                    tempVertices = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
+                } else {
+                    seg.gridSize = og.quadTree.QuadNode._neGridSize;
+                    this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
 
-                var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                    var i0 = Math.floor(gridSize * offsetY);
+                    var j0 = Math.floor(gridSize * offsetX);
 
-                //v_lt(x,y,z)             vn 
-                //    *---------------------------------->*       insideSize = 4
-                //    |        |        |        |     .  ^       fullSize = 16
-                //    |        |        |        |   .    |       i0 = 0
-                //    |        |        |        | .      |       j0 = 3
-                //    *--------*--------*--------*--------*       ofX(offsetX) = 14, t_j0 = 14 % 4 = 2 
-                //    |        |        |     .  |        |       ofY(offsetY) = 2,  t_i0 = 2 % 4 = 2 
-                //    |        |        |   .    |        |
-                //    |        |        |ofX, ofY|        |
-                //  vw*--------*--------*--------*--------*ve
-                //    |        |      . |        |        |
-                //    |        |   .    |        |        |
-                //    |        |.       |        |        |
-                //    *--------*--------*--------*--------*
-                //    |      . |        |        |        |
-                //    |   .    |        |        |        |
-                //    V.       |        |        |        |
-                //    *<----------------------------------*v_rb
-                //                  vs
+                    var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                var insideSize = 1 / gridSize;
-                var fullSize = insideSize * pseg.gridSize;
+                    //v_lt(x,y,z)             vn 
+                    //    *---------------------------------->*       insideSize = 4
+                    //    |        |        |        |     .  ^       fullSize = 16
+                    //    |        |        |        |   .    |       i0 = 0
+                    //    |        |        |        | .      |       j0 = 3
+                    //    *--------*--------*--------*--------*       ofX(offsetX) = 14, t_j0 = 14 % 4 = 2 
+                    //    |        |        |     .  |        |       ofY(offsetY) = 2,  t_i0 = 2 % 4 = 2 
+                    //    |        |        |   .    |        |
+                    //    |        |        |ofX, ofY|        |
+                    //  vw*--------*--------*--------*--------*ve
+                    //    |        |      . |        |        |
+                    //    |        |   .    |        |        |
+                    //    |        |.       |        |        |
+                    //    *--------*--------*--------*--------*
+                    //    |      . |        |        |        |
+                    //    |   .    |        |        |        |
+                    //    V.       |        |        |        |
+                    //    *<----------------------------------*v_rb
+                    //                  vs
 
-                var t_i0 = offsetY - insideSize * i0,
-                    t_j0 = offsetX - insideSize * j0;
+                    var insideSize = 1 / gridSize;
+                    var fullSize = insideSize * pseg.gridSize;
 
-                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
+                    var t_i0 = offsetY - insideSize * i0,
+                        t_j0 = offsetX - insideSize * j0;
 
-                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                    var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
+                        v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
 
-                var coords = new og.math.Vector3();
-                var vo = og.quadTree.QuadNode._vertOrder;
+                    var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                        vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                        ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                        vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                for (var i = 0; i < vo.length; i++) {
-                    var vi_y = vo[i].y + t_i0,
-                        vi_x = vo[i].x + t_j0;
-                    if (vi_y + vi_x < insideSize) {
-                        coords = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
-                    } else {
-                        coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                    var coords = new og.math.Vector3();
+                    var vo = og.quadTree.QuadNode._vertOrder;
+
+                    for (var i = 0; i < vo.length; i++) {
+                        var vi_y = vo[i].y + t_i0,
+                            vi_x = vo[i].x + t_j0;
+                        if (vi_y + vi_x < insideSize) {
+                            coords = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                        } else {
+                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                        }
+                        tempVertices[i * 3] = coords.x;
+                        tempVertices[i * 3 + 1] = coords.y;
+                        tempVertices[i * 3 + 2] = coords.z;
                     }
-                    tempVertices[i * 3] = coords.x;
-                    tempVertices[i * 3 + 1] = coords.y;
-                    tempVertices[i * 3 + 2] = coords.z;
+
+                    bigOne.length = 0;
                 }
 
-                bigOne.length = 0;
+                seg.createCoordsBuffers(tempVertices, seg.gridSize);
+                seg.tempVertices = tempVertices;
+                this.appliedTerrainNodeId = pn.nodeId;
             }
+        }
 
-            seg.createCoordsBuffers(tempVertices, seg.gridSize);
-            seg.tempVertices = tempVertices;
-            this.appliedTerrainNodeId = pn.nodeId;
-
-            if (seg.zoomIndex > maxZ && pn.planetSegment.zoomIndex >= maxZ) {
-                seg.terrainVertices = tempVertices;
-                seg.terrainReady = true;
+        if (seg.zoomIndex > maxZ && pn.planetSegment.zoomIndex >= maxZ) {
+            seg.terrainReady = true;
+            this.appliedTerrainNodeId = this.nodeId;
+            if (pn.planetSegment.terrainExists) {
                 seg.terrainExists = true;
-                this.appliedTerrainNodeId = this.nodeId;
+                seg.terrainVertices = tempVertices;
             } else {
-                pn = this;
-                while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
-                    pn = pn.parentNode;
-                }
-                var pns = pn.planetSegment;
-                if (!pns.ready) {
-                    this.createPlainSegment(pns);
-                }
-                pns.loadTerrain();
+                seg.terrainExists = false;
+                seg.deleteBuffers();
+                seg.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(seg.terrainVertices, seg.gridSize);
+                seg.createCoordsBuffers(seg.terrainVertices, 2);
+                seg.gridSize = 2;
             }
+        } else {
+            pn = this;
+            while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+                pn = pn.parentNode;
+            }
+            var pns = pn.planetSegment;
+            if (!pns.ready) {
+                this.createPlainSegment(pns);
+            }
+            pns.loadTerrain();
         }
     }
 };
