@@ -46,6 +46,60 @@ og.planetSegment.PlanetSegment = function () {
     this.node;
 };
 
+og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, xyz) {
+    var ne = this.extent.northEast,
+        sw = this.extent.southWest,
+        size = this.gridSize;
+
+    var xmax = ne.lon,
+        ymax = ne.lat,
+        xmin = sw.lon,
+        ymin = sw.lat,
+        x = lonlat.lon,
+        y = lonlat.lat;
+
+    var sxn = xmax - xmin,
+        syn = ymax - ymin;
+
+    var qx = sxn / size,
+        qy = syn / size;
+
+    var xn = x - xmin,
+        yn = y - ymin;
+
+    var indX = Math.floor(xn / qx),
+        indY = Math.floor(size - yn / qy);
+
+    var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
+        ray = new og.math.Ray(xyz, xyz.getNegate());
+
+    var ind_v0 = ((size + 1) * indY + indX) * 3;
+    var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+
+    var v0 = new og.math.Vector3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
+        v1 = new og.math.Vector3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
+        v2 = new og.math.Vector3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]),
+        v3 = new og.math.Vector3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
+
+    var res = new og.math.Vector3();
+
+    var d = ray.hitTriangle(v0, v1, v2, res);
+    if (d == og.math.Ray.INSIDE) {
+        return { "distance": xyz.distance(res), "earth": res };
+    }
+
+    d = ray.hitTriangle(v1, v3, v2, res);
+    if (d == og.math.Ray.INSIDE) {
+        return { "distance": xyz.distance(res), "earth": res };
+    }
+
+    if (d == og.math.Ray.AWAY) {
+        return { "distance": -xyz.distance(res), "earth": res };
+    }
+
+    return { "distance": xyz.distance(res), "earth": res };
+};
+
 og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
     var step = 3 * gridSize;
     var step2 = step * 0.5;
@@ -165,25 +219,25 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             elevations.length = 0;
         }
     } else {
-        if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
-            if (this.ready && this.terrainIsLoading) {
-                this.terrainIsLoading = false;
-                this.terrainReady = true;
-                this.terrainExists = false;
-                this.node.appliedTerrainNodeId = this.node.nodeId;
-                this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+        //if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+        //    if (this.ready && this.terrainIsLoading) {
+        //        this.terrainIsLoading = false;
+        //        this.terrainReady = true;
+        //        this.terrainExists = false;
+        //        this.node.appliedTerrainNodeId = this.node.nodeId;
+        //        this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
-                this.deleteBuffers();
+        //        this.deleteBuffers();
 
-                if (this.zoomIndex > 5) {
-                    this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
-                    this.createCoordsBuffers(this.terrainVertices, 2);
-                    this.gridSize = 2;
-                } else {
-                    this.createCoordsBuffers(this.terrainVertices, this.gridSize);
-                }
-            }
-        }
+        //        if (this.zoomIndex > 5) {
+        //            this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
+        //            this.createCoordsBuffers(this.terrainVertices, 2);
+        //            this.gridSize = 2;
+        //        } else {
+        //            this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+        //        }
+        //    }
+        //}
     }
 };
 

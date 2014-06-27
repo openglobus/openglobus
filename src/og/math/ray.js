@@ -16,7 +16,13 @@ og.math.Ray.prototype.getPoint = function (distance) {
     return og.Vector3.add(this.origin, this.direction.scaleTo(distance));
 };
 
-og.math.Ray.prototype.hitTriangle = function (v0, v1, v2) {
+og.math.Ray.OUTSIDE = 0;
+og.math.Ray.INSIDE = 1;
+og.math.Ray.INPLANE = 2;
+og.math.Ray.AWAY = 3;
+
+og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
+    var state;
     var u = og.math.Vector3.sub(v1, v0);
     var v = og.math.Vector3.sub(v2, v0);
     var n = u.cross(v);
@@ -26,42 +32,44 @@ og.math.Ray.prototype.hitTriangle = function (v0, v1, v2) {
     var b = n.dot(this.direction);
 
     // ray is  parallel to triangle plane
-    if (Math.abs(b) < og.math.EPSILON6) {
-        if (a == 0)
+    if (Math.abs(b) < og.math.EPSILON10) {
+        if (a == 0) {
+            res.copy(this.origin);
             // ray lies in triangle plane
-            return this.origin;
-        else
+            return og.math.Ray.INPLANE;
+        } else {
             // ray disjoint from plane
-            return null;
+            return og.math.Ray.OUTSIDE;
+        }
     }
 
     var r = a / b;
 
+    // intersect point of ray and plane
+    res.copy(og.math.Vector3.add(this.origin, this.direction.scaleTo(r)));
+
     // ray goes away from triangle
     if (r < 0.0)
-        return null;
-
-    // intersect point of ray and plane
-    var I = og.math.Vector3.add(this.origin, this.direction.scaleTo(r));
+        return og.math.Ray.AWAY;
 
     // is I inside triangle?
     var uu = u.dot(u);
     var uv = u.dot(v);
     var vv = v.dot(v);
-    var w = og.math.Vector3.sub(I, v0);
+    var w = og.math.Vector3.sub(res, v0);
     var wu = w.dot(u);
     var wv = w.dot(v);
     var D = uv * uv - uu * vv;
 
     var s = (uv * wv - vv * wu) / D;
     if (s < 0.0 || s > 1.0)
-        return null;
+        return og.math.Ray.OUTSIDE;
 
     var t = (uv * wu - uu * wv) / D;
     if (t < 0.0 || (s + t) > 1.0)
-        return null;
+        return og.math.Ray.OUTSIDE;
 
-    return I;
+    return og.math.Ray.INSIDE;
 };
 
 //from JGT

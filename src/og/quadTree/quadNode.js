@@ -245,17 +245,18 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
     this.cameraInside = false;
 
-    if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0) {
-
-        if (this.parentNode) {
-            if (this.parentNode.cameraInside &&
-                this.planetSegment.extent.isInside(og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat))) {
-                this.cameraInside = true;
-                this.planet.cameraInsideNode = this;
-            }
-        } else {
+    if (this.parentNode) {
+        this.planet.cameraPositionM = og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat);
+        if (this.parentNode.cameraInside &&
+            this.planetSegment.extent.isInside(this.planet.cameraPositionM)) {
             this.cameraInside = true;
+            this.planet.cameraInsideNode = this;
         }
+    } else {
+        this.cameraInside = true;
+    }
+
+    if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0 || this.cameraInside) {
 
         if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere)) {
             this.prepareForRendering(cam);
@@ -465,29 +466,31 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             }
         }
 
-        if (seg.zoomIndex > maxZ && pn.planetSegment.zoomIndex >= maxZ) {
-            seg.terrainReady = true;
-            this.appliedTerrainNodeId = this.nodeId;
-            if (pn.planetSegment.terrainExists) {
-                seg.terrainExists = true;
-                seg.terrainVertices = tempVertices;
+        if (seg.zoomIndex > maxZ) {
+            if (pn.planetSegment.zoomIndex >= maxZ) {
+                seg.terrainReady = true;
+                this.appliedTerrainNodeId = this.nodeId;
+                if (pn.planetSegment.terrainExists) {
+                    seg.terrainExists = true;
+                    seg.terrainVertices = tempVertices;
+                } else {
+                    seg.terrainExists = false;
+                    seg.deleteBuffers();
+                    seg.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(seg.terrainVertices, seg.gridSize);
+                    seg.createCoordsBuffers(seg.terrainVertices, 2);
+                    seg.gridSize = 2;
+                }
             } else {
-                seg.terrainExists = false;
-                seg.deleteBuffers();
-                seg.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(seg.terrainVertices, seg.gridSize);
-                seg.createCoordsBuffers(seg.terrainVertices, 2);
-                seg.gridSize = 2;
+                pn = this;
+                while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+                    pn = pn.parentNode;
+                }
+                var pns = pn.planetSegment;
+                if (!pns.ready) {
+                    this.createPlainSegment(pns);
+                }
+                pns.loadTerrain();
             }
-        } else {
-            pn = this;
-            while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
-                pn = pn.parentNode;
-            }
-            var pns = pn.planetSegment;
-            if (!pns.ready) {
-                this.createPlainSegment(pns);
-            }
-            pns.loadTerrain();
         }
     }
 };

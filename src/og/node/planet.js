@@ -42,6 +42,7 @@ og.node.Planet = function (name, ellipsoid) {
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
     this.cameraInsideNode = null;
+    this.cameraPositionM;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
@@ -168,6 +169,9 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.activeCamera.bindEllipsoid(this.ellipsoid);
 
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this.cameraInsideNode = this.quadTree;
+    var cam = this.renderer.activeCamera;
+    this.cameraPositionM = og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat);
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
@@ -220,6 +224,22 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 };
 
 og.node.Planet.prototype.frame = function () {
+
+
+    var cam = this.renderer.activeCamera;
+    var intersection = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
+    cam.altitude = intersection.distance;
+
+    if (cam.altitude <= 50) {
+        var n = cam.eye.normal();
+        cam.eye = intersection.earth.add(n.scale(50));
+        cam.update();
+        cam.altitude = 50;
+    }
+
+    print2d("lbCoords", "alt: " + cam.altitude.toFixed(5) + ", (" +
+        intersection.earth.x.toFixed(5) + "," + intersection.earth.y.toFixed(5) + "," + intersection.earth.z.toFixed(5) + ")", 100, 100);
+    print2d("lbTiles", "hgt: " + this.renderer.activeCamera.lonLat.height, 100, 130);
 
     this.quadTree.renderTree();
     this.renderNodesPASS();

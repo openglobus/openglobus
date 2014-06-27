@@ -34,6 +34,7 @@ og.Camera = function () {
     this.pmvMatrixRot = new og.math.Matrix4();
 
     this.lonLat = new og.LonLat();
+    this.altitude;
     this._ellipsoid = null;
 };
 
