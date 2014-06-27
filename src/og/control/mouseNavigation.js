@@ -130,20 +130,19 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
 og.control.MouseNavigation.prototype.onDraw = function (e) {
     var r = this.renderer;
     r.controlsBag.scaleRot = this.scaleRot;
-
-    var cam = r.activeCamera;
     if (r.events.mouseState.leftButtonDown)
         return;
-
-    var rot = this.qRot.scaleTo(Math.pow(this.scaleRot, 3)).getMatrix4();
-
-    cam.eye = rot.mulVec3(cam.eye);
-    cam.v = rot.mulVec3(cam.v);
-    cam.u = rot.mulVec3(cam.u);
-    cam.n = rot.mulVec3(cam.n);
-    cam.update();
 
     this.scaleRot -= this.inertia;
     if (this.scaleRot <= 0)
         this.scaleRot = 0;
+    else {
+        var cam = r.activeCamera;
+        var rot = this.qRot.scaleTo(Math.pow(this.scaleRot, 3)).getMatrix4();
+        cam.eye = rot.mulVec3(cam.eye);
+        cam.v = rot.mulVec3(cam.v);
+        cam.u = rot.mulVec3(cam.u);
+        cam.n = rot.mulVec3(cam.n);
+        cam.update();
+    }
 };
