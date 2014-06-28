@@ -36,6 +36,8 @@ og.Camera = function () {
     this.lonLat = new og.LonLat();
     this.altitude;
     this._ellipsoid = null;
+    this.minAlt;
+    this.earthPoint;
 };
 
 og.Camera.clone = function (cam) {
@@ -61,7 +63,8 @@ og.Camera.defaultOptions = {
     farDist: og.math.MAX,
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
-    up: new og.math.Vector3(0, 1, 0)
+    up: new og.math.Vector3(0, 1, 0),
+    minAlt: 50
 };
 
 og.Camera.prototype.bindEllipsoid = function (ellipsoid) {
@@ -73,6 +76,7 @@ og.Camera.prototype.init = function (renderer, options) {
     this.renderer = renderer;
 
     if (options) {
+        this.minAlt = options.minAlt || og.Camera.defaultOptions.minAlt;
         this._ellipsoid = options.ellipsoid;
         this.setProjectionMatrix(
             options.viewAngle ? options.viewAngle : og.Camera.defaultOptions.viewAngle,
@@ -91,6 +95,7 @@ og.Camera.prototype.init = function (renderer, options) {
 };
 
 og.Camera.prototype.initDefaults = function () {
+    this.minAlt = 50;
     this.setProjectionMatrix(
         og.Camera.defaultOptions.viewAngle,
         this.renderer.handler.gl.canvas.aspect,
@@ -243,6 +248,13 @@ og.Camera.prototype.setLonLat = function (lonlat) {
     this.u = rot.mulVec3(this.u);
     this.n = rot.mulVec3(this.n);
 
+    this.update();
+};
+
+og.Camera.prototype.setAltitude = function (alt) {
+    var n = this.eye.normal();
+    this.eye = this.earthPoint.earth.add(n.scale(alt));
+    this.altitude = alt;
     this.update();
 };
 

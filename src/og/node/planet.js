@@ -223,24 +223,19 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     })
 };
 
+og.node.Planet.prototype.checkCameraCollision = function () {
+    var cam = this.renderer.activeCamera;
+    cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
+    cam.altitude = cam.earthPoint.distance;
+
+    if (cam.altitude < cam.minAlt) {
+        cam.setAltitude(cam.minAlt);
+    }
+};
+
 og.node.Planet.prototype.frame = function () {
 
-
-    var cam = this.renderer.activeCamera;
-    var intersection = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
-    cam.altitude = intersection.distance;
-
-    if (cam.altitude <= 50) {
-        var n = cam.eye.normal();
-        cam.eye = intersection.earth.add(n.scale(50));
-        cam.update();
-        cam.altitude = 50;
-    }
-
-    print2d("lbCoords", "alt: " + cam.altitude.toFixed(5) + ", (" +
-        intersection.earth.x.toFixed(5) + "," + intersection.earth.y.toFixed(5) + "," + intersection.earth.z.toFixed(5) + ")", 100, 100);
-    print2d("lbTiles", "hgt: " + this.renderer.activeCamera.lonLat.height, 100, 130);
-
+    this.checkCameraCollision();
     this.quadTree.renderTree();
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
