@@ -9,6 +9,7 @@ goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.planetSegment');
+goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
 goog.require('og.shaderProgram.picking');
@@ -166,7 +167,7 @@ og.node.Planet.prototype.initialization = function () {
         this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
-    this.renderer.activeCamera.bindEllipsoid(this.ellipsoid);
+    this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
     this.cameraInsideNode = this.quadTree;

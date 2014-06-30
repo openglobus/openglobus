@@ -7,7 +7,7 @@ goog.require('og.Frustum');
 goog.require('og.math.Pixel');
 goog.require('og.Events');
 
-og.Camera = function () {
+og.Camera = function (renderer, options) {
 
     this.events = new og.Events();
     this.renderer = null;
@@ -33,11 +33,8 @@ og.Camera = function () {
     this.pMatrixRot = new og.math.Matrix4();
     this.pmvMatrixRot = new og.math.Matrix4();
 
-    this.lonLat = new og.LonLat();
-    this.altitude;
-    this._ellipsoid = null;
-    this.minAlt;
-    this.earthPoint;
+    if (renderer)
+        this.init(renderer, options);
 };
 
 og.Camera.clone = function (cam) {
@@ -63,21 +60,13 @@ og.Camera.defaultOptions = {
     farDist: og.math.MAX,
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
-    up: new og.math.Vector3(0, 1, 0),
-    minAlt: 50
-};
-
-og.Camera.prototype.bindEllipsoid = function (ellipsoid) {
-    this._ellipsoid = ellipsoid;
-    this.lonLat = ellipsoid.ECEF2LonLat(this.eye);
+    up: new og.math.Vector3(0, 1, 0)
 };
 
 og.Camera.prototype.init = function (renderer, options) {
     this.renderer = renderer;
 
     if (options) {
-        this.minAlt = options.minAlt || og.Camera.defaultOptions.minAlt;
-        this._ellipsoid = options.ellipsoid;
         this.setProjectionMatrix(
             options.viewAngle ? options.viewAngle : og.Camera.defaultOptions.viewAngle,
             this.renderer.handler.gl.canvas.aspect,
@@ -95,7 +84,6 @@ og.Camera.prototype.init = function (renderer, options) {
 };
 
 og.Camera.prototype.initDefaults = function () {
-    this.minAlt = 50;
     this.setProjectionMatrix(
         og.Camera.defaultOptions.viewAngle,
         this.renderer.handler.gl.canvas.aspect,
@@ -115,8 +103,7 @@ og.Camera.prototype.update = function () {
 
     this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
     this.ipmvMatrix = this.pmvMatrixRot.inverse();
-    if (this._ellipsoid)
-        this.lonLat = this._ellipsoid.ECEF2LonLat(this.eye);
+
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
@@ -237,20 +224,6 @@ og.Camera.prototype.setEye = function (p) {
     this.update();
 };
 
-og.Camera.prototype.setLonLat = function (lonlat) {
-    this.lonLat.set(lonlat.lon, lonlat.lat, lonlat.height ? lonlat.height : this.lonLat.height);
-    var newEye = this._ellipsoid.LonLat2ECEF(this.lonLat);
-    var rot = new og.math.Matrix4().rotateBetweenVectors(newEye.normal(), this.eye.normal());
-    this.eye = newEye;
-
-    //what about altitude where camera rotates like arc ball?
-    this.v = rot.mulVec3(this.v);
-    this.u = rot.mulVec3(this.u);
-    this.n = rot.mulVec3(this.n);
-
-    this.update();
-};
-
 og.Camera.prototype.setAltitude = function (alt) {
     var n = this.eye.normal();
     this.eye = this.earthPoint.earth.add(n.scale(alt));
@@ -285,65 +258,4 @@ og.Camera.prototype.rotateVertical = function (angle, center, up) {
 
 og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
-};
-
-og.Camera.prototype.getExtentPosition = function (extent) {
-
-    var north = extent.getNorth();
-    var south = extent.getSouth();
-    var east = extent.getEast();
-    var west = extent.getWest();
-
-    if (west > east) {
-        east += 360;
-    }
-
-    var cart = new og.LonLat(east, north);
-    var northEast = this._ellipsoid.LonLat2ECEF(cart);
-    cart.lat = south;
-    var southEast = this._ellipsoid.LonLat2ECEF(cart);
-    cart.lon = west;
-    var southWest = this._ellipsoid.LonLat2ECEF(cart);
-    cart.lat = north;
-    var northWest = this._ellipsoid.LonLat2ECEF(cart);
-
-    var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
-
-    var mag = center.length();
-    if (mag < 0.000001) {
-        cart.lon = (east + west) * 0.5;
-        cart.lat = (north + south) * 0.5;
-        center = this._ellipsoid.LonLat2ECEF(cart);
-    }
-
-    northWest.sub(center);
-    southEast.sub(center);
-    northEast.sub(center);
-    southWest.sub(center);
-
-    var direction = center.normal();//ellipsoid.getSurfaceNormal(center).negate().normalize();
-    var right = direction.cross(og.math.Vector3.UP).normalize();
-    var up = right.cross(direction).normalize();
-
-    var height = Math.max(
-      Math.abs(up.dot(northWest)),
-      Math.abs(up.dot(southEast)),
-      Math.abs(up.dot(northEast)),
-      Math.abs(up.dot(southWest))
-    );
-
-    var width = Math.max(
-      Math.abs(right.dot(northWest)),
-      Math.abs(right.dot(southEast)),
-      Math.abs(right.dot(northEast)),
-      Math.abs(right.dot(southWest))
-    );
-
-    var tanPhi = Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
-    var tanTheta = this.aspect * tanPhi;
-    var d = Math.max(width / tanTheta, height / tanPhi);
-
-    center.normalize();
-    center.scale(mag + d);
-    return center;
 };
