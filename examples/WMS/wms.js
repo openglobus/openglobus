@@ -24,11 +24,7 @@ function start() {
     var baselayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "../../../geoserver/", layers: "topp:states", opacity: 0.5 });
 
-    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
-        url: og.terrainProvider.TerrainServers.OpenGlobus.url,
-        maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
-        minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
-    });
+    var terrain = new og.terrainProvider.TerrainProvider();
 
     planet.addLayers([baselayer, states]);
     planet.setTerrainProvider(terrain);

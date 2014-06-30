@@ -18,11 +18,7 @@ function start() {
             new og.control.MouseNavigation({ autoActivate: true })
         ],
         "skybox": skybox,
-        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus", {
-            url: og.terrainProvider.TerrainServers.OpenGlobus.url,
-            maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
-            minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
-        }),
+        "terrain": new og.terrainProvider.TerrainProvider(),
         "layers": [satlayer],
         "autoActivated": true
     });
@@ -31,11 +27,7 @@ function start() {
         "target": "globus2",
         "name": "Earth",
         "controls": [new og.control.MouseNavigation({ autoActivate: true })],
-        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus", {
-            url: og.terrainProvider.TerrainServers.OpenGlobus.url,
-            maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
-            minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
-        }),
+        "terrain": new og.terrainProvider.TerrainProvider(),
         "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
         "autoActivated": true
     });

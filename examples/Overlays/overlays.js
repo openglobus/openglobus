@@ -5,11 +5,7 @@ function start() {
     var countries = new og.layer.WMS("Countries", { isBaseLayer: false, url: "http://www.openglobus.org/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 0.5, visibility: true });
     var pop = new og.layer.WMS("Populated places", { isBaseLayer: false, url: "http://www.openglobus.org/geoserver/", layers: "og:ne_10m_populated_places", opacity: 0.5, visibility: true });
 
-    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
-        url: og.terrainProvider.TerrainServers.OpenGlobus.url,
-        maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
-        minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
-    });
+    var terrain = new og.terrainProvider.TerrainProvider();
 
     var controls = [
         new og.control.MouseNavigation({ autoActivate: true }),
