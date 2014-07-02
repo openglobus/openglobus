@@ -10,6 +10,8 @@ og.math.Quaternion = function (x, y, z, w) {
     this.w = w || 0;
 };
 
+og.math.Quaternion.IDENTITY = new og.math.Quaternion(0, 0, 0, 1);
+
 og.math.Quaternion.prototype.clear = function () {
     this.x = this.y = this.z = this.w = 0;
     return this;
@@ -43,15 +45,8 @@ og.math.Quaternion.prototype.sub = function (q) {
     return new og.math.Quaternion(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
 };
 
-og.math.Quaternion.prototype.scale = function (scale) {
-    this.x *= scale;
-    this.y *= scale;
-    this.z *= scale;
-    return this;
-};
-
-og.math.Quaternion.prototype.scaleTo = function (scale) {
-    return new og.math.Quaternion(this.x * scale, this.y * scale, this.z * scale, this.w);
+og.math.Quaternion.prototype.mulScal = function (scale) {
+    return new og.math.Quaternion(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
 };
 
 og.math.Quaternion.prototype.toVec = function () {
@@ -231,7 +226,7 @@ og.math.Quaternion.prototype.mulVec3 = function (v) {
         j = a * e + h * d - b * g,
         k = a * g + b * e - f * d;
     d = -b * d - f * e - h * g;
-    return new og.math.Quaternion(
+    return new og.math.Vector3(
         i * a + d * -b + j * -h - k * -f,
         j * a + d * -f + k * -b - i * -h,
         k * a + d * -h + i * -f - j * -b);
@@ -314,15 +309,47 @@ og.math.Quaternion.prototype.isEqual = function (q) {
     return false;
 };
 
-og.math.Quaternion.prototype.slerp = function () {
-    var e = c;
-    if (this.x * b.x + this.y * b.y + this.z * b.z + this.w * b.w < 0)
-        e = -1 * c;
-    this.x = 1 - c * this.x + e * b.x;
-    this.y = 1 - c * this.y + e * b.y;
-    this.z = 1 - c * this.z + e * b.z;
-    this.w = 1 - c * this.w + e * b.w;
-    return this;
+/**
+ * Performs a spherical linear interpolation between two quat
+ *
+ * @param {og.math.Quaternion} out the receiving quaternion
+ * @param {og.math.Quaternion} b the end rotation
+ * @param {Number} t interpolation amount between the two quaternions
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.prototype.slerp = function (b, t) {
+
+    var ax = this.x, ay = this.y, az = this.z, aw = this.w,
+        bx = b.x, by = b.y, bz = b.z, bw = b.w;
+
+    var omega, cosom, sinom, scale0, scale1;
+
+    cosom = ax * bx + ay * by + az * bz + aw * bw;
+
+    if (cosom < 0.0) {
+        cosom = -cosom;
+        bx = -bx;
+        by = -by;
+        bz = -bz;
+        bw = -bw;
+    }
+
+    if ((1.0 - cosom) > 0.000001) {
+        omega = Math.acos(cosom);
+        sinom = Math.sin(omega);
+        scale0 = Math.sin((1.0 - t) * omega) / sinom;
+        scale1 = Math.sin(t * omega) / sinom;
+    } else {
+        scale0 = 1.0 - t;
+        scale1 = t;
+    }
+
+    return new og.math.Quaternion(
+        scale0 * ax + scale1 * bx,
+        scale0 * ay + scale1 * by,
+        scale0 * az + scale1 * bz,
+        scale0 * aw + scale1 * bw
+    );
 };
 
 og.math.Quaternion.getLookAtTargetUp = function (target, up) {

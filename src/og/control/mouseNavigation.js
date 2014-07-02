@@ -98,8 +98,8 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
 
         if (targetPoint) {
             this.scaleRot = 1;
-            this.qRot = og.math.Quaternion.getRotationBetweenVectors(this.grabbedPoint.normal(), targetPoint.normal());
-            var rot = this.qRot.getMatrix4();
+            this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
+            var rot = this.qRot;
             cam.eye = rot.mulVec3(cam.eye);
             cam.v = rot.mulVec3(cam.v);
             cam.u = rot.mulVec3(cam.u);
@@ -138,7 +138,10 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         this.scaleRot = 0;
     else {
         var cam = r.activeCamera;
-        var rot = this.qRot.scaleTo(Math.pow(this.scaleRot, 3)).getMatrix4();
+        var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - Math.pow(this.scaleRot, 3)).normalize();
+        if (!(rot.x || rot.y || rot.z)) {
+            this.scaleRot = 0;
+        }
         cam.eye = rot.mulVec3(cam.eye);
         cam.v = rot.mulVec3(cam.v);
         cam.u = rot.mulVec3(cam.u);

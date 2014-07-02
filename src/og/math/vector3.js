@@ -67,6 +67,10 @@ og.math.Vector3.prototype.length = function () {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 };
 
+og.math.Vector3.prototype.getQuaternion = function () {
+    return new og.math.Quaternion(this.x, this.y, this.z);
+};
+
 og.math.Vector3.prototype.length2 = function () {
     return this.x * this.x + this.y * this.y + this.z * this.z;
 };
