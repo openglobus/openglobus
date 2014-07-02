@@ -30,8 +30,7 @@ og.Camera = function (renderer, options) {
     this.ipmvMatrix = new og.math.Matrix4();
     this.frustum = new og.Frustum();
 
-    this.pMatrixRot = new og.math.Matrix4();
-    this.pmvMatrixRot = new og.math.Matrix4();
+    this.pMatrixPrecise = new og.math.Matrix4();
 
     if (renderer)
         this.init(renderer, options);
@@ -100,10 +99,6 @@ og.Camera.prototype.update = function () {
     this.setModelViewMatrix();
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
     this.frustum.setFrustum(this.pmvMatrix._m);
-
-    this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
-    this.ipmvMatrix = this.pmvMatrixRot.inverse();
-
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
@@ -145,7 +140,7 @@ og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this.nearDist = near;
     this.farDist = far;
     this.pMatrix.setPerspective(angle, aspect, near, far);
-    this.pMatrixRot.setPerspective(angle, aspect, 0.1, 10);
+    this.pMatrixPrecise.setPerspective(angle, aspect, 0.1, 10);
 };
 
 og.Camera.prototype.setViewAngle = function (angle) {
@@ -207,6 +202,9 @@ og.Camera.prototype.yaw = function (angle) {
 og.Camera.prototype.unproject = function (x, y) {
     var px = (x - this.renderer.handler.gl.canvas.width / 2) / (this.renderer.handler.gl.canvas.width / 2),
         py = -(y - this.renderer.handler.gl.canvas.height / 2) / (this.renderer.handler.gl.canvas.height / 2);
+
+    var pmvMatrixPrecise = this.pMatrixPrecise.mul(this.mvMatrix);
+    this.ipmvMatrix = pmvMatrixPrecise.inverse();
 
     var world1 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
         world2 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();

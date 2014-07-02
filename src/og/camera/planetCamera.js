@@ -26,9 +26,6 @@ og.PlanetCamera.prototype.update = function () {
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
     this.frustum.setFrustum(this.pmvMatrix._m);
 
-    this.pmvMatrixRot = this.pMatrixRot.mul(this.mvMatrix);
-    this.ipmvMatrix = this.pmvMatrixRot.inverse();
-
     this.lonLat = this._ellipsoid.ECEF2LonLat(this.eye);
 
     this.events.dispatch(this.events.onviewchanged, this);
