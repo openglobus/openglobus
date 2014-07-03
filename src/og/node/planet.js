@@ -233,6 +233,8 @@ og.node.Planet.prototype.checkCameraCollision = function () {
         if (cam.altitude < cam.minAlt) {
             cam.setAltitude(cam.minAlt);
         }
+    } else {
+        cam.altitude = cam.lonLat.height;
     }
 };
 
