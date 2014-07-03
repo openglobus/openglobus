@@ -13,6 +13,7 @@ goog.addDependency('../../../og/src/og/control/loadingSpinner.js', ['og.control.
 goog.addDependency('../../../og/src/og/control/mouseNavigation.js', ['og.control.MouseNavigation'], ['og.bv.Sphere', 'og.control.Control', 'og.inheritance', 'og.math', 'og.math.Matrix4', 'og.math.Quaternion', 'og.math.Ray', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/control/mousePosition.js', ['og.control.MousePosition'], ['og.control.Control', 'og.inheritance', 'og.mercator', 'og.planetSegment']);
 goog.addDependency('../../../og/src/og/control/showFps.js', ['og.control.ShowFps'], ['og.control.Control', 'og.inheritance']);
+goog.addDependency('../../../og/src/og/control/simpleNavigation.js', ['og.control.SimpleNavigation'], ['og.control.Control', 'og.inheritance', 'og.input']);
 goog.addDependency('../../../og/src/og/control/toggleWireframe.js', ['og.control.ToggleWireframe'], ['og.inheritance', 'og.input', 'og.webgl']);
 goog.addDependency('../../../og/src/og/ellipsoid/ellipsoid.js', ['og.Ellipsoid'], ['og.LonLat', 'og.math', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellipsoid.wgs84'], ['og.Ellipsoid']);
