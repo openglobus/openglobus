@@ -226,11 +226,13 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 
 og.node.Planet.prototype.checkCameraCollision = function () {
     var cam = this.renderer.activeCamera;
-    cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
-    cam.altitude = cam.earthPoint.distance;
+    if (cam.lonLat.height < 1000000) {
+        cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
+        cam.altitude = cam.earthPoint.distance;
 
-    if (cam.altitude < cam.minAlt) {
-        cam.setAltitude(cam.minAlt);
+        if (cam.altitude < cam.minAlt) {
+            cam.setAltitude(cam.minAlt);
+        }
     }
 };
 
