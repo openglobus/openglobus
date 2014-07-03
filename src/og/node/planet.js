@@ -317,6 +317,15 @@ og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
     return null;
 };
 
+og.node.Planet.prototype.getCartesianFromMouseTerrain = function () {
+    var ms = this.renderer.events.mouseState;
+    var distance = this.getDistanceFromPixel(ms);
+    if (distance) {
+        return ms.direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+    }
+    return null;
+};
+
 og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
     var distance = this.getDistanceFromPixel(px);
     if (distance) {

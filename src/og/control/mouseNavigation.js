@@ -76,8 +76,8 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
     //  console.log("doubleclick");
 };
 
-og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function (e) {
-    this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e);
+og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
+    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
         this.stopRotation();

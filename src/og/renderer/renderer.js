@@ -102,8 +102,8 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 
 og.Renderer.prototype.draw = function () {
 
-    this.events.handleEvents();
     this.events.mouseState.direction = this.activeCamera.unproject(this.events.mouseState.x, this.events.mouseState.y);
+    this.events.handleEvents();
 
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
