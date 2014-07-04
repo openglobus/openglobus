@@ -99,6 +99,9 @@ og.Camera.prototype.update = function () {
     this.setModelViewMatrix();
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
     this.frustum.setFrustum(this.pmvMatrix._m);
+
+    this.ipmvMatrix = this.pmvMatrix.inverse();
+
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
@@ -202,9 +205,6 @@ og.Camera.prototype.yaw = function (angle) {
 og.Camera.prototype.unproject = function (x, y) {
     var px = (x - this.renderer.handler.gl.canvas.width / 2) / (this.renderer.handler.gl.canvas.width / 2),
         py = -(y - this.renderer.handler.gl.canvas.height / 2) / (this.renderer.handler.gl.canvas.height / 2);
-
-    var pmvMatrixPrecise = this.pMatrixPrecise.mul(this.mvMatrix);
-    this.ipmvMatrix = pmvMatrixPrecise.inverse();
 
     var world1 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
         world2 = this.ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();
