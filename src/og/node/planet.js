@@ -227,9 +227,8 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 og.node.Planet.prototype.checkCameraCollision = function () {
     var cam = this.renderer.activeCamera;
     if (cam.lonLat.height < 1000000) {
-        cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam.eye);
+        cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam);
         cam.altitude = cam.earthPoint.distance;
-
         if (cam.altitude < cam.minAlt) {
             cam.setAltitude(cam.minAlt);
         }
@@ -292,15 +291,19 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     }
 };
 
-og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
-    var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transpose();
-    var sx = new og.math.Ray(mxTr.mulVec3(this.renderer.activeCamera.eye),
+    var sx = new og.math.Ray(mxTr.mulVec3(origin),
         mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
     if (sx) {
         return this.itransformationMatrix.mulVec3(sx);
     }
     return null;
+};
+
+og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
+    var cam = this.renderer.activeCamera;
+    return this.hitRayEllipsoid(cam.eye, cam.unproject(px.x, px.y));
 };
 
 og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
