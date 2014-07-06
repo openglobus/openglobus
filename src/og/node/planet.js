@@ -43,7 +43,7 @@ og.node.Planet = function (name, ellipsoid) {
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
     this.cameraInsideNode = null;
-    this.cameraPositionM;
+    this.cameraPosition_merc;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
@@ -172,7 +172,7 @@ og.node.Planet.prototype.initialization = function () {
     this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
     this.cameraInsideNode = this.quadTree;
     var cam = this.renderer.activeCamera;
-    this.cameraPositionM = og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat);
+    this.cameraPosition_merc = cam.lonLat.forwardMercator();
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
@@ -227,7 +227,17 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 og.node.Planet.prototype.checkCameraCollision = function () {
     var cam = this.renderer.activeCamera;
     if (cam.lonLat.height < 1000000) {
-        cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPositionM, cam);
+        if (this.cameraPosition_merc > 20037508.34) {
+            //north pole
+            cam.altitude = cam.lonLat.height;
+            cam.earthPoint = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().noramlize());
+        } else if (this.cameraPosition_merc < -20037508.34) {
+            //south pole
+            cam.altitude = cam.lonLat.height;
+            cam.earthPoint = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().noramlize());
+        } else {
+            cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPosition_merc, cam);
+        }
         cam.altitude = cam.earthPoint.distance;
         if (cam.altitude < cam.minAlt) {
             cam.setAltitude(cam.minAlt);

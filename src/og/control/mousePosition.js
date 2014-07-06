@@ -26,7 +26,7 @@ og.control.MousePosition.toDegrees = function (ll) {
 };
 
 og.control.MousePosition.toMercator = function (ll) {
-    var m = og.mercator.forwardMercator(ll.lon, ll.lat);
+    var m = ll.forwardMercator();
     var str = m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
     return str;
 };

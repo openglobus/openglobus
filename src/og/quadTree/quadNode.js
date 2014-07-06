@@ -243,12 +243,12 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
     var cam = this.planet.renderer.activeCamera;
 
+    //camera inside verification
     this.cameraInside = false;
-
     if (this.parentNode) {
-        this.planet.cameraPositionM = og.mercator.forwardMercator(cam.lonLat.lon, cam.lonLat.lat);
+        this.planet.cameraPosition_merc = cam.lonLat.forwardMercator();
         if (this.parentNode.cameraInside &&
-            this.planetSegment.extent.isInside(this.planet.cameraPositionM)) {
+            this.planetSegment.extent.isInside(this.planet.cameraPosition_merc)) {
             this.cameraInside = true;
             this.planet.cameraInsideNode = this;
         }

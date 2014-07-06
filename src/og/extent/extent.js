@@ -80,3 +80,11 @@ og.Extent.fromTile = function (x, y, z) {
 
     return new og.Extent(new og.LonLat(left, bottom), new og.LonLat(right, top));
 };
+
+og.Extent.prototype.forwardMercator = function () {
+    return new og.Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
+};
+
+og.Extent.prototype.inverseMercator = function () {
+    return new og.Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
+};

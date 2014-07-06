@@ -302,7 +302,7 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     var c = extent.getCenter();
-    var tile = og.mercator.inverseMercator(c.lon, c.lat).toTile(zoomIndex);
+    var tile = c.inverseMercator().toTile(zoomIndex);
     this.tileX = tile.x;
     this.tileY = tile.y;
 };
