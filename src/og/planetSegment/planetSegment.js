@@ -301,10 +301,9 @@ og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSi
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
-    var c = extent.getCenter();
-    var tile = c.inverseMercator().toTile(zoomIndex);
-    this.tileX = tile.x;
-    this.tileY = tile.y;
+    var c = extent.getCenter().inverseMercator();
+    this.tileX = og.mercator.getTileX(c.lon, zoomIndex);
+    this.tileY = og.mercator.getTileY(c.lat, zoomIndex);
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
@@ -315,7 +314,7 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     var llStep = lonSize / gridSize;
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
-            var gr = og.mercator.inverseMercator(e.southWest.lon + j * llStep, e.northEast.lat - i * llStep);
+            var gr = og.LonLat.inverseMercator(e.southWest.lon + j * llStep, e.northEast.lat - i * llStep);
             var v = this.planet.ellipsoid.LonLat2ECEF(gr);
             verts[ind++] = v.x;
             verts[ind++] = v.y;

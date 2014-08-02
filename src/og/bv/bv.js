@@ -2,16 +2,16 @@ goog.provide('og.bv');
 
 goog.require('og.Extent');
 goog.require('og.math');
-goog.require('og.mercator');
+goog.require('og.LonLat');
 
 
 og.bv.getBoundsFromExtent = function (ellipsoid, extent) {
     var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
     var v = [];
-    v.push(og.mercator.inverseMercator(extent.southWest.lon, extent.southWest.lat),
-        og.mercator.inverseMercator(extent.southWest.lon, extent.northEast.lat),
-        og.mercator.inverseMercator(extent.northEast.lon, extent.northEast.lat),
-        og.mercator.inverseMercator(extent.northEast.lon, extent.southWest.lat));
+    v.push(og.LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
+        og.LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
+        og.LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
+        og.LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat));
 
     for (var i = 0; i < v.length; i++) {
         var coord = ellipsoid.LonLat2ECEF(v[i]);

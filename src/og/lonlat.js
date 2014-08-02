@@ -1,5 +1,7 @@
 goog.provide('og.LonLat');
 
+goog.require('og.mercator');
+
 og.LonLat = function (lon, lat, height) {
     this.lon = lon || 0;
     this.lat = lat || 0;
@@ -21,21 +23,32 @@ og.LonLat.prototype.clone = function () {
     return new og.LonLat(this.lon, this.lat, this.height);
 };
 
-og.LonLat.prototype.toTile = function (zoom) {
-    return {
-        x: (Math.floor((this.lon + 180) / 360 * Math.pow(2, zoom))),
-        y: (Math.floor((1 - Math.log(Math.tan(this.lat * Math.PI / 180) + 1 / Math.cos(this.lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)))
-    };
+og.LonLat.forwardMercator = function (lon, lat) {
+    var x = lon * og.mercator.POLE / 180;
+    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * og.mercator.POLE;
+    return new og.LonLat(x, y);
+};
+
+og.LonLat.inverseMercator = function (x, y) {
+    var lon = 180 * x / og.mercator.POLE;
+    var lat = 180 / Math.PI * (2 * Math.atan(Math.exp((y / og.mercator.POLE) * Math.PI)) - Math.PI / 2);
+    return new og.LonLat(lon, lat);
 };
 
 og.LonLat.prototype.forwardMercator = function () {
-    var res = og.mercator.forwardMercator(this.lon, this.lat);
-    res.height = this.height;
-    return res;
+    return og.LonLat.forwardMercator(this.lon, this.lat);
 };
 
 og.LonLat.prototype.inverseMercator = function () {
-    var res = og.mercator.inverseMercator(this.lon, this.lat);
-    res.height = this.height;
-    return res;
+    return og.LonLat.inverseMercator(this.lon, this.lat);
 };
+
+og.LonLat.SW_MERC = new og.LonLat(-og.mercator.POLE, -og.mercator.POLE);
+og.LonLat.NE_MERC = new og.LonLat(og.mercator.POLE, og.mercator.POLE);
+og.LonLat.NW_MERC = new og.LonLat(-og.mercator.POLE, og.mercator.POLE);
+og.LonLat.SE_MERC = new og.LonLat(og.mercator.POLE, -og.mercator.POLE);
+
+og.LonLat.SW_MERC_DEG = og.LonLat.SW_MERC.inverseMercator();
+og.LonLat.NE_MERC_DEG = og.LonLat.NE_MERC.inverseMercator();
+og.LonLat.NW_MERC_DEG = og.LonLat.NW_MERC.inverseMercator();
+og.LonLat.SE_MERC_DEG = og.LonLat.SE_MERC.inverseMercator();
