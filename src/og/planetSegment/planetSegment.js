@@ -9,6 +9,8 @@ goog.require('og.Extent');
 goog.require('og.bv.Box');
 goog.require('og.bv.Sphere');
 goog.require('og.mercator');
+goog.require('og.proj.EPSG4326');
+goog.require('og.proj.EPSG3857');
 
 og.planetSegment.PlanetSegment = function () {
     this.plainVertices = [];
@@ -143,15 +145,14 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             var vertices = [];
             var dgs = fileGridSize / tgs;
             var v0 = new og.math.Vector3();
-            var v0_len;
+            var ellipsoid = this.planet.ellipsoid;
 
             if (fileGridSize >= tgs) {
                 for (var i = 0; i < gs; i++) {
                     for (var j = 0; j < gs; j++) {
                         var vInd = (i * gs + j) * 3;
                         v0.set(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2]);
-                        v0_len = v0.length();
-                        v0.scale((v0_len + hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs]) / v0_len);
+                        v0.add(ellipsoid.getSurfaceNormal(v0).scale(hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs]));
 
                         vertices[vInd] = v0.x;
                         vertices[vInd + 1] = v0.y;
@@ -312,13 +313,26 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     var e = this.extent;
     var lonSize = e.getWidth();
     var llStep = lonSize / gridSize;
-    for (var i = 0; i <= gridSize; i++) {
-        for (var j = 0; j <= gridSize; j++) {
-            var gr = og.LonLat.inverseMercator(e.southWest.lon + j * llStep, e.northEast.lat - i * llStep);
-            var v = this.planet.ellipsoid.LonLat2ECEF(gr);
-            verts[ind++] = v.x;
-            verts[ind++] = v.y;
-            verts[ind++] = v.z;
+    var esw_lon = e.southWest.lon,
+        ene_lat = e.northEast.lat;
+
+    if (e.projection == og.proj.EPSG4326) {
+        for (var i = 0; i <= gridSize; i++) {
+            for (var j = 0; j <= gridSize; j++) {
+                var v = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(esw_lon + j * llStep, ene_lat - i * llStep));
+                verts[ind++] = v.x;
+                verts[ind++] = v.y;
+                verts[ind++] = v.z;
+            }
+        }
+    } else {
+        for (var i = 0; i <= gridSize; i++) {
+            for (var j = 0; j <= gridSize; j++) {
+                var v = this.planet.ellipsoid.LonLat2ECEF(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+                verts[ind++] = v.x;
+                verts[ind++] = v.y;
+                verts[ind++] = v.z;
+            }
         }
     }
     this.plainVertices = verts;

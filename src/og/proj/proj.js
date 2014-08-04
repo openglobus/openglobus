@@ -39,8 +39,4 @@ og.proj.Projection = function (options) {
      * @type {og.proj.Units}
      */
     this.units = /** @type {ol.proj.Units} */ (options.units);
-
-    this.id = ol.proj.Projection._counter++;
 };
-
-ol.proj.Projection._counter = 0;

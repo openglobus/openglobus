@@ -1,10 +1,12 @@
 goog.provide('og.Extent');
 
 goog.require('og.LonLat');
+goog.require('og.proj.Projection');
 
-og.Extent = function (sw, ne) {
+og.Extent = function (sw, ne, projection) {
     this.southWest = sw || new og.LonLat();
     this.northEast = ne || new og.LonLat();
+    this.projection = projection || null;
 };
 
 og.Extent.FULL_MERC = new og.Extent(og.LonLat.SW_MERC, og.LonLat.NE_MERC);
@@ -72,8 +74,8 @@ og.Extent.prototype.getSouth = function () {
 };
 
 og.Extent.fromTile = function (x, y, z) {
-    var H = Math.pow(2, zoom),
-        W = Math.pow(2, zoom),
+    var H = Math.pow(2, z),
+        W = Math.pow(2, z),
         lnSize = 360 / W,
         ltSize = 180.0 / H;
 
@@ -85,10 +87,11 @@ og.Extent.fromTile = function (x, y, z) {
     return new og.Extent(new og.LonLat(left, bottom), new og.LonLat(right, top));
 };
 
-og.Extent.prototype.forwardMercator = function () {
-    return new og.Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
-};
-
-og.Extent.prototype.inverseMercator = function () {
-    return new og.Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
+/**
+ * @param {og.Extent} extent Extent.
+ * @return {boolean} Equals.
+ */
+og.Extent.prototype.equals = function (extent) {
+    return this.southWest.lon == extent.southWest.lon && this.southWest.lat == extent.southWest.lat &&
+        this.northEast.lon == extent.northEast.lon && this.northEast.lat == extent.northEast.lat;
 };
