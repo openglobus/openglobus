@@ -9,11 +9,14 @@ goog.require('og.Extent');
 goog.require('og.bv.Box');
 goog.require('og.bv.Sphere');
 goog.require('og.mercator');
-goog.require('og.proj.EPSG4326');
+goog.require('og.LonLat');
 goog.require('og.proj.EPSG3857');
 
 og.planetSegment.PlanetSegment = function () {
+    this._projection = og.proj.EPSG3857;
     this.plainVertices = [];
+    this.plainNormals = [];
+    this.terrainNormals = [];
     this.terrainVertices = [];
     this.tempVertices = [];
     this.bbox = new og.bv.Box();
@@ -146,21 +149,24 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
             var dgs = fileGridSize / tgs;
             var v0 = new og.math.Vector3();
             var ellipsoid = this.planet.ellipsoid;
+            var plainNormals = this.plainNormals;
 
             if (fileGridSize >= tgs) {
                 for (var i = 0; i < gs; i++) {
                     for (var j = 0; j < gs; j++) {
                         var vInd = (i * gs + j) * 3;
-                        v0.set(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2]);
-                        v0.add(ellipsoid.getSurfaceNormal(v0).scale(hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs]));
+                        var h = hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs];
+                        var x = plain_verts[vInd] + h * plainNormals[vInd],
+                            y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                            z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
 
-                        vertices[vInd] = v0.x;
-                        vertices[vInd + 1] = v0.y;
-                        vertices[vInd + 2] = v0.z;
+                        vertices[vInd] = x;
+                        vertices[vInd + 1] = y;
+                        vertices[vInd + 2] = z;
 
-                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                        if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                        if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                        if (z < zmin) zmin = z; if (z > zmax) zmax = z;
                     }
                 }
             } else {
@@ -191,24 +197,24 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
                             hvrb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j + 1];
 
                         if (inside_i + inside_j < oneSize) {
-                            h = hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt);
+                            h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
                         } else {
-                            h = hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb);
+                            h = hf * (hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
                         }
 
                         var vInd = (i * gs + j) * 3;
 
-                        v0.set(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2]);
-                        v0_len = v0.length();
-                        v0.scale((v0_len + hf * h) / v0_len);
+                        var x = plain_verts[vInd] + h * plainNormals[vInd],
+                            y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                            z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
 
-                        vertices[vInd] = v0.x;
-                        vertices[vInd + 1] = v0.y;
-                        vertices[vInd + 2] = v0.z;
+                        vertices[vInd] = x;
+                        vertices[vInd + 1] = y;
+                        vertices[vInd + 2] = z;
 
-                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                        if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                        if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                        if (z < zmin) zmin = z; if (z > zmax) zmax = z;
                     }
                 }
             }
@@ -264,6 +270,8 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.tempVertices.length = 0;
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
+    this.plainNormals.length = 0;
+    this.terrainNormals.length = 0;
 };
 
 og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
@@ -309,6 +317,7 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
     var verts = [];
+    var norms = [];
     var ind = 0;
     var e = this.extent;
     var lonSize = e.getWidth();
@@ -316,26 +325,27 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     var esw_lon = e.southWest.lon,
         ene_lat = e.northEast.lat;
 
-    if (e.projection == og.proj.EPSG4326) {
-        for (var i = 0; i <= gridSize; i++) {
-            for (var j = 0; j <= gridSize; j++) {
-                var v = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(esw_lon + j * llStep, ene_lat - i * llStep));
-                verts[ind++] = v.x;
-                verts[ind++] = v.y;
-                verts[ind++] = v.z;
-            }
-        }
-    } else {
-        for (var i = 0; i <= gridSize; i++) {
-            for (var j = 0; j <= gridSize; j++) {
-                var v = this.planet.ellipsoid.LonLat2ECEF(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-                verts[ind++] = v.x;
-                verts[ind++] = v.y;
-                verts[ind++] = v.z;
-            }
+    var r2 = this.planet.ellipsoid._invRadii2;
+
+    for (var i = 0; i <= gridSize; i++) {
+        for (var j = 0; j <= gridSize; j++) {
+            var v = this.planet.ellipsoid.LonLat2ECEF(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+            var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+            verts[ind] = v.x;
+            norms[ind++] = nx * l;
+
+            verts[ind] = v.y;
+            norms[ind++] = ny * l;
+
+            verts[ind] = v.z;
+            norms[ind++] = nz * l;
         }
     }
+
     this.plainVertices = verts;
+    this.plainNormals = norms;
 };
 
 og.planetSegment.drawSingle = function (sh, segment) {
