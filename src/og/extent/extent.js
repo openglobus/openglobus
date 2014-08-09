@@ -1,12 +1,10 @@
 goog.provide('og.Extent');
 
 goog.require('og.LonLat');
-goog.require('og.proj.Projection');
 
-og.Extent = function (sw, ne, projection) {
+og.Extent = function (sw, ne) {
     this.southWest = sw || new og.LonLat();
     this.northEast = ne || new og.LonLat();
-    this.projection = projection || null;
 };
 
 og.Extent.FULL_MERC = new og.Extent(og.LonLat.SW_MERC, og.LonLat.NE_MERC);
