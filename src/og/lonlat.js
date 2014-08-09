@@ -42,13 +42,3 @@ og.LonLat.prototype.forwardMercator = function () {
 og.LonLat.prototype.inverseMercator = function () {
     return og.LonLat.inverseMercator(this.lon, this.lat);
 };
-
-og.LonLat.SW_MERC = new og.LonLat(-og.mercator.POLE, -og.mercator.POLE);
-og.LonLat.NE_MERC = new og.LonLat(og.mercator.POLE, og.mercator.POLE);
-og.LonLat.NW_MERC = new og.LonLat(-og.mercator.POLE, og.mercator.POLE);
-og.LonLat.SE_MERC = new og.LonLat(og.mercator.POLE, -og.mercator.POLE);
-
-og.LonLat.SW_MERC_DEG = og.LonLat.SW_MERC.inverseMercator();
-og.LonLat.NE_MERC_DEG = og.LonLat.NE_MERC.inverseMercator();
-og.LonLat.NW_MERC_DEG = og.LonLat.NW_MERC.inverseMercator();
-og.LonLat.SE_MERC_DEG = og.LonLat.SE_MERC.inverseMercator();
