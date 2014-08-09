@@ -12,6 +12,11 @@ goog.require('og.mercator');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG3857');
 
+/**
+ * Planet segment Web Mercator tile class
+ * @class
+ * @api
+ */
 og.planetSegment.PlanetSegment = function () {
     this._projection = og.proj.EPSG3857;
     this.plainVertices = [];
@@ -289,6 +294,31 @@ og.planetSegment.PlanetSegment.prototype.deleteMaterials = function () {
         }
     }
     m.length = 0;
+};
+
+og.planetSegment.PlanetSegment.prototype.createBoundsByExtent = function () {
+    var ellipsoid = this.planet.ellipsoid,
+        extent = this.extent;
+
+    var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+    var v = [];
+    v.push(og.LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
+        og.LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
+        og.LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
+        og.LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat));
+
+    for (var i = 0; i < v.length; i++) {
+        var coord = ellipsoid.LonLat2ECEF(v[i]);
+        var x = coord.x, y = coord.y, z = coord.z;
+        if (x < xmin) xmin = x;
+        if (x > xmax) xmax = x;
+        if (y < ymin) ymin = y;
+        if (y > ymax) ymax = y;
+        if (z < zmin) zmin = z;
+        if (z > zmax) zmax = z;
+    }
+
+    this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
 og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
