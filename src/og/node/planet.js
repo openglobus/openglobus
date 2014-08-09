@@ -8,22 +8,26 @@ goog.require('og.math.coder');
 goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
-goog.require('og.planetSegment');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.overlays');
 goog.require('og.shaderProgram.single');
 goog.require('og.shaderProgram.picking');
 goog.require('og.layer');
+goog.require('og.planetSegment');
+goog.require('og.planetSegment.Wgs84PlanetSegment');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.Events');
+goog.require('og.mercator');
 
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
     this.ellipsoid = ellipsoid;
     this.quadTree;
+    this.quadTreeNorth;
+    this.quadTreeSouth;
     this.events = new og.Events();
 
     this.layers = [];
@@ -169,7 +173,12 @@ og.node.Planet.prototype.initialization = function () {
 
     this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
-    this.quadTree = og.quadTree.QuadNode.createNode(this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    //Creating quad trees nodes
+    this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this.quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.LAT, 180, 90]));
+    this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, -og.mercator.LAT]));
+
+    //Just initials
     this.cameraInsideNode = this.quadTree;
     var cam = this.renderer.activeCamera;
     this.cameraPosition_merc = cam.lonLat.forwardMercator();
@@ -177,13 +186,18 @@ og.node.Planet.prototype.initialization = function () {
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
 
+    //Applying shaders
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.single(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
+    //backbuffer initialization
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
+
     this.updateVisibleLayers();
+
+    //events initialization
     this.events.registerNames([
         "ondraw",
         "onlayeradded",
@@ -191,15 +205,12 @@ og.node.Planet.prototype.initialization = function () {
         "onlayerremoved",
         "onlayervisibilitychanged"
     ]);
-
     this.renderer.events.on("onresize", this.backbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
-
     this.renderer.activeCamera.events.on("onviewchanged", this, function (e) {
         this._viewChanged = true;
     });
-
     this.renderer.events.on("onmousemove", this, function (e) {
         this._viewChanged = true;
     });
@@ -251,10 +262,12 @@ og.node.Planet.prototype.frame = function () {
 
     this.checkCameraCollision();
     this.quadTree.renderTree();
+    this.quadTreeNorth.renderTree();
+    this.quadTreeSouth.renderTree();
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
 
-    //Here is the planet node dispatche a draw event before clearing.
+    //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
 
     //NOT WORKING! BUG IS HERE!
