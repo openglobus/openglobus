@@ -9,10 +9,10 @@ goog.provide('og.proj.METERS_PER_UNIT');
  * @api
  */
 og.proj.Units = {
-    DEGREES: 'degrees',
-    FEET: 'ft',
-    METERS: 'm',
-    KILOMETERS: 'km',
+    "DEGREES": "degrees",
+    "FEET": "ft",
+    "METERS": "m",
+    "KILOMETERS": "km"
 };
 
 /**
