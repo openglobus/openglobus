@@ -4,6 +4,7 @@ goog.require('og.planetSegment.PlanetSegmentMaterial');
 goog.require('og.Extent');
 goog.require('og.LonLat');
 goog.require('og.quadTree');
+goog.require('og.proj.EPSG4326');
 
 /**
  * Quad tree node class.
@@ -37,7 +38,7 @@ og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, part
     node.parentNode = parent;
     node.nodeId = partId + id;
     node.planet = planet;
-    node.planetSegment = new planetSegmentPrototype();//new og.planetSegment.PlanetSegment();
+    node.planetSegment = new planetSegmentPrototype();
     node.planetSegmentPrototype = planetSegmentPrototype;
     node.planetSegment.node = node;
     node.planetSegment.planet = planet;
@@ -244,28 +245,33 @@ og.quadTree.QuadNode.prototype.traverseNodes = function () {
 og.quadTree.QuadNode.prototype.renderTree = function () {
     this.state = og.quadTree.WALKTHROUGH;
 
-    var cam = this.planet.renderer.activeCamera;
+    var cam = this.planet.renderer.activeCamera,
+        seg = this.planetSegment,
+        planet = this.planet;
 
-    //camera inside verification
     this.cameraInside = false;
     if (this.parentNode) {
-        this.planet.cameraPosition_merc = cam.lonLat.forwardMercator();
+        if (seg._projection.id == og.proj.EPSG4326.id) {
+            planet._nodeCameraPosition = cam.lonLat;
+        } else {
+            planet._nodeCameraPosition = cam.lonLat.forwardMercator();
+        }
         if (this.parentNode.cameraInside &&
-            this.planetSegment.extent.isInside(this.planet.cameraPosition_merc)) {
+            seg.extent.isInside(planet._nodeCameraPosition)) {
             this.cameraInside = true;
-            this.planet.cameraInsideNode = this;
+            planet.cameraInsideNode = this;
         }
     } else {
         this.cameraInside = true;
     }
 
-    if (cam.frustum.containsSphere(this.planetSegment.bsphere) > 0 || this.cameraInside) {
+    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {
 
-        if (og.quadTree.acceptableForRender(cam, this.planetSegment.bsphere)) {
+        if (og.quadTree.acceptableForRender(cam, seg.bsphere)) {
             this.prepareForRendering(cam);
         }
         else {
-            if (this.planetSegment.zoomIndex < this.planet.terrainProvider.gridSizeByZoom.length - 1) {
+            if (seg.zoomIndex < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes();
             }
             else {

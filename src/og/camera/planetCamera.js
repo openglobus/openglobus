@@ -2,6 +2,7 @@ goog.provide('og.PlanetCamera');
 
 goog.require('og.Camera');
 goog.require('og.inheritance');
+goog.require('og.math.Vector3');
 
 og.PlanetCamera = function (renderer, ellipsoid, options) {
     this._ellipsoid = ellipsoid;
@@ -10,7 +11,7 @@ og.PlanetCamera = function (renderer, ellipsoid, options) {
     this.lonLat = new og.LonLat();
     this.altitude;
     this.minAlt = options.minAltitude || 50;
-    this.earthPoint;
+    this.earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
     this.bindEllipsoid(this._ellipsoid);
 };
 

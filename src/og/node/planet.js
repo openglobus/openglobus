@@ -21,6 +21,7 @@ goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.Events');
 goog.require('og.mercator');
+goog.require('og.proj.EPSG4326');
 
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
@@ -238,18 +239,14 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 og.node.Planet.prototype.checkCameraCollision = function () {
     var cam = this.renderer.activeCamera;
     if (cam.lonLat.height < 1000000) {
-        if (this.cameraPosition_merc > 20037508.34) {
-            //north pole
-            cam.altitude = cam.lonLat.height;
-            cam.earthPoint = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().noramlize());
-        } else if (this.cameraPosition_merc < -20037508.34) {
-            //south pole
-            cam.altitude = cam.lonLat.height;
-            cam.earthPoint = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().noramlize());
+        var seg = this.cameraInsideNode.planetSegment;
+        if (seg._projection.id == og.proj.EPSG4326.id) {
+            cam.earthPoint.earth = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
+            cam.earthPoint.distance = cam.altitude = cam.lonLat.height;
         } else {
-            cam.earthPoint = this.cameraInsideNode.planetSegment.getEarthPoint(this.cameraPosition_merc, cam);
+            cam.earthPoint = seg.getEarthPoint(this._nodeCameraPosition, cam);
+            cam.altitude = cam.earthPoint.distance;
         }
-        cam.altitude = cam.earthPoint.distance;
         if (cam.altitude < cam.minAlt) {
             cam.setAltitude(cam.minAlt);
         }
@@ -261,9 +258,9 @@ og.node.Planet.prototype.checkCameraCollision = function () {
 og.node.Planet.prototype.frame = function () {
 
     this.checkCameraCollision();
-    this.quadTree.renderTree();
     this.quadTreeNorth.renderTree();
     this.quadTreeSouth.renderTree();
+    this.quadTree.renderTree();
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
 
