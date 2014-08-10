@@ -1,7 +1,7 @@
 goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
-goog.require('og.control.KeyboardNavigation');
+goog.require('og.control.SimpleNavigation');
 goog.require('og.shaderProgram.shape');
 goog.require('og.node.Axes');
 goog.require('my.Sphere');
@@ -38,7 +38,7 @@ function start() {
     renderer.addRenderNode(axes);
 
     renderer.addControls([
-        new og.control.KeyboardNavigation({ autoActivate: true }),
+        new og.control.SimpleNavigation({ autoActivate: true }),
     ]);
 
     renderer.activeCamera.eye.set(1277.0050415860476, 2307.7441933678265, 4553.429889299481);

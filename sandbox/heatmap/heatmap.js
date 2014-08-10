@@ -1,8 +1,8 @@
-goog.provide('my.Heatmap');
+//goog.provide('Heatmap');
 
-goog.require('og.node.RenderNode');
+//goog.require('og.node.RenderNode');
 
-my.Heatmap = function () {
+Heatmap = function () {
     og.inheritance.base(this);
 
     this._verticesBuffer;
@@ -12,9 +12,9 @@ my.Heatmap = function () {
     this.points = [0.6, 0.6, 0.3, 0.7, 0.8, 0.3, 0.2, 0.3, 0.3, 0.1, 0.2, 0.4];
 };
 
-og.inheritance.extend(my.Heatmap, og.node.RenderNode);
+og.inheritance.extend(Heatmap, og.node.RenderNode);
 
-my.Heatmap.prototype.initialization = function () {
+Heatmap.prototype.initialization = function () {
     this.drawMode = this.renderer.handler.gl.TRIANGLES;
 
     var vertices = [
@@ -31,16 +31,16 @@ my.Heatmap.prototype.initialization = function () {
     this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonClick);
 };
 
-my.Heatmap.prototype.onMouseMove = function (e) {
+Heatmap.prototype.onMouseMove = function (e) {
     this.position[0] = e.x / this.resolution[0];
-    this.position[1] = this.renderer.getHeight() / this.resolution[1] - e.y / this.resolution[1];
+    this.position[1] = this.renderer.handler.gl.canvas.height / this.resolution[1] - e.y / this.resolution[1];
 };
 
-my.Heatmap.prototype.onMouseLeftButtonClick = function () {
+Heatmap.prototype.onMouseLeftButtonClick = function () {
     this.points.push.apply(this.points, this.position);
 };
 
-my.Heatmap.prototype.frame = function () {
+Heatmap.prototype.frame = function () {
 
     this.renderer.handler.shaderPrograms.heatmap.activate();
 

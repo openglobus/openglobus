@@ -1,6 +1,6 @@
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
-goog.require('og.control.KeyboardNavigation');
+goog.require('og.control.SimpleNavigation');
 goog.require('og.shaderProgram');
 goog.require('og.node.Axes');
 goog.require('my.Plane');
@@ -56,7 +56,7 @@ function start() {
     renderer.addRenderNode(new my.Plane("Plane"));
 
     renderer.addControls([
-        new og.control.KeyboardNavigation({ autoActivate: true }),
+        new og.control.SimpleNavigation({ autoActivate: true }),
     ]);
 
     renderer.start();

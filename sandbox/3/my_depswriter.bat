@@ -1,1 +1,0 @@
-"d:\my projects\closure-library\closure\bin\build\depswriter.py" --root_with_prefix="./ ../../../og/sandbox/3/" > "d:\my projects\openglobus\sandbox\3\my-deps.js"

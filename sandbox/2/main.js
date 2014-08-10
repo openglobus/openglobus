@@ -1,7 +1,7 @@
 goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
-goog.require('og.control.KeyboardNavigation');
+goog.require('og.control.SimpleNavigation');
 goog.require('og.shaderProgram');
 goog.require('og.node.Axes');
 goog.require('my.Cubes');
@@ -58,8 +58,9 @@ function start() {
     renderer.addRenderNode(axes);
 
     renderer.addControls([
-        new og.control.KeyboardNavigation({ autoActivate: true }),
+        new og.control.SimpleNavigation({ autoActivate: true }),
     ]);
 
-    renderer.Start();
+    renderer.activeCamera.eye.set(697.3292203935438, 5246.773531464112, 4722.195080923377);
+    renderer.start();
 };

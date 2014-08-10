@@ -30,20 +30,15 @@ function start() {
     var pop = new og.layer.WMS("Populated places", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_populated_places", opacity: 0.5 });
     var bf5 = new og.layer.WMS("Bathimetry-F-5000", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_bathymetry_F_5000", opacity: 0.5, zIndex: 3 });
 
-    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus", {
-        url: og.terrainProvider.TerrainServers.OpenGlobus.url,
-        maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
-        minZoom: og.terrainProvider.TerrainServers.OpenGlobus.minZoom
-    });
-
+    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
     var skybox = new og.node.SkyBox({
-        "positiveX": "../../resources/images/skyboxes/tycho/px.jpg",
-        "negativeX": "../../resources/images/skyboxes/tycho/nx.jpg",
-        "positiveY": "../../resources/images/skyboxes/tycho/py.jpg",
-        "negativeY": "../../resources/images/skyboxes/tycho/ny.jpg",
-        "positiveZ": "../../resources/images/skyboxes/tycho/pz.jpg",
-        "negativeZ": "../../resources/images/skyboxes/tycho/nz.jpg"
+        "positiveX": "http://openglobus.org/resources/images/skyboxes/tycho/px.jpg",
+        "negativeX": "http://openglobus.org/resources/images/skyboxes/tycho/nx.jpg",
+        "positiveY": "http://openglobus.org/resources/images/skyboxes/tycho/py.jpg",
+        "negativeY": "http://openglobus.org/resources/images/skyboxes/tycho/ny.jpg",
+        "positiveZ": "http://openglobus.org/resources/images/skyboxes/tycho/pz.jpg",
+        "negativeZ": "http://openglobus.org/resources/images/skyboxes/tycho/nz.jpg"
     });
 
     var controls = [
@@ -60,16 +55,18 @@ function start() {
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": skybox,
+        //"skybox": skybox,
         "terrain": terrain,
         "layers": [satlayer, layer, states, countries],
         "autoActivated": true
     });
 
-    globus2 = new og.Globus({
+/*    globus2 = new og.Globus({
         "target": "globus2",
         "name": "Earth",
-        "controls": [new og.control.MouseNavigation({ autoActivate: true })],
+        "controls": [new og.control.MouseNavigation({ autoActivate: true }),
+	             new og.control.MousePosition({ autoActivate: true }),
+	             new og.control.LayerSwitcher({ autoActivate: true })],
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus", {
             url: og.terrainProvider.TerrainServers.OpenGlobus.url,
             maxZoom: og.terrainProvider.TerrainServers.OpenGlobus.maxZoom,
@@ -77,5 +74,5 @@ function start() {
         }),
         "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
         "autoActivated": true
-    });
+    });*/
 };

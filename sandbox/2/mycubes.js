@@ -9,7 +9,7 @@ goog.require('og.webgl.Framebuffer');
 
 
 my.Cubes = function (name, size) {
-    og.base(this, name);
+    og.inheritance.base(this, name);
     this.size = size * 0.5;
     this.cubeVertexPositionBuffer1 = null;
     this.cubeVertexIndexBuffer1 = null;
@@ -28,7 +28,7 @@ my.Cubes = function (name, size) {
     this.framebuffer;
 };
 
-og.extend(my.Cubes, og.node.RenderNode);
+og.inheritance.extend(my.Cubes, og.node.RenderNode);
 
 my.Cubes.prototype.initialization = function () {
     this.createBuffers();
@@ -36,14 +36,14 @@ my.Cubes.prototype.initialization = function () {
     this.mxTranslation1.translate(new og.math.Vector3(0, 0, 0));
     this.mxTranslation2.translate(new og.math.Vector3(1000, 1000, 1000));
     this.mxTranslation3.translate(new og.math.Vector3(2000, 2000, 2000));
-    this.renderer.addEvent("onresize", this, this.onResize);
+    this.renderer.events.on("onresize", this, this.onResize);
     this.framebuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.framebuffer.initialize();
 
     this.ff = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.ff.initialize();
 
-    this.renderer.addEvent("onmouselbuttonclick", this, function (e) {
+    this.renderer.events.on("onmouselbuttonclick", this, function (e) {
         var x = e.x,
             y = e.y;
         var pixelValues = this.framebuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y);

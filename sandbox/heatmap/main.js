@@ -1,12 +1,12 @@
-goog.require('og');
-goog.require('og.webgl.Handler');
-goog.require('og.Renderer');
-goog.require('og.control.KeyboardNavigation');
-goog.require('og.shaderProgram.shape');
-goog.require('og.node.Axes');
-goog.require('my.Heatmap');
-goog.require('og.math.Vector3');
-goog.require('og.utils');
+//goog.require('og');
+//goog.require('og.webgl.Handler');
+//goog.require('og.Renderer');
+//goog.require('og.control.KeyboardNavigation');
+//goog.require('og.shaderProgram.shape');
+//goog.require('og.node.Axes');
+//goog.require('my.Heatmap');
+//goog.require('og.math.Vector3');
+//goog.require('og.utils');
 
 function start() {
 
@@ -35,7 +35,7 @@ function start() {
     renderer = new og.Renderer(context);
     renderer.init();
 
-    hm = new my.Heatmap();
+    hm = new Heatmap();
     renderer.addRenderNode(hm);
 
     renderer.start();
