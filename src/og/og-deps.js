@@ -5,7 +5,7 @@ goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/camera/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3']);
-goog.addDependency('../../../og/src/og/camera/planetCamera.js', ['og.PlanetCamera'], ['og.Camera', 'og.inheritance']);
+goog.addDependency('../../../og/src/og/camera/planetCamera.js', ['og.PlanetCamera'], ['og.Camera', 'og.inheritance', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/control/control.js', ['og.control.Control'], []);
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og.control.Control', 'og.inheritance', 'og.input']);
 goog.addDependency('../../../og/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], ['og.inheritance']);
@@ -53,7 +53,7 @@ goog.addDependency('../../../og/src/og/planetSegment/wgs84planetSegment.js', ['o
 goog.addDependency('../../../og/src/og/proj/epsg3857.js', ['og.proj.EPSG3857'], ['og.Units', 'og.proj.Projection']);
 goog.addDependency('../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], ['og.Units', 'og.proj.Projection']);
 goog.addDependency('../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'og.proj.METERS_PER_UNIT', 'og.proj.Projection'], []);
-goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.planetSegment.PlanetSegmentMaterial', 'og.proj.EPSG4326', 'og.quadTree']);
+goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.planetSegment.PlanetSegmentMaterial', 'og.proj.EPSG4326', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
 goog.addDependency('../../../og/src/og/renderer/renderer.js', ['og.Renderer'], ['og.Camera', 'og.RendererEvents', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/renderer/rendererEvents.js', ['og.RendererEvents'], ['og.Events', 'og.inheritance', 'og.input', 'og.input.KeyboardHandler', 'og.input.MouseHandler']);

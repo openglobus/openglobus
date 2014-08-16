@@ -5,6 +5,7 @@ goog.require('og.Extent');
 goog.require('og.LonLat');
 goog.require('og.quadTree');
 goog.require('og.proj.EPSG4326');
+goog.require('og.mercator');
 
 /**
  * Quad tree node class.
@@ -58,6 +59,9 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
         b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
+    var POLE = og.mercator.POLE,
+        MAX_LAT = og.mercator.MAX_LAT;
+
     if (a_ne_lon == b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
         a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
         return og.quadTree.E;
@@ -70,10 +74,16 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     } else if (a_sw_lat == b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
         a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
         return og.quadTree.S;
-    } else if (a_ne_lon == 20037508.34 && b_sw_lon == -20037508.34) {
+    } else if (a_ne_lon == POLE && b_sw_lon == -POLE) {
         return og.quadTree.E;
-    } else if (a_sw.lon == -20037508.34 && b_ne.lon == 20037508.34) {
+    } else if (a_sw.lon == -POLE && b_ne.lon == POLE) {
         return og.quadTree.W;
+    }
+    //Poles and mercator nodes common side.
+    else if (a_ne_lat == POLE && b_sw_lat == MAX_LAT) {
+        return og.quadTree.N;
+    } else if (a_sw_lat == -POLE && b_ne_lat == -MAX_LAT) {
+        return og.quadTree.S;
     }
 
     return -1;
