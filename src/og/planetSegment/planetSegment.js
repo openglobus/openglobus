@@ -56,6 +56,13 @@ og.planetSegment.PlanetSegment = function () {
     this.node;
 };
 
+og.planetSegment.PlanetSegment.RATIO_LOD = 1.12;
+
+og.planetSegment.PlanetSegment.prototype.acceptForRendering = function (camera) {
+    var sphere = this.bsphere;
+    return camera.projectedSize(sphere.center) > og.planetSegment.PlanetSegment.RATIO_LOD * sphere.radius;
+};
+
 og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, camera) {
     var ne = this.extent.northEast,
         sw = this.extent.southWest,

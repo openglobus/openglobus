@@ -13,6 +13,14 @@ og.planetSegment.Wgs84PlanetSegment = function () {
 
 og.inheritance.extend(og.planetSegment.Wgs84PlanetSegment, og.planetSegment.PlanetSegment);
 
+og.planetSegment.Wgs84PlanetSegment.RATIO_LOD = 1.12;
+
+og.planetSegment.Wgs84PlanetSegment.prototype.acceptForRendering = function (camera) {
+    var sphere = this.bsphere;
+    return camera.projectedSize(sphere.center) > og.planetSegment.Wgs84PlanetSegment.RATIO_LOD * sphere.radius ||
+        this.zoomIndex > 3;
+};
+
 og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;

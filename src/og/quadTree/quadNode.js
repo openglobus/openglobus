@@ -79,7 +79,7 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     } else if (a_sw.lon == -POLE && b_ne.lon == POLE) {
         return og.quadTree.W;
     }
-    //Poles and mercator nodes common side.
+        //Poles and mercator nodes common side.
     else if (a_ne_lat == POLE && b_sw_lat == MAX_LAT) {
         return og.quadTree.N;
     } else if (a_sw_lat == -POLE && b_ne_lat == -MAX_LAT) {
@@ -230,6 +230,7 @@ og.quadTree.QuadNode.prototype.getState = function () {
 
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
     if (cam.lonLat.height < 3000000.0) {
+
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
         var horizon = 3570 * Math.sqrt(cam.lonLat.height);
         if (distance < horizon) {
@@ -237,6 +238,7 @@ og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
         } else {
             this.state = og.quadTree.NOTRENDERING;
         }
+
     } else {
         this.renderNode();
     }
@@ -277,7 +279,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
     if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {
 
-        if (og.quadTree.acceptableForRender(cam, seg.bsphere)) {
+        if (seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam);
         }
         else {
