@@ -12,11 +12,12 @@ og.layer.XYZ = function (name, options) {
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
-    if (material.segment._projection.id == og.proj.EPSG3857.id &&
-        og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
-        this.pendingsQueue.push(material);
-    } else {
-        this.loadSegmentTileImage(material);
+    if (material.segment._projection.id == og.proj.EPSG3857.id) {
+        if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
+            this.pendingsQueue.push(material);
+        } else {
+            this.loadSegmentTileImage(material);
+        }
     }
 };
 
