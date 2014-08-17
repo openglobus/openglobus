@@ -348,8 +348,8 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     var pole = og.mercator.POLE;
-    this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon)/extent.getWidth());
-    this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / extent.getHeight());
+    this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+    this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {

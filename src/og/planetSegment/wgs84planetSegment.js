@@ -25,16 +25,17 @@ og.planetSegment.Wgs84PlanetSegment.prototype.acceptForRendering = function (cam
 og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
-    var c = extent.getCenter();
-    this.tileX = og.mercator.getTileX(c.lon, zoomIndex);
-    
+    var pole = og.mercator.POLE;
+
+    this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+
     var lat = extent.northEast.lat;
     if (lat > 0) {
         //north pole
-        this.tileY =  Math.floor((90.0 - lat) / extent.getHeight());
+        this.tileY = Math.floor((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
     } else {
         //south pole
-        this.tileY = Math.floor((og.mercator.MIN_LAT - lat) / extent.getHeight());
+        this.tileY = Math.floor((og.mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
     }
 };
 
