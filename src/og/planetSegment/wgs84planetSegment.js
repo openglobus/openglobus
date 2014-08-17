@@ -11,6 +11,7 @@ og.planetSegment.Wgs84PlanetSegment = function () {
     this._projection = og.proj.EPSG4326;
 };
 
+
 og.inheritance.extend(og.planetSegment.Wgs84PlanetSegment, og.planetSegment.PlanetSegment);
 
 og.planetSegment.Wgs84PlanetSegment.RATIO_LOD = 1.12;
@@ -26,7 +27,15 @@ og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoom
     this.extent = extent;
     var c = extent.getCenter();
     this.tileX = og.mercator.getTileX(c.lon, zoomIndex);
-    this.tileY = og.mercator.getTileY(c.lat, zoomIndex);
+    
+    var lat = extent.northEast.lat;
+    if (lat > 0) {
+        //north pole
+        this.tileY =  Math.floor((90.0 - lat) / extent.getHeight());
+    } else {
+        //south pole
+        this.tileY = Math.floor((og.mercator.MIN_LAT - lat) / extent.getHeight());
+    }
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gridSize) {

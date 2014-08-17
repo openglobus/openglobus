@@ -347,9 +347,9 @@ og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSi
 og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
-    var c = extent.getCenter().inverseMercator();
-    this.tileX = og.mercator.getTileX(c.lon, zoomIndex);
-    this.tileY = og.mercator.getTileY(c.lat, zoomIndex);
+    var pole = og.mercator.POLE;
+    this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon)/extent.getWidth());
+    this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / extent.getHeight());
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
