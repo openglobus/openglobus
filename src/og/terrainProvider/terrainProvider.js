@@ -4,6 +4,7 @@ goog.require('og.layer');
 goog.require('og.quadTree');
 goog.require('og.Ajax');
 goog.require('og.Events');
+goog.require('og.proj.EPSG3857');
 
 og.terrainProvider.defaultOptions = {
     url: "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm",
@@ -46,10 +47,14 @@ og.terrainProvider.TerrainProvider.prototype.setName = function (name) {
 };
 
 og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (segment) {
-    if (this._counter >= this.MAX_LOADING_TILES) {
-        this._pendingsQueue.push(segment);
+    if (segment._projection.id == og.proj.EPSG3857.id) {
+        if (this._counter >= this.MAX_LOADING_TILES) {
+            this._pendingsQueue.push(segment);
+        } else {
+            this.loadSegmentTerrainData(segment);
+        }
     } else {
-        this.loadSegmentTerrainData(segment);
+        //TODO: poles elevation
     }
 };
 

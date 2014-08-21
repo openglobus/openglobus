@@ -11,6 +11,10 @@ og.planetSegment.Wgs84PlanetSegment = function () {
     this._projection = og.proj.EPSG4326;
 };
 
+og.planetSegment.Wgs84PlanetSegment._heightLat = 90.0 - og.mercator.MAX_LAT;
+og.planetSegment.Wgs84PlanetSegment._maxPoleZoom = 7;
+og.planetSegment.Wgs84PlanetSegment._pieceSize = og.planetSegment.Wgs84PlanetSegment._heightLat / Math.pow(2, og.planetSegment.Wgs84PlanetSegment._maxPoleZoom);
+
 
 og.inheritance.extend(og.planetSegment.Wgs84PlanetSegment, og.planetSegment.PlanetSegment);
 
@@ -18,8 +22,21 @@ og.planetSegment.Wgs84PlanetSegment.RATIO_LOD = 1.12;
 
 og.planetSegment.Wgs84PlanetSegment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
+
+    var maxPoleZoom;
+    var lat = this.extent.northEast.lat;
+    if (lat > 0) {
+        //north pole limits
+        var Yz = Math.floor((90.0 - lat) / og.planetSegment.Wgs84PlanetSegment._pieceSize);
+        maxPoleZoom = Math.floor(Yz / 16) + 7;
+    } else {
+        //south pole limits
+        var Yz = Math.floor((og.mercator.MIN_LAT - lat) / og.planetSegment.Wgs84PlanetSegment._pieceSize);
+        maxPoleZoom = 12 - Math.floor(Yz / 16);
+    }
+
     return camera.projectedSize(sphere.center) > og.planetSegment.Wgs84PlanetSegment.RATIO_LOD * sphere.radius ||
-        this.zoomIndex > 3;
+        this.zoomIndex > maxPoleZoom;
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
