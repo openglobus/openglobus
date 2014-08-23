@@ -3,6 +3,7 @@ goog.provide('og.math.Matrix4');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
+goog.require('og.math.Matrix3');
 //goog.require('og.math.Quaternion');
 
 og.math.Matrix4 = function () {
@@ -55,6 +56,31 @@ og.math.Matrix4.prototype.mulVec4 = function (p) {
         this._m[2] * d + this._m[6] * e + this._m[10] * g + this._m[14] * f,
         this._m[3] * d + this._m[7] * e + this._m[11] * g + this._m[15] * f
     );
+};
+
+og.math.Matrix4.prototype.toInverseMatrix3 = function () {
+    var a = this._m;
+    var c = a[0], d = a[1], e = a[2],
+        g = a[4], f = a[5], h = a[6],
+        i = a[8], j = a[9], k = a[10],
+        l = k * f - h * j,
+        o = -k * g + h * i,
+        m = j * g - f * i,
+        n = c * l + d * o + e * m;
+    if (!n)
+        return null;
+    n = 1 / n;
+    var res = new og.math.Matrix3();
+    res._m[0] = l * n;
+    res._m[1] = (-k * d + e * j) * n;
+    res._m[2] = (h * d - e * f) * n;
+    res._m[3] = o * n;
+    res._m[4] = (k * c - e * i) * n;
+    res._m[5] = (-h * c + e * g) * n;
+    res._m[6] = m * n;
+    res._m[7] = (-j * c + d * i) * n;
+    res._m[8] = (f * c - d * g) * n;
+    return res;
 };
 
 og.math.Matrix4.prototype.inverse = function () {
