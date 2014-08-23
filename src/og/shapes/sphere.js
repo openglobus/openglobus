@@ -46,12 +46,14 @@ og.shapes.Sphere.prototype._createData = function () {
         for (var longNumber = 0; longNumber < this._lonBands; longNumber++) {
             var first = (latNumber * (this._lonBands + 1)) + longNumber;
             var second = first + this._lonBands + 1;
+
             this._indexData.push(first);
-            this._indexData.push(second);
             this._indexData.push(first + 1);
             this._indexData.push(second);
+
+            this._indexData.push(second);
+            this._indexData.push(first + 1);
             this._indexData.push(second + 1);
-            this._indexData.push(first + 1);
         }
     }
 };
