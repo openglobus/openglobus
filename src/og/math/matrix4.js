@@ -70,6 +70,7 @@ og.math.Matrix4.prototype.toInverseMatrix3 = function () {
     if (!n)
         return null;
     n = 1 / n;
+
     var res = new og.math.Matrix3();
     res._m[0] = l * n;
     res._m[1] = (-k * d + e * j) * n;

@@ -20,12 +20,15 @@ og.shapes.BaseShape = function (renderer) {
     this._positionData = [];
     this._normalData = [];
     this._indexData = [];
+    this._textureCoordData = [];
 
     this._mxScale = new og.math.Matrix4().setIdentity();
     this._mxTranslation = new og.math.Matrix4().setIdentity();
     this._mxTRS = new og.math.Matrix4().setIdentity();
 
     this.drawMode = renderer.handler.gl.TRIANGLES;
+
+    this.texture = null;
 };
 
 og.shapes.BaseShape.prototype.clear = function () {
@@ -101,9 +104,23 @@ og.shapes.BaseShape.prototype.draw = function () {
 
     sh.activate();
 
-    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, this.renderer.activeCamera.pmvMatrix._m)
-    gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
+
     gl.uniform4fv(shu.uColor._pName, this.color);
+
+    gl.uniform3f(shu.uPointLightingLocation._pName, 0.0, 0.0, -5000.0);
+    gl.uniform3f(shu.uAmbientColor._pName, 0, 0, 0);
+
+    gl.uniform1f(shu.uMaterialShininess._pName, 32.0);
+    gl.uniform3f(shu.uPointLightingSpecularColor._pName, 1.0, 0.0, 0.0);
+    gl.uniform3f(shu.uPointLightingDiffuseColor._pName, 0.8, 0.8, 0.8);
+
+    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, this.renderer.activeCamera.pMatrix._m);
+    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, this.renderer.activeCamera.mvMatrix._m);
+
+    var mmm = this.renderer.activeCamera.mvMatrix.toInverseMatrix3().transpose();
+    gl.uniformMatrix3fv(shu.uNMatrix._pName, false, mmm._m);
+
+    gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
     gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -111,8 +128,10 @@ og.shapes.BaseShape.prototype.draw = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-    //gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    if (this.texture) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    }
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.drawElements(this.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);

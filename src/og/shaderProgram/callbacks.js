@@ -22,6 +22,10 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.MAT4] = function (program, v
     program.gl.uniformMatrix4fv(variable._pName, false, variable.value);
 };
 
+og.shaderProgram.callbacks.u[og.shaderProgram.types.MAT3] = function (program, variable) {
+    program.gl.uniformMatrix3fv(variable._pName, false, variable.value);
+};
+
 og.shaderProgram.callbacks.u[og.shaderProgram.types.FLOAT] = function (program, variable) {
     program.gl.uniform1f(variable._pName, variable.value);
 };

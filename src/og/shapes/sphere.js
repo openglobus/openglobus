@@ -34,8 +34,8 @@ og.shapes.Sphere.prototype._createData = function () {
             this._normalData.push(x);
             this._normalData.push(y);
             this._normalData.push(z);
-            //this._textureCoordData.push(u);
-            //this._textureCoordData.push(v);
+            this._textureCoordData.push(u);
+            this._textureCoordData.push(v);
             this._positionData.push(this._radius * x);
             this._positionData.push(this._radius * y);
             this._positionData.push(this._radius * z);

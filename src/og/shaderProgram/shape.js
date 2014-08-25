@@ -8,8 +8,17 @@ goog.require('og.utils');
 og.shaderProgram.shape = function () {
     return new og.shaderProgram.ShaderProgram("shape", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uTRSMatrix: { type: og.shaderProgram.types.MAT4 },
+            uNMatrix: { type: og.shaderProgram.types.MAT4 },
+
+            uAmbientColor: { type: og.shaderProgram.types.VEC3 },
+            uPointLightingLocation: { type: og.shaderProgram.types.VEC3 },
+            uPointLightingSpecularColor: { type: og.shaderProgram.types.VEC3 },
+            uPointLightingDiffuseColor: { type: og.shaderProgram.types.VEC3 },
+            uMaterialShininess: { type: og.shaderProgram.types.FLOAT },
+
             uColor: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {

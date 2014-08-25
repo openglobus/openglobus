@@ -38,3 +38,10 @@ og.math.Matrix3.prototype.transpose = function () {
     res._m[6] = m[2]; res._m[7] = m[5]; res._m[8] = m[8];
     return res;
 };
+
+og.math.Matrix3.prototype.setIdentity = function () {
+    this._m[0] = 1; this._m[1] = 0; this._m[2] = 0;
+    this._m[3] = 0; this._m[4] = 1; this._m[5] = 0;
+    this._m[6] = 0; this._m[7] = 0; this._m[8] = 1;
+    return this;
+};
