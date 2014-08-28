@@ -2,7 +2,8 @@ goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.control.SimpleNavigation');
-goog.require('og.shaderProgram.shape');
+goog.require('og.shaderProgram.shape_wl');
+goog.require('og.shaderProgram.shape_nl');
 goog.require('og.node.Axes');
 goog.require('my.Sphere');
 goog.require('og.math.Vector3');
@@ -25,7 +26,8 @@ function start() {
 
     context = new og.webgl.Handler("canvas");
     context.addShaderProgram(axesShader);
-    context.addShaderProgram(og.shaderProgram.shape());
+    context.addShaderProgram(og.shaderProgram.shape_wl());
+    context.addShaderProgram(og.shaderProgram.shape_nl());
     context.init();
 
     renderer = new og.Renderer(context);
