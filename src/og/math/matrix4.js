@@ -41,10 +41,11 @@ og.math.Matrix4.prototype.copy = function (a) {
 };
 
 og.math.Matrix4.prototype.mulVec3 = function (p) {
+    var d = p.x, e = p.y, g = p.z;
     return new og.math.Vector3(
-        this._m[0] * p.x + this._m[4] * p.y + this._m[8] * p.z + this._m[12],
-        this._m[1] * p.x + this._m[5] * p.y + this._m[9] * p.z + this._m[13],
-        this._m[2] * p.x + this._m[6] * p.y + this._m[10] * p.z + this._m[14]
+        this._m[0] * d + this._m[4] * e + this._m[8] * g + this._m[12],
+        this._m[1] * d + this._m[5] * e + this._m[9] * g + this._m[13],
+        this._m[2] * d + this._m[6] * e + this._m[10] * g + this._m[14]
     );
 };
 
