@@ -4,18 +4,20 @@ goog.require('og.shapes.BaseShape');
 
 
 og.shapes.Sphere = function (renderer, radius, latBands, lonBands) {
+
     goog.base(this, renderer);
+
     this._radius = radius;
     this._latBands = latBands;
     this._lonBands = lonBands;
 
-    this._createData();
+    this.createData();
     this.createBuffers();
 };
 
 goog.inherits(og.shapes.Sphere, og.shapes.BaseShape);
 
-og.shapes.Sphere.prototype._createData = function () {
+og.shapes.Sphere.prototype.createData = function () {
 
     for (var latNumber = 0; latNumber <= this._latBands; latNumber++) {
         var theta = latNumber * Math.PI / this._latBands;

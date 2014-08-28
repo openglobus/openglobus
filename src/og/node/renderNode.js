@@ -20,20 +20,42 @@ og.node.RenderNode = function (name) {
     this.translationMatrix = new og.math.Matrix4().setIdentity();
     this.transformationMatrix = new og.math.Matrix4().setIdentity();
     this.itransformationMatrix = new og.math.Matrix4().setIdentity();
+
+    this._pointLights = [];
+    this._pointLightsParamsv = [];
+    this._pointLightsParamsf = [];
+    this._pointLightsNames = [];
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
 
+og.node.RenderNode.prototype.addLight = function (light) {
+    light.addTo(this);
+    return light;
+};
+
+og.node.RenderNode.prototype.getLightByName = function(name){
+    var li = this._pointLightsNames.indexOf(name);
+    return this._pointLights[li];
+};
+
+og.node.RenderNode.prototype.removeLight = function (light) {
+    light.remove();
+};
+
 og.node.RenderNode.prototype.setScale = function (xyz) {
     this.scaleMatrix.scale(xyz);
+    return this;
 };
 
 og.node.RenderNode.prototype.setOrigin = function (origin) {
     this.translationMatrix.translate(origin);
+    return this;
 };
 
 og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
     this.rotationMatrix.eulerToMatrix(ax, ay, az);
+    return this;
 };
 
 og.node.RenderNode.prototype.updateMatrices = function () {

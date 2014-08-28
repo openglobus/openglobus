@@ -4,9 +4,9 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Quaternion');
 goog.require('og.math.Matrix4');
 
-og.shapes.BaseShape = function (renderer) {
+og.shapes.BaseShape = function (renderNode) {
 
-    this.renderer = renderer;
+    this.renderNode = renderNode;
 
     this.position = new og.math.Vector3();
     this.orientation = new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
@@ -26,9 +26,10 @@ og.shapes.BaseShape = function (renderer) {
     this._mxTranslation = new og.math.Matrix4().setIdentity();
     this._mxTRS = new og.math.Matrix4().setIdentity();
 
-    this.drawMode = renderer.handler.gl.TRIANGLES;
+    this.drawMode = renderNode.renderer.handler.gl.TRIANGLES;
 
     this.texture = null;
+    this.lightEnabled = false;
 };
 
 og.shapes.BaseShape.prototype.clear = function () {
@@ -49,9 +50,10 @@ og.shapes.BaseShape.prototype.clear = function () {
 };
 
 og.shapes.BaseShape.prototype.deleteBuffers = function () {
-    this.renderer.handler.gl.deleteBuffer(this._positionBuffer);
-    this.renderer.handler.gl.deleteBuffer(this._normalBuffer);
-    this.renderer.handler.gl.deleteBuffer(this._indexBuffer);
+    var r = this.renderNode.renderer;
+    r.handler.gl.deleteBuffer(this._positionBuffer);
+    r.handler.gl.deleteBuffer(this._normalBuffer);
+    r.handler.gl.deleteBuffer(this._indexBuffer);
     this._positionBuffer = null;
     this._normalBuffer = null;
     this._indexBuffer = null;
@@ -73,9 +75,10 @@ og.shapes.BaseShape.prototype.setScale = function (scale) {
 };
 
 og.shapes.BaseShape.prototype.createBuffers = function () {
-    this._positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
-    this._normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(this._normalData), 3, this._normalData.length / 3);
-    this._indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+    var r = this.renderNode.renderer;
+    this._positionBuffer = r.handler.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
+    this._normalBuffer = r.handler.createArrayBuffer(new Float32Array(this._normalData), 3, this._normalData.length / 3);
+    this._indexBuffer = r.handler.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 }
 
 og.shapes.BaseShape.prototype.setPositionData = function (positionData) {
@@ -96,34 +99,58 @@ og.shapes.BaseShape.prototype.refresh = function () {
 
 og.shapes.BaseShape.prototype.draw = function () {
 
-    var sh = this.renderer.handler.shaderPrograms.shape;
-    var p = sh._program;
-    var gl = this.renderer.handler.gl,
-        sha = p.attributes,
-        shu = p.uniforms;
+    var rn = this.renderNode;
+    var r = rn.renderer;
 
-    sh.activate();
+    var sh, p, gl;
 
+    if (this.lightEnabled) {
+        sh = r.handler.shaderPrograms.shape_wl;
+        p = sh._program;
+        gl = r.handler.gl,
+            sha = p.attributes,
+            shu = p.uniforms;
 
-    gl.uniform4fv(shu.uColor._pName, this.color);
+        sh.activate();
 
-    gl.uniform3f(shu.uPointLightingLocation._pName, 0.0, 0.0, -5000.0);
-    gl.uniform3f(shu.uAmbientColor._pName, 0, 0, 0);
+        gl.uniform4fv(shu.uColor._pName, this.color);
 
-    gl.uniform1f(shu.uMaterialShininess._pName, 32.0);
-    gl.uniform3f(shu.uPointLightingSpecularColor._pName, 1.0, 0.0, 0.0);
-    gl.uniform3f(shu.uPointLightingDiffuseColor._pName, 0.8, 0.8, 0.8);
+        var transformedPointLightsPositions = [];
+        for (var i = 0; i < rn._pointLights.length; i++) {
+            var tp = r.activeCamera.mvMatrix.mulVec3(rn._pointLights[i]._position);
+            transformedPointLightsPositions[i * 3] = tp.x;
+            transformedPointLightsPositions[i * 3 + 1] = tp.y;
+            transformedPointLightsPositions[i * 3 + 2] = tp.z;
+        }
+        gl.uniform3fv(shu.pointLightsPositions._pName, transformedPointLightsPositions);
+        gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
+        gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
 
-    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, this.renderer.activeCamera.pMatrix._m);
-    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, this.renderer.activeCamera.mvMatrix._m);
+        gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
+        gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
 
-    var mmm = this.renderer.activeCamera.mvMatrix.toInverseMatrix3().transpose();
-    gl.uniformMatrix3fv(shu.uNMatrix._pName, false, mmm._m);
+        var mmm = r.activeCamera.mvMatrix.toInverseMatrix3().transpose();
+        gl.uniformMatrix3fv(shu.uNMatrix._pName, false, mmm._m);
 
-    gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
+        gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-    gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
+        gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    } else {
+        sh = r.handler.shaderPrograms.shape_nl;
+        p = sh._program;
+        gl = r.handler.gl,
+            sha = p.attributes,
+            shu = p.uniforms;
+
+        sh.activate();
+
+        gl.uniform4fv(shu.uColor._pName, this.color);
+
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera.pmvMatrix._m);
+        gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
+    }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -135,4 +162,5 @@ og.shapes.BaseShape.prototype.draw = function () {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.drawElements(this.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
 };

@@ -1,0 +1,8 @@
+attribute vec3 aVertexPosition;
+
+uniform mat4 uPMVMatrix;
+uniform mat4 uTRSMatrix;
+
+void main(void) {
+    gl_Position = uPMVMatrix * (uTRSMatrix * vec4(aVertexPosition, 1.0));
+}
