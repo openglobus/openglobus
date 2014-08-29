@@ -21,7 +21,9 @@ og.node.RenderNode = function (name) {
     this.transformationMatrix = new og.math.Matrix4().setIdentity();
     this.itransformationMatrix = new og.math.Matrix4().setIdentity();
 
+    //this.lightEnabled = true;
     this._pointLights = [];
+    this._pointLightsTransformedPositions = [];
     this._pointLightsParamsv = [];
     this._pointLightsParamsf = [];
     this._pointLightsNames = [];
@@ -103,6 +105,17 @@ og.node.RenderNode.prototype.drawNodes = function () {
 
     if (this.show)
         if (this.frame) {
+
+            //calculate transformed lights
+            var r = this.renderer;
+            for (var i = 0; i < this._pointLights.length; i++) {
+                var ii = i * 3;
+                var tp = r.activeCamera.mvMatrix.mulVec3(this._pointLights[i]._position);
+                this._pointLightsTransformedPositions[ii] = tp.x;
+                this._pointLightsTransformedPositions[ii + 1] = tp.y;
+                this._pointLightsTransformedPositions[ii + 2] = tp.z;
+            }
+
             this.frame();
         }
 };

@@ -115,14 +115,7 @@ og.shapes.BaseShape.prototype.draw = function () {
 
         gl.uniform4fv(shu.uColor._pName, this.color);
 
-        var transformedPointLightsPositions = [];
-        for (var i = 0; i < rn._pointLights.length; i++) {
-            var tp = r.activeCamera.mvMatrix.mulVec3(rn._pointLights[i]._position);
-            transformedPointLightsPositions[i * 3] = tp.x;
-            transformedPointLightsPositions[i * 3 + 1] = tp.y;
-            transformedPointLightsPositions[i * 3 + 2] = tp.z;
-        }
-        gl.uniform3fv(shu.pointLightsPositions._pName, transformedPointLightsPositions);
+        gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
         gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
         gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
 
