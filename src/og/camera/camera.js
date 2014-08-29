@@ -24,6 +24,7 @@ og.Camera = function (renderer, options) {
     this.farDist = 0;
     this.viewAngle = 0;
 
+    this.nMatrix = new og.math.Matrix3();
     this.pMatrix = new og.math.Matrix4();
     this.mvMatrix = new og.math.Matrix4();
     this.pmvMatrix = new og.math.Matrix4();
@@ -101,6 +102,8 @@ og.Camera.prototype.update = function () {
     this.frustum.setFrustum(this.pmvMatrix._m);
 
     this.ipmvMatrix = this.pmvMatrix.inverse();
+
+    this.nMatrix = this.mvMatrix.toInverseMatrix3().transpose();
 
     this.events.dispatch(this.events.onviewchanged, this);
 };

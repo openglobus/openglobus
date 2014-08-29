@@ -121,10 +121,7 @@ og.shapes.BaseShape.prototype.draw = function () {
 
         gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
         gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
-
-        var mmm = r.activeCamera.mvMatrix.toInverseMatrix3().transpose();
-        gl.uniformMatrix3fv(shu.uNMatrix._pName, false, mmm._m);
-
+        gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera.nMatrix._m);
         gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
