@@ -144,124 +144,131 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
+og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations) {
+    //terrain exists
+    if (this.ready && this.terrainIsLoading) {
+        this.terrainExists = true;
 
-    if (elevations.length) {
-        //terrain exists
-        if (this.ready && this.terrainIsLoading) {
-            this.terrainExists = true;
+        var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+        var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+        var fileGridSize = this.planet.terrainProvider.fileGridSize || Math.sqrt(elevations.length) - 1;
+        var gs = tgs + 1;
+        var hf = this.planet.heightFactor;
+        var plain_verts = this.plainVertices;
+        var vertices = [];
+        var dgs = fileGridSize / tgs;
+        var v0 = new og.math.Vector3();
+        var ellipsoid = this.planet.ellipsoid;
+        var plainNormals = this.plainNormals;
 
-            var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
-            var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
-            var fileGridSize = this.planet.terrainProvider.fileGridSize || Math.sqrt(elevations.length) - 1;
-            var gs = tgs + 1;
-            var hf = this.planet.heightFactor;
-            var plain_verts = this.plainVertices;
-            var vertices = [];
-            var dgs = fileGridSize / tgs;
-            var v0 = new og.math.Vector3();
-            var ellipsoid = this.planet.ellipsoid;
-            var plainNormals = this.plainNormals;
+        if (fileGridSize >= tgs) {
+            for (var i = 0; i < gs; i++) {
+                for (var j = 0; j < gs; j++) {
+                    var vInd = (i * gs + j) * 3;
+                    var h = hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs];
+                    var x = plain_verts[vInd] + h * plainNormals[vInd],
+                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
 
-            if (fileGridSize >= tgs) {
-                for (var i = 0; i < gs; i++) {
-                    for (var j = 0; j < gs; j++) {
-                        var vInd = (i * gs + j) * 3;
-                        var h = hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs];
-                        var x = plain_verts[vInd] + h * plainNormals[vInd],
-                            y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                            z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+                    vertices[vInd] = x;
+                    vertices[vInd + 1] = y;
+                    vertices[vInd + 2] = z;
 
-                        vertices[vInd] = x;
-                        vertices[vInd + 1] = y;
-                        vertices[vInd + 2] = z;
-
-                        if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                        if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                        if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-                    }
-                }
-            } else {
-                var oneSize = tgs / fileGridSize;
-                var h, inside_i, inside_j, v_i, v_j;
-
-                for (var i = 0; i < gs; i++) {
-                    if (i == gs - 1) {
-                        inside_i = oneSize;
-                        v_i = Math.floor(i / oneSize) - 1;
-                    } else {
-                        inside_i = i % oneSize;
-                        v_i = Math.floor(i / oneSize);
-                    }
-
-                    for (var j = 0; j < gs; j++) {
-                        if (j == gs - 1) {
-                            inside_j = oneSize;
-                            v_j = Math.floor(j / oneSize) - 1;
-                        } else {
-                            inside_j = j % oneSize;
-                            v_j = Math.floor(j / oneSize);
-                        }
-
-                        var hvlt = elevations[v_i * (fileGridSize + 1) + v_j],
-                            hvrt = elevations[v_i * (fileGridSize + 1) + v_j + 1],
-                            hvlb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j],
-                            hvrb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j + 1];
-
-                        if (inside_i + inside_j < oneSize) {
-                            h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
-                        } else {
-                            h = hf * (hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
-                        }
-
-                        var vInd = (i * gs + j) * 3;
-
-                        var x = plain_verts[vInd] + h * plainNormals[vInd],
-                            y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                            z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
-
-                        vertices[vInd] = x;
-                        vertices[vInd + 1] = y;
-                        vertices[vInd + 2] = z;
-
-                        if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                        if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                        if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-                    }
+                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
                 }
             }
+        } else {
+            var oneSize = tgs / fileGridSize;
+            var h, inside_i, inside_j, v_i, v_j;
+
+            for (var i = 0; i < gs; i++) {
+                if (i == gs - 1) {
+                    inside_i = oneSize;
+                    v_i = Math.floor(i / oneSize) - 1;
+                } else {
+                    inside_i = i % oneSize;
+                    v_i = Math.floor(i / oneSize);
+                }
+
+                for (var j = 0; j < gs; j++) {
+                    if (j == gs - 1) {
+                        inside_j = oneSize;
+                        v_j = Math.floor(j / oneSize) - 1;
+                    } else {
+                        inside_j = j % oneSize;
+                        v_j = Math.floor(j / oneSize);
+                    }
+
+                    var hvlt = elevations[v_i * (fileGridSize + 1) + v_j],
+                        hvrt = elevations[v_i * (fileGridSize + 1) + v_j + 1],
+                        hvlb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j],
+                        hvrb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j + 1];
+
+                    if (inside_i + inside_j < oneSize) {
+                        h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
+                    } else {
+                        h = hf * (hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
+                    }
+
+                    var vInd = (i * gs + j) * 3;
+
+                    var x = plain_verts[vInd] + h * plainNormals[vInd],
+                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+
+                    vertices[vInd] = x;
+                    vertices[vInd + 1] = y;
+                    vertices[vInd + 2] = z;
+
+                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                }
+            }
+        }
+
+        this.deleteBuffers();
+        this.createCoordsBuffers(vertices, tgs);
+        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+        this.terrainVertices.length = 0;
+        this.terrainVertices = vertices;
+        this.gridSize = tgs;
+        this.terrainReady = true;
+        this.terrainIsLoading = false;
+        this.node.appliedTerrainNodeId = this.node.nodeId;
+        elevations.length = 0;
+    }
+};
+
+og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
+    if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+        if (this.ready && this.terrainIsLoading) {
+            this.terrainIsLoading = false;
+            this.terrainReady = true;
+            this.terrainExists = false;
+            this.node.appliedTerrainNodeId = this.node.nodeId;
+            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
             this.deleteBuffers();
-            this.createCoordsBuffers(vertices, tgs);
-            this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-            this.terrainVertices.length = 0;
-            this.terrainVertices = vertices;
-            this.gridSize = tgs;
-            this.terrainReady = true;
-            this.terrainIsLoading = false;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
-            elevations.length = 0;
-        }
-    } else {
-        if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
-            if (this.ready && this.terrainIsLoading) {
-                this.terrainIsLoading = false;
-                this.terrainReady = true;
-                this.terrainExists = false;
-                this.node.appliedTerrainNodeId = this.node.nodeId;
-                this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
-                this.deleteBuffers();
-
-                if (this.zoomIndex > 5) {
-                    this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
-                    this.createCoordsBuffers(this.terrainVertices, 2);
-                    this.gridSize = 2;
-                } else {
-                    this.createCoordsBuffers(this.terrainVertices, this.gridSize);
-                }
+            if (this.zoomIndex > 5) {
+                this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
+                this.createCoordsBuffers(this.terrainVertices, 2);
+                this.gridSize = 2;
+            } else {
+                this.createCoordsBuffers(this.terrainVertices, this.gridSize);
             }
         }
+    }
+};
+
+og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
+    if (elevations.length) {
+        this.elevationsExists(elevations);
+    } else {
+        this.elevationsNotExists();
     }
 };
 

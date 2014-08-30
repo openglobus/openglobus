@@ -36,7 +36,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
-    //TODO: texture have to stop loading    
+    //TODO: texture have to stop loading
     //This is not corrert
     this.imageIsLoading = true;
 };
