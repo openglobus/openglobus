@@ -36,7 +36,7 @@ void main(void) {
     lightWeighting += pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
 	//i=1
-	lightDirection = normalize(pointLightsPositions[1] - vPosition.xyz);
+/*	lightDirection = normalize(pointLightsPositions[1] - vPosition.xyz);
 	normal = normalize(vTransformedNormal);
 	eyeDirection = normalize(-vPosition.xyz);
 	reflectionDirection = reflect(-lightDirection, normal);
@@ -70,11 +70,7 @@ void main(void) {
 	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[4]);
 	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	lightWeighting += pointLightsParamsv[12] + pointLightsParamsv[13] * diffuseLightWeighting + pointLightsParamsv[14] * specularLightWeighting ;
-
-
-    vec4 fragmentColor;
-
-    fragmentColor = uColor;
+*/
         
-    gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
+    gl_FragColor = vec4(uColor.rgb * lightWeighting, uColor.a);
 }

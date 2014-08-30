@@ -16,16 +16,10 @@ og.ImageCanvas.prototype.fillEmpty = function () {
     this.context.putImageData(imgd, 0, 0);
 };
 
-og.ImageCanvas.prototype.fillColor = function (r, g, b, a) {
+og.ImageCanvas.prototype.fillColor = function (color) {
     var imgd = this.context.getImageData(0, 0, this._canvas.width, this._canvas.height);
-    var pixels = imgd.data;
-    for (var i = 0, n = pixels.length; i < n; i += 4) {
-        pixels[i] = r;
-        pixels[i + 1] = g;
-        pixels[i + 2] = b;
-        pixels[i + 3] = a;
-    }
-    this.context.putImageData(imgd, 0, 0);
+    this.context.fillStyle = color;
+    this.context.fillRect(0, 0, this._canvas.width, this._canvas.height);
 };
 
 og.ImageCanvas.prototype.setData = function (data) {

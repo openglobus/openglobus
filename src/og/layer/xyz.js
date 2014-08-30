@@ -4,6 +4,7 @@ goog.require('og.inheritance');
 goog.require('og.layer.Layer');
 goog.require('og.quadTree');
 goog.require('og.proj.EPSG3857');
+goog.require('og.ImageCanvas');
 
 og.layer.XYZ = function (name, options) {
     og.inheritance.base(this, name, options);
@@ -18,7 +19,11 @@ og.layer.XYZ.prototype.handleSegmentTile = function (material) {
         } else {
             this.loadSegmentTileImage(material);
         }
-    }
+    } else {
+        var imgCnv = new og.ImageCanvas(2, 2);
+        imgCnv.fillColor("#C5C5C5");
+        material.applyTexture.call(material, imgCnv.getImage());
+    };
 };
 
 og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {

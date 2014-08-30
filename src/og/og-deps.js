@@ -28,7 +28,7 @@ goog.addDependency('../../../og/src/og/input/keyboardHandler.js', ['og.input.Key
 goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseHandler'], []);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events']);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ']);
-goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree']);
+goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/light/pointLight.js', ['og.light.PointLight'], ['og.math.Vector3']);
 goog.addDependency('../../../og/src/og/lonlat.js', ['og.LonLat'], ['og.mercator']);
 goog.addDependency('../../../og/src/og/math/coder.js', ['og.math.coder'], ['og.math', 'og.math.Vector4']);
