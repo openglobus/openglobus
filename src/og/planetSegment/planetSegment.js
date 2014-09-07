@@ -27,6 +27,7 @@ og.planetSegment.PlanetSegment = function () {
     this.bbox = new og.bv.Box();
     this.bsphere = new og.bv.Sphere();
 
+    this.vertexNormalBuffer;
     this.vertexPositionBuffer;
     this.vertexIndexBuffer;
     this.vertexTextureCoordBuffer;
@@ -273,6 +274,7 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 };
 
 og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
+    this.handler.gl.deleteBuffer(this.vertexNormalBuffer);
     this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
     this.handler.gl.deleteBuffer(this.vertexIndexBuffer);
     this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
@@ -291,6 +293,24 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.plainVertices.length = 0;
     this.plainNormals.length = 0;
     this.terrainNormals.length = 0;
+};
+
+og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        if (m[i].layer == layer) {
+            return m[i];
+        }
+    }
+};
+
+og.planetSegment.PlanetSegment.prototype.getMaterialByLayerName = function (name) {
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        if (m[i].layer.name == name) {
+            return m[i];
+        }
+    }
 };
 
 og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
@@ -344,6 +364,10 @@ og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertice
     var gsgs = (gridSize + 1) * (gridSize + 1);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
+};
+
+og.planetSegment.PlanetSegment.prototype.createNormalBuffer = function (normals) {
+    this.vertexNormalBuffer = this.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
 };
 
 og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
@@ -420,7 +444,7 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             var ll = layers[l];
             var mat = segment.materials[ll.id];
             var nt3 = l * 3;
-            var nt4 = l * 4;
+            //var nt4 = l * 4;
 
             segment.texBiasArr[nt3] = mat.texBias[0];
             segment.texBiasArr[nt3 + 1] = mat.texBias[1];
@@ -442,6 +466,11 @@ og.planetSegment.drawOverlays = function (sh, segment) {
 og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     var gl = this.handler.gl;
     var sha = sh.attributes;
+
+    if (this.planet.lightEnabled) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexNormalBuffer);
+        gl.vertexAttribPointer(sha.aVertexNormal._pName, this.vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

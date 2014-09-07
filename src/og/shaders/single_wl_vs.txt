@@ -1,0 +1,26 @@
+//precision highp float;
+
+attribute vec3 aVertexNormal;
+attribute vec3 aVertexPosition;
+attribute vec2 aTextureCoord;
+
+uniform mat4 uPMatrix;
+uniform mat4 uMVMatrix;
+uniform mat3 uNMatrix;
+uniform vec3 texBias;
+
+varying vec2 vTextureCoord;
+varying vec4 vPosition;
+varying vec3 vTransformedNormal;
+
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
+void main(void) {
+    vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+    gl_Position = uPMatrix * vPosition;
+    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+    vTransformedNormal = uNMatrix * aVertexNormal;
+    vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
+}

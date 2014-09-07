@@ -302,6 +302,7 @@ og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
     segment.createPlainVertices(gridSize);
     segment.terrainVertices = segment.plainVertices;
     segment.createCoordsBuffers(segment.plainVertices, gridSize);
+    segment.createNormalBuffer(segment.plainNormals);
     segment.ready = true;
 };
 
@@ -331,6 +332,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
 
         if (!pml_id.imageReady) {
+            pml_id.texture = this.planet.emptyTexture;
             pml_id.loadTileImage();
             this.whileTextureLoading(li.id);
         }

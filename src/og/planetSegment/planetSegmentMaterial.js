@@ -7,6 +7,8 @@ og.planetSegment.PlanetSegmentMaterial = function (segment, layer) {
     this.imageIsLoading = false;
     this.texBias = [0, 0, 1];
     this.texture = null;
+    this.image = null;
+    this.textureExists = false;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.assignLayer = function (layer) {
@@ -23,6 +25,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
 
 og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     if (this.segment.ready && this.imageIsLoading) {
+        this.image = img;
         this.texture = this.segment.handler.createTextureFromImage(img);
         this.texBias = [0, 0, 1];
         this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
@@ -31,22 +34,31 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
         this.imageReady = false;
         this.texture = null;
         this.texBias = [0, 0, 1];
+        img = null;
     }
+    this.textureExists = true;
     this.imageIsLoading = false;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
+
+    //loking for parents
+    this.texture = this.segment.planet.emptyTexture;
+
     //TODO: texture have to stop loading
     //This is not corrert
     this.imageIsLoading = true;
+    this.textureExists = false;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.clear = function () {
     this.imageIsLoading = false;
     if (this.imageReady) {
         this.imageReady = false;
-        this.segment.handler.gl.deleteTexture(this.texture);
+        if(!this.texture.default)
+            this.segment.handler.gl.deleteTexture(this.texture);
         this.texture = null;
+        this.image = null;
         this.texBias = [0, 0, 1];
     }
 };

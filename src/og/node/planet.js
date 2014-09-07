@@ -10,7 +10,8 @@ goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.overlays');
-goog.require('og.shaderProgram.single');
+goog.require('og.shaderProgram.single_nl');
+goog.require('og.shaderProgram.single_wl');
 goog.require('og.shaderProgram.picking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
@@ -22,6 +23,8 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.Events');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
+goog.require('og.ImageCanvas');
+
 
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
@@ -49,9 +52,34 @@ og.node.Planet = function (name, ellipsoid) {
     this._viewChanged = true;
     this.cameraInsideNode = null;
     this.cameraPosition_merc;
+
+    this.emptyTexture = null;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
+
+og.node.Planet.defaultEmptyColor = "#C5C5C5";
+
+og.node.Planet.prototype.createEmptyTexture = function (params) {
+    var imgCnv;
+    if (params && params.color) {
+        imgCnv = new og.ImageCanvas(2, 2);
+        imgCnv.fillColor(params.color);
+        this.emptyTexture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+    } else if (params && params.url) {
+        imgCnv = new og.ImageCanvas(params.width || 256, params.height || 256);
+        var that = this;
+        imgCnv.loadImage(params.url, function (img) {
+            that.emptyTexture = that.renderer.handler.createTextureFromImage(img);
+            that.emptyTexture.default = true;
+        });
+    } else {
+        imgCnv = new og.ImageCanvas(2, 2);
+        imgCnv.fillColor(og.node.Planet.defaultEmptyColor);
+        this.emptyTexture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+    }
+    this.emptyTexture.default = true;
+};
 
 og.node.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;
@@ -172,6 +200,9 @@ og.node.Planet.prototype.initialization = function () {
         this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
+    //create empty texture
+    this.createEmptyTexture();
+
     this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
@@ -188,9 +219,11 @@ og.node.Planet.prototype.initialization = function () {
     this.updateMatrices();
 
     //Applying shaders
+    this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.single(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
+
 
     //backbuffer initialization
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
@@ -282,9 +315,29 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     var h = renderer.handler;
 
     if (this.visibleLayers.length > 1) {
-        h.shaderPrograms.overlays.activate();
-        sh = h.shaderPrograms.overlays._program;
+
         drawCallback = og.planetSegment.drawOverlays;
+
+        if (this.lightEnabled) {
+            h.shaderPrograms.overlays_wl.activate();
+            sh = h.shaderPrograms.overlays_wl._program;
+
+            h.gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
+            h.gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
+            h.gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+
+            h.gl.uniformMatrix4fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
+            h.gl.uniformMatrix4fv(sh.uniforms.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
+            h.gl.uniformMatrix4fv(sh.uniforms.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
+
+        } else {
+            h.shaderPrograms.overlays_nl.activate();
+            sh = h.shaderPrograms.overlays_nl._program;
+
+            h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+        }
+
         var layers = this.visibleLayers;
         var i = layers.length;
         while (i--) {
@@ -295,15 +348,33 @@ og.node.Planet.prototype.renderNodesPASS = function () {
             this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
             this.tcolorArr[nt4 + 3] = ll.opacity;
         }
+
         h.gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
         h.gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
-    } else {
-        h.shaderPrograms.single.activate();
-        sh = h.shaderPrograms.single._program;
-        drawCallback = og.planetSegment.drawSingle;
-    }
 
-    h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+    } else {
+
+        drawCallback = og.planetSegment.drawSingle;
+
+        if (this.lightEnabled) {
+            h.shaderPrograms.single_wl.activate();
+            sh = h.shaderPrograms.single_wl._program;
+
+            h.gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
+            h.gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
+            h.gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+
+            h.gl.uniformMatrix4fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
+            h.gl.uniformMatrix4fv(sh.uniforms.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
+            h.gl.uniformMatrix4fv(sh.uniforms.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
+        } else {
+            h.shaderPrograms.single_nl.activate();
+            sh = h.shaderPrograms.single_nl._program;
+
+            h.gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+        }
+    }
 
     var i = this.renderedNodes.length;
     while (i--) {

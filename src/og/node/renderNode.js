@@ -21,7 +21,7 @@ og.node.RenderNode = function (name) {
     this.transformationMatrix = new og.math.Matrix4().setIdentity();
     this.itransformationMatrix = new og.math.Matrix4().setIdentity();
 
-    //this.lightEnabled = true;
+    this.lightEnabled = false;
     this._pointLights = [];
     this._pointLightsTransformedPositions = [];
     this._pointLightsParamsv = [];
