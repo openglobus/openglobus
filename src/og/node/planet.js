@@ -55,6 +55,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.cameraPosition_merc;
 
     this.emptyTexture = null;
+
+    this.sunlight = null;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
@@ -249,15 +251,13 @@ og.node.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     });
 
-    sunlight = new og.light.PointLight();
-    //l1._diffuse.set(1, 0, 0);
-    sunlight._position.z = 149600000000;
-    sunlight.addTo(this);
-    sunlight.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
-    sunlight.setDiffuse(new og.math.Vector3(1, 0.99, 0.89));
-    sunlight.setSpecular(new og.math.Vector3(0.4, 0.4, 0.3));
-    sunlight.setShininess(8);
-
+    this.sunlight = new og.light.PointLight();
+    this.sunlight._position.z = 149600000000;
+    this.sunlight.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
+    this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
+    this.sunlight.setSpecular(new og.math.Vector3(0.01, 0.01, 0.009));
+    this.sunlight.setShininess(8);
+    this.sunlight.addTo(this);
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {

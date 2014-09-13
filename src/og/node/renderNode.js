@@ -107,13 +107,15 @@ og.node.RenderNode.prototype.drawNodes = function () {
         if (this.frame) {
 
             //calculate transformed lights
-            var r = this.renderer;
-            for (var i = 0; i < this._pointLights.length; i++) {
-                var ii = i * 3;
-                var tp = r.activeCamera.mvMatrix.mulVec3(this._pointLights[i]._position);
-                this._pointLightsTransformedPositions[ii] = tp.x;
-                this._pointLightsTransformedPositions[ii + 1] = tp.y;
-                this._pointLightsTransformedPositions[ii + 2] = tp.z;
+            if (this.lightEnabled) {
+                var r = this.renderer;
+                for (var i = 0; i < this._pointLights.length; i++) {
+                    var ii = i * 3;
+                    var tp = r.activeCamera.mvMatrix.mulVec3(this._pointLights[i]._position);
+                    this._pointLightsTransformedPositions[ii] = tp.x;
+                    this._pointLightsTransformedPositions[ii + 1] = tp.y;
+                    this._pointLightsTransformedPositions[ii + 2] = tp.z;
+                }
             }
 
             this.frame();
