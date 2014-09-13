@@ -90,7 +90,7 @@ og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (se
         var e = this.events.onload;
         if (e.length) {
             this.events.dispatch(e, {
-                "elevations": [],
+                "elevations": elevations,
                 "segment": segment
             });
         }

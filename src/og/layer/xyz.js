@@ -42,7 +42,7 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
         if (e.length) {
             that.events.dispatch(e, {
                 "image": this,
-                "segment": material.segment
+                "material": material,
             });
         }
         material.applyTexture.call(material, this);
