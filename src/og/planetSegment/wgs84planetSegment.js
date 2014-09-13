@@ -58,6 +58,7 @@ og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoom
 
 og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gridSize) {
     var verts = [];
+    var norms = [];
     var ind = 0;
     var e = this.extent;
     var lonSize = e.getWidth();
@@ -67,15 +68,25 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gr
     var esw_lon = e.southWest.lon,
         ene_lat = e.northEast.lat;
 
+    var r2 = this.planet.ellipsoid._invRadii2;
+
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
             var v = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
-            verts[ind++] = v.x;
-            verts[ind++] = v.y;
-            verts[ind++] = v.z;
+            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+            var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            verts[ind] = v.x;
+            norms[ind++] = nx * l;
+
+            verts[ind] = v.y;
+            norms[ind++] = ny * l;
+
+            verts[ind] = v.z;
+            norms[ind++] = nz * l;
         }
     }
     this.plainVertices = verts;
+    this.plainNormals = norms;
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function () {

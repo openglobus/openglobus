@@ -99,24 +99,18 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
     } else if (seg.zoomIndex < seg.planet.terrainProvider.minZoom) {
         seg.createBoundsByExtent();
     } else {
-        var pn = this,
-            scale = 0,
-            offsetX = 0,
-            offsetY = 0;
+        var pn = this;
 
         while (pn.parentNode && !pn.planetSegment.terrainReady) {
-            if (pn.partId === og.quadTree.NW) {
-            } else if (pn.partId === og.quadTree.NE) {
-                offsetX += Math.pow(2, scale);
-            } else if (pn.partId === og.quadTree.SW) {
-                offsetY += Math.pow(2, scale);
-            } else if (pn.partId === og.quadTree.SE) {
-                offsetX += Math.pow(2, scale);
-                offsetY += Math.pow(2, scale);
-            }
-            scale++;
             pn = pn.parentNode;
         }
+
+        var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+
+        var dZ2 = Math.pow(2, scale);
+
+        var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
+            offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
         if (pn.planetSegment.terrainReady) {
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
@@ -139,7 +133,7 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
                 var t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
                 var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
@@ -300,9 +294,11 @@ og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
     segment.gridSize = gridSize;
     this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     segment.createPlainVertices(gridSize);
+
     segment.terrainVertices = segment.plainVertices;
-    segment.createCoordsBuffers(segment.plainVertices, gridSize);
-    segment.createNormalBuffer(segment.plainNormals);
+    segment.terrainNormals = segment.plainNormals;
+
+    segment.createCoordsBuffers(segment.plainVertices, segment.plainNormals, gridSize);
     segment.ready = true;
 };
 
@@ -378,23 +374,18 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
-    var pn = this,
-        scale = 0,
-        offsetX = 0,
-        offsetY = 0;
+    var pn = this;
 
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
-        if (pn.partId == og.quadTree.NE) {
-            offsetX += Math.pow(2, scale);
-        } else if (pn.partId == og.quadTree.SW) {
-            offsetY += Math.pow(2, scale);
-        } else if (pn.partId == og.quadTree.SE) {
-            offsetX += Math.pow(2, scale);
-            offsetY += Math.pow(2, scale);
-        }
-        scale++;
         pn = pn.parentNode;
     }
+
+    var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+
+    var dZ2 = Math.pow(2, scale);
+
+    var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
+        offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
@@ -408,7 +399,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
                 var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
-                var tempVertices = [];
+                var tempVertices = [],
+                    tempNormals = [];
 
                 seg.deleteBuffers();
                 seg.refreshIndexesBuffer = true;
@@ -420,7 +412,22 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = gridSize * offsetY;
                     var j0 = gridSize * offsetX;
 
-                    tempVertices = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
+                    //tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
+                    var vInd = 0;
+                    for (var i = i0; i <= i0 + gridSize; i++) {
+                        for (var j = j0; j <= j0 + gridSize; j++) {
+                            var ind = 3 * (i * (pseg.gridSize + 1) + j);
+                            tempNormals[vInd] = pseg.terrainNormals[ind];
+                            tempVertices[vInd++] = pseg.terrainVertices[ind];
+
+                            tempNormals[vInd] = pseg.terrainNormals[ind + 1];
+                            tempVertices[vInd++] = pseg.terrainVertices[ind + 1];
+
+                            tempNormals[vInd] = pseg.terrainNormals[ind + 2];
+                            tempVertices[vInd++] = pseg.terrainVertices[ind + 2];
+                        }
+                    }
+
                 } else {
                     seg.gridSize = og.quadTree.QuadNode._neGridSize;
                     this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
@@ -428,7 +435,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = Math.floor(gridSize * offsetY);
                     var j0 = Math.floor(gridSize * offsetX);
 
-                    var bigOne = og.quadTree.getVerticesArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                    var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
                     //v_lt(x,y,z)             vn 
                     //    *---------------------------------->*       insideSize = 4
@@ -483,7 +490,9 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     bigOne.length = 0;
                 }
 
-                seg.createCoordsBuffers(tempVertices, seg.gridSize);
+                //TODO: normals for bigOne
+                seg.createCoordsBuffers(tempVertices, tempNormals, seg.gridSize);
+
                 seg.tempVertices = tempVertices;
                 this.appliedTerrainNodeId = pn.nodeId;
             }
@@ -500,7 +509,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     seg.terrainExists = false;
                     seg.deleteBuffers();
                     seg.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(seg.terrainVertices, seg.gridSize);
-                    seg.createCoordsBuffers(seg.terrainVertices, 2);
+                    //TODO: normals
+                    seg.createCoordsBuffers(seg.terrainVertices, seg.terrainNormals, 2);
                     seg.gridSize = 2;
                 }
             } else {
@@ -527,7 +537,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
  * @param {Integer} size Square matrix result size.
  * @return{Array} The inside quad triangles array.
  */
-og.quadTree.getVerticesArray = function (sourceArr, gridSize, i0, j0, size) {
+og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     var res = [];
     var vInd = 0;
     for (var i = i0; i <= i0 + size; i++) {
@@ -544,9 +554,6 @@ og.quadTree.getVerticesArray = function (sourceArr, gridSize, i0, j0, size) {
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,
-        texScale = 0,
-        texOffsetX = 0,
-        texOffsetY = 0,
         notEmpty = false;
 
     var psegm = pn.planetSegment.materials[mId];
@@ -557,19 +564,16 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
                 break;
             }
         }
-
-        if (pn.partId == og.quadTree.NE) {
-            texOffsetX += Math.pow(2, texScale);
-        } else if (pn.partId == og.quadTree.SW) {
-            texOffsetY += Math.pow(2, texScale);
-        } else if (pn.partId == og.quadTree.SE) {
-            texOffsetX += Math.pow(2, texScale);
-            texOffsetY += Math.pow(2, texScale);
-        }
-        texScale++;
         pn = pn.parentNode;
         psegm = pn.planetSegment.materials[mId];
     }
+
+    var texScale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+
+    var dZ2 = Math.pow(2, texScale);
+
+    var texOffsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
+        texOffsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var segm = this.planetSegment.materials[mId];
     if (segm.imageIsLoading) {

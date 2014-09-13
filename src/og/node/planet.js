@@ -24,6 +24,7 @@ goog.require('og.Events');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
+goog.require('og.light.PointLight');
 
 
 og.node.Planet = function (name, ellipsoid) {
@@ -224,7 +225,6 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
-
     //backbuffer initialization
     this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.backbuffer.initialize();
@@ -248,6 +248,16 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("onmousemove", this, function (e) {
         this._viewChanged = true;
     });
+
+    sunlight = new og.light.PointLight();
+    //l1._diffuse.set(1, 0, 0);
+    sunlight._position.z = 149600000000;
+    sunlight.addTo(this);
+    sunlight.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
+    sunlight.setDiffuse(new og.math.Vector3(1, 0.99, 0.89));
+    sunlight.setSpecular(new og.math.Vector3(0.4, 0.4, 0.3));
+    sunlight.setShininess(8);
+
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {
@@ -360,11 +370,11 @@ og.node.Planet.prototype.renderNodesPASS = function () {
             h.shaderPrograms.single_wl.activate();
             sh = h.shaderPrograms.single_wl._program;
 
-            h.gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
-            h.gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
-            h.gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+            h.gl.uniform3fv(sh.uniforms.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+            h.gl.uniform3fv(sh.uniforms.pointLightsParamsv._pName, this._pointLightsParamsv);
+            h.gl.uniform1fv(sh.uniforms.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            h.gl.uniformMatrix4fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
+            h.gl.uniformMatrix3fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
             h.gl.uniformMatrix4fv(sh.uniforms.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
             h.gl.uniformMatrix4fv(sh.uniforms.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);

@@ -9,8 +9,8 @@ uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 
 varying vec2 vTextureCoord;
-varying vec4 vPosition;
 varying vec3 vTransformedNormal;
+varying vec4 vPosition;
 
 void main(void) {
     

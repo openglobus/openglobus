@@ -30,6 +30,8 @@ og.PlanetCamera.prototype.update = function () {
     var pmvMatrixPrecise = this.pMatrixPrecise.mul(this.mvMatrix);
     this.ipmvMatrix = pmvMatrixPrecise.inverse();
 
+    this.nMatrix = this.mvMatrix.toInverseMatrix3().transpose();
+
     this.lonLat = this._ellipsoid.ECEF2LonLat(this.eye);
 
     this.events.dispatch(this.events.onviewchanged, this);

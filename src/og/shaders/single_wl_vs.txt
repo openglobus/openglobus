@@ -10,8 +10,8 @@ uniform mat3 uNMatrix;
 uniform vec3 texBias;
 
 varying vec2 vTextureCoord;
-varying vec4 vPosition;
 varying vec3 vTransformedNormal;
+varying vec4 vPosition;
 
 const float C = 0.1;
 const float far = 149.6e+9;
