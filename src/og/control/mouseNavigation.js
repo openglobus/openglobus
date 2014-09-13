@@ -14,45 +14,93 @@ og.control.MouseNavigation = function (options) {
     this.grabbedPoint = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
-    this.distDiff = 0.2;
+    this.distDiff = 0.5;
     this.inertia = 0.007;
     this.grabbedSpheroid = new og.bv.Sphere();
     this.planet;
     this.qRot = new og.math.Quaternion();
     this.scaleRot = 0;
+
+    this.stepsCount = 8;
+    this.stepsForward = [];//{pos:og.math.Vector3(), u:og.math.Vector3(), v: og.math.Vector3(), n:og.math.Vector3()}
+    for (var i = 0; i < this.stepsCount; i++) {
+        this.stepsForward[i] = { "eye": null, "u": null, "v": null, "n": null };
+    }
+    this.stepIndex = 0;
 };
 
 og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
 
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
-    this.stopRotation();
-    var a = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
-    if (a) {
-        var cam = this.renderer.activeCamera;
-        var dir = this.renderer.events.mouseState.direction;
-        var d = this.distDiff * cam.eye.distance(a);
 
-        if (event.wheelDelta > 0) {
-            d = -d;
-        }
+    if (this.stepIndex)
+        return;
+
+    this.stopRotation();
+
+    var cam = this.renderer.activeCamera;
+
+    var eye = cam.eye.clone(),
+        n = cam.n.clone(),
+        u = cam.u.clone(),
+        v = cam.v.clone();
+
+    this.stepIndex = this.stepsCount;
+
+    var dir = this.renderer.events.mouseState.direction;
+
+    var a = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
+
+    var d = a ? (this.distDiff * cam.eye.distance(a) / this.stepsCount) : 1000;
+
+    if (event.wheelDelta > 0) {
+        d = -d;
+    } else {
+        d *= 2;
+    }
+
+    var scaled_n = n.scaleTo(d);
+
+    if (a) {
 
         if (cam.lonLat.height > 9000) {
+
             this.grabbedSpheroid.radius = a.length();
-            cam.eye.add(cam.n.scaleTo(d));
-            var b = new og.math.Ray(cam.eye, dir).hitSphere(this.grabbedSpheroid);
-            if (b) {
-                var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
-                cam.eye = rot.mulVec3(cam.eye);
-                cam.v = rot.mulVec3(cam.v);
-                cam.u = rot.mulVec3(cam.u);
-                cam.n = rot.mulVec3(cam.n);
-            } else {
-                cam.eye.add(cam.n.scaleTo(d));
+
+            for (var i = 0; i < this.stepsCount; i++) {
+
+                eye.add(scaled_n);
+
+                var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
+
+                if (b) {
+                    var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
+                    this.stepsForward[i].eye = rot.mulVec3(eye);
+                    this.stepsForward[i].v = rot.mulVec3(v);
+                    this.stepsForward[i].u = rot.mulVec3(u);
+                    this.stepsForward[i].n = rot.mulVec3(n);
+                } else {
+                    this.stepsForward[i].eye = eye.clone();
+                    this.stepsForward[i].v = v;
+                    this.stepsForward[i].u = u;
+                    this.stepsForward[i].n = n;
+                }
             }
         } else {
-            cam.eye.add(dir.scaleTo(-d));
+            for (var i = 0; i < this.stepsCount; i++) {
+                this.stepsForward[i].eye = eye.add(dir.scaleTo(-d)).clone();
+                this.stepsForward[i].v = v;
+                this.stepsForward[i].u = u;
+                this.stepsForward[i].n = n;
+            }
         }
-        cam.update();
+    } else {
+        for (var i = 0; i < this.stepsCount; i++) {
+            this.stepsForward[i].eye = eye.add(scaled_n).clone();
+            this.stepsForward[i].v = v;
+            this.stepsForward[i].u = u;
+            this.stepsForward[i].n = n;
+        }
     }
 };
 
@@ -128,6 +176,20 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
 };
 
 og.control.MouseNavigation.prototype.onDraw = function (e) {
+
+    if (this.stepIndex) {
+        var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+
+        var cam = this.renderer.activeCamera;
+
+        cam.eye = sf.eye;
+        cam.v = sf.v;
+        cam.u = sf.u;
+        cam.n = sf.n;
+
+        cam.update();
+    }
+
     var r = this.renderer;
     r.controlsBag.scaleRot = this.scaleRot;
     if (r.events.mouseState.leftButtonDown || !this.scaleRot)
