@@ -34,6 +34,13 @@ og.ImageCanvas.prototype.resize = function (width, height) {
     this.context = this._canvas.getContext('2d');
 };
 
+og.ImageCanvas.prototype.setImage = function (img) {
+    this._canvas.width = img.width;
+    this._canvas.height = img.height;
+    this.context = this._canvas.getContext('2d');
+    this.context.drawImage(img, 0, 0, img.width, img.height);
+};
+
 og.ImageCanvas.prototype.getImage = function () {
     var img = new Image();
     img.src = this._canvas.toDataURL();
