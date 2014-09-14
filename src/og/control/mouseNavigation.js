@@ -61,32 +61,20 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     var scaled_n = n.scaleTo(d);
 
-    if (a) {
-
-        if (cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.5) {
-
-            this.grabbedSpheroid.radius = a.length();
-
-            for (var i = 0; i < this.stepsCount; i++) {
-                eye.add(scaled_n);
-                var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
-                if (b) {
-                    var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
-                    this.stepsForward[i].eye = rot.mulVec3(eye);
-                    this.stepsForward[i].v = rot.mulVec3(v);
-                    this.stepsForward[i].u = rot.mulVec3(u);
-                    this.stepsForward[i].n = rot.mulVec3(n);
-                } else {
-                    this.stepsForward[i].eye = eye.clone();
-                    this.stepsForward[i].n = null;
-                }
-            }
-        } else {
-            for (var i = 0; i < this.stepsCount; i++) {
-                this.stepsForward[i].eye = eye.add(dir.scaleTo(-d)).clone();
-                this.stepsForward[i].v = v;
-                this.stepsForward[i].u = u;
-                this.stepsForward[i].n = n;
+    if (a && cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.5) {
+        this.grabbedSpheroid.radius = a.length();
+        for (var i = 0; i < this.stepsCount; i++) {
+            eye.add(scaled_n);
+            var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
+            if (b) {
+                var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
+                this.stepsForward[i].eye = rot.mulVec3(eye);
+                this.stepsForward[i].v = rot.mulVec3(v);
+                this.stepsForward[i].u = rot.mulVec3(u);
+                this.stepsForward[i].n = rot.mulVec3(n);
+            } else {
+                this.stepsForward[i].eye = eye.clone();
+                this.stepsForward[i].n = null;
             }
         }
     } else {
