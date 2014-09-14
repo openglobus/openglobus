@@ -68,11 +68,8 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
             this.grabbedSpheroid.radius = a.length();
 
             for (var i = 0; i < this.stepsCount; i++) {
-
                 eye.add(scaled_n);
-
                 var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
-
                 if (b) {
                     var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
                     this.stepsForward[i].eye = rot.mulVec3(eye);
@@ -81,9 +78,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
                     this.stepsForward[i].n = rot.mulVec3(n);
                 } else {
                     this.stepsForward[i].eye = eye.clone();
-                    this.stepsForward[i].v = v;
-                    this.stepsForward[i].u = u;
-                    this.stepsForward[i].n = n;
+                    this.stepsForward[i].n = null;
                 }
             }
         } else {
@@ -179,14 +174,13 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
 
     if (this.stepIndex) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-
         var cam = this.renderer.activeCamera;
-
         cam.eye = sf.eye;
-        cam.v = sf.v;
-        cam.u = sf.u;
-        cam.n = sf.n;
-
+        if (sf.n) {
+            cam.v = sf.v;
+            cam.u = sf.u;
+            cam.n = sf.n;
+        }
         cam.update();
     }
 
