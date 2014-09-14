@@ -99,18 +99,24 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
     } else if (seg.zoomIndex < seg.planet.terrainProvider.minZoom) {
         seg.createBoundsByExtent();
     } else {
-        var pn = this;
+        var pn = this,
+            scale = 0,
+            offsetX = 0,
+            offsetY = 0;
 
         while (pn.parentNode && !pn.planetSegment.terrainReady) {
+            if (pn.partId === og.quadTree.NW) {
+            } else if (pn.partId === og.quadTree.NE) {
+                offsetX += Math.pow(2, scale);
+            } else if (pn.partId === og.quadTree.SW) {
+                offsetY += Math.pow(2, scale);
+            } else if (pn.partId === og.quadTree.SE) {
+                offsetX += Math.pow(2, scale);
+                offsetY += Math.pow(2, scale);
+            }
+            scale++;
             pn = pn.parentNode;
         }
-
-        var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
-
-        var dZ2 = Math.pow(2, scale);
-
-        var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-            offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
         if (pn.planetSegment.terrainReady) {
             var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
@@ -374,18 +380,23 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
-    var pn = this;
+    var pn = this,
+        scale = 0,
+        offsetX = 0,
+        offsetY = 0;
 
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
+        if (pn.partId == og.quadTree.NE) {
+            offsetX += Math.pow(2, scale);
+        } else if (pn.partId == og.quadTree.SW) {
+            offsetY += Math.pow(2, scale);
+        } else if (pn.partId == og.quadTree.SE) {
+            offsetX += Math.pow(2, scale);
+            offsetY += Math.pow(2, scale);
+        }
+        scale++;
         pn = pn.parentNode;
     }
-
-    var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
-
-    var dZ2 = Math.pow(2, scale);
-
-    var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-        offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
@@ -554,7 +565,10 @@ og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,
-        notEmpty = false;
+         texScale = 0,
+         texOffsetX = 0,
+         texOffsetY = 0,
+         notEmpty = false;
 
     var psegm = pn.planetSegment.materials[mId];
     while (pn.parentNode) {
@@ -564,16 +578,19 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
                 break;
             }
         }
+
+        if (pn.partId == og.quadTree.NE) {
+            texOffsetX += Math.pow(2, texScale);
+        } else if (pn.partId == og.quadTree.SW) {
+            texOffsetY += Math.pow(2, texScale);
+        } else if (pn.partId == og.quadTree.SE) {
+            texOffsetX += Math.pow(2, texScale);
+            texOffsetY += Math.pow(2, texScale);
+        }
+        texScale++;
         pn = pn.parentNode;
         psegm = pn.planetSegment.materials[mId];
     }
-
-    var texScale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
-
-    var dZ2 = Math.pow(2, texScale);
-
-    var texOffsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-        texOffsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var segm = this.planetSegment.materials[mId];
     if (segm.imageIsLoading) {

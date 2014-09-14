@@ -14,15 +14,15 @@ og.control.MouseNavigation = function (options) {
     this.grabbedPoint = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
-    this.distDiff = 0.5;
     this.inertia = 0.007;
     this.grabbedSpheroid = new og.bv.Sphere();
     this.planet;
     this.qRot = new og.math.Quaternion();
     this.scaleRot = 0;
 
-    this.stepsCount = 8;
-    this.stepsForward = [];//{pos:og.math.Vector3(), u:og.math.Vector3(), v: og.math.Vector3(), n:og.math.Vector3()}
+    this.distDiff = 0.33;
+    this.stepsCount = 5;
+    this.stepsForward = [];
     for (var i = 0; i < this.stepsCount; i++) {
         this.stepsForward[i] = { "eye": null, "u": null, "v": null, "n": null };
     }
@@ -51,7 +51,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     var a = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
 
-    var d = a ? (this.distDiff * cam.eye.distance(a) / this.stepsCount) : 1000;
+    var d = a ? this.distDiff * cam.eye.distance(a) / this.stepsCount : 1000;
 
     if (event.wheelDelta > 0) {
         d = -d;
@@ -63,7 +63,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     if (a) {
 
-        if (cam.lonLat.height > 9000) {
+        if (cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.5) {
 
             this.grabbedSpheroid.radius = a.length();
 
@@ -96,7 +96,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         }
     } else {
         for (var i = 0; i < this.stepsCount; i++) {
-            this.stepsForward[i].eye = eye.add(scaled_n).clone();
+            this.stepsForward[i].eye = eye.add(dir.scaleTo(-d)).clone();
             this.stepsForward[i].v = v;
             this.stepsForward[i].u = u;
             this.stepsForward[i].n = n;
