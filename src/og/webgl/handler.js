@@ -14,7 +14,6 @@ og.webgl.Handler = function (htmlId) {
     this.htmlCanvasId = htmlId;
     this.gl;
     this._initialized = false;
-    this.emptyTexture = null;
     this.drawback = function (x) { };
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
@@ -89,12 +88,6 @@ og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     return texture;
 };
 
-og.webgl.Handler.prototype.createEmptyTexture = function (url) {
-    var imageCanvas = new og.ImageCanvas();
-    imageCanvas.fillEmpty();
-    this.emptyTexture = this.createTextureFromImage(imageCanvas.getImage());
-};
-
 og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     if (!this.shaderPrograms[program.name]) {
         var sc = new og.webgl.ShaderController(this, program);
@@ -144,7 +137,6 @@ og.webgl.Handler.prototype.initShaderPrograms = function () {
 og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initCanvas(this.htmlCanvasId);
     this._initialized = true;
-    this.createEmptyTexture();
     this.initShaderPrograms();
     this.setDefaults();
 };

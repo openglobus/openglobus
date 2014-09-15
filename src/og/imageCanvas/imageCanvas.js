@@ -17,7 +17,6 @@ og.ImageCanvas.prototype.fillEmpty = function () {
 };
 
 og.ImageCanvas.prototype.fillColor = function (color) {
-    var imgd = this.context.getImageData(0, 0, this._canvas.width, this._canvas.height);
     this.context.fillStyle = color;
     this.context.fillRect(0, 0, this._canvas.width, this._canvas.height);
 };
@@ -43,7 +42,7 @@ og.ImageCanvas.prototype.setImage = function (img) {
 
 og.ImageCanvas.prototype.getImage = function () {
     var img = new Image();
-    img.src = this._canvas.toDataURL();
+    img.src = this._canvas.toDataURL("image/png");
     return img;
 };
 
