@@ -61,20 +61,40 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     var scaled_n = n.scaleTo(d);
 
-    if (a && cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.5) {
+    if (a && cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.6) {
         this.grabbedSpheroid.radius = a.length();
+
+        var rotArr = [],
+            eyeArr = []
+
+        var breaked = false;
         for (var i = 0; i < this.stepsCount; i++) {
             eye.add(scaled_n);
             var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
+            eyeArr[i] = eye.clone();
             if (b) {
-                var rot = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
-                this.stepsForward[i].eye = rot.mulVec3(eye);
+                rotArr[i] = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
+            } else {
+                breaked = true;
+                break;
+            }
+        }
+
+        if (!breaked) {
+            for (var i = 0; i < this.stepsCount; i++) {
+                var rot = rotArr[i];
+                this.stepsForward[i].eye = rot.mulVec3(eyeArr[i]);
                 this.stepsForward[i].v = rot.mulVec3(v);
                 this.stepsForward[i].u = rot.mulVec3(u);
                 this.stepsForward[i].n = rot.mulVec3(n);
-            } else {
-                this.stepsForward[i].eye = eye.clone();
-                this.stepsForward[i].n = null;
+            }
+        } else {
+            eye = cam.eye.clone();
+            for (var i = 0; i < this.stepsCount; i++) {
+                this.stepsForward[i].eye = eye.add(scaled_n).clone();
+                this.stepsForward[i].v = v;
+                this.stepsForward[i].u = u;
+                this.stepsForward[i].n = n;
             }
         }
     } else {
@@ -164,11 +184,9 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
-        if (sf.n) {
-            cam.v = sf.v;
-            cam.u = sf.u;
-            cam.n = sf.n;
-        }
+        cam.v = sf.v;
+        cam.u = sf.u;
+        cam.n = sf.n;
         cam.update();
     }
 
