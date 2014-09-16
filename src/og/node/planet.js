@@ -9,7 +9,8 @@ goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
-goog.require('og.shaderProgram.overlays');
+goog.require('og.shaderProgram.overlays_wl');
+goog.require('og.shaderProgram.overlays_nl');
 goog.require('og.shaderProgram.single_nl');
 goog.require('og.shaderProgram.single_wl');
 goog.require('og.shaderProgram.picking');
@@ -224,7 +225,8 @@ og.node.Planet.prototype.initialization = function () {
     //Applying shaders
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
     //backbuffer initialization

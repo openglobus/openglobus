@@ -20,7 +20,7 @@ function start() {
     var mqosm = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/map/{zoom}/{tilex}/{tiley}.jpg", zIndex: 3 });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}", zIndex: 4 });
     var arcgisBounds = new og.layer.XYZ("ALPHA TEST: ArcGIS Boundaries", { isBaseLayer: false, url: "http://127.0.0.1/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{zoom}/{tiley}/{tilex}", transparentColor: [0, 0, 0], opacity: 0.9, zIndex: 100 });
-    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50 });
+    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50 });
     var canyon = new og.layer.WMS("USA Canyon", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:gchyp", opacity: 0.5, zIndex: 12 });
     var ocean = new og.layer.WMS("Ocean", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_110m_ocean", opacity: 0.5, transparentColor: [1, 1, 1], zIndex: 45 });
     var countries = new og.layer.WMS("Countries", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_admin_0_countries", opacity: 0.5 });
@@ -29,6 +29,8 @@ function start() {
     var gpoints = new og.layer.WMS("Geography points", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_geography_regions_points", opacity: 0.5 });
     var pop = new og.layer.WMS("Populated places", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_populated_places", opacity: 0.5 });
     var bf5 = new og.layer.WMS("Bathimetry-F-5000", { isBaseLayer: false, url: "http://localhost/geoserver/", layers: "og:ne_10m_bathymetry_F_5000", opacity: 0.5, zIndex: 3 });
+
+    var ne = new og.layer.WMS("Natural Earth", { isBaseLayer: true, url: "http://openglobus.org/geoserver/", layers: "NaturalEarth:NE2_HR_LC_SR_W_DR", opacity: 1, zIndex: 3 });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
@@ -57,7 +59,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [satlayer, layer, states, countries],
+        "layers": [satlayer, layer, states, countries, ne],
         "autoActivated": true
     });
 

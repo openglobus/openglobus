@@ -1,0 +1,20 @@
+precision mediump float;
+precision lowp int;
+
+attribute lowp vec3 aVertexPosition;
+attribute lowp vec2 aTextureCoord;
+
+uniform lowp mat4 uPMVMatrix;
+
+varying lowp vec2 vTextureCoord;
+
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
+void main(void) {
+    
+	gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);
+	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+	vTextureCoord = aTextureCoord;
+}
