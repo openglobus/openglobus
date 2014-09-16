@@ -112,6 +112,7 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.events.on("onmouselbuttonhold", this, this.onMouseLeftButtonDown);
     this.renderer.events.on("onmouserbuttonhold", this, this.onMouseRightButtonDown);
     this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("onmouselbuttonup", this, this.onMouseLeftButtonUp);
     this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonClick);
     this.renderer.events.on("onmouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
     this.renderer.events.on("onmouseclick", this, this.onMouseClick);
@@ -129,6 +130,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
+    this.renderer.handler.gl.canvas.style.cursor = "-webkit-grabbing";
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
         this.stopRotation();
@@ -137,6 +139,10 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
 
 og.control.MouseNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
+};
+
+og.control.MouseNavigation.prototype.onMouseLeftButtonUp = function (e) {
+    this.renderer.handler.gl.canvas.style.cursor = "default";
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
