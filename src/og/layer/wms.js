@@ -10,6 +10,15 @@ og.layer.WMS = function (name, options) {
 
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
 
+og.layer.WMS.prototype.handleSegmentTile = function (material) {
+    if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
+        this.pendingsQueue.push(material);
+    } else {
+        this.loadSegmentTileImage(material);
+    }
+};
+
+
 og.layer.WMS.prototype.GetHTTPRequestString = function (segment) {
     return this.url + "wms?" + "LAYERS=" + this.layers +
             "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap" +
