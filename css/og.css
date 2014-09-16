@@ -12,6 +12,10 @@
     color: red; 
 }
 
+.ogGrabbingPoiner {
+    cursor: url(/og/resources/closedhand.cur), url(../resources/closedhand.cur), default;
+}
+
 .ogViewport{
     width: 100%;
     height: 100%;

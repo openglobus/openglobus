@@ -130,7 +130,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
-    this.renderer.handler.gl.canvas.style.cursor = "-webkit-grabbing";
+    this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
         this.stopRotation();
@@ -142,7 +142,7 @@ og.control.MouseNavigation.prototype.stopRotation = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonUp = function (e) {
-    this.renderer.handler.gl.canvas.style.cursor = "default";
+    this.renderer.handler.gl.canvas.classList.remove("ogGrabbingPoiner");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
