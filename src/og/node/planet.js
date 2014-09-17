@@ -315,6 +315,8 @@ og.node.Planet.prototype.frame = function () {
     //NOT WORKING! BUG IS HERE!
     if (this.createdNodesCount > 140) {
         this.quadTree.clearTree();
+        this.quadTreeNorth.clearTree();
+        this.quadTreeSouth.clearTree();
         this.createdNodesCount = 0;
     }
 

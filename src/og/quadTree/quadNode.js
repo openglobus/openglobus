@@ -604,6 +604,9 @@ og.quadTree.QuadNode.prototype.clearTree = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
+    if (this.planetSegment.zoomIndex < 4)
+        return;
+
     if (cls) {
         this.planetSegment.clearSegment();
         this.appliedTerrainNodeId = -1;
