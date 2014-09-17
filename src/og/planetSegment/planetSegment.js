@@ -257,7 +257,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
 
             if (this.zoomIndex > 5) {
                 this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
-                //TODO: normals
+                this.terrainNormals = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainNormals, this.gridSize);
                 this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
                 this.gridSize = 2;
             } else {
