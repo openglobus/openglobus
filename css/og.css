@@ -36,8 +36,8 @@
 .ogAttribution {
     background: rgba(255, 255, 255, 0.63);
     text-align: right;
-    bottom: .5em;
-    left: .5em;
+    bottom: 0;
+    right: 0;
     position: absolute;
 }
 
@@ -50,7 +50,7 @@
     color: black;
     text-shadow: 0 0 2px #fff;
     margin: 0;
-    padding: 5px 0px 5px 0px;
+    padding: 2px 0px 1px 0px;
     line-height: 1.375em;
 }
 
@@ -111,7 +111,7 @@
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
     background-color: rgba(128, 128, 128, 0.5);
-    bottom: 10px;
+    bottom: 28px;
     right: 12px;
     font-size: 0.9em;
     position: absolute;
