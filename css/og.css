@@ -41,6 +41,10 @@
     position: absolute;
 }
 
+.ogAttribution:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
 .ogAttribution ul {
     font-size: .7rem;
     color: black;
