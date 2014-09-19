@@ -26,12 +26,18 @@ og.layer.Layer = function (name, options) {
         this.opacity = options.opacity ? options.opacity : og.layer.DEFAILT_OPACITY;
         this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
         this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
+        this._attribution = options.attribution || "";
     }
 
     this.id = og.layer.layersCounter++;
 
     this.counter = 0;
     this.pendingsQueue = [];
+};
+
+og.layer.Layer.prototype.setAttribution = function (html) {
+    this._attribution = html;
+    this.planet.updateAttributionsList();
 };
 
 og.layer.Layer.prototype.clone = function () {

@@ -262,16 +262,58 @@ og.node.Planet.prototype.initialization = function () {
     this.sunlight.addTo(this);
 };
 
-og.node.Planet.prototype.updateVisibleLayers = function () {
-    this.visibleLayers.length = 0;
+og.node.Planet.prototype.clearAttributionsList = function () {
+
+}
+
+og.node.Planet.prototype.updateAttributionsList = function () {
+    var html = "";
     for (var i = 0; i < this.layers.length; i++) {
-        if (this.layers[i].visibility) {
-            if (this.layers[i].isBaseLayer) {
-                this.baseLayer = this.layers[i];
+        var li = this.layers[i];
+        if (li.visibility) {
+            if (li._attribution.length) {
+                html += "<li>" + li._attribution + "</li>";
             }
-            this.visibleLayers.push(this.layers[i]);
         }
     }
+
+    if (this.renderer) {
+        if (html.length) {
+            this.renderer.div.attributions.style.display = "block";
+            this.renderer.div.attributions.innerHTML = "<ul>" + html + "</ul>";
+        } else {
+            this.renderer.div.attributions.style.display = "none";
+            this.renderer.div.attributions.innerHTML = "";
+        }
+    }
+};
+
+og.node.Planet.prototype.updateVisibleLayers = function () {
+    this.visibleLayers.length = 0;
+    var html = "";
+    for (var i = 0; i < this.layers.length; i++) {
+        var li = this.layers[i];
+        if (li.visibility) {
+            if (li.isBaseLayer) {
+                this.baseLayer = li;
+            }
+            this.visibleLayers.push(li);
+            if (li._attribution.length) {
+                html += "<li>" + li._attribution + "</li>";
+            }
+        }
+    }
+
+    if (this.renderer) {
+        if (html.length) {
+            this.renderer.div.attributions.style.display = "block";
+            this.renderer.div.attributions.innerHTML = "<ul>" + html + "</ul>";
+        } else {
+            this.renderer.div.attributions.style.display = "none";
+            this.renderer.div.attributions.innerHTML = "";
+        }
+    }
+
     this.sortVisibleLayersByZIndex();
 };
 

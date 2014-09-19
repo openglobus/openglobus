@@ -1,6 +1,6 @@
 ﻿.defaultText {
     position: absolute;
-    font: 16px; 
+    font: 16px;
     font-family: Consolas, monaco, monospace;
     z-index: 1000;
     top: 0px;
@@ -9,14 +9,14 @@
 }
 
 #ogShowFpsControl {
-    color: red; 
+    color: red;
 }
 
 .ogGrabbingPoiner {
     cursor: url(/og/resources/closedhand.cur), url(../resources/closedhand.cur), default;
 }
 
-.ogViewport{
+.ogViewport {
     width: 100%;
     height: 100%;
     float: left;
@@ -33,12 +33,37 @@
     z-index: 12000;
 }
 
+.ogAttribution {
+    background: rgba(255, 255, 255, 0.21);
+    text-align: right;
+    bottom: .5em;
+    left: .5em;
+    position: absolute;
+}
+
+.ogAttribution ul {
+    font-size: .7rem;
+    color: black;
+    text-shadow: 0 0 2px #fff;
+    margin: 0;
+    padding: 5px 0px 5px 0px;
+    line-height: 1.375em;
+}
+
+.ogAttribution li {
+    display: inline;
+    list-style: none;
+    line-height: inherit;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
 #ogLayerSwitcherButtonMinimize {
-    background:url(../resources/images/controls/ogMinimize.png) top left no-repeat;
+    background: url(../resources/images/controls/ogMinimize.png) top left no-repeat;
 }
 
 #ogLayerSwitcherButtonMaximize {
-    background:url(../resources/images/controls/ogMaximize.png) top left no-repeat;
+    background: url(../resources/images/controls/ogMaximize.png) top left no-repeat;
 }
 
 #ogLayerSwitcherDialog {
