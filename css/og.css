@@ -52,6 +52,7 @@
     margin: 0;
     padding: 2px 0px 1px 0px;
     line-height: 1.375em;
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
 .ogAttribution li {
@@ -107,14 +108,15 @@
 }
 
 .ogMousePositionControl {
-    color: white;
+    color: black;
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(128, 128, 128, 0.5);
+    background-color: rgba(255, 255, 255, 0.55);
     bottom: 28px;
     right: 12px;
     font-size: 0.9em;
     position: absolute;
     z-index: 5000;
     padding: 3px;
+    text-shadow: 0 0 5px #fff;
 }
