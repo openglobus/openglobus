@@ -24,7 +24,7 @@ og.layer.Layer = function (name, options) {
         this.url = options.url ? options.url : "";
         this.visibility = options.visibility ? options.visibility : false;
         this.opacity = options.opacity ? options.opacity : og.layer.DEFAILT_OPACITY;
-        this.transparentColor = options.transparentColor ? options.transparentColor : [1.0, 1.0, 1.0];
+        this.transparentColor = options.transparentColor ? options.transparentColor : [-1.0, -1.0, -1.0];
         this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
         this._attribution = options.attribution || "";
     }

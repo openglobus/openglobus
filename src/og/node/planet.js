@@ -530,6 +530,7 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
         r = this.renderer;
     var h = r.handler;
     var pp = h.shaderPrograms.picking;
+    h.gl.disable(h.gl.BLEND);
     b.activate();
     b.clear();
     pp.activate();
@@ -539,6 +540,7 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
         this.renderedNodes[i].planetSegment.drawPicking();
     }
     b.deactivate();
+    h.gl.enable(h.gl.BLEND);
     this.renderedNodes.length = 0;
 };
 

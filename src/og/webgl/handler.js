@@ -10,7 +10,6 @@ og.webgl.Handler = function (htmlId) {
     this.fps;
     this.delta;
     this.animSpeed = 1.0;
-    this.backgroundColor = { r: 0.48, g: 0.48, b: 0.48, a: 1.0 };
     this.htmlCanvasId = htmlId;
     this.gl;
     this._initialized = false;
@@ -148,7 +147,7 @@ og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.cullFace(this.gl.BACK);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
     this.activateFaceCulling();
-    this.deactivateBlending();
+    this.activateBlending();
     this.gl.ext = this.initAnysotropicFiltering();
 };
 
@@ -194,10 +193,6 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     return buffer;
 };
 
-og.webgl.Handler.prototype.fillBackGroundColor = function (color) {
-    this.gl.clearColor(color.r, color.g, color.b, color.a);
-};
-
 function print2d(id, text, x, y) {
     var el = document.getElementById(id);
     el.innerHTML = text;
@@ -209,13 +204,6 @@ og.webgl.Handler.prototype.calculateFPS = function (now) {
     this.fps = 1000 / (now - this.lastAnimationFrameTime);
     this.lastAnimationFrameTime = now;
     this.delta = this.animSpeed / this.fps;
-};
-
-og.webgl.Handler.prototype.setBackgroundColor = function (color) {
-    this.backgroundColor.r = color.r;
-    this.backgroundColor.g = color.g;
-    this.backgroundColor.b = color.b;
-    this.backgroundColor.a = color.a;
 };
 
 og.webgl.Handler.prototype.applyViewport = function (width, height) {
@@ -244,7 +232,7 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
 
 og.webgl.Handler.prototype.clearFrame = function () {
     var gl = this.gl;
-    this.fillBackGroundColor(this.backgroundColor);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
