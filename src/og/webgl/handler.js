@@ -145,9 +145,8 @@ og.webgl.Handler.prototype.setDefaults = function () {
     this.applyViewport(this.gl.canvas.width, this.gl.canvas.height);
     this.gl.frontFace(this.gl.CCW);
     this.gl.cullFace(this.gl.BACK);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
     this.activateFaceCulling();
-    this.activateBlending();
+    this.deactivateBlending();
     this.gl.ext = this.initAnysotropicFiltering();
 };
 
@@ -232,7 +231,7 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
 
 og.webgl.Handler.prototype.clearFrame = function () {
     var gl = this.gl;
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(0.46, 0.46, 0.46, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 

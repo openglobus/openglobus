@@ -22,7 +22,7 @@ og.webgl.initCanvas = function (htmlCanvasId) {
     var canvas = document.getElementById(htmlCanvasId);
     var ctx;
     try {
-        ctx = canvas.getContext("experimental-webgl");
+        ctx = canvas.getContext("webgl", { alpha: false });
         ctx.canvas = canvas;
         canvas.width = canvas.scrollWidth;
         canvas.height = canvas.scrollHeight;
