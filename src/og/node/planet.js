@@ -56,6 +56,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.cameraPosition_merc;
 
     this.emptyTexture = null;
+    this.transparentTexture = null;
+    this.defaultTexture = null;
 
     this.sunlight = null;
 };
@@ -64,25 +66,27 @@ og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.defaultEmptyColor = "#C5C5C5";
 
-og.node.Planet.prototype.createEmptyTexture = function (params) {
+og.node.Planet.prototype.createDefaultTexture = function (params) {
     var imgCnv;
+    var texture;
     if (params && params.color) {
         imgCnv = new og.ImageCanvas(2, 2);
         imgCnv.fillColor(params.color);
-        this.emptyTexture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+        texture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
     } else if (params && params.url) {
         imgCnv = new og.ImageCanvas(params.width || 256, params.height || 256);
         var that = this;
         imgCnv.loadImage(params.url, function (img) {
-            that.emptyTexture = that.renderer.handler.createTextureFromImage(img);
-            that.emptyTexture.default = true;
+            texture = that.renderer.handler.createTextureFromImage(img);
+            texture.default = true;
         });
     } else {
         imgCnv = new og.ImageCanvas(2, 2);
         imgCnv.fillColor(og.node.Planet.defaultEmptyColor);
-        this.emptyTexture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+        texture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
     }
-    this.emptyTexture.default = true;
+    texture.default = true;
+    return texture;
 };
 
 og.node.Planet.prototype.getLayerByName = function (name) {
@@ -205,7 +209,9 @@ og.node.Planet.prototype.initialization = function () {
     }
 
     //create empty texture
-    this.createEmptyTexture();
+    this.emptyTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
+    this.transparentTexture = this.createDefaultTexture({ color: "rgba(197,197,197,0.0)" });
+    this.defaultTexture = this.emptyTexture;
 
     this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
@@ -315,6 +321,12 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
     }
 
     this.sortVisibleLayersByZIndex();
+
+    if (this.visibleLayers.length > 1) {
+        this.defaultTexture = this.transparentTexture;
+    } else {
+        this.defaultTexture = this.emptyTexture;
+    }
 };
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {

@@ -16,6 +16,13 @@ og.planetSegment.PlanetSegmentMaterial.prototype.assignLayer = function (layer) 
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
+
+    if (this.layer.isBaseLayer) {
+        this.texture = this.segment.planet.emptyTexture;
+    } else {
+        this.texture = this.segment.planet.defaultTexture;
+    }
+
     if (!this.imageIsLoading) {
         this.imageReady = false;
         this.imageIsLoading = true;
@@ -43,7 +50,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
 
     //loking for parents
-    this.texture = this.segment.planet.emptyTexture;
+    this.texture = this.segment.planet.defaultTexture;
 
     //TODO: texture have to stop loading
     //This is not corrert
@@ -55,7 +62,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.clear = function () {
     this.imageIsLoading = false;
     if (this.imageReady) {
         this.imageReady = false;
-        if(!this.texture.default)
+        if (!this.texture.default)
             this.segment.handler.gl.deleteTexture(this.texture);
         this.texture = null;
         this.image = null;
