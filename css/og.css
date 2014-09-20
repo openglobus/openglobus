@@ -34,11 +34,21 @@
 }
 
 .ogAttribution {
-    background: rgba(255, 255, 255, 0.63);
+    /*background: rgba(255, 255, 255, 0.63);*/
     text-align: right;
     bottom: 0;
     right: 0;
     position: absolute;
+}
+
+.ogAttribution img {
+    max-height: 2em;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+    border: 0;
+    -ms-interpolation-mode: bicubic;
 }
 
 .ogAttribution:hover {
@@ -48,7 +58,7 @@
 .ogAttribution ul {
     font-size: .7rem;
     color: black;
-    text-shadow: 0 0 2px #fff;
+    /*text-shadow: 0 0 2px #fff;*/
     margin: 0;
     padding: 2px 0px 1px 0px;
     line-height: 1.375em;
