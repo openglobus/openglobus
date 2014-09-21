@@ -22,21 +22,16 @@ og.control.MouseNavigation = function (options) {
 
     this.distDiff = 0.33;
     this.stepsCount = 5;
-    this.stepsForward = [];
-    for (var i = 0; i < this.stepsCount; i++) {
-        this.stepsForward[i] = { "eye": null, "u": null, "v": null, "n": null };
-    }
+    this.stepsForward = null;
     this.stepIndex = 0;
 };
 
 og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
 
-og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
-    if (this.stepIndex)
-        return;
+og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (delta, point, forward, dir) {
 
-    this.stopRotation();
+    var steps = []
 
     var cam = this.renderer.activeCamera;
 
@@ -47,13 +42,15 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     this.stepIndex = this.stepsCount;
 
-    var dir = this.renderer.events.mouseState.direction;
+    var a = this.planet.getCartesianFromPixelTerrain(point);
 
-    var a = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
+    if (!dir) {
+        dir = og.math.Vector3.sub(a, cam.eye).normalize();
+    }
 
-    var d = a ? this.distDiff * cam.eye.distance(a) / this.stepsCount : 1000;
+    var d = a ? delta * cam.eye.distance(a) / this.stepsCount : 1000;
 
-    if (event.wheelDelta > 0) {
+    if (forward) {
         d = -d;
     } else {
         d *= 2;
@@ -83,28 +80,44 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         if (!breaked) {
             for (var i = 0; i < this.stepsCount; i++) {
                 var rot = rotArr[i];
-                this.stepsForward[i].eye = rot.mulVec3(eyeArr[i]);
-                this.stepsForward[i].v = rot.mulVec3(v);
-                this.stepsForward[i].u = rot.mulVec3(u);
-                this.stepsForward[i].n = rot.mulVec3(n);
+                steps[i] = {};
+                steps[i].eye = rot.mulVec3(eyeArr[i]);
+                steps[i].v = rot.mulVec3(v);
+                steps[i].u = rot.mulVec3(u);
+                steps[i].n = rot.mulVec3(n);
             }
         } else {
             eye = cam.eye.clone();
             for (var i = 0; i < this.stepsCount; i++) {
-                this.stepsForward[i].eye = eye.add(scaled_n).clone();
-                this.stepsForward[i].v = v;
-                this.stepsForward[i].u = u;
-                this.stepsForward[i].n = n;
+                steps[i] = {};
+                steps[i].eye = eye.add(scaled_n).clone();
+                steps[i].v = v;
+                steps[i].u = u;
+                steps[i].n = n;
             }
         }
     } else {
         for (var i = 0; i < this.stepsCount; i++) {
-            this.stepsForward[i].eye = eye.add(dir.scaleTo(-d)).clone();
-            this.stepsForward[i].v = v;
-            this.stepsForward[i].u = u;
-            this.stepsForward[i].n = n;
+            steps[i] = {};
+            steps[i].eye = eye.add(dir.scaleTo(-d)).clone();
+            steps[i].v = v;
+            steps[i].u = u;
+            steps[i].n = n;
         }
     }
+
+    return steps;
+};
+
+og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
+
+    if (this.stepIndex)
+        return;
+
+    this.stopRotation();
+
+    var ms = this.renderer.events.mouseState;
+    this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff, ms, event.wheelDelta > 0, ms.direction);
 };
 
 og.control.MouseNavigation.prototype.init = function () {
@@ -125,7 +138,13 @@ og.control.MouseNavigation.prototype.onMouseClick = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
-    //  console.log("doubleclick");
+    this.stopRotation();
+    var ms = this.renderer.events.mouseState;
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 1.7, ms, false, ms.direction);
+    } else {
+        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 1.7, ms, true, ms.direction);
+    }
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {

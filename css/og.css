@@ -21,6 +21,10 @@
     height: 100%;
     float: left;
     position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
 }
 
 .ogLayerSwitcherButton {
@@ -41,37 +45,37 @@
     position: absolute;
 }
 
-.ogAttribution img {
-    max-height: 2em;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    vertical-align: middle;
-    border: 0;
-    -ms-interpolation-mode: bicubic;
-}
+    .ogAttribution img {
+        max-height: 2em;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        vertical-align: middle;
+        border: 0;
+        -ms-interpolation-mode: bicubic;
+    }
 
-.ogAttribution:hover {
-    background: rgba(255, 255, 255, 0.8);
-}
+    .ogAttribution:hover {
+        background: rgba(255, 255, 255, 0.8);
+    }
 
-.ogAttribution ul {
-    font-size: .7rem;
-    color: black;
-    /*text-shadow: 0 0 2px #fff;*/
-    margin: 0;
-    padding: 2px 0px 1px 0px;
-    line-height: 1.375em;
-    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-}
+    .ogAttribution ul {
+        font-size: .7rem;
+        color: black;
+        /*text-shadow: 0 0 2px #fff;*/
+        margin: 0;
+        padding: 2px 0px 1px 0px;
+        line-height: 1.375em;
+        font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    }
 
-.ogAttribution li {
-    display: inline;
-    list-style: none;
-    line-height: inherit;
-    margin-left: 5px;
-    margin-right: 5px;
-}
+    .ogAttribution li {
+        display: inline;
+        list-style: none;
+        line-height: inherit;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
 
 #ogLayerSwitcherButtonMinimize {
     background: url(../resources/images/controls/ogMinimize.png) top left no-repeat;
