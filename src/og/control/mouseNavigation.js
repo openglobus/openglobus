@@ -141,7 +141,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
     this.stopRotation();
     var ms = this.renderer.events.mouseState;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 1.7, ms, false, ms.direction);
+        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 2, ms, false, ms.direction);
     } else {
         this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 1.7, ms, true, ms.direction);
     }
