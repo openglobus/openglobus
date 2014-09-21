@@ -208,10 +208,9 @@ og.node.Planet.prototype.initialization = function () {
         this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
-    //create empty texture
-    this.emptyTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
-    this.transparentTexture = this.createDefaultTexture({ color: "rgba(197,197,197,0.0)" });
-    this.defaultTexture = this.emptyTexture;
+    //create empty textures
+    this.solidTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
+    this.transparentTexture = this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" });
 
     this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
@@ -321,12 +320,6 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
     }
 
     this.sortVisibleLayersByZIndex();
-
-    if (this.visibleLayers.length > 1) {
-        this.defaultTexture = this.transparentTexture;
-    } else {
-        this.defaultTexture = this.emptyTexture;
-    }
 };
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
