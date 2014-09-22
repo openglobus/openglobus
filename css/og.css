@@ -132,5 +132,5 @@
     position: absolute;
     z-index: 5000;
     padding: 3px;
-    text-shadow: 0 0 5px #fff;
+    /*text-shadow: 0 0 5px #fff;*/
 }

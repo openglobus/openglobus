@@ -123,16 +123,6 @@ og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, camer
     return { "distance": camera.lonLat.height, "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction) };
 };
 
-og.planetSegment.PlanetSegment.getCornersVertices = function (v, gridSize) {
-    var step = 3 * gridSize;
-    var step2 = step * 0.5;
-    var lb = step * (gridSize + 1);
-    var ml = step2 * (gridSize + 1);
-    return [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-            v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-            v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-};
-
 og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
     if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
@@ -256,12 +246,24 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
             this.deleteBuffers();
 
             if (this.zoomIndex > 5) {
-                this.terrainVertices = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainVertices, this.gridSize);
-                this.terrainNormals = og.planetSegment.PlanetSegment.getCornersVertices(this.terrainNormals, this.gridSize);
+                var step = 3 * this.gridSize;
+                var step2 = step * 0.5;
+                var lb = step * (this.gridSize + 1);
+                var ml = step2 * (this.gridSize + 1);
+
+                var v = this.terrainVertices;
+                this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+
+                v = this.terrainNormals;
+                this.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+
                 this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
                 this.gridSize = 2;
             } else {
-                //TODO: normals
                 this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, this.gridSize);
             }
         }

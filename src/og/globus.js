@@ -95,6 +95,7 @@ og.Globus = function (options) {
 
     og.Globus.__id++;
 
+    //TODO: view center, altitude, extent
     if (options.viewExtent) {
         this.planet.viewToExtent(options.viewExtent);
     }

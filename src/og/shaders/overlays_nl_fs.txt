@@ -26,5 +26,6 @@ void main(void)
 				break;
 			}
 		}
+
 	gl_FragColor = res;
 }
