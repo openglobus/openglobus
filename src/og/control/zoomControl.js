@@ -19,18 +19,18 @@ og.inheritance.extend(og.control.ZoomControl, og.control.Control);
 
 og.control.ZoomControl.prototype.init = function () {
     var zoomDiv = document.createElement('div'),
-        btnZoomIn = document.createElement('div'),
-        btnZoomOut = document.createElement('div');
+        btnZoomIn = document.createElement('button'),
+        btnZoomOut = document.createElement('button');
 
     zoomDiv.className = 'ogZoomControl';
-    btnZoomIn.className = 'ogZoomButton';
-    btnZoomOut.className = 'ogZoomButton';
+    btnZoomIn.className = 'ogZoomButton ogZoomIn';
+    btnZoomOut.className = 'ogZoomButton ogZoomOut';
 
     zoomDiv.appendChild(btnZoomIn);
     zoomDiv.appendChild(btnZoomOut);
 
-    btnZoomIn.innerHTML = '<div class="ogZoomButtonCommon ogZoomIn"></div>';
-    btnZoomOut.innerHTML = '<div class="ogZoomButtonCommon ogZoomOut"></div>';
+    //btnZoomIn.innerHTML = '<div class=""></div>';
+    //btnZoomOut.innerHTML = '<div class=""></div>';
 
     this.renderer.div.appendChild(zoomDiv);
 
