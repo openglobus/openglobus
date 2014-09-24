@@ -17,5 +17,6 @@ goog.require('og.control.LoadingSpinner');
 goog.require('og.control.MousePosition');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.Globus');
+goog.require('og.control.ZoomControl');
 
 og.all = function(){};

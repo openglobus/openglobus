@@ -55,7 +55,7 @@ function start() {
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ShowFps({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true }),
+    	new og.control.ZoomControl({ autoActivate: true })
     ];
 
     globus = new og.Globus({
