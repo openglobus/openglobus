@@ -97,6 +97,7 @@
     z-index: 5000;
     padding: 0 0 0 10px;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    border-radius: 2px;
 }
 
 .displayNone {
@@ -122,15 +123,18 @@
 }
 
 .ogMousePositionControl {
-    color: black;
+    color: white;
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(255, 255, 255, 0.55);
+    background-color: rgba(48, 48, 48, 0.56);
     bottom: 28px;
     right: 12px;
     font-size: 0.9em;
     position: absolute;
     z-index: 5000;
     padding: 3px;
+    padding-top: 1px;
     /*text-shadow: 0 0 5px #fff;*/
+    border-radius: 2px;
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
 }
