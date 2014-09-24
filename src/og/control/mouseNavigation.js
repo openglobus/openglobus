@@ -29,26 +29,22 @@ og.control.MouseNavigation = function (options) {
 og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
 
 
-og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (delta, point, forward, dir) {
+og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet, stepsCount, delta, point, forward, dir) {
 
     var steps = []
-
-    var cam = this.renderer.activeCamera;
 
     var eye = cam.eye.clone(),
         n = cam.n.clone(),
         u = cam.u.clone(),
         v = cam.v.clone();
 
-    this.stepIndex = this.stepsCount;
-
-    var a = this.planet.getCartesianFromPixelTerrain(point);
+    var a = planet.getCartesianFromPixelTerrain(point);
 
     if (!dir) {
         dir = og.math.Vector3.sub(a, cam.eye).normalize();
     }
 
-    var d = a ? delta * cam.eye.distance(a) / this.stepsCount : 1000;
+    var d = a ? delta * cam.eye.distance(a) / stepsCount : 1000;
 
     if (forward) {
         d = -d;
@@ -59,15 +55,16 @@ og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (d
     var scaled_n = n.scaleTo(d);
 
     if (a && cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.6) {
-        this.grabbedSpheroid.radius = a.length();
+        var grabbedSpheroid = new og.bv.Sphere();
+        grabbedSpheroid.radius = a.length();
 
         var rotArr = [],
             eyeArr = []
 
         var breaked = false;
-        for (var i = 0; i < this.stepsCount; i++) {
+        for (var i = 0; i < stepsCount; i++) {
             eye.add(scaled_n);
-            var b = new og.math.Ray(eye, dir).hitSphere(this.grabbedSpheroid);
+            var b = new og.math.Ray(eye, dir).hitSphere(grabbedSpheroid);
             eyeArr[i] = eye.clone();
             if (b) {
                 rotArr[i] = new og.math.Matrix4().rotateBetweenVectors(a.normal(), b.normal());
@@ -78,7 +75,7 @@ og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (d
         }
 
         if (!breaked) {
-            for (var i = 0; i < this.stepsCount; i++) {
+            for (var i = 0; i < stepsCount; i++) {
                 var rot = rotArr[i];
                 steps[i] = {};
                 steps[i].eye = rot.mulVec3(eyeArr[i]);
@@ -88,7 +85,7 @@ og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (d
             }
         } else {
             eye = cam.eye.clone();
-            for (var i = 0; i < this.stepsCount; i++) {
+            for (var i = 0; i < stepsCount; i++) {
                 steps[i] = {};
                 steps[i].eye = eye.add(scaled_n).clone();
                 steps[i].v = v;
@@ -97,7 +94,7 @@ og.control.MouseNavigation.prototype.getMovePointsFromPixelTerrain = function (d
             }
         }
     } else {
-        for (var i = 0; i < this.stepsCount; i++) {
+        for (var i = 0; i < stepsCount; i++) {
             steps[i] = {};
             steps[i].eye = eye.add(dir.scaleTo(-d)).clone();
             steps[i].v = v;
@@ -117,7 +114,9 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
     this.stopRotation();
 
     var ms = this.renderer.events.mouseState;
-    this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff, ms, event.wheelDelta > 0, ms.direction);
+    this.stepIndex = this.stepsCount;
+    this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+        this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
 };
 
 og.control.MouseNavigation.prototype.init = function () {
@@ -138,18 +137,20 @@ og.control.MouseNavigation.prototype.onMouseClick = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
-    this.stopRotation();
     var ms = this.renderer.events.mouseState;
+    this.stepIndex = this.stepsCount;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 2, ms, false, ms.direction);
+        this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+            this.planet, this.stepsCount, this.distDiff * 2, ms, false, ms.direction);
     } else {
-        this.stepsForward = this.getMovePointsFromPixelTerrain(this.distDiff * 1.7, ms, true, ms.direction);
+        this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+            this.planet, this.stepsCount, this.distDiff * 1.7, ms, true, ms.direction);
     }
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
     this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
+    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
         this.stopRotation();

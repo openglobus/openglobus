@@ -15,6 +15,7 @@ goog.addDependency('../../../og/src/og/control/mousePosition.js', ['og.control.M
 goog.addDependency('../../../og/src/og/control/showFps.js', ['og.control.ShowFps'], ['og.control.Control', 'og.inheritance']);
 goog.addDependency('../../../og/src/og/control/simpleNavigation.js', ['og.control.SimpleNavigation'], ['og.control.Control', 'og.inheritance', 'og.input']);
 goog.addDependency('../../../og/src/og/control/toggleWireframe.js', ['og.control.ToggleWireframe'], ['og.inheritance', 'og.input', 'og.webgl']);
+goog.addDependency('../../../og/src/og/control/zoomControl.js', ['og.control.ZoomControl'], ['og.control.Control', 'og.control.MouseNavigation', 'og.inheritance']);
 goog.addDependency('../../../og/src/og/ellipsoid/ellipsoid.js', ['og.Ellipsoid'], ['og.LonLat', 'og.math', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellipsoid.wgs84'], ['og.Ellipsoid']);
 goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
@@ -57,7 +58,7 @@ goog.addDependency('../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], 
 goog.addDependency('../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'og.proj.METERS_PER_UNIT', 'og.proj.Projection'], []);
 goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.planetSegment.PlanetSegmentMaterial', 'og.proj.EPSG4326', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
-goog.addDependency('../../../og/src/og/renderer/renderer.js', ['og.Renderer'], ['og.Camera', 'og.RendererEvents', 'og.math.Vector3']);
+goog.addDependency('../../../og/src/og/renderer/renderer.js', ['og.Renderer'], ['og.Camera', 'og.RendererEvents', 'og.math.Pixel', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/renderer/rendererEvents.js', ['og.RendererEvents'], ['og.Events', 'og.inheritance', 'og.input', 'og.input.KeyboardHandler', 'og.input.MouseHandler']);
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types']);
 goog.addDependency('../../../og/src/og/shaderProgram/overlays.js', ['og.shaderProgram.overlays_nl', 'og.shaderProgram.overlays_wl'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);

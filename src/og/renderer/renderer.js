@@ -3,6 +3,7 @@ goog.provide('og.Renderer');
 goog.require('og.math.Vector3');
 goog.require('og.RendererEvents');
 goog.require('og.Camera');
+goog.require('og.math.Pixel');
 
 og.Renderer = function (handler) {
     this.div = null;
@@ -28,6 +29,11 @@ og.Renderer.prototype.getWidth = function () {
  */
 og.Renderer.prototype.getHeight = function () {
     return this.handler.gl.canvas.height;
+};
+
+og.Renderer.prototype.getCenter = function () {
+    var cnv = this.handler.gl.canvas;
+    return new og.math.Pixel(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
 };
 
 /**

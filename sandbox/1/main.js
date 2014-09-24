@@ -10,6 +10,7 @@ goog.require('og.control.ToggleWireframe');
 goog.require('og.control.MousePosition');
 goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ShowFps');
+goog.require('og.control.ZoomControl');
 
 function start() {
     og.webgl.MAX_FRAME_DELAY = 15;
@@ -53,7 +54,8 @@ function start() {
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
-    	new og.control.ShowFps({ autoActivate: true })
+    	new og.control.ShowFps({ autoActivate: true }),
+    	new og.control.ZoomControl({ autoActivate: true }),
     ];
 
     globus = new og.Globus({
