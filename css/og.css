@@ -13,7 +13,7 @@
 }
 
 .ogGrabbingPoiner {
-    cursor: url(/og/resources/closedhand.cur), url(../resources/closedhand.cur), default;
+    cursor: url(data:text/plain;base64,AAACAAEAICACAAcABQAwAQAAFgAAACgAAAAgAAAAQAAAAAEAAQAAAAAAAAEAAAAAAAAAAAAAAgAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8AAAA/AAAAfwAAAP+AAAH/gAAB/8AAAH/AAAB/wAAA/0AAANsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//////////////////////////////////////////////////////////////////////////////////////gH///4B///8Af//+AD///AA///wAH//+AB///wAf//4AH//+AD///yT/////////////////////////////8=), default;
 }
 
 .ogViewport {
@@ -80,7 +80,7 @@
 .ogZoomControl {
     background-clip: padding-box;
     height: 57px;
-    width: 29px;
+    width: 28px;
     box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
     z-index: 0;
     position: absolute;
@@ -88,7 +88,8 @@
     cursor: pointer;
     bottom: 65px;
     right: 12px;
-    background-color: rgba(48, 48, 48, 0.56);
+    background-color: rgba(41, 41, 41, 0.8);
+    border-radius: 2px;
 }
 
 .ogZoomButton {
@@ -100,28 +101,28 @@
 
 .ogZoomButtonCommon {
     display: block;
-    height: 15px;
+    height: 14px;
     left: 7px;
     position: relative;
-    top: 7px;
-    width: 15px;
+    top: 8px;
+    width: 14px;
     background-size: contain !important;
 }
 
 .ogZoomIn {
-    background: url(../resources/images/controls/ogZoomInGrey.png) top left no-repeat;
+   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuM4zml1AAAAKWSURBVEhLxZe9bhpBFIUJP3FMbCmxkBUrTSpsuUiDK0tIfgDXSZXU1Cld8QApE+UdeAmeAgmJAjCwsICClD5an290d7Wsp0BKtGvpeO7en3NmLjPDUoqi6FC8MJR7vV5Fo4PZZYsBX+0zeJ0eOEGhOhqNjmaz2XEQBHWAjY+Y5Rwk7nVm4EQHg8FL4URCZ+v1+t12u30PsPERI4dcq/FxJfA6M4CoNhwOTyeTycVms2lqpa3FYnELsPERI4dcq/FxJfA6Y+iPmVdo52q1Ol8ul9cav0nwuwR/Amx8Fjsnlxqr9fICrzMFiqta0el4PP4gobbwKEQZ4GuTQy41VuvjdPA6Y3S7Xdfm6XT6VsRXWtG9ViZzXxgfMdlX5FJjtV5e4HMyUwc7KkcibKiFH9XWz7LDWDCFkBg5shvUWG3CJezppB8IMksKaFWt3++/0q49UfsuRHijlX3VuDGxNDYWuyGXGmrhMK70Wd8TjkVrbA4+p91u90ZEDYjm83lT/js9d4StkBXG1yGHXJtoAw644ITbNJx4IsoZ5DiwMzV7NsklrdPYgtDa/CD8FrLC+B6s3XdWQ+0lXHDCnT7nsXBVwddcBkq8FknbNtKnMAy/6JmVIvpL+CNkhfERI6dDDbW24dpwwo0GWrFw2a7BM82wqSBn8lFQTRBqXGuklawKgb9CVhgfMXK2VkNtABeccKNh12ulxO6T45gZKbmlRC6HLPE/wThbaKCljVdlxRU569y7+oxulfQjXfQ/ACfcaOi5TruLEy6y1cVsLv0r7DgVdoEk4kKuV2ZWPNcviTQIOuT1tfgMeb8IpMFM83/1KfJlD7h2cxxye701MPNCXuiBExdy/QkTA0I3ATsqDmbHggeJRlFUegKQjM6fNkdvrwAAAABJRU5ErkJggg==) top left no-repeat;
 }
 
 .ogZoomOut {
-    background: url(../resources/images/controls/ogZoomOutGrey.png) top left no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuM4zml1AAAAGSSURBVEhLxZVNSsNQFIVj0ypWClJFBCeOFERU6EzoDjrtQOoqXEEX4NBVZBNZRaHQmW3zWyhZQTynvIQkXCSWejP4+vLOu/ec19cmsdI03YejClLNr4iiBqKogShqIIoaiKIGoqiBJJZulel02tqHqg8o5RQnXGSDDdqgM5vNjjHuhentAHrRM9tMKTgL7SyXy9M4jnvb7fY8SZL+arW68Dzv8i+wh730oBc96W0yduF5KHc4n897QRBc+b5/i4Z7XD+GYfgEnmH2UgfWsoe99KAXPeltTmEXngW3sXgWRdE1Ch+w6yHmI1yPMb5hPgHvNZmwx/SOMB/Sk97MYFYW3FosFic4jj52eIfFDxR+A/R4IYgMcU2y+pAe9KInvZnBLGTaluM4Nn8D7gjFAxR+YkwPifEcMINZruu2+Y1tiN3NZnOzXq9fUfRVbDoE9KQ3MzDv8ribC27yqJv5c+GjsdupsQdIHg5UH5nVcNWXRBEu5kivvDpUfUAppzTRRBQ1EEUNRFEDUdRAFDUQxf8ntX4Ad42QBwN+gPcAAAAASUVORK5CYII=) top left no-repeat;
 }
 
 .ogZoomIn:hover {
-    background: url(../resources/images/controls/ogZoomInLight.png) top left no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuM4zml1AAAAJsSURBVEhLxda7ihVBEMbxdb3fQEVEMTFSMTDRSBB8AGONNDY29BkMFd/PQPCCweYyfr9hapjT9roHXM80/GG2Ll/11FT3nr1hGLblxMR+ONnAVv5e7h90jR2q4KlwNpwPFyY8s/HVBnoaG3SNDVX0TLgUroWb4faEZzY+MVsV7xobCJ0Ol8OtcDc8Ck8mPLPxiRErp6c10zUusHPfUDtvhAfhbXgfPk54ZuMTI1bOX9+6a1wg2bfzJnfC0/A5tIuNT4xYOf9UuNp8NdwPz8OX0C42PjFij2x3z2inhZaZ2OvhYXgZvoZ2sfGJESun2l1s1Fn+wWmXErTKrs8F02pwHofX4XtoFxufGLFy5NKgRZP2vIG2qEDD4TtdCXZfk/wsvAk/QrvY+MTUhMulQYtmtX8svizqDAoymYbkXtA6x4WgVr4LP0O72PjEiJUjlwYtmrTnc16FteNicBk4FibUsLwIr4K3IfwpHIR2sfGJEStHLg1aNGmrMU68wjVAbh9tciYdD5NqaL4FrfRWCvwK7WLjEyNWjlwatGjSVkOtfYXtwDewIy1yIRz3oklbjfGCqcIue/euK/BDOO5Fk7Yaaq1feJVWrzZcqx2n1S6QZfGdXplt8Z3+k1jCWdTg2b3WaaWhaRcbnxixcuQutTbqbPzRodq/kx8CS+xUq3wnQ2JCHY92sfGJETtObuhpjnSNCyRrmeEwmY6FM+lC+K8/9lDt9iY14Y6LKxCea5LFHNlmdI0Ndk7IGTStbh+XgXsXntn45nMaelozXWOHKu7bmVjtdNnDMxvfVkXRNR4CwdqAb7ikCm5VdBiGvd+wSIGUtsOkBQAAAABJRU5ErkJggg==) top left no-repeat;
 }
 
 .ogZoomOut:hover {
-    background: url(../resources/images/controls/ogZoomOutLight.png) top left no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuM4zml1AAAAE7SURBVEhLxdXBSgJRGMVx0yxShCiJwI0rBYkM3AW9QVsXok/hc7jsCV0E1kOM5y/duHP5kHGy7w78FvN57znD6IyNoijquEhYa44yhx7MoQdz6MEcejCHHsyhB2uYPirNmtKcUk98EkpaciltufojMsgiM1xMqTiUsvBGenIrd3Iv/ROxh71kkEUm2b/lcSlXyKIHGcpYnuRZpvJSEWvZw14yyCKTbDoO5aGY29GVR5nIm7zLXBaylFVFrGUPe8kgi0yy6aDrUMz9vxZuzUjWspVP2cnXj++Kwnr2kkEWmWTTQVeTYq6A74ArmslGzn2QSTYddLVCcUcG8iofcu6DTLLpoCt/cZZbne3Hle1xyvYCictdX5lpueufRIwPY2yoI80p9ZROPJlDD+bQgzn0YA49mEMP5vD/FY09SuYbVKRjctAAAAAASUVORK5CYII=) top left no-repeat;
 }
 
 #ogLayerSwitcherButtonMinimize {
@@ -173,7 +174,7 @@
     color: white;
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(48, 48, 48, 0.56);
+    background-color: rgba(41, 41, 41, 0.8);
     bottom: 28px;
     right: 12px;
     font-size: 0.9em;
@@ -184,4 +185,5 @@
     /*text-shadow: 0 0 5px #fff;*/
     border-radius: 2px;
     box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
+    font-size: 14px;
 }
