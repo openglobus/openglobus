@@ -434,15 +434,33 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = Math.floor(gridSize * offsetY);
                     var j0 = Math.floor(gridSize * offsetX);
 
-                    var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                    var bigOne = [],
+                        bigOneNormals = [];
+
+                    //bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                    var vInd = 0;
+                    for (var i = i0; i <= i0 + 1; i++) {
+                        for (var j = j0; j <= j0 + 1; j++) {
+                            var ind = 3 * (i * (pseg.gridSize + 1) + j);
+                            bigOneNormals[vInd] = pseg.terrainNormals[ind];
+                            bigOne[vInd++] = pseg.terrainVertices[ind];
+
+                            bigOneNormals[vInd] = pseg.terrainNormals[ind + 1];
+                            bigOne[vInd++] = pseg.terrainVertices[ind + 1];
+
+                            bigOneNormals[vInd] = pseg.terrainNormals[ind + 2];
+                            bigOne[vInd++] = pseg.terrainVertices[ind + 2];
+                        }
+                    }
+
 
                     //v_lt(x,y,z)             vn 
-                    //    *---------------------------------->*       insideSize = 4
-                    //    |        |        |        |     .  ^       fullSize = 16
-                    //    |        |        |        |   .    |       i0 = 0
-                    //    |        |        |        | .      |       j0 = 3
-                    //    *--------*--------*--------*--------*       ofX(offsetX) = 14, t_j0 = 14 % 4 = 2 
-                    //    |        |        |     .  |        |       ofY(offsetY) = 2,  t_i0 = 2 % 4 = 2 
+                    //    *---------------------------------->*       
+                    //    |        |        |        |     .  ^       
+                    //    |        |        |        |   .    |       
+                    //    |        |        |        | .      |       
+                    //    *--------*--------*--------*--------*       
+                    //    |        |        |     .  |        |       
                     //    |        |        |   .    |        |
                     //    |        |        |ofX, ofY|        |
                     //  vw*--------*--------*--------*--------*ve
@@ -473,25 +491,55 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var coords = new og.math.Vector3();
                     var vo = og.quadTree.QuadNode._vertOrder;
 
+                    //bigOne vertices normals
+                    var n_lt = new og.math.Vector3(bigOneNormals[0], bigOneNormals[1], bigOneNormals[2]),
+                        n_rb = new og.math.Vector3(bigOneNormals[9], bigOneNormals[10], bigOneNormals[11]),
+                        n_rt = new og.math.Vector3(bigOneNormals[3], bigOneNormals[4], bigOneNormals[5]),
+                        n_lb = new og.math.Vector3(bigOneNormals[6], bigOneNormals[7], bigOneNormals[8]);
+
                     for (var i = 0; i < vo.length; i++) {
                         var vi_y = vo[i].y + t_i0,
                             vi_x = vo[i].x + t_j0;
+
+                        var vi_x_is = vi_x / insideSize,
+                            vi_y_is = vi_y / insideSize;
+
                         if (vi_y + vi_x < insideSize) {
-                            coords = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                            coords = og.math.Vector3.add(vn.scaleTo(vi_x_is), vw.scaleTo(vi_y_is)).add(v_lt);
                         } else {
-                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x_is), ve.scaleTo(1 - vi_y_is)).add(v_rb);
                         }
-                        tempVertices[i * 3] = coords.x;
-                        tempVertices[i * 3 + 1] = coords.y;
-                        tempVertices[i * 3 + 2] = coords.z;
+
+                        var ln = og.math.Vector3.lerp(n_lt, n_rt, vi_x_is),
+                            lw = og.math.Vector3.lerp(n_lt, n_lb, vi_y_is),
+                            ls = og.math.Vector3.lerp(n_lb, n_rb, vi_x_is),
+                            le = og.math.Vector3.lerp(n_rt, n_rb, vi_y_is);
+
+                        var lx = og.math.Vector3.lerp(lw, le, vi_x_is).normalize(),
+                            ly = og.math.Vector3.lerp(ln, ls, vi_y_is).normalize();
+
+                        var norm = lx.add(ly).normalize();
+
+                        var i3 = i * 3;
+
+                        tempVertices[i3] = coords.x;
+                        tempVertices[i3 + 1] = coords.y;
+                        tempVertices[i3 + 2] = coords.z;
+
+
+                        tempNormals[i3] = norm.x;
+                        tempNormals[i3 + 1] = norm.y;
+                        tempNormals[i3 + 2] = norm.z;
                     }
 
                     bigOne.length = 0;
                 }
 
-                //TODO: normals for bigOne
+
+
                 seg.createCoordsBuffers(tempVertices, tempNormals, seg.gridSize);
 
+                //seg.tempVertices is useful for earth point calculation(see planetSegment object)
                 seg.tempVertices = tempVertices;
                 this.appliedTerrainNodeId = pn.nodeId;
             }
@@ -504,6 +552,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 if (pn.planetSegment.terrainExists) {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
+                    seg.terrainNormals = tempNormals;
                 } else {
                     seg.terrainExists = false;
                     seg.deleteBuffers();

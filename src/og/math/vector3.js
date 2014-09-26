@@ -210,16 +210,12 @@ og.math.Vector3.angle = function (a, b) {
     return Math.acos(a.dot(b) / Math.sqrt(a.length2() * b.length2()));
 };
 
-og.math.Vector3.prototype.lerp = function (v1, v2, l) {
-    var res = og.math.Vector3.clone(this);
-    if (l <= 0.0) {
-        res.copy(v1);
-    } else if (l >= 1.0) {
-        res.copy(v2);
-    } else {
-        res = og.math.Vector3.add(v1, og.math.Vector3.sub(v2, v1).scale(l));
-    }
-    return res;
+og.math.Vector3.prototype.lerp = function (v2, l) {
+    return new og.math.Vector3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
+};
+
+og.math.Vector3.lerp = function (v1, v2, l) {
+    return new og.math.Vector3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
 };
 
 og.math.Vector3.LERP_DELTA = 1e-6;
