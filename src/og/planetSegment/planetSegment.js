@@ -486,7 +486,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
 
     this._setVIb();
     sh.drawIndexBuffer(this.planet.drawMode, this._vib);
-    this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
+    //this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
     this.node.hasNeighbor.length = 0;
 };
 
