@@ -62,6 +62,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.sunlight = null;
 };
 
+og.node.Planet.SUN_DISTANCE = 149600000000;
+
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 
 og.node.Planet.defaultEmptyColor = "#C5C5C5";
@@ -259,7 +261,7 @@ og.node.Planet.prototype.initialization = function () {
     });
 
     this.sunlight = new og.light.PointLight();
-    this.sunlight._position.z = 149600000000;
+    this.sunlight._position.z = og.node.Planet.SUN_DISTANCE;
     this.sunlight.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
     this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
     this.sunlight.setSpecular(new og.math.Vector3(0.01, 0.01, 0.009));
