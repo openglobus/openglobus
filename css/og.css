@@ -88,7 +88,7 @@
     cursor: pointer;
     bottom: 65px;
     right: 12px;
-    background-color: rgba(66, 59, 59, 0.85);
+    background-color: rgba(64, 59, 59, 0.85);
     border-radius: 2px;
 }
 
@@ -168,7 +168,7 @@
     color: white;
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(66, 59, 59, 0.85);
+    background-color: rgba(64, 59, 59, 0.85);
     bottom: 28px;
     right: 12px;
     font-size: 0.9em;
@@ -177,6 +177,6 @@
     padding: 3px 7px 3px 7px;
     /* text-shadow: 0 0 5px #fff; */
     border-radius: 2px;
-    box-shadow: 0px 1px 4px rgba(66, 59, 59, 0.17);
+    box-shadow: 0px 1px 4px rgba(64, 59, 59, 0.17);
     font-size: 14px;
 }
