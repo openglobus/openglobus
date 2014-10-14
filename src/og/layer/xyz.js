@@ -58,6 +58,7 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
 
     if (material.segment.materials.length) {
         img.src = this.GetHTTPRequestString(material.segment);
+        material.image = img;
     } else {
         //Have to be that segment was clearified
         this.dequeueRequest();

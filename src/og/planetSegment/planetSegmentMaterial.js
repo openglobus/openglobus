@@ -30,28 +30,28 @@ og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
     }
 };
 
+og.planetSegment.PlanetSegmentMaterial.prototype.abortLoading = function () {
+    if (this.image) {
+        this.image.src = "";
+        this.image = null;
+    }
+    this.imageIsLoading = false;
+    this.imageReady = false;
+};
+
 og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
-    if (this.segment.ready && this.imageIsLoading) {
+    if (!this.imageReady) {
         this.image = img;
         this.texture = this.segment.handler.createTextureFromImage(img);
         this.texBias = [0, 0, 1];
         this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
         this.imageReady = true;
-    } else {
-        this.imageReady = false;
-        this.texture = null;
-        this.texBias = [0, 0, 1];
-        img = null;
+        this.textureExists = true;
+        this.imageIsLoading = false;
     }
-    this.textureExists = true;
-    this.imageIsLoading = false;
 };
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
-
-    //loking for parents
-    this.texture = this.segment.planet.defaultTexture;
-
     //TODO: texture have to stop loading
     //This is not corrert
     this.imageIsLoading = true;

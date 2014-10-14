@@ -52,7 +52,12 @@ og.layer.Layer.prototype.setZIndex = function (zIndex) {
 };
 
 og.layer.Layer.prototype.abortLoading = function () {
+    var i = this.pendingsQueue.length;
+    while (i--) {
+        this.pendingsQueue[i].abortLoading();
+    }
     this.pendingsQueue.length = 0;
+    this.pendingsQueue = [];
 };
 
 og.layer.Layer.prototype.setVisibility = function (visibility) {
