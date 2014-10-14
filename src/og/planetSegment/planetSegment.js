@@ -24,6 +24,7 @@ og.planetSegment.PlanetSegment = function () {
     this.terrainNormals = [];
     this.terrainVertices = [];
     this.tempVertices = [];
+    this.plainIndexes = [];
     this.bbox = new og.bv.Box();
     this.bsphere = new og.bv.Sphere();
 
@@ -148,8 +149,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         var plain_verts = this.plainVertices;
         var vertices = [];
         var dgs = fileGridSize / tgs;
-        var v0 = new og.math.Vector3();
-        var ellipsoid = this.planet.ellipsoid;
         var plainNormals = this.plainNormals;
 
         if (fileGridSize >= tgs) {
@@ -170,7 +169,70 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     if (z < zmin) zmin = z; if (z > zmax) zmax = z;
                 }
             }
+
+            var normals = this.plainNormals;//new Float64Array(gs * gs * 3);
+            //var v = vertices;
+
+            //for (var i = 1; i < gs - 2; i++) {
+            //    for (var j = 1; j < gs - 2; j++) {
+
+            //        var vInd0 = (i * gs + j) * 3;
+            //        var vInd1 = (i * gs + j + 1) * 3;
+            //        var vInd2 = ((i + 1) * gs + j) * 3;
+            //        var vInd3 = ((i + 1) * gs + (j + 1)) * 3;
+
+            //        var v0 = new og.math.Vector3(vertices[vInd0], vertices[vInd0 + 1], vertices[vInd0 + 2]),
+            //            v1 = new og.math.Vector3(vertices[vInd1], vertices[vInd1 + 1], vertices[vInd1 + 2]),
+            //            v2 = new og.math.Vector3(vertices[vInd2], vertices[vInd2 + 1], vertices[vInd2 + 2]),
+            //            v3 = new og.math.Vector3(vertices[vInd3], vertices[vInd3 + 1], vertices[vInd3 + 2]);
+
+            //        var e10 = og.math.Vector3.sub(v1, v0),
+            //            e20 = og.math.Vector3.sub(v2, v0),
+            //            e13 = og.math.Vector3.sub(v1, v3),
+            //            e23 = og.math.Vector3.sub(v2, v3);
+
+            //        var nw = e20.cross(e10).normalize();
+            //        var se = e13.cross(e23).normalize();
+            //        var ne = e10.cross(e13).normalize();
+            //        var sw = e23.cross(e20).normalize();
+
+            //        var n0 = og.math.Vector3.add(ne, sw);//.add(nw);
+            //        var n3 = og.math.Vector3.add(ne, sw);//.add(se);
+            //        var n1 = og.math.Vector3.add(nw, se);//.add(ne);
+            //        var n2 = og.math.Vector3.add(nw, se);//.add(sw);
+
+            //        n0.normalize();
+            //        n1.normalize();
+            //        n3.normalize();
+            //        n2.normalize();
+
+            //        normals[vInd0] += n0.x;
+            //        normals[vInd0 + 1] += n0.y;
+            //        normals[vInd0 + 2] += n0.z;
+
+            //        normals[vInd1] += n1.x;
+            //        normals[vInd1 + 1] += n1.y;
+            //        normals[vInd1 + 2] += n1.z;
+
+            //        normals[vInd2] += n2.x;
+            //        normals[vInd2 + 1] += n2.y;
+            //        normals[vInd2 + 2] += n2.z;
+
+            //        normals[vInd3] += n3.x;
+            //        normals[vInd3 + 1] += n3.y;
+            //        normals[vInd3 + 2] += n3.z;
+            //    }
+            //}
+
+            //for (var i = 0; i < normals.length; i += 3) {
+            //    var l = Math.sqrt(normals[i] * normals[i] + normals[i + 1] * normals[i + 1] + normals[i + 2] * normals[i + 2]);
+            //    normals[i] /= l;
+            //    normals[i + 1] /= l;
+            //    normals[i + 2] /= l;
+            //}
+
         } else {
+
             var oneSize = tgs / fileGridSize;
             var h, inside_i, inside_j, v_i, v_j;
 
@@ -221,7 +283,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         }
 
         this.deleteBuffers();
-        //TODO: make smooth normals
+        this.terrainNormals = normals;
         this.createCoordsBuffers(vertices, this.terrainNormals, tgs);
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
         this.terrainVertices.length = 0;

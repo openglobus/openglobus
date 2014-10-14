@@ -1,0 +1,21 @@
+goog.provide('og.layer.CanvasTiles');
+
+goog.require('og.inheritance');
+goog.require('og.layer.Layer');
+goog.require('og.ImageCanvas');
+
+og.layer.CanvasTiles = function (name, options) {
+    og.inheritance.base(this, name, options);
+
+    this.width = options && options.width ? options.width : 256;
+    this.height = options && options.height ? options.height : 256;
+};
+
+og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
+
+og.layer.CanvasTiles.prototype.handleSegmentTile = function (material) {
+    var imageCanvas = new og.imageCanvas(this.width, this.height);
+    this.drawTile && this.drawTile(imageCanvas, material);
+    material.imageReady = false;
+    material.applyTexture(imageCanvas.getImage());
+};

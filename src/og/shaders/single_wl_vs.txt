@@ -1,4 +1,4 @@
-//precision highp float;
+precision mediump float;
 
 attribute vec3 aVertexNormal;
 attribute vec3 aVertexPosition;
@@ -21,6 +21,6 @@ void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
     gl_Position = uPMatrix * vPosition;
     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-    vTransformedNormal = uNMatrix * aVertexNormal;
+    vTransformedNormal = uNMatrix * normalize(aVertexNormal);
     vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
 }

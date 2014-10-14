@@ -358,6 +358,9 @@ og.node.Planet.prototype.frame = function () {
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
 
+   // var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
+    //this.sunlight._position = this.renderer.activeCamera.eye; //b.add(b.normal().scale(100000));
+
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
 

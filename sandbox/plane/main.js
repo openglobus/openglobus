@@ -24,22 +24,22 @@ function start() {
 
     var colorShader = new og.shaderProgram.ShaderProgram("colorShader", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            uNMatrix: { type: og.shaderProgram.types.MAT4 },
+
+            pointLightsPositions:{ type: og.shaderProgram.types.VEC3 },
+            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
+
             uColor: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
-            vertices: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
-        vertexShader: "attribute vec3 vertices; \
-                    uniform mat4 uPMVMatrix; \
-                    void main(void) { \
-                        gl_Position = uPMVMatrix * vec4(vertices, 1.0); \
-                    }",
-        fragmentShader: "precision mediump float; \
-                    uniform vec4 uColor; \
-                    void main(void) { \
-                        gl_FragColor = uColor; \
-                    }"
+        vertexShader: og.utils.readTextFile("plane_vs.txt"),
+        fragmentShader: og.utils.readTextFile("plane_fs.txt")
     });
 
     context = new og.webgl.Handler("canvas");
