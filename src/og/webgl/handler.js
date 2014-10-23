@@ -11,6 +11,7 @@ og.webgl.Handler = function (htmlId) {
     this.delta;
     this.animSpeed = 1.0;
     this.htmlCanvasId = htmlId;
+    this.canvas = null;
     this.gl;
     this._initialized = false;
     this.drawback = function (x) { };
@@ -134,7 +135,18 @@ og.webgl.Handler.prototype.initShaderPrograms = function () {
 };
 
 og.webgl.Handler.prototype.init = function () {
-    this.gl = og.webgl.initCanvas(this.htmlCanvasId);
+
+    if (this.htmlCanvasId) {
+        this.canvas = document.getElementById(this.htmlCanvasId);
+    } else {
+        this.canvas = document.createElement("canvas");
+        this.canvas.scrollWidth = 256;
+        this.canvas.scrollHeight = 256;
+        this.canvas.width = 256;
+        this.canvas.height = 256;
+    }
+
+    this.gl = og.webgl.initWebGLContext(this.canvas);
     this._initialized = true;
     this.initShaderPrograms();
     this.setDefaults();

@@ -18,14 +18,13 @@ og.webgl.getExtension = function (gl, name) {
     return null;
 };
 
-og.webgl.initCanvas = function (htmlCanvasId) {
-    var canvas = document.getElementById(htmlCanvasId);
+og.webgl.initWebGLContext = function (canvas) {
     var ctx;
     try {
         ctx = canvas.getContext("experimental-webgl", { alpha: false });
         ctx.canvas = canvas;
-        canvas.width = canvas.scrollWidth;
-        canvas.height = canvas.scrollHeight;
+        //canvas.width = canvas.scrollWidth;
+        //canvas.height = canvas.scrollHeight;
         canvas.aspect = canvas.width / canvas.height;
     }
     catch (ex) {
