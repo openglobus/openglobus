@@ -4,7 +4,64 @@ goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
+goog.require('og.webgl.Framebuffer');
 
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+Heatmap = function () {
+    og.inheritance.base(this);
+
+    this._verticesBuffer;
+
+    this.position = [0, 0, 0.3, 0.7];
+    this.resolution = [256, 256];
+    this.points = [0.6, 0.6, 0.3, 0.7, 0.8, 0.3, 0.2, 0.3, 0.3, 0.1, 0.2, 0.4];
+
+    this.backbuffer;
+};
+
+og.inheritance.extend(Heatmap, og.node.RenderNode);
+
+Heatmap.prototype.initialization = function () {
+    this.drawMode = this.renderer.handler.gl.TRIANGLES;
+
+    var vertices = [
+      -1.0, -1.0,
+       1.0, -1.0,
+      -1.0, 1.0,
+      -1.0, 1.0,
+       1.0, -1.0,
+       1.0, 1.0];
+
+    this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+
+    //backbuffer initialization
+    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
+    this.backbuffer.initialize();
+};
+
+Heatmap.prototype.frame = function () {
+
+    this.backbuffer.activate();
+    this.backbuffer.clear();
+
+    this.renderer.handler.shaderPrograms.heatmap.activate();
+
+    this.renderer.handler.shaderPrograms.heatmap.set({
+        a_position: this._verticesBuffer,
+        resolution: this.resolution,
+        pointsLength: this.points.length / 4 + 1,
+        points: this.position.concat(this.points)
+    });
+
+    this.renderer.handler.shaderPrograms.heatmap.drawArray(this.drawMode, this._verticesBuffer.numItems);
+
+    this.backbuffer.deactivate();
+};
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 my.Plane = function (name) {
     og.inheritance.base(this, name);
     this.vertexPositionBuffer = null;
@@ -13,6 +70,7 @@ my.Plane = function (name) {
 
     this.light = null;
 
+    this.texture = null;
 };
 
 og.inheritance.extend(my.Plane, og.node.RenderNode);
@@ -33,6 +91,42 @@ my.Plane.prototype.initialization = function () {
 
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
+
+    var img = new Image();
+    img.crossOrigin = '';
+    var that = this;
+    img.onload = function () {
+        that.texture = that.renderer.handler.createTextureFromImage(this);
+    };
+    img.src = "diffuse.png";
+
+
+    //
+    //Hiddent context experiment
+    //
+    var heatmap = new og.shaderProgram.ShaderProgram("heatmap", {
+        uniforms: {
+            resolution: { type: og.shaderProgram.types.VEC2 },
+            type: { type: og.shaderProgram.types.FLOAT },
+            points: { type: og.shaderProgram.types.VEC4 },
+            pointsLength: { type: og.shaderProgram.types.INT }
+        },
+        attributes: {
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        vertexShader: og.utils.readTextFile("vs.txt"),
+        fragmentShader: og.utils.readTextFile("fs.txt")
+    });
+
+    this._hiddenHandler = new og.webgl.Handler();
+    this._hiddenHandler.addShaderProgram(heatmap);
+    this._hiddenHandler.init();
+
+    this._hiddenRenderer = new og.Renderer(this._hiddenHandler);
+    this._hiddenRenderer.init();
+
+    this._hiddenNode = new Heatmap();
+    this._hiddenRenderer.addRenderNode(this._hiddenNode);
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {
@@ -54,7 +148,7 @@ my.Plane.prototype.createBuffers = function () {
     vertices = [];
 
     var step = 1;
-    var size = 16;
+    var size = 32;
 
     for (var i = 0; i <= size; i++) {
         for (var j = 0; j <= size; j++) {
@@ -69,9 +163,9 @@ my.Plane.prototype.createBuffers = function () {
     var gs = size + 1;
     normals = new Float64Array(gs * gs * 3);
 
-    var vertexIndices = [];//og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [size, size, size, size]);
+    //og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [size, size, size, size]);
 
-
+    var vertexIndices = [];
     for (var i = 0; i < gs - 1; i++) {
         for (var j = 0; j < gs - 1; j++) {
             var vInd0 = (i * gs + j);
@@ -82,7 +176,6 @@ my.Plane.prototype.createBuffers = function () {
             vertexIndices.push(vInd0, vInd3, vInd1, vInd0, vInd2, vInd3);
         }
     }
-
 
     for (var i = 0; i < vertexIndices.length - 1; i++) {
 
@@ -199,9 +292,9 @@ my.Plane.prototype.createBuffers = function () {
     //        normals[vInd2 + 1] += n2.y;
     //        normals[vInd2 + 2] += n2.z;
 
-    //        normals[vInd3] += n3.x/2;
-    //        normals[vInd3 + 1] += n3.y/2;
-    //        normals[vInd3 + 2] += n3.z/2;
+    //        normals[vInd3] += n3.x;
+    //        normals[vInd3 + 1] += n3.y;
+    //        normals[vInd3 + 2] += n3.z;
     //    }
     //}
 
@@ -213,15 +306,20 @@ my.Plane.prototype.createBuffers = function () {
         normals[i + 2] /= l;
     }
 
-
-
-
-
     //var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
+    var textureCoords = [];
+    for (var i = 0; i <= size; i++) {
+        for (var j = 0; j <= size; j++) {
+            var x = j * step / size,
+                y = 1- ((size) * step - i * step) / size;
+
+            textureCoords.push(x, y);
+        }
+    }
 
     this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
     this.normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
-    //this.textureCoordBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords), 2, textureCoords.length / 2);
+    this.textureCoordBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords), 2, textureCoords.length / 2);
     this.indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(vertexIndices), 1, vertexIndices.length);
 
 
@@ -230,8 +328,6 @@ my.Plane.prototype.createBuffers = function () {
     for (var i = 0; i < normals.length; i += 3) {
 
         lines.push(vertices[i], vertices[i + 1], vertices[i + 2],
-
-            //1000, 1000, 1000);
             vertices[i] + normals[i] * 100, vertices[i + 1] + normals[i + 1] * 100, vertices[i + 2] + normals[i + 2] * 100);
 
         colors.push(1.0, 0.0, 0.0, 1.0,
@@ -248,6 +344,8 @@ my.Plane.prototype.frame = function () {
 
     var sh, p, gl;
 
+    //
+    // Draw surface
     sh = r.handler.shaderPrograms.colorShader;
     p = sh._program;
     gl = r.handler.gl,
@@ -258,24 +356,39 @@ my.Plane.prototype.frame = function () {
 
     gl.uniform4fv(shu.uColor._pName, [1, 1, 1, 1]);
 
+    //point light
     gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
     gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
     gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
+    //matrices
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
     gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera.nMatrix._m);
 
+    //diffuse texture
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+    //normals
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
     gl.vertexAttribPointer(sha.aVertexNormal._pName, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+    //vertices positions
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this.positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+    //texture coordinates
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
+    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    //draw indexes
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.drawElements(this.drawMode, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
 
+    //
+    //Draw normals
     r.handler.shaderPrograms.flat.activate();
 
     r.handler.shaderPrograms.flat.set({

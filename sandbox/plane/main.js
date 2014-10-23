@@ -28,15 +28,17 @@ function start() {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uNMatrix: { type: og.shaderProgram.types.MAT4 },
 
-            pointLightsPositions:{ type: og.shaderProgram.types.VEC3 },
+            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
 
-            uColor: { type: og.shaderProgram.types.VEC4 }
+            uColor: { type: og.shaderProgram.types.VEC4 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
             aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("plane_vs.txt"),
         fragmentShader: og.utils.readTextFile("plane_fs.txt")
@@ -52,8 +54,9 @@ function start() {
 
     var axes = new og.node.Axes(10000);
 
+    plane = new my.Plane("Plane");
     renderer.addRenderNode(axes);
-    renderer.addRenderNode(new my.Plane("Plane"));
+    renderer.addRenderNode(plane);
 
     renderer.addControls([
         new og.control.SimpleNavigation({ autoActivate: true }),
