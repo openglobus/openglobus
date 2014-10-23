@@ -9,15 +9,13 @@ og.webgl.Framebuffer = function (gl) {
     this.width;
     this.height;
     this.texture = null;
-    this._imageCanvas = null;
 };
 
 og.webgl.Framebuffer.prototype.initialize = function () {
     var gl = this.gl;
     this.fbo = gl.createFramebuffer();
-    this.width = gl.canvas.width;
-    this.height = gl.canvas.height;
-    this._imageCanvas = new og.ImageCanvas(this.width, this.height);
+    this.width = gl.canvas.clientWidth || 256;
+    this.height = gl.canvas.clientHeight || 256;
     this._createTexture();
 };
 
@@ -42,7 +40,6 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
     this._createTexture();
-    this._imageCanvas.resize(width, height);
 };
 
 og.webgl.Framebuffer.prototype.isComplete = function () {
@@ -53,13 +50,26 @@ og.webgl.Framebuffer.prototype.isComplete = function () {
     return false;
 };
 
-og.webgl.Framebuffer.prototype.readPixels = function (x, y, sizeX, sizeY) {
+og.webgl.Framebuffer.prototype.readAllPixels = function () {
+    var res;
+    var gl = this.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+    var pixelValues = new Uint8Array(4 * this.width * this.height);
+    gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    res = pixelValues;
+    //}
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return res;
+};
+
+og.webgl.Framebuffer.prototype.readPixel = function (x, y) {
     var res;
     var gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
     //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
     var pixelValues = new Uint8Array(4);
-    gl.readPixels(x, y, sizeX || 1, sizeY || 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     res = pixelValues;
     //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -83,7 +93,8 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
 };
 
 og.webgl.Framebuffer.prototype.getImage = function () {
-    var data = this.readPixels(0, 0, this.width, this.height);
-    this._imageCanvas.setData(data);
-    return this._imageCanvas.getImage();
+    var data = this.readAllPixels();
+    var imageCanvas = new og.ImageCanvas(this.width, this.height);
+    imageCanvas.setData(data);
+    return imageCanvas.getImage();
 };

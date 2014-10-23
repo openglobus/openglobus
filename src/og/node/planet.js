@@ -532,7 +532,7 @@ og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     if (this._viewChanged) {
         this._viewChanged = false;
-        var color = og.math.Vector4.fromVec(this.backbuffer.readPixels(px.x, this.backbuffer.height - px.y));
+        var color = og.math.Vector4.fromVec(this.backbuffer.readPixel(px.x, this.backbuffer.height - px.y));
         if (!(color.x | color.y | color.z | color.w)) {
             return this.getDistanceFromPixelEllipsoid(px);
         }
