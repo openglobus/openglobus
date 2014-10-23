@@ -20,7 +20,7 @@ og.webgl.Handler = function (htmlId) {
     this.anisotropicFilteringEnabled = false;
 };
 
-og.webgl.Handler.prototype.createTextureFromImage = function (image) {
+og.webgl.Handler.prototype.createTexture = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);

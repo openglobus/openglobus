@@ -74,18 +74,18 @@ og.node.Planet.prototype.createDefaultTexture = function (params) {
     if (params && params.color) {
         imgCnv = new og.ImageCanvas(2, 2);
         imgCnv.fillColor(params.color);
-        texture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+        texture = this.renderer.handler.createTexture(imgCnv._canvas);
     } else if (params && params.url) {
         imgCnv = new og.ImageCanvas(params.width || 256, params.height || 256);
         var that = this;
         imgCnv.loadImage(params.url, function (img) {
-            texture = that.renderer.handler.createTextureFromImage(img);
+            texture = that.renderer.handler.createTexture(img);
             texture.default = true;
         });
     } else {
         imgCnv = new og.ImageCanvas(2, 2);
         imgCnv.fillColor(og.node.Planet.defaultEmptyColor);
-        texture = this.renderer.handler.createTextureFromImage(imgCnv.getImage());
+        texture = this.renderer.handler.createTexture(imgCnv._canvas);
     }
     texture.default = true;
     return texture;

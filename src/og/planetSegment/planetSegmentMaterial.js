@@ -42,7 +42,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.abortLoading = function () {
 og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     if (!this.imageReady) {
         this.image = img;
-        this.texture = this.segment.handler.createTextureFromImage(img);
+        this.texture = this.segment.handler.createTexture(img);
         this.texBias = [0, 0, 1];
         this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
         this.imageReady = true;
