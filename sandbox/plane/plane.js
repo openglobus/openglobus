@@ -12,51 +12,38 @@ Heatmap = function () {
     og.inheritance.base(this);
 
     this._verticesBuffer;
-
-    this.position = [0, 0, 0.3, 0.7];
-    this.resolution = [256, 256];
-    this.points = [0.6, 0.6, 0.3, 0.7, 0.8, 0.3, 0.2, 0.3, 0.3, 0.1, 0.2, 0.4];
-
-    this.backbuffer;
 };
 
 og.inheritance.extend(Heatmap, og.node.RenderNode);
 
 Heatmap.prototype.initialization = function () {
-    this.drawMode = this.renderer.handler.gl.TRIANGLES;
 
-    var vertices = [
-      -1.0, -1.0,
-       1.0, -1.0,
-      -1.0, 1.0,
-      -1.0, 1.0,
-       1.0, -1.0,
-       1.0, 1.0];
+    var vertices = [];
+
+    for (var i = 0; i < 33; i++) {
+        for (var j = 0; j < 33; j++) {
+            vertices.push(-1 + j / (33 / 2), -1 + i / (33 / 2));
+        }
+    }
 
     this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
-
-    //backbuffer initialization
-    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
-    this.backbuffer.initialize();
 };
 
-Heatmap.prototype.frame = function () {
 
-    this.backbuffer.activate();
-    this.backbuffer.clear();
+Heatmap.prototype.frame = function (normals) {
+
+    this._normalsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
+
+    this.renderer.handler.clearFrame();
 
     this.renderer.handler.shaderPrograms.heatmap.activate();
 
     this.renderer.handler.shaderPrograms.heatmap.set({
         a_position: this._verticesBuffer,
-        resolution: this.resolution,
-        pointsLength: this.points.length / 4 + 1,
-        points: this.position.concat(this.points)
+        a_normal: this._normalsBuffer
     });
 
-    this.renderer.handler.shaderPrograms.heatmap.drawArray(this.drawMode, this._verticesBuffer.numItems);
-
-    this.backbuffer.deactivate();
+    this.renderer.handler.shaderPrograms.heatmap.drawArray(this.renderer.handler.gl.POINTS, this._verticesBuffer.numItems);
 };
 
 
@@ -74,6 +61,20 @@ my.Plane = function (name) {
 };
 
 og.inheritance.extend(my.Plane, og.node.RenderNode);
+
+my.Plane.prototype.normalsPack = function () {
+    normalsPacked = [];
+    for (var i = 0; i < normals.length; i++) {
+        normalsPacked[i] = normals[i] * 0.5 + 0.5;
+    }
+};
+
+my.Plane.prototype.normalsUnpack = function () {
+    normalsUnpacked = [];
+    for (var i = 0; i < normals.length; i++) {
+        normalsUnpacked[i] = (normalsPacked[i] - 0.5) * 2.0;
+    }
+};
 
 my.Plane.prototype.initialization = function () {
     this.createBuffers();
@@ -96,7 +97,7 @@ my.Plane.prototype.initialization = function () {
     img.crossOrigin = '';
     var that = this;
     img.onload = function () {
-        that.texture = that.renderer.handler.createTextureFromImage(this);
+        that.texture = that.renderer.handler.createTexture(this);
     };
     img.src = "diffuse.png";
 
@@ -105,14 +106,9 @@ my.Plane.prototype.initialization = function () {
     //Hiddent context experiment
     //
     var heatmap = new og.shaderProgram.ShaderProgram("heatmap", {
-        uniforms: {
-            resolution: { type: og.shaderProgram.types.VEC2 },
-            type: { type: og.shaderProgram.types.FLOAT },
-            points: { type: og.shaderProgram.types.VEC4 },
-            pointsLength: { type: og.shaderProgram.types.INT }
-        },
         attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            a_normal: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("vs.txt"),
         fragmentShader: og.utils.readTextFile("fs.txt")
@@ -121,6 +117,7 @@ my.Plane.prototype.initialization = function () {
     this._hiddenHandler = new og.webgl.Handler();
     this._hiddenHandler.addShaderProgram(heatmap);
     this._hiddenHandler.init();
+    this._hiddenHandler.setSize(33, 33);
 
     this._hiddenRenderer = new og.Renderer(this._hiddenHandler);
     this._hiddenRenderer.init();
@@ -311,7 +308,7 @@ my.Plane.prototype.createBuffers = function () {
     for (var i = 0; i <= size; i++) {
         for (var j = 0; j <= size; j++) {
             var x = j * step / size,
-                y = 1- ((size) * step - i * step) / size;
+                y = 1 - ((size) * step - i * step) / size;
 
             textureCoords.push(x, y);
         }
