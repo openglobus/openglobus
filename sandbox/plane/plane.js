@@ -117,13 +117,19 @@ my.Plane.prototype.initialization = function () {
     this._hiddenHandler = new og.webgl.Handler();
     this._hiddenHandler.addShaderProgram(heatmap);
     this._hiddenHandler.init();
-    this._hiddenHandler.setSize(33, 33);
+    this._hiddenHandler.setSize(32, 32);
 
     this._hiddenRenderer = new og.Renderer(this._hiddenHandler);
     this._hiddenRenderer.init();
 
     this._hiddenNode = new Heatmap();
     this._hiddenRenderer.addRenderNode(this._hiddenNode);
+
+
+    this._hiddenNode.frame(normals);
+   // this._hiddenHandler.setSize(32, 32);
+    this.normalsTexture = this.renderer.handler.createTexture(this._hiddenHandler.canvas);
+
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {
@@ -151,7 +157,7 @@ my.Plane.prototype.createBuffers = function () {
         for (var j = 0; j <= size; j++) {
             var x = j * step,
                 y = (size) * step - i * step,
-                z = Math.sin(1000 * x) * Math.cos(1000 * y) * 100;
+                z = Math.sin(1100 * x) * Math.cos(1100 * y) * 1750;
 
             vertices.push(x * this.size * 2, y * this.size * 2, z);
         }
@@ -351,7 +357,7 @@ my.Plane.prototype.frame = function () {
 
     sh.activate();
 
-    gl.uniform4fv(shu.uColor._pName, [1, 1, 1, 1]);
+    //gl.uniform4fv(shu.uColor._pName, [1, 1, 1, 1]);
 
     //point light
     gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
@@ -366,10 +372,16 @@ my.Plane.prototype.frame = function () {
     //diffuse texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.uniform1i(shu.uSampler._pName, 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.normalsTexture);
+    gl.uniform1i(shu.uNormalsMap._pName, 1);
+
 
     //normals
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-    gl.vertexAttribPointer(sha.aVertexNormal._pName, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+    //gl.vertexAttribPointer(sha.aVertexNormal._pName, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     //vertices positions
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);

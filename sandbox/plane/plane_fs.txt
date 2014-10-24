@@ -1,13 +1,14 @@
 precision highp float;
 
 
-varying vec3 vTransformedNormal;
+//varying vec3 vTransformedNormal;
 varying vec4 vPosition;
 varying vec2 vTextureCoord;
 
 	
-uniform vec4 uColor;
+//uniform vec4 uColor;
 uniform sampler2D uSampler;
+uniform sampler2D uNormalsMap;
  
 #define MAX_POINT_LIGHTS 1
 
@@ -15,6 +16,7 @@ uniform int pointLightsQuantity;
 uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
+uniform mat3 uNMatrix;
 
 void main(void) {
 
@@ -26,12 +28,17 @@ void main(void) {
 	float specularLightWeighting;
 	float diffuseLightWeighting;
 
-
 	//i=0
     lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
 	//float distance = length(dir);
 	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
-    normal = normalize(vTransformedNormal);
+    
+	vec4 normalColor = texture2D( uNormalsMap, vTextureCoord.st );
+	
+	vec4 nc = (normalColor - 0.5) * 2.0;
+
+	normal = normalize(uNMatrix*nc.xyz);
+
     eyeDirection = normalize(-vPosition.xyz);
     reflectionDirection = reflect(-lightDirection, normal);	
 	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
@@ -40,5 +47,6 @@ void main(void) {
 
 	vec4 tColor = texture2D( uSampler, vTextureCoord.st );
         
-    gl_FragColor = vec4((tColor.rgb * uColor.rgb) * lightWeighting, uColor.a);
+    gl_FragColor = vec4(tColor.rgb * lightWeighting, 1.0);
+	//gl_FragColor = vec4(tColor.rgb, 1.0);
 }

@@ -32,11 +32,12 @@ function start() {
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
 
-            uColor: { type: og.shaderProgram.types.VEC4 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+            //uColor: { type: og.shaderProgram.types.VEC4 },
+            uSampler: { type: og.shaderProgram.types.SAMPLER2D },
+            uNormalsMap: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
-            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            //aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
