@@ -140,8 +140,6 @@ og.webgl.Handler.prototype.init = function () {
         this.canvas = document.getElementById(this.htmlCanvasId);
     } else {
         this.canvas = document.createElement("canvas");
-        this.canvas.scrollWidth = 256;
-        this.canvas.scrollHeight = 256;
         this.canvas.width = 256;
         this.canvas.height = 256;
     }
@@ -154,7 +152,7 @@ og.webgl.Handler.prototype.init = function () {
 
 og.webgl.Handler.prototype.setDefaults = function () {
     this.activateDepthTest();
-    this.applyViewport(this.gl.canvas.width, this.gl.canvas.height);
+    this.setSize(this.canvas.width, this.canvas.height);
     this.gl.frontFace(this.gl.CCW);
     this.gl.cullFace(this.gl.BACK);
     this.activateFaceCulling();
@@ -217,22 +215,24 @@ og.webgl.Handler.prototype.calculateFPS = function (now) {
     this.delta = this.animSpeed / this.fps;
 };
 
-og.webgl.Handler.prototype.applyViewport = function (width, height) {
+og.webgl.Handler.prototype.setSize = function (width, height) {
     var w = width, h = Math.max(1, height);
-    this.gl.viewport(0, 0, w, h);
-    this.gl.canvas.width = w;
-    this.gl.canvas.height = h;
-    this.gl.canvas.aspect = w / h;
+    if (this.gl) {
+        this.gl.viewport(0, 0, w, h);
+    }
+    this.canvas.width = w;
+    this.canvas.height = h;
+    this.canvas.aspect = w / h;
 };
 
 og.webgl.Handler.prototype.viewportResized = function () {
-    return this.gl.canvas.clientWidth != this.gl.canvas.width ||
-            this.gl.canvas.clientHeight != this.gl.canvas.height;
+    return this.canvas.clientWidth != this.canvas.width ||
+            this.canvas.clientHeight != this.canvas.height;
 };
 
 og.webgl.Handler.prototype.drawFrame = function (now, sender) {
     if (sender.viewportResized()) {
-        sender.applyViewport(sender.gl.canvas.clientWidth, sender.gl.canvas.clientHeight);
+        sender.setSize(sender.gl.canvas.clientWidth, sender.gl.canvas.clientHeight);
         sender.onCanvasResize(sender.gl.canvas);
     }
     sender.calculateFPS(now);

@@ -23,8 +23,6 @@ og.webgl.initWebGLContext = function (canvas) {
     try {
         ctx = canvas.getContext("experimental-webgl", { alpha: false });
         ctx.canvas = canvas;
-        //canvas.width = canvas.scrollWidth;
-        //canvas.height = canvas.scrollHeight;
         canvas.aspect = canvas.width / canvas.height;
     }
     catch (ex) {
