@@ -1,7 +1,7 @@
 precision highp float;
 
 
-//varying vec3 vTransformedNormal;
+varying vec3 vTransformedNormal;
 varying vec4 vPosition;
 varying vec2 vTextureCoord;
 
@@ -16,7 +16,8 @@ uniform int pointLightsQuantity;
 uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
-uniform mat3 uNMatrix;
+
+varying mat3 v_NMatrix;
 
 void main(void) {
 
@@ -33,11 +34,13 @@ void main(void) {
 	//float distance = length(dir);
 	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
     
-	vec4 normalColor = texture2D( uNormalsMap, vTextureCoord.st );
+	vec3 vnormal = normalize(vTransformedNormal);
 	
+	vec4 normalColor = texture2D( uNormalsMap, vec2(vTextureCoord.s, 1.0 - vTextureCoord.t)  );	
 	vec4 nc = (normalColor - 0.5) * 2.0;
+	vec3 pnormal = normalize(v_NMatrix*normalize(nc.xyz));
 
-	normal = normalize(uNMatrix*nc.xyz);
+	normal = normalize(pnormal);
 
     eyeDirection = normalize(-vPosition.xyz);
     reflectionDirection = reflect(-lightDirection, normal);	
@@ -45,8 +48,7 @@ void main(void) {
     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
     lightWeighting += pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
-	vec4 tColor = texture2D( uSampler, vTextureCoord.st );
+	vec4 tColor = vec4(1.0);//texture2D( uSampler, vTextureCoord.st );
         
     gl_FragColor = vec4(tColor.rgb * lightWeighting, 1.0);
-	//gl_FragColor = vec4(tColor.rgb, 1.0);
 }

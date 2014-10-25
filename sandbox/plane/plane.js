@@ -27,10 +27,27 @@ Heatmap.prototype.initialization = function () {
     }
 
     this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+
+    var positions = [
+     -1.0, -1.0,
+      1.0, -1.0,
+     -1.0, 1.0,
+     1.0, 1.0];
+
+    this._positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
+
+    //var texCoords = [
+    // 0.0, 1.0,
+    //  1.0, 1.0,
+    // 0.0, 0.0,
+    // 1.0, 0.0];
+
+    //this._texCoordsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(texCoords), 2, texCoords.length / 2);
+
 };
 
 
-Heatmap.prototype.frame = function (normals) {
+Heatmap.prototype.drawNormalMap = function (normals) {
 
     this._normalsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
 
@@ -46,6 +63,37 @@ Heatmap.prototype.frame = function (normals) {
     this.renderer.handler.shaderPrograms.heatmap.drawArray(this.renderer.handler.gl.POINTS, this._verticesBuffer.numItems);
 };
 
+Heatmap.prototype.drawTexture = function (texture) {
+
+    this.renderer.handler.clearFrame();
+
+    this.renderer.handler.shaderPrograms.texture.activate();
+
+    this.renderer.handler.shaderPrograms.texture.set({
+        a_position: this._positionBuffer,
+        //a_texCoords: this._texCoordsBuffer,
+        u_sampler: texture
+    });
+
+    this.renderer.handler.shaderPrograms.texture.drawArray(this.renderer.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
+};
+
+Heatmap.prototype.drawBlur = function (texture, dir) {
+
+    this.renderer.handler.clearFrame();
+
+    this.renderer.handler.shaderPrograms.blur.activate();
+
+    this.renderer.handler.shaderPrograms.blur.set({
+        a_position: this._positionBuffer,
+        u_texture: texture,
+        resolution: 256.0,
+        radius: 1.0,
+        dir: dir
+    });
+
+    this.renderer.handler.shaderPrograms.blur.drawArray(this.renderer.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
+};
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -78,7 +126,7 @@ my.Plane.prototype.normalsUnpack = function () {
 
 my.Plane.prototype.initialization = function () {
     this.createBuffers();
-    this.drawMode = this.renderer.handler.gl.TRIANGLES;
+    this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.light = new og.light.PointLight();
 
     this.light.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
@@ -114,10 +162,37 @@ my.Plane.prototype.initialization = function () {
         fragmentShader: og.utils.readTextFile("fs.txt")
     });
 
+    var texture = new og.shaderProgram.ShaderProgram("texture", {
+        attributes: {
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }//,
+            //a_texCoords: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        uniforms: {
+            u_sampler: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        vertexShader: og.utils.readTextFile("texture_vs.txt"),
+        fragmentShader: og.utils.readTextFile("texture_fs.txt")
+    });
+
+    var blur = new og.shaderProgram.ShaderProgram("blur", {
+        attributes: {
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        uniforms: {
+            u_texture: { type: og.shaderProgram.types.SAMPLER2D },
+            resolution: { type: og.shaderProgram.types.FLOAT },
+            radius: { type: og.shaderProgram.types.FLOAT },
+            dir: { type: og.shaderProgram.types.VEC2 }
+        },
+        vertexShader: og.utils.readTextFile("blur_vs.txt"),
+        fragmentShader: og.utils.readTextFile("blur_fs.txt")
+    });
+
     this._hiddenHandler = new og.webgl.Handler();
+    this._hiddenHandler.addShaderProgram(texture);
     this._hiddenHandler.addShaderProgram(heatmap);
+    this._hiddenHandler.addShaderProgram(blur);
     this._hiddenHandler.init();
-    this._hiddenHandler.setSize(32, 32);
 
     this._hiddenRenderer = new og.Renderer(this._hiddenHandler);
     this._hiddenRenderer.init();
@@ -126,15 +201,32 @@ my.Plane.prototype.initialization = function () {
     this._hiddenRenderer.addRenderNode(this._hiddenNode);
 
 
-    this._hiddenNode.frame(normals);
-   // this._hiddenHandler.setSize(32, 32);
+    this._hiddenHandler.setSize(32, 32);
+    this._hiddenNode.drawNormalMap(normals);
+
+    var normalsTexture = this._hiddenHandler.createTexture(this._hiddenHandler.canvas);
+
+    //enlarge normal map
+    this._hiddenHandler.setSize(256, 256);
+    this._hiddenNode.drawTexture(normalsTexture);
+    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [1.0, 0.0]);
+    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [0.0, 1.0]);
+
     this.normalsTexture = this.renderer.handler.createTexture(this._hiddenHandler.canvas);
+
+
+    //var img2 = new Image();
+    //img2.crossOrigin = '';
+    //img2.onload = function () {
+    //    that.normalsTexture = that.renderer.handler.createTexture(this);
+    //};
+    //img2.src = "normal2.png";
 
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {
     if (this.drawMode === this.renderer.handler.gl.LINE_STRIP) {
-        this.drawMode = this.renderer.handler.gl.TRIANGLES;
+        this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     } else {
         this.drawMode = this.renderer.handler.gl.LINE_STRIP;
     }
@@ -157,7 +249,7 @@ my.Plane.prototype.createBuffers = function () {
         for (var j = 0; j <= size; j++) {
             var x = j * step,
                 y = (size) * step - i * step,
-                z = Math.sin(1100 * x) * Math.cos(1100 * y) * 1750;
+                z = Math.sin(1100 * x) * Math.cos(1100 * y) * 500;
 
             vertices.push(x * this.size * 2, y * this.size * 2, z);
         }
@@ -166,47 +258,47 @@ my.Plane.prototype.createBuffers = function () {
     var gs = size + 1;
     normals = new Float64Array(gs * gs * 3);
 
-    //og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [size, size, size, size]);
+    var vertexIndices = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [2, 16, 8, size]);
 
-    var vertexIndices = [];
-    for (var i = 0; i < gs - 1; i++) {
-        for (var j = 0; j < gs - 1; j++) {
-            var vInd0 = (i * gs + j);
-            var vInd1 = (i * gs + j + 1);
-            var vInd2 = ((i + 1) * gs + j);
-            var vInd3 = ((i + 1) * gs + (j + 1));
+    //var vertexIndices = [];
+    //for (var i = 0; i < gs - 1; i++) {
+    //    for (var j = 0; j < gs - 1; j++) {
+    //        var vInd0 = (i * gs + j);
+    //        var vInd1 = (i * gs + j + 1);
+    //        var vInd2 = ((i + 1) * gs + j);
+    //        var vInd3 = ((i + 1) * gs + (j + 1));
 
-            vertexIndices.push(vInd0, vInd3, vInd1, vInd0, vInd2, vInd3);
-        }
-    }
+    //        vertexIndices.push(vInd0, vInd3, vInd1, vInd0, vInd2, vInd3);
+    //    }
+    //}
 
-    for (var i = 0; i < vertexIndices.length - 1; i++) {
+    //for (var i = 0; i < vertexIndices.length - 1; i++) {
 
-        var i0 = vertexIndices[i],
-            i1 = vertexIndices[i + 1],
-            i2 = vertexIndices[i + 2];
+    //    var i0 = vertexIndices[i],
+    //        i1 = vertexIndices[i + 1],
+    //        i2 = vertexIndices[i + 2];
 
-        var v0 = new og.math.Vector3(vertices[i0 * 3 + 0], vertices[i0 * 3 + 1], vertices[i0 * 3 + 2]),
-            v1 = new og.math.Vector3(vertices[i1 * 3 + 0], vertices[i1 * 3 + 1], vertices[i1 * 3 + 2]),
-            v2 = new og.math.Vector3(vertices[i2 * 3 + 0], vertices[i2 * 3 + 1], vertices[i2 * 3 + 2]);
+    //    var v0 = new og.math.Vector3(vertices[i0 * 3 + 0], vertices[i0 * 3 + 1], vertices[i0 * 3 + 2]),
+    //        v1 = new og.math.Vector3(vertices[i1 * 3 + 0], vertices[i1 * 3 + 1], vertices[i1 * 3 + 2]),
+    //        v2 = new og.math.Vector3(vertices[i2 * 3 + 0], vertices[i2 * 3 + 1], vertices[i2 * 3 + 2]);
 
-        var e10 = og.math.Vector3.sub(v1, v0),
-            e20 = og.math.Vector3.sub(v2, v0);
+    //    var e10 = og.math.Vector3.sub(v1, v0),
+    //        e20 = og.math.Vector3.sub(v2, v0);
 
-        var n = e10.cross(e20).normalize();
+    //    var n = e10.cross(e20).normalize();
 
-        normals[i0 * 3 + 0] += n.x;
-        normals[i0 * 3 + 1] += n.y;
-        normals[i0 * 3 + 2] += n.z;
+    //    normals[i0 * 3 + 0] += n.x;
+    //    normals[i0 * 3 + 1] += n.y;
+    //    normals[i0 * 3 + 2] += n.z;
 
-        normals[i1 * 3 + 0] += n.x;
-        normals[i1 * 3 + 1] += n.y;
-        normals[i1 * 3 + 2] += n.z;
+    //    normals[i1 * 3 + 0] += n.x;
+    //    normals[i1 * 3 + 1] += n.y;
+    //    normals[i1 * 3 + 2] += n.z;
 
-        normals[i2 * 3 + 0] += n.x;
-        normals[i2 * 3 + 1] += n.y;
-        normals[i2 * 3 + 2] += n.z;
-    }
+    //    normals[i2 * 3 + 0] += n.x;
+    //    normals[i2 * 3 + 1] += n.y;
+    //    normals[i2 * 3 + 2] += n.z;
+    //}
 
     //function getVertex(i, j) {
     //    if (i < 0) i = 0;
@@ -253,53 +345,53 @@ my.Plane.prototype.createBuffers = function () {
     //    }
     //}
 
-    //for (var i = 0; i < gs - 1; i++) {
-    //    for (var j = 0; j < gs - 1; j++) {
+    for (var i = 0; i < gs - 1; i++) {
+        for (var j = 0; j < gs - 1; j++) {
 
-    //        var vInd0 = (i * gs + j) * 3;
-    //        var vInd1 = (i * gs + j + 1) * 3;
-    //        var vInd2 = ((i + 1) * gs + j) * 3;
-    //        var vInd3 = ((i + 1) * gs + (j + 1)) * 3;
+            var vInd0 = (i * gs + j) * 3;
+            var vInd1 = (i * gs + j + 1) * 3;
+            var vInd2 = ((i + 1) * gs + j) * 3;
+            var vInd3 = ((i + 1) * gs + (j + 1)) * 3;
 
-    //        var v0 = new og.math.Vector3(vertices[vInd0], vertices[vInd0 + 1], vertices[vInd0 + 2]),
-    //            v1 = new og.math.Vector3(vertices[vInd1], vertices[vInd1 + 1], vertices[vInd1 + 2]),
-    //            v2 = new og.math.Vector3(vertices[vInd2], vertices[vInd2 + 1], vertices[vInd2 + 2]),
-    //            v3 = new og.math.Vector3(vertices[vInd3], vertices[vInd3 + 1], vertices[vInd3 + 2]);
+            var v0 = new og.math.Vector3(vertices[vInd0], vertices[vInd0 + 1], vertices[vInd0 + 2]),
+                v1 = new og.math.Vector3(vertices[vInd1], vertices[vInd1 + 1], vertices[vInd1 + 2]),
+                v2 = new og.math.Vector3(vertices[vInd2], vertices[vInd2 + 1], vertices[vInd2 + 2]),
+                v3 = new og.math.Vector3(vertices[vInd3], vertices[vInd3 + 1], vertices[vInd3 + 2]);
 
-    //        var e10 = og.math.Vector3.sub(v1, v0),
-    //            e20 = og.math.Vector3.sub(v2, v0),
-    //            e30 = og.math.Vector3.sub(v3, v0);
+            var e10 = og.math.Vector3.sub(v1, v0),
+                e20 = og.math.Vector3.sub(v2, v0),
+                e30 = og.math.Vector3.sub(v3, v0);
 
-    //        var ne = e30.cross(e10).normalize();
-    //        var sw = e20.cross(e30).normalize();
+            var sw = e20.cross(e30);//.normalize();
+            var ne = e30.cross(e10);//.normalize();
 
-    //        var n0 = og.math.Vector3.add(ne, sw);
-    //        var n3 = og.math.Vector3.add(ne, sw);
-    //        var n1 = og.math.Vector3.add(ne, sw);
-    //        var n2 = og.math.Vector3.add(ne, sw);
+            var n0 = og.math.Vector3.add(ne, sw);
+            var n3 = og.math.Vector3.add(ne, sw);
+            var n1 = og.math.Vector3.add(ne, sw);
+            var n2 = og.math.Vector3.add(ne, sw);
 
-    //        n0.normalize();
-    //        n1.normalize();
-    //        n3.normalize();
-    //        n2.normalize();
+            //n0.normalize();
+            //n1.normalize();
+            //n3.normalize();
+            //n2.normalize();
 
-    //        normals[vInd0] += n0.x;
-    //        normals[vInd0 + 1] += n0.y;
-    //        normals[vInd0 + 2] += n0.z;
+            normals[vInd0] += n0.x;
+            normals[vInd0 + 1] += n0.y;
+            normals[vInd0 + 2] += n0.z;
 
-    //        normals[vInd1] += n1.x;
-    //        normals[vInd1 + 1] += n1.y;
-    //        normals[vInd1 + 2] += n1.z;
+            normals[vInd1] += n1.x;
+            normals[vInd1 + 1] += n1.y;
+            normals[vInd1 + 2] += n1.z;
 
-    //        normals[vInd2] += n2.x;
-    //        normals[vInd2 + 1] += n2.y;
-    //        normals[vInd2 + 2] += n2.z;
+            normals[vInd2] += n2.x;
+            normals[vInd2 + 1] += n2.y;
+            normals[vInd2 + 2] += n2.z;
 
-    //        normals[vInd3] += n3.x;
-    //        normals[vInd3 + 1] += n3.y;
-    //        normals[vInd3 + 2] += n3.z;
-    //    }
-    //}
+            normals[vInd3] += n3.x;
+            normals[vInd3 + 1] += n3.y;
+            normals[vInd3 + 2] += n3.z;
+        }
+    }
 
 
     for (var i = 0; i < normals.length; i += 3) {
@@ -309,16 +401,17 @@ my.Plane.prototype.createBuffers = function () {
         normals[i + 2] /= l;
     }
 
-    //var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
-    var textureCoords = [];
-    for (var i = 0; i <= size; i++) {
-        for (var j = 0; j <= size; j++) {
-            var x = j * step / size,
-                y = 1 - ((size) * step - i * step) / size;
+    var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
 
-            textureCoords.push(x, y);
-        }
-    }
+    //var textureCoords = [];
+    //for (var i = 0; i <= size; i++) {
+    //    for (var j = 0; j <= size; j++) {
+    //        var x = j * step / size,
+    //            y = 1 - ((size) * step - i * step) / size;
+
+    //        textureCoords.push(x, y);
+    //    }
+    //}
 
     this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
     this.normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
@@ -371,7 +464,7 @@ my.Plane.prototype.frame = function () {
 
     //diffuse texture
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.normalsTexture);
     gl.uniform1i(shu.uSampler._pName, 0);
 
     gl.activeTexture(gl.TEXTURE1);
@@ -380,8 +473,8 @@ my.Plane.prototype.frame = function () {
 
 
     //normals
-    //gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-    //gl.vertexAttribPointer(sha.aVertexNormal._pName, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+    gl.vertexAttribPointer(sha.aVertexNormal._pName, this.normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     //vertices positions
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
@@ -398,13 +491,13 @@ my.Plane.prototype.frame = function () {
 
     //
     //Draw normals
-    r.handler.shaderPrograms.flat.activate();
+    //r.handler.shaderPrograms.flat.activate();
 
-    r.handler.shaderPrograms.flat.set({
-        uPMVMatrix: r.activeCamera.pmvMatrix._m,
-        aVertexPosition: this.linesBuffer,
-        aVertexColor: this.linesColorBuffer
-    });
-    r.handler.shaderPrograms.flat.drawArray(r.handler.gl.LINES, this.linesBuffer.numItems);
+    //r.handler.shaderPrograms.flat.set({
+    //    uPMVMatrix: r.activeCamera.pmvMatrix._m,
+    //    aVertexPosition: this.linesBuffer,
+    //    aVertexColor: this.linesColorBuffer
+    //});
+    //r.handler.shaderPrograms.flat.drawArray(r.handler.gl.LINES, this.linesBuffer.numItems);
 
 };

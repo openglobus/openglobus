@@ -217,12 +217,12 @@ og.webgl.Handler.prototype.calculateFPS = function (now) {
 
 og.webgl.Handler.prototype.setSize = function (width, height) {
     var w = width, h = Math.max(1, height);
-    if (this.gl) {
-        this.gl.viewport(0, 0, w, h);
-    }
     this.canvas.width = w;
     this.canvas.height = h;
     this.canvas.aspect = w / h;
+    if (this.gl) {
+        this.gl.viewport(0, 0, w, h);
+    }
 };
 
 og.webgl.Handler.prototype.viewportResized = function () {
