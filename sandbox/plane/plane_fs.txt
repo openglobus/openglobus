@@ -30,25 +30,20 @@ void main(void) {
 	float diffuseLightWeighting;
 
 	//i=0
-    lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
+        lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
 	//float distance = length(dir);
-	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
-    
-	vec3 vnormal = normalize(vTransformedNormal);
-	
-	vec4 normalColor = texture2D( uNormalsMap, vec2(vTextureCoord.s, 1.0 - vTextureCoord.t)  );	
+	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);    	
+	vec4 normalColor = texture2D( uNormalsMap, vTextureCoord.st/*vec2(vTextureCoord.s, 1.0 - vTextureCoord.t)*/  );	
 	vec4 nc = (normalColor - 0.5) * 2.0;
-	vec3 pnormal = normalize(v_NMatrix*normalize(nc.xyz));
-
-	normal = normalize(pnormal);
-
-    eyeDirection = normalize(-vPosition.xyz);
-    reflectionDirection = reflect(-lightDirection, normal);	
+	normal = normalize(v_NMatrix*normalize(nc.xyz));
+        eyeDirection = normalize(-vPosition.xyz);
+        reflectionDirection = reflect(-lightDirection, normal);	
 	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
-    diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-    lightWeighting += pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
+        diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+        lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
+
 
 	vec4 tColor = vec4(1.0);//texture2D( uSampler, vTextureCoord.st );
         
-    gl_FragColor = vec4(tColor.rgb * lightWeighting, 1.0);
+        gl_FragColor = vec4(tColor.rgb * lightWeighting, 1.0);
 }

@@ -8,15 +8,13 @@ goog.require('og.webgl.Framebuffer');
 
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-Heatmap = function () {
-    og.inheritance.base(this);
+Heatmap = function (handler) {
 
+    this.handler = handler;
     this._verticesBuffer;
 };
 
-og.inheritance.extend(Heatmap, og.node.RenderNode);
-
-Heatmap.prototype.initialization = function () {
+Heatmap.prototype.init = function () {
 
     var vertices = [];
 
@@ -26,7 +24,7 @@ Heatmap.prototype.initialization = function () {
         }
     }
 
-    this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+    this._verticesBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
 
     var positions = [
      -1.0, -1.0,
@@ -34,65 +32,60 @@ Heatmap.prototype.initialization = function () {
      -1.0, 1.0,
      1.0, 1.0];
 
-    this._positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
+    this._positionBuffer = this.handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
 
-    //var texCoords = [
-    // 0.0, 1.0,
-    //  1.0, 1.0,
-    // 0.0, 0.0,
-    // 1.0, 0.0];
-
-    //this._texCoordsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(texCoords), 2, texCoords.length / 2);
-
+    this.framebuffer = new og.webgl.Framebuffer(this.handler.gl, 32, 32);
+    this.framebuffer.initialize();
 };
 
 
 Heatmap.prototype.drawNormalMap = function (normals) {
 
-    this._normalsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
+    this._normalsBuffer = this.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
 
-    this.renderer.handler.clearFrame();
+    this.framebuffer.activate();
+    this.framebuffer.clear();
 
-    this.renderer.handler.shaderPrograms.heatmap.activate();
+    this.handler.shaderPrograms.heatmap.activate();
 
-    this.renderer.handler.shaderPrograms.heatmap.set({
+    this.handler.shaderPrograms.heatmap.set({
         a_position: this._verticesBuffer,
         a_normal: this._normalsBuffer
     });
 
-    this.renderer.handler.shaderPrograms.heatmap.drawArray(this.renderer.handler.gl.POINTS, this._verticesBuffer.numItems);
+    this.handler.shaderPrograms.heatmap.drawArray(this.handler.gl.POINTS, this._verticesBuffer.numItems);
+    this.framebuffer.deactivate();
 };
 
 Heatmap.prototype.drawTexture = function (texture) {
 
-    this.renderer.handler.clearFrame();
+    this.handler.clearFrame();
 
-    this.renderer.handler.shaderPrograms.texture.activate();
+    this.handler.shaderPrograms.texture.activate();
 
-    this.renderer.handler.shaderPrograms.texture.set({
+    this.handler.shaderPrograms.texture.set({
         a_position: this._positionBuffer,
-        //a_texCoords: this._texCoordsBuffer,
         u_sampler: texture
     });
 
-    this.renderer.handler.shaderPrograms.texture.drawArray(this.renderer.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
+    this.handler.shaderPrograms.texture.drawArray(this.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
 };
 
-Heatmap.prototype.drawBlur = function (texture, dir) {
+Heatmap.prototype.drawBlur = function (texture, dir, size, radius) {
 
-    this.renderer.handler.clearFrame();
+    this.handler.clearFrame();
 
-    this.renderer.handler.shaderPrograms.blur.activate();
+    this.handler.shaderPrograms.blur.activate();
 
-    this.renderer.handler.shaderPrograms.blur.set({
+    this.handler.shaderPrograms.blur.set({
         a_position: this._positionBuffer,
         u_texture: texture,
-        resolution: 256.0,
-        radius: 1.0,
+        resolution: size,
+        radius: radius,
         dir: dir
     });
 
-    this.renderer.handler.shaderPrograms.blur.drawArray(this.renderer.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
+    this.handler.shaderPrograms.blur.drawArray(this.handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -153,7 +146,7 @@ my.Plane.prototype.initialization = function () {
     //
     //Hiddent context experiment
     //
-    var heatmap = new og.shaderProgram.ShaderProgram("heatmap", {
+    var normalMap = new og.shaderProgram.ShaderProgram("heatmap", {
         attributes: {
             a_position: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_normal: { type: og.shaderProgram.types.VEC3, enableArray: true }
@@ -164,8 +157,7 @@ my.Plane.prototype.initialization = function () {
 
     var texture = new og.shaderProgram.ShaderProgram("texture", {
         attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }//,
-            //a_texCoords: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         uniforms: {
             u_sampler: { type: og.shaderProgram.types.SAMPLER2D }
@@ -190,27 +182,20 @@ my.Plane.prototype.initialization = function () {
 
     this._hiddenHandler = new og.webgl.Handler();
     this._hiddenHandler.addShaderProgram(texture);
-    this._hiddenHandler.addShaderProgram(heatmap);
     this._hiddenHandler.addShaderProgram(blur);
+    this._hiddenHandler.addShaderProgram(normalMap);
     this._hiddenHandler.init();
 
-    this._hiddenRenderer = new og.Renderer(this._hiddenHandler);
-    this._hiddenRenderer.init();
+    this._hiddenNode = new Heatmap(this._hiddenHandler);
+    this._hiddenNode.init();
 
-    this._hiddenNode = new Heatmap();
-    this._hiddenRenderer.addRenderNode(this._hiddenNode);
-
-
+    //make normal map
     this._hiddenHandler.setSize(32, 32);
     this._hiddenNode.drawNormalMap(normals);
-
-    var normalsTexture = this._hiddenHandler.createTexture(this._hiddenHandler.canvas);
-
-    //enlarge normal map
-    this._hiddenHandler.setSize(256, 256);
-    this._hiddenNode.drawTexture(normalsTexture);
-    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [1.0, 0.0]);
-    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [0.0, 1.0]);
+    this._hiddenHandler.setSize(128, 128);
+    this._hiddenNode.drawTexture(this._hiddenNode.framebuffer.texture);
+    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [1.0, 0.0], 128, 1);
+    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [0.0, 1.0], 128, 1);
 
     this.normalsTexture = this.renderer.handler.createTexture(this._hiddenHandler.canvas);
 
@@ -249,7 +234,7 @@ my.Plane.prototype.createBuffers = function () {
         for (var j = 0; j <= size; j++) {
             var x = j * step,
                 y = (size) * step - i * step,
-                z = Math.sin(1100 * x) * Math.cos(1100 * y) * 500;
+                z = Math.sin(1 * x / 5) * Math.cos(1 * y / 5) * 5400;
 
             vertices.push(x * this.size * 2, y * this.size * 2, z);
         }
@@ -258,47 +243,8 @@ my.Plane.prototype.createBuffers = function () {
     var gs = size + 1;
     normals = new Float64Array(gs * gs * 3);
 
-    var vertexIndices = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [2, 16, 8, size]);
+    var vertexIndices = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(size, [size, size, size, size]);
 
-    //var vertexIndices = [];
-    //for (var i = 0; i < gs - 1; i++) {
-    //    for (var j = 0; j < gs - 1; j++) {
-    //        var vInd0 = (i * gs + j);
-    //        var vInd1 = (i * gs + j + 1);
-    //        var vInd2 = ((i + 1) * gs + j);
-    //        var vInd3 = ((i + 1) * gs + (j + 1));
-
-    //        vertexIndices.push(vInd0, vInd3, vInd1, vInd0, vInd2, vInd3);
-    //    }
-    //}
-
-    //for (var i = 0; i < vertexIndices.length - 1; i++) {
-
-    //    var i0 = vertexIndices[i],
-    //        i1 = vertexIndices[i + 1],
-    //        i2 = vertexIndices[i + 2];
-
-    //    var v0 = new og.math.Vector3(vertices[i0 * 3 + 0], vertices[i0 * 3 + 1], vertices[i0 * 3 + 2]),
-    //        v1 = new og.math.Vector3(vertices[i1 * 3 + 0], vertices[i1 * 3 + 1], vertices[i1 * 3 + 2]),
-    //        v2 = new og.math.Vector3(vertices[i2 * 3 + 0], vertices[i2 * 3 + 1], vertices[i2 * 3 + 2]);
-
-    //    var e10 = og.math.Vector3.sub(v1, v0),
-    //        e20 = og.math.Vector3.sub(v2, v0);
-
-    //    var n = e10.cross(e20).normalize();
-
-    //    normals[i0 * 3 + 0] += n.x;
-    //    normals[i0 * 3 + 1] += n.y;
-    //    normals[i0 * 3 + 2] += n.z;
-
-    //    normals[i1 * 3 + 0] += n.x;
-    //    normals[i1 * 3 + 1] += n.y;
-    //    normals[i1 * 3 + 2] += n.z;
-
-    //    normals[i2 * 3 + 0] += n.x;
-    //    normals[i2 * 3 + 1] += n.y;
-    //    normals[i2 * 3 + 2] += n.z;
-    //}
 
     //function getVertex(i, j) {
     //    if (i < 0) i = 0;
@@ -402,16 +348,6 @@ my.Plane.prototype.createBuffers = function () {
     }
 
     var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
-
-    //var textureCoords = [];
-    //for (var i = 0; i <= size; i++) {
-    //    for (var j = 0; j <= size; j++) {
-    //        var x = j * step / size,
-    //            y = 1 - ((size) * step - i * step) / size;
-
-    //        textureCoords.push(x, y);
-    //    }
-    //}
 
     this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
     this.normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
