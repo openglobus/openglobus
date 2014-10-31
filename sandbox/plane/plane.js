@@ -6,6 +6,8 @@ goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
 goog.require('og.webgl.Framebuffer');
 
+goog.require('og.SyncQueue');
+
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 Heatmap = function (handler) {
@@ -20,11 +22,13 @@ Heatmap.prototype.init = function () {
 
     for (var i = 0; i < 33; i++) {
         for (var j = 0; j < 33; j++) {
-            vertices.push(-1 + j / (33 / 2), -1 + i / (33 / 2));
+            vertices.push(-1 + j / (32 / 2), -1 + i / (32 / 2));
         }
     }
 
     this._verticesBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+    var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(32, [32, 32, 32, 32]);
+    this._indexBuffer = this.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 
     var positions = [
      -1.0, -1.0,
@@ -34,7 +38,7 @@ Heatmap.prototype.init = function () {
 
     this._positionBuffer = this.handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
 
-    this.framebuffer = new og.webgl.Framebuffer(this.handler.gl, 32, 32);
+    this.framebuffer = new og.webgl.Framebuffer(this.handler.gl, 128, 128);
     this.framebuffer.initialize();
 };
 
@@ -42,6 +46,9 @@ Heatmap.prototype.init = function () {
 Heatmap.prototype.drawNormalMap = function (normals) {
 
     this._normalsBuffer = this.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
+
+    this.handler.deactivateFaceCulling();
+    //this.handler.clearFrame();
 
     this.framebuffer.activate();
     this.framebuffer.clear();
@@ -53,7 +60,11 @@ Heatmap.prototype.drawNormalMap = function (normals) {
         a_normal: this._normalsBuffer
     });
 
-    this.handler.shaderPrograms.heatmap.drawArray(this.handler.gl.POINTS, this._verticesBuffer.numItems);
+    //draw indexes
+    this.handler.gl.bindBuffer(this.handler.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    this.handler.gl.drawElements(this.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, this.handler.gl.UNSIGNED_SHORT, 0);
+
+    //this.handler.shaderPrograms.heatmap.drawArray(this.handler.gl.POINTS, this._verticesBuffer.numItems);
     this.framebuffer.deactivate();
 };
 
@@ -134,14 +145,6 @@ my.Plane.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
 
-    var img = new Image();
-    img.crossOrigin = '';
-    var that = this;
-    img.onload = function () {
-        that.texture = that.renderer.handler.createTexture(this);
-    };
-    img.src = "diffuse.png";
-
 
     //
     //Hiddent context experiment
@@ -186,27 +189,20 @@ my.Plane.prototype.initialization = function () {
     this._hiddenHandler.addShaderProgram(normalMap);
     this._hiddenHandler.init();
 
-    this._hiddenNode = new Heatmap(this._hiddenHandler);
+    this._hiddenNode = new Heatmap(this._hiddenHandler, { alpha: false, depth: false });
     this._hiddenNode.init();
 
     //make normal map
-    this._hiddenHandler.setSize(32, 32);
-    this._hiddenNode.drawNormalMap(normals);
     this._hiddenHandler.setSize(128, 128);
-    this._hiddenNode.drawTexture(this._hiddenNode.framebuffer.texture);
-    this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [1.0, 0.0], 128, 1);
+    this._hiddenNode.drawNormalMap(normals);
+
+    //this._hiddenHandler.setSize(256, 256);
+    //this._hiddenNode.drawTexture(this._hiddenNode.framebuffer.texture);
+
+    this._hiddenNode.drawBlur(/*this._hiddenHandler.createTexture(this._hiddenHandler.canvas)*/this._hiddenNode.framebuffer.texture, [1.0, 0.0], 128, 1);
     this._hiddenNode.drawBlur(this._hiddenHandler.createTexture(this._hiddenHandler.canvas), [0.0, 1.0], 128, 1);
 
     this.normalsTexture = this.renderer.handler.createTexture(this._hiddenHandler.canvas);
-
-
-    //var img2 = new Image();
-    //img2.crossOrigin = '';
-    //img2.onload = function () {
-    //    that.normalsTexture = that.renderer.handler.createTexture(this);
-    //};
-    //img2.src = "normal2.png";
-
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {

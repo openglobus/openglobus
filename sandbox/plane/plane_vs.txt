@@ -16,6 +16,6 @@ void main(void) {
         vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
         gl_Position = uPMatrix * vPosition;
         vTransformedNormal = uNMatrix * aVertexNormal;
-	vTextureCoord = vec2(aTextureCoord.s, 1.0 - aTextureCoord.t);
+	vTextureCoord = aTextureCoord;//vec2(aTextureCoord.s, 1.0 - aTextureCoord.t);
 	v_NMatrix = uNMatrix;
 }
