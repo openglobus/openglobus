@@ -5,27 +5,43 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 
-og.webgl.Handler = function (htmlId) {
+og.webgl.Handler = function (id, params) {
     this.lastAnimationFrameTime = 0;
     this.fps;
     this.delta;
     this.animSpeed = 1.0;
-    this.htmlCanvasId = htmlId;
+    this._id = id;
+    this._params = params;
     this.canvas = null;
     this.gl;
     this._initialized = false;
     this.drawback = function (x) { };
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
-    this.anisotropicFilteringEnabled = false;
+    this.af = 4;
 };
 
-og.webgl.Handler.prototype.createTexture = function (image) {
+og.webgl.Handler.prototype.createTexture_n = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    //if (!og.math.isPowerOfTwo(image.width) || !og.math.isPowerOfTwo(image.height)) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+};
+
+og.webgl.Handler.prototype.createTexture_mm = function (image) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    //if (fit && (!og.math.isPowerOfTwo(image.width) || !og.math.isPowerOfTwo(image.height))) {
     //    var canvas = document.createElement("canvas");
     //    canvas.width = og.math.nextHighestPowerOfTwo(image.width);
     //    canvas.height = og.math.nextHighestPowerOfTwo(image.height);
@@ -36,13 +52,17 @@ og.webgl.Handler.prototype.createTexture = function (image) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    if (this.anisotropicFilteringEnabled) {
-        gl.texParameterf(gl.TEXTURE_2D, gl.ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+    if (this.af) {
+        gl.texParameterf(gl.TEXTURE_2D, gl.ext.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
+};
+
+og.webgl.Handler.prototype.createTexture = function (image) {
+    return this.createTexture_mm(image);
 };
 
 og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
@@ -124,7 +144,6 @@ og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
     if (!ext) {
         return null;
     }
-    this.anisotropicFilteringEnabled = true;
     return ext;
 };
 
@@ -136,15 +155,15 @@ og.webgl.Handler.prototype.initShaderPrograms = function () {
 
 og.webgl.Handler.prototype.init = function () {
 
-    if (this.htmlCanvasId) {
-        this.canvas = document.getElementById(this.htmlCanvasId);
+    if (this._id) {
+        this.canvas = document.getElementById(this._id);
     } else {
         this.canvas = document.createElement("canvas");
         this.canvas.width = 256;
         this.canvas.height = 256;
     }
 
-    this.gl = og.webgl.initWebGLContext(this.canvas);
+    this.gl = og.webgl.initWebGLContext(this.canvas, this._params);
     this._initialized = true;
     this.initShaderPrograms();
     this.setDefaults();

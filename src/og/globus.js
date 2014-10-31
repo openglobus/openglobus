@@ -45,7 +45,7 @@ og.Globus = function (options) {
     this.div.onmouseleave = function () { document.onmousewheel = _enableWheel };
 
     //WegGL handler creation
-    var _handler = new og.webgl.Handler(_canvasId);
+    var _handler = new og.webgl.Handler(_canvasId, { alpha: false });
     _handler.init();
 
     /**

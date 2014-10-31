@@ -18,10 +18,10 @@ og.webgl.getExtension = function (gl, name) {
     return null;
 };
 
-og.webgl.initWebGLContext = function (canvas) {
+og.webgl.initWebGLContext = function (canvas, params) {
     var ctx;
     try {
-        ctx = canvas.getContext("experimental-webgl", { alpha: false });
+        ctx = canvas.getContext("experimental-webgl", params);
         ctx.canvas = canvas;
         canvas.aspect = canvas.width / canvas.height;
     }
@@ -29,7 +29,7 @@ og.webgl.initWebGLContext = function (canvas) {
         alert("Exception during the GL context initialization");
     }
     if (!ctx) {
-        alert("Could not initialise WebGL, sorry :-(");
+        alert("Could not initialise WebGL");
     }
     return ctx;
 };
