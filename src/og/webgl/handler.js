@@ -5,13 +5,12 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 
-og.webgl.Handler = function (id, params) {
+og.webgl.Handler = function (id, params, extensions) {
     this.lastAnimationFrameTime = 0;
     this.fps;
     this.delta;
     this.animSpeed = 1.0;
     this._id = id;
-    this._params = params;
     this.canvas = null;
     this.gl;
     this._initialized = false;
@@ -19,6 +18,9 @@ og.webgl.Handler = function (id, params) {
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
     this.af = 4;
+    this._params = params;
+    this._extensions = extensions || [];
+    this._pExtensions = {};
 };
 
 og.webgl.Handler.prototype.createTexture_n = function (image) {
@@ -53,7 +55,7 @@ og.webgl.Handler.prototype.createTexture_mm = function (image) {
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     if (this.af) {
-        gl.texParameterf(gl.TEXTURE_2D, gl.ext.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
+        gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -139,18 +141,15 @@ og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
     }
 };
 
-og.webgl.Handler.prototype.initAnysotropicFiltering = function () {
-    var ext = og.webgl.getExtension(this.gl, "EXT_texture_filter_anisotropic");
-    if (!ext) {
-        return null;
-    }
-    return ext;
-};
-
 og.webgl.Handler.prototype.initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
         this._initShaderController(this.shaderPrograms[p]);
     }
+};
+
+og.webgl.Handler.prototype.initExtension = function (extensionStr) {
+    if (!(this._pExtensions && this._pExtensions[extensionStr]))
+        this._pExtensions[extensionStr] = og.webgl.getExtension(this.gl, extensionStr);
 };
 
 og.webgl.Handler.prototype.init = function () {
@@ -165,6 +164,16 @@ og.webgl.Handler.prototype.init = function () {
 
     this.gl = og.webgl.initWebGLContext(this.canvas, this._params);
     this._initialized = true;
+
+    //deafult extensions
+    this.initExtension("EXT_texture_filter_anisotropic");
+    //this.initExtension("OES_standard_derivatives");
+
+    var i = this._extensions.length;
+    while (i--) {
+        this.initExtension(this._extensions[i]);
+    }
+
     this.initShaderPrograms();
     this.setDefaults();
 };
@@ -176,7 +185,6 @@ og.webgl.Handler.prototype.setDefaults = function () {
     this.gl.cullFace(this.gl.BACK);
     this.activateFaceCulling();
     this.deactivateBlending();
-    this.gl.ext = this.initAnysotropicFiltering();
 };
 
 og.webgl.Handler.prototype.activateDepthTest = function () {
