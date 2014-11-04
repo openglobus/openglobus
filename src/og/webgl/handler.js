@@ -5,7 +5,7 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 
-og.webgl.Handler = function (id, params, extensions) {
+og.webgl.Handler = function (id, params) {
     this.lastAnimationFrameTime = 0;
     this.fps;
     this.delta;
@@ -18,10 +18,17 @@ og.webgl.Handler = function (id, params, extensions) {
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
     this.af = 4;
-    this._params = params;
-    this._extensions = extensions || [];
+    //set parameters
+    this._params = params || {};
+    this._params.width = this._params.width || og.webgl.Handler.defaultWidth;
+    this._params.height = this._params.height || og.webgl.Handler.defaultHeight;
+    this._params.context = this._params.context || {};
+    this._params.extensions = this._params.extensions || [];
     this._pExtensions = {};
 };
+
+og.webgl.Handler.defaultWidth = 256;
+og.webgl.Handler.defaultHeight = 256;
 
 og.webgl.Handler.prototype.createTexture_n = function (image) {
     var gl = this.gl;
@@ -158,20 +165,20 @@ og.webgl.Handler.prototype.init = function () {
         this.canvas = document.getElementById(this._id);
     } else {
         this.canvas = document.createElement("canvas");
-        this.canvas.width = 256;
-        this.canvas.height = 256;
+        this.canvas.width = this._params.width;
+        this.canvas.height = this._params.height;
     }
 
-    this.gl = og.webgl.initWebGLContext(this.canvas, this._params);
+    this.gl = og.webgl.initWebGLContext(this.canvas, this._params.context);
     this._initialized = true;
 
     //deafult extensions
-    this.initExtension("EXT_texture_filter_anisotropic");
     //this.initExtension("OES_standard_derivatives");
+    this._params.extensions.push("EXT_texture_filter_anisotropic");
 
-    var i = this._extensions.length;
+    var i = this._params.extensions.length;
     while (i--) {
-        this.initExtension(this._extensions[i]);
+        this.initExtension(this._params.extensions[i]);
     }
 
     this.initShaderPrograms();
