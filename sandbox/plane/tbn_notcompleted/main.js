@@ -32,10 +32,12 @@ function start() {
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
 
+            //uColor: { type: og.shaderProgram.types.VEC4 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalsMap: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
+            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
@@ -43,7 +45,7 @@ function start() {
         fragmentShader: og.utils.readTextFile("plane_fs.txt")
     });
 
-    context = new og.webgl.Handler("canvas");
+    context = new og.webgl.Handler("canvas", null, ["OES_standard_derivatives"]);
     context.addShaderProgram(flatShader);
     context.addShaderProgram(colorShader);
     context.init();

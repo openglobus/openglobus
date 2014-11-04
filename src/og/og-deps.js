@@ -27,6 +27,7 @@ goog.addDependency('../../../og/src/og/inheritance.js', ['og.inheritance'], []);
 goog.addDependency('../../../og/src/og/input/input.js', ['og.input'], []);
 goog.addDependency('../../../og/src/og/input/keyboardHandler.js', ['og.input.KeyboardHandler'], []);
 goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseHandler'], []);
+goog.addDependency('../../../og/src/og/layer/canvasTiles.js', ['og.layer.CanvasTiles'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer']);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events']);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ']);
 goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree']);
@@ -70,6 +71,7 @@ goog.addDependency('../../../og/src/og/shaderProgram/skybox.js', ['og.shaderProg
 goog.addDependency('../../../og/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
 goog.addDependency('../../../og/src/og/shapes/baseShape.js', ['og.shapes.BaseShape'], ['og.math.Matrix4', 'og.math.Quaternion', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/shapes/sphere.js', ['og.shapes.Sphere'], ['og.shapes.BaseShape']);
+goog.addDependency('../../../og/src/og/syncQueue.js', ['og.SyncQueue'], []);
 goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.Events', 'og.layer', 'og.proj.EPSG3857', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl']);
