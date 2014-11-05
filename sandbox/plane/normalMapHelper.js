@@ -1,9 +1,10 @@
 goog.provide('NormalMapHelper');
 
-goog.require('og.webgl.Framebuffer');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.webgl.Handler');
 goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.shaderProgram.ShaderProgram');
+goog.require('og.shaderProgram.blur');
+goog.require('og.webgl.Handler');
+goog.require('og.webgl.Framebuffer');
 
 NormalMapHelper = function (gridSize, width, height) {
     this._handler = null;
@@ -18,27 +19,30 @@ NormalMapHelper = function (gridSize, width, height) {
 
 NormalMapHelper.prototype.initialize = function () {
 
+    var blur = og.shaderProgram.blur();
+
     var normalMap = new og.shaderProgram.ShaderProgram("normalMap", {
         attributes: {
             a_position: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_normal: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
-        vertexShader: og.utils.readTextFile("nm_vs.txt"),
-        fragmentShader: og.utils.readTextFile("nm_fs.txt")
-    });
-
-    var blur = new og.shaderProgram.ShaderProgram("blur", {
-        attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        uniforms: {
-            u_texture: { type: og.shaderProgram.types.SAMPLER2D },
-            resolution: { type: og.shaderProgram.types.FLOAT },
-            radius: { type: og.shaderProgram.types.FLOAT },
-            dir: { type: og.shaderProgram.types.VEC2 }
-        },
-        vertexShader: og.utils.readTextFile("blur_vs.txt"),
-        fragmentShader: og.utils.readTextFile("blur_fs.txt")
+        vertexShader: "attribute vec2 a_position; \
+                      attribute vec3 a_normal; \
+                      \
+                      varying vec3 v_color; \
+                      \
+                      void main() { \
+                          gl_PointSize = 1.0; \
+                          gl_Position = vec4(a_position, 0, 1); \
+                          v_color = a_normal * 0.5 + 0.5; \
+                      }",
+        fragmentShader: "precision mediump float; \
+                        \
+                        varying vec3 v_color; \
+                        \
+                        void main () { \
+                            gl_FragColor = vec4(v_color, 1.0); \
+                        }"
     });
 
     this._handler = new og.webgl.Handler(null, {
