@@ -59,7 +59,19 @@ my.Plane.prototype.initialization = function () {
     var that = this;
     this.normalMapHelper.createNormalMap(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    })
+    });
+    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+        that.normalsTexture = that.renderer.handler.createTexture(canvas);
+    });
+    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+        that.normalsTexture = that.renderer.handler.createTexture(canvas);
+    });
+    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+        that.normalsTexture = that.renderer.handler.createTexture(canvas);
+    });
+    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+        that.normalsTexture = that.renderer.handler.createTexture(canvas);
+    });
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {

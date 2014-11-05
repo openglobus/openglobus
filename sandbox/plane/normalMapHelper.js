@@ -11,6 +11,9 @@ NormalMapHelper = function (gridSize, width, height) {
     this._width = width || 128;
     this._height = height || 128;
     this._gridSize = gridSize || 33;
+
+    this._counter = 0;
+    this._pendingsQueue = [];
 };
 
 NormalMapHelper.prototype.initialize = function () {
@@ -45,6 +48,7 @@ NormalMapHelper.prototype.initialize = function () {
     this._handler.addShaderProgram(blur);
     this._handler.addShaderProgram(normalMap);
     this._handler.init();
+    this._handler.deactivateFaceCulling();
 
     var vertices = [];
     var gs = this._gridSize - 1;
@@ -69,7 +73,6 @@ NormalMapHelper.prototype.initialize = function () {
 
     this.framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
     this.framebuffer.initialize();
-    this._handler.deactivateFaceCulling();
 };
 
 NormalMapHelper.prototype.drawNormalMap = function (normals) {
@@ -110,8 +113,44 @@ NormalMapHelper.prototype.drawBlur = function (texture, dir, size, radius) {
 };
 
 NormalMapHelper.prototype.createNormalMap = function (normals, success) {
-    this.drawNormalMap(normals);
-    this.drawBlur(this.framebuffer.texture, [1.0, 0.0], this._width, 1);
-    this.drawBlur(this._handler.createTexture(this._handler.canvas), [0.0, 1.0], this._height, 1);
-    success(this._handler.canvas);
+    var obj = { normals: normals, callback: success };
+    if (this._counter >= 1) {
+        this._pendingsQueue.push(obj);
+    } else {
+        this._exec(obj);
+    }
+};
+
+NormalMapHelper.prototype._exec = function (obj) {
+    this._counter++;
+    var that = this;
+    setTimeout(function () {
+        that.drawNormalMap(obj.normals);
+        that.drawBlur(that.framebuffer.texture, [1.0, 0.0], that._width, 1);
+        that.drawBlur(that._handler.createTexture(that._handler.canvas), [0.0, 1.0], that._height, 1);
+        obj.callback(that._handler.canvas);
+        that.dequeueRequest();
+    }, 0);
+};
+
+
+NormalMapHelper.prototype.dequeueRequest = function () {
+    this._counter--;
+    if (this._pendingsQueue.length) {
+        if (this._counter < 1) {
+            var req;
+            if (req = this.whilePendings())
+                this._exec(req);
+        }
+    }
+};
+
+NormalMapHelper.prototype.whilePendings = function () {
+    while (this._pendingsQueue.length) {
+        var req = this._pendingsQueue.pop();
+        if (req) {
+            return req;
+        }
+    }
+    return null;
 };
