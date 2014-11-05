@@ -4,9 +4,7 @@ goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
-goog.require('og.webgl.Framebuffer');
 
-goog.require('og.SyncQueue');
 goog.require('NormalMapHelper');
 
 
@@ -55,41 +53,7 @@ my.Plane.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
 
 
-    //
-    //Hiddent context experiment
-    //
-    var normalMap = new og.shaderProgram.ShaderProgram("normalMap", {
-        attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_normal: { type: og.shaderProgram.types.VEC3, enableArray: true }
-        },
-        vertexShader: og.utils.readTextFile("nm_vs.txt"),
-        fragmentShader: og.utils.readTextFile("nm_fs.txt")
-    });
-
-    var blur = new og.shaderProgram.ShaderProgram("blur", {
-        attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        uniforms: {
-            u_texture: { type: og.shaderProgram.types.SAMPLER2D },
-            resolution: { type: og.shaderProgram.types.FLOAT },
-            radius: { type: og.shaderProgram.types.FLOAT },
-            dir: { type: og.shaderProgram.types.VEC2 }
-        },
-        vertexShader: og.utils.readTextFile("blur_vs.txt"),
-        fragmentShader: og.utils.readTextFile("blur_fs.txt")
-    });
-
-    this._hiddenHandler = new og.webgl.Handler(null, {
-        width: 128, height: 128,
-        context: { alpha: false, depth: false }
-    });
-    this._hiddenHandler.addShaderProgram(blur);
-    this._hiddenHandler.addShaderProgram(normalMap);
-    this._hiddenHandler.init();
-
-    this.normalMapHelper = new NormalMapHelper(this._hiddenHandler);
+    this.normalMapHelper = new NormalMapHelper();
     this.normalMapHelper.initialize();
 
     var that = this;
