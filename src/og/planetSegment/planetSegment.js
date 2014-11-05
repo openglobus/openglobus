@@ -576,7 +576,7 @@ og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
 
         this._setVIb();
 
-        sh.drawIndexBuffer(this.planet.drawMode, this._vib);
+        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._vib);
 
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
         this.node.hasNeighbor.length = 0;
