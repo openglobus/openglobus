@@ -20,15 +20,12 @@ goog.require('og.proj.EPSG3857');
 og.planetSegment.PlanetSegment = function () {
     this._projection = og.proj.EPSG3857;
     this.plainVertices = [];
-    this.plainNormals = [];
-    this.terrainNormals = [];
     this.terrainVertices = [];
     this.tempVertices = [];
     this.plainIndexes = [];
     this.bbox = new og.bv.Box();
     this.bsphere = new og.bv.Sphere();
 
-    this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
@@ -149,16 +146,25 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         var plain_verts = this.plainVertices;
         var vertices = [];
         var dgs = fileGridSize / tgs;
-        var plainNormals = this.plainNormals;
+
+        var r2 = this.planet.ellipsoid._invRadii2;
 
         if (fileGridSize >= tgs) {
             for (var i = 0; i < gs; i++) {
                 for (var j = 0; j < gs; j++) {
                     var vInd = (i * gs + j) * 3;
                     var h = hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs];
-                    var x = plain_verts[vInd] + h * plainNormals[vInd],
-                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+
+                    var x = plain_verts[vInd],
+                        y = plain_verts[vInd + 1],
+                        z = plain_verts[vInd + 2];
+
+                    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
+                    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    x += h * nx * l,
+                    y += h * ny * l,
+                    z += h * nz * l;
 
                     vertices[vInd] = x;
                     vertices[vInd + 1] = y;
@@ -169,67 +175,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     if (z < zmin) zmin = z; if (z > zmax) zmax = z;
                 }
             }
-
-            var normals = this.plainNormals;//new Float64Array(gs * gs * 3);
-            //var v = vertices;
-
-            //for (var i = 1; i < gs - 2; i++) {
-            //    for (var j = 1; j < gs - 2; j++) {
-
-            //        var vInd0 = (i * gs + j) * 3;
-            //        var vInd1 = (i * gs + j + 1) * 3;
-            //        var vInd2 = ((i + 1) * gs + j) * 3;
-            //        var vInd3 = ((i + 1) * gs + (j + 1)) * 3;
-
-            //        var v0 = new og.math.Vector3(vertices[vInd0], vertices[vInd0 + 1], vertices[vInd0 + 2]),
-            //            v1 = new og.math.Vector3(vertices[vInd1], vertices[vInd1 + 1], vertices[vInd1 + 2]),
-            //            v2 = new og.math.Vector3(vertices[vInd2], vertices[vInd2 + 1], vertices[vInd2 + 2]),
-            //            v3 = new og.math.Vector3(vertices[vInd3], vertices[vInd3 + 1], vertices[vInd3 + 2]);
-
-            //        var e10 = og.math.Vector3.sub(v1, v0),
-            //            e20 = og.math.Vector3.sub(v2, v0),
-            //            e13 = og.math.Vector3.sub(v1, v3),
-            //            e23 = og.math.Vector3.sub(v2, v3);
-
-            //        var nw = e20.cross(e10).normalize();
-            //        var se = e13.cross(e23).normalize();
-            //        var ne = e10.cross(e13).normalize();
-            //        var sw = e23.cross(e20).normalize();
-
-            //        var n0 = og.math.Vector3.add(ne, sw);//.add(nw);
-            //        var n3 = og.math.Vector3.add(ne, sw);//.add(se);
-            //        var n1 = og.math.Vector3.add(nw, se);//.add(ne);
-            //        var n2 = og.math.Vector3.add(nw, se);//.add(sw);
-
-            //        n0.normalize();
-            //        n1.normalize();
-            //        n3.normalize();
-            //        n2.normalize();
-
-            //        normals[vInd0] += n0.x;
-            //        normals[vInd0 + 1] += n0.y;
-            //        normals[vInd0 + 2] += n0.z;
-
-            //        normals[vInd1] += n1.x;
-            //        normals[vInd1 + 1] += n1.y;
-            //        normals[vInd1 + 2] += n1.z;
-
-            //        normals[vInd2] += n2.x;
-            //        normals[vInd2 + 1] += n2.y;
-            //        normals[vInd2 + 2] += n2.z;
-
-            //        normals[vInd3] += n3.x;
-            //        normals[vInd3 + 1] += n3.y;
-            //        normals[vInd3 + 2] += n3.z;
-            //    }
-            //}
-
-            //for (var i = 0; i < normals.length; i += 3) {
-            //    var l = Math.sqrt(normals[i] * normals[i] + normals[i + 1] * normals[i + 1] + normals[i + 2] * normals[i + 2]);
-            //    normals[i] /= l;
-            //    normals[i + 1] /= l;
-            //    normals[i + 2] /= l;
-            //}
 
         } else {
 
@@ -267,9 +212,16 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
                     var vInd = (i * gs + j) * 3;
 
-                    var x = plain_verts[vInd] + h * plainNormals[vInd],
-                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+                    var x = plain_verts[vInd],
+                        y = plain_verts[vInd + 1],
+                        z = plain_verts[vInd + 2];
+
+                    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
+                    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    x += h * nx * l,
+                    y += h * ny * l,
+                    z += h * nz * l;
 
                     vertices[vInd] = x;
                     vertices[vInd + 1] = y;
@@ -283,8 +235,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         }
 
         this.deleteBuffers();
-        this.terrainNormals = normals;
-        this.createCoordsBuffers(vertices, this.terrainNormals, tgs);
+        this.createCoordsBuffers(vertices, tgs);
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
         this.terrainVertices.length = 0;
         this.terrainVertices = vertices;
@@ -318,15 +269,10 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
                         v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
                         v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
-                v = this.terrainNormals;
-                this.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
+                this.createCoordsBuffers(this.terrainVertices, 2);
                 this.gridSize = 2;
             } else {
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, this.gridSize);
+                this.createCoordsBuffers(this.terrainVertices, this.gridSize);
             }
         }
     }
@@ -341,12 +287,10 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 };
 
 og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
-    this.handler.gl.deleteBuffer(this.vertexNormalBuffer);
     this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
     this.handler.gl.deleteBuffer(this.vertexIndexBuffer);
     this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
-    this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
@@ -363,8 +307,6 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.tempVertices.length = 0;
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
-    this.plainNormals.length = 0;
-    this.terrainNormals.length = 0;
 };
 
 og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {
@@ -432,11 +374,10 @@ og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
     this.extent = null;
 };
 
-og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, normals, gridSize) {
+og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
-    this.vertexNormalBuffer = this.handler.createArrayBuffer(new Float32Array(normals), 3, gsgs);
 };
 
 og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
@@ -454,7 +395,6 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
     var verts = [];
-    var norms = [];
     var ind = 0;
     var e = this.extent;
     var lonSize = e.getWidth();
@@ -462,27 +402,15 @@ og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSiz
     var esw_lon = e.southWest.lon,
         ene_lat = e.northEast.lat;
 
-    var r2 = this.planet.ellipsoid._invRadii2;
-
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
             var v = this.planet.ellipsoid.LonLat2ECEF(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
-            var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-            verts[ind] = v.x;
-            norms[ind++] = nx * l;
-
-            verts[ind] = v.y;
-            norms[ind++] = ny * l;
-
-            verts[ind] = v.z;
-            norms[ind++] = nz * l;
+            verts[ind++] = v.x;
+            verts[ind++] = v.y;
+            verts[ind++] = v.z;
         }
     }
-
     this.plainVertices = verts;
-    this.plainNormals = norms;
 };
 
 og.planetSegment.drawSingle = function (sh, segment) {
@@ -535,11 +463,6 @@ og.planetSegment.drawOverlays = function (sh, segment) {
 og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     var gl = this.handler.gl;
     var sha = sh.attributes;
-
-    if (this.planet.lightEnabled) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexNormalBuffer);
-        gl.vertexAttribPointer(sha.aVertexNormal._pName, this.vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
