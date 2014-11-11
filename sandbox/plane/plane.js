@@ -12,7 +12,7 @@ my.Plane = function (name) {
     og.inheritance.base(this, name);
     this.vertexPositionBuffer = null;
     this.indexBuffer = null;
-    this.size = 100;
+    this.size = 30;
 
     this.light = null;
 
@@ -54,7 +54,6 @@ my.Plane.prototype.initialization = function () {
 
 
     this.normalMapHelper = new NormalMapHelper();
-    this.normalMapHelper.initialize();
 
     var that = this;
     this.normalMapHelper.createNormalMap(normals, function (canvas) {

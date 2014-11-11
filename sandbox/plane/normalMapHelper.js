@@ -8,16 +8,22 @@ goog.require('og.webgl.Framebuffer');
 
 NormalMapHelper = function (gridSize, width, height) {
     this._handler = null;
-    this._verticesBuffer;
+    this._verticesBuffer = null;
+    this._indexBuffer = null;
+    this._positionBuffer = null;
+    this._framebuffer = null;
+
     this._width = width || 128;
     this._height = height || 128;
     this._gridSize = gridSize || 33;
 
     this._counter = 0;
     this._pendingsQueue = [];
+
+    this._init();
 };
 
-NormalMapHelper.prototype.initialize = function () {
+NormalMapHelper.prototype._init = function () {
 
     var blur = og.shaderProgram.blur();
 
@@ -75,28 +81,28 @@ NormalMapHelper.prototype.initialize = function () {
 
     this._positionBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
 
-    this.framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
-    this.framebuffer.initialize();
+    this._framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
+    this._framebuffer.initialize();
 };
 
 NormalMapHelper.prototype.drawNormalMap = function (normals) {
 
-    this._normalsBuffer = this._handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
+    var _normalsBuffer = this._handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
 
-    this.framebuffer.activate();
-    this.framebuffer.clear();
+    this._framebuffer.activate();
+    this._framebuffer.clear();
 
     this._handler.shaderPrograms.normalMap.activate();
 
     this._handler.shaderPrograms.normalMap.set({
         a_position: this._verticesBuffer,
-        a_normal: this._normalsBuffer
+        a_normal: _normalsBuffer
     });
 
     this._handler.gl.bindBuffer(this._handler.gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     this._handler.gl.drawElements(this._handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, this._handler.gl.UNSIGNED_SHORT, 0);
 
-    this.framebuffer.deactivate();
+    this._framebuffer.deactivate();
 };
 
 NormalMapHelper.prototype.drawBlur = function (texture, dir, size, radius) {
@@ -130,13 +136,12 @@ NormalMapHelper.prototype._exec = function (obj) {
     var that = this;
     setTimeout(function () {
         that.drawNormalMap(obj.normals);
-        that.drawBlur(that.framebuffer.texture, [1.0, 0.0], that._width, 1);
+        that.drawBlur(that._framebuffer.texture, [1.0, 0.0], that._width, 1);
         that.drawBlur(that._handler.createTexture(that._handler.canvas), [0.0, 1.0], that._height, 1);
         obj.callback(that._handler.canvas);
         that.dequeueRequest();
     }, 0);
 };
-
 
 NormalMapHelper.prototype.dequeueRequest = function () {
     this._counter--;
@@ -151,7 +156,7 @@ NormalMapHelper.prototype.dequeueRequest = function () {
 
 NormalMapHelper.prototype.whilePendings = function () {
     while (this._pendingsQueue.length) {
-        var req = this._pendingsQueue.pop();
+        var req = this._pendingsQueue.shift();
         if (req) {
             return req;
         }
