@@ -5,7 +5,7 @@ goog.require('og.inheritance');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
 
-goog.require('NormalMapHelper');
+goog.require('og.utils.NormalMapCreatorAsync');
 
 
 my.Plane = function (name) {
@@ -53,23 +53,28 @@ my.Plane.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
 
 
-    this.normalMapHelper = new NormalMapHelper();
+    this.normalMapHelper = new og.utils.NormalMapCreatorAsync();
 
     var that = this;
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+    this.normalMapHelper.drawAsync(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        console.log(1);
     });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+    this.normalMapHelper.drawAsync(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        console.log(2);
     });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+    this.normalMapHelper.drawAsync(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        console.log(3);
     });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+    this.normalMapHelper.drawAsync(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        console.log(4);
     });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
+    this.normalMapHelper.drawAsync(normals, function (canvas) {
         that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        console.log(5);
     });
 };
 
@@ -90,6 +95,7 @@ my.Plane.prototype.createBuffers = function () {
 
 
     vertices = [];
+    vertices0 = [];
 
     var step = 1;
     var size = 32;
@@ -100,9 +106,14 @@ my.Plane.prototype.createBuffers = function () {
                 y = (size) * step - i * step,
                 z = Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
 
+            var z0 = 0;
+
             vertices.push(x * this.size * 20, y * this.size * 20, z);
+            vertices0.push(x * this.size * 20, y * this.size * 20, z0);
         }
     }
+
+    vertices0 = vertices;
 
     var gs = size + 1;
     normals = new Float64Array(gs * gs * 3);
@@ -168,7 +179,7 @@ my.Plane.prototype.createBuffers = function () {
 
     var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
 
-    this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
+    this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices0), 3, vertices0.length / 3);
     //this.normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
     this.textureCoordBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords), 2, textureCoords.length / 2);
     this.indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(vertexIndices), 1, vertexIndices.length);
