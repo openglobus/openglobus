@@ -21,6 +21,9 @@ og.planetSegment.PlanetSegment = function () {
     this._projection = og.proj.EPSG3857;
     this.plainVertices = [];
     this.terrainVertices = [];
+    this.plainNormals = [];
+    this.terrainNormals = [];
+    this.normalMap = null;
     this.tempVertices = [];
     this.plainIndexes = [];
     this.bbox = new og.bv.Box();
@@ -154,25 +157,15 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                 for (var j = 0; j < gs; j++) {
                     var vInd = (i * gs + j) * 3;
                     var h = hf * elevations[i * dgs * (fileGridSize + 1) + j * dgs];
+                    var c = this.planet.ellipsoid.getCartesianHeight(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2], h);
 
-                    var x = plain_verts[vInd],
-                        y = plain_verts[vInd + 1],
-                        z = plain_verts[vInd + 2];
+                    vertices[vInd] = c.x;
+                    vertices[vInd + 1] = c.y;
+                    vertices[vInd + 2] = c.z;
 
-                    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
-                    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-                    x += h * nx * l,
-                    y += h * ny * l,
-                    z += h * nz * l;
-
-                    vertices[vInd] = x;
-                    vertices[vInd + 1] = y;
-                    vertices[vInd + 2] = z;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                    if (c.x < xmin) xmin = c.x; if (c.x > xmax) xmax = c.x;
+                    if (c.y < ymin) ymin = c.y; if (c.y > ymax) ymax = c.y;
+                    if (c.z < zmin) zmin = c.z; if (c.z > zmax) zmax = c.z;
                 }
             }
 
@@ -211,25 +204,15 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     }
 
                     var vInd = (i * gs + j) * 3;
+                    var c = this.planet.ellipsoid.getCartesianHeight(plain_verts[vInd], plain_verts[vInd + 1], plain_verts[vInd + 2], h);
 
-                    var x = plain_verts[vInd],
-                        y = plain_verts[vInd + 1],
-                        z = plain_verts[vInd + 2];
+                    vertices[vInd] = c.x;
+                    vertices[vInd + 1] = c.y;
+                    vertices[vInd + 2] = c.z;
 
-                    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
-                    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-                    x += h * nx * l,
-                    y += h * ny * l,
-                    z += h * nz * l;
-
-                    vertices[vInd] = x;
-                    vertices[vInd + 1] = y;
-                    vertices[vInd + 2] = z;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                    if (c.x < xmin) xmin = c.x; if (c.x > xmax) xmax = c.x;
+                    if (c.y < ymin) ymin = c.y; if (c.y > ymax) ymax = c.y;
+                    if (c.z < zmin) zmin = c.z; if (c.z > zmax) zmax = c.z;
                 }
             }
         }

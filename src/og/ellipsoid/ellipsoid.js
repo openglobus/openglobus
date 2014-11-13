@@ -65,6 +65,16 @@ og.Ellipsoid.prototype.ECEF2LonLat = function (cartesian) {
     return new og.LonLat(lon, lat, h);
 };
 
-og.Ellipsoid.prototype.getSurfaceNormal = function (cartesian) {
-    return og.math.Vector3.mull(cartesian, this._invRadii2).normalize();
+og.Ellipsoid.prototype.getSurfaceNormal = function (x, y, z) {
+    var r2 = this._invRadii2;
+    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
+    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+    return new og.math.Vector3(nx * l, ny * l, nz * l);
+};
+
+og.Ellipsoid.prototype.getCartesianHeight = function (x, y, z, h) {
+    var r2 = this._invRadii2;
+    var nx = x * r2.x, ny = y * r2.y, nz = z * r2.z;
+    var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+    return new og.math.Vector3(x + h * nx * l, y + h * ny * l, z + h * nz * l);
 };
