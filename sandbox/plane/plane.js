@@ -86,6 +86,7 @@ my.Plane.prototype.createBuffers = function () {
 
 
     vertices = [];
+    vertices0 = [];
 
     var step = 1;
     var size = 32;
@@ -96,9 +97,14 @@ my.Plane.prototype.createBuffers = function () {
                 y = (size) * step - i * step,
                 z = 0;//Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
 
+            var z0 = 0;
+
             vertices.push(x * this.size * 20, y * this.size * 20, z);
+            vertices0.push(x * this.size * 20, y * this.size * 20, z0);
         }
     }
+
+    vertices0 = vertices;
 
     var gs = size + 1;
     normals = new Float64Array(gs * gs * 3);
@@ -164,7 +170,7 @@ my.Plane.prototype.createBuffers = function () {
 
     var textureCoords = og.planetSegment.PlanetSegmentHelper.textureCoordsTable[size];
 
-    this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
+    this.positionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices0), 3, vertices0.length / 3);
     //this.normalBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
     this.textureCoordBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords), 2, textureCoords.length / 2);
     this.indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(vertexIndices), 1, vertexIndices.length);
