@@ -18,16 +18,15 @@ og.layer.Layer = function (name, options) {
     this.events = new og.Events();
     this.events.registerNames(["onload", "onloadend", "onvisibilitychanged"]);
 
-    if (options) {
-        this.isBaseLayer = options.isBaseLayer ? options.isBaseLayer : false;
-        this.numZoomLevels = options.numZoomLevels ? options.numZoomLevels : -1;
-        this.url = options.url ? options.url : "";
-        this.visibility = options.visibility ? options.visibility : false;
-        this.opacity = options.opacity ? options.opacity : og.layer.DEFAILT_OPACITY;
-        this.transparentColor = options.transparentColor ? options.transparentColor : [-1.0, -1.0, -1.0];
-        this.zIndex = options.zIndex ? options.zIndex : og.layer.DEFAILT_Z_INDEX;
-        this._attribution = options.attribution || "";
-    }
+    options = options || {};
+    this.isBaseLayer = options.isBaseLayer || false;
+    this.numZoomLevels = options.numZoomLevels || -1;
+    this.url = options.url || "";
+    this.visibility = options.visibility || false;
+    this.opacity = options.opacity || og.layer.DEFAILT_OPACITY;
+    this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
+    this.zIndex = options.zIndex || og.layer.DEFAILT_Z_INDEX;
+    this._attribution = options.attribution || "";
 
     this.id = og.layer.layersCounter++;
 

@@ -13,9 +13,14 @@ og.layer.CanvasTiles = function (name, options) {
 
 og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
 
+
 og.layer.CanvasTiles.prototype.handleSegmentTile = function (material) {
-    var imageCanvas = new og.imageCanvas(this.width, this.height);
-    this.drawTile && this.drawTile(imageCanvas, material);
-    material.imageReady = false;
-    material.applyTexture(imageCanvas.getImage());
+    if (this.drawTile) {
+        this.drawTile(material, function (canvas) {
+            material.imageReady = false;
+            material.applyTexture(canvas);
+        });
+    } else {
+        material.textureNotExists();
+    }
 };
