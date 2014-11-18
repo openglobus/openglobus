@@ -5,7 +5,7 @@ goog.require('og.inheritance');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
 
-goog.require('NormalMapHelper');
+goog.require('og.utils.NormalMapCreatorAsync');
 
 
 my.Plane = function (name) {
@@ -53,24 +53,20 @@ my.Plane.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
 
 
-    this.normalMapHelper = new NormalMapHelper();
+    this.normalMapHelper = new og.utils.NormalMapCreatorAsync();
 
     var that = this;
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
-        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
-        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
-        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
-        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    });
-    this.normalMapHelper.createNormalMap(normals, function (canvas) {
-        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    });
+    //var segment = {
+    //    terrainNormals: normals, createNormalMap: function (canvas) {
+    //        that.normalsTexture = that.renderer.handler.createTexture(canvas);
+    //    }
+    //};
+    //this.normalMapHelper.drawAsync(segment);
+    var img = new Image();
+    img.onload = function () {
+        that.normalsTexture = that.renderer.handler.createTexture(this);
+    };
+    img.src = "n_blur.png"
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {
@@ -98,7 +94,7 @@ my.Plane.prototype.createBuffers = function () {
         for (var j = 0; j <= size; j++) {
             var x = j * step,
                 y = (size) * step - i * step,
-                z = Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
+                z = 0;//Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
 
             vertices.push(x * this.size * 20, y * this.size * 20, z);
         }
