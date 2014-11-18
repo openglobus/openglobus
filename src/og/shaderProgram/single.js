@@ -29,6 +29,7 @@ og.shaderProgram.single_wl = function () {
             uNMatrix: { type: og.shaderProgram.types.MAT3 },
             texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
+            uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
 
             pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },

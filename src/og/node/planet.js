@@ -26,6 +26,7 @@ goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.light.PointLight');
+goog.require('og.utils.NormalMapCreatorAsync');
 
 
 og.node.Planet = function (name, ellipsoid) {
@@ -60,6 +61,8 @@ og.node.Planet = function (name, ellipsoid) {
     this.defaultTexture = null;
 
     this.sunlight = null;
+
+    this.normalMapCreator = null;
 };
 
 og.node.Planet.SUN_DISTANCE = 149600000000;
@@ -267,6 +270,12 @@ og.node.Planet.prototype.initialization = function () {
     this.sunlight.setSpecular(new og.math.Vector3(0.01, 0.01, 0.009));
     this.sunlight.setShininess(8);
     this.sunlight.addTo(this);
+
+    this.normalMapCreator = new og.utils.NormalMapCreatorAsync();
+
+    var that = this;
+    this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled;}, og.input.KEY_L);
+    this.renderer.events.on("onkeypressed", this, function () { that.sunlight._position = that.renderer.activeCamera.eye; }, og.input.KEY_V);
 };
 
 og.node.Planet.prototype.clearAttributionsList = function () {

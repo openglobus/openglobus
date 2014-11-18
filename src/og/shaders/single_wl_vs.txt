@@ -9,9 +9,10 @@ uniform mat4 uMVMatrix;
 uniform mat3 uNMatrix;
 uniform vec3 texBias;
 
-varying vec2 vTextureCoord;
-varying vec3 vTransformedNormal;
+varying vec4 vTextureCoord;
+varying vec3 vNormal;
 varying vec4 vPosition;
+varying mat3 v_NMatrix;
 
 const float C = 0.1;
 const float far = 149.6e+9;
@@ -21,6 +22,8 @@ void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
     gl_Position = uPMatrix * vPosition;
     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-    vTransformedNormal = uNMatrix * normalize(aVertexNormal);
-    vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
+    vNormal = aVertexNormal;
+	v_NMatrix = uNMatrix;
+    vTextureCoord.xy = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
+    vTextureCoord.zw = aTextureCoord;
 }

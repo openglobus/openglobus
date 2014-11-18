@@ -1,6 +1,7 @@
 goog.require('og.Globus');
 goog.require('og.layer.XYZ');
 goog.require('og.layer.WMS');
+goog.require('og.layer.CanvasTiles');
 goog.require('og.terrainProvider.TerrainProvider');
 goog.require('og.node.SkyBox');
 goog.require('og.control.MouseNavigation');
@@ -12,8 +13,17 @@ goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ShowFps');
 goog.require('og.control.ZoomControl');
 
+goog.require('og.ImageCanvas');
+
 function start() {
     og.webgl.MAX_FRAME_DELAY = 15;
+
+    var empty = new og.layer.CanvasTiles("Empty", { isBaseLayer: true });
+    empty.drawTile = function (material, applyCanvas) {
+        var imgCnv = new og.ImageCanvas();
+        imgCnv.fillColor("#c6c6c6");
+        applyCanvas(imgCnv._canvas);
+    };
 
     var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
     var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true, zIndex: 1, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
@@ -64,7 +74,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [satlayer, layer, states, countries, ne, pop, hyb],
+        "layers": [satlayer, layer, empty, states, countries, ne, pop, hyb],
         "autoActivated": true
     });
 
