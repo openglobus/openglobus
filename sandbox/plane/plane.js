@@ -56,17 +56,17 @@ my.Plane.prototype.initialization = function () {
     this.normalMapHelper = new og.utils.NormalMapCreatorAsync();
 
     var that = this;
-    //var segment = {
-    //    terrainNormals: normals, createNormalMap: function (canvas) {
-    //        that.normalsTexture = that.renderer.handler.createTexture(canvas);
-    //    }
-    //};
-    //this.normalMapHelper.drawAsync(segment);
-    var img = new Image();
-    img.onload = function () {
-        that.normalsTexture = that.renderer.handler.createTexture(this);
+    var segment = {
+        terrainNormals: normals, createNormalMap: function (canvas) {
+            that.normalsTexture = that.renderer.handler.createTexture(canvas);
+        }
     };
-    img.src = "n_blur.png"
+    this.normalMapHelper.drawAsync(segment);
+    //var img = new Image();
+    //img.onload = function () {
+    //    that.normalsTexture = that.renderer.handler.createTexture(this);
+    //};
+    //img.src = "n_blur.png"
 };
 
 my.Plane.prototype.toogleWireframe = function (e) {
@@ -95,7 +95,7 @@ my.Plane.prototype.createBuffers = function () {
         for (var j = 0; j <= size; j++) {
             var x = j * step,
                 y = (size) * step - i * step,
-                z = 0;//Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
+                z = Math.sin(1 * x / 2) * Math.cos(1 * y / 2) * 8600;
 
             var z0 = 0;
 
