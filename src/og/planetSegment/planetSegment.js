@@ -68,6 +68,7 @@ og.planetSegment.PlanetSegment = function () {
 };
 
 og.planetSegment.PlanetSegment.RATIO_LOD = 1.12;
+//og.planetSegment.PlanetSegment.RATIO_LOD = 1.8;//the best for lighting
 
 og.planetSegment.PlanetSegment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;

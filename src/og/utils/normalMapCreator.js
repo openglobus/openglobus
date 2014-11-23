@@ -95,37 +95,50 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
 
     var _normalsBuffer = this._handler.createArrayBuffer(new Float32Array(normals), 3, size);
 
-    this._framebuffer.activate();
-    this._framebuffer.clear();
+    var f = this._framebuffer;
+    var p = this._handler.shaderPrograms.normalMap;
+    var gl = this._handler.gl;
+    var sha = p._program.attributes;
 
-    this._handler.shaderPrograms.normalMap.activate();
+    p.activate();
 
-    this._handler.shaderPrograms.normalMap.set({
-        a_position: this._verticesBufferArray[gridSize],
-        a_normal: _normalsBuffer
-    });
+    f.activate();
+    f.clear();
 
-    this._handler.gl.bindBuffer(this._handler.gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-    this._handler.gl.drawElements(this._handler.gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, this._handler.gl.UNSIGNED_SHORT, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
+    gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
 
-    this._framebuffer.deactivate();
+    gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
+    gl.vertexAttribPointer(sha.a_normal._pName, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
+    gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
+
+    f.deactivate();
 };
 
 og.utils.NormalMapCreator.prototype._drawBlur = function (texture, dir, size, radius) {
 
     this._handler.clearFrame();
 
-    this._handler.shaderPrograms.blur.activate();
+    var gl = this._handler.gl;
+    var p  = this._handler.shaderPrograms.blur;
+    var sha = p._program.attributes,
+        shu = p._program.uniforms;
 
-    this._handler.shaderPrograms.blur.set({
-        a_position: this._positionBuffer,
-        u_texture: texture,
-        resolution: size,
-        radius: radius,
-        dir: dir
-    });
+    p.activate();
 
-    this._handler.shaderPrograms.blur.drawArray(this._handler.gl.TRIANGLE_STRIP, this._positionBuffer.numItems);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+    gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(shu.u_texture._pName, 0);
+    gl.uniform1f(shu.resolution._pName, size);
+    gl.uniform1f(shu.radius._pName, radius);
+    gl.uniform2fv(shu.dir._pName, dir);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
