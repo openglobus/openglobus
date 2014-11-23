@@ -24,8 +24,8 @@ og.utils.NormalMapCreatorAsync.prototype._exec = function (segment) {
     this._counter++;
     var that = this;
     setTimeout(function () {
-        var cnv = that.draw(segment.terrainNormals);
-        segment.createNormalMap(cnv);
+        var cnv = that.draw(segment.normalMapNormals);
+        segment.createNormalMapTexture(cnv);
         that._dequeueRequest();
     }, 0);
 };

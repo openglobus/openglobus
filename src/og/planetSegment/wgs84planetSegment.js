@@ -56,8 +56,8 @@ og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoom
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gridSize) {
-    var verts = [];
-    var norms = [];
+    var verts = this.plainVertices;
+    var norms = this.plainNormals;
     var ind = 0;
     var e = this.extent;
     var lonSize = e.getWidth();
@@ -84,8 +84,9 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gr
             norms[ind++] = nz * l;
         }
     }
-    this.plainVertices = verts;
-    this.plainNormals = norms;
+    this.normalMapVertices = verts;
+    this.normalMapNormals = norms;
+    this.normalMapTexture = this.planet.transparentTexture;
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function () {
