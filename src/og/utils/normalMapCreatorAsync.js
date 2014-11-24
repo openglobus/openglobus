@@ -44,7 +44,9 @@ og.utils.NormalMapCreatorAsync.prototype._dequeueRequest = function () {
 og.utils.NormalMapCreatorAsync.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         var req = this._pendingsQueue.shift();
-        if (req.terrainNormals.length) {
+        //node visibility controled by terrainProvider, 
+        //therefore I needn't NOTRENDERING node verification.
+        if (req.normalMapNormals.length) {
             return req;
         }
     }
