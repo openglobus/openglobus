@@ -211,30 +211,24 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     var ne = e30.cross(e10);//.normalize();
 
                     var n0 = og.math.Vector3.add(ne, sw);
-                    var n3 = og.math.Vector3.add(ne, sw);
-                    var n1 = og.math.Vector3.add(ne, sw);
-                    var n2 = og.math.Vector3.add(ne, sw);
 
                     //n0.normalize();
-                    //n1.normalize();
-                    //n3.normalize();
-                    //n2.normalize();
 
                     normalMapNormals[vInd0] += n0.x;
                     normalMapNormals[vInd0 + 1] += n0.y;
                     normalMapNormals[vInd0 + 2] += n0.z;
 
-                    normalMapNormals[vInd1] += n1.x;
-                    normalMapNormals[vInd1 + 1] += n1.y;
-                    normalMapNormals[vInd1 + 2] += n1.z;
+                    normalMapNormals[vInd1] += n0.x;
+                    normalMapNormals[vInd1 + 1] += n0.y;
+                    normalMapNormals[vInd1 + 2] += n0.z;
 
-                    normalMapNormals[vInd2] += n2.x;
-                    normalMapNormals[vInd2 + 1] += n2.y;
-                    normalMapNormals[vInd2 + 2] += n2.z;
+                    normalMapNormals[vInd2] += n0.x;
+                    normalMapNormals[vInd2 + 1] += n0.y;
+                    normalMapNormals[vInd2 + 2] += n0.z;
 
-                    normalMapNormals[vInd3] += n3.x;
-                    normalMapNormals[vInd3 + 1] += n3.y;
-                    normalMapNormals[vInd3 + 2] += n3.z;
+                    normalMapNormals[vInd3] += n0.x;
+                    normalMapNormals[vInd3 + 1] += n0.y;
+                    normalMapNormals[vInd3 + 2] += n0.z;
                 }
             }
         } else {
