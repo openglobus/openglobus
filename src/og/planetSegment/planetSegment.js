@@ -153,13 +153,14 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
         var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
         var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
-        var fileGridSize = this.planet.terrainProvider.fileGridSize || Math.sqrt(elevations.length) - 1;
+        var fileGridSize = this.planet.terrainProvider.fileGridSize || (Math.sqrt(elevations.length) - 1);
+        var fileGridSize_one = fileGridSize + 1;
         var gs = tgs + 1;
         var hf = this.planet.heightFactor;
         var plain_verts = this.plainVertices;
         var vertices = [];
         var normalMapVertices = [];
-        var dgs = fileGridSize / tgs;
+
         var plainNormals = this.plainNormals;
 
         var nmvInd = 0;
@@ -167,8 +168,8 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         var dg = 32 / tgs;
 
         if (fileGridSize >= tgs) {
-            for (var i = 0; i < 33; i++) {
-                for (var j = 0; j < 33; j++) {
+            for (var i = 0; i < fileGridSize_one; i++) {
+                for (var j = 0; j < fileGridSize_one; j++) {
                     var h = hf * elevations[Math.round(nmvInd / 3)];
                     var x = this.normalMapVertices[nmvInd] + h * this.normalMapNormals[nmvInd],
                         y = this.normalMapVertices[nmvInd + 1] + h * this.normalMapNormals[nmvInd + 1],
@@ -190,15 +191,15 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                 }
             }
 
-            var normalMapNormals = new Float64Array(33 * 33 * 3);
+            var normalMapNormals = new Float64Array(fileGridSize_one * fileGridSize_one * 3);
 
-            for (var i = 0; i < 33 - 1; i++) {
-                for (var j = 0; j < 33 - 1; j++) {
+            for (var i = 0; i < fileGridSize_one - 1; i++) {
+                for (var j = 0; j < fileGridSize_one - 1; j++) {
 
-                    var vInd0 = (i * 33 + j) * 3;
-                    var vInd1 = (i * 33 + j + 1) * 3;
-                    var vInd2 = ((i + 1) * 33 + j) * 3;
-                    var vInd3 = ((i + 1) * 33 + (j + 1)) * 3;
+                    var vInd0 = (i * fileGridSize_one + j) * 3;
+                    var vInd1 = (i * fileGridSize_one + j + 1) * 3;
+                    var vInd2 = ((i + 1) * fileGridSize_one + j) * 3;
+                    var vInd3 = ((i + 1) * fileGridSize_one + (j + 1)) * 3;
 
                     var v0 = new og.math.Vector3(normalMapVertices[vInd0], normalMapVertices[vInd0 + 1], normalMapVertices[vInd0 + 2]),
                         v1 = new og.math.Vector3(normalMapVertices[vInd1], normalMapVertices[vInd1 + 1], normalMapVertices[vInd1 + 2]),
@@ -271,10 +272,10 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                         v_j = Math.floor(j / oneSize);
                     }
 
-                    var hvlt = elevations[v_i * (fileGridSize + 1) + v_j],
-                        hvrt = elevations[v_i * (fileGridSize + 1) + v_j + 1],
-                        hvlb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j],
-                        hvrb = elevations[(v_i + 1) * (fileGridSize + 1) + v_j + 1];
+                    var hvlt = elevations[v_i * fileGridSize_one + v_j],
+                        hvrt = elevations[v_i * fileGridSize_one + v_j + 1],
+                        hvlb = elevations[(v_i + 1) * fileGridSize_one + v_j],
+                        hvrb = elevations[(v_i + 1) * fileGridSize_one + v_j + 1];
 
                     if (inside_i + inside_j < oneSize) {
                         h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
@@ -301,15 +302,15 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
         this.normalMapNormals = normalMapNormals;
         this.normalMapVertices = normalMapVertices;
-
-        this.deleteBuffers();
         //this.terrainNormals = normals;
         this.terrainNormals = this.plainNormals;
+        this.terrainVertices.length = 0;
+        this.terrainVertices = vertices;
+
+        this.deleteBuffers();
         this.planet.normalMapCreator.drawAsync(this);
         this.createCoordsBuffers(vertices, this.terrainNormals, tgs);
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-        this.terrainVertices.length = 0;
-        this.terrainVertices = vertices;
         this.gridSize = tgs;
         this.terrainReady = true;
         this.terrainIsLoading = false;
@@ -368,10 +369,11 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 };
 
 og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
-    this.handler.gl.deleteBuffer(this.vertexNormalBuffer);
-    this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
-    this.handler.gl.deleteBuffer(this.vertexIndexBuffer);
-    this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
+    var gl = this.handler.gl;
+    gl.deleteBuffer(this.vertexNormalBuffer);
+    gl.deleteBuffer(this.vertexPositionBuffer);
+    gl.deleteBuffer(this.vertexIndexBuffer);
+    gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;

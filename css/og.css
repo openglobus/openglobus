@@ -38,7 +38,7 @@
 }
 
 .ogAttribution {
-    /*background: rgba(255, 255, 255, 0.63);*/
+    /*background: rgba(255, 255, 255, 0.8);*/
     text-align: right;
     bottom: 0;
     right: 0;
@@ -53,10 +53,6 @@
         vertical-align: middle;
         border: 0;
         -ms-interpolation-mode: bicubic;
-    }
-
-    .ogAttribution:hover {
-        background: rgba(255, 255, 255, 0.8);
     }
 
     .ogAttribution ul {
