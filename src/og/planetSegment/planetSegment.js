@@ -237,15 +237,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     normalMapNormals[vInd3 + 2] += n3.z;
                 }
             }
-
-
-            for (var i = 0; i < normalMapNormals.length; i += 3) {
-                var l = Math.sqrt(normalMapNormals[i] * normalMapNormals[i] + normalMapNormals[i + 1] * normalMapNormals[i + 1] + normalMapNormals[i + 2] * normalMapNormals[i + 2]);
-                normalMapNormals[i] /= l;
-                normalMapNormals[i + 1] /= l;
-                normalMapNormals[i + 2] /= l;
-            }
-
         } else {
 
             var plain_verts = this.plainVertices;

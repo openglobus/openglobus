@@ -36,7 +36,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
                       void main() { \
                           gl_PointSize = 1.0; \
                           gl_Position = vec4(a_position, 0, 1); \
-                          v_color = a_normal * 0.5 + 0.5; \
+                          v_color = normalize(a_normal) * 0.5 + 0.5; \
                       }",
         fragmentShader: "precision mediump float; \
                         \
