@@ -190,8 +190,8 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                 }
             }
 
-            for (var i = 0; i < fileGridSize_one - 1; i++) {
-                for (var j = 0; j < fileGridSize_one - 1; j++) {
+            for (var i = 0; i < fileGridSize; i++) {
+                for (var j = 0; j < fileGridSize; j++) {
 
                     var vInd0 = (i * fileGridSize_one + j) * 3;
                     var vInd1 = (i * fileGridSize_one + j + 1) * 3;
@@ -231,12 +231,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     normalMapNormals[vInd3 + 2] += n0.z;
                 }
             }
-
-            //function _n(n) {
-            //    return n ? n.planetSegment.terrainReady : "false";
-            //}
-            //console.log(this.node.nodeId + ": " + _n(this.node.neighbors[og.quadTree.N]) + ", " + _n(this.node.neighbors[og.quadTree.E]) + ", " +
-            //            _n(this.node.neighbors[og.quadTree.S]) + ", " + _n(this.node.neighbors[og.quadTree.W]));
 
         } else {
 
@@ -316,6 +310,13 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
     if (this.normalMapNormals.length) {
+
+        //function _n(n) {
+        //    return n ? n.planetSegment.terrainReady : "false";
+        //}
+        //console.log(this.node.nodeId + ": " + _n(this.node.neighbors[og.quadTree.N]) + ", " + _n(this.node.neighbors[og.quadTree.E]) + ", " +
+        //            _n(this.node.neighbors[og.quadTree.S]) + ", " + _n(this.node.neighbors[og.quadTree.W]));
+
         var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
         this.normalMapTexture = this.handler.createTexture(cnv);
         this.normalMapReady = true;
