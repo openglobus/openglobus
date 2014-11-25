@@ -26,7 +26,7 @@ goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.light.PointLight');
-goog.require('og.utils.NormalMapCreatorAsync');
+goog.require('og.planetSegment.NormalMapCreatorQueue');
 
 
 og.node.Planet = function (name, ellipsoid) {
@@ -271,7 +271,7 @@ og.node.Planet.prototype.initialization = function () {
     this.sunlight.setShininess(8);
     this.sunlight.addTo(this);
 
-    this.normalMapCreator = new og.utils.NormalMapCreatorAsync();
+    this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue();
 
     var that = this;
     this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled;}, og.input.KEY_L);
