@@ -23,8 +23,8 @@ og.quadTree.QuadNode = function (planetSegmentPrototype) {
     this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
     this.sideSize = [0, 0, 0, 0];
-    this.hasNeighbor = [];
-    this.neighbors = [];
+    this.hasNeighbor = [false, false, false, false];
+    this.neighbors = [null, null, null, null];
     this.cameraInside = false;
 
     this.planetSegmentPrototype = planetSegmentPrototype;
@@ -49,44 +49,6 @@ og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, part
     node.createBounds();
     node.planet.createdNodesCount++;
     return node;
-};
-
-og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
-    var a = this.planetSegment.extent,
-        b = node.planetSegment.extent;
-    var a_ne = a.northEast, a_sw = a.southWest,
-        b_ne = b.northEast, b_sw = b.southWest;
-    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
-
-    var POLE = og.mercator.POLE,
-        MAX_LAT = og.mercator.MAX_LAT;
-
-    if (a_ne_lon == b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return og.quadTree.E;
-    } else if (a_sw_lon == b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return og.quadTree.W;
-    } else if (a_ne_lat == b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return og.quadTree.N;
-    } else if (a_sw_lat == b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return og.quadTree.S;
-    } else if (a_ne_lon == POLE && b_sw_lon == -POLE) {
-        return og.quadTree.E;
-    } else if (a_sw.lon == -POLE && b_ne.lon == POLE) {
-        return og.quadTree.W;
-    }
-        //Poles and mercator nodes common side.
-    else if (a_ne_lat == POLE && b_sw_lat == MAX_LAT) {
-        return og.quadTree.N;
-    } else if (a_sw_lat == -POLE && b_ne_lat == -MAX_LAT) {
-        return og.quadTree.S;
-    }
-
-    return -1;
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function () {
@@ -343,6 +305,10 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
         var cs = node.getCommonSide(ni);
         if (cs != -1) {
             var opcs = og.quadTree.OPSIDE[cs];
+
+            node.neighbors[cs] = ni;
+            ni.neighbors[opcs] = node;
+
             if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
                 var ap = node.planetSegment;
                 var bp = ni.planetSegment;
@@ -350,9 +316,6 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
 
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
-
-                node.neighbors[cs] = ni;
-                ni.neighbors[opcs] = node;
 
                 if (ld > 1) {
                     node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
@@ -369,6 +332,44 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
         }
     }
     nodes.push(node);
+};
+
+og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
+    var a = this.planetSegment.extent,
+        b = node.planetSegment.extent;
+    var a_ne = a.northEast, a_sw = a.southWest,
+        b_ne = b.northEast, b_sw = b.southWest;
+    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+
+    var POLE = og.mercator.POLE,
+        MAX_LAT = og.mercator.MAX_LAT;
+
+    if (a_ne_lon == b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        return og.quadTree.E;
+    } else if (a_sw_lon == b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        return og.quadTree.W;
+    } else if (a_ne_lat == b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return og.quadTree.N;
+    } else if (a_sw_lat == b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return og.quadTree.S;
+    } else if (a_ne_lon == POLE && b_sw_lon == -POLE) {
+        return og.quadTree.E;
+    } else if (a_sw.lon == -POLE && b_ne.lon == POLE) {
+        return og.quadTree.W;
+    }
+        //Poles and mercator nodes common side.
+    else if (a_ne_lat == POLE && b_sw_lat == MAX_LAT) {
+        return og.quadTree.N;
+    } else if (a_sw_lat == -POLE && b_ne_lat == -MAX_LAT) {
+        return og.quadTree.S;
+    }
+
+    return -1;
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {

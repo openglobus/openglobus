@@ -207,24 +207,22 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                         e20 = og.math.Vector3.sub(v2, v0),
                         e30 = og.math.Vector3.sub(v3, v0);
 
-                    var sw = e20.cross(e30);//.normalize();
-                    var ne = e30.cross(e10);//.normalize();
+                    var sw = e20.cross(e30).normalize();
+                    var ne = e30.cross(e10).normalize();
 
-                    var n0 = og.math.Vector3.add(ne, sw);
-
-                    //n0.normalize();
+                    var n0 = og.math.Vector3.add(ne, sw).normalize();
 
                     normalMapNormals[vInd0] += n0.x;
                     normalMapNormals[vInd0 + 1] += n0.y;
                     normalMapNormals[vInd0 + 2] += n0.z;
 
-                    normalMapNormals[vInd1] += n0.x;
-                    normalMapNormals[vInd1 + 1] += n0.y;
-                    normalMapNormals[vInd1 + 2] += n0.z;
+                    normalMapNormals[vInd1] += ne.x;
+                    normalMapNormals[vInd1 + 1] += ne.y;
+                    normalMapNormals[vInd1 + 2] += ne.z;
 
-                    normalMapNormals[vInd2] += n0.x;
-                    normalMapNormals[vInd2 + 1] += n0.y;
-                    normalMapNormals[vInd2 + 2] += n0.z;
+                    normalMapNormals[vInd2] += sw.x;
+                    normalMapNormals[vInd2 + 1] += sw.y;
+                    normalMapNormals[vInd2 + 2] += sw.z;
 
                     normalMapNormals[vInd3] += n0.x;
                     normalMapNormals[vInd3 + 1] += n0.y;
@@ -308,14 +306,46 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
     }
 };
 
+og.planetSegment.PlanetSegment.prototype.equalZoomSum = function (neighborId, i_a, vert) {
+    if (this.node.neighbors[neighborId] &&
+        this.node.neighbors[neighborId].planetSegment.terrainReady &&
+        this.zoomIndex == this.node.neighbors[neighborId].planetSegment.zoomIndex) {
+
+        var size = this.planet.terrainProvider.fileGridSize;
+        var i_b = size - i_a;
+
+        var seg_a = this.normalMapNormals,
+            seg_b = this.node.neighbors[neighborId].planetSegment.normalMapNormals;
+
+        if (vert) {
+            for (var k = 0 ; k <= size; k++) {
+                var vInd_a = (k * (size + 1) + i_a) * 3,
+                    vInd_b = (k * (size + 1) + i_b) * 3;
+
+                seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+            }
+        } else {
+            for (var k = 0 ; k <= size; k++) {
+                var vInd_a = (i_a * (size + 1) + k) * 3,
+                    vInd_b = (i_b * (size + 1) + k) * 3;
+
+                seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+            }
+        }
+    }
+};
+
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
     if (this.normalMapNormals.length) {
 
-        //function _n(n) {
-        //    return n ? n.planetSegment.terrainReady : "false";
-        //}
-        //console.log(this.node.nodeId + ": " + _n(this.node.neighbors[og.quadTree.N]) + ", " + _n(this.node.neighbors[og.quadTree.E]) + ", " +
-        //            _n(this.node.neighbors[og.quadTree.S]) + ", " + _n(this.node.neighbors[og.quadTree.W]));
+        this.equalZoomSum(og.quadTree.N, 0);
+        this.equalZoomSum(og.quadTree.S, 32);
+        this.equalZoomSum(og.quadTree.W, 0, true);
+        this.equalZoomSum(og.quadTree.E, 32, true);
 
         var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
         this.normalMapTexture = this.handler.createTexture(cnv);
@@ -603,7 +633,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
 
     this._setVIb();
     sh.drawIndexBuffer(this.planet.drawMode, this._vib);
-    this.node.hasNeighbor.length = 0;
+    this.node.hasNeighbor = [false, false, false, false];
 };
 
 og.planetSegment.PlanetSegment.prototype._setVIb = function () {
@@ -634,6 +664,6 @@ og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
         sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._vib);
 
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
-        this.node.hasNeighbor.length = 0;
+        //this.node.hasNeighbor = [false, false, false, false];
     }
 };
