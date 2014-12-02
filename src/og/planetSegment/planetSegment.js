@@ -55,6 +55,7 @@ og.planetSegment.PlanetSegment = function () {
 
     this.materials = [];
 
+    this._inTheQueue = false;
     this.normalMapReady = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
@@ -342,6 +343,18 @@ og.planetSegment.PlanetSegment.prototype.equalZoomSum = function (neighborId, i_
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
     if (this.normalMapNormals.length) {
 
+        var tr = { terrainReady: true };
+        var nb = this.node.neighbors;
+        var nn = nb[og.quadTree.N] ? nb[og.quadTree.N].planetSegment.terrainReady : true,
+            en = nb[og.quadTree.E] ? nb[og.quadTree.E].planetSegment.terrainReady : true,
+            sn = nb[og.quadTree.S] ? nb[og.quadTree.S].planetSegment.terrainReady : true,
+            wb = nb[og.quadTree.W] ? nb[og.quadTree.W].planetSegment.terrainReady : true;
+
+        if (!nn || !en || !sn || !wb) {
+            this.planet.normalMapCreator.shift(this);
+            return;
+        }
+
         this.equalZoomSum(og.quadTree.N, 0);
         this.equalZoomSum(og.quadTree.S, 32);
         this.equalZoomSum(og.quadTree.W, 0, true);
@@ -416,6 +429,7 @@ og.planetSegment.PlanetSegment.prototype.clearBuffers = function () {
 };
 
 og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
+    this._inTheQueue = false;
     this.normalMapReady = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;

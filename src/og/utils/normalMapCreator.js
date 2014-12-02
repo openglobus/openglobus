@@ -117,7 +117,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     f.deactivate();
 };
 
-og.utils.NormalMapCreator.prototype._drawBlur = function (texture, dir, size, radius) {
+og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
     this._handler.clearFrame();
 
@@ -128,23 +128,26 @@ og.utils.NormalMapCreator.prototype._drawBlur = function (texture, dir, size, ra
 
     p.activate();
 
+    //pass one
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
     gl.uniform1i(shu.u_texture._pName, 0);
-    gl.uniform1f(shu.resolution._pName, size);
-    gl.uniform1f(shu.radius._pName, radius);
-    gl.uniform2fv(shu.dir._pName, dir);
+    gl.uniform1f(shu.resolution._pName, this._width);
+    gl.uniform1f(shu.radius._pName, 1);
+    gl.uniform2fv(shu.dir._pName, [1.0, 0.0]);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 
+    //pass two
+    gl.bindTexture(gl.TEXTURE_2D, this._handler.createTexture(this._handler.canvas));
+    gl.uniform2fv(shu.dir._pName, [0.0, 1.0]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
     this._drawNormalMap(normals);
     //return this._framebuffer.getImage();
-    this._drawBlur(this._framebuffer.texture, [1.0, 0.0], this._width, 1);
-    this._drawBlur(this._handler.createTexture(this._handler.canvas), [0.0, 1.0], this._height, 1);
+    this._drawBlur();
     return this._handler.canvas;
 };
