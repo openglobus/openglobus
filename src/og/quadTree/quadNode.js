@@ -549,6 +549,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         if (seg.zoomIndex > maxZ) {
             if (pn.planetSegment.zoomIndex >= maxZ) {
                 seg.terrainReady = true;
+                seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
                 if (pn.planetSegment.terrainExists) {
                     seg.terrainExists = true;
