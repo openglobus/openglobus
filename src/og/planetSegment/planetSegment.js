@@ -56,6 +56,7 @@ og.planetSegment.PlanetSegment = function () {
     this.materials = [];
 
     this._inTheQueue = false;
+    this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapReady = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
@@ -308,9 +309,23 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 };
 
 og.planetSegment.PlanetSegment.prototype.equalZoomSum = function (neighborId, i_a, vert) {
+
+    if (this.node.neighbors[neighborId]) {
+        this._appliedNeighborsZoom[neighborId] = this.node.neighbors[neighborId].planetSegment.zoomIndex;
+    }
+
     if (this.node.neighbors[neighborId] &&
         this.node.neighbors[neighborId].planetSegment.terrainReady &&
         this.zoomIndex == this.node.neighbors[neighborId].planetSegment.zoomIndex) {
+
+        var ns = this.node.neighbors[neighborId].planetSegment;
+
+        if (!ns._inTheQueue &&
+            ns.terrainReady &&
+            ns._appliedNeighborsZoom[og.quadTree.OPSIDE[neighborId]] &&
+            ns._appliedNeighborsZoom[og.quadTree.OPSIDE[neighborId]] < this.zoomIndex) {
+            this.planet.normalMapCreator.queue(ns);
+        }
 
         var size = this.planet.terrainProvider.fileGridSize;
         var i_b = size - i_a;
@@ -340,7 +355,7 @@ og.planetSegment.PlanetSegment.prototype.equalZoomSum = function (neighborId, i_
     }
 };
 
-og.planetSegment.PlanetSegment._fakeNode = { planetSegment: { terrainReady: true, terrainIsLoading: false } };
+og.planetSegment.PlanetSegment._fakeNode = { planetSegment: { terrainReady: true, terrainIsLoading: false, zoomIndex: 0 } };
 
 og.planetSegment.PlanetSegment.prototype.getNeighbors = function (side) {
     var n0 = this.node.neighbors[side];
@@ -497,6 +512,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     this.normalMapVertices.length = 0;
     this.normalMapNormals.length = 0;
+    this._appliedNeighborsZoom = [0, 0, 0, 0];
 };
 
 og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {

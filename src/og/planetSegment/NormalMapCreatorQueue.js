@@ -23,6 +23,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
 
 og.planetSegment.NormalMapCreatorQueue.prototype.queue = function (segment) {
     if (this._counter >= 1) {
+        segment._inTheQueue = true;
         this._pendingsQueue.push(segment);
     } else {
         this._exec(segment);
