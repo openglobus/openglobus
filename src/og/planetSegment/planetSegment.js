@@ -322,7 +322,6 @@ og.planetSegment.PlanetSegment.prototype.equalZoomSum = function (neighborId, i_
 
         if (!ns._inTheQueue &&
             ns.terrainReady &&
-            ns._appliedNeighborsZoom[og.quadTree.OPSIDE[neighborId]] &&
             ns._appliedNeighborsZoom[og.quadTree.OPSIDE[neighborId]] < this.zoomIndex) {
             this.planet.normalMapCreator.queue(ns);
         }
