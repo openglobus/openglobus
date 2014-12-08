@@ -30,6 +30,7 @@ og.shaderProgram.single_wl = function () {
             texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
+            uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
 
             pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },

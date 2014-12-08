@@ -278,6 +278,10 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileTerrainLoading();
     }
 
+    if (!seg.normalMapReady) {
+        this.whileNormalMapCreating();
+    }
+
     var vl = this.planet.visibleLayers,
         pm = seg.materials;
 
@@ -370,6 +374,28 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     }
 
     return -1;
+};
+
+og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
+    var pn = this;
+
+    while (pn.parentNode && !pn.planetSegment.normalMapReady) {
+        pn = pn.parentNode;
+    }
+
+    var segm = this.planetSegment;
+
+    var scale = segm.zoomIndex - pn.planetSegment.zoomIndex;
+
+    var dZ2 = Math.pow(2, scale);
+
+    var offsetX = segm.tileX - pn.planetSegment.tileX * dZ2,
+        offsetY = segm.tileY - pn.planetSegment.tileY * dZ2;
+
+    segm.normalMapTexture = pn.planetSegment.normalMapTexture;
+    segm.normalMapTextureBias[0] = offsetX;
+    segm.normalMapTextureBias[1] = offsetY;
+    segm.normalMapTextureBias[2] = 1 / dZ2;
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {

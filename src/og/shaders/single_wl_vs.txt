@@ -8,6 +8,7 @@ uniform mat4 uPMatrix;
 uniform mat4 uMVMatrix;
 uniform mat3 uNMatrix;
 uniform vec3 texBias;
+uniform vec3 uNormalMapBias;
 
 varying vec4 vTextureCoord;
 varying vec3 vNormal;
@@ -25,5 +26,5 @@ void main(void) {
     vNormal = aVertexNormal;
 	v_NMatrix = uNMatrix;
     vTextureCoord.xy = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
-    vTextureCoord.zw = aTextureCoord;
+    vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
 }

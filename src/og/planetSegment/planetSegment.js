@@ -27,7 +27,7 @@ og.planetSegment.PlanetSegment = function () {
     this.tempVertices = [];
 
     this.normalMapTexture = null;
-    this.normalMapTextureBias = [];
+    this.normalMapTextureBias = [0, 0, 1];
     this.normalMapVertices = [];
     this.normalMapNormals = [];
 
@@ -420,6 +420,7 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
         var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
         this.normalMapTexture = this.handler.createTexture(cnv);
+        this.normalMapTextureBias = [0, 0, 1];
         this.normalMapReady = true;
     }
 };
@@ -501,6 +502,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.normalMapVertices.length = 0;
     this.normalMapNormals.length = 0;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
+    this.normalMapTextureBias = [0, 0, 1];
 };
 
 og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {
@@ -651,6 +653,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.uniform1i(shu.uSampler._pName, 0);
 
             if (segment.planet.lightEnabled) {
+                gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
                 gl.activeTexture(gl.TEXTURE1);
                 gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
                 gl.uniform1i(shu.uNormalMap._pName, 1);
