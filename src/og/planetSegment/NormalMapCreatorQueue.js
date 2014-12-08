@@ -51,10 +51,8 @@ og.planetSegment.NormalMapCreatorQueue.prototype._dequeueRequest = function () {
 
 og.planetSegment.NormalMapCreatorQueue.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
-        //node visibility controled by terrainProvider, 
-        //therefore I needn't NOTRENDERING node verification.
         var seg = this._pendingsQueue.pop();
-        if (seg.terrainReady && seg.normalMapNormals.length) {
+        if (seg.terrainReady) {
             return seg;
         }
     }
