@@ -309,6 +309,44 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
     }
 };
 
+og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
+    if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+        if (this.ready && this.terrainIsLoading) {
+            this.terrainIsLoading = false;
+            this.terrainReady = true;
+            this.terrainExists = false;
+            this.normalMapReady = true;
+            this.normalMapTexture = this.planet.transparentTexture;
+            this.normalMapTextureBias = [0, 0, 1];
+            this.node.appliedTerrainNodeId = this.node.nodeId;
+            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+
+            this.deleteBuffers();
+
+            if (this.zoomIndex > 5) {
+                var step = 3 * this.gridSize;
+                var step2 = step * 0.5;
+                var lb = step * (this.gridSize + 1);
+                var ml = step2 * (this.gridSize + 1);
+
+                var v = this.terrainVertices;
+                this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+
+                v = this.terrainNormals;
+                this.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+
+                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
+                this.gridSize = 2;
+            } else {
+                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, this.gridSize);
+            }
+        }
+    }
+};
 
 //og.planetSegment.PlanetSegment._fakeNode = { planetSegment: { terrainReady: true, terrainIsLoading: false, zoomIndex: 0 } };
 
@@ -354,7 +392,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
 
         this._appliedNeighborsZoom[side] = ns.zoomIndex;
 
-        if (ns.terrainReady) {
+        if (ns.terrainReady && ns.terrainExists) {
 
             if (!ns._inTheQueue &&
                 ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] < this.zoomIndex) {
@@ -428,42 +466,6 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
         this.normalMapTexture = this.handler.createTexture(cnv);
         this.normalMapTextureBias = [0, 0, 1];
         this.normalMapReady = true;
-    }
-};
-
-og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
-    if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
-        if (this.ready && this.terrainIsLoading) {
-            this.terrainIsLoading = false;
-            this.terrainReady = true;
-            this.terrainExists = false;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
-            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
-
-            this.deleteBuffers();
-
-            if (this.zoomIndex > 5) {
-                var step = 3 * this.gridSize;
-                var step2 = step * 0.5;
-                var lb = step * (this.gridSize + 1);
-                var ml = step2 * (this.gridSize + 1);
-
-                var v = this.terrainVertices;
-                this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                v = this.terrainNormals;
-                this.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
-                this.gridSize = 2;
-            } else {
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, this.gridSize);
-            }
-        }
     }
 };
 
