@@ -278,7 +278,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileTerrainLoading();
     }
 
-    if (!seg.normalMapReady) {
+    if (!(seg.normalMapReady || seg.parentNormalMapReady)) {
         this.whileNormalMapCreating();
     }
 
@@ -396,6 +396,12 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     segm.normalMapTextureBias[0] = offsetX;
     segm.normalMapTextureBias[1] = offsetY;
     segm.normalMapTextureBias[2] = 1 / dZ2;
+
+    var maxZ = this.planet.terrainProvider.maxZoom;
+
+    if (pn.planetSegment.zoomIndex == maxZ) {
+        segm.parentNormalMapReady = true;
+    }
 };
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {

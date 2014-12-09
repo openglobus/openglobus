@@ -58,6 +58,7 @@ og.planetSegment.PlanetSegment = function () {
     this._inTheQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapReady = false;
+    this.parentNormalMapReady = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.terrainExists = false;
@@ -401,6 +402,9 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
 
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
+    if (this.zoomIndex > 14)
+        return;
+
     var nb = this.node.neighbors;
 
     var nbn = nb[og.quadTree.N],
@@ -504,6 +508,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
     this.normalMapReady = false;
+    this.parentNormalMapReady = false;
     this.normalMapVertices.length = 0;
     this.normalMapNormals.length = 0;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
