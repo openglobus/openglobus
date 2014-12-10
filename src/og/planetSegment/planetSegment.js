@@ -457,7 +457,13 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
 
             } else if (this.zoomIndex < ns.zoomIndex) {
                 //there are one or two neghbors on the side
+                this.planet.normalMapCreator.queue(ns);
 
+                //this is second small neighbour
+                var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
+                if (n2) {
+                    this.planet.normalMapCreator.queue(n2.planetSegment);
+                }
             }
         }
     }
