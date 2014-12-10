@@ -399,19 +399,22 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
                 this.planet.normalMapCreator.queue(ns);
             }
 
+            var size = this.planet.terrainProvider.fileGridSize;
+            var s1 = size + 1;
+            var i_b = size - i_a;
+
+            var seg_a = this.normalMapNormals,
+                seg_b = ns.normalMapNormals;
+
+            //there is no cases when zoom indexes different between neighbor more than 2
+
             if (this.zoomIndex == ns.zoomIndex) {
                 //there is only one neighbor on the side
 
-                var size = this.planet.terrainProvider.fileGridSize;
-                var i_b = size - i_a;
-
-                var seg_a = this.normalMapNormals,
-                    seg_b = ns.normalMapNormals;
-
                 if (vert) {
                     for (var k = 0 ; k <= size; k++) {
-                        var vInd_a = (k * (size + 1) + i_a) * 3,
-                            vInd_b = (k * (size + 1) + i_b) * 3;
+                        var vInd_a = (k * s1 + i_a) * 3,
+                            vInd_b = (k * s1 + i_b) * 3;
 
                         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
                         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
@@ -419,8 +422,8 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
                     }
                 } else {
                     for (var k = 0 ; k <= size; k++) {
-                        var vInd_a = (i_a * (size + 1) + k) * 3,
-                            vInd_b = (i_b * (size + 1) + k) * 3;
+                        var vInd_a = (i_a * s1 + k) * 3,
+                            vInd_b = (i_b * s1 + k) * 3;
 
                         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
                         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
@@ -429,6 +432,28 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
                 }
             } else if (this.zoomIndex > ns.zoomIndex) {
                 //there is only one neighbor on the side
+
+                var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
+
+                if (vert) {
+                    for (var k = 0 ; k <= size; k++) {
+                        var vInd_a = (k * s1 + i_a) * 3,
+                            vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
+
+                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    }
+                } else {
+                    for (var k = 0 ; k <= size; k++) {
+                        var vInd_a = (i_a * s1 + k) * 3,
+                            vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
+
+                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    }
+                }
 
             } else if (this.zoomIndex < ns.zoomIndex) {
                 //there are one or two neghbors on the side
