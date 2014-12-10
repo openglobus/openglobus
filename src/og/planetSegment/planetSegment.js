@@ -348,40 +348,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
     }
 };
 
-//og.planetSegment.PlanetSegment._fakeNode = { planetSegment: { terrainReady: true, terrainIsLoading: false, zoomIndex: 0 } };
-
-//og.planetSegment.PlanetSegment.prototype.getNeighbors = function (side) {
-//    var n0 = this.node.neighbors[side];
-
-//    if (!n0) {
-//        return og.planetSegment.PlanetSegment._fakeNode;
-//    }
-
-//    if (this.zoomIndex >= n0.planetSegment.zoomIndex) {
-//        return [n0];
-//    } else {
-//        if (1 == n0.planetSegment.zoomIndex - this.zoomIndex) {
-//            if (n0.parentNode) {
-//                var n1 = n0.parentNode.nodes[og.quadTree.NOPS[side][n0.partId]];
-//                var res = [];
-//                var n0ind = og.quadTree.NOPSORD[side][n0.partId];
-//                res[n0ind] = n0;
-//                if (n1) {
-//                    res[og.quadTree.NOPSORD[side][n1.partId]] = n1;
-//                } else {
-//                    res[Math.abs(n0ind - 1)] = og.planetSegment.PlanetSegment._fakeNode;
-//                }
-//                return res;
-//            } else {
-//                return [n0];
-//            }
-//        } else {
-//            return og.planetSegment.PlanetSegment._fakeNode;
-//        }
-//    }
-//};
-
-
 og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side, i_a, vert) {
 
     var n = this.node.neighbors[side];
