@@ -169,6 +169,9 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
         var normalMapNormals = new Float64Array(fileGridSize_one * fileGridSize_one * 3);
 
+        var nv = this.normalMapVertices,
+            nn = this.normalMapNormals;
+
         if (fileGridSize >= tgs) {
             for (var i = 0; i < fileGridSize_one; i++) {
                 for (var j = 0; j < fileGridSize_one; j++) {
@@ -176,10 +179,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                     var hInd0 = i * fileGridSize_one + j;
                     var vInd0 = hInd0 * 3;
                     var h0 = hf * elevations[hInd0];
-                    var v0 = new og.math.Vector3(
-                        this.normalMapVertices[vInd0] + h0 * this.normalMapNormals[vInd0],
-                        this.normalMapVertices[vInd0 + 1] + h0 * this.normalMapNormals[vInd0 + 1],
-                        this.normalMapVertices[vInd0 + 2] + h0 * this.normalMapNormals[vInd0 + 2]);
+                    var v0 = new og.math.Vector3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
                     normalMapVertices[vInd0] = v0.x;
                     normalMapVertices[vInd0 + 1] = v0.y;
                     normalMapVertices[vInd0 + 2] = v0.z;
@@ -198,34 +198,26 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                         var hInd1 = i * fileGridSize_one + j + 1;
                         var vInd1 = hInd1 * 3;
                         var h1 = hf * elevations[hInd1];
-                        var v1 = new og.math.Vector3(
-                            this.normalMapVertices[vInd1] + h1 * this.normalMapNormals[vInd1],
-                            this.normalMapVertices[vInd1 + 1] + h1 * this.normalMapNormals[vInd1 + 1],
-                            this.normalMapVertices[vInd1 + 2] + h1 * this.normalMapNormals[vInd1 + 2]);
+                        var v1 = new og.math.Vector3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
                         normalMapVertices[vInd1] = v1.x;
                         normalMapVertices[vInd1 + 1] = v1.y;
                         normalMapVertices[vInd1 + 2] = v1.z;
-
 
                         var hInd2 = (i + 1) * fileGridSize_one + j;
                         var vInd2 = hInd2 * 3;
                         var h2 = hf * elevations[hInd2];
                         var v2 = new og.math.Vector3(
-                            this.normalMapVertices[vInd2] + h2 * this.normalMapNormals[vInd2],
-                            this.normalMapVertices[vInd2 + 1] + h2 * this.normalMapNormals[vInd2 + 1],
-                            this.normalMapVertices[vInd2 + 2] + h2 * this.normalMapNormals[vInd2 + 2]);
+                            nv[vInd2] + h2 * nn[vInd2],
+                            nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
+                            nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
                         normalMapVertices[vInd2] = v2.x;
                         normalMapVertices[vInd2 + 1] = v2.y;
                         normalMapVertices[vInd2 + 2] = v2.z;
 
-
                         var hInd3 = (i + 1) * fileGridSize_one + (j + 1);
                         var vInd3 = hInd3 * 3;
                         var h3 = hf * elevations[hInd3];
-                        var v3 = new og.math.Vector3(
-                            this.normalMapVertices[vInd3] + h3 * this.normalMapNormals[vInd3],
-                            this.normalMapVertices[vInd3 + 1] + h3 * this.normalMapNormals[vInd3 + 1],
-                            this.normalMapVertices[vInd3 + 2] + h3 * this.normalMapNormals[vInd3 + 2]);
+                        var v3 = new og.math.Vector3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
                         normalMapVertices[vInd3] = v3.x;
                         normalMapVertices[vInd3 + 1] = v3.y;
                         normalMapVertices[vInd3 + 2] = v3.z;
