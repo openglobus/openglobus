@@ -172,64 +172,89 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         if (fileGridSize >= tgs) {
             for (var i = 0; i < fileGridSize_one; i++) {
                 for (var j = 0; j < fileGridSize_one; j++) {
-                    var h = hf * elevations[Math.round(nmvInd / 3)];
-                    var x = this.normalMapVertices[nmvInd] + h * this.normalMapNormals[nmvInd],
-                        y = this.normalMapVertices[nmvInd + 1] + h * this.normalMapNormals[nmvInd + 1],
-                        z = this.normalMapVertices[nmvInd + 2] + h * this.normalMapNormals[nmvInd + 2];
 
-                    normalMapVertices[nmvInd++] = x;
-                    normalMapVertices[nmvInd++] = y;
-                    normalMapVertices[nmvInd++] = z;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                    var hInd0 = i * fileGridSize_one + j;
+                    var vInd0 = hInd0 * 3;
+                    var h0 = hf * elevations[hInd0];
+                    var v0 = new og.math.Vector3(
+                        this.normalMapVertices[vInd0] + h0 * this.normalMapNormals[vInd0],
+                        this.normalMapVertices[vInd0 + 1] + h0 * this.normalMapNormals[vInd0 + 1],
+                        this.normalMapVertices[vInd0 + 2] + h0 * this.normalMapNormals[vInd0 + 2]);
+                    normalMapVertices[vInd0] = v0.x;
+                    normalMapVertices[vInd0 + 1] = v0.y;
+                    normalMapVertices[vInd0 + 2] = v0.z;
 
                     if (i % dg == 0 && j % dg == 0) {
-                        terrainVertices[vInd++] = x;
-                        terrainVertices[vInd++] = y;
-                        terrainVertices[vInd++] = z;
+                        terrainVertices[vInd++] = v0.x;
+                        terrainVertices[vInd++] = v0.y;
+                        terrainVertices[vInd++] = v0.z;
+
+                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
                     }
-                }
-            }
 
-            for (var i = 0; i < fileGridSize; i++) {
-                for (var j = 0; j < fileGridSize; j++) {
+                    if (i != fileGridSize && j != fileGridSize) {
+                        var hInd1 = i * fileGridSize_one + j + 1;
+                        var vInd1 = hInd1 * 3;
+                        var h1 = hf * elevations[hInd1];
+                        var v1 = new og.math.Vector3(
+                            this.normalMapVertices[vInd1] + h1 * this.normalMapNormals[vInd1],
+                            this.normalMapVertices[vInd1 + 1] + h1 * this.normalMapNormals[vInd1 + 1],
+                            this.normalMapVertices[vInd1 + 2] + h1 * this.normalMapNormals[vInd1 + 2]);
+                        normalMapVertices[vInd1] = v1.x;
+                        normalMapVertices[vInd1 + 1] = v1.y;
+                        normalMapVertices[vInd1 + 2] = v1.z;
 
-                    var vInd0 = (i * fileGridSize_one + j) * 3;
-                    var vInd1 = (i * fileGridSize_one + j + 1) * 3;
-                    var vInd2 = ((i + 1) * fileGridSize_one + j) * 3;
-                    var vInd3 = ((i + 1) * fileGridSize_one + (j + 1)) * 3;
 
-                    var v0 = new og.math.Vector3(normalMapVertices[vInd0], normalMapVertices[vInd0 + 1], normalMapVertices[vInd0 + 2]),
-                        v1 = new og.math.Vector3(normalMapVertices[vInd1], normalMapVertices[vInd1 + 1], normalMapVertices[vInd1 + 2]),
-                        v2 = new og.math.Vector3(normalMapVertices[vInd2], normalMapVertices[vInd2 + 1], normalMapVertices[vInd2 + 2]),
-                        v3 = new og.math.Vector3(normalMapVertices[vInd3], normalMapVertices[vInd3 + 1], normalMapVertices[vInd3 + 2]);
+                        var hInd2 = (i + 1) * fileGridSize_one + j;
+                        var vInd2 = hInd2 * 3;
+                        var h2 = hf * elevations[hInd2];
+                        var v2 = new og.math.Vector3(
+                            this.normalMapVertices[vInd2] + h2 * this.normalMapNormals[vInd2],
+                            this.normalMapVertices[vInd2 + 1] + h2 * this.normalMapNormals[vInd2 + 1],
+                            this.normalMapVertices[vInd2 + 2] + h2 * this.normalMapNormals[vInd2 + 2]);
+                        normalMapVertices[vInd2] = v2.x;
+                        normalMapVertices[vInd2 + 1] = v2.y;
+                        normalMapVertices[vInd2 + 2] = v2.z;
 
-                    var e10 = og.math.Vector3.sub(v1, v0),
-                        e20 = og.math.Vector3.sub(v2, v0),
-                        e30 = og.math.Vector3.sub(v3, v0);
 
-                    var sw = e20.cross(e30).normalize();
-                    var ne = e30.cross(e10).normalize();
+                        var hInd3 = (i + 1) * fileGridSize_one + (j + 1);
+                        var vInd3 = hInd3 * 3;
+                        var h3 = hf * elevations[hInd3];
+                        var v3 = new og.math.Vector3(
+                            this.normalMapVertices[vInd3] + h3 * this.normalMapNormals[vInd3],
+                            this.normalMapVertices[vInd3 + 1] + h3 * this.normalMapNormals[vInd3 + 1],
+                            this.normalMapVertices[vInd3 + 2] + h3 * this.normalMapNormals[vInd3 + 2]);
+                        normalMapVertices[vInd3] = v3.x;
+                        normalMapVertices[vInd3 + 1] = v3.y;
+                        normalMapVertices[vInd3 + 2] = v3.z;
 
-                    var n0 = og.math.Vector3.add(ne, sw).normalize();
+                        var e10 = og.math.Vector3.sub(v1, v0),
+                            e20 = og.math.Vector3.sub(v2, v0),
+                            e30 = og.math.Vector3.sub(v3, v0);
 
-                    normalMapNormals[vInd0] += n0.x;
-                    normalMapNormals[vInd0 + 1] += n0.y;
-                    normalMapNormals[vInd0 + 2] += n0.z;
+                        var sw = e20.cross(e30).normalize();
+                        var ne = e30.cross(e10).normalize();
 
-                    normalMapNormals[vInd1] += ne.x;
-                    normalMapNormals[vInd1 + 1] += ne.y;
-                    normalMapNormals[vInd1 + 2] += ne.z;
+                        var n0 = og.math.Vector3.add(ne, sw).normalize();
 
-                    normalMapNormals[vInd2] += sw.x;
-                    normalMapNormals[vInd2 + 1] += sw.y;
-                    normalMapNormals[vInd2 + 2] += sw.z;
+                        normalMapNormals[vInd0] += n0.x;
+                        normalMapNormals[vInd0 + 1] += n0.y;
+                        normalMapNormals[vInd0 + 2] += n0.z;
 
-                    normalMapNormals[vInd3] += n0.x;
-                    normalMapNormals[vInd3 + 1] += n0.y;
-                    normalMapNormals[vInd3 + 2] += n0.z;
+                        normalMapNormals[vInd1] += ne.x;
+                        normalMapNormals[vInd1 + 1] += ne.y;
+                        normalMapNormals[vInd1 + 2] += ne.z;
+
+                        normalMapNormals[vInd2] += sw.x;
+                        normalMapNormals[vInd2 + 1] += sw.y;
+                        normalMapNormals[vInd2 + 2] += sw.z;
+
+                        normalMapNormals[vInd3] += n0.x;
+                        normalMapNormals[vInd3 + 1] += n0.y;
+                        normalMapNormals[vInd3 + 2] += n0.z;
+                    }
                 }
             }
 
