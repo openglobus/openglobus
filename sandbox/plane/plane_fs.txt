@@ -38,5 +38,5 @@ void main(void) {
     lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
 	vec4 tColor = texture2D( uSampler, vTextureCoord.st );        
-    gl_FragColor = vec4(tColor.rgb * lightWeighting, 1.0);
+    gl_FragColor = vec4(/*tColor.rgb*/vec3(1.0) * lightWeighting, 1.0);
 }

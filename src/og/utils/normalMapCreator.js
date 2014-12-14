@@ -134,15 +134,12 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
     gl.uniform1i(shu.u_texture._pName, 0);
-    gl.uniform1f(shu.resolution._pName, this._width);
-    gl.uniform1f(shu.radius._pName, 1);
-    gl.uniform2fv(shu.dir._pName, [1.0, 0.0]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 
     //pass two
-    gl.bindTexture(gl.TEXTURE_2D, this._handler.createTexture(this._handler.canvas));
-    gl.uniform2fv(shu.dir._pName, [0.0, 1.0]);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+    //gl.bindTexture(gl.TEXTURE_2D, this._handler.createTexture(this._handler.canvas));
+    //gl.uniform2fv(shu.dir._pName, [0.0, 1.0]);
+    //gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {

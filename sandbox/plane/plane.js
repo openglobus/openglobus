@@ -5,7 +5,7 @@ goog.require('og.inheritance');
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.light.PointLight');
 
-goog.require('og.utils.NormalMapCreatorAsync');
+goog.require('og.utils.NormalMapCreator');
 
 
 my.Plane = function (name) {
@@ -53,7 +53,7 @@ my.Plane.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
 
 
-    this.normalMapHelper = new og.utils.NormalMapCreatorAsync();
+    this.normalMapHelper = new og.utils.NormalMapCreator();
 
     var that = this;
     var segment = {
@@ -61,7 +61,8 @@ my.Plane.prototype.initialization = function () {
             that.normalsTexture = that.renderer.handler.createTexture(canvas);
         }
     };
-    this.normalMapHelper.drawAsync(segment);
+    texture = this.normalMapHelper.draw(normals);
+    that.normalsTexture = this.renderer.handler.createTexture(texture);
     //var img = new Image();
     //img.onload = function () {
     //    that.normalsTexture = that.renderer.handler.createTexture(this);
