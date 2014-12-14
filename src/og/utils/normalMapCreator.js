@@ -20,6 +20,9 @@ og.utils.NormalMapCreator = function (width, height) {
 
 og.utils.NormalMapCreator.prototype._init = function () {
 
+    //TODO: is it bug or not?
+    var isWebkit = 'WebkitAppearance' in document.documentElement.style;
+
     var normalMapBlur = new og.shaderProgram.ShaderProgram("normalMapBlur", {
         attributes: {
             a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
@@ -28,26 +31,25 @@ og.utils.NormalMapCreator.prototype._init = function () {
             s_texture: { type: og.shaderProgram.types.SAMPLER2D }
         },
         vertexShader: "attribute vec2 a_position; \
+                       attribute vec2 a_texCoord; \
                       \
                       varying vec2 blurCoordinates[5]; \
                       \
-                      void main() \
-                      { \
-                          gl_Position = vec4(a_position, 0.0, 1.0); \
-                          vec2 vt = a_position * 0.5 + 0.5; \
-                      \
-                          blurCoordinates[0] = vt.xy; \
-                          blurCoordinates[1] = vt.xy + 0.0109947890625; \
-                          blurCoordinates[2] = vt.xy - 0.0109947890625; \
-                          blurCoordinates[3] = vt.xy + 0.0257360546875; \
-                          blurCoordinates[4] = vt.xy - 0.0257360546875; \
+                      void main() { \
+                          vec2 vt = a_position * 0.5 + 0.5;" +
+                          (!isWebkit ? "vt.y = 1.0 - vt.y; ":" ") +
+                         "gl_Position = vec4(a_position, 0.0, 1.0); \
+                          blurCoordinates[0] = vt; \
+                          blurCoordinates[1] = vt + 0.0109947890625; \
+                          blurCoordinates[2] = vt - 0.0109947890625; \
+                          blurCoordinates[3] = vt + 0.0257360546875; \
+                          blurCoordinates[4] = vt - 0.0257360546875; \
                       }",
         fragmentShader: "uniform sampler2D s_texture; \
                         \
                         varying highp vec2 blurCoordinates[5]; \
                         \
-                        void main() \
-                        { \
+                        void main() { \
                             lowp vec4 sum = vec4(0.0); \
                             sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164; \
                             sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005; \
@@ -91,6 +93,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._handler.addShaderProgram(normalMap);
     this._handler.init();
     this._handler.deactivateFaceCulling();
+    this._handler.deactivateDepthTest();
 
     //create hidden handler buffer
     this._framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
@@ -114,11 +117,12 @@ og.utils.NormalMapCreator.prototype._init = function () {
     }
 
     //create 2d screen square buffer
+
     var positions = [
-     -1.0, -1.0,
-      1.0, -1.0,
-     -1.0, 1.0,
-      1.0, 1.0];
+        -1.0, -1.0,
+         1.0, -1.0,
+        -1.0, 1.0,
+         1.0, 1.0];
 
     this._positionBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
 };
@@ -165,7 +169,6 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
     gl.uniform1i(shu.s_texture._pName, 0);
