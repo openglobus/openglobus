@@ -2,7 +2,6 @@ goog.provide('og.utils.NormalMapCreator');
 
 goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.blur');
 goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
 
@@ -21,7 +20,43 @@ og.utils.NormalMapCreator = function (width, height) {
 
 og.utils.NormalMapCreator.prototype._init = function () {
 
-    var blur = og.shaderProgram.blur();
+    var normalMapBlur = new og.shaderProgram.ShaderProgram("normalMapBlur", {
+        attributes: {
+            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
+        },
+        uniforms: {
+            s_texture: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        vertexShader: "attribute vec2 a_position; \
+                      \
+                      varying vec2 blurCoordinates[5]; \
+                      \
+                      void main() \
+                      { \
+                          gl_Position = vec4(a_position, 0.0, 1.0); \
+                          vec2 vt = a_position * 0.5 + 0.5; \
+                      \
+                          blurCoordinates[0] = vt.xy; \
+                          blurCoordinates[1] = vt.xy + 0.0109947890625; \
+                          blurCoordinates[2] = vt.xy - 0.0109947890625; \
+                          blurCoordinates[3] = vt.xy + 0.0257360546875; \
+                          blurCoordinates[4] = vt.xy - 0.0257360546875; \
+                      }",
+        fragmentShader: "uniform sampler2D s_texture; \
+                        \
+                        varying highp vec2 blurCoordinates[5]; \
+                        \
+                        void main() \
+                        { \
+                            lowp vec4 sum = vec4(0.0); \
+                            sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164; \
+                            sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005; \
+                            sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005; \
+                            sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913; \
+                            sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913; \
+                            gl_FragColor = sum; \
+                        }"
+    });
 
     var normalMap = new og.shaderProgram.ShaderProgram("normalMap", {
         attributes: {
@@ -52,7 +87,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
         width: this._width, height: this._height,
         context: { alpha: false, depth: false }
     });
-    this._handler.addShaderProgram(blur);
+    this._handler.addShaderProgram(normalMapBlur);
     this._handler.addShaderProgram(normalMap);
     this._handler.init();
     this._handler.deactivateFaceCulling();
@@ -122,24 +157,19 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
     this._handler.clearFrame();
 
     var gl = this._handler.gl;
-    var p = this._handler.shaderPrograms.blur;
+    var p = this._handler.shaderPrograms.normalMapBlur;
     var sha = p._program.attributes,
         shu = p._program.uniforms;
 
     p.activate();
 
-    //pass one
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
-    gl.uniform1i(shu.u_texture._pName, 0);
+    gl.uniform1i(shu.s_texture._pName, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
-
-    //pass two
-    //gl.bindTexture(gl.TEXTURE_2D, this._handler.createTexture(this._handler.canvas));
-    //gl.uniform2fv(shu.dir._pName, [0.0, 1.0]);
-    //gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
