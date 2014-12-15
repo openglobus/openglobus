@@ -1,33 +1,60 @@
 precision mediump float;
-precision lowp int;
+
+uniform sampler2D uNormalMap;
+
+#define MAX_POINT_LIGHTS 1
+
+uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
+uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
+uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 
 #define MAX_TEX 8
-
-varying vec2 vTextureCoord;
 
 uniform int numTex;
 uniform sampler2D uSamplerArr[MAX_TEX];
 uniform vec4 tcolorArr[MAX_TEX];
 uniform lowp vec3 texBiasArr[MAX_TEX];
 
+varying vec4 vTextureCoord;
+varying vec3 vNormal;
+varying vec4 vPosition;
+varying mat3 v_NMatrix;
+
 void main(void) 
 {
-	lowp vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord + vec2(texBiasArr[0].x, texBiasArr[0].y)));
+    vec3 lightWeighting;
+	float specularLightWeighting;
+	float diffuseLightWeighting;
+
+	vec4 nm = texture2D(uNormalMap, vTextureCoord.zw);
+    vec3 n0 = length(nm.xyz)==0.0?normalize(vNormal):((nm.xyz-0.5)*2.0);
+    vec3 normal = normalize(v_NMatrix*n0);
+
+	//i=0
+    vec3 lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
+	//float distance = length(dir);
+	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
+    vec3 eyeDirection = normalize(-vPosition.xyz);
+    vec3 reflectionDirection = reflect(-lightDirection, normal);	
+	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
+    diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+    lightWeighting += pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
+
+
+	lowp vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord.xy + vec2(texBiasArr[0].x, texBiasArr[0].y)));
 
 		for( int i = 1; i < MAX_TEX; i++ ) 
 		{
 			if( i < numTex) 
 			{
-				lowp vec4 ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord + texBiasArr[i].xy));
-				if(length( ti.rgb - tcolorArr[i].xyz ) >  0.4) 
-				{
-					res = mix(res, ti, tcolorArr[i].w);
-				}
+				vec4 ti = texture2D(uSamplerArr[i], texBiasArr[i].z * (vTextureCoord.xy + texBiasArr[i].xy));
+				res = mix(res, ti, tcolorArr[i].w * ti.a * smoothstep(0.35, 0.5, distance( ti.rgb, tcolorArr[i].xyz )));
 			}
 			else
 			{
 				break;
 			}
 		}
-	gl_FragColor = res;
+
+	gl_FragColor = res * vec4(lightWeighting, 1.0);
 }

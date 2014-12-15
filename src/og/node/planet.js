@@ -400,15 +400,16 @@ og.node.Planet.prototype.renderNodesPASS = function () {
 
         if (this.lightEnabled) {
             h.shaderPrograms.overlays_wl.activate();
-            sh = h.shaderPrograms.overlays_wl._program;
+            sh = h.shaderPrograms.overlays_wl._program,
+            shu = sh.uniforms;
 
-            gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
-            gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
-            gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+            gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+            gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
+            gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix4fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
-            gl.uniformMatrix4fv(sh.uniforms.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
-            gl.uniformMatrix4fv(sh.uniforms.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
+            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
 
         } else {
@@ -438,15 +439,16 @@ og.node.Planet.prototype.renderNodesPASS = function () {
 
         if (this.lightEnabled) {
             h.shaderPrograms.single_wl.activate();
-            sh = h.shaderPrograms.single_wl._program;
+            sh = h.shaderPrograms.single_wl._program,
+            shu = sh.uniforms;
 
-            gl.uniform3fv(sh.uniforms.pointLightsPositions._pName, this._pointLightsTransformedPositions);
-            gl.uniform3fv(sh.uniforms.pointLightsParamsv._pName, this._pointLightsParamsv);
-            gl.uniform1fv(sh.uniforms.pointLightsParamsf._pName, this._pointLightsParamsf);
+            gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+            gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
+            gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix3fv(sh.uniforms.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
-            gl.uniformMatrix4fv(sh.uniforms.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
-            gl.uniformMatrix4fv(sh.uniforms.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
+            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
         } else {
             h.shaderPrograms.single_nl.activate();

@@ -1,5 +1,9 @@
 precision mediump float;
 
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
 attribute vec3 aVertexNormal;
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
@@ -14,10 +18,6 @@ varying vec4 vTextureCoord;
 varying vec3 vNormal;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
-
-const float C = 0.1;
-const float far = 149.6e+9;
-float logc = 2.0 / log( C * far + 1.0 );
 
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);

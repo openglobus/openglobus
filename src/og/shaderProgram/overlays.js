@@ -27,15 +27,23 @@ og.shaderProgram.overlays_nl = function () {
 og.shaderProgram.overlays_wl = function () {
     return new og.shaderProgram.ShaderProgram("overlays_wl", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uNMatrix: { type: og.shaderProgram.types.MAT3 },
+            uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
+            uNormalMapBias:{ type: og.shaderProgram.types.VEC3 },
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
-            numTex: { type: og.shaderProgram.types.INT }
+            numTex: { type: og.shaderProgram.types.INT },
+            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
+            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_wl_vs.txt"),
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_wl_fs.txt")

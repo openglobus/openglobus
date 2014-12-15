@@ -716,6 +716,13 @@ og.planetSegment.drawOverlays = function (sh, segment) {
         gl.uniform3fv(shu.texBiasArr._pName, segment.texBiasArr);
         gl.uniform1iv(shu.uSamplerArr._pName, segment.samplerArr);
 
+        if (segment.planet.lightEnabled) {
+            gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
+            gl.activeTexture(gl.TEXTURE0 + layers.length);
+            gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
+            gl.uniform1i(shu.uNormalMap._pName, layers.length);
+        }
+
         segment.draw(sh);
     }
 };
