@@ -142,7 +142,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     p.activate();
 
     f.activate();
-    f.clear();
+    //f.clear();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
     gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
@@ -158,7 +158,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
 
 og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
-    this._handler.clearFrame();
+    //this._handler.clearFrame();
 
     var gl = this._handler.gl;
     var p = this._handler.shaderPrograms.normalMapBlur;
@@ -177,7 +177,7 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
     this._drawNormalMap(normals);
-    //return this._framebuffer.getImage();
     this._drawBlur();
+    //return this._framebuffer.getImage();
     return this._handler.canvas;
 };

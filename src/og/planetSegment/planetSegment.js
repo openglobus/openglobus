@@ -416,39 +416,39 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
             } else if (this.zoomIndex > ns.zoomIndex) {
                 //there is only one neighbor on the side
 
-                //var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
+                var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
 
-                //if (vert) {
-                //    for (var k = 0 ; k <= size; k++) {
-                //        var vInd_a = (k * s1 + i_a) * 3,
-                //            vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
+                if (vert) {
+                    for (var k = 0 ; k <= size; k++) {
+                        var vInd_a = (k * s1 + i_a) * 3,
+                            vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
 
-                //        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                //        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                //        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                //    }
-                //} else {
-                //    for (var k = 0 ; k <= size; k++) {
-                //        var vInd_a = (i_a * s1 + k) * 3,
-                //            vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
+                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    }
+                } else {
+                    for (var k = 0 ; k <= size; k++) {
+                        var vInd_a = (i_a * s1 + k) * 3,
+                            vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
 
-                //        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                //        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                //        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                //    }
-                //}
+                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    }
+                }
 
             } else if (this.zoomIndex < ns.zoomIndex) {
                 //there are one or two neghbors on the side
-                //if (!ns._inTheQueue) {
-                //    this.planet.normalMapCreator.queue(ns);
-                //}
+                if (!ns._inTheQueue) {
+                    this.planet.normalMapCreator.queue(ns);
+                }
 
-                ////this is second small neighbour
-                //var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
-                //if (n2 && !n2.planetSegment._inTheQueue) {
-                //    this.planet.normalMapCreator.queue(n2.planetSegment);
-                //}
+                //this is second small neighbour
+                var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
+                if (n2 && !n2.planetSegment._inTheQueue) {
+                    this.planet.normalMapCreator.queue(n2.planetSegment);
+                }
             }
         }
     }
