@@ -399,7 +399,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (pn.planetSegment.zoomIndex == maxZ) {
+    if (pn.planetSegment.zoomIndex == maxZ/*|| !(segm.terrainExists || segm.terrainIsLoading))*/) {
         segm.parentNormalMapReady = true;
     }
 };

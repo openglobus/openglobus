@@ -111,6 +111,8 @@ og.Renderer.prototype.draw = function () {
     this.events.mouseState.direction = this.activeCamera.unproject(this.events.mouseState.x, this.events.mouseState.y);
     this.events.handleEvents();
 
+    print2d("lbTiles", this.renderNodes.Earth.normalMapCreator._pendingsQueue.length, 100, 100);
+
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
     }

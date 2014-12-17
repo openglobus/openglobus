@@ -52,7 +52,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype._dequeueRequest = function () {
 og.planetSegment.NormalMapCreatorQueue.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         var seg = this._pendingsQueue.pop();
-        if (seg.terrainReady && seg.node.getState() != og.quadTree.NOTRENDERING) {
+        if (seg.terrainReady && seg.node.getState() == og.quadTree.RENDERING) {
             return seg;
         }
         seg._inTheQueue = false;

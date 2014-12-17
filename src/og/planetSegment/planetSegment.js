@@ -146,6 +146,7 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
         }
     } else {
         this.terrainReady = true;
+        this.planet.normalMapCreator.queue(this);
     }
 };
 
@@ -332,13 +333,15 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
             this.terrainIsLoading = false;
             this.terrainReady = true;
             this.terrainExists = false;
-            this.normalMapReady = true;
-            this.normalMapTexture = this.planet.transparentTexture;
-            this.normalMapTextureBias = [0, 0, 1];
+            //this.normalMapReady = true;
+            //this.normalMapTexture = this.planet.transparentTexture;
+            //this.normalMapTextureBias = [0, 0, 1];
             this.node.appliedTerrainNodeId = this.node.nodeId;
             this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
             this.deleteBuffers();
+
+            this.planet.normalMapCreator.queue(this);
 
             if (this.zoomIndex > 5) {
                 var step = 3 * this.gridSize;
@@ -380,6 +383,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
             if (!ns._inTheQueue &&
                 this.zoomIndex > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
                 this.planet.normalMapCreator.queue(ns);
+                //return;
             }
 
             var size = this.planet.terrainProvider.fileGridSize;
@@ -456,7 +460,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
 
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
-    if (this.zoomIndex > 14)
+    if (this.zoomIndex > this.planet.terrainProvider.maxZoom || !this.ready)
         return;
 
     var nb = this.node.neighbors;
@@ -480,8 +484,8 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
         var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
         this.normalMapTexture = this.handler.createTexture(cnv);
-        this.normalMapTextureBias = [0, 0, 1];
         this.normalMapReady = true;
+        this.normalMapTextureBias = [0, 0, 1];
     }
 };
 
@@ -523,7 +527,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.plainNormals.length = 0;
     this.terrainNormals.length = 0;
     if (this.normalMapTexture &&
-        !this.normalMapTexture.default &&
+        /*!this.normalMapTexture.default &&*/
         this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
