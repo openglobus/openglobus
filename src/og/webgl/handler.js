@@ -25,6 +25,7 @@ og.webgl.Handler = function (id, params) {
     this._params.context = this._params.context || {};
     this._params.extensions = this._params.extensions || [];
     this._pExtensions = {};
+    this.backgroundColor = { r: 0.41, g: 0.41, b: 0.41 };
 };
 
 og.webgl.Handler.defaultWidth = 256;
@@ -277,7 +278,8 @@ og.webgl.Handler.prototype.drawFrame = function (now, sender) {
 
 og.webgl.Handler.prototype.clearFrame = function () {
     var gl = this.gl;
-    this.gl.clearColor(0.46, 0.46, 0.46, 1.0);
+    var bc = this.backgroundColor;
+    this.gl.clearColor(bc.r, bc.g, bc.b, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
