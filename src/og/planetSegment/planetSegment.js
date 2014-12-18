@@ -22,7 +22,6 @@ og.planetSegment.PlanetSegment = function () {
 
     this.plainVertices = [];
     this.plainNormals = [];
-    this.terrainNormals = [];
     this.terrainVertices = [];
     this.tempVertices = [];
 
@@ -310,18 +309,16 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
 
         this.normalMapNormals = normalMapNormals;
         this.normalMapVertices = normalMapVertices;
-        //this.terrainNormals = normals;
-        this.terrainNormals = this.plainNormals;
         this.terrainVertices.length = 0;
         this.terrainVertices = terrainVertices;
 
         this.deleteBuffers();
-        this.planet.normalMapCreator.queue(this);
-        this.createCoordsBuffers(terrainVertices, this.terrainNormals, tgs);
-        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-        this.gridSize = tgs;
         this.terrainReady = true;
         this.terrainIsLoading = false;
+        this.planet.normalMapCreator.queue(this);
+        this.createCoordsBuffers(terrainVertices, tgs);
+        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+        this.gridSize = tgs;
         this.node.appliedTerrainNodeId = this.node.nodeId;
         elevations.length = 0;
     }
@@ -333,9 +330,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
             this.terrainIsLoading = false;
             this.terrainReady = true;
             this.terrainExists = false;
-            //this.normalMapReady = true;
-            //this.normalMapTexture = this.planet.transparentTexture;
-            //this.normalMapTextureBias = [0, 0, 1];
             this.node.appliedTerrainNodeId = this.node.nodeId;
             this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
 
@@ -354,15 +348,10 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
                         v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
                         v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
-                v = this.terrainNormals;
-                this.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, 2);
+                this.createCoordsBuffers(this.terrainVertices, 2);
                 this.gridSize = 2;
             } else {
-                this.createCoordsBuffers(this.terrainVertices, this.terrainNormals, this.gridSize);
+                this.createCoordsBuffers(this.terrainVertices, this.gridSize);
             }
         }
     }
@@ -499,12 +488,10 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
 
 og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
-    gl.deleteBuffer(this.vertexNormalBuffer);
     gl.deleteBuffer(this.vertexPositionBuffer);
     gl.deleteBuffer(this.vertexIndexBuffer);
     gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
-    this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
@@ -525,10 +512,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
     this.plainNormals.length = 0;
-    this.terrainNormals.length = 0;
-    if (this.normalMapTexture &&
-        /*!this.normalMapTexture.default &&*/
-        this.normalMapReady) {
+    if (this.normalMapTexture && this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
     this.normalMapReady = false;
@@ -602,11 +586,10 @@ og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
     this.extent = null;
 };
 
-og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, normals, gridSize) {
+og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
-    this.vertexNormalBuffer = this.handler.createArrayBuffer(new Float32Array(normals), 3, gsgs);
 };
 
 og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
@@ -736,11 +719,6 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     var gl = this.handler.gl;
     var sha = sh.attributes;
 
-    if (this.planet.lightEnabled) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexNormalBuffer);
-        gl.vertexAttribPointer(sha.aVertexNormal._pName, this.vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    }
-
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
@@ -779,6 +757,5 @@ og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
         sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._vib);
 
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
-        //this.node.hasNeighbor = [false, false, false, false];
     }
 };

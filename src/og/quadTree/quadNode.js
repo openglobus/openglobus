@@ -258,9 +258,8 @@ og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
     segment.createPlainVertices(gridSize);
 
     segment.terrainVertices = segment.plainVertices;
-    segment.terrainNormals = segment.plainNormals;
 
-    segment.createCoordsBuffers(segment.plainVertices, segment.plainNormals, gridSize);
+    segment.createCoordsBuffers(segment.plainVertices, gridSize);
     segment.ready = true;
 };
 
@@ -377,13 +376,14 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
 };
 
 og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
+
+    var segm = this.planetSegment;
+
     var pn = this;
 
     while (pn.parentNode && !pn.planetSegment.normalMapReady) {
         pn = pn.parentNode;
     }
-
-    var segm = this.planetSegment;
 
     var scale = segm.zoomIndex - pn.planetSegment.zoomIndex;
 
@@ -431,8 +431,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
                 var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
 
-                var tempVertices = [],
-                    tempNormals = [];
+                var tempVertices = [];
 
                 seg.deleteBuffers();
                 seg.refreshIndexesBuffer = true;
@@ -448,14 +447,9 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var vInd = 0;
                     for (var i = i0; i <= i0 + gridSize; i++) {
                         for (var j = j0; j <= j0 + gridSize; j++) {
-                            var ind = 3 * (i * (pseg.gridSize + 1) + j);
-                            tempNormals[vInd] = pseg.terrainNormals[ind];
+                            var ind = 3 * (i * (pseg.gridSize + 1) + j);;
                             tempVertices[vInd++] = pseg.terrainVertices[ind];
-
-                            tempNormals[vInd] = pseg.terrainNormals[ind + 1];
                             tempVertices[vInd++] = pseg.terrainVertices[ind + 1];
-
-                            tempNormals[vInd] = pseg.terrainNormals[ind + 2];
                             tempVertices[vInd++] = pseg.terrainVertices[ind + 2];
                         }
                     }
@@ -467,21 +461,15 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = Math.floor(gridSize * offsetY);
                     var j0 = Math.floor(gridSize * offsetX);
 
-                    var bigOne = [],
-                        bigOneNormals = [];
+                    var bigOne = [];
 
                     //bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
                     var vInd = 0;
                     for (var i = i0; i <= i0 + 1; i++) {
                         for (var j = j0; j <= j0 + 1; j++) {
                             var ind = 3 * (i * (pseg.gridSize + 1) + j);
-                            bigOneNormals[vInd] = pseg.terrainNormals[ind];
                             bigOne[vInd++] = pseg.terrainVertices[ind];
-
-                            bigOneNormals[vInd] = pseg.terrainNormals[ind + 1];
                             bigOne[vInd++] = pseg.terrainVertices[ind + 1];
-
-                            bigOneNormals[vInd] = pseg.terrainNormals[ind + 2];
                             bigOne[vInd++] = pseg.terrainVertices[ind + 2];
                         }
                     }
@@ -524,12 +512,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var coords = new og.math.Vector3();
                     var vo = og.quadTree.QuadNode._vertOrder;
 
-                    //bigOne vertices normals
-                    var n_lt = new og.math.Vector3(bigOneNormals[0], bigOneNormals[1], bigOneNormals[2]),
-                        n_rb = new og.math.Vector3(bigOneNormals[9], bigOneNormals[10], bigOneNormals[11]),
-                        n_rt = new og.math.Vector3(bigOneNormals[3], bigOneNormals[4], bigOneNormals[5]),
-                        n_lb = new og.math.Vector3(bigOneNormals[6], bigOneNormals[7], bigOneNormals[8]);
-
                     for (var i = 0; i < vo.length; i++) {
                         var vi_y = vo[i].y + t_i0,
                             vi_x = vo[i].x + t_j0;
@@ -543,26 +525,11 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                             coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x_is), ve.scaleTo(1 - vi_y_is)).add(v_rb);
                         }
 
-                        var ln = og.math.Vector3.lerp(n_lt, n_rt, vi_x_is),
-                            lw = og.math.Vector3.lerp(n_lt, n_lb, vi_y_is),
-                            ls = og.math.Vector3.lerp(n_lb, n_rb, vi_x_is),
-                            le = og.math.Vector3.lerp(n_rt, n_rb, vi_y_is);
-
-                        var lx = og.math.Vector3.lerp(lw, le, vi_x_is).normalize(),
-                            ly = og.math.Vector3.lerp(ln, ls, vi_y_is).normalize();
-
-                        var norm = lx.add(ly).normalize();
-
                         var i3 = i * 3;
 
                         tempVertices[i3] = coords.x;
                         tempVertices[i3 + 1] = coords.y;
                         tempVertices[i3 + 2] = coords.z;
-
-
-                        tempNormals[i3] = norm.x;
-                        tempNormals[i3 + 1] = norm.y;
-                        tempNormals[i3 + 2] = norm.z;
                     }
 
                     bigOne.length = 0;
@@ -570,7 +537,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
 
 
-                seg.createCoordsBuffers(tempVertices, tempNormals, seg.gridSize);
+                seg.createCoordsBuffers(tempVertices, seg.gridSize);
 
                 //seg.tempVertices is useful for earth point calculation(see planetSegment object)
                 seg.tempVertices = tempVertices;
@@ -586,7 +553,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 if (pn.planetSegment.terrainExists) {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
-                    seg.terrainNormals = tempNormals;
                 } else {
                     seg.terrainExists = false;
                     seg.deleteBuffers();
@@ -601,12 +567,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                             v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
                             v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
-                    v = seg.terrainNormals;
-                    seg.terrainNormals = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                            v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                            v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                    seg.createCoordsBuffers(seg.terrainVertices, seg.terrainNormals, 2);
+                    seg.createCoordsBuffers(seg.terrainVertices, 2);
                     seg.gridSize = 2;
                 }
             } else {

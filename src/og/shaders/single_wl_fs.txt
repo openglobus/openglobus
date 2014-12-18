@@ -10,7 +10,6 @@ uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 
 varying vec4 vTextureCoord;
-varying vec3 vNormal;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
 

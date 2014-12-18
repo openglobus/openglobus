@@ -37,7 +37,6 @@ og.shaderProgram.single_wl = function () {
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
-            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },

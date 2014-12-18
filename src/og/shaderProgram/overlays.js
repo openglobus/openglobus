@@ -42,8 +42,7 @@ og.shaderProgram.overlays_wl = function () {
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_wl_vs.txt"),
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "overlays_wl_fs.txt")
