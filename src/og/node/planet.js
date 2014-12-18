@@ -274,7 +274,7 @@ og.node.Planet.prototype.initialization = function () {
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue();
 
     var that = this;
-    this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled;}, og.input.KEY_L);
+    this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
     this.renderer.events.on("onkeypressed", this, function () { that.sunlight._position = that.renderer.activeCamera.eye; }, og.input.KEY_V);
 };
 
@@ -367,18 +367,20 @@ og.node.Planet.prototype.frame = function () {
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
 
-   // var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
+    // var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
     //this.sunlight._position = this.renderer.activeCamera.eye; //b.add(b.normal().scale(100000));
 
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
 
-    //NOT WORKING! BUG IS HERE!
-    if (this.createdNodesCount > 140) {
-        this.quadTree.clearTree();
-        this.quadTreeNorth.clearTree();
-        this.quadTreeSouth.clearTree();
-        this.createdNodesCount = 0;
+    var that = this;
+    if (this.createdNodesCount > 1024) {
+        setTimeout(function () {
+            that.quadTree.clearTree();
+            that.quadTreeNorth.clearTree();
+            that.quadTreeSouth.clearTree();
+        }), 0
+        that.createdNodesCount = 0;
     }
 
     this.renderedNodes.length = 0;
