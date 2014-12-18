@@ -374,7 +374,7 @@ og.node.Planet.prototype.frame = function () {
     this.events.dispatch(this.events.ondraw, this);
 
     var that = this;
-    if (this.createdNodesCount > 1024) {
+    if (this.createdNodesCount > 370) {
         setTimeout(function () {
             that.quadTree.clearTree();
             that.quadTreeNorth.clearTree();
