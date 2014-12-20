@@ -263,24 +263,26 @@ og.node.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     });
 
+    //sunlight initialization
     this.sunlight = new og.light.PointLight();
     this.sunlight._position.z = og.node.Planet.SUN_DISTANCE;
-    this.sunlight.setAmbient(new og.math.Vector3(0.14, 0.1, 0.2));
+    this.sunlight.setAmbient(new og.math.Vector3(0.18, 0.13, 0.25));
     this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
-    this.sunlight.setSpecular(new og.math.Vector3(0.01, 0.01, 0.009));
-    this.sunlight.setShininess(8);
+    this.sunlight.setSpecular(new og.math.Vector3(0.008, 0.008, 0.005));
+    this.sunlight.setShininess(4);
     this.sunlight.addTo(this);
 
-    this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue();
+    this.lightEnabled = true;
 
+    //normal map renderer initialization
+    this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
+
+    //temporary initializations
     var that = this;
+    this.renderer.events.on("oncharkeypressed", this, function () { that.memClear(); }, og.input.KEY_C);
     this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
     this.renderer.events.on("onkeypressed", this, function () { that.sunlight._position = that.renderer.activeCamera.eye; }, og.input.KEY_V);
 };
-
-og.node.Planet.prototype.clearAttributionsList = function () {
-
-}
 
 og.node.Planet.prototype.updateAttributionsList = function () {
     var html = "";
@@ -361,29 +363,36 @@ og.node.Planet.prototype.checkCameraCollision = function () {
 og.node.Planet.prototype.frame = function () {
 
     this.checkCameraCollision();
+
     this.quadTreeNorth.renderTree();
     this.quadTreeSouth.renderTree();
     this.quadTree.renderTree();
+
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
 
-    // var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
+    //var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
     //this.sunlight._position = this.renderer.activeCamera.eye; //b.add(b.normal().scale(100000));
 
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
 
+    //free memory
     var that = this;
     if (this.createdNodesCount > 370) {
         setTimeout(function () {
-            that.quadTree.clearTree();
-            that.quadTreeNorth.clearTree();
-            that.quadTreeSouth.clearTree();
+            that.memClear();
         }), 0
         that.createdNodesCount = 0;
     }
 
     this.renderedNodes.length = 0;
+};
+
+og.node.Planet.prototype.memClear = function () {
+    this.quadTree.clearTree();
+    this.quadTreeNorth.clearTree();
+    this.quadTreeSouth.clearTree();
 };
 
 og.node.Planet.prototype.renderNodesPASS = function () {
