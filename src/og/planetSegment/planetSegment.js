@@ -152,7 +152,6 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
 og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
-        this.terrainExists = true;
 
         var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
         var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
@@ -307,6 +306,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
             normalMapNormals = this.plainNormals;
         }
 
+        this.terrainExists = true;
         this.normalMapNormals = normalMapNormals;
         this.normalMapVertices = normalMapVertices;
         this.terrainVertices.length = 0;
@@ -449,7 +449,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
 
 og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
-    if (this.zoomIndex > this.planet.terrainProvider.maxZoom || !this.ready)
+    if (this.zoomIndex > this.planet.terrainProvider.maxZoom)
         return;
 
     var nb = this.node.neighbors;

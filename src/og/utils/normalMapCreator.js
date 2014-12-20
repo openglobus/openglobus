@@ -23,6 +23,9 @@ og.utils.NormalMapCreator.prototype._init = function () {
     //TODO: is it bug or not?
     var isWebkit = 'WebkitAppearance' in document.documentElement.style;
 
+    /*==================================================================================
+     * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
+     *=================================================================================*/
     var normalMapBlur = new og.shaderProgram.ShaderProgram("normalMapBlur", {
         attributes: {
             a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
@@ -37,14 +40,14 @@ og.utils.NormalMapCreator.prototype._init = function () {
                       \
                       void main() { \
                           vec2 vt = a_position * 0.5 + 0.5;" +
-                          (!isWebkit ? "vt.y = 1.0 - vt.y; ":" ") +
+                          (!isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
                          "gl_Position = vec4(a_position, 0.0, 1.0); \
                           blurCoordinates[0] = vt; \
-                          blurCoordinates[1] = vt + 0.0109947890625; \
-                          blurCoordinates[2] = vt - 0.0109947890625; \
-                          blurCoordinates[3] = vt + 0.0257360546875; \
-                          blurCoordinates[4] = vt - 0.0257360546875; \
-                      }",
+                          blurCoordinates[1] = vt + "  + (1.0 / this._width * 1.407333) + ";" +
+                          "blurCoordinates[2] = vt - " + (1.0 / this._height * 1.407333) + ";" +
+                          "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
+                          "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
+                     "}",
         fragmentShader: "uniform sampler2D s_texture; \
                         \
                         varying highp vec2 blurCoordinates[5]; \
@@ -142,7 +145,6 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     p.activate();
 
     f.activate();
-    //f.clear();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
     gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
@@ -157,8 +159,6 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
 };
 
 og.utils.NormalMapCreator.prototype._drawBlur = function () {
-
-    //this._handler.clearFrame();
 
     var gl = this._handler.gl;
     var p = this._handler.shaderPrograms.normalMapBlur;
@@ -177,7 +177,7 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
     this._drawNormalMap(normals);
-    this._drawBlur();
     //return this._framebuffer.getImage();
+    this._drawBlur();
     return this._handler.canvas;
 };

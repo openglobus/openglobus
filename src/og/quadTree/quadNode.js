@@ -399,8 +399,12 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (pn.planetSegment.zoomIndex == maxZ/*|| !(segm.terrainExists || segm.terrainIsLoading))*/) {
+    if (pn.planetSegment.zoomIndex >= maxZ/*|| !(segm.terrainExists || segm.terrainIsLoading))*/) {
         segm.parentNormalMapReady = true;
+    }
+
+    if (segm.zoomIndex <= maxZ && !segm.terrainIsLoading && segm.terrainReady && !segm._inTheQueue) {
+        segm.planet.normalMapCreator.shift(segm)
     }
 };
 
@@ -661,7 +665,7 @@ og.quadTree.QuadNode.prototype.clearTree = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    if (this.planetSegment.zoomIndex < 4)
+    if (this.planetSegment.zoomIndex <= this.planetSegment.planet.terrainProvider.minZoom)
         return;
 
     if (cls) {
