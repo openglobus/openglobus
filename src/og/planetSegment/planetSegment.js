@@ -372,7 +372,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
             if (!ns._inTheQueue &&
                 this.zoomIndex > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
                 this.planet.normalMapCreator.queue(ns);
-                //return;
+                return;
             }
 
             var size = this.planet.terrainProvider.fileGridSize;
