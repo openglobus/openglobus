@@ -3,8 +3,12 @@ goog.provide('og.shaderProgram.ShaderProgram');
 
 goog.require('og.shaderProgram.callbacks');
 
-//og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
-og.shaderProgram.SHADERS_URL = "../../src/og/shaders/";
+if (COMPILED) {
+    //og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
+    og.shaderProgram.SHADERS_URL = "/shaders/";
+} else {
+    og.shaderProgram.SHADERS_URL = "../../src/og/shaders/";
+}
 
 og.shaderProgram.ShaderProgram = function (name, material) {
     this.name = name;
