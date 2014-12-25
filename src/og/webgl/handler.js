@@ -51,30 +51,32 @@ og.webgl.Handler.prototype.createTexture_mm = function (image) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    //if (fit && (!og.math.isPowerOfTwo(image.width) || !og.math.isPowerOfTwo(image.height))) {
-    //    var canvas = document.createElement("canvas");
-    //    canvas.width = og.math.nextHighestPowerOfTwo(image.width);
-    //    canvas.height = og.math.nextHighestPowerOfTwo(image.height);
-    //    var ctx = canvas.getContext("2d");
-    //    ctx.drawImage(image, 0, 0, image.width, image.height);
-    //    image = canvas;
-    //}
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    if (this.af) {
-        gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
-    }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 };
 
-og.webgl.Handler.prototype.createTexture = function (image) {
-    return this.createTexture_mm(image);
+og.webgl.Handler.prototype.createTexture_af = function (image) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
 };
 
+og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_af;
+    
 og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -174,13 +176,15 @@ og.webgl.Handler.prototype.init = function () {
     this._initialized = true;
 
     //deafult extensions
-    //this.initExtension("OES_standard_derivatives");
+    //this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
 
     var i = this._params.extensions.length;
     while (i--) {
         this.initExtension(this._params.extensions[i]);
     }
+    if (!this._pExtensions.EXT_texture_filter_anisotropic)
+        this.createTexture = this.createTexture_mm;
 
     this.initShaderPrograms();
     this.setDefaults();
