@@ -6,9 +6,7 @@ goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
 
 og.utils.NormalMapCreator = function (width, height) {
-    this._normalmapHander = null;
-    this._blurHander = null;
-    //this._handler = null;
+    this._handler = null;
     this._verticesBufferArray = [];
     this._indexBufferArray = [];
     this._positionBuffer = null;
@@ -22,8 +20,7 @@ og.utils.NormalMapCreator = function (width, height) {
 
 og.utils.NormalMapCreator.prototype._init = function () {
 
-    //TODO: is it bug or not?
-    var isWebkit = true;//'WebkitAppearance' in document.documentElement.style;
+    var isWebkit = 'WebkitAppearance' in document.documentElement.style;
 
     /*==================================================================================
      * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
@@ -89,31 +86,20 @@ og.utils.NormalMapCreator.prototype._init = function () {
                         }"
     });
 
-    //initialize hidden handlers
-    this._normalmapHandler = new og.webgl.Handler(null, {
+    //initialize hidden handler
+    this._handler = new og.webgl.Handler(null, {
         width: this._width, height: this._height,
         context: { alpha: false, depth: false }
     });
-    this._normalmapHandler.addShaderProgram(normalMap);
-    this._normalmapHandler.init();
-    this._normalmapHandler.deactivateFaceCulling();
-    this._normalmapHandler.deactivateDepthTest();
+    this._handler.addShaderProgram(normalMapBlur);
+    this._handler.addShaderProgram(normalMap);
+    this._handler.init();
+    this._handler.deactivateFaceCulling();
+    this._handler.deactivateDepthTest();
 
-    this._blurHandler = new og.webgl.Handler(null, {
-        width: this._width, height: this._height,
-        context: { alpha: false, depth: false }
-    });
-    this._blurHandler.addShaderProgram(normalMapBlur);
-    this._blurHandler.init();
-    this._blurHandler.deactivateFaceCulling();
-    this._blurHandler.deactivateDepthTest();
-
-    //create hidden handlers buffer
-    this._normalmapFramebuffer = new og.webgl.Framebuffer(this._normalmapHandler.gl, this._width, this._height);
-    this._normalmapFramebuffer.initialize();
-
-    this._blurFramebuffer = new og.webgl.Framebuffer(this._blurHandler.gl, this._width, this._height);
-    this._blurFramebuffer.initialize();
+    //create hidden handler buffer
+    this._framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
+    this._framebuffer.initialize();
 
     //creating vertices hached array for differents grid size segment
     for (var p = 1; p <= 6; p++) {
@@ -127,9 +113,9 @@ og.utils.NormalMapCreator.prototype._init = function () {
             }
         }
 
-        this._verticesBufferArray[gs] = this._normalmapHandler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+        this._verticesBufferArray[gs] = this._handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
         var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
-        this._indexBufferArray[gs] = this._normalmapHandler.createElementArrayBuffer(indexes, 1, indexes.length);
+        this._indexBufferArray[gs] = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
     //create 2d screen square buffer
@@ -140,7 +126,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
         -1.0, 1.0,
          1.0, 1.0];
 
-    this._positionBuffer = this._blurHandler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
+    this._positionBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
 };
 
 og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
@@ -148,14 +134,16 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     var size = normals.length / 3;
     var gridSize = Math.sqrt(size) - 1;
 
-    var _normalsBuffer = this._normalmapHandler.createArrayBuffer(new Float32Array(normals), 3, size);
+    var _normalsBuffer = this._handler.createArrayBuffer(new Float32Array(normals), 3, size);
 
-    //var f = this._framebuffer;
-    var p = this._normalmapHandler.shaderPrograms.normalMap;
-    var gl = this._normalmapHandler.gl;
+    var f = this._framebuffer;
+    var p = this._handler.shaderPrograms.normalMap;
+    var gl = this._handler.gl;
     var sha = p._program.attributes;
 
-    //f.activate();
+    p.activate();
+
+    f.activate();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
     gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
@@ -166,27 +154,29 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
     gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
 
-    //f.deactivate();
+    f.deactivate();
 };
 
 og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
-    var gl = this._blurHandler.gl;
-    var p = this._blurHandler.shaderPrograms.normalMapBlur;
+    var gl = this._handler.gl;
+    var p = this._handler.shaderPrograms.normalMapBlur;
     var sha = p._program.attributes,
         shu = p._program.uniforms;
+
+    p.activate();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
-    var texture = this._blurHandler.createTexture_n(this._normalmapHandler.canvas);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
     gl.uniform1i(shu.s_texture._pName, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
     this._drawNormalMap(normals);
+    //return this._framebuffer.getImage();
     this._drawBlur();
-    return this._blurHandler.canvas;
+    return this._handler.canvas;
 };
