@@ -114,11 +114,12 @@ og.Renderer.prototype.draw = function () {
 
     //print2d("lbTiles", this.renderNodes.Earth.normalMapCreator._pendingsQueue.length, 100, 100);
 
+    this.events.dispatch(this.events.ondraw, this);
+
     for (var i = 0; i < this._renderNodesArr.length; i++) {
         this._renderNodesArr[i].drawNode();
     }
 
-    this.events.dispatch(this.events.ondraw, this);
     this.events.mouseState.moving = false;
 };
 
