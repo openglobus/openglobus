@@ -36,7 +36,7 @@ og.node.RenderNode.prototype.addLight = function (light) {
     return light;
 };
 
-og.node.RenderNode.prototype.getLightByName = function(name){
+og.node.RenderNode.prototype.getLightByName = function (name) {
     var li = this._pointLightsNames.indexOf(name);
     return this._pointLights[li];
 };
@@ -106,6 +106,8 @@ og.node.RenderNode.prototype.drawNodes = function () {
     if (this.show)
         if (this.frame) {
 
+            this.frame();
+
             //calculate transformed lights
             if (this.lightEnabled) {
                 var r = this.renderer;
@@ -117,8 +119,6 @@ og.node.RenderNode.prototype.drawNodes = function () {
                     this._pointLightsTransformedPositions[ii + 2] = tp.z;
                 }
             }
-
-            this.frame();
         }
 };
 
