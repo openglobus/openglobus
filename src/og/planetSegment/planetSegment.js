@@ -471,7 +471,6 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
         }
     }
 
-
     this.normalMapEdgeEqualize(og.quadTree.N, 0);
     this.normalMapEdgeEqualize(og.quadTree.S, 32);
     this.normalMapEdgeEqualize(og.quadTree.W, 0, true);
@@ -479,6 +478,7 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
     var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
     this.normalMapTexture = this.handler.createTexture(cnv);
+
     this.normalMapReady = true;
     this.normalMapTextureBias = [0, 0, 1];
 

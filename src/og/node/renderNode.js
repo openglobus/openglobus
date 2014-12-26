@@ -103,23 +103,26 @@ og.node.RenderNode.prototype.drawNodes = function () {
             this.childNodes[i].drawNodes();
     }
 
-    if (this.show)
+    if (this.show) {
         if (this.frame) {
-
-            this.frame();
-
-            //calculate transformed lights
             if (this.lightEnabled) {
-                var r = this.renderer;
-                for (var i = 0; i < this._pointLights.length; i++) {
-                    var ii = i * 3;
-                    var tp = r.activeCamera.mvMatrix.mulVec3(this._pointLights[i]._position);
-                    this._pointLightsTransformedPositions[ii] = tp.x;
-                    this._pointLightsTransformedPositions[ii + 1] = tp.y;
-                    this._pointLightsTransformedPositions[ii + 2] = tp.z;
-                }
+                this.transformLights();
             }
+            this.frame();
         }
+    }
+};
+
+og.node.RenderNode.prototype.transformLights = function () {
+    //calculate transformed lights
+    var r = this.renderer;
+    for (var i = 0; i < this._pointLights.length; i++) {
+        var ii = i * 3;
+        var tp = r.activeCamera.mvMatrix.mulVec3(this._pointLights[i]._position);
+        this._pointLightsTransformedPositions[ii] = tp.x;
+        this._pointLightsTransformedPositions[ii + 1] = tp.y;
+        this._pointLightsTransformedPositions[ii + 2] = tp.z;
+    }
 };
 
 og.node.RenderNode.prototype.assignRenderer = function (renderer) {

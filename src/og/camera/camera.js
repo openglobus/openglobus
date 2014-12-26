@@ -160,7 +160,6 @@ og.Camera.prototype.set = function (Eye, look, up) {
     this.u.copy(up.cross(this.n));
     this.n.normalize(); this.u.normalize();
     this.v.copy(this.n.cross(this.u));
-    this.update();
 };
 
 og.Camera.prototype.look = function (look, up) {
@@ -168,14 +167,12 @@ og.Camera.prototype.look = function (look, up) {
     this.u.copy((up ? up : this.v).cross(this.n));
     this.n.normalize(); this.u.normalize();
     this.v.copy(this.n.cross(this.u));
-    this.update();
 };
 
 og.Camera.prototype.slide = function (du, dv, dn) {
     this.eye.x += du * this.u.x + dv * this.v.x + dn * this.n.x;
     this.eye.y += du * this.u.y + dv * this.v.y + dn * this.n.y;
     this.eye.z += du * this.u.z + dv * this.v.z + dn * this.n.z;
-    this.update();
 };
 
 og.Camera.prototype.roll = function (angle) {
@@ -184,7 +181,6 @@ og.Camera.prototype.roll = function (angle) {
     var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
-    this.update();
 };
 
 og.Camera.prototype.pitch = function (angle) {
@@ -193,7 +189,6 @@ og.Camera.prototype.pitch = function (angle) {
     var t = this.n.clone();
     this.n.set(cs * t.x - sn * this.v.x, cs * t.y - sn * this.v.y, cs * t.z - sn * this.v.z);
     this.v.set(sn * t.x + cs * this.v.x, sn * t.y + cs * this.v.y, sn * t.z + cs * this.v.z);
-    this.update();
 };
 
 og.Camera.prototype.yaw = function (angle) {
@@ -202,7 +197,6 @@ og.Camera.prototype.yaw = function (angle) {
     var t = this.u.clone();
     this.u.set(cs * t.x - sn * this.n.x, cs * t.y - sn * this.n.y, cs * t.z - sn * this.n.z);
     this.n.set(sn * t.x + cs * this.n.x, sn * t.y + cs * this.n.y, sn * t.z + cs * this.n.z);
-    this.update();
 };
 
 og.Camera.prototype.unproject = function (x, y) {
@@ -222,14 +216,12 @@ og.Camera.prototype.project = function (v) {
 
 og.Camera.prototype.setEye = function (p) {
     this.eye.copy(p);
-    this.update();
 };
 
 og.Camera.prototype.setAltitude = function (alt) {
     var n = this.eye.normal();
     this.eye = this.earthPoint.earth.add(n.scale(alt));
     this.altitude = alt;
-    this.update();
 };
 
 og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
@@ -246,7 +238,6 @@ og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
     this.v = rot.mulVec3(this.v);
     this.u = rot.mulVec3(this.u);
     this.n = rot.mulVec3(this.n);
-    this.update();
 };
 
 og.Camera.prototype.rotateHorizontal = function (angle, isArc, center, up) {

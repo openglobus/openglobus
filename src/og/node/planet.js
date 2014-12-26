@@ -281,7 +281,9 @@ og.node.Planet.prototype.initialization = function () {
     var that = this;
     this.renderer.events.on("oncharkeypressed", this, function () { that.memClear(); }, og.input.KEY_C);
     this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
-    this.renderer.events.on("onkeypressed", this, function () { that.sunlight._position = that.renderer.activeCamera.eye; }, og.input.KEY_V);
+    this.renderer.events.on("onkeypressed", this, function () {
+        that.sunlight._position = that.renderer.activeCamera.eye;
+    }, og.input.KEY_V);
 };
 
 og.node.Planet.prototype.updateAttributionsList = function () {
@@ -368,11 +370,12 @@ og.node.Planet.prototype.frame = function () {
     this.quadTreeSouth.renderTree();
     this.quadTree.renderTree();
 
+    var cam = this.renderer.activeCamera;
+    var b = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(-cam.altitude * 0.5));
+    this.sunlight._position = b.add(cam.eye);
+
     this.renderNodesPASS();
     this.renderDistanceBackbufferPASS();
-
-    //var b = this.renderer.activeCamera.n.scaleTo(10000).add(this.renderer.activeCamera.eye)
-    //this.sunlight._position = this.renderer.activeCamera.eye; //b.add(b.normal().scale(100000));
 
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);

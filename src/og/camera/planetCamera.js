@@ -47,8 +47,6 @@ og.PlanetCamera.prototype.setLonLat = function (lonlat) {
     this.v = rot.mulVec3(this.v);
     this.u = rot.mulVec3(this.u);
     this.n = rot.mulVec3(this.n);
-
-    this.update();
 };
 
 og.PlanetCamera.prototype.getExtentPosition = function (extent) {

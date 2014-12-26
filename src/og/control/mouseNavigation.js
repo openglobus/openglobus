@@ -170,6 +170,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
         return;
 
     if (this.renderer.events.mouseState.moving) {
+
         var cam = this.renderer.activeCamera;
         var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
 
@@ -181,7 +182,6 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
             cam.v = rot.mulVec3(cam.v);
             cam.u = rot.mulVec3(cam.u);
             cam.n = rot.mulVec3(cam.n);
-            cam.update();
         }
     } else {
         this.scaleRot = 0;
@@ -213,7 +213,6 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.v = sf.v;
         cam.u = sf.u;
         cam.n = sf.n;
-        cam.update();
     }
 
     var r = this.renderer;
@@ -234,6 +233,5 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.v = rot.mulVec3(cam.v);
         cam.u = rot.mulVec3(cam.u);
         cam.n = rot.mulVec3(cam.n);
-        cam.update();
     }
 };
