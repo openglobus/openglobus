@@ -371,7 +371,8 @@ og.node.Planet.prototype.frame = function () {
     this.quadTree.renderTree();
 
     var cam = this.renderer.activeCamera;
-    var b = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(-cam.altitude * 0.5));
+    var alt = cam.altitude;
+    var b = cam.v.scaleTo(alt * 0.2).add(cam.u.scaleTo(alt * 0.4));
     this.sunlight._position = b.add(cam.eye);
 
     this.renderNodesPASS();
