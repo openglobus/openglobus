@@ -315,7 +315,11 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         this.deleteBuffers();
         this.terrainReady = true;
         this.terrainIsLoading = false;
-        this.planet.normalMapCreator.queue(this);
+
+        if (this.planet.lightEnabled) {
+            this.planet.normalMapCreator.queue(this);
+        }
+
         this.createCoordsBuffers(terrainVertices, tgs);
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
         this.gridSize = tgs;
@@ -335,7 +339,9 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
 
             this.deleteBuffers();
 
-            this.planet.normalMapCreator.queue(this);
+            if (this.planet.lightEnabled) {
+                this.planet.normalMapCreator.queue(this);
+            }
 
             if (this.zoomIndex > 5) {
                 var step = 3 * this.gridSize;

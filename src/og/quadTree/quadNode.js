@@ -277,7 +277,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileTerrainLoading();
     }
 
-    if (!(seg.normalMapReady || seg.parentNormalMapReady)) {
+    if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
         this.whileNormalMapCreating();
     }
 
