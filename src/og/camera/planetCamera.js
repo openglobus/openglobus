@@ -49,6 +49,13 @@ og.PlanetCamera.prototype.setLonLat = function (lonlat) {
     this.n = rot.mulVec3(this.n);
 };
 
+og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
+    this.lonLat.set(lonlat.lon, lonlat.lat, lonlat.height ? lonlat.height : this.lonLat.height);
+    var newEye = this._ellipsoid.LonLat2ECEF(this.lonLat);
+    var newLook = this._ellipsoid.LonLat2ECEF(new og.LonLat(this.lonLat.lon, this.lonLat.lat, 0));
+    this.set(newEye, newLook, up || og.math.Vector3.UP);
+};
+
 og.PlanetCamera.prototype.getExtentPosition = function (extent) {
 
     var north = extent.getNorth();
