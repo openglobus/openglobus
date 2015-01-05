@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 uniform sampler2D uNormalMap;
 
@@ -22,7 +22,7 @@ varying mat3 v_NMatrix;
 
 void main(void) 
 {
-    vec3 lightWeighting;
+    vec3 lightWeighting = vec3(0.0);
 	float specularLightWeighting;
 	float diffuseLightWeighting;
 

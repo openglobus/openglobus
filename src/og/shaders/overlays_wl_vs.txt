@@ -1,5 +1,3 @@
-precision mediump float;
-
 const float C = 0.1;
 const float far = 149.6e+9;
 float logc = 2.0 / log( C * far + 1.0 );

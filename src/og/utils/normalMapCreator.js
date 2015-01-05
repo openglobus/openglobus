@@ -20,7 +20,7 @@ og.utils.NormalMapCreator = function (width, height) {
 
 og.utils.NormalMapCreator.prototype._init = function () {
 
-    var isWebkit = 'WebkitAppearance' in document.documentElement.style;
+    var isWebkit = ('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
 
     /*==================================================================================
      * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
