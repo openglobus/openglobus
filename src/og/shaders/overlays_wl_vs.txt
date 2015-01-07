@@ -18,10 +18,10 @@ varying mat3 v_NMatrix;
 
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
-	gl_Position = uPMatrix * vPosition;
+    gl_Position = uPMatrix * vPosition;
     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
     vNormal = aVertexNormal;
-	v_NMatrix = uNMatrix;
+    v_NMatrix = uNMatrix;
 
     vTextureCoord.xy = aTextureCoord;
     vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
