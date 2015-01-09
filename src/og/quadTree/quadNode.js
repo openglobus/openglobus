@@ -619,11 +619,9 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
 
     var psegm = pn.planetSegment.materials[mId];
     while (pn.parentNode) {
-        if (psegm) {
-            if (psegm.imageReady) {
-                notEmpty = true;
-                break;
-            }
+        if (psegm && psegm.imageReady) {
+            notEmpty = true;
+            break;
         }
         pn = pn.parentNode;
         psegm = pn.planetSegment.materials[mId];
@@ -637,13 +635,11 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
         texOffsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var segm = this.planetSegment.materials[mId];
-    if (segm.imageIsLoading) {
-        if (notEmpty) {
-            segm.texture = psegm.texture;
-            segm.texBias[0] = texOffsetX;
-            segm.texBias[1] = texOffsetY;
-            segm.texBias[2] = 1 / Math.pow(2, texScale);
-        }
+    if (segm.imageIsLoading && (notEmpty || (psegm && !pn.parentNode))) {
+        segm.texture = psegm.texture;
+        segm.texBias[0] = texOffsetX;
+        segm.texBias[1] = texOffsetY;
+        segm.texBias[2] = 1 / Math.pow(2, texScale);
     }
 };
 
