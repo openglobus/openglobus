@@ -355,6 +355,9 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
                         v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
                 this.createCoordsBuffers(this.terrainVertices, 2);
+
+                this.createBoundsByExtent();
+
                 this.gridSize = 2;
             } else {
                 this.createCoordsBuffers(this.terrainVertices, this.gridSize);
