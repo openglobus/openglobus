@@ -356,13 +356,22 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
 
                 this.createCoordsBuffers(this.terrainVertices, 2);
 
-                this.createBoundsByExtent();
-
                 this.gridSize = 2;
-            } else {
-                this.createCoordsBuffers(this.terrainVertices, this.gridSize);
             }
+
+            this.createCoordsBuffers(this.terrainVertices, this.gridSize);
         }
+
+        var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+        var v = this.terrainVertices;
+        for (var i = 0; i < v.length; i += 3) {
+            var x = v[i], y = v[i + 1], z = v[i + 2];
+            if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+            if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+            if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+        }
+
+        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
     }
 };
 

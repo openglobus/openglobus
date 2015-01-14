@@ -447,16 +447,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = gridSize * offsetY;
                     var j0 = gridSize * offsetX;
 
-                    //tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
-                    var vInd = 0;
-                    for (var i = i0; i <= i0 + gridSize; i++) {
-                        for (var j = j0; j <= j0 + gridSize; j++) {
-                            var ind = 3 * (i * (pseg.gridSize + 1) + j);;
-                            tempVertices[vInd++] = pseg.terrainVertices[ind];
-                            tempVertices[vInd++] = pseg.terrainVertices[ind + 1];
-                            tempVertices[vInd++] = pseg.terrainVertices[ind + 2];
-                        }
-                    }
+                    tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
 
                 } else {
                     seg.gridSize = og.quadTree.QuadNode._neGridSize;
@@ -465,19 +456,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var i0 = Math.floor(gridSize * offsetY);
                     var j0 = Math.floor(gridSize * offsetX);
 
-                    var bigOne = [];
-
-                    //bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
-                    var vInd = 0;
-                    for (var i = i0; i <= i0 + 1; i++) {
-                        for (var j = j0; j <= j0 + 1; j++) {
-                            var ind = 3 * (i * (pseg.gridSize + 1) + j);
-                            bigOne[vInd++] = pseg.terrainVertices[ind];
-                            bigOne[vInd++] = pseg.terrainVertices[ind + 1];
-                            bigOne[vInd++] = pseg.terrainVertices[ind + 2];
-                        }
-                    }
-
+                    var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
                     //v_lt(x,y,z)             vn 
                     //    *---------------------------------->*       
@@ -673,6 +652,8 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
         this.nodes[i].planetSegment.destroySegment();
         this.appliedTerrainNodeId = -1;
         this.nodes[i].destroyBranches(false);
+        this.nodes[i].parentNode = null;
+        this.nodes[i].state = og.quadTree.NOTRENDERING;
     }
     this.nodes.length = 0;
 };
