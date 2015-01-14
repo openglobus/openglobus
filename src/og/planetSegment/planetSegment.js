@@ -472,34 +472,35 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
 
     var nb = this.node.neighbors;
 
-    var nbn = nb[og.quadTree.N],
-        nbe = nb[og.quadTree.E],
-        nbs = nb[og.quadTree.S],
-        nbw = nb[og.quadTree.W];
+    if (nb) {
+        var nbn = nb[og.quadTree.N],
+            nbe = nb[og.quadTree.E],
+            nbs = nb[og.quadTree.S],
+            nbw = nb[og.quadTree.W];
 
-    if (this.zoomIndex > this.planet.terrainProvider.minZoom) {
-        if (nbn && nbn.planetSegment.terrainIsLoading ||
-            nbe && nbe.planetSegment.terrainIsLoading ||
-            nbs && nbs.planetSegment.terrainIsLoading ||
-            nbw && nbw.planetSegment.terrainIsLoading) {
-            if (!this._inTheQueue) {
-                this.planet.normalMapCreator.shift(this);
+        if (this.zoomIndex > this.planet.terrainProvider.minZoom) {
+            if (nbn && nbn.planetSegment.terrainIsLoading ||
+                nbe && nbe.planetSegment.terrainIsLoading ||
+                nbs && nbs.planetSegment.terrainIsLoading ||
+                nbw && nbw.planetSegment.terrainIsLoading) {
+                if (!this._inTheQueue) {
+                    this.planet.normalMapCreator.shift(this);
+                }
+                return;
             }
-            return;
         }
+
+        this.normalMapEdgeEqualize(og.quadTree.N, 0);
+        this.normalMapEdgeEqualize(og.quadTree.S, 32);
+        this.normalMapEdgeEqualize(og.quadTree.W, 0, true);
+        this.normalMapEdgeEqualize(og.quadTree.E, 32, true);
+
+        var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
+        this.normalMapTexture = this.handler.createTexture(cnv);
+
+        this.normalMapReady = true;
+        this.normalMapTextureBias = [0, 0, 1];
     }
-
-    this.normalMapEdgeEqualize(og.quadTree.N, 0);
-    this.normalMapEdgeEqualize(og.quadTree.S, 32);
-    this.normalMapEdgeEqualize(og.quadTree.W, 0, true);
-    this.normalMapEdgeEqualize(og.quadTree.E, 32, true);
-
-    var cnv = this.planet.normalMapCreator.draw(this.normalMapNormals);
-    this.normalMapTexture = this.handler.createTexture(cnv);
-
-    this.normalMapReady = true;
-    this.normalMapTextureBias = [0, 0, 1];
-
 };
 
 og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
@@ -606,8 +607,17 @@ og.planetSegment.PlanetSegment.prototype.createBoundsByExtent = function () {
 };
 
 og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
+    this.node.state = og.quadTree.NOTRENDERING;
+
     this.clearSegment();
     this.extent = null;
+
+    this._appliedNeighborsZoom = null;
+    this.normalMapTextureBias = null;
+
+    this.node.neighbors = null;
+    this.node.hasNeighbors = null;
+    this.node.parentNode = null;
 };
 
 og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {

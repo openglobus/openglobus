@@ -377,7 +377,7 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
 
 og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
-    var segm = this.planetSegment;
+    var seg = this.planetSegment;
 
     var pn = this;
 
@@ -385,26 +385,38 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
         pn = pn.parentNode;
     }
 
-    var scale = segm.zoomIndex - pn.planetSegment.zoomIndex;
+    var scale = seg.zoomIndex - pn.planetSegment.zoomIndex;
 
     var dZ2 = Math.pow(2, scale);
 
-    var offsetX = segm.tileX - pn.planetSegment.tileX * dZ2,
-        offsetY = segm.tileY - pn.planetSegment.tileY * dZ2;
+    var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
+        offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
 
-    segm.normalMapTexture = pn.planetSegment.normalMapTexture;
-    segm.normalMapTextureBias[0] = offsetX;
-    segm.normalMapTextureBias[1] = offsetY;
-    segm.normalMapTextureBias[2] = 1 / dZ2;
+    seg.normalMapTexture = pn.planetSegment.normalMapTexture;
+    seg.normalMapTextureBias[0] = offsetX;
+    seg.normalMapTextureBias[1] = offsetY;
+    seg.normalMapTextureBias[2] = 1 / dZ2;
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (pn.planetSegment.zoomIndex >= maxZ/*|| !(segm.terrainExists || segm.terrainIsLoading))*/) {
-        segm.parentNormalMapReady = true;
-    }
-
-    if (segm.zoomIndex <= maxZ && !segm.terrainIsLoading && segm.terrainReady && !segm._inTheQueue) {
-        segm.planet.normalMapCreator.shift(segm)
+    if (seg.zoomIndex <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+        seg.planet.normalMapCreator.shift(seg)
+    }else if (seg.zoomIndex > maxZ) {
+        if (pn.planetSegment.zoomIndex == maxZ) {
+            seg.parentNormalMapReady = true;
+        } else {
+            pn = this;
+            while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+                pn = pn.parentNode;
+            }
+            var pns = pn.planetSegment;
+            if (!pns.ready) {
+                this.createPlainSegment(pns);
+                pns.loadTerrain();
+            } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
+                pns.planet.normalMapCreator.shift(pns);
+            }
+        }
     }
 };
 
@@ -518,8 +530,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     bigOne.length = 0;
                 }
 
-
-
                 seg.createCoordsBuffers(tempVertices, seg.gridSize);
 
                 //seg.tempVertices is useful for earth point calculation(see planetSegment object)
@@ -630,8 +640,7 @@ og.quadTree.QuadNode.prototype.clearTree = function () {
         this.destroyBranches(true);
     } else if (state === og.quadTree.RENDERING) {
         this.destroyBranches(false);
-    }
-    else {
+    } else {
         for (var i = 0; i < this.nodes.length; i++) {
             this.nodes[i].clearTree();
         }
@@ -652,8 +661,8 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
         this.nodes[i].planetSegment.destroySegment();
         this.appliedTerrainNodeId = -1;
         this.nodes[i].destroyBranches(false);
-        this.nodes[i].parentNode = null;
-        this.nodes[i].state = og.quadTree.NOTRENDERING;
+        //this.nodes[i].parentNode = null;
+        //this.nodes[i].state = og.quadTree.NOTRENDERING;
     }
     this.nodes.length = 0;
 };
