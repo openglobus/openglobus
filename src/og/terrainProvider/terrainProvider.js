@@ -6,6 +6,8 @@ goog.require('og.Ajax');
 goog.require('og.Events');
 goog.require('og.proj.EPSG3857');
 
+goog.require('og.QueueArray');
+
 og.terrainProvider.defaultOptions = {
     url: "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm",
     responseType: "arraybuffer",
@@ -14,9 +16,10 @@ og.terrainProvider.defaultOptions = {
     //gridSizeByZoom: [64, 32, 32, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
     //gridSizeByZoom: [32, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
+    //gridSizeByZoom: [64, 32, 16, 8, 4, 4, 4, 4, 4, 8, 16, 32, 16, 16, 32, 32, 32, 32, 32, 32, 32],
     //gridSizeByZoom: [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
     fileGridSize: 32,
-    MAX_LOADING_TILES: 10
+    MAX_LOADING_TILES: 8
 };
 
 og.terrainProvider.TerrainProvider = function (name, options) {
@@ -34,7 +37,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this.events.registerNames(["onload", "onloadend"]);
 
     this._counter = 0;
-    this._pendingsQueue = [];
+    this._pendingsQueue = new og.QueueArray();
 };
 
 og.terrainProvider.TerrainProvider.prototype.abort = function () {

@@ -2,12 +2,13 @@ goog.provide('og.planetSegment.NormalMapCreatorQueue');
 
 goog.require('og.inheritance');
 goog.require('og.utils.NormalMapCreator');
+goog.require('og.QueueArray');
 
 og.planetSegment.NormalMapCreatorQueue = function (width, height) {
     og.inheritance.base(this, width, height);
 
     this._counter = 0;
-    this._pendingsQueue = [];
+    this._pendingsQueue = new og.QueueArray();
 };
 
 og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMapCreator);
