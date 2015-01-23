@@ -29,7 +29,6 @@ og.shapes.BaseShape = function (renderNode) {
     this.drawMode = renderNode.renderer.handler.gl.TRIANGLES;
 
     this.texture = null;
-    this.lightEnabled = false;
 };
 
 og.shapes.BaseShape.prototype.clear = function () {
@@ -104,7 +103,7 @@ og.shapes.BaseShape.prototype.draw = function () {
 
     var sh, p, gl;
 
-    if (this.lightEnabled) {
+    if (rn.lightEnabled) {
         sh = r.handler.shaderPrograms.shape_wl;
         p = sh._program;
         gl = r.handler.gl,
