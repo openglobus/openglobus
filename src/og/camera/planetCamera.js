@@ -37,6 +37,12 @@ og.PlanetCamera.prototype.update = function () {
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
+og.PlanetCamera.prototype.setAltitude = function (alt) {
+    var n = this.eye.normal();
+    this.eye = this.earthPoint.earth.add(n.scale(alt));
+    this.altitude = alt;
+};
+
 og.PlanetCamera.prototype.setLonLat = function (lonlat) {
     this.lonLat.set(lonlat.lon, lonlat.lat, lonlat.height ? lonlat.height : this.lonLat.height);
     var newEye = this._ellipsoid.LonLat2ECEF(this.lonLat);

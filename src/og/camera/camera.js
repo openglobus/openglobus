@@ -218,12 +218,6 @@ og.Camera.prototype.setEye = function (p) {
     this.eye.copy(p);
 };
 
-og.Camera.prototype.setAltitude = function (alt) {
-    var n = this.eye.normal();
-    this.eye = this.earthPoint.earth.add(n.scale(alt));
-    this.altitude = alt;
-};
-
 og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
     center = center || og.math.Vector3.ZERO;
     up = up || og.math.Vector3.UP;
