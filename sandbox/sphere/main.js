@@ -7,6 +7,8 @@ goog.require('og.shaderProgram.shape_nl');
 goog.require('og.node.Axes');
 goog.require('my.Sphere');
 goog.require('og.math.Vector3');
+goog.require('og.node.SkyBox');
+goog.require('og.node.SkySphere');
 
 function start() {
 
@@ -34,8 +36,9 @@ function start() {
     renderer.init();
 
     var axes = new og.node.Axes(10000);
-
+    var skysphere = new og.node.SkySphere("1.jpg");
     mySphere = new my.Sphere();
+    renderer.addRenderNode(skysphere);
     renderer.addRenderNode(mySphere);
     renderer.addRenderNode(axes);
 

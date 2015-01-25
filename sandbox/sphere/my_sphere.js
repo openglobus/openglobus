@@ -18,29 +18,20 @@ og.inheritance.extend(my.Sphere, og.node.RenderNode);
 
 my.Sphere.prototype.initialization = function () {
     l1 = new og.light.PointLight();
-    l1._diffuse.set(1, 0, 0);
+    l1._diffuse.set(0.7, 0.7, 0.7);
     l1._position.z = 5000;
     l1.addTo(this);
 
-    //l2 = new og.light.PointLight();
-    //l2._position.z = -5000;
-    //l2._diffuse.set(0, 0, 1);
-    //l2.addTo(this);
-
-    //var l3 = new og.light.PointLight();
-    //l3._position.y = 5000
-    //l3._diffuse.set(0, 1, 0);
-    //l3.addTo(this);
-
-    //var l4 = new og.light.PointLight();
-    //l4._position.y = -5000
-    //l4.addTo(this);
-
-
-
-    this._sphere = new og.shapes.Sphere(this, 1200, 40, 40);
+    this._sphere = new og.shapes.Sphere(this, 500, 25, 25);
     this._sphere.color = [1, 1, 1, 1];
-    this._sphere.lightEnabled = true;
+    this.lightEnabled = true;
+
+    var that = this;
+    var img = new Image();
+    img.onload = function () {
+        that._sphere.texture = that.renderer.handler.createTexture_mm(this);
+    };
+    img.src = "moon.jpg";
 
     //this._sphere2 = new og.shapes.Sphere(this, 1250, 40, 40);
     // this._sphere2.color = [1, 1, 1, 1];

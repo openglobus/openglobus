@@ -92,4 +92,37 @@ function start() {
             "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
             "autoActivated": true
         });*/
+    globus.planet.flyLonLat(new og.LonLat(84.82765039262269, 28.155025664665775, 124658.767942));
+    //og.webgl.MAX_FRAME_DELAY = 28;
+    var places = [
+        { name: "Эверест", lat: 27.96737, lon: 86.93133, height: 16002, img: null },
+        { name: "Вулкан Тятя", lat: 44.33067, lon: 146.26247, height: 10594, img: null },
+        { name: "Кудач", lat: 51.80633, lon: 157.53396, height: 10594, img: null },
+        { name: "Курильское озеро", lat: 51.45526, lon: 157.10338, height: 27286, img: null },
+        { name: "Исландия", lat: 64.96372, lon: -17.87612, height: 515284, img: null },
+        { name: "Cilaos", lat: -21.14163, lon: 55.45201, height: 14033, img: null },
+        { name: "Эквадор", lat: -0.40913, lon: -90.95670, height: 112508, img: null },
+        { name: "Пролив Босфор", lat: 41.11113, lon: 29.06953, height: 49235, img: null },
+        { name: "Крым", lat: 45.24066, lon: 33.96877, height: 219529, img: null },
+        { name: "Эльбрус", lat: 43.351167, lon: 42.43864, height: 12751.8, img: null },
+        { name: "Гора Раниер", lat: 46.85320, lon: -121.75754, height: 22738, img: null },
+        { name: "Дом", lat: 55.78131, lon: 77.02815, height: 13132244.4, img: null }
+    ];
+
+    var cont = document.getElementById("cont");
+    var ul = document.createElement("ul");
+    for (var i = 0; i < places.length; i++) {
+        (function (li, place) {
+            li.classList.add("icon");
+            li.onclick = function () {
+                globus.planet.flyLonLat(new og.LonLat(place.lon, place.lat, place.height));
+            };
+            li.innerHTML = '<div style="width:80px; height:80px;  margin: 3px 3px 3px 3px; background-color: rgba(50,50,50,0.6);">' + place.name + '</div>';
+            ul.appendChild(li);
+        })(document.createElement("li"), places[i]);
+    }
+
+    cont.appendChild(ul);
+
+
 };

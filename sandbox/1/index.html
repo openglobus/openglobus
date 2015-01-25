@@ -1,16 +1,28 @@
 <html>
 <head>
     <title>OpenGlobus - Earth planet</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
-    <link rel="stylesheet" href="../../css/spinner.css" type="text/css"/>
-    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
-	
+    <link rel="stylesheet" href="../../css/spinner.css" type="text/css" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+
     <script src="../../../closure-library/closure/goog/base.js"></script>
     <script src="../../src/og/og-deps.js"></script>
     <script src="main.js"></script>
 
-<!--    <script src="og-compiled.js"></script> -->
-    
+    <!--    <script src="og-compiled.js"></script> -->
+    <style>
+        .icon {
+            width: 80px;
+            height: 80px;
+            /*margin: 3px 3px 3px 3px;*/            
+            color: white;
+            font-family: monospace;
+            display: table-cell;
+        }
+    </style>
+
 </head>
 
 <body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="start();">
@@ -18,6 +30,7 @@
     <!-- div id="globus2" style="width:50%;height:100%;float:left"></div -->
     <div id="lbTiles" class="defaultText"></div>
     <div id="lbCoords" class="defaultText"></div>
+    <div id="cont" style="width: 50%;height: 120px;position: absolute;bottom: 0px;left: 0px;overflow-x: auto; overflow-y: hidden;"></div>
 </body>
 
 </html>
