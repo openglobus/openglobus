@@ -5,6 +5,7 @@ varying vec3 vTransformedNormal;
 varying vec4 vPosition;
 	
 uniform vec4 uColor;
+uniform sampler2D uSampler;
  
 #define MAX_POINT_LIGHTS 5
 
@@ -71,6 +72,5 @@ void main(void) {
 	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	lightWeighting += pointLightsParamsv[12] + pointLightsParamsv[13] * diffuseLightWeighting + pointLightsParamsv[14] * specularLightWeighting ;
 */
-        
-    gl_FragColor = vec4(uColor.rgb * lightWeighting, uColor.a);
+    gl_FragColor = vec4(lightWeighting, uColor.a) * texture2D( uSampler, vTextureCoord.st ) * uColor;
 }

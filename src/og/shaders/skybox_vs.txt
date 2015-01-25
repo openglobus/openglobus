@@ -7,5 +7,5 @@ varying vec3 vTextureCoord;
 
 void main(void) {
     vTextureCoord = aVertexPosition;
-    gl_Position = uPMVMatrix * vec4(aVertexPosition + pos, 1.0);
+    gl_Position = uPMVMatrix * vec4(aVertexPosition/* + pos*/, 1.0);
 }
