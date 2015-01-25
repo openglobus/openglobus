@@ -173,6 +173,8 @@ og.Camera.prototype.slide = function (du, dv, dn) {
     this.eye.x += du * this.u.x + dv * this.v.x + dn * this.n.x;
     this.eye.y += du * this.u.y + dv * this.v.y + dn * this.n.y;
     this.eye.z += du * this.u.z + dv * this.v.z + dn * this.n.z;
+    this.setModelViewMatrix();
+    this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
 };
 
 og.Camera.prototype.roll = function (angle) {
