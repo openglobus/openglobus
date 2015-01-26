@@ -2,9 +2,10 @@ goog.provide('og.layer');
 goog.provide('og.layer.Layer');
 
 goog.require('og.Events');
+goog.require('og.QueueArray');
 
 og.layer.MAX_OVERLAYS = 8;
-og.layer.MAX_REQUESTS = 10;
+og.layer.MAX_REQUESTS = 7;
 og.layer.layersCounter = 0;
 og.layer.requestsCounter = 0;
 og.layer.DEFAILT_Z_INDEX = 0;
@@ -31,7 +32,7 @@ og.layer.Layer = function (name, options) {
     this.id = og.layer.layersCounter++;
 
     this.counter = 0;
-    this.pendingsQueue = [];
+    this.pendingsQueue = new og.QueueArray();
 };
 
 og.layer.Layer.prototype.setAttribution = function (html) {
@@ -51,12 +52,13 @@ og.layer.Layer.prototype.setZIndex = function (zIndex) {
 };
 
 og.layer.Layer.prototype.abortLoading = function () {
-    var i = this.pendingsQueue.length;
-    while (i--) {
-        this.pendingsQueue[i].abortLoading();
+    var q = this.pendingsQueue;
+    for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
+        if (q._array[i]) {
+            q._array[i].abortLoading();
+        }
     }
-    this.pendingsQueue.length = 0;
-    this.pendingsQueue = [];
+    this.pendingsQueue.clear();
 };
 
 og.layer.Layer.prototype.setVisibility = function (visibility) {
