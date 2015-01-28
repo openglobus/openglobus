@@ -108,8 +108,6 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 
 og.Renderer.prototype.draw = function () {
 
-    this.activeCamera.update();
-
     this.events.mouseState.direction = this.activeCamera.unproject(this.events.mouseState.x, this.events.mouseState.y);
     this.events.handleEvents();
 

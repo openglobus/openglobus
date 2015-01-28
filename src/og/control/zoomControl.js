@@ -29,9 +29,6 @@ og.control.ZoomControl.prototype.init = function () {
     zoomDiv.appendChild(btnZoomIn);
     zoomDiv.appendChild(btnZoomOut);
 
-    //btnZoomIn.innerHTML = '<div class=""></div>';
-    //btnZoomOut.innerHTML = '<div class=""></div>';
-
     this.renderer.div.appendChild(zoomDiv);
 
     var that = this;

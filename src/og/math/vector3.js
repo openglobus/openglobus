@@ -220,11 +220,11 @@ og.math.Vector3.lerp = function (v1, v2, l) {
 
 og.math.Vector3.LERP_DELTA = 1e-6;
 
-og.math.Vector3.prototype.slerp = function (v1, v2, t) {
+og.math.Vector3.prototype.slerp = function (v2, t) {
     var res = new og.math.Vector3();
 
     if (t <= 0.0) {
-        res.copy(v1);
+        res.copy(this);
         return;
     } else if (t >= 1.0) {
         res.copy(v2);
@@ -232,9 +232,9 @@ og.math.Vector3.prototype.slerp = function (v1, v2, t) {
     }
 
     var omega, sinom, scale0, scale1;
-    var cosom = v1.dot(v2);
+    var cosom = this.dot(v2);
 
-    if ((1.0 - cosom) > Vector3.LERP_DELTA) {
+    if ((1.0 - cosom) > og.math.Vector3.LERP_DELTA) {
         omega = Math.acos(cosom);
         sinom = Math.sin(omega);
         scale0 = Math.sin((1.0 - t) * omega) / sinom;
@@ -244,7 +244,7 @@ og.math.Vector3.prototype.slerp = function (v1, v2, t) {
         scale1 = t;
     }
 
-    return og.math.Vector3.add(v1.scale(scale0), v2.scale(scale1));
+    return og.math.Vector3.add(this.scaleTo(scale0), v2.scale(scale1));
 };
 
 og.math.Vector3.orthoNormalize = function (normal, tangent) {

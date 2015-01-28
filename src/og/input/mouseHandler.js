@@ -4,7 +4,7 @@ og.input.MouseHandler = function (htmlObject) {
     this._htmlObject = htmlObject;
 };
 
-og.input.MouseHandler.prototype.setEvent = function (event, sender, callback, keyCode) {
+og.input.MouseHandler.prototype.setEvent = function (event, sender, callback) {
     switch (event) {
         case "onmousewheel": {
             var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";

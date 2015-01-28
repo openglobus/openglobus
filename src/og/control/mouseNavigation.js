@@ -120,6 +120,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 };
 
 og.control.MouseNavigation.prototype.init = function () {
+    this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("onmousewheel", this, this.onMouseWheel);
     this.renderer.events.on("onmouselbuttonhold", this, this.onMouseLeftButtonDown);
     this.renderer.events.on("onmouserbuttonhold", this, this.onMouseRightButtonDown);
@@ -129,7 +130,6 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.events.on("onmouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
     this.renderer.events.on("onmouseclick", this, this.onMouseClick);
     this.renderer.events.on("ondraw", this, this.onDraw);
-    this.planet = this.renderer.renderNodes.Earth;
 };
 
 og.control.MouseNavigation.prototype.onMouseClick = function () {
@@ -182,6 +182,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
             cam.v = rot.mulVec3(cam.v);
             cam.u = rot.mulVec3(cam.u);
             cam.n = rot.mulVec3(cam.n);
+            cam.update();
         }
     } else {
         this.scaleRot = 0;
@@ -201,6 +202,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
         if (l > 0.007) l = 0.007;
         cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
         cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);
+        cam.update();
     }
 };
 
@@ -213,6 +215,7 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.v = sf.v;
         cam.u = sf.u;
         cam.n = sf.n;
+        cam.update();
     }
 
     var r = this.renderer;
@@ -233,5 +236,6 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.v = rot.mulVec3(cam.v);
         cam.u = rot.mulVec3(cam.u);
         cam.n = rot.mulVec3(cam.n);
-    }
+        cam.update();
+    }    
 };

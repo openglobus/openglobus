@@ -18,6 +18,8 @@ og.math.DEGREES = 180 / Math.PI;
 og.math.DEGREES_DOUBLE = 2.0 * og.math.DEGREES;
 og.math.RADIANS_HALF = 0.5 * og.math.RADIANS;
 
+og.math.SQRT_HALF = Math.sqrt(0.5);
+
 //Float round-off PI
 Math.PI = 3.1415927410125732;
 

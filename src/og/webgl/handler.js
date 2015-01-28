@@ -86,12 +86,12 @@ og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    var faces = [[params.positiveX, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
-                 [params.negativeX, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
-                 [params.positiveY, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
-                 [params.negativeY, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
-                 [params.positiveZ, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
-                 [params.negativeZ, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
+    var faces = [[params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+                 [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+                 [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+                 [params.ny, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+                 [params.pz, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+                 [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
 
     var imageCanvas = new og.ImageCanvas();
     imageCanvas.fillEmpty();

@@ -7,6 +7,8 @@ goog.require('og.QueueArray');
 og.planetSegment.NormalMapCreatorQueue = function (width, height) {
     og.inheritance.base(this, width, height);
 
+    this.active = true;
+
     this._counter = 0;
     this._pendingsQueue = new og.QueueArray();
 };
@@ -14,20 +16,26 @@ og.planetSegment.NormalMapCreatorQueue = function (width, height) {
 og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMapCreator);
 
 og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
-    segment._inTheQueue = true;
-    if (this._counter >= 1) {
-        this._pendingsQueue.unshift(segment);
-    } else {
-        this._exec(segment);
+
+    if (this.active) {
+        segment._inTheQueue = true;
+        if (this._counter >= 1) {
+            this._pendingsQueue.unshift(segment);
+        } else {
+            this._exec(segment);
+        }
     }
 };
 
 og.planetSegment.NormalMapCreatorQueue.prototype.queue = function (segment) {
-    segment._inTheQueue = true;
-    if (this._counter >= 1) {
-        this._pendingsQueue.push(segment);
-    } else {
-        this._exec(segment);
+
+    if (this.active || segment.zoomIndex <= segment.planet.terrainProvider.minZoom) {
+        segment._inTheQueue = true;
+        if (this._counter >= 1) {
+            this._pendingsQueue.push(segment);
+        } else {
+            this._exec(segment);
+        }
     }
 };
 

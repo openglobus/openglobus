@@ -31,21 +31,25 @@ og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {
 og.control.KeyboardNavigation.prototype.onCameraMoveForward = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(0, 0, -camera.lonLat.height / 30);
+    camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraMoveBackward = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(0, 0, camera.lonLat.height / 30);
+    camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeLeft = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(-camera.lonLat.height / 30, 0, 0);
+    camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(camera.lonLat.height / 30, 0, 0);
+    camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
@@ -55,6 +59,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
     } else {
         cam.rotateVertical(cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
+    cam.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
@@ -64,6 +69,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
     } else {
         cam.rotateVertical(-cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
+    cam.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
@@ -73,6 +79,7 @@ og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
     } else {
         cam.rotateHorizontal(cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
+    cam.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
@@ -82,12 +89,15 @@ og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
     } else {
         cam.rotateHorizontal(-cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
+    cam.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraRollLeft = function (event) {
     this.renderer.activeCamera.roll(-1);
+    this.renderer.activeCamera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraRollRight = function (event) {
     this.renderer.activeCamera.roll(1);
+    this.renderer.activeCamera.update();
 };

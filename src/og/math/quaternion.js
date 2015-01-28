@@ -312,7 +312,6 @@ og.math.Quaternion.prototype.isEqual = function (q) {
 /**
  * Performs a spherical linear interpolation between two quat
  *
- * @param {og.math.Quaternion} out the receiving quaternion
  * @param {og.math.Quaternion} b the end rotation
  * @param {Number} t interpolation amount between the two quaternions
  * @returns {og.math.Quaternion}

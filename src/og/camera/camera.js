@@ -100,11 +100,8 @@ og.Camera.prototype.update = function () {
     this.setModelViewMatrix();
     this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
     this.frustum.setFrustum(this.pmvMatrix._m);
-
     this.ipmvMatrix = this.pmvMatrix.inverse();
-
     this.nMatrix = this.mvMatrix.toInverseMatrix3().transpose();
-
     this.events.dispatch(this.events.onviewchanged, this);
 };
 
@@ -173,8 +170,6 @@ og.Camera.prototype.slide = function (du, dv, dn) {
     this.eye.x += du * this.u.x + dv * this.v.x + dn * this.n.x;
     this.eye.y += du * this.u.y + dv * this.v.y + dn * this.n.y;
     this.eye.z += du * this.u.z + dv * this.v.z + dn * this.n.z;
-    this.setModelViewMatrix();
-    this.pmvMatrix = this.pMatrix.mul(this.mvMatrix);
 };
 
 og.Camera.prototype.roll = function (angle) {
