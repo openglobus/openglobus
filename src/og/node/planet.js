@@ -4,6 +4,7 @@ goog.require('og.inheritance');
 goog.require('og.node.RenderNode');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
+goog.require('og.math.Vector2');
 goog.require('og.math.coder');
 goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
@@ -63,6 +64,11 @@ og.node.Planet = function (name, ellipsoid) {
     this.sunlight = null;
 
     this.normalMapCreator = null;
+
+    //camera's flying frames
+    this._framesArr = [];
+    this._framesCounter = 0;
+    this._numFrames = 150;
 };
 
 og.node.Planet.SUN_DISTANCE = 149600000000;
@@ -217,7 +223,7 @@ og.node.Planet.prototype.initialization = function () {
     this.solidTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
     this.transparentTexture = this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" });
 
-    this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 82000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
+    this.renderer.activeCamera = new og.PlanetCamera(this.renderer, this.ellipsoid, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
     this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
@@ -364,14 +370,21 @@ og.node.Planet.prototype.checkCameraCollision = function () {
 
 og.node.Planet.prototype.frame = function () {
 
+    print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
+
     var cam = this.renderer.activeCamera;
 
-    if (counter >= 0) {
-        cam.eye = eyeArr[stepsCount - counter];
-        cam.u = uArr[stepsCount - counter];
-        cam.v = vArr[stepsCount - counter];
-        cam.n = nArr[stepsCount - counter];
-        counter--;
+    if (this._framesCounter >= 0) {
+        var c = this._numFrames - this._framesCounter;
+        this.normalMapCreator.active = false;
+        cam.eye = this._framesArr[c].eye;
+        cam.u = this._framesArr[c].u;
+        cam.v = this._framesArr[c].v;
+        cam.n = this._framesArr[c].n;
+        cam.update();
+        this._framesCounter--;
+    } else {
+        this.normalMapCreator.active = true;
     }
 
     this.checkCameraCollision();
@@ -384,11 +397,13 @@ og.node.Planet.prototype.frame = function () {
     var b = cam.v.scaleTo(alt * 0.2).add(cam.u.scaleTo(alt * 0.4));
     this.sunlight._position = b.add(cam.eye);
 
-    this.renderNodesPASS();
-    this.renderDistanceBackbufferPASS();
-
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
+
+    this.transformLights();
+
+    this.renderNodesPASS();
+    this.renderDistanceBackbufferPASS();
 
     //free memory
     var that = this;
@@ -600,7 +615,16 @@ og.node.Planet.prototype.viewExtent = function (extent) {
         og.math.Vector3.ZERO, og.math.Vector3.UP);
 };
 
-og.node.Planet.prototype.flyExtent = function (extent) {
+og.node.Planet.prototype.flyExtent = function (extent, up) {
+    var cam = this.renderer.activeCamera;
+    var pos = cam.getExtentPosition(extent, this.ellipsoid);
+    //
+    //TODO
+    //
+};
+
+og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
+    var cam = this.renderer.activeCamera;
     //
     //TODO
     //
@@ -610,51 +634,69 @@ og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
     this.renderer.activeCamera.viewLonLat(lonlat, up);
 };
 
-var eyeArr = [];
-var uArr = [];
-var vArr = [];
-var nArr = [];
-var counter;
-var stepsCount = 108;
-
 og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
+    this._framesCounter = 0;
+    this._framesArr.length = 0;
+    this._framesArr = [];
 
     var cam = this.renderer.activeCamera;
     var eye_a = cam.eye;
     var ground_a = this.ellipsoid.LonLat2ECEF(new og.LonLat(cam.lonLat.lon, cam.lonLat.lat));
-    var u_a = cam.u;
-    var v_a = cam.v;
-    var n_a = cam.n;
+    var u_a = cam.u,
+        v_a = cam.v,
+        n_a = cam.n;
 
     var lonlat_b = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || cam.lonLat.height);
     var up_b = up || og.math.Vector3.UP;
     var ground_b = this.ellipsoid.LonLat2ECEF(new og.LonLat(lonlat.lon, lonlat.lat, 0));
-
     var eye_b = this.ellipsoid.LonLat2ECEF(lonlat_b);
     var n_b = og.math.Vector3.sub(eye_b, ground_b);
     var u_b = up_b.cross(n_b);
-    n_b.normalize(); u_b.normalize();
+    n_b.normalize();
+    u_b.normalize();
     var v_b = n_b.cross(u_b);
+
+    var an = ground_a.normal();
+    var bn = ground_b.normal();
+    var hM_a = og.math.SQRT_HALF * Math.sqrt(1 - an.dot(bn));
+
+    var maxHeight = 6639613;
+    var currMaxHeight = Math.max(cam.lonLat.height, lonlat_b.height);
+    if (currMaxHeight > maxHeight) {
+        maxHeight = currMaxHeight;
+    }
+    var max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
 
     var zero = og.math.Vector3.ZERO;
 
-    for (var i = 0; i <= stepsCount; i++) {
-        var d = i / stepsCount;
-        var g_i = ground_a.lerp(ground_b, d).normalize();
+    //camera path and orientations calculation
+    for (var i = 0; i <= this._numFrames; i++) {
+        var d = 1 - i / this._numFrames;
+        d = d * d * (3 - 2 * d);
+        d *= d;
+
+        var g_i = ground_a.smerp(ground_b, d).normalize();
         var ground_i = this.getRayIntersectionEllipsoid(new og.math.Ray(zero, g_i));
-        var height_i = og.math.lerp(d, lonlat_b.height, cam.lonLat.height);
 
-        eyeArr[i] = ground_i.add(g_i.scale(height_i));
+        var t = 1 - d;
+        var height_i = cam.lonLat.height * d * d * d + max_h * 3 * d * d * t + max_h * 3 * d * t * t + lonlat_b.height * t * t * t;
 
-        var up_i = v_a.lerp(v_b, d);
+        var eye_i = ground_i.add(g_i.scale(height_i));
+        var up_i = v_a.smerp(v_b, d);
+        var look_i = og.math.Vector3.add(eye_i, n_a.smerp(n_b, d).getNegate());
 
-        var look_i = og.math.Vector3.add(eyeArr[i], n_a.lerp(n_b, d).getNegate());
-
-        nArr[i] = new og.math.Vector3(eyeArr[i].x - look_i.x, eyeArr[i].y - look_i.y, eyeArr[i].z - look_i.z);
-        uArr[i] = up_i.cross(nArr[i]);
-        nArr[i].normalize();
-        uArr[i].normalize();
-        vArr[i] = nArr[i].cross(uArr[i]);
+        var n = new og.math.Vector3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+        var u = up_i.cross(n);
+        n.normalize();
+        u.normalize();
+        var v = n.cross(u);
+        this._framesArr[i] = {
+            "eye": eye_i,
+            "n": n,
+            "u": u,
+            "v": v
+        };
     }
-    counter = stepsCount;
+
+    this._framesCounter = this._numFrames;
 };
