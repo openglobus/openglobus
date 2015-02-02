@@ -103,3 +103,14 @@ og.math.lerp = function (t, h1, h0) {
 og.math.norm_lon = function (lon) {
     return Math.asin(Math.sin(lon * og.math.RADIANS_HALF)) * og.math.DEGREES_DOUBLE;
 };
+
+og.math.bezier = function (t, p0, p1, p2, p3) {
+    var u = 1 - t;
+    var tt = t * t;
+    var uu = u * u;
+    var uuu = uu * u;
+    var ttt = tt * t;
+
+    return p0.scaleTo(uuu).add(p1.scaleTo(3 * uu * t))
+        .add(p2.scaleTo(3 * u * tt)).add(p3.scaleTo(ttt));
+};

@@ -218,6 +218,11 @@ og.math.Vector3.lerp = function (v1, v2, l) {
     return new og.math.Vector3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
 };
 
+og.math.Vector3.prototype.smerp = function (b, d) {
+    var one_d = 1 - d;
+    return new og.math.Vector3(this.x * d + b.x * one_d, this.y * d + b.y * one_d, this.z * d + b.z * one_d);
+};
+
 og.math.Vector3.LERP_DELTA = 1e-6;
 
 og.math.Vector3.prototype.slerp = function (v2, t) {

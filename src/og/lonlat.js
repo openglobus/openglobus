@@ -42,3 +42,11 @@ og.LonLat.prototype.forwardMercator = function () {
 og.LonLat.prototype.inverseMercator = function () {
     return og.LonLat.inverseMercator(this.lon, this.lat);
 };
+
+og.LonLat.prototype.equal = function (b) {
+    if (b.height) {
+        return this.lon == b.lon && this.lat == b.lat && this.height == b.height;
+    } else {
+        return this.lon == b.lon && this.lat == b.lat;
+    }
+};
