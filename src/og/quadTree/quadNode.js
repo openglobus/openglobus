@@ -400,8 +400,8 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var maxZ = this.planet.terrainProvider.maxZoom;
 
     if (seg.zoomIndex <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
-        seg.planet.normalMapCreator.shift(seg)
-    }else if (seg.zoomIndex > maxZ) {
+        seg.planet.normalMapCreator.shift(seg);
+    } else if (seg.zoomIndex > maxZ) {
         if (pn.planetSegment.zoomIndex == maxZ) {
             seg.parentNormalMapReady = true;
         } else {
@@ -624,7 +624,7 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
         texOffsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
     var segm = this.planetSegment.materials[mId];
-    if (segm.imageIsLoading && (notEmpty || (psegm && !pn.parentNode))) {
+    if (/*segm.imageIsLoading && */(notEmpty || (psegm && !pn.parentNode))) {
         segm.texture = psegm.texture;
         segm.texBias[0] = texOffsetX;
         segm.texBias[1] = texOffsetY;
