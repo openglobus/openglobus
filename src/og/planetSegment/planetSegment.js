@@ -174,7 +174,6 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         if (fileGridSize >= tgs) {
             for (var i = 0; i < fileGridSize_one; i++) {
                 for (var j = 0; j < fileGridSize_one; j++) {
-
                     var hInd0 = i * fileGridSize_one + j;
                     var vInd0 = hInd0 * 3;
                     var h0 = hf * elevations[hInd0];
@@ -224,11 +223,9 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
                         var e10 = og.math.Vector3.sub(v1, v0),
                             e20 = og.math.Vector3.sub(v2, v0),
                             e30 = og.math.Vector3.sub(v3, v0);
-
-                        var sw = e20.cross(e30).normalize();
-                        var ne = e30.cross(e10).normalize();
-
-                        var n0 = og.math.Vector3.add(ne, sw).normalize();
+                        var sw = e20.cross(e30);
+                        var ne = e30.cross(e10);
+                        var n0 = og.math.Vector3.add(ne, sw);
 
                         normalMapNormals[vInd0] += n0.x;
                         normalMapNormals[vInd0 + 1] += n0.y;
@@ -311,6 +308,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         this.normalMapVertices = normalMapVertices;
         this.terrainVertices.length = 0;
         this.terrainVertices = terrainVertices;
+
 
         this.deleteBuffers();
         this.terrainReady = true;
