@@ -15,11 +15,11 @@ og.terrainProvider.defaultOptions = {
     maxZoom: 14,
     //gridSizeByZoom: [64, 32, 32, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
     //gridSizeByZoom: [32, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-    gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
+    gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32],
     //gridSizeByZoom: [64, 32, 16, 8, 4, 4, 4, 4, 4, 8, 16, 32, 16, 16, 32, 32, 32, 32, 32, 32, 32],
     //gridSizeByZoom: [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
     fileGridSize: 32,
-    MAX_LOADING_TILES: 8
+    MAX_LOADING_TILES: 4
 };
 
 og.terrainProvider.TerrainProvider = function (name, options) {
@@ -36,6 +36,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this.events = new og.Events();
     this.events.registerNames(["onload", "onloadend"]);
 
+    this.active = true;
     this._counter = 0;
     this._pendingsQueue = new og.QueueArray();
 };
@@ -53,14 +54,16 @@ og.terrainProvider.TerrainProvider.prototype.setName = function (name) {
 };
 
 og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (segment) {
-    if (segment._projection.id == og.proj.EPSG3857.id) {
-        if (this._counter >= this.MAX_LOADING_TILES) {
-            this._pendingsQueue.push(segment);
+    if (this.active) {
+        if (segment._projection.id == og.proj.EPSG3857.id) {
+            if (this._counter >= this.MAX_LOADING_TILES) {
+                this._pendingsQueue.push(segment);
+            } else {
+                this.loadSegmentTerrainData(segment);
+            }
         } else {
-            this.loadSegmentTerrainData(segment);
+            //TODO: poles elevation
         }
-    } else {
-        //TODO: poles elevation
     }
 };
 
