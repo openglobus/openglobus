@@ -105,16 +105,15 @@ og.node.RenderNode.prototype.drawNodes = function () {
 
     if (this.show) {
         if (this.frame) {
-            if (this.lightEnabled) {
-                this.transformLights();
-            }
+            //if (this.lightEnabled) {
+            //    this.transformLights();
+            //}
             this.frame();
         }
     }
 };
 
 og.node.RenderNode.prototype.transformLights = function () {
-    //calculate transformed lights
     var r = this.renderer;
     for (var i = 0; i < this._pointLights.length; i++) {
         var ii = i * 3;
