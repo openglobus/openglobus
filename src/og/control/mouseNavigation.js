@@ -192,7 +192,9 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
 og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
     this.stopRotation();
     this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y });
-    this.earthUp = this.pointOnEarth.normal();
+    if (this.pointOnEarth) {
+        this.earthUp = this.pointOnEarth.normal();
+    }
 };
 
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
@@ -228,7 +230,7 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         this.scaleRot = 0;
     else {
         var cam = r.activeCamera;
-        var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
+        var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot * r.handler.delta * 30).normalize();
         if (!(rot.x || rot.y || rot.z)) {
             this.scaleRot = 0;
         }
@@ -237,5 +239,5 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.u = rot.mulVec3(cam.u);
         cam.n = rot.mulVec3(cam.n);
         cam.update();
-    }    
+    }
 };
