@@ -12,6 +12,7 @@ goog.require('og.control.MousePosition');
 goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ShowFps');
 goog.require('og.control.ZoomControl');
+goog.require('og.control.TouchNavigation');
 
 goog.require('og.ImageCanvas');
 
@@ -49,12 +50,12 @@ function start() {
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
     var skybox = new og.node.SkyBox({
-        "positiveX": "http://openglobus.org/resources/images/skyboxes/tycho/px.jpg",
-        "negativeX": "http://openglobus.org/resources/images/skyboxes/tycho/nx.jpg",
-        "positiveY": "http://openglobus.org/resources/images/skyboxes/tycho/py.jpg",
-        "negativeY": "http://openglobus.org/resources/images/skyboxes/tycho/ny.jpg",
-        "positiveZ": "http://openglobus.org/resources/images/skyboxes/tycho/pz.jpg",
-        "negativeZ": "http://openglobus.org/resources/images/skyboxes/tycho/nz.jpg"
+        "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
+        "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
+        "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
+        "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
+        "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
+        "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
     });
 
     var controls = [
@@ -65,14 +66,15 @@ function start() {
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ShowFps({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true })
+    	new og.control.ZoomControl({ autoActivate: true }),
+        new og.control.TouchNavigation({ autoActivate: true })
     ];
 
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        //"skybox": skybox,
+        "skybox": skybox,
         "terrain": terrain,
         "layers": [satlayer, layer, empty, states, countries, ne, pop, hyb],
         "autoActivated": true
@@ -92,7 +94,7 @@ function start() {
             "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
             "autoActivated": true
         });*/
-    globus.planet.flyLonLat(new og.LonLat(84.82765039262269, 28.155025664665775, 124658.767942));
+    globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     //og.webgl.MAX_FRAME_DELAY = 28;
     var places = [
         { name: "Эверест", lat: 27.96737, lon: 86.93133, height: 16002, img: null },
@@ -106,6 +108,8 @@ function start() {
         { name: "Крым", lat: 45.24066, lon: 33.96877, height: 219529, img: null },
         { name: "Эльбрус", lat: 43.351167, lon: 42.43864, height: 12751.8, img: null },
         { name: "Гора Раниер", lat: 46.85320, lon: -121.75754, height: 22738, img: null },
+        { name: "Гора Адамс", lat: 46.20357, lon: -121.49044, height: 17828.7, img: null },
+        { name: "Гора Святой Елены", lat: 46.19947, lon: -122.18971, height: 9475.2, img: null },
         { name: "Дом", lat: 55.78131, lon: 77.02815, height: 13132244.4, img: null }
     ];
 
