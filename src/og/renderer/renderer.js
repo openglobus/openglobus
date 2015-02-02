@@ -118,6 +118,7 @@ og.Renderer.prototype.draw = function () {
     }
 
     this.events.mouseState.moving = false;
+    this.events.touchState.moving = false;
 };
 
 og.Renderer.prototype.start = function () {

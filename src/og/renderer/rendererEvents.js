@@ -3,12 +3,14 @@ goog.provide('og.RendererEvents');
 goog.require('og.input');
 goog.require('og.input.MouseHandler');
 goog.require('og.input.KeyboardHandler');
+goog.require('og.input.TouchHandler');
 goog.require('og.Events');
 goog.require('og.inheritance');
 
 og.RendererEvents = function (canvas) {
     og.inheritance.base(this);
 
+    this.touchHandler = new og.input.TouchHandler(canvas);
     this.mouseHandler = new og.input.MouseHandler(canvas);
     this.keyboardHandler = new og.input.KeyboardHandler();
 
@@ -32,6 +34,14 @@ og.RendererEvents = function (canvas) {
         wheelDelta: 0
     };
 
+    this.touchState = {
+        moving: false,
+        touchEnd: false,
+        touchStart: false,
+        touchCancel: false,
+        sys: null
+    };
+
     this._mousestopThread = null;
     this._dblClkBegins = 0;
     this._clickX = 0;
@@ -42,7 +52,7 @@ og.inheritance.extend(og.RendererEvents, og.Events);
 
 og.RendererEvents.prototype.handleEvents = function () {
     this.keyboardHandler.handleEvents();
-    this.handleMouseEvents();
+    this.handleMouseAndTouchEvents();
 };
 
 og.RendererEvents.prototype.on = function (name, sender, callback, key, priority) {
@@ -72,13 +82,22 @@ og.RendererEvents.prototype.initialize = function () {
         "onmouselbuttonup",
         "onmouserbuttonup",
         "onresize",
-        "onmousewheel"
+        "onmousewheel",
+        "ontouchstart",
+        "ontouchend",
+        "ontouchcancel",
+        "ontouchmove"
     ]);
 
     this.mouseHandler.setEvent("onmouseup", this, this.onMouseUp);
     this.mouseHandler.setEvent("onmousemove", this, this.onMouseMove);
     this.mouseHandler.setEvent("onmousedown", this, this.onMouseDown);
     this.mouseHandler.setEvent("onmousewheel", this, this.onMouseWheel);
+
+    this.touchHandler.setEvent("ontouchstart", this, this.onTouchStart);
+    this.touchHandler.setEvent("ontouchend", this, this.onTouchEnd);
+    this.touchHandler.setEvent("ontouchcancel", this, this.onTouchCancel);
+    this.touchHandler.setEvent("ontouchmove", this, this.onTouchMove);
 };
 
 og.RendererEvents.prototype.onMouseWheel = function (event) {
@@ -144,8 +163,35 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
     }
 };
 
-og.RendererEvents.prototype.handleMouseEvents = function () {
+og.RendererEvents.prototype.onTouchStart = function (event) {
+    var ts = this.touchState;
+    ts.sys = event;
+    ts.x = event.clientX;
+    ts.y = event.clientY;
+    ts.touchStart = true;
+};
+
+og.RendererEvents.prototype.onTouchEnd = function (event) {
+    var ts = this.touchState;
+    ts.sys = event;
+    ts.touchEnd = true;
+};
+
+og.RendererEvents.prototype.onTouchCancel = function (event) {
+    var ts = this.touchState;
+    ts.sys = event;
+    ts.touchCancel = true;
+};
+
+og.RendererEvents.prototype.onTouchMove = function (event) {
+    var ts = this.touchState;
+    ts.sys = event;
+    ts.moving = true;
+};
+
+og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
     var ms = this.mouseState,
+        ts = this.touchState,
         ce = this.dispatch;
 
     if (ms.click) {
@@ -196,6 +242,25 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
         this._dblClkBegins = 0;
+    }
+
+    if (ts.touchEnd) {
+        ts.touchEnd = false;
+        ce(this.ontouchend, ts);
+    }
+
+    if (ts.touchCancel) {
+        ts.touchCancel = false;
+        ce(this.ontouchcancel, ts);
+    }
+
+    if (ts.touchStart) {
+        ts.touchStart = false;
+        ce(this.ontouchstart, ts);
+    }
+
+    if (ts.moving) {
+        ce(this.ontouchmove, ts);
     }
 
     if (ms.justStopped) {
