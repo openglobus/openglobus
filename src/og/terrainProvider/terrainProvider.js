@@ -64,6 +64,8 @@ og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (se
         } else {
             //TODO: poles elevation
         }
+    } else {
+        segment.terrainIsLoading = false;
     }
 };
 

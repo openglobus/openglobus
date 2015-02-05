@@ -377,6 +377,11 @@ og.node.Planet.prototype.frame = function () {
     if (this._framesCounter >= 0) {
         var c = this._numFrames - this._framesCounter;
         this.normalMapCreator.active = false;
+        if (c % 20) {
+            this.terrainProvider.active = false;
+        } else {
+            this.terrainProvider.active = true;
+        }
         cam.eye = this._framesArr[c].eye;
         cam.u = this._framesArr[c].u;
         cam.v = this._framesArr[c].v;
@@ -385,6 +390,7 @@ og.node.Planet.prototype.frame = function () {
         this._framesCounter--;
     } else {
         this.normalMapCreator.active = true;
+        this.terrainProvider.active = true;
     }
 
     this.checkCameraCollision();
