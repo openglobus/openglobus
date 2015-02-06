@@ -169,6 +169,8 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
     if (!this.grabbedPoint)
         return;
 
+    this.planet.stopFlying();
+
     if (this.renderer.events.mouseState.moving) {
 
         var cam = this.renderer.activeCamera;
@@ -191,6 +193,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
 
 og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
     this.stopRotation();
+    this.planet.stopFlying();
     this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y });
     if (this.pointOnEarth) {
         this.earthUp = this.pointOnEarth.normal();

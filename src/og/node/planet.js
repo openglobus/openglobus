@@ -370,7 +370,7 @@ og.node.Planet.prototype.checkCameraCollision = function () {
 
 og.node.Planet.prototype.frame = function () {
 
-    print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
+    //print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
 
     var cam = this.renderer.activeCamera;
 
@@ -640,10 +640,15 @@ og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
     this.renderer.activeCamera.viewLonLat(lonlat, up);
 };
 
-og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
-    this._framesCounter = 0;
+og.node.Planet.prototype.stopFlying = function () {
     this._framesArr.length = 0;
     this._framesArr = [];
+    this._framesCounter = -1;
+};
+
+og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
+
+    this.stopFlying();
 
     var cam = this.renderer.activeCamera;
     var eye_a = cam.eye;

@@ -5,6 +5,7 @@ og.input.KeyboardHandler = function () {
     var _pressedKeysCallbacks = {};
     var _charkeysCallbacks = {};
     var _that = this;
+    var _anykeyCallback = null;
 
     if (og.input.KeyboardHandler.prototype._instance) {
         return og.input.KeyboardHandler.prototype._instance;
@@ -25,11 +26,15 @@ og.input.KeyboardHandler = function () {
         }
         switch (event) {
             case "onkeypressed": {
-                if (!_pressedKeysCallbacks[keyCode]) {
-                    _pressedKeysCallbacks[keyCode] = [];
+                if (keyCode == null) {
+                    _anykeyCallback = { "callback": callback, "sender": sender || _that };
+                } else {
+                    if (!_pressedKeysCallbacks[keyCode]) {
+                        _pressedKeysCallbacks[keyCode] = [];
+                    }
+                    _pressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                    _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 }
-                _pressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
-                _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
             } break;
             case "oncharkeypressed": {
                 if (!_charkeysCallbacks[keyCode]) {
@@ -46,6 +51,7 @@ og.input.KeyboardHandler = function () {
     };
 
     this.handleKeyDown = function (event) {
+        _anykeyCallback && _anykeyCallback.callback.call(_anykeyCallback.sender, event);
         _currentlyPressedKeys[event.keyCode] = true;
         for (var ch in _charkeysCallbacks) {
             if (String.fromCharCode(event.keyCode) == String.fromCharCode(ch)) {
