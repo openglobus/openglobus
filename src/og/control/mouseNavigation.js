@@ -111,6 +111,8 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
     if (this.stepIndex)
         return;
 
+    this.planet.stopFlying();
+
     this.stopRotation();
 
     var ms = this.renderer.events.mouseState;
