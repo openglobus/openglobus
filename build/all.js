@@ -4,6 +4,7 @@ goog.require('og');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
+goog.require('og.node.SkyBox');
 goog.require('og.layer');
 goog.require('og.layer.XYZ');
 goog.require('og.layer.WMS');
@@ -18,5 +19,6 @@ goog.require('og.control.MousePosition');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.Globus');
 goog.require('og.control.ZoomControl');
+goog.require('og.control.TouchNavigation');
 
 og.all = function(){};
