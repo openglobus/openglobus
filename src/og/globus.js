@@ -31,6 +31,7 @@ og.Globus = function (options) {
     _canvas.style.width = "100%";
     _canvas.style.height = "100%";
     _canvas.style.display = "block";
+    _canvas.style.opacity = "1.0";
 
     /**
      * @public
