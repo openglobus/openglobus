@@ -101,6 +101,47 @@ og.Globus = function (options) {
         this.planet.viewToExtent(options.viewExtent);
     }
 
+    var opacityCounter = 0;
+    var fadeHandler = null;
+    var stopHandler = null;
+
+    this.fadeIn = function (duration) {
+        clearInterval(stopHandler);
+        clearInterval(fadeHandler);
+        _canvas.style.opacity = 0.0;
+        opacityCounter = 0.0;
+        var delta = 10.0;
+        var d = 1.0 / (duration / delta);
+
+        fadeHandler = setInterval(function () {
+            opacityCounter += d;
+            if (opacityCounter >= 1) {
+                opacityCounter = 1.0;
+                clearInterval(fadeHandler);
+            }
+            _canvas.style.opacity = opacityCounter;
+        }, delta);
+    };
+
+    this.fadeOut = function (duration) {
+        clearInterval(stopHandler);
+        clearInterval(fadeHandler);
+        _canvas.style.opacity = 1.0;
+        opacityCounter = 1.0;
+        var delta = 10.0;
+        var d = 1 / (duration / delta);
+
+        fadeHandler = setInterval(function () {
+            opacityCounter -= d;
+            if (opacityCounter <= 0.0) {
+                opacityCounter = 0.0;
+                clearInterval(fadeHandler);
+            }
+            _canvas.style.opacity = opacityCounter;
+        }, delta);
+
+    };
+
     //Run!
     if (isUndefined(options.autoActivate) || options.autoActivate)
         this.renderer.start();
