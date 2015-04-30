@@ -1,15 +1,57 @@
 goog.provide('og.Extent');
 
 goog.require('og.LonLat');
+goog.require('og.math');
 
 og.Extent = function (sw, ne) {
     this.southWest = sw || new og.LonLat();
     this.northEast = ne || new og.LonLat();
 };
 
+og.extent = function (sw, ne) {
+    return new og.Extent(sw, ne);
+};
+
+
+og.Extent.prototype.intersects = function (e) {
+    if (this.southWest.lon < e.northEast.lon && this.northEast.lon > e.southWest.lon &&
+        this.southWest.lat < e.northEast.lat && this.northEast.lat > e.southWest.lat)
+        return true;
+    return false;
+};
+
 og.Extent.FULL_MERC = new og.Extent(og.LonLat.SW_MERC, og.LonLat.NE_MERC);
 og.Extent.NORTH_POLE_DEG = new og.Extent(og.LonLat.NW_MERC_DEG, new og.LonLat(180.0, 90.0));
 og.Extent.SOUTH_POLE_DEG = new og.Extent(new og.LonLat(-180.0, -90.0), og.LonLat.SE_MERC_DEG);
+
+og.Extent.createByCoordinates = function (arr) {
+    var lonmin = og.math.MAX, lonmax = og.math.MIN,
+        latmin = og.math.MAX, latmax = og.math.MIN;
+    for (var i = 0; i < arr.length; i++) {
+        var vi = arr[i];
+        if (vi.lon < lonmin) lonmin = vi.lon;
+        if (vi.lon > lonmax) lonmax = vi.lon;
+        if (vi.lat < latmin) latmin = vi.lat;
+        if (vi.lat > latmax) latmax = vi.lat;
+    }
+    return new og.Extent(new og.LonLat(lonmin, latmin), new og.LonLat(lonmax, latmax));
+};
+
+og.Extent.prototype.setByCoordinates = function (arr) {
+    var lonmin = og.math.MAX, lonmax = og.math.MIN,
+        latmin = og.math.MAX, latmax = og.math.MIN;
+    for (var i = 0; i < arr.length; i++) {
+        var vi = arr[i];
+        if (vi.lon < lonmin) lonmin = vi.lon;
+        if (vi.lon > lonmax) lonmax = vi.lon;
+        if (vi.lat < latmin) latmin = vi.lat;
+        if (vi.lat > latmax) latmax = vi.lat;
+    }
+    this.southWest.lon = lonmin;
+    this.southWest.lat = latmin;
+    this.northEast.lon = lonmax;
+    this.northEast.lat = latmax;
+};
 
 og.Extent.createFromArray = function (arr) {
     return new og.Extent(new og.LonLat(arr[0], arr[1]), new og.LonLat(arr[2], arr[3]));

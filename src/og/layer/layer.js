@@ -22,12 +22,12 @@ og.layer.Layer = function (name, options) {
     options = options || {};
     this.isBaseLayer = options.isBaseLayer || false;
     this.numZoomLevels = options.numZoomLevels || -1;
-    this.url = options.url || "";
     this.visibility = options.visibility || false;
     this.opacity = options.opacity || og.layer.DEFAILT_OPACITY;
     this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
     this.zIndex = options.zIndex || og.layer.DEFAILT_Z_INDEX;
     this._attribution = options.attribution || "";
+    this.url = options.url || "";
 
     this.id = og.layer.layersCounter++;
 

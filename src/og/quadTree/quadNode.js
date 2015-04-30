@@ -184,11 +184,12 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
+og.quadTree.QuadNode.VISIBLE_DISTANCE = 3570;
+
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
     if (cam.lonLat.height < 3000000.0) {
-
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
-        var horizon = 3570 * Math.sqrt(cam.lonLat.height);
+        var horizon = og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam.lonLat.height);
         if (distance < horizon) {
             this.renderNode();
         } else {
@@ -661,8 +662,6 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
         this.nodes[i].planetSegment.destroySegment();
         this.appliedTerrainNodeId = -1;
         this.nodes[i].destroyBranches(false);
-        //this.nodes[i].parentNode = null;
-        //this.nodes[i].state = og.quadTree.NOTRENDERING;
     }
     this.nodes.length = 0;
 };

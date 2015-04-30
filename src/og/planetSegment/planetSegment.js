@@ -41,6 +41,8 @@ og.planetSegment.PlanetSegment = function () {
     this.vertexTextureCoordBuffer = null;
 
     this.extent;
+    this.wgs84extent;
+    this.extentParams = [];
     this.gridSize;
 
     this.zoomIndex;
@@ -61,6 +63,9 @@ og.planetSegment.PlanetSegment = function () {
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.terrainExists = false;
+
+    this.geoImageReady = false;
+    this.geoImageTexture = null;
 
     this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
     this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
@@ -322,8 +327,8 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
         this.gridSize = tgs;
         this.node.appliedTerrainNodeId = this.node.nodeId;
-        elevations.length = 0;
     }
+    elevations.length = 0;
 };
 
 og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
@@ -634,6 +639,9 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+
+    this.wgs84extent = new og.Extent(extent.southWest.inverseMercator(), extent.northEast.inverseMercator());
+    this.extentParams = [this.wgs84extent.southWest.lon, this.wgs84extent.southWest.lat, 2.0 / this.wgs84extent.getWidth(), 2.0 / this.wgs84extent.getHeight()];
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
@@ -697,6 +705,10 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
             gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
             gl.uniform1i(shu.uSampler._pName, 0);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture);
+            gl.uniform1i(shu.uGeoImage._pName, 1);
 
             if (segment.planet.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);

@@ -13,21 +13,22 @@ goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ShowFps');
 goog.require('og.control.ZoomControl');
 goog.require('og.control.TouchNavigation');
-
 goog.require('og.ImageCanvas');
+goog.require('og.GeoImage');
+goog.require('og.LonLat');
 
 function start() {
     og.webgl.MAX_FRAME_DELAY = 15;
 
-    var empty = new og.layer.CanvasTiles("Empty", { isBaseLayer: true });
+    var empty = new og.layer.CanvasTiles("Empty", { isBaseLayer: true, visibility: true });
     empty.drawTile = function (material, applyCanvas) {
         var imgCnv = new og.ImageCanvas();
         imgCnv.fillColor("#c6c6c6");
         applyCanvas(imgCnv._canvas);
     };
 
-    var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
-    var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true, zIndex: 1, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
+    var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: false, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
+    var satlayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: false, zIndex: 1, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
 
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
 
@@ -49,14 +50,14 @@ function start() {
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
-    var skybox = new og.node.SkyBox({
-        "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
-        "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
-        "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
-        "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
-        "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
-        "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
-    });
+    //var skybox = new og.node.SkyBox({
+    //    "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
+    //    "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
+    //    "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
+    //    "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
+    //    "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
+    //    "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
+    //});
 
     var controls = [
         new og.control.MouseNavigation({ autoActivate: true }),
@@ -74,11 +75,23 @@ function start() {
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": skybox,
+        // "skybox": skybox,
         "terrain": terrain,
         "layers": [satlayer, layer, empty, states, countries, ne, pop, hyb],
         "autoActivated": true
     });
+
+    for (var i = 0; i < 1; i++) {
+        var ql = new og.GeoImage({
+            src: "ql.jpg",
+            corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)]
+        });
+        //var ql = new og.GeoImage({
+        //    src: "bm.jpg",
+        //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)]
+        //});
+        ql.addTo(globus.planet);
+    }
 
     /*    globus2 = new og.Globus({
             "target": "globus2",
@@ -95,38 +108,5 @@ function start() {
             "autoActivated": true
         });*/
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
-    //og.webgl.MAX_FRAME_DELAY = 28;
-    var places = [
-        { name: "Эверест", lat: 27.96737, lon: 86.93133, height: 16002, img: null },
-        { name: "Вулкан Тятя", lat: 44.33067, lon: 146.26247, height: 10594, img: null },
-        { name: "Кудач", lat: 51.80633, lon: 157.53396, height: 10594, img: null },
-        { name: "Курильское озеро", lat: 51.45526, lon: 157.10338, height: 27286, img: null },
-        { name: "Исландия", lat: 64.96372, lon: -17.87612, height: 515284, img: null },
-        { name: "Cilaos", lat: -21.14163, lon: 55.45201, height: 14033, img: null },
-        { name: "Эквадор", lat: -0.40913, lon: -90.95670, height: 112508, img: null },
-        { name: "Пролив Босфор", lat: 41.11113, lon: 29.06953, height: 49235, img: null },
-        { name: "Крым", lat: 45.24066, lon: 33.96877, height: 219529, img: null },
-        { name: "Эльбрус", lat: 43.351167, lon: 42.43864, height: 12751.8, img: null },
-        { name: "Гора Раниер", lat: 46.85320, lon: -121.75754, height: 22738, img: null },
-        { name: "Гора Адамс", lat: 46.20357, lon: -121.49044, height: 17828.7, img: null },
-        { name: "Гора Святой Елены", lat: 46.19947, lon: -122.18971, height: 9475.2, img: null },
-        { name: "Дом", lat: 55.78131, lon: 77.02815, height: 13132244.4, img: null }
-    ];
-
-    var cont = document.getElementById("cont");
-    var ul = document.createElement("ul");
-    for (var i = 0; i < places.length; i++) {
-        (function (li, place) {
-            li.classList.add("icon");
-            li.onclick = function () {
-                globus.planet.flyLonLat(new og.LonLat(place.lon, place.lat, place.height));
-            };
-            li.innerHTML = '<div style="width:80px; height:80px;  margin: 3px 3px 3px 3px; background-color: rgba(50,50,50,0.6);">' + place.name + '</div>';
-            ul.appendChild(li);
-        })(document.createElement("li"), places[i]);
-    }
-
-    cont.appendChild(ul);
-
 
 };

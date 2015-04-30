@@ -36,9 +36,18 @@ function start() {
     renderer.init();
 
     var axes = new og.node.Axes(10000);
-    var skysphere = new og.node.SkySphere("1.jpg");
+
+    var skybox = new og.node.SkyBox({
+        "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
+        "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
+        "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
+        "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
+        "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
+        "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
+    });
+
     mySphere = new my.Sphere();
-    renderer.addRenderNode(skysphere);
+    renderer.addRenderNode(skybox);
     renderer.addRenderNode(mySphere);
     renderer.addRenderNode(axes);
 

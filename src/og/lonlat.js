@@ -1,4 +1,5 @@
 goog.provide('og.LonLat');
+//goog.provide('og.lonLat');
 
 goog.require('og.mercator');
 
@@ -6,6 +7,10 @@ og.LonLat = function (lon, lat, height) {
     this.lon = lon || 0;
     this.lat = lat || 0;
     this.height = height || 0;
+};
+
+og.lonLat = function (lon, lat) {
+    return new og.LonLat(lon, lat);
 };
 
 og.LonLat.prototype.set = function (lon, lat, height) {

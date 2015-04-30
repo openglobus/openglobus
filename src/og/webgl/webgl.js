@@ -52,3 +52,21 @@ og.webgl.initWebGLContext = function (canvas, params) {
         clearTimeout(id);
     };
 }());
+
+//var start = window.animationTime;
+//var rate = 10; // Hz
+//var duration = 10; // s
+//var lastFrameNumber;
+//function animate() {
+//    var elapsed = window.animationTime - start;
+//    if (elapsed < duration) {
+//        window.requestAnimationFrame(animate);
+//    }
+//    var frameNumber = Math.round(elapsed / (1000 / rate));
+//    if (frameNumber == lastFrameNumber)
+//        return;
+//    lastFrameNumber = frameNumber;
+//    // ... update the display based on frameNumber ...
+//}
+//window.requestAnimationFrame(animate);
+

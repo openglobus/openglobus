@@ -28,6 +28,7 @@ goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.light.PointLight');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
+goog.require('og.utils.GeoImageTileCreator');
 
 
 og.node.Planet = function (name, ellipsoid) {
@@ -64,6 +65,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.sunlight = null;
 
     this.normalMapCreator = null;
+    this.geoImageTileCreator = null;
+
+    this.geoImagesArray = [];
 
     //camera's flying frames
     this._framesArr = [];
@@ -107,6 +111,10 @@ og.node.Planet.prototype.getLayerByName = function (name) {
             return this.layers[i];
     }
     return undefined;
+};
+
+og.node.Planet.prototype.addGeoImage = function (geoImage) {
+    geoImage.addTo(this);
 };
 
 /**
@@ -278,10 +286,13 @@ og.node.Planet.prototype.initialization = function () {
     this.sunlight.setShininess(4);
     this.sunlight.addTo(this);
 
-    this.lightEnabled = true;
+    this.lightEnabled = false;
 
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
+
+    //normal map renderer initialization
+    this.geoImageTileCreator = new og.utils.GeoImageTileCreator(256, 256);
 
     //temporary initializations
     var that = this;
@@ -368,12 +379,14 @@ og.node.Planet.prototype.checkCameraCollision = function () {
     }
 };
 
-og.node.Planet.prototype.frame = function () {
+og.node.Planet.prototype.collectRenderNodes = function () {
+    this.quadTreeNorth.renderTree();
+    this.quadTreeSouth.renderTree();
+    this.quadTree.renderTree();
+};
 
-    //print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
-
+og.node.Planet.prototype.flyCameraFrames = function () {
     var cam = this.renderer.activeCamera;
-
     if (this._framesCounter >= 0) {
         var c = this._numFrames - this._framesCounter;
         this.normalMapCreator.active = false;
@@ -392,16 +405,18 @@ og.node.Planet.prototype.frame = function () {
         this.normalMapCreator.active = true;
         this.terrainProvider.active = true;
     }
+};
 
+og.node.Planet.prototype.frame = function () {
+
+    //print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
+
+    this.flyCameraFrames();
     this.checkCameraCollision();
+    this.collectRenderNodes();
 
-    this.quadTreeNorth.renderTree();
-    this.quadTreeSouth.renderTree();
-    this.quadTree.renderTree();
-
-    var alt = cam.altitude;
-    var b = cam.v.scaleTo(alt * 0.2).add(cam.u.scaleTo(alt * 0.4));
-    this.sunlight._position = b.add(cam.eye);
+    var cam = this.renderer.activeCamera;
+    this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
 
     //Here is the planet node dispatches a draw event before clearing.
     this.events.dispatch(this.events.ondraw, this);
@@ -413,7 +428,7 @@ og.node.Planet.prototype.frame = function () {
 
     //free memory
     var that = this;
-    if (this.createdNodesCount > 370) {
+    if (this.createdNodesCount > 1370) {
         setTimeout(function () {
             that.memClear();
         }), 0
@@ -460,7 +475,6 @@ og.node.Planet.prototype.renderNodesPASS = function () {
         } else {
             h.shaderPrograms.overlays_nl.activate();
             sh = h.shaderPrograms.overlays_nl._program;
-
             gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
         }
 
@@ -479,9 +493,7 @@ og.node.Planet.prototype.renderNodesPASS = function () {
         gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
 
     } else {
-
         drawCallback = og.planetSegment.drawSingle;
-
         if (this.lightEnabled) {
             h.shaderPrograms.single_wl.activate();
             sh = h.shaderPrograms.single_wl._program,
@@ -503,11 +515,20 @@ og.node.Planet.prototype.renderNodesPASS = function () {
         }
     }
 
+    //draw planet's nodes
     var i = this.renderedNodes.length;
     while (i--) {
+        this.createOverlayTile(this.renderedNodes[i].planetSegment);
         drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
     gl.disable(gl.BLEND);
+};
+
+og.node.Planet.prototype.createOverlayTile = function (segment) {
+    if (!segment.geoImageReady) {
+        segment.geoImageTexture = this.geoImageTileCreator.drawTile(segment);
+        segment.geoImageReady = true;
+    }
 };
 
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
