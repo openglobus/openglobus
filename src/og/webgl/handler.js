@@ -140,6 +140,7 @@ og.webgl.Handler.prototype._initShaderController = function (sc) {
             sc.activate();
         } else {
             sc.deactivate();
+            this.activeShaderProgram._program.enableAttribArrays();
             this.activeShaderProgram._program.use();
         }
     }
