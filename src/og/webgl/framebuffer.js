@@ -13,14 +13,16 @@ og.webgl.Framebuffer = function (gl, width, height) {
 
 og.webgl.Framebuffer.prototype.initialize = function () {
     var gl = this.gl;
-    this.fbo = gl.createFramebuffer();
     this.width = gl.canvas.clientWidth || this.width;
     this.height = gl.canvas.clientHeight || this.height;
+    this.fbo = gl.createFramebuffer();
     this._createTexture();
 };
 
 og.webgl.Framebuffer.prototype._createTexture = function () {
     var gl = this.gl;
+    gl.deleteTexture(this.texture);
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
     this.texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -47,7 +49,8 @@ og.webgl.Framebuffer.prototype._createTexture = function () {
 og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
-    this._createTexture();
+    this.gl.deleteFramebuffer(this.fbo);
+    this.initialize();
 };
 
 og.webgl.Framebuffer.prototype.isComplete = function () {
