@@ -41,7 +41,7 @@ og.planetSegment.PlanetSegment = function () {
     this.vertexTextureCoordBuffer = null;
 
     this.extent;
-    this.wgs84extent;
+    //this.wgs84extent;
     this.extentParams = [];
     this.gridSize;
 
@@ -57,6 +57,7 @@ og.planetSegment.PlanetSegment = function () {
     this.materials = [];
 
     this._inTheQueue = false;
+    this._inTheGeoImageTileCreatorQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
@@ -505,6 +506,46 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
     }
 };
 
+og.planetSegment.PlanetSegment.prototype.createGeoImageTileTexture = function () {
+    var canvas = this.planet.geoImageTileCreator.draw(this);
+    if (canvas) {
+        this.geoImageTexture = this.handler.createTexture_mm(canvas);
+        this.geoImageReady = true;
+    }
+};
+
+og.planetSegment.PlanetSegment.prototype.drawGeoImage = function (geoImage) {
+    if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
+
+        var tc = this.planet.geoImageTileCreator;
+
+        if (!geoImage._mercSamplerReady) {
+            tc.createMercatorSamplerPASS(geoImage);
+        }
+
+        var h = tc._handler;
+        var sh = h.shaderPrograms.geoImage._program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+        var gl = h.gl;
+
+        h.shaderPrograms.geoImage.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
+        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
+        gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform4fv(shu.u_extentParams._pName, this.extentParams);
+        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
+        gl.uniform1i(shu.u_sourceImage._pName, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        return true;
+    }
+    return false;
+};
+
 og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
     if (elevations.length) {
         this.elevationsExists(elevations);
@@ -640,8 +681,7 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
 
-    this.wgs84extent = new og.Extent(extent.southWest.inverseMercator(), extent.northEast.inverseMercator());
-    this.extentParams = [this.wgs84extent.southWest.lon, this.wgs84extent.southWest.lat, 2.0 / this.wgs84extent.getWidth(), 2.0 / this.wgs84extent.getHeight()];
+    this.extentParams = [this.extent.southWest.lon, this.extent.southWest.lat, 2.0 / this.extent.getWidth(), 2.0 / this.extent.getHeight()];
 };
 
 og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {

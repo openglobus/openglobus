@@ -117,4 +117,28 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function ()
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
+og.planetSegment.Wgs84PlanetSegment.prototype.drawGeoImage = function (geoImage) {
+    if (geoImage.visibility && geoImage.imageLoaded && geoImage._wgs84Extent.intersects(this.extent)) {
+        var tc = this.planet.geoImageTileCreator;
+        var h = tc._handler;
+        var sh = h.shaderPrograms.geoImage._program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+        var gl = h.gl;
 
+        h.shaderPrograms.geoImage.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
+        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._wgs84CornersBuffer);
+        gl.vertexAttribPointer(sha.a_corner._pName, geoImage._wgs84CornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform4fv(shu.u_extentParams._pName, this.extentParams);
+        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
+        gl.uniform1i(shu.u_sourceImage._pName, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        return true;
+    }
+    return false;
+};

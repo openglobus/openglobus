@@ -28,7 +28,7 @@ goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.light.PointLight');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
-goog.require('og.utils.GeoImageTileCreator');
+goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 
 
 og.node.Planet = function (name, ellipsoid) {
@@ -292,7 +292,7 @@ og.node.Planet.prototype.initialization = function () {
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
 
     //normal map renderer initialization
-    this.geoImageTileCreator = new og.utils.GeoImageTileCreator(256, 256);
+    this.geoImageTileCreator = new og.planetSegment.GeoImageTileCreatorQueue(256, 256);
 
     //temporary initializations
     var that = this;
@@ -525,9 +525,8 @@ og.node.Planet.prototype.renderNodesPASS = function () {
 };
 
 og.node.Planet.prototype.createOverlayTile = function (segment) {
-    if (!segment.geoImageReady) {
-        segment.geoImageTexture = this.geoImageTileCreator.drawTile(segment);
-        segment.geoImageReady = true;
+    if (!(segment.geoImageReady || segment._inTheGeoImageTileCreatorQueue)) {
+        this.geoImageTileCreator.queue(segment);
     }
 };
 
