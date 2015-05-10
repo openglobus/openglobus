@@ -73,7 +73,7 @@ og.Extent.prototype.getHeight = function () {
 };
 
 og.Extent.prototype.clone = function () {
-    return new og.Extent(this.sw, this.ne);
+    return new og.Extent(this.southWest.clone(), this.northEast.clone());
 };
 
 og.Extent.prototype.getCenter = function () {
@@ -82,7 +82,7 @@ og.Extent.prototype.getCenter = function () {
 };
 
 og.Extent.prototype.getNorthWest = function () {
-    return new og.LonLat(this.northEast.lon, this.southWest.lat);
+    return new og.LonLat(this.southWest.lon, this.northEast.lat);
 };
 
 og.Extent.prototype.getNorthEast = function () {
@@ -94,7 +94,7 @@ og.Extent.prototype.getSouthWest = function () {
 };
 
 og.Extent.prototype.getSouthEast = function () {
-    return new og.LonLat(this.southWest.lon, this.northEast.lat);
+    return new og.LonLat(this.northEast.lon, this.southWest.lat);
 };
 
 og.Extent.prototype.getNorth = function () {
@@ -134,4 +134,8 @@ og.Extent.fromTile = function (x, y, z) {
 og.Extent.prototype.equals = function (extent) {
     return this.southWest.lon == extent.southWest.lon && this.southWest.lat == extent.southWest.lat &&
         this.northEast.lon == extent.northEast.lon && this.northEast.lat == extent.northEast.lat;
+};
+
+og.Extent.prototype.forwardMercator = function () {
+    return new og.Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
 };
