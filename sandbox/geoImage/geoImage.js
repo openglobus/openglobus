@@ -22,19 +22,28 @@ GeoImage = function () {
 
 og.inheritance.extend(GeoImage, og.node.RenderNode);
 
+var SIZE = 300;
+
 GeoImage.prototype.initialization = function () {
 
     this._handler = this.renderer.handler;
 
-    this._framebufferPASS_ONE = new og.webgl.Framebuffer(this._handler.gl, 256, 256);
-    this._framebufferPASS_ONE.initialize();
+    this._framebuffers = [];
+
+    for (var i = 0; i < SIZE; i++) {
+        this._framebuffers[i] = new og.webgl.Framebuffer(this._handler.gl, 2920, 2080);
+        this._framebuffers[i].initialize();
+    }
+
 
     this.imageLoaded = false;
     this._sourceImage = new Image();
     var that = this;
     this._sourceImage.onload = function () {
         that._sourceTexture = that._handler.createTexture_n(this);
-        that._framebufferPASS_ONE.setSize(this.width, this.height);
+        for (var i = 0; i < SIZE; i++) {
+            that._framebuffers[i].setSize(this.width, this.height);
+        }
         that.projMercFrame();
         that.imageLoaded = true;
     };
@@ -79,7 +88,7 @@ GeoImage.prototype.projMercFrame = function () {
     var gl = this._handler.gl;
 
     //wgs84 image extent making
-    this._framebufferPASS_ONE.activate();
+    this._framebuffers[0].activate();
     this._handler.shaderPrograms.geoImage.activate();
     var sh = this._handler.shaderPrograms.geoImage._program;
     var sha = sh.attributes,
@@ -95,7 +104,7 @@ GeoImage.prototype.projMercFrame = function () {
     gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
     gl.uniform1i(shu.u_sourceImage._pName, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    this._framebufferPASS_ONE.deactivate();
+    this._framebuffers[0].deactivate();
 
     //mercator projection
     this._handler.shaderPrograms.geoImageMercProj.activate();
@@ -109,7 +118,7 @@ GeoImage.prototype.projMercFrame = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(sha.a_vertex._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._framebufferPASS_ONE.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this._framebuffers[0].texture);
     gl.uniform1i(shu.u_sampler._pName, 0);
     gl.uniform4fv(shu.u_extent._pName, [this.mercExtent.southWest.lon, this.mercExtent.southWest.lat, this.mercExtent.northEast.lon, this.mercExtent.northEast.lat]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
