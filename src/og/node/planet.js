@@ -518,18 +518,18 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     //draw planet's nodes
     var i = this.renderedNodes.length;
     while (i--) {
-        this.createOverlayTile(this.renderedNodes[i].planetSegment);
+        //this.createOverlayTile(this.renderedNodes[i].planetSegment);
         drawCallback(sh, this.renderedNodes[i].planetSegment);
     }
     gl.disable(gl.BLEND);
 };
 
-og.node.Planet.prototype.createOverlayTile = function (segment) {
-    if (!(segment.geoImageReady || segment._inTheGeoImageTileCreatorQueue)) {
-        segment.geoImageTexture = this.transparentTexture;
-        this.geoImageTileCreator.queue(segment);
-    }
-};
+//og.node.Planet.prototype.createOverlayTile = function (segment) {
+//    if (!(segment.geoImageReady || segment._inTheGeoImageTileCreatorQueue)) {
+//        segment.geoImageTexture = this.transparentTexture;
+//        this.geoImageTileCreator.queue(segment);
+//    }
+//};
 
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transpose();

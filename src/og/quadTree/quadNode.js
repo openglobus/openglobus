@@ -282,6 +282,8 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileNormalMapCreating();
     }
 
+    this.createGeoImage();
+
     var vl = this.planet.visibleLayers,
         pm = seg.materials;
 
@@ -300,6 +302,33 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     }
 
     this.addToRender(this);
+};
+
+og.quadTree.QuadNode.prototype.createGeoImage = function () {
+    var seg = this.planetSegment;
+
+    if (this.planet.geoImagesArray.length && !(seg.geoImageReady || seg._inTheGeoImageTileCreatorQueue)) {
+
+        var pn = this;
+        while (pn.parentNode && !pn.planetSegment.geoImageReady) {
+            pn = pn.parentNode;
+        }
+
+        var scale = seg.zoomIndex - pn.planetSegment.zoomIndex;
+
+        var dZ2 = Math.pow(2, scale);
+
+        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
+            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
+
+        seg.geoImageTexture = pn.planetSegment.geoImageTexture || this.planet.transparentTexture;
+
+        seg.geoImageTextureBias[0] = offsetX;
+        seg.geoImageTextureBias[1] = offsetY;
+        seg.geoImageTextureBias[2] = 1 / dZ2;
+
+        this.planet.geoImageTileCreator.queue(seg);
+    }
 };
 
 og.quadTree.QuadNode.prototype.addToRender = function (node) {

@@ -67,6 +67,7 @@ og.planetSegment.PlanetSegment = function () {
 
     this.geoImageReady = false;
     this.geoImageTexture = null;
+    this.geoImageTextureBias = [0, 0, 1];
 
     this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
     this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
@@ -510,7 +511,10 @@ og.planetSegment.PlanetSegment.prototype.createGeoImageTileTexture = function ()
     var canvas = this.planet.geoImageTileCreator.draw(this);
     if (canvas) {
         this.geoImageTexture = this.handler.createTexture_mm(canvas);
+    } else {
+        this.geoImageTexture = this.planet.transparentTexture;
     }
+    this.geoImageTextureBias = [0, 0, 1];
     this.geoImageReady = true;
 };
 
@@ -749,6 +753,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture);
             gl.uniform1i(shu.uGeoImage._pName, 1);
+            gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
             if (segment.planet.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
