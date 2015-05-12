@@ -16,8 +16,7 @@ og.GeoImage = function (options) {
     this.image = null;
     this.src = options.src;
     this._wgs84SourceTexture = null;
-    //this._mercSourceTexture = null;
-    this._mercFramebuffer = null;
+    this._mercFramebuffer = null;//stores merc projected texture
     this.imageLoaded = false;
     this.zIndex = options.zIndex || 0;
     this.minZoom = options.minZoom || 0;
@@ -39,7 +38,6 @@ og.GeoImage.prototype.clear = function () {
         this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._wgs84CornersBuffer);
         this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._mercCornersBuffer);
         this.planet.geoImageTileCreator._handler.gl.deleteTexture(this._wgs84SourceTexture);
-        //this.planet.geoImageTileCreator._handler.gl.deleteTexture(this._mercSourceTexture);
         this._mercFramebuffer.clear();
         this.imageLoaded = false;
         this._mercSamplerReady = false;

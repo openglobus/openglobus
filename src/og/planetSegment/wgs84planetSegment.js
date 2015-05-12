@@ -118,7 +118,7 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function ()
 };
 
 og.planetSegment.Wgs84PlanetSegment.prototype.drawGeoImage = function (geoImage) {
-    if (geoImage.visibility && geoImage.imageLoaded && geoImage._wgs84Extent.intersects(this.extent)) {
+    if (geoImage.visibility && geoImage.imageLoaded /*&& geoImage._wgs84Extent.intersects(this.extent)*/) {
         var tc = this.planet.geoImageTileCreator;
         var h = tc._handler;
         var sh = h.shaderPrograms.geoImage._program;

@@ -39,7 +39,8 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                         uniform float u_opacity; \
                         varying vec2 v_texCoords; \
                         void main () {  \
-                            gl_FragColor = vec4(texture2D(uSourceImage, v_texCoords).rgb, u_opacity); \
+                            vec4 color = texture2D(uSourceImage, v_texCoords); \
+                            gl_FragColor = vec4(color.rgb, u_opacity*color.a); \
                         }'
     });
 
@@ -76,8 +77,8 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                         void main () {\n\
                             vec2 minMerc = forward(u_extent.xy); \n\
                             vec2 d = (inverse(minMerc + (forward(u_extent.zw) - minMerc) * \
-                                vec2(v_texCoords.x, 1.0 - v_texCoords.y)) - u_extent.xy) / \
-                                vec2(u_extent.z - u_extent.x, u_extent.w - u_extent.y);\n\
+                            vec2(v_texCoords.x, 1.0 - v_texCoords.y)) - u_extent.xy) / \
+                            vec2(u_extent.z - u_extent.x, u_extent.w - u_extent.y);\n\
                             gl_FragColor = texture2D(u_sampler, vec2(d.x, d.y));\n\
             }'
     });
