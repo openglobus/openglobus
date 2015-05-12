@@ -172,11 +172,14 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
     var geoImagesArray = planetSegment.planet.geoImagesArray;
 
     var i = geoImagesArray.length;
+    var empty = false;
     while (i--) {
         var gi = geoImagesArray[i];
-        if (!planetSegment.drawGeoImage(gi)) {
-            return null;
-        }
+        empty |= planetSegment.drawGeoImage(gi);
+    }
+
+    if (!empty) {
+        return null;
     }
 
     return this._handler.canvas;

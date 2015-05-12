@@ -88,12 +88,12 @@ function start() {
     //});
     //ql.addTo(globus.planet);
 
-    //var ql2 = new og.GeoImage({
-    //    src: "ql2.jpg",
-    //    corners: [og.lonLat(20.91, 47.21), og.lonLat(20.22, 47.00), og.lonLat(20.00, 47.32), og.lonLat(20.70, 47.53)],
-    //    opacity: 0.8
-    //});
-    //ql2.addTo(globus.planet);
+    var ql2 = new og.GeoImage({
+        src: "ql2.jpg",
+        corners: [og.lonLat(20.91, 47.21), og.lonLat(20.22, 47.00), og.lonLat(20.00, 47.32), og.lonLat(20.70, 47.53)],
+        opacity: 0.8
+    });
+    ql2.addTo(globus.planet);
 
     var ql3 = new og.GeoImage({
         src: "ql3.jpg",

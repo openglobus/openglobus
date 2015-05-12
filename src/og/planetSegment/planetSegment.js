@@ -544,10 +544,8 @@ og.planetSegment.PlanetSegment.prototype.drawGeoImage = function (geoImage) {
         gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
         gl.uniform1i(shu.u_sourceImage._pName, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
         return true;
     }
-    return false;
 };
 
 og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {

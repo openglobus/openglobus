@@ -137,8 +137,6 @@ og.planetSegment.Wgs84PlanetSegment.prototype.drawGeoImage = function (geoImage)
         gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
         gl.uniform1i(shu.u_sourceImage._pName, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
         return true;
     }
-    return false;
 };
