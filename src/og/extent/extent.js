@@ -14,10 +14,8 @@ og.extent = function (sw, ne) {
 
 
 og.Extent.prototype.intersects = function (e) {
-    if (this.southWest.lon < e.northEast.lon && this.northEast.lon > e.southWest.lon &&
-        this.southWest.lat < e.northEast.lat && this.northEast.lat > e.southWest.lat)
-        return true;
-    return false;
+    return this.southWest.lon < e.northEast.lon && this.northEast.lon > e.southWest.lon &&
+       this.southWest.lat < e.northEast.lat && this.northEast.lat > e.southWest.lat;
 };
 
 og.Extent.FULL_MERC = new og.Extent(og.LonLat.SW_MERC, og.LonLat.NE_MERC);

@@ -510,12 +510,12 @@ og.planetSegment.PlanetSegment.prototype.createGeoImageTileTexture = function ()
     var canvas = this.planet.geoImageTileCreator.draw(this);
     if (canvas) {
         this.geoImageTexture = this.handler.createTexture_mm(canvas);
-        this.geoImageReady = true;
     }
+    this.geoImageReady = true;
 };
 
 og.planetSegment.PlanetSegment.prototype.drawGeoImage = function (geoImage) {
-    if (geoImage.visibility && geoImage.imageLoaded /*&& geoImage._mercExtent.intersects(this.extent)*/) {
+    if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
 
         var tc = this.planet.geoImageTileCreator;
 

@@ -526,6 +526,7 @@ og.node.Planet.prototype.renderNodesPASS = function () {
 
 og.node.Planet.prototype.createOverlayTile = function (segment) {
     if (!(segment.geoImageReady || segment._inTheGeoImageTileCreatorQueue)) {
+        segment.geoImageTexture = this.transparentTexture;
         this.geoImageTileCreator.queue(segment);
     }
 };

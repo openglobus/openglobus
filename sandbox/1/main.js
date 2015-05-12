@@ -95,19 +95,19 @@ function start() {
     //});
     //ql2.addTo(globus.planet);
 
-    //var ql3 = new og.GeoImage({
-    //    src: "ql3.jpg",
-    //    corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
-    //    opacity: 0.8
-    //});
-    //ql3.addTo(globus.planet);
-
-    var ql4 = new og.GeoImage({
-        src: "bm.jpg",
-        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-        opacity: 0.4
+    var ql3 = new og.GeoImage({
+        src: "ql3.jpg",
+        corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
+        opacity: 0.8
     });
-    ql4.addTo(globus.planet);
+    ql3.addTo(globus.planet);
+
+    //var ql4 = new og.GeoImage({
+    //    src: "bm.jpg",
+    //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+    //    opacity: 1
+    //});
+    //ql4.addTo(globus.planet);
 
 
     /*    globus2 = new og.Globus({
