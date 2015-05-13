@@ -177,9 +177,12 @@ og.node.Planet.prototype.redrawGeoImages = function () {
     this.geoImagesArray.sort(function (a, b) {
         return a.zIndex - b.zIndex;
     });
-    this.quadTree.traverseTree(function (node) {
+    var refresh = function (node) {
         node.planetSegment.geoImageReady = false;
-    });
+    }
+    this.quadTree.traverseTree(refresh);
+    this.quadTreeNorth.traverseTree(refresh);
+    this.quadTreeSouth.traverseTree(refresh);
 };
 
 /**

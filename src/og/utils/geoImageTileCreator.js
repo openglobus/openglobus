@@ -165,7 +165,7 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
         shu = sh.uniforms;
     var gl = h.gl;
 
-    gl.clearColor(1.0, 1.0, 1.0, 0.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
