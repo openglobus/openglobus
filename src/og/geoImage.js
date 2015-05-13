@@ -42,6 +42,7 @@ og.GeoImage.prototype.clear = function () {
         this.imageLoaded = false;
         this._mercSamplerReady = false;
     }
+    this.planet.redrawGeoImages();
 };
 
 og.GeoImage.prototype.loadImage = function (src) {
@@ -51,14 +52,33 @@ og.GeoImage.prototype.loadImage = function (src) {
     this.image.onload = function () {
         that._wgs84SourceTexture = that.planet.geoImageTileCreator._handler.createTexture_n(this);
         that.imageLoaded = true;
+        if (that.visibility) {
+            that.planet.redrawGeoImages();
+        }
     };
     this.image.src = src;
+};
+
+og.GeoImage.prototype.setOpacity = function (opacity) {
+    this.opacity = opacity;
+    this.planet.redrawGeoImages();
+};
+
+og.GeoImage.prototype.setVisibility = function (visibility) {
+    this.visibility = visibility;
+    this.planet.redrawGeoImages();
 };
 
 og.GeoImage.prototype.addTo = function (planet) {
     this.planet = planet;
     this.initialize();
     planet.geoImagesArray.push(this);
+    planet.redrawGeoImages();
+};
+
+og.GeoImage.prototype.setZIndex = function (zIndex) {
+    this.zIndex = zIndex;
+    this.planet.redrawGeoImages();
 };
 
 og.GeoImage.prototype.setCorners = function (corners) {
@@ -85,4 +105,6 @@ og.GeoImage.prototype.setCorners = function (corners) {
     h.gl.deleteBuffer(this._mercCornersBuffer);
     this._mercCornersBuffer = h.createArrayBuffer(new Float32Array([this._mercCorners[3].lon, this._mercCorners[3].lat, this._mercCorners[2].lon, this._mercCorners[2].lat,
         this._mercCorners[0].lon, this._mercCorners[0].lat, this._mercCorners[1].lon, this._mercCorners[1].lat]), 2, 4);
+
+    this.planet.redrawGeoImages();
 };

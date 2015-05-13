@@ -173,6 +173,15 @@ og.node.Planet.prototype.removeLayer = function (layer) {
     return undefined;
 };
 
+og.node.Planet.prototype.redrawGeoImages = function () {
+    this.geoImagesArray.sort(function (a, b) {
+        return a.zIndex - b.zIndex;
+    });
+    this.quadTree.traverseTree(function (node) {
+        node.planetSegment.geoImageReady = false;
+    });
+};
+
 /**
  * Get the collection of layers associated with this planet.
  * @return {Array} Layers.

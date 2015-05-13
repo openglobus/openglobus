@@ -40,7 +40,8 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                         varying vec2 v_texCoords; \
                         void main () {  \
                             vec4 color = texture2D(uSourceImage, v_texCoords); \
-                            gl_FragColor = vec4(color.rgb, u_opacity*color.a); \
+                            if(color.a == 0.0) discard; \
+                            gl_FragColor = vec4(color.rgb, u_opacity * color.a); \
                         }'
     });
 
@@ -116,7 +117,7 @@ og.utils.GeoImageTileCreator.prototype.createMercatorSamplerPASS = function (geo
     var sh = h.shaderPrograms.geoImage._program;
     var sha = sh.attributes,
         shu = sh.uniforms;
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clearColor(1.0, 1.0, 1.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.uniform1f(shu.u_opacity._pName, 1.0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
@@ -152,11 +153,9 @@ og.utils.GeoImageTileCreator.prototype.createMercatorSamplerPASS = function (geo
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     geoImage._mercFramebuffer.deactivate();
 
-    //geoImage._mercSourceTexture = this._handler.createTexture_n(this._handler.canvas);
     geoImage._mercSamplerReady = true;
 
     this._handler.setSize(this._width, this._height);
-
 };
 
 og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
@@ -168,6 +167,9 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
 
     gl.clearColor(1.0, 1.0, 1.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA);
 
     var geoImagesArray = planetSegment.planet.geoImagesArray;
 
@@ -177,6 +179,8 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
         var gi = geoImagesArray[i];
         empty |= planetSegment.drawGeoImage(gi);
     }
+
+    gl.disable(gl.BLEND);
 
     if (!empty) {
         return null;
