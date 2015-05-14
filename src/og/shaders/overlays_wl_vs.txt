@@ -10,11 +10,13 @@ uniform mat4 uPMatrix;
 uniform mat4 uMVMatrix;
 uniform mat3 uNMatrix;
 uniform vec3 uNormalMapBias;
+uniform vec3 geoImageTexBias;
 
 varying vec4 vTextureCoord;
 varying vec3 vNormal;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
+varying vec2 vTextureCoordClear;
 
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
@@ -25,4 +27,6 @@ void main(void) {
 
     vTextureCoord.xy = aTextureCoord;
     vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
+
+	vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
 }

@@ -13,7 +13,9 @@ og.shaderProgram.overlays_nl = function () {
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
-            numTex: { type: og.shaderProgram.types.INT }
+            numTex: { type: og.shaderProgram.types.INT },
+            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -38,7 +40,9 @@ og.shaderProgram.overlays_wl = function () {
             numTex: { type: og.shaderProgram.types.INT },
             pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
+            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

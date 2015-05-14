@@ -4,11 +4,13 @@ precision lowp int;
 #define MAX_TEX 8
 
 varying vec2 vTextureCoord;
+varying vec2 vTextureCoordClear;
 
 uniform int numTex;
 uniform sampler2D uSamplerArr[MAX_TEX];
 uniform vec4 tcolorArr[MAX_TEX];
 uniform lowp vec3 texBiasArr[MAX_TEX];
+uniform sampler2D uGeoImage;
 
 void main(void) 
 {
@@ -27,5 +29,6 @@ void main(void)
 			}
 		}
 
-	gl_FragColor = res;
+	vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
+    gl_FragColor = mix(res, geoImageColor, geoImageColor.a);
 }

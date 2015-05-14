@@ -14,11 +14,13 @@ uniform int numTex;
 uniform sampler2D uSamplerArr[MAX_TEX];
 uniform vec4 tcolorArr[MAX_TEX];
 uniform lowp vec3 texBiasArr[MAX_TEX];
+uniform sampler2D uGeoImage;
 
 varying vec4 vTextureCoord;
 varying vec3 vNormal;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
+varying vec2 vTextureCoordClear;
 
 void main(void) 
 {
@@ -51,5 +53,6 @@ void main(void)
             }
         }
 
-    gl_FragColor = res * vec4(lightWeighting, 1.0);
+	vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
+    gl_FragColor = mix(res, geoImageColor, geoImageColor.a) * vec4(lightWeighting, 1.0);
 }
