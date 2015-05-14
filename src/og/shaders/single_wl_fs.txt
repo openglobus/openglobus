@@ -9,10 +9,12 @@ uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 uniform mat3 uNMatrix;
+uniform sampler2D uGeoImage;
 
 varying vec4 vTextureCoord;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
+varying vec2 vTextureCoordClear;
 
 void main(void) {
     
@@ -30,5 +32,9 @@ void main(void) {
     vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
     vec4 uColor = texture2D( uSampler, vTextureCoord.xy );
-    gl_FragColor = vec4(uColor.rgb * lightWeighting, uColor.a);
+    vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
+    vec4 res = mix(uColor, geoImageColor, geoImageColor.a);
+
+    //gl_FragColor = vec4(uColor.rgb * lightWeighting, uColor.a);
+	gl_FragColor = vec4(res.rgb * lightWeighting, res.a);
 }

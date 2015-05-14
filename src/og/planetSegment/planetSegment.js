@@ -748,9 +748,9 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
             gl.uniform1i(shu.uSampler._pName, 0);
 
-            gl.activeTexture(gl.TEXTURE1);
+            gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture);
-            gl.uniform1i(shu.uGeoImage._pName, 1);
+            gl.uniform1i(shu.uGeoImage._pName, 2);
             gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
             if (segment.planet.lightEnabled) {
