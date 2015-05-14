@@ -169,7 +169,7 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.ONE_MINUS_DST_ALPHA, gl.DST_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
 
     var geoImagesArray = planetSegment.planet.geoImagesArray;
 
@@ -177,6 +177,11 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
     var empty = false;
     while (i--) {
         var gi = geoImagesArray[i];
+        if (gi.opacity == 1.0) {
+            gl.disable(gl.BLEND);
+        } else {
+            gl.enable(gl.BLEND);
+        }
         empty |= planetSegment.drawGeoImage(gi);
     }
 

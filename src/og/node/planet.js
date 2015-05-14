@@ -175,7 +175,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 
 og.node.Planet.prototype.redrawGeoImages = function () {
     this.geoImagesArray.sort(function (a, b) {
-        return a.zIndex - b.zIndex;
+        return b.zIndex - a.zIndex;
     });
     var refresh = function (node) {
         node.planetSegment.geoImageReady = false;
