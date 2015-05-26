@@ -582,9 +582,14 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
     this.plainNormals.length = 0;
-    if (this.normalMapTexture && this.normalMapReady) {
+    if (/*this.normalMapTexture && */this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
+    if (this.geoImageReady && !this.geoImageTexture.default) {
+        this.handler.gl.deleteTexture(this.geoImageTexture);
+    }
+    this.geoImageReady = false;
+    this.geoImageTextureBias = [0, 0, 1];
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
