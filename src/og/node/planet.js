@@ -649,52 +649,36 @@ og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
 };
 
 og.node.Planet.prototype.viewExtent = function (extent) {
+    this.stopFlying();
     var cam = this.renderer.activeCamera;
     cam.set(cam.getExtentPosition(extent, this.ellipsoid),
         og.math.Vector3.ZERO, og.math.Vector3.UP);
 };
 
-og.node.Planet.prototype.flyExtent = function (extent, up) {
-    var cam = this.renderer.activeCamera;
-    var pos = cam.getExtentPosition(extent, this.ellipsoid);
-    //
-    //TODO
-    //
-};
-
-og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
-    var cam = this.renderer.activeCamera;
-    //
-    //TODO
-    //
-};
-
 og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
+    this.stopFlying();
     this.renderer.activeCamera.viewLonLat(lonlat, up);
 };
 
-og.node.Planet.prototype.stopFlying = function () {
-    this._framesArr.length = 0;
-    this._framesArr = [];
-    this._framesCounter = -1;
+og.node.Planet.prototype.flyExtent = function (extent, up) {
+    var cam = this.renderer.activeCamera;
+    var pos = cam.getExtentPosition(extent, this.ellipsoid);
+    this.flyCartesian(pos, og.math.Vector3.ZERO, up);
 };
 
-og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
-
+og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
     this.stopFlying();
-
     var cam = this.renderer.activeCamera;
-    var eye_a = cam.eye;
+
     var ground_a = this.ellipsoid.LonLat2ECEF(new og.LonLat(cam.lonLat.lon, cam.lonLat.lat));
-    var u_a = cam.u,
-        v_a = cam.v,
+    var v_a = cam.v,
         n_a = cam.n;
 
-    var lonlat_b = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || cam.lonLat.height);
+    var lonlat_b = this.ellipsoid.ECEF2LonLat(cartesian);
     var up_b = up || og.math.Vector3.UP;
-    var ground_b = this.ellipsoid.LonLat2ECEF(new og.LonLat(lonlat.lon, lonlat.lat, 0));
-    var eye_b = this.ellipsoid.LonLat2ECEF(lonlat_b);
-    var n_b = og.math.Vector3.sub(eye_b, ground_b);
+    var ground_b = this.ellipsoid.LonLat2ECEF(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
+    var eye_b = cartesian;
+    var n_b = og.math.Vector3.sub(eye_b, look);
     var u_b = up_b.cross(n_b);
     n_b.normalize();
     u_b.normalize();
@@ -710,7 +694,6 @@ og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
         maxHeight = currMaxHeight;
     }
     var max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
-
     var zero = og.math.Vector3.ZERO;
 
     //camera path and orientations calculation
@@ -743,4 +726,15 @@ og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
     }
 
     this._framesCounter = this._numFrames;
+};
+
+og.node.Planet.prototype.flyLonLat = function (lonlat, up) {
+    var _lonlat = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || this.renderer.activeCamera.lonLat.height);
+    this.flyCartesian(this.ellipsoid.LonLat2ECEF(_lonlat), new og.math.Vector3(), up);
+};
+
+og.node.Planet.prototype.stopFlying = function () {
+    this._framesArr.length = 0;
+    this._framesArr = [];
+    this._framesCounter = -1;
 };
