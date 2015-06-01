@@ -4,15 +4,23 @@ goog.require('og.Camera');
 goog.require('og.inheritance');
 goog.require('og.math.Vector3');
 
-og.PlanetCamera = function (renderer, ellipsoid, options) {
-    this._ellipsoid = ellipsoid;
-    og.inheritance.base(this, renderer, options);
+og.PlanetCamera = function (planet, options) {
+    this.planet = planet;
+    this._ellipsoid = planet.ellipsoid;
+    og.inheritance.base(this, planet.renderer, options);
 
     this.lonLat = new og.LonLat();
     this.altitude;
     this.minAlt = options.minAltitude || 50;
     this.earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
     this.bindEllipsoid(this._ellipsoid);
+
+    //camera's flying frames
+    this._framesArr = [];
+    this._framesCounter = 0;
+    this._numFrames = 150;
+    this._flyCompleteCallback = null;
+    this._flyBeginCallback = null;
 };
 
 og.inheritance.extend(og.PlanetCamera, og.Camera);
@@ -121,4 +129,118 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
     center.normalize();
     center.scale(mag + d);
     return center;
+};
+
+og.PlanetCamera.prototype.viewExtent = function (extent) {
+    this.stopFlying();    
+    this.set(this.getExtentPosition(extent, this._ellipsoid),
+        og.math.Vector3.ZERO, og.math.Vector3.UP);
+};
+
+og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
+    this.stopFlying();
+    this.viewLonLat(lonlat, up);
+};
+
+og.PlanetCamera.prototype.flyExtent = function (extent, up) {
+    var pos = this.getExtentPosition(extent, this._ellipsoid);
+    this.flyCartesian(pos, og.math.Vector3.ZERO, up);
+};
+
+og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up) {
+    this.stopFlying();
+
+    var _look = look || og.math.Vector3.ZERO;
+    if (look instanceof og.LonLat) {
+        _look = this._ellipsoid.LonLat2ECEF(look);
+    }
+
+    var ground_a = this._ellipsoid.LonLat2ECEF(new og.LonLat(this.lonLat.lon, this.lonLat.lat));
+    var v_a = this.v,
+        n_a = this.n;
+
+    var lonlat_b = this._ellipsoid.ECEF2LonLat(cartesian);
+    var up_b = up || og.math.Vector3.UP;
+    var ground_b = this._ellipsoid.LonLat2ECEF(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
+    var eye_b = cartesian;
+    var n_b = og.math.Vector3.sub(eye_b, _look);
+    var u_b = up_b.cross(n_b);
+    n_b.normalize();
+    u_b.normalize();
+    var v_b = n_b.cross(u_b);
+
+    var an = ground_a.normal();
+    var bn = ground_b.normal();
+    var hM_a = og.math.SQRT_HALF * Math.sqrt(1 - an.dot(bn));
+
+    var maxHeight = 6639613;
+    var currMaxHeight = Math.max(this.lonLat.height, lonlat_b.height);
+    if (currMaxHeight > maxHeight) {
+        maxHeight = currMaxHeight;
+    }
+    var max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
+    var zero = og.math.Vector3.ZERO;
+
+    //camera path and orientations calculation
+    for (var i = 0; i <= this._numFrames; i++) {
+        var d = 1 - i / this._numFrames;
+        d = d * d * (3 - 2 * d);
+        d *= d;
+
+        var g_i = ground_a.smerp(ground_b, d).normalize();
+        var ground_i = this.planet.getRayIntersectionEllipsoid(new og.math.Ray(zero, g_i));
+
+        var t = 1 - d;
+        var height_i = this.lonLat.height * d * d * d + max_h * 3 * d * d * t + max_h * 3 * d * t * t + lonlat_b.height * t * t * t;
+
+        var eye_i = ground_i.add(g_i.scale(height_i));
+        var up_i = v_a.smerp(v_b, d);
+        var look_i = og.math.Vector3.add(eye_i, n_a.smerp(n_b, d).getNegate());
+
+        var n = new og.math.Vector3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+        var u = up_i.cross(n);
+        n.normalize();
+        u.normalize();
+        var v = n.cross(u);
+        this._framesArr[i] = {
+            "eye": eye_i,
+            "n": n,
+            "u": u,
+            "v": v
+        };
+    }
+
+    this._framesCounter = this._numFrames;
+};
+
+og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up) {
+    var _lonlat = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || this.lonLat.height);
+    this.flyCartesian(this._ellipsoid.LonLat2ECEF(_lonlat), look, up);
+};
+
+og.PlanetCamera.prototype.stopFlying = function () {
+    this._framesArr.length = 0;
+    this._framesArr = [];
+    this._framesCounter = -1;
+};
+
+og.PlanetCamera.prototype.flyFrame = function () {
+    if (this._framesCounter >= 0) {
+        var c = this._numFrames - this._framesCounter;
+        this.planet.normalMapCreator.active = false;
+        if (c % 20) {
+            this.planet.terrainProvider.active = false;
+        } else {
+            this.planet.terrainProvider.active = true;
+        }
+        this.eye = this._framesArr[c].eye;
+        this.u = this._framesArr[c].u;
+        this.v = this._framesArr[c].v;
+        this.n = this._framesArr[c].n;
+        this.update();
+        this._framesCounter--;
+    } else {
+        this.planet.normalMapCreator.active = true;
+        this.planet.terrainProvider.active = true;
+    }
 };
