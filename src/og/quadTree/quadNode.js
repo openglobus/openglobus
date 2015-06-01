@@ -218,18 +218,8 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
-    this.cameraInside = false;
     if (this.parentNode) {
-        if (seg._projection.id == og.proj.EPSG4326.id) {
-            planet._nodeCameraPosition = cam.lonLat;
-        } else {
-            planet._nodeCameraPosition = cam.lonLat.forwardMercator();
-        }
-        if (this.parentNode.cameraInside &&
-            seg.extent.isInside(planet._nodeCameraPosition)) {
-            this.cameraInside = true;
-            planet.cameraInsideNode = this;
-        }
+        this.cameraInside = cam.isInsideSegment(this.planetSegment);
     } else {
         this.cameraInside = true;
     }

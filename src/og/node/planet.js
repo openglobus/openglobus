@@ -55,8 +55,6 @@ og.node.Planet = function (name, ellipsoid) {
     this.backbuffer;
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
-    this.cameraInsideNode = null;
-    this.cameraPosition_merc;
 
     this.emptyTexture = null;
     this.transparentTexture = null;
@@ -246,9 +244,7 @@ og.node.Planet.prototype.initialization = function () {
     this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     //Just initials
-    this.cameraInsideNode = this.quadTree;
-    var cam = this.renderer.activeCamera;
-    this.cameraPosition_merc = cam.lonLat.forwardMercator();
+    this.renderer.activeCamera.cameraInsideNode = this.quadTree;
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
@@ -367,25 +363,6 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     })
 };
 
-og.node.Planet.prototype.checkCameraCollision = function () {
-    var cam = this.renderer.activeCamera;
-    if (cam.lonLat.height < 1000000) {
-        var seg = this.cameraInsideNode.planetSegment;
-        if (seg._projection.id == og.proj.EPSG4326.id) {
-            cam.earthPoint.earth = this.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
-            cam.earthPoint.distance = cam.altitude = cam.lonLat.height;
-        } else {
-            cam.earthPoint = seg.getEarthPoint(this._nodeCameraPosition, cam);
-            cam.altitude = cam.earthPoint.distance;
-        }
-        if (cam.altitude < cam.minAlt) {
-            cam.setAltitude(cam.minAlt);
-        }
-    } else {
-        cam.altitude = cam.lonLat.height;
-    }
-};
-
 og.node.Planet.prototype.collectRenderNodes = function () {
     this.quadTreeNorth.renderTree();
     this.quadTreeSouth.renderTree();
@@ -399,7 +376,8 @@ og.node.Planet.prototype.frame = function () {
     var cam = this.renderer.activeCamera;
 
     cam.flyFrame();
-    this.checkCameraCollision();
+    cam.checkCollision();
+
     this.collectRenderNodes();
 
     this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);

@@ -21,6 +21,9 @@ og.PlanetCamera = function (planet, options) {
     this._numFrames = 150;
     this._flyCompleteCallback = null;
     this._flyBeginCallback = null;
+
+    this._nodeCameraPosition = null;
+    this.cameraInsideNode = null;
 };
 
 og.inheritance.extend(og.PlanetCamera, og.Camera);
@@ -243,4 +246,37 @@ og.PlanetCamera.prototype.flyFrame = function () {
         this.planet.normalMapCreator.active = true;
         this.planet.terrainProvider.active = true;
     }
+};
+
+og.PlanetCamera.prototype.checkCollision = function () {
+    if (this.lonLat.height < 1000000) {
+        //getting from activeCamera
+        var seg = this.cameraInsideNode.planetSegment;
+        if (seg._projection.id == og.proj.EPSG4326.id) {
+            this.earthPoint.earth = this.planet.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
+            this.earthPoint.distance = this.altitude = this.lonLat.height;
+        } else {
+            this.earthPoint = seg.getEarthPoint(this._nodeCameraPosition, this);
+            this.altitude = this.earthPoint.distance;
+        }
+        if (this.altitude < this.minAlt) {
+            this.setAltitude(this.minAlt);
+        }
+    } else {
+        this.altitude = this.lonLat.height;
+    }
+};
+
+og.PlanetCamera.prototype.isInsideSegment = function (planetSegment) {
+    if (planetSegment._projection.id == og.proj.EPSG4326.id) {
+        this._nodeCameraPosition = this.lonLat;
+    } else {
+        this._nodeCameraPosition = this.lonLat.forwardMercator();
+    }
+    if (planetSegment.node.parentNode.cameraInside &&
+        planetSegment.extent.isInside(this._nodeCameraPosition)) {
+        this.cameraInsideNode = planetSegment.node;
+        return true;
+    }
+    return false;
 };
