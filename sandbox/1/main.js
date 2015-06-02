@@ -137,6 +137,6 @@ function start() {
             "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
             "autoActivated": true
         });*/
-    globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
+    globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function(){alert("ok");});
 
 };

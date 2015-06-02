@@ -19,8 +19,8 @@ og.PlanetCamera = function (planet, options) {
     this._framesArr = [];
     this._framesCounter = 0;
     this._numFrames = 150;
-    this._flyCompleteCallback = null;
-    this._flyBeginCallback = null;
+    this._completeCallback = null;
+    this._flying = false;
 
     this._nodeCameraPosition = null;
     this.cameraInsideNode = null;
@@ -135,7 +135,7 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
 };
 
 og.PlanetCamera.prototype.viewExtent = function (extent) {
-    this.stopFlying();    
+    this.stopFlying();
     this.set(this.getExtentPosition(extent, this._ellipsoid),
         og.math.Vector3.ZERO, og.math.Vector3.UP);
 };
@@ -145,13 +145,26 @@ og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
     this.viewLonLat(lonlat, up);
 };
 
-og.PlanetCamera.prototype.flyExtent = function (extent, up) {
+og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, startCallback) {
     var pos = this.getExtentPosition(extent, this._ellipsoid);
-    this.flyCartesian(pos, og.math.Vector3.ZERO, up);
+    this.flyCartesian(pos, og.math.Vector3.ZERO, up, completeCallback, startCallback);
 };
 
-og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up) {
+og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, startCallback) {
+    //
+    //TODO:...
+    //
+};
+
+og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, completeCallback, startCallback) {
+
     this.stopFlying();
+
+    this._completeCallback = completeCallback;
+
+    if (startCallback) {
+        startCallback.call(this);
+    }
 
     var _look = look || og.math.Vector3.ZERO;
     if (look instanceof og.LonLat) {
@@ -214,21 +227,23 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up) {
     }
 
     this._framesCounter = this._numFrames;
+    this._flying = true;
 };
 
-og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up) {
+og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up, completeCallback, startCallback) {
     var _lonlat = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || this.lonLat.height);
-    this.flyCartesian(this._ellipsoid.LonLat2ECEF(_lonlat), look, up);
+    this.flyCartesian(this._ellipsoid.LonLat2ECEF(_lonlat), look, up, completeCallback, startCallback);
 };
 
 og.PlanetCamera.prototype.stopFlying = function () {
+    this._flying = false;
     this._framesArr.length = 0;
     this._framesArr = [];
     this._framesCounter = -1;
 };
 
 og.PlanetCamera.prototype.flyFrame = function () {
-    if (this._framesCounter >= 0) {
+    if (this._flying) {
         var c = this._numFrames - this._framesCounter;
         this.planet.normalMapCreator.active = false;
         if (c % 20) {
@@ -242,9 +257,17 @@ og.PlanetCamera.prototype.flyFrame = function () {
         this.n = this._framesArr[c].n;
         this.update();
         this._framesCounter--;
-    } else {
-        this.planet.normalMapCreator.active = true;
-        this.planet.terrainProvider.active = true;
+
+        if (this._framesCounter < 0) {
+            this._flying = false;
+            this.planet.normalMapCreator.active = true;
+            this.planet.terrainProvider.active = true;
+
+            if (this._completeCallback) {
+                this._completeCallback();
+                this._completeCallback = null;
+            }
+        }
     }
 };
 

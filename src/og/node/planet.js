@@ -45,6 +45,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.baseLayer;
     this.terrainProvider;
 
+    //this.renderer.activeCamera pointer
+    this.camera = null;
+
     this.createdNodesCount = 0;
     this.renderedNodes = [];
     this.heightFactor = 1.0;
@@ -236,7 +239,7 @@ og.node.Planet.prototype.initialization = function () {
     this.solidTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
     this.transparentTexture = this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" });
 
-    this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
+    this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
     this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
