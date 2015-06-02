@@ -146,14 +146,15 @@ og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
 };
 
 og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, startCallback) {
-    var pos = this.getExtentPosition(extent, this._ellipsoid);
-    this.flyCartesian(pos, og.math.Vector3.ZERO, up, completeCallback, startCallback);
+    this.flyCartesian(this.getExtentPosition(extent, this._ellipsoid), og.math.Vector3.ZERO, up, completeCallback, startCallback);
 };
 
 og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, startCallback) {
-    //
-    //TODO:...
-    //
+    var c = geoImage.getCorners();
+    var el = this._ellipsoid;
+    this.flyExtent(geoImage.getExtent(),
+        el.LonLat2ECEF(c[0]).sub(el.LonLat2ECEF(c[3])).add(el.LonLat2ECEF(c[1]).sub(el.LonLat2ECEF(c[2]))).normalize(),
+        completeCallback, startCallback);
 };
 
 og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, completeCallback, startCallback) {

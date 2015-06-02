@@ -31,6 +31,14 @@ og.GeoImage.prototype.initialize = function () {
     this.setCorners(this._wgs84Corners);
 };
 
+og.GeoImage.prototype.getCorners = function () {
+    return this._wgs84Corners;
+};
+
+og.GeoImage.prototype.getExtent = function () {
+    return this._wgs84Extent;
+};
+
 og.GeoImage.prototype.clear = function () {
     this.image.src = "";
     this.image = null;
