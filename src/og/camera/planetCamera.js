@@ -305,18 +305,22 @@ og.PlanetCamera.prototype.isInsideSegment = function (planetSegment) {
     return false;
 };
 
-og.PlanetCamera.prototype.rotateLeft = function () {
-
+og.PlanetCamera.prototype.rotateLeft = function (angle, spin) {
+    this.rotateHorizontal(angle * og.math.RADIANS, spin ^ true, og.math.Vector3.ZERO);
+    this.update();
 };
 
-og.PlanetCamera.prototype.rotateRight = function () {
-
+og.PlanetCamera.prototype.rotateRight = function (angle, spin) {
+    this.rotateHorizontal(-angle * og.math.RADIANS, spin ^ true, og.math.Vector3.ZERO);
+    this.update();
 };
 
-og.PlanetCamera.prototype.rotateUp = function () {
-
+og.PlanetCamera.prototype.rotateUp = function (angle) {
+    this.rotateVertical(angle * og.math.RADIANS, og.math.Vector3.ZERO);
+    this.update();
 };
 
-og.PlanetCamera.prototype.rotateDown = function () {
-
+og.PlanetCamera.prototype.rotateDown = function (angle) {
+    this.rotateVertical(-angle * og.math.RADIANS, og.math.Vector3.ZERO);
+    this.update();
 };
