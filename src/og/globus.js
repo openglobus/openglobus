@@ -4,6 +4,7 @@ goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
 goog.require('og.ellipsoid.wgs84');
+goog.require('og.terrainProvider.EmptyTerrainProvider');
 
 /**
  * var globe = new og.Globus({
@@ -85,6 +86,8 @@ og.Globus = function (options) {
     //Attach terrain provider
     if (options.terrain) {
         this.planet.setTerrainProvider(options.terrain);
+    } else {
+        this.planet.setTerrainProvider(new og.terrainProvider.EmptyTerrainProvider());
     }
 
     this.renderer.addRenderNode(this.planet);

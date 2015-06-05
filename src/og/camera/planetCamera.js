@@ -304,3 +304,19 @@ og.PlanetCamera.prototype.isInsideSegment = function (planetSegment) {
     }
     return false;
 };
+
+og.PlanetCamera.prototype.rotateLeft = function () {
+
+};
+
+og.PlanetCamera.prototype.rotateRight = function () {
+
+};
+
+og.PlanetCamera.prototype.rotateUp = function () {
+
+};
+
+og.PlanetCamera.prototype.rotateDown = function () {
+
+};

@@ -76,7 +76,7 @@ function start() {
         "name": "Earth",
         "controls": controls,
          //"skybox": skybox,
-        "terrain": terrain,
+        //"terrain": terrain,
         "layers": [satlayer, layer, empty, states, countries, ne, pop, hyb],
         "autoActivated": true
     });

@@ -23,7 +23,7 @@ goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent'], ['og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], []);
 goog.addDependency('../../../og/src/og/geoImage.js', ['og.GeoImage'], ['og.Extent', 'og.LonLat', 'og.mercator']);
-goog.addDependency('../../../og/src/og/globus.js', ['og.Globus'], ['og.Renderer', 'og.ellipsoid.wgs84', 'og.node.Planet', 'og.webgl.Handler']);
+goog.addDependency('../../../og/src/og/globus.js', ['og.Globus'], ['og.Renderer', 'og.ellipsoid.wgs84', 'og.node.Planet', 'og.terrainProvider.EmptyTerrainProvider', 'og.webgl.Handler']);
 goog.addDependency('../../../og/src/og/imageCanvas/imageCanvas.js', ['og.ImageCanvas'], []);
 goog.addDependency('../../../og/src/og/inheritance.js', ['og.inheritance'], []);
 goog.addDependency('../../../og/src/og/input/input.js', ['og.input'], []);
@@ -79,7 +79,7 @@ goog.addDependency('../../../og/src/og/shaderProgram/skysphere.js', ['og.shaderP
 goog.addDependency('../../../og/src/og/shaderProgram/types.js', ['og.shaderProgram.types'], []);
 goog.addDependency('../../../og/src/og/shapes/baseShape.js', ['og.shapes.BaseShape'], ['og.math.Matrix4', 'og.math.Quaternion', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/shapes/sphere.js', ['og.shapes.Sphere'], ['og.shapes.BaseShape']);
-goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.Events', 'og.QueueArray', 'og.layer', 'og.proj.EPSG3857', 'og.quadTree']);
+goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider.EmptyTerrainProvider', 'og.terrainProvider.TerrainProvider'], ['og.Ajax', 'og.Events', 'og.QueueArray', 'og.inheritance', 'og.layer', 'og.proj.EPSG3857', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/utils/geoImageTileCreator.js', ['og.utils.GeoImageTileCreator'], ['og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler']);
 goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.NormalMapCreator'], ['og.planetSegment.PlanetSegmentHelper', 'og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler']);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax']);

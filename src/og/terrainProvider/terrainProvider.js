@@ -1,11 +1,12 @@
 goog.provide('og.terrainProvider.TerrainProvider');
+goog.provide('og.terrainProvider.EmptyTerrainProvider');
 
 goog.require('og.layer');
 goog.require('og.quadTree');
 goog.require('og.Ajax');
 goog.require('og.Events');
 goog.require('og.proj.EPSG3857');
-
+goog.require('og.inheritance');
 goog.require('og.QueueArray');
 
 og.terrainProvider.defaultOptions = {
@@ -22,7 +23,24 @@ og.terrainProvider.defaultOptions = {
     MAX_LOADING_TILES: 4
 };
 
+og.terrainProvider.EmptyTerrainProvider = function () {
+    this.name = "empty";
+    this.minZoom = 500;
+    this.maxZoom = 500;
+    this.gridSizeByZoom = [64, 32, 16, 16, 8, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+    this.fileGridSize = 32;
+};
+
+og.terrainProvider.EmptyTerrainProvider.prototype.handleSegmentTerrain = function (segment) {
+    segment.terrainIsLoading = false;
+    segment.terrainReady = true;
+    segment.terrainExists = true;
+};
+
 og.terrainProvider.TerrainProvider = function (name, options) {
+
+    og.inheritance.base(this);
+
     this.name = name || "";
     options = options || {};
     this.minZoom = options.minZoom || og.terrainProvider.defaultOptions.minZoom;
@@ -40,6 +58,8 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this._counter = 0;
     this._pendingsQueue = new og.QueueArray();
 };
+
+og.inheritance.extend(og.terrainProvider.TerrainProvider, og.terrainProvider.EmptyTerrainProvider);
 
 og.terrainProvider.TerrainProvider.prototype.abort = function () {
     this._pendingsQueue.length = 0;
