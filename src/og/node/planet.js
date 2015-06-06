@@ -2,6 +2,7 @@ goog.provide('og.node.Planet');
 
 goog.require('og.inheritance');
 goog.require('og.node.RenderNode');
+goog.require('og.math');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector2');
@@ -69,6 +70,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.geoImageTileCreator = null;
 
     this.geoImagesArray = [];
+
+    this.minCurrZoom = og.math.MAX;
+    this.maxCurrZoom = og.math.MIN;
 };
 
 og.node.Planet.SUN_DISTANCE = 149600000000;
@@ -367,6 +371,10 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 };
 
 og.node.Planet.prototype.collectRenderNodes = function () {
+
+    this.minCurrZoom = og.math.MAX;
+    this.maxCurrZoom = og.math.MIN;
+
     this.quadTreeNorth.renderTree();
     this.quadTreeSouth.renderTree();
     this.quadTree.renderTree();
@@ -374,14 +382,14 @@ og.node.Planet.prototype.collectRenderNodes = function () {
 
 og.node.Planet.prototype.frame = function () {
 
-    //print2d("lbTiles", this.normalMapCreator._pendingsQueue.length, 100, 100);
-
     var cam = this.renderer.activeCamera;
 
     cam.flyFrame();
     cam.checkCollision();
 
     this.collectRenderNodes();
+
+    print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
     this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
 

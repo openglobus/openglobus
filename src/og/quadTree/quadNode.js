@@ -291,6 +291,16 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         }
     }
 
+
+    //minimal and maximal zoom index on the screen
+    if (seg.zoomIndex > this.planet.maxCurrZoom) {
+        this.planet.maxCurrZoom = seg.zoomIndex;
+    }
+
+    if (seg.zoomIndex < this.planet.minCurrZoom) {
+        this.planet.minCurrZoom = seg.zoomIndex;
+    }
+
     this.addToRender(this);
 };
 
