@@ -226,9 +226,9 @@ og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
     var trm = tr.mul(rot).mul(ntr);
 
     this.eye = trm.mulVec3(this.eye);
-    this.v = rot.mulVec3(this.v);
-    this.u = rot.mulVec3(this.u);
-    this.n = rot.mulVec3(this.n);
+    this.v = rot.mulVec3(this.v).normalize();
+    this.u = rot.mulVec3(this.u).normalize();
+    this.n = rot.mulVec3(this.n).normalize();
 };
 
 og.Camera.prototype.rotateHorizontal = function (angle, isArc, center, up) {
