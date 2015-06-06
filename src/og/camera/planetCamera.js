@@ -237,6 +237,8 @@ og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up, completeCallba
 };
 
 og.PlanetCamera.prototype.stopFlying = function () {
+    this.planet.normalMapCreator.active = true;
+    this.planet.terrainProvider.active = true;
     this._flying = false;
     this._framesArr.length = 0;
     this._framesArr = [];
@@ -260,10 +262,7 @@ og.PlanetCamera.prototype.flyFrame = function () {
         this._framesCounter--;
 
         if (this._framesCounter < 0) {
-            this._flying = false;
-            this.planet.normalMapCreator.active = true;
-            this.planet.terrainProvider.active = true;
-
+            this.stopFlying();
             if (this._completeCallback) {
                 this._completeCallback();
                 this._completeCallback = null;
