@@ -76,7 +76,7 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
 };
 
 og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_af;
-    
+
 og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -249,12 +249,6 @@ function print2d(id, text, x, y) {
     el.style.top = y;
 };
 
-og.webgl.Handler.prototype.calculateFPS = function (now) {
-    this.fps = 1000 / (now - this.lastAnimationFrameTime);
-    this.lastAnimationFrameTime = now;
-    this.delta = this.animSpeed / this.fps;
-};
-
 og.webgl.Handler.prototype.setSize = function (width, height) {
     var w = width, h = Math.max(1, height);
     this.canvas.width = w;
@@ -270,15 +264,27 @@ og.webgl.Handler.prototype.viewportResized = function () {
             this.canvas.clientHeight != this.canvas.height;
 };
 
-og.webgl.Handler.prototype.drawFrame = function (now, sender) {
-    if (sender.viewportResized()) {
-        sender.setSize(sender.gl.canvas.clientWidth, sender.gl.canvas.clientHeight);
-        sender.onCanvasResize(sender.gl.canvas);
+og.webgl.Handler.prototype.drawFrame = function (now) {
+
+    if (this.viewportResized()) {
+        this.setSize(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
+        this.onCanvasResize(this.gl.canvas);
     }
-    sender.calculateFPS(now);
-    sender.clearFrame();
-    sender.drawback();
-    og.webgl.requestAnimationFrame(sender.drawFrame, sender);
+
+    this.calculateFPS(now);
+    this.clearFrame();
+    this.drawback();
+
+    var that = this;
+    window.requestAnimationFrame(function () {
+        that.drawFrame(new Date().getTime());
+    });
+};
+
+og.webgl.Handler.prototype.calculateFPS = function (now) {
+    this.fps = 1000 / (now - this.lastAnimationFrameTime);
+    this.lastAnimationFrameTime = now;
+    this.delta = this.animSpeed / this.fps;
 };
 
 og.webgl.Handler.prototype.clearFrame = function () {
@@ -289,5 +295,8 @@ og.webgl.Handler.prototype.clearFrame = function () {
 };
 
 og.webgl.Handler.prototype.start = function () {
-    og.webgl.requestAnimationFrame(this.drawFrame, this);
+    var that = this;
+    window.requestAnimationFrame(function () {
+        that.drawFrame(new Date().getTime());
+    });
 };
