@@ -387,14 +387,14 @@ og.node.Planet.prototype.frame = function () {
     cam.flyFrame();
     cam.checkCollision();
 
+    //Here is the planet node dispatches a draw event before rendering begins.
+    this.events.dispatch(this.events.ondraw, this);
+
     this.collectRenderNodes();
 
     print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
     this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
-
-    //Here is the planet node dispatches a draw event before clearing.
-    this.events.dispatch(this.events.ondraw, this);
 
     this.transformLights();
 
