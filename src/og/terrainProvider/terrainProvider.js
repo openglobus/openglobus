@@ -138,7 +138,7 @@ og.terrainProvider.TerrainProvider.prototype.dequeueRequest = function () {
             if (pseg = this.whilePendings())
                 this.loadSegmentTerrainData.call(this, pseg);
         }
-    } else {
+    } else if (this._counter == 0) {
         this.events.dispatch(this.events.onloadend);
     }
 };

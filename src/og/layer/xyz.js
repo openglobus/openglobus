@@ -74,7 +74,7 @@ og.layer.XYZ.prototype.dequeueRequest = function () {
             if (pmat = this.whilePendings())
                 this.loadSegmentTileImage.call(this, pmat);
         }
-    } else {
+    } else if (this.counter == 0) {
         this.events.dispatch(this.events.onloadend);
     }
 };
