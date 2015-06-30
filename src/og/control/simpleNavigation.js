@@ -27,47 +27,59 @@ og.control.SimpleNavigation.prototype.init = function () {
 og.control.SimpleNavigation.prototype.onCameraMoveForward = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(0, 0, -30);
+    camera.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraMoveBackward = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(0, 0, 30);
+    camera.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraStrifeLeft = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(-30, 0, 0);
+    camera.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraStrifeRight = function (event) {
     var camera = this.renderer.activeCamera;
     camera.slide(30, 0, 0);
+    camera.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraLookUp = function (event) {
     var cam = this.renderer.activeCamera;
     cam.pitch(1);
+    cam.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraLookDown = function (event) {
     var cam = this.renderer.activeCamera;
     cam.pitch(-1);
+    cam.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraTurnLeft = function (event) {
     var cam = this.renderer.activeCamera;
     cam.yaw(1);
+    cam.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraTurnRight = function (event) {
     var cam = this.renderer.activeCamera;
     cam.yaw(-1);
+    cam.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraRollLeft = function (event) {
-    this.renderer.activeCamera.roll(-1);
+    var cam = this.renderer.activeCamera;
+    cam.roll(-1);
+    cam.update();
 };
 
 og.control.SimpleNavigation.prototype.onCameraRollRight = function (event) {
-    this.renderer.activeCamera.roll(1);
+    var cam = this.renderer.activeCamera;
+    cam.roll(1);
+    cam.update();
 };

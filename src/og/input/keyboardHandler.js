@@ -6,14 +6,15 @@ og.input.KeyboardHandler = function () {
     var _charkeysCallbacks = {};
     var _that = this;
     var _anykeyCallback = null;
+    var _event = null;
 
     if (og.input.KeyboardHandler.prototype._instance) {
         return og.input.KeyboardHandler.prototype._instance;
     } else {
         og.input.KeyboardHandler.prototype._instance = this;
 
-        document.onkeydown = function (event) { _that.handleKeyDown.call(_that, event) };
-        document.onkeyup = function (event) { _that.handleKeyUp.call(_that, event) };
+        document.onkeydown = function (event) { _event = event; _that.handleKeyDown.call(_that) };
+        document.onkeyup = function (event) { _event = event; _that.handleKeyUp.call(_that) };
     }
 
     var _sortByPriority = function (a, b) {
@@ -50,21 +51,21 @@ og.input.KeyboardHandler = function () {
         return _currentlyPressedKeys[keyCode];
     };
 
-    this.handleKeyDown = function (event) {
-        _anykeyCallback && _anykeyCallback.callback.call(_anykeyCallback.sender, event);
-        _currentlyPressedKeys[event.keyCode] = true;
+    this.handleKeyDown = function () {
+        _anykeyCallback && _anykeyCallback.callback.call(_anykeyCallback.sender, _event);
+        _currentlyPressedKeys[_event.keyCode] = true;
         for (var ch in _charkeysCallbacks) {
-            if (String.fromCharCode(event.keyCode) == String.fromCharCode(ch)) {
+            if (String.fromCharCode(_event.keyCode) == String.fromCharCode(ch)) {
                 var ccl = _charkeysCallbacks[ch];
                 for (var i = 0; i < ccl.length; i++) {
-                    ccl[i].callback.call(ccl[i].sender);
+                    ccl[i].callback.call(ccl[i].sender, _event);
                 }
             }
         }
     };
 
-    this.handleKeyUp = function (event) {
-        _currentlyPressedKeys[event.keyCode] = false;
+    this.handleKeyUp = function () {
+        _currentlyPressedKeys[_event.keyCode] = false;
     };
 
     this.handleEvents = function () {
@@ -72,7 +73,7 @@ og.input.KeyboardHandler = function () {
             if (_currentlyPressedKeys[pk]) {
                 var cpk = _pressedKeysCallbacks[pk];
                 for (var i = 0; i < cpk.length; i++) {
-                    cpk[i].callback.call(cpk[i].sender);
+                    cpk[i].callback.call(cpk[i].sender, _event);
                 }
             }
         }
