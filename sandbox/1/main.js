@@ -66,7 +66,7 @@ function start() {
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
-    	new og.control.ShowFps({ autoActivate: true }),
+    	//new og.control.ShowFps({ autoActivate: true }),
     	new og.control.ZoomControl({ autoActivate: true }),
         new og.control.TouchNavigation({ autoActivate: true })
     ];
@@ -75,8 +75,8 @@ function start() {
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-         //"skybox": skybox,
-        //"terrain": terrain,
+        //"skybox": skybox,
+        "terrain": terrain,
         "layers": [satlayer, layer, empty, states, countries, ne, pop, hyb],
         "autoActivated": true
     });
@@ -137,6 +137,11 @@ function start() {
             "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
             "autoActivated": true
         });*/
-    globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function(){alert("ok");});
+    globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function () { alert("ok"); });
 
+    globus.planet.events.on("ondraw", null, function (e) {
+        e.camera.rotateRight(speed, true);
+    })
 };
+
+speed = 0;
