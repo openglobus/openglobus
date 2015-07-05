@@ -169,7 +169,8 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+    //gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
     var geoImagesArray = planetSegment.planet.geoImagesArray;
 
