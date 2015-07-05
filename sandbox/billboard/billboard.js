@@ -24,17 +24,21 @@ my.Billboard.prototype.initialization = function () {
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true }
         },
         vertexShader: 'attribute vec3 a_vertices; \
                         attribute vec2 a_texCoord; \
                         attribute vec3 a_positions; \
+                        attribute float a_opacity; \
                         varying vec2 v_texCoords; \
+                        varying float v_opacity; \
                         //uniform mat4 uPMVMatrix; \n\
                         uniform mat4 uMVMatrix; \
                         uniform mat4 uPMatrix; \
                         void main() { \
                             v_texCoords = a_texCoord; \
+                            v_opacity = a_opacity; \
                             //gl_Position = uPMatrix * uMVMatrix * vec4(a_vertices+a_positions, 1.0); \n\
                             gl_Position = uPMatrix * (vec4(a_vertices,1.0) + vec4(uMVMatrix[3].xyz, 0) + uMVMatrix * vec4(a_positions,1.0));\n\
                             //gl_Position = projection * (position + vec4(worldView[3].xyz, 0)); \n\
@@ -42,11 +46,12 @@ my.Billboard.prototype.initialization = function () {
         fragmentShader: 'precision mediump float; \
                             uniform sampler2D u_texture; \
                             varying vec2 v_texCoords; \
+                            varying float v_opacity; \
                             void main () { \
                                 vec4 color = texture2D(u_texture, v_texCoords);\n\
                                 if(color.a==0.0)\n\
                                     discard;\n\
-                                gl_FragColor = color*vec4(1.0,1.0,1.0,0.5);\
+                                gl_FragColor = vec4(color.rgb,color.a*v_opacity);\
                             }'
     });
 
@@ -77,13 +82,13 @@ my.Billboard.prototype.toogleWireframe = function (e) {
 
 my.Billboard.prototype.createBuffers = function () {
     var tcoords = [
-            0, 1,
-            1, 1,
             0, 0,
             1, 0,
+            0, 1,
+            1, 1,
 
-            1, 0,
-            1, 0,
+            1, 1,
+            1, 1,
             0, 1,
 
 
@@ -96,13 +101,14 @@ my.Billboard.prototype.createBuffers = function () {
     this._handler.deactivateFaceCulling();
 
     var vertices = [
-            -100, 100, 0,
-            100, 100, 0,
-            -100, -100, 0,
-            100, -100, 0,
+            -500, 500, 0,
+            500, 500, 0,
+            -500, -500, 0,
+            500, -500, 0,
 
-            100, -100, 0,
-            100, -100, 0,
+            500, -500, 0,
+            500, -500, 0,
+
             -500, 500, 0,
 
 
@@ -131,6 +137,24 @@ my.Billboard.prototype.createBuffers = function () {
 
     this._posBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 3, positions.length / 3);
 
+
+    var opacity = [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+
+        1.0,
+        1.0,
+        1.0,
+
+
+        1.0,
+        1.0,
+        1.0,
+        1.0];
+
+    this._opacityBuffer = this._handler.createArrayBuffer(new Float32Array(opacity), 1, opacity.length);
 };
 
 my.Billboard.prototype.frame = function () {
@@ -142,9 +166,15 @@ my.Billboard.prototype.frame = function () {
 
     var gl = this._handler.gl;
 
+    //gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    //gl.disable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
     //gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera.pmvMatrix._m);
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
@@ -158,6 +188,9 @@ my.Billboard.prototype.frame = function () {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._posBuffer);
     gl.vertexAttribPointer(sha.a_positions._pName, this._posBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
+    gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);

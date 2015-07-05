@@ -22,7 +22,7 @@ function start() {
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "flat_fs.txt")
     });
 
-    context = new og.webgl.Handler("canvas");
+    context = new og.webgl.Handler("canvas", { alpha: false });
     context.addShaderProgram(flatShader);
     context.init();
 
