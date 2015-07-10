@@ -19,29 +19,61 @@ my.Billboard.prototype.initialization = function () {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
             //uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
-            uMVMatrix: { type: og.shaderProgram.types.MAT4 }
+            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            uViewSize: { type: og.shaderProgram.types.VEC2 },
+            uCamPos: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true }
+            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
+            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: 'attribute vec3 a_vertices; \
                         attribute vec2 a_texCoord; \
                         attribute vec3 a_positions; \
                         attribute float a_opacity; \
+                        attribute vec2 a_size; \
                         varying vec2 v_texCoords; \
                         varying float v_opacity; \
                         //uniform mat4 uPMVMatrix; \n\
                         uniform mat4 uMVMatrix; \
                         uniform mat4 uPMatrix; \
+                        uniform vec2 uViewSize; \
+                        uniform vec3 uCamPos; \
+                        mat4 CreateBillboardMatrix(vec3 right, vec3 up, vec3 look, vec3 pos) { \
+                            return mat4(right.x, right.y, right.z, 0.0, \
+                                        up.x, up.y, up.z, 0.0, \
+                                        look.x, look.y, look.z, 0.0, \
+                                        pos.x, pos.y, pos.z, 1.0); \
+                        } \
                         void main() { \
                             v_texCoords = a_texCoord; \
                             v_opacity = a_opacity; \
-                            //gl_Position = uPMatrix * uMVMatrix * vec4(a_vertices+a_positions, 1.0); \n\
-                            gl_Position = uPMatrix * (vec4(a_vertices,1.0) + vec4(uMVMatrix[3].xyz, 0) + uMVMatrix * vec4(a_positions,1.0));\n\
-                            //gl_Position = projection * (position + vec4(worldView[3].xyz, 0)); \n\
+                            //gl_Position = uPMatrix * uMVMatrix * vec4(a_positions, 1.0); \n\
+                            //gl_Position /= gl_Position.w;\n\
+                            //gl_Position.xy += a_vertices.xy * (a_size / uViewSize);\n\
+                            vec2 xxx = uViewSize*a_size;\
+                            vec3 X = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] ); \
+                            vec3 Y = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] ); \n\
+                            mat4 bbm = CreateBillboardMatrix(X, Y, a_positions - uCamPos, a_positions); \
+                            float angle = -45.0*3.14/180.0;\
+                            float cosTheta = cos(angle);\
+                            float sinTheta = sin(angle);\
+                            mat4 rotationMatrix = mat4(cosTheta, -sinTheta, 0.0, 0.0, \
+                                                        sinTheta, cosTheta, 0.0, 0.0, \
+                                                             0.0,      0.0, 1.0, 0.0, \
+                                                             0.0,      0.0, 0.0, 1.0);\
+                            float scaleX = 400.0;\
+                            float scaleY = 100.0;\
+                            mat4 scaleMatrix = mat4(scaleX,    0.0, 0.0, 0.0, \
+                                                       0.0, scaleY, 0.0, 0.0, \
+                                                       0.0,    0.0, 1.0, 0.0, \
+                                                       0.0,    0.0, 0.0, 1.0);\
+                            //vec3 vertex = a_vertices.x * X * 100.0 + a_vertices.y * Y * 100.0 + a_positions; \n\
+                            vec4 vertex = bbm * rotationMatrix * scaleMatrix * vec4(a_vertices,1.0);\n\
+                            gl_Position = uPMatrix * uMVMatrix * vec4(vertex.xyz,1.0); \
                         }',
         fragmentShader: 'precision mediump float; \
                             uniform sampler2D u_texture; \
@@ -49,7 +81,7 @@ my.Billboard.prototype.initialization = function () {
                             varying float v_opacity; \
                             void main () { \
                                 vec4 color = texture2D(u_texture, v_texCoords);\n\
-                                if(color.a==0.0)\n\
+                                if(color.a<0.1)\n\
                                     discard;\n\
                                 gl_FragColor = vec4(color.rgb,color.a*v_opacity);\
                             }'
@@ -89,33 +121,33 @@ my.Billboard.prototype.createBuffers = function () {
 
             1, 1,
             1, 1,
-            0, 1,
-
-
-            0, 1,
-            1, 1,
             0, 0,
-            1, 0];
+
+
+            0, 0,
+            1, 0,
+            0, 1,
+            1, 1];
     this._texCoordsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(tcoords), 2, tcoords.length / 2);
 
     this._handler.deactivateFaceCulling();
 
     var vertices = [
-            -500, 500, 0,
-            500, 500, 0,
-            -500, -500, 0,
-            500, -500, 0,
+            -0.5, 0.5, 0,
+            0.5, 0.5, 0,
+            -0.5, -0.5, 0,
+            0.5, -0.5, 0,
 
-            500, -500, 0,
-            500, -500, 0,
+            0.5, -0.5, 0,
+            0.5, -0.5, 0,
 
-            -500, 500, 0,
+            -0.5, 0.5, 0,
 
 
-            -500, 500, 0,
-            500, 500, 0,
-            -500, -500, 0,
-            500, -500, 0];
+            -0.5, 0.5, 0,
+            0.5, 0.5, 0,
+            -0.5, -0.5, 0,
+            0.5, -0.5, 0];
 
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
 
@@ -155,6 +187,26 @@ my.Billboard.prototype.createBuffers = function () {
         1.0];
 
     this._opacityBuffer = this._handler.createArrayBuffer(new Float32Array(opacity), 1, opacity.length);
+
+
+    var size = [
+    100, 100,
+    100, 100,
+    100, 100,
+    100, 100,
+
+    100, 100,
+    100, 100,
+
+    200, 200,
+
+    200, 200,
+    200, 200,
+    200, 200,
+    200, 200];
+
+    this._sizeBuffer = this._handler.createArrayBuffer(new Float32Array(size), 2, size.length / 2);
+
 };
 
 my.Billboard.prototype.frame = function () {
@@ -180,6 +232,9 @@ my.Billboard.prototype.frame = function () {
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
 
+    gl.uniform2fv(shu.uViewSize._pName, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
+    gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
     gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -191,6 +246,9 @@ my.Billboard.prototype.frame = function () {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
     gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+    gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
