@@ -1,14 +1,14 @@
-precision mediump float;
+precision highp float;
 
 
 highp vec4 encode32(highp float f) {
-    highp float F = abs(f); 
-    highp float s = step(0.0,-f);
-    highp float e = floor(log2(F)); 
-    highp float m = (exp2(- e) * F);
+    float F = abs(f); 
+    float s = step(0.0,-f);
+    float e = floor(log2(F)); 
+    float m = (exp2(- e) * F);
     //float m = F/exp2(e);
     e = floor(log2(F) + 127.0) + floor(log2(m));
-    highp vec4 rgba;
+    vec4 rgba;
     rgba[0] = 128.0 * s  + floor(e*exp2(-1.0));
     rgba[1] = 128.0 * mod(e,2.0) + mod(floor(m*128.0),128.0);  
     rgba[2] = floor(mod(floor(m*exp2(23.0 -8.0)),exp2(8.0)));
