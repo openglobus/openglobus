@@ -54,26 +54,36 @@ my.Billboard.prototype.initialization = function () {
                             //gl_Position = uPMatrix * uMVMatrix * vec4(a_positions, 1.0); \n\
                             //gl_Position /= gl_Position.w;\n\
                             //gl_Position.xy += a_vertices.xy * (a_size / uViewSize);\n\
-                            vec2 xxx = uViewSize*a_size;\
                             vec3 X = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] ); \
                             vec3 Y = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] ); \n\
                             mat4 bbm = CreateBillboardMatrix(X, Y, a_positions - uCamPos, a_positions); \
-                            float angle = -45.0*3.14/180.0;\
+                            float angle = 45.0*3.14/180.0;\
                             float cosTheta = cos(angle);\
                             float sinTheta = sin(angle);\
                             mat4 rotationMatrix = mat4(cosTheta, -sinTheta, 0.0, 0.0, \
                                                         sinTheta, cosTheta, 0.0, 0.0, \
                                                              0.0,      0.0, 1.0, 0.0, \
                                                              0.0,      0.0, 0.0, 1.0);\
-                            float scaleX = 400.0;\
-                            float scaleY = 100.0;\
+                            float viewAngle = 35.0  * 3.14/360.0;\n\
+                            float dist = length(a_positions - uCamPos);\n\
+                            float ratio = uViewSize.x/uViewSize.y;\
+                            vec2 offset = vec2(0.0, 50.0) / uViewSize;\n\
+                            //float w = 2.0/uViewSize.x; float h=2.0/uViewSize.y;float far=100000000.0;float near=0.1;float q=1.0/(far-near);\n\
+                            //mat4 orto = mat4(w,0.0,0.0,0.0 ,0.0,h,0.0,0.0, 0.0,0.0,q,-q*near, 0.0,0.0,0.0,1.0);\n\
+                            float scaleX = a_size.x * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\n\
+                            float scaleY = a_size.y * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\n\
                             mat4 scaleMatrix = mat4(scaleX,    0.0, 0.0, 0.0, \
                                                        0.0, scaleY, 0.0, 0.0, \
                                                        0.0,    0.0, 1.0, 0.0, \
                                                        0.0,    0.0, 0.0, 1.0);\
+                            float yOffset = 50.0 * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\
+                            mat4 transMatrix = mat4(1.0, 0.0, 0.0, 0.0, \
+                                                    0.0, 1.0, 0.0, 0.0, \
+                                                    0.0, 0.0, 1.0, 0.0, \
+                                                    0.0, yOffset, 0.0, 1.0);\
                             //vec3 vertex = a_vertices.x * X * 100.0 + a_vertices.y * Y * 100.0 + a_positions; \n\
-                            vec4 vertex = bbm * rotationMatrix * scaleMatrix * vec4(a_vertices,1.0);\n\
-                            gl_Position = uPMatrix * uMVMatrix * vec4(vertex.xyz,1.0); \
+                            vec4 vertex = bbm * rotationMatrix * transMatrix*scaleMatrix * vec4(a_vertices,1.0);\n\
+                            gl_Position = uPMatrix * uMVMatrix * vec4(vertex.xyz,1.0);\n\
                         }',
         fragmentShader: 'precision mediump float; \
                             uniform sampler2D u_texture; \
@@ -101,7 +111,7 @@ my.Billboard.prototype.initialization = function () {
     img.onload = function () {
         that.texture = that.renderer.handler.createTexture(this);
     };
-    img.src = "ship.png"
+    img.src = "marker.png"
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {
@@ -152,13 +162,13 @@ my.Billboard.prototype.createBuffers = function () {
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
 
     var positions = [
-    0, 100, 0,
-    0, 100, 0,
-    0, 100, 0,
-    0, 100, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
 
-    0, 100, 0,
-    0, 100, 0,
+    0, 0, 0,
+    0, 0, 0,
     0, 0, 500,
 
 
@@ -198,12 +208,12 @@ my.Billboard.prototype.createBuffers = function () {
     100, 100,
     100, 100,
 
-    200, 200,
+    100, 100,
 
-    200, 200,
-    200, 200,
-    200, 200,
-    200, 200];
+    100, 100,
+    100, 100,
+    100, 100,
+    100, 100];
 
     this._sizeBuffer = this._handler.createArrayBuffer(new Float32Array(size), 2, size.length / 2);
 
