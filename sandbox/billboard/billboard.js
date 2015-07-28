@@ -33,8 +33,7 @@ my.Billboard.prototype.initialization = function () {
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_offset: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            a_sizeAndOffset: { type: og.shaderProgram.types.VEC4, enableArray: true },
             a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("bb_vs.txt"),
@@ -87,21 +86,20 @@ my.Billboard.prototype.createBuffers = function () {
     this._handler.deactivateFaceCulling();
 
     var vertices = [
-            -0.5, 0.5, 0,
-            0.5, 0.5, 0,
-            -0.5, -0.5, 0,
-            0.5, -0.5, 0,
+    -0.5, 0.5, 0,
+    0.5, 0.5, 0,
+    -0.5, -0.5, 0,
+    0.5, -0.5, 0,
 
-            0.5, -0.5, 0,
-            0.5, -0.5, 0,
+    0.5, -0.5, 0,
+    0.5, -0.5, 0,
 
-            -0.5, 0.5, 0,
+    -0.5, 0.5, 0,
 
-
-            -0.5, 0.5, 0,
-            0.5, 0.5, 0,
-            -0.5, -0.5, 0,
-            0.5, -0.5, 0];
+    -0.5, 0.5, 0,
+    0.5, 0.5, 0,
+    -0.5, -0.5, 0,
+    0.5, -0.5, 0];
 
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
 
@@ -113,8 +111,8 @@ my.Billboard.prototype.createBuffers = function () {
 
     0, 0, 0,
     0, 0, 0,
-    0, 0, 500,
 
+    0, 0, 500,
 
     0, 0, 500,
     0, 0, 500,
@@ -123,62 +121,41 @@ my.Billboard.prototype.createBuffers = function () {
 
     this._posBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 3, positions.length / 3);
 
+    var sizeAndOffset = [
+    100, 100, 50, 0,
+    100, 100, 50, 0,
+    100, 100, 50, 0,
+    100, 100, 50, 0,
+
+    100, 100, 50, 0,
+    100, 100, 50, 0,
+
+    200, 200, 0, 100,
+
+    200, 200, 0, 100,
+    200, 200, 0, 100,
+    200, 200, 0, 100,
+    200, 200, 0, 100, ];
+
+    this._sizeAndOffsetBuffer = this._handler.createArrayBuffer(new Float32Array(sizeAndOffset), 4, sizeAndOffset.length / 4);
 
     var opacity = [
-        1.0,
-        1.0,
-        1.0,
-        1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
 
-        1.0,
-        1.0,
-        1.0,
+    1.0,
+    1.0,
 
+    1.0,
 
-        1.0,
-        1.0,
-        1.0,
-        1.0];
+    1.0,
+    1.0,
+    1.0,
+    1.0];
 
     this._opacityBuffer = this._handler.createArrayBuffer(new Float32Array(opacity), 1, opacity.length);
-
-
-    var size = [
-    100, 100,
-    100, 100,
-    100, 100,
-    100, 100,
-
-    100, 100,
-    100, 100,
-
-    200, 200,
-
-    200, 200,
-    200, 200,
-    200, 200,
-    200, 200];
-
-    this._sizeBuffer = this._handler.createArrayBuffer(new Float32Array(size), 2, size.length / 2);
-
-
-    var offset = [
-        50, 0,
-        50, 0,
-        50, 0,
-        50, 0,
-
-        50, 0,
-        50, 0,
-
-        0, 100,
-
-        0, 100,
-        0, 100,
-        0, 100,
-        0, 100];
-
-    this._offsetBuffer = this._handler.createArrayBuffer(new Float32Array(offset), 2, offset.length / 2);
 
     var rotation = [
     0 * og.math.RADIANS,
@@ -241,11 +218,8 @@ my.Billboard.prototype.frame = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
     gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
-    gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
-    gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeAndOffsetBuffer);
+    gl.vertexAttribPointer(sha.a_sizeAndOffset._pName, this._sizeAndOffsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
     gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
