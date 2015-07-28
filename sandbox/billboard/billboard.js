@@ -67,33 +67,12 @@ my.Billboard.prototype.initialization = function () {
                             float cosRot = cos(a_rotation);\
                             float sinRot = sin(a_rotation);\
                             float focalSize = 2.0 * length( a_positions - uCamPos ) * tan( uViewAngle ) / ( uViewSize.x / uRatio );\n\
-                            float scaleX = a_size.x * focalSize;\n\
-                            float scaleY = a_size.y * focalSize;\n\
-                            mat4 scaleMatrix = mat4(scaleX,    0.0, 0.0, 0.0, \
-                                                       0.0, scaleY, 0.0, 0.0, \
-                                                       0.0,    0.0, 1.0, 0.0, \
-                                                       0.0,    0.0, 0.0, 1.0);\
-\
                             vec2 offset = a_offset * focalSize;\
-                            vec3 rightCos = right * cosRot;\
-                            vec3 rightSin = right * sinRot;\
-                            vec3 upSin    =    up * sinRot;\
-                            vec3 upCos    =    up * cosRot;\
-                            vec3 c = rightCos - upSin;\
-                            vec3 s = rightSin + upCos;\
-                            vec3 t = c * offset.x + s * offset.y + a_positions;\
-                            vec3 cs = c * scaleX;\
-                            vec3 ss = s * scaleY;\
+                            vec2 scale = a_size * focalSize;\
 \
-                            mat4 brts = mat4(cs.x,   cs.y,   cs.z, 0,\
-                                             ss.x,   ss.y,   ss.z, 0,\
-                                           look.x, look.y, look.z, 0,\
-                                              t.x,    t.y,    t.z, 1);\
+                            vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + look * a_vertices.z + a_positions;\
 \
-                            //vec4 vertex = brts * vec4(a_vertices,1.0);\n\
-                            vec3 rr = cs * a_vertices.x + ss * a_vertices.y + look * a_vertices.z + t;\
-                            vec4 vertex = vec4( rr, 1);\
-                            gl_Position = uPMatrix * uMVMatrix * vertex;\n\
+                            gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);\n\
                         }',
         fragmentShader: 'precision mediump float; \
                             uniform sampler2D u_texture; \
