@@ -21,7 +21,6 @@ my.Billboard.prototype.initialization = function () {
     var billboardShader = new og.shaderProgram.ShaderProgram("billboard", {
         uniforms: {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
-            //uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uViewSize: { type: og.shaderProgram.types.VEC2 },
@@ -38,52 +37,8 @@ my.Billboard.prototype.initialization = function () {
             a_offset: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true }
         },
-        vertexShader: ' attribute vec3 a_vertices; \
-                        attribute vec2 a_texCoord; \
-                        attribute vec3 a_positions; \
-                        attribute float a_opacity; \
-                        attribute vec2 a_size; \
-                        attribute vec2 a_offset; \
-                        attribute float a_rotation; \
-\
-                        varying vec2 v_texCoords; \
-                        varying float v_opacity; \
-\
-                        uniform mat4 uMVMatrix; \
-                        uniform mat4 uPMatrix; \
-                        uniform vec2 uViewSize; \
-                        uniform vec3 uCamPos; \
-                        uniform float uViewAngle;\
-                        uniform float uRatio;\
-\
-                        void main() { \
-                            v_texCoords = a_texCoord; \
-                            v_opacity = a_opacity; \
-\
-                            vec3 right = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] ); \
-                            vec3 up = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] ); \n\
-                            vec3 look = a_positions - uCamPos;\
-\
-                            float cosRot = cos(a_rotation);\
-                            float sinRot = sin(a_rotation);\
-                            float focalSize = 2.0 * length( a_positions - uCamPos ) * tan( uViewAngle ) / ( uViewSize.x / uRatio );\n\
-                            vec2 offset = a_offset * focalSize;\
-                            vec2 scale = a_size * focalSize;\
-\
-                            vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + look * a_vertices.z + a_positions;\
-\
-                            gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);\n\
-                        }',
-        fragmentShader: 'precision mediump float; \
-                            uniform sampler2D u_texture; \
-                            varying vec2 v_texCoords; \
-                            varying float v_opacity; \
-                            void main () { \
-                                vec4 color = texture2D(u_texture, v_texCoords);\n\
-                                if(color.a<0.1)\n\
-                                    discard;\n\
-                                gl_FragColor = vec4(color.rgb,color.a*v_opacity);\
-                            }'
+        vertexShader: og.utils.readTextFile("bb_vs.txt"),
+        fragmentShader: og.utils.readTextFile("bb_fs.txt")
     });
 
     this._handler = this.renderer.handler;
@@ -224,7 +179,6 @@ my.Billboard.prototype.createBuffers = function () {
         0, 100];
 
     this._offsetBuffer = this._handler.createArrayBuffer(new Float32Array(offset), 2, offset.length / 2);
-
 
     var rotation = [
     0 * og.math.RADIANS,

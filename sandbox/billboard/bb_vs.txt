@@ -1,0 +1,35 @@
+attribute vec3 a_vertices;
+                        attribute vec2 a_texCoord;
+                        attribute vec3 a_positions;
+                        attribute float a_opacity;
+                        attribute vec2 a_size;
+                        attribute vec2 a_offset;
+                        attribute float a_rotation;
+
+                        varying vec2 v_texCoords;
+                        varying float v_opacity;
+
+                        uniform mat4 uMVMatrix;
+                        uniform mat4 uPMatrix;
+                        uniform vec2 uViewSize;
+                        uniform vec3 uCamPos;
+                        uniform float uViewAngle;
+                        uniform float uRatio;
+
+                        void main() {
+                            v_texCoords = a_texCoord;
+                            v_opacity = a_opacity;
+
+                            vec3 right = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] );
+                            vec3 up = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] );
+                            vec3 look = a_positions - uCamPos;
+
+                            float focalSize = 2.0 * length( a_positions - uCamPos ) * tan( uViewAngle ) / ( uViewSize.x / uRatio );
+                            vec2 offset = a_offset * focalSize;
+                            vec2 scale = a_size * focalSize;
+                            float cosRot = cos(a_rotation);
+                            float sinRot = sin(a_rotation);
+                            vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + look * a_vertices.z + a_positions;
+
+                            gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
+}
