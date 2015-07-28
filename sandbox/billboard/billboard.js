@@ -14,6 +14,10 @@ og.inheritance.extend(my.Billboard, og.node.RenderNode);
 
 my.Billboard.prototype.initialization = function () {
 
+    //gl_Position = uPMatrix * uMVMatrix * vec4(a_positions, 1.0); \n\
+    //gl_Position /= gl_Position.w;\n\
+    //gl_Position.xy += a_vertices.xy * (a_size / uViewSize);\n\
+
     var billboardShader = new og.shaderProgram.ShaderProgram("billboard", {
         uniforms: {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
@@ -21,69 +25,75 @@ my.Billboard.prototype.initialization = function () {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uViewSize: { type: og.shaderProgram.types.VEC2 },
-            uCamPos: { type: og.shaderProgram.types.VEC3 }
+            uCamPos: { type: og.shaderProgram.types.VEC3 },
+            uViewAngle: { type: og.shaderProgram.types.FLOAT },
+            uRatio: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            a_offset: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true }
         },
-        vertexShader: 'attribute vec3 a_vertices; \
+        vertexShader: ' attribute vec3 a_vertices; \
                         attribute vec2 a_texCoord; \
                         attribute vec3 a_positions; \
                         attribute float a_opacity; \
                         attribute vec2 a_size; \
+                        attribute vec2 a_offset; \
+                        attribute float a_rotation; \
+\
                         varying vec2 v_texCoords; \
                         varying float v_opacity; \
-                        //uniform mat4 uPMVMatrix; \n\
+\
                         uniform mat4 uMVMatrix; \
                         uniform mat4 uPMatrix; \
                         uniform vec2 uViewSize; \
                         uniform vec3 uCamPos; \
-                        mat4 CreateBillboardMatrix(vec3 right, vec3 up, vec3 look, vec3 pos) { \
-                            return mat4(right.x, right.y, right.z, 0.0, \
-                                        up.x, up.y, up.z, 0.0, \
-                                        look.x, look.y, look.z, 0.0, \
-                                        pos.x, pos.y, pos.z, 1.0); \
-                        } \
+                        uniform float uViewAngle;\
+                        uniform float uRatio;\
+\
                         void main() { \
                             v_texCoords = a_texCoord; \
                             v_opacity = a_opacity; \
-                            //gl_Position = uPMatrix * uMVMatrix * vec4(a_positions, 1.0); \n\
-                            //gl_Position /= gl_Position.w;\n\
-                            //gl_Position.xy += a_vertices.xy * (a_size / uViewSize);\n\
-                            vec3 X = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] ); \
-                            vec3 Y = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] ); \n\
-                            mat4 bbm = CreateBillboardMatrix(X, Y, a_positions - uCamPos, a_positions); \
-                            float angle = 45.0*3.14/180.0;\
-                            float cosTheta = cos(angle);\
-                            float sinTheta = sin(angle);\
-                            mat4 rotationMatrix = mat4(cosTheta, -sinTheta, 0.0, 0.0, \
-                                                        sinTheta, cosTheta, 0.0, 0.0, \
-                                                             0.0,      0.0, 1.0, 0.0, \
-                                                             0.0,      0.0, 0.0, 1.0);\
-                            float viewAngle = 35.0  * 3.14/360.0;\n\
-                            float dist = length(a_positions - uCamPos);\n\
-                            float ratio = uViewSize.x/uViewSize.y;\
-                            vec2 offset = vec2(0.0, 50.0) / uViewSize;\n\
-                            //float w = 2.0/uViewSize.x; float h=2.0/uViewSize.y;float far=100000000.0;float near=0.1;float q=1.0/(far-near);\n\
-                            //mat4 orto = mat4(w,0.0,0.0,0.0 ,0.0,h,0.0,0.0, 0.0,0.0,q,-q*near, 0.0,0.0,0.0,1.0);\n\
-                            float scaleX = a_size.x * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\n\
-                            float scaleY = a_size.y * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\n\
+\
+                            vec3 right = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] ); \
+                            vec3 up = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] ); \n\
+                            vec3 look = a_positions - uCamPos;\
+\
+                            float cosRot = cos(a_rotation);\
+                            float sinRot = sin(a_rotation);\
+                            float focalSize = 2.0 * length( a_positions - uCamPos ) * tan( uViewAngle ) / ( uViewSize.x / uRatio );\n\
+                            float scaleX = a_size.x * focalSize;\n\
+                            float scaleY = a_size.y * focalSize;\n\
                             mat4 scaleMatrix = mat4(scaleX,    0.0, 0.0, 0.0, \
                                                        0.0, scaleY, 0.0, 0.0, \
                                                        0.0,    0.0, 1.0, 0.0, \
                                                        0.0,    0.0, 0.0, 1.0);\
-                            float yOffset = 50.0 * dist * 2.0 * tan(viewAngle)/(uViewSize.x/ratio);\
-                            mat4 transMatrix = mat4(1.0, 0.0, 0.0, 0.0, \
-                                                    0.0, 1.0, 0.0, 0.0, \
-                                                    0.0, 0.0, 1.0, 0.0, \
-                                                    0.0, yOffset, 0.0, 1.0);\
-                            //vec3 vertex = a_vertices.x * X * 100.0 + a_vertices.y * Y * 100.0 + a_positions; \n\
-                            vec4 vertex = bbm * rotationMatrix * transMatrix*scaleMatrix * vec4(a_vertices,1.0);\n\
-                            gl_Position = uPMatrix * uMVMatrix * vec4(vertex.xyz,1.0);\n\
+\
+                            vec2 offset = a_offset * focalSize;\
+                            vec3 rightCos = right * cosRot;\
+                            vec3 rightSin = right * sinRot;\
+                            vec3 upSin    =    up * sinRot;\
+                            vec3 upCos    =    up * cosRot;\
+                            vec3 c = rightCos - upSin;\
+                            vec3 s = rightSin + upCos;\
+                            vec3 t = c * offset.x + s * offset.y + a_positions;\
+                            vec3 cs = c * scaleX;\
+                            vec3 ss = s * scaleY;\
+\
+                            mat4 brts = mat4(cs.x,   cs.y,   cs.z, 0,\
+                                             ss.x,   ss.y,   ss.z, 0,\
+                                           look.x, look.y, look.z, 0,\
+                                              t.x,    t.y,    t.z, 1);\
+\
+                            //vec4 vertex = brts * vec4(a_vertices,1.0);\n\
+                            vec3 rr = cs * a_vertices.x + ss * a_vertices.y + look * a_vertices.z + t;\
+                            vec4 vertex = vec4( rr, 1);\
+                            gl_Position = uPMatrix * uMVMatrix * vertex;\n\
                         }',
         fragmentShader: 'precision mediump float; \
                             uniform sampler2D u_texture; \
@@ -111,7 +121,7 @@ my.Billboard.prototype.initialization = function () {
     img.onload = function () {
         that.texture = that.renderer.handler.createTexture(this);
     };
-    img.src = "marker.png"
+    img.src = "wall.jpg"
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {
@@ -208,14 +218,52 @@ my.Billboard.prototype.createBuffers = function () {
     100, 100,
     100, 100,
 
-    100, 100,
+    200, 200,
 
-    100, 100,
-    100, 100,
-    100, 100,
-    100, 100];
+    200, 200,
+    200, 200,
+    200, 200,
+    200, 200];
 
     this._sizeBuffer = this._handler.createArrayBuffer(new Float32Array(size), 2, size.length / 2);
+
+
+    var offset = [
+        50, 0,
+        50, 0,
+        50, 0,
+        50, 0,
+
+        50, 0,
+        50, 0,
+
+        0, 100,
+
+        0, 100,
+        0, 100,
+        0, 100,
+        0, 100];
+
+    this._offsetBuffer = this._handler.createArrayBuffer(new Float32Array(offset), 2, offset.length / 2);
+
+
+    var rotation = [
+    0 * og.math.RADIANS,
+    0 * og.math.RADIANS,
+    0 * og.math.RADIANS,
+    0 * og.math.RADIANS,
+
+    0 * og.math.RADIANS,
+    0 * og.math.RADIANS,
+
+    45 * og.math.RADIANS,
+
+    45 * og.math.RADIANS,
+    45 * og.math.RADIANS,
+    45 * og.math.RADIANS,
+    45 * og.math.RADIANS];
+
+    this._rotationBuffer = this._handler.createArrayBuffer(new Float32Array(rotation), 1, rotation.length);
 
 };
 
@@ -245,6 +293,9 @@ my.Billboard.prototype.frame = function () {
     gl.uniform2fv(shu.uViewSize._pName, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
+    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera.viewAngle * og.math.RADIANS_HALF);
+    gl.uniform1f(shu.uRatio._pName, r.handler.canvas.aspect);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
     gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -259,6 +310,12 @@ my.Billboard.prototype.frame = function () {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
     gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
+    gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+    gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
