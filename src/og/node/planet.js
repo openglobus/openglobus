@@ -296,7 +296,7 @@ og.node.Planet.prototype.initialization = function () {
     this.sunlight.setShininess(4);
     this.sunlight.addTo(this);
 
-    this.lightEnabled = false;
+    this.lightEnabled = true;
 
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
