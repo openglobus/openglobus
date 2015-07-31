@@ -2,6 +2,7 @@ goog.provide('my.Billboard');
 
 goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
+goog.require('og.BillboardsCollection');
 
 
 my.Billboard = function (name) {
@@ -11,6 +12,7 @@ my.Billboard = function (name) {
 };
 
 og.inheritance.extend(my.Billboard, og.node.RenderNode);
+
 
 my.Billboard.prototype.initialization = function () {
 
@@ -32,9 +34,9 @@ my.Billboard.prototype.initialization = function () {
             a_vertices: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("bb_vs.txt"),
@@ -69,24 +71,50 @@ my.Billboard.prototype.toogleWireframe = function (e) {
 my.Billboard.prototype.createBuffers = function () {
     var tcoords = [
             0, 0,
-            1, 0,
-            0, 1,
-            1, 1,
+            0, 0,
+            0, 0,
+            0, 0,
 
-            1, 1,
-            1, 1,
+            0, 0,
+            0, 0,
+
             0, 0,
 
 
             0, 0,
             1, 0,
             0, 1,
-            1, 1];
+            1, 1,
+
+            1, 1,
+            1, 1,
+
+
+            0, 0,
+
+            0, 0,
+            1, 0,
+            0, 1,
+            1, 1,
+
+    1, 1,
+    1,1];
     this._texCoordsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(tcoords), 2, tcoords.length / 2);
 
     this._handler.deactivateFaceCulling();
 
     var vertices = [
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+
+        0, 0, 0,
+        0, 0, 0,
+
+    -0.5, 0.5, 0,
+
+
     -0.5, 0.5, 0,
     0.5, 0.5, 0,
     -0.5, -0.5, 0,
@@ -97,9 +125,13 @@ my.Billboard.prototype.createBuffers = function () {
 
     -0.5, 0.5, 0,
 
+
     -0.5, 0.5, 0,
     0.5, 0.5, 0,
     -0.5, -0.5, 0,
+    0.5, -0.5, 0,
+
+    0.5, -0.5, 0,
     0.5, -0.5, 0];
 
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
@@ -113,34 +145,78 @@ my.Billboard.prototype.createBuffers = function () {
     0, 0, 0,
     0, 0, 0,
 
-    0, 0, 500,
+    0, 0, 200,
 
-    0, 0, 500,
-    0, 0, 500,
-    0, 0, 500,
-    0, 0, 500];
+
+    0, 0, 200,
+    0, 0, 200,
+    0, 0, 200,
+    0, 0, 200,
+
+    0, 0, 200,
+    0, 0, 200,
+
+    0, 0, 0,
+
+
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,    
+    0, 0, 0,
+
+    0, 0, 0,
+    0, 0, 0
+    ];
 
     this._posBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 3, positions.length / 3);
 
     var size = [
-    100, 100, 
-    100, 100, 
-    100, 100, 
-    100, 100, 
+        0, 0,
+        0, 0,
+        0, 0,
+        0, 0,
 
-    100, 100, 
-    100, 100, 
+        0, 0,
+        0, 0,
 
-    200, 200, 
+    100, 100,
 
-    200, 200, 
-    200, 200, 
-    200, 200, 
-    200, 200  ];
+
+    100, 100,
+    100, 100,
+    100, 100,
+    100, 100,
+
+    100, 100,
+    100, 100,
+
+    200, 200,
+
+
+    200, 200,
+    200, 200,
+    200, 200,
+    200, 200,
+
+    200, 200,
+    200, 200
+
+    ];
 
     this._sizeBuffer = this._handler.createArrayBuffer(new Float32Array(size), 2, size.length / 2);
 
     var offset = [
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+    0, 0, 0,
+
+    0, 0, 0,
+    0, 0, 0,
+
+    50, 0, 0,
+
+
     50, 0, 0,
     50, 0, 0,
     50, 0, 0,
@@ -149,16 +225,33 @@ my.Billboard.prototype.createBuffers = function () {
     50, 0, 0,
     50, 0, 0,
 
-    0, 100, 0,
+    0, 100, -0.01,
 
-    0, 100, 0,
-    0, 100, 0,
-    0, 100, 0,
-    0, 100, 0];
 
-    this._offsetBuffer = this._handler.createArrayBuffer(new Float32Array(offset), 3, size.length / 3);
+    0, 100, -0.01,
+    0, 100, -0.01,
+    0, 100, -0.01,
+    0, 100, -0.01,
+
+    0, 100, -0.01,
+    0, 100, -0.01
+
+    ];
+
+    this._offsetBuffer = this._handler.createArrayBuffer(new Float32Array(offset), 3, offset.length / 3);
 
     var opacity = [
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+
+    0.5,
+
+
     0.5,
     0.5,
     0.5,
@@ -169,14 +262,29 @@ my.Billboard.prototype.createBuffers = function () {
 
     1.0,
 
+
     1.0,
     1.0,
+    1.0,
+    1.0,
+
     1.0,
     1.0];
 
     this._opacityBuffer = this._handler.createArrayBuffer(new Float32Array(opacity), 1, opacity.length);
 
     var rotation = [
+    0,
+    0,
+    0,
+    0,
+
+    0,
+    0,
+
+    0 * og.math.RADIANS,
+
+
     0 * og.math.RADIANS,
     0 * og.math.RADIANS,
     0 * og.math.RADIANS,
@@ -187,10 +295,15 @@ my.Billboard.prototype.createBuffers = function () {
 
     45 * og.math.RADIANS,
 
+
     45 * og.math.RADIANS,
     45 * og.math.RADIANS,
     45 * og.math.RADIANS,
-    45 * og.math.RADIANS];
+    45 * og.math.RADIANS,
+
+    45 * og.math.RADIANS,
+    45 * og.math.RADIANS
+    ];
 
     this._rotationBuffer = this._handler.createArrayBuffer(new Float32Array(rotation), 1, rotation.length);
 

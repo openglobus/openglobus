@@ -1,10 +1,10 @@
 attribute vec3 a_vertices;
 attribute vec2 a_texCoord;
 attribute vec3 a_positions;
-attribute float a_opacity;
 attribute vec3 a_offset;
 attribute vec2 a_size;
 attribute float a_rotation;
+attribute float a_opacity;
 
 varying vec2 v_texCoords;
 varying float v_opacity;
