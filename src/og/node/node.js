@@ -7,7 +7,10 @@ og.node.Node = function (name) {
     this.dictionary[name] = this;
     this.childNodes = [];
     this.parentNode = null;
+    this.__staticId = og.node.Node.staticCounter++;
 };
+
+og.node.Node.staticCounter = 0;
 
 og.node.Node.prototype = {
     name: "",

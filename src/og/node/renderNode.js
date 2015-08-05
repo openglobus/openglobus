@@ -27,13 +27,24 @@ og.node.RenderNode = function (name) {
     this._pointLightsParamsv = [];
     this._pointLightsParamsf = [];
     this._pointLightsNames = [];
+
+    this.billboardsCollections = [];
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
 
+og.node.RenderNode.prototype.addBillboardsCollection = function (billboardCollection) {
+    billboardCollection.addTo(this);
+    return this;
+};
+
+og.node.RenderNode.prototype.removeBillboardsCollection = function (billboardCollection) {
+    billboardCollection.remove();
+};
+
 og.node.RenderNode.prototype.addLight = function (light) {
     light.addTo(this);
-    return light;
+    return this;
 };
 
 og.node.RenderNode.prototype.getLightByName = function (name) {
@@ -104,6 +115,7 @@ og.node.RenderNode.prototype.drawNodes = function () {
     }
 
     if (this.show) {
+        this.drawBillboards();
         if (this.frame) {
             //if (this.lightEnabled) {
             //    this.transformLights();
@@ -121,6 +133,13 @@ og.node.RenderNode.prototype.transformLights = function () {
         this._pointLightsTransformedPositions[ii] = tp.x;
         this._pointLightsTransformedPositions[ii + 1] = tp.y;
         this._pointLightsTransformedPositions[ii + 2] = tp.z;
+    }
+};
+
+og.node.RenderNode.prototype.drawBillboards = function () {
+    var i = this.billboardsCollections.length;
+    while (i--) {
+        this.billboardsCollections[i].draw();
     }
 };
 

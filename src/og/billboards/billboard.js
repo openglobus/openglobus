@@ -11,6 +11,7 @@ og.Billboard = function () {
     this.offset = new og.math.Vector3();
     this.size = new og.math.Vector2();
     this.alignedAxis = null;
+    this.visibility = false;
     this._billboardsHandler = null;
     this._billboardsHandlerIndex = -1;
 };
@@ -55,22 +56,27 @@ og.Billboard.prototype.setAlignedAxis = function (alignedAxis) {
         this.alignedAxis.z = alignedAxis.z;
         this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
     } else {
-        //TODO...
+        this.remove();
+        this._billboardsHandler.alignedAxisBillboardsHandler.add(this);
     }
+};
+
+og.Billboard.prototype.setVisibility = function (visibility) {
+    this.visibility = visibility;
+
+    //...
+
+};
+
+og.Billboard.prototype.getVisibility = function () {
+    return this.visibility;
 };
 
 og.Billboard.prototype.addTo = function (billboardCollection) {
     billboardCollection.add(this);
+    return this;
 };
 
 og.Billboard.prototype.remove = function () {
-    if (this._billboardsHandler) {
-        var index = this._billboardsHandlerIndex;
-        this._billboardsHandlerIndex = -1;
-        this._billboardsHandler = null;
-
-        //...
-
-        this._billboardsHandler.refresh();
-    }
+    this._billboardsHandler && this._billboardsHandler.remove(this._billboardsHandlerIndex);
 };
