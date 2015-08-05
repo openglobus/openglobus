@@ -79,8 +79,11 @@ og.BillboardsCollection.prototype.remove = function () {
 
 og.BillboardsCollection.prototype.draw = function () {
     if (this.visibility) {
+        var gl = this.renderNode.renderer.handler.gl;
+        gl.disable(gl.CULL_FACE);
         this._sphericalBillboardsHandler.draw();
         this._alignedAxisBillboardsHandler.draw();
+        gl.enable(gl.CULL_FACE);
     }
 };
 

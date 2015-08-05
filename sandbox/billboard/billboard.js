@@ -22,16 +22,14 @@ my.Billboard.prototype.initialization = function () {
 
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 
-    this.renderer.handler.deactivateFaceCulling();
-
     bc = new og.BillboardsCollection();
     bc.addTo(this);
 
-    for (var i = 0; i < 30; i++) {
-        for (var j = 0; j < 30; j++) {
+    for (var i = 0; i < 200; i++) {
+        for (var j = 0; j < 200; j++) {
             var blb = new og.Billboard();
             blb.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
-            blb.setSize(new og.math.Vector2(100, 100));
+            blb.setSize(new og.math.Vector2(20, 20));
             blb.addTo(bc);
         }
     }
