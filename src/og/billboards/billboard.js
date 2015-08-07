@@ -9,9 +9,9 @@ og.Billboard = function () {
     this.opacity = 1.0;
     this.image = null;
     this.offset = new og.math.Vector3();
-    this.size = new og.math.Vector2();
+    this.size = new og.math.Vector2(32, 32);
     this.alignedAxis = null;
-    this.visibility = false;
+    this.visibility = true;
     this._billboardsHandler = null;
     this._billboardsHandlerIndex = -1;
 };
@@ -63,9 +63,7 @@ og.Billboard.prototype.setAlignedAxis = function (alignedAxis) {
 
 og.Billboard.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
-
-    //...
-
+    this._billboardsHandler && this._billboardsHandler.setVisibility(this._billboardsHandlerIndex, visibility);
 };
 
 og.Billboard.prototype.getVisibility = function () {
