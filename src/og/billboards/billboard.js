@@ -76,5 +76,5 @@ og.Billboard.prototype.addTo = function (billboardCollection) {
 };
 
 og.Billboard.prototype.remove = function () {
-    this._billboardsHandler && this._billboardsHandler.remove(this._billboardsHandlerIndex);
+    this._billboardsHandler && this._billboardsHandler.remove(this);
 };
