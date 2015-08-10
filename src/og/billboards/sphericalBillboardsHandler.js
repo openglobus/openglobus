@@ -181,11 +181,16 @@ og.SphericalBillboardsHandler.prototype.draw = function () {
 
     var gl = h.gl;
 
+    //to optimize or not to optimize, that is it!
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._billboardsCollection._textureAtlas.texture);
+    gl.uniform1i(shu.u_texture._pName, 0);
+
+    //TODO:extract to the renderNode renderer loop
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
-    //gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera.pmvMatrix._m);
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
 
@@ -216,9 +221,6 @@ og.SphericalBillboardsHandler.prototype.draw = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
     gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    gl.uniform1i(shu.u_texture._pName, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._vertexBuffer.numItems);
 };
 

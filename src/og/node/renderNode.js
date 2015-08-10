@@ -145,4 +145,10 @@ og.node.RenderNode.prototype.drawBillboards = function () {
 
 og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
+
+    for (var i = 0; i < this.billboardsCollections.length; i++) {
+        this.billboardsCollections[i]._sphericalBillboardsHandler.setRenderer(renderer);
+        this.billboardsCollections[i]._alignedAxisBillboardsHandler.setRenderer(renderer);
+        this.billboardsCollections[i]._textureAtlas.assignHandler(renderer.handler);
+    }
 };
