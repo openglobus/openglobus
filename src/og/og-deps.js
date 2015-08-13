@@ -3,8 +3,10 @@
 goog.addDependency('../../../og/src/og/ajax.js', ['og.Ajax'], []);
 goog.addDependency('../../../og/src/og/billboards/alignedAxisBillboardsHandler.js', ['og.AlignedAxisBillboardsHandler'], ['og.SphericalBillboardsHandler', 'og.inheritance', 'og.shaderProgram.alignedAxisBillboard']);
 goog.addDependency('../../../og/src/og/billboards/billboard.js', ['og.Billboard'], ['og.math.Vector2', 'og.math.Vector3']);
-goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.AlignedAxisBillboardsHandler', 'og.SphericalBillboardsHandler']);
+goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.AlignedAxisBillboardsHandler', 'og.ImagesCacheManager', 'og.SphericalBillboardsHandler', 'og.TextureAtlas']);
+goog.addDependency('../../../og/src/og/billboards/imagesCacheManager.js', ['og.ImagesCacheManager'], ['og.QueueArray']);
 goog.addDependency('../../../og/src/og/billboards/sphericalBillboardsHandler.js', ['og.SphericalBillboardsHandler'], ['og.shaderProgram.sphericalBillboard']);
+goog.addDependency('../../../og/src/og/billboards/textureAtlas.js', ['og.TextureAtlas', 'og.TextureAtlasNode'], ['og.ImageCanvas', 'og.Rectangle']);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);
@@ -70,6 +72,7 @@ goog.addDependency('../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'o
 goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.planetSegment.PlanetSegmentMaterial', 'og.proj.EPSG4326', 'og.quadTree']);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], []);
 goog.addDependency('../../../og/src/og/queueArray.js', ['og.QueueArray'], []);
+goog.addDependency('../../../og/src/og/rectangle.js', ['og.Rectangle'], []);
 goog.addDependency('../../../og/src/og/renderer/renderer.js', ['og.Renderer'], ['og.Camera', 'og.RendererEvents', 'og.math.Pixel', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/renderer/rendererEvents.js', ['og.RendererEvents'], ['og.Events', 'og.inheritance', 'og.input', 'og.input.KeyboardHandler', 'og.input.MouseHandler', 'og.input.TouchHandler']);
 goog.addDependency('../../../og/src/og/shaderProgram/billboard.js', ['og.shaderProgram.alignedAxisBillboard', 'og.shaderProgram.sphericalBillboard'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils']);

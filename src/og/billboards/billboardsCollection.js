@@ -3,6 +3,8 @@ goog.provide('og.BillboardsCollection');
 
 goog.require('og.SphericalBillboardsHandler');
 goog.require('og.AlignedAxisBillboardsHandler');
+goog.require('og.TextureAtlas');
+goog.require('og.ImagesCacheManager');
 
 /*
  * og.BillboardsCollection
@@ -15,6 +17,8 @@ og.BillboardsCollection = function () {
     this.visibility = true;
     this._sphericalBillboardsHandler = new og.SphericalBillboardsHandler(this);
     this._alignedAxisBillboardsHandler = new og.AlignedAxisBillboardsHandler(this);
+    this._textureAtlas = new og.TextureAtlas();
+    this._imagesCacheManager = new og.ImagesCacheManager();
 };
 
 og.BillboardsCollection.prototype.setVisibility = function (visibility) {
@@ -62,6 +66,7 @@ og.BillboardsCollection.prototype.addTo = function (renderNode) {
         renderNode.billboardsCollections.push(this);
         this._sphericalBillboardsHandler.setRenderer(renderNode.renderer);
         this._alignedAxisBillboardsHandler.setRenderer(renderNode.renderer);
+        this._textureAtlas.assignHandler(renderNode.renderer.handler);
     }
     return this;
 };

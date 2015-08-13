@@ -135,7 +135,7 @@ og.SphericalBillboardsHandler.prototype._makeCommonArrays = function (billboard)
         og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
 
-    og.SphericalBillboardsHandler.concArr(this._texCoordArr, 2, [0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1]);
+    og.SphericalBillboardsHandler.concArr(this._texCoordArr, 2, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]/*[0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1]*/);
 
     var x = billboard.position.x, y = billboard.position.y, z = billboard.position.z;
     og.SphericalBillboardsHandler.concArr(this._positionArr, 3, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
@@ -393,31 +393,31 @@ og.SphericalBillboardsHandler.prototype.setRotationArr = function (index, rotati
     this._changedBuffers[og.SphericalBillboardsHandler.ROTATION_BUFFER] = true
 };
 
-og.SphericalBillboardsHandler.prototype.setTexCoordArr = function (index, tcoord) {
+og.SphericalBillboardsHandler.prototype.setTexCoordArr = function (index, tcoordArr) {
 
     var i = 12 + index * 14;
-    var a = this._sizeArr, x = tcoord.x, y = tcoord.y;
+    var a = this._texCoordArr;
 
-    a[i] = x;
-    a[i + 1] = y;
+    a[i] = tcoordArr[0];
+    a[i + 1] = tcoordArr[1];
 
-    a[i + 2] = x;
-    a[i + 3] = y;
+    a[i + 2] = tcoordArr[0];
+    a[i + 3] = tcoordArr[1];
 
-    a[i + 4] = x;
-    a[i + 5] = y;
+    a[i + 4] = tcoordArr[2];
+    a[i + 5] = tcoordArr[3];
 
-    a[i + 6] = x;
-    a[i + 7] = y;
+    a[i + 6] = tcoordArr[4];
+    a[i + 7] = tcoordArr[5];
 
-    a[i + 8] = x;
-    a[i + 9] = y;
+    a[i + 8] = tcoordArr[6];
+    a[i + 9] = tcoordArr[7];
 
-    a[i + 10] = x;
-    a[i + 11] = y;
+    a[i + 10] = tcoordArr[6];
+    a[i + 11] = tcoordArr[7];
 
-    a[i + 12] = x;
-    a[i + 13] = y;
+    a[i + 12] = tcoordArr[6];
+    a[i + 13] = tcoordArr[7];
 
     this._changedBuffers[og.SphericalBillboardsHandler.TEXCOORD_BUFFER] = true;
 };
@@ -508,4 +508,18 @@ og.SphericalBillboardsHandler.prototype.createTexCoordBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._texCoordBuffer);
     this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 2, this._texCoordArr.length / 2);
+};
+
+og.SphericalBillboardsHandler.prototype.refreshTexCoordsArr = function () {
+    var ta = this._billboardsCollection._textureAtlas;
+    for (var i = 0; i < this._billboards.length; i++) {
+        var bi = this._billboards[i];
+        var img = bi.image;
+        if (img) {
+            var imageNode = ta._nodes[bi.image.__cacheIndex];
+            if (imageNode) {
+                this.setTexCoordArr(bi._billboardsHandlerIndex, imageNode.texCoords);
+            }
+        }
+    }
 };

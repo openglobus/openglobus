@@ -33,8 +33,22 @@ og.Billboard.prototype.setOpacity = function (opacity) {
     this._billboardsHandler && this._billboardsHandler.setOpacityArr(this._billboardsHandlerIndex, opacity);
 };
 
-og.Billboard.prototype.setImage = function (image) {
-    this.image = image;
+og.Billboard.prototype.setImageUrl = function (url) {
+    if (this._billboardsHandler) {
+        var icm = this._billboardsHandler._billboardsCollection._imagesCacheManager;
+        var ta = this._billboardsHandler._billboardsCollection._textureAtlas;
+        var that = this;
+        icm.load(url, function (img) {
+            if (ta._nodes[img.__cacheIndex]) {
+                that.image = img;
+                that.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__cacheIndex].texCoords);
+            } else {                
+                ta.addImage(img);
+                that.image = img;
+                that._billboardsHandler.refreshTexCoordsArr();
+            }
+        });
+    }
 };
 
 og.Billboard.prototype.setOffset = function (offset) {

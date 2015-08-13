@@ -7,7 +7,11 @@ og.Rectangle = function (left, top, right, bottom) {
     this.bottom = bottom || 0;
 };
 
-og.Rectangle.prototype.getWidht = function () {
+og.Rectangle.prototype.clone = function () {
+    return new og.Rectangle(this.left, this.top, this.right, this.bottom);
+};
+
+og.Rectangle.prototype.getWidth = function () {
     return Math.abs(this.right - this.left);
 };
 
@@ -16,11 +20,15 @@ og.Rectangle.prototype.getHeight = function () {
 };
 
 og.Rectangle.prototype.getSquare = function () {
-    return this.getHeight() * this.getWidht();
+    return this.getHeight() * this.getWidth();
 };
 
 og.Rectangle.prototype.getDiagonal = function () {
-    var w = this.getWidht(),
+    var w = this.getWidth(),
         h = this.getHeight();
     return Math.sqrt(h * h + w * w);
+};
+
+og.Rectangle.prototype.fit = function (width, height) {
+    return (this.getWidth() == width && this.getHeight() == height);
 };

@@ -25,20 +25,20 @@ my.Billboard.prototype.initialization = function () {
     bc = new og.BillboardsCollection();
     bc.addTo(this);
 
-            blb = new og.Billboard();
-            blb.setPosition(new og.math.Vector3(500, 0, 0));
-            blb.setSize(new og.math.Vector2(40, 40));
-            blb.addTo(bc);
+    blb = new og.Billboard();
+    blb.setPosition(new og.math.Vector3(500, 0, 0));
+    blb.setSize(new og.math.Vector2(50, 50));
+    blb.addTo(bc);
 
-            blb1 = new og.Billboard();
-            blb1.setPosition(new og.math.Vector3(0, 500, 0));
-            blb1.setSize(new og.math.Vector2(40, 40));
-            blb1.addTo(bc);
+    blb1 = new og.Billboard();
+    blb1.setPosition(new og.math.Vector3(0, 500, 0));
+    blb1.setSize(new og.math.Vector2(40, 40));
+    blb1.addTo(bc);
 
-            blb2 = new og.Billboard();
-            blb2.setPosition(new og.math.Vector3(0, 0, 500));
-            blb2.setSize(new og.math.Vector2(40, 40));
-            blb2.addTo(bc);
+    blb2 = new og.Billboard();
+    blb2.setPosition(new og.math.Vector3(0, 0, 500));
+    blb2.setSize(new og.math.Vector2(40, 40));
+    blb2.addTo(bc);
 
     //for (var i = 0; i < 50; i++) {
     //    for (var j = 0; j < 50; j++) {
@@ -70,14 +70,13 @@ var i = 0;
 my.Billboard.prototype.frame = function () {
 
     bc.forEach(function (b) {
-        b.setPosition(new og.math.Vector3(b.position.x, Math.sin((b.position.x * b.position.z + i) * Math.PI / 180.0) * 1000
-            + Math.cos((b.position.x * b.position.z + i) * Math.PI / 180.0) * 300, b.position.z));
-        b.setRotation(i/20);
+        b.setPosition(new og.math.Vector3(b.position.x, Math.sin(i * Math.PI / 180.0) * 300, b.position.z));
+        //b.setRotation(i*Math.PI/180);
     });
 
     i++;
 
-    if (i > 360)
+    if (i >= 360)
         i = 0;
 
 };
