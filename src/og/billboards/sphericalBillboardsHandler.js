@@ -516,7 +516,7 @@ og.SphericalBillboardsHandler.prototype.refreshTexCoordsArr = function () {
         var bi = this._billboards[i];
         var img = bi.image;
         if (img) {
-            var imageNode = ta._nodes[bi.image.__cacheIndex];
+            var imageNode = ta._nodes[bi.image.__nodeIndex];
             if (imageNode) {
                 this.setTexCoordArr(bi._billboardsHandlerIndex, imageNode.texCoords);
             }

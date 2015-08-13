@@ -27,17 +27,17 @@ my.Billboard.prototype.initialization = function () {
 
     blb = new og.Billboard();
     blb.setPosition(new og.math.Vector3(500, 0, 0));
-    blb.setSize(new og.math.Vector2(50, 50));
+    blb.setSize(new og.math.Vector2(80, 80));
     blb.addTo(bc);
 
     blb1 = new og.Billboard();
     blb1.setPosition(new og.math.Vector3(0, 500, 0));
-    blb1.setSize(new og.math.Vector2(40, 40));
+    blb1.setSize(new og.math.Vector2(80, 80));
     blb1.addTo(bc);
 
     blb2 = new og.Billboard();
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
-    blb2.setSize(new og.math.Vector2(40, 40));
+    blb2.setSize(new og.math.Vector2(80, 80));
     blb2.addTo(bc);
 
     //for (var i = 0; i < 50; i++) {

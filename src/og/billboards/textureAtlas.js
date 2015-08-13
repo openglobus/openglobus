@@ -38,8 +38,8 @@ og.TextureAtlasNode.prototype.insert = function (img) {
             return null;
 
         var rc = this.rect;
-        var w = img.width + 2;
-        var h = img.height + 2;
+        var w = img.width + 4;
+        var h = img.height + 4;
 
         if (w > rc.getWidth() || h > rc.getHeight())
             return null;
@@ -69,14 +69,6 @@ og.TextureAtlasNode.prototype.insert = function (img) {
 
 };
 
-function test() {
-    im = new og.ImageCanvas(512, 128);
-    im.fillColor("rgb(255,0,0)");
-    img = im.getImage()
-    img.id = "abc";
-    bc._textureAtlas.addImage(img);
-};
-
 /**
  *
  *
@@ -101,7 +93,7 @@ og.TextureAtlas.prototype.getCanvas = function () {
 };
 
 og.TextureAtlas.prototype.clearCanvas = function () {
-    this.canvas.fillColor("rgb(0,0,0)");
+    this.canvas.fillColor("rgba(0,0,0,0)");
 };
 
 og.TextureAtlas.prototype.assignHandler = function (handler) {
@@ -137,29 +129,25 @@ og.TextureAtlas.prototype._makeAtlas = function () {
         return a.width - b.width || a.height - b.height;
     });
 
-    this._btree = new og.TextureAtlasNode(new og.Rectangle(0, 0, this.canvas.getHeight(), this.canvas.getWidth()));
+    var w = this.canvas.getWidth(),
+        h = this.canvas.getHeight();
+    this._btree = new og.TextureAtlasNode(new og.Rectangle(0, 0, w, h));
 
     var newNodes = [];
     for (var i = 0; i < im.length; i++) {
         var node = this._btree.insert(im[i]);
         var r = node.rect;
-        this.canvas.drawImage(node.image, r.left + 1, r.top + 1);
-        //...
+        this.canvas.drawImage(node.image, r.left + 2, r.top + 2);
         var tc = node.texCoords;
-        tc[0] = r.left / 1024;
-        tc[1] = r.top / 1024;
-
-        tc[2] = r.right / 1024;
-        tc[3] = r.top / 1024;
-
-        tc[4] = r.left / 1024;
-        tc[5] = r.bottom / 1024;
-
-        tc[6] = r.right / 1024;
-        tc[7] = r.bottom / 1024;
-
-        //...
-        newNodes[node.image.__cacheIndex] = node;
+        tc[0] = (r.left + 2) / w;
+        tc[1] = (r.top + 2) / h;
+        tc[2] = (r.right - 2) / w;
+        tc[3] = (r.top + 2) / h;
+        tc[4] = (r.left + 2) / w;
+        tc[5] = (r.bottom - 2) / h;
+        tc[6] = (r.right - 2) / w;
+        tc[7] = (r.bottom - 2) / h;
+        newNodes[node.image.__nodeIndex] = node;
     }
     this._nodes = [];
     this._nodes = newNodes;

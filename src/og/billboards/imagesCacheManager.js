@@ -31,7 +31,7 @@ og.ImagesCacheManager.prototype._exec = function (req) {
     img.crossOrigin = '';
     img.onload = function () {
         that.imagesCache[req.url] = this;
-        this.__cacheIndex = that._imageIndexCounter++;
+        this.__nodeIndex = that._imageIndexCounter++;
         req.success(this);
         that._dequeueRequest();
     };

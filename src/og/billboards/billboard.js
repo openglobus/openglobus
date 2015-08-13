@@ -39,9 +39,9 @@ og.Billboard.prototype.setImageUrl = function (url) {
         var ta = this._billboardsHandler._billboardsCollection._textureAtlas;
         var that = this;
         icm.load(url, function (img) {
-            if (ta._nodes[img.__cacheIndex]) {
+            if (ta._nodes[img.__nodeIndex]) {
                 that.image = img;
-                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__cacheIndex].texCoords);
+                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__nodeIndex].texCoords);
             } else {                
                 ta.addImage(img);
                 that.image = img;
