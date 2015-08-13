@@ -41,7 +41,7 @@ og.Billboard.prototype.setImageUrl = function (url) {
         icm.load(url, function (img) {
             if (ta._nodes[img.__cacheIndex]) {
                 that.image = img;
-                that.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__cacheIndex].texCoords);
+                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__cacheIndex].texCoords);
             } else {                
                 ta.addImage(img);
                 that.image = img;
@@ -49,6 +49,10 @@ og.Billboard.prototype.setImageUrl = function (url) {
             }
         });
     }
+};
+
+og.Billboard.prototype.setImage = function (img) {
+    //...
 };
 
 og.Billboard.prototype.setOffset = function (offset) {
