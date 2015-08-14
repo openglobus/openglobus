@@ -26,16 +26,19 @@ my.Billboard.prototype.initialization = function () {
     bc.addTo(this);
 
     blb = new og.Billboard();
+    blb.setUrl("ship.png");
     blb.setPosition(new og.math.Vector3(500, 0, 0));
     blb.setSize(new og.math.Vector2(80, 80));
     blb.addTo(bc);
 
     blb1 = new og.Billboard();
+    blb1.setUrl("ship2.png");
     blb1.setPosition(new og.math.Vector3(0, 500, 0));
     blb1.setSize(new og.math.Vector2(80, 80));
     blb1.addTo(bc);
 
     blb2 = new og.Billboard();
+    blb2.setUrl("wall.jpg");
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(new og.math.Vector2(80, 80));
     blb2.addTo(bc);

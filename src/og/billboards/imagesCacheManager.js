@@ -36,6 +36,10 @@ og.ImagesCacheManager.prototype._exec = function (req) {
         that._dequeueRequest();
     };
 
+    img.onerror = function () {
+        that._dequeueRequest();
+    };
+
     img.src = req.url;
 };
 

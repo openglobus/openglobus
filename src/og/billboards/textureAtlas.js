@@ -80,7 +80,7 @@ og.TextureAtlas = function () {
     this.canvas = new og.ImageCanvas(1024, 1024);
     this.clearCanvas();
     this._images = [];
-    this._nodes = [];
+    this.nodes = [];
     this._btree = null;
 };
 
@@ -149,8 +149,8 @@ og.TextureAtlas.prototype._makeAtlas = function () {
         tc[7] = (r.bottom - 2) / h;
         newNodes[node.image.__nodeIndex] = node;
     }
-    this._nodes = [];
-    this._nodes = newNodes;
+    this.nodes = [];
+    this.nodes = newNodes;
 };
 
 og.TextureAtlas.prototype.makeTexture = function () {

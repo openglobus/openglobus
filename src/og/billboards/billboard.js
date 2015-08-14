@@ -8,6 +8,7 @@ og.Billboard = function () {
     this.rotation = 0;
     this.opacity = 1.0;
     this.image = null;
+    this._url = null;
     this.offset = new og.math.Vector3();
     this.size = new og.math.Vector2(32, 32);
     this.alignedAxis = null;
@@ -33,15 +34,16 @@ og.Billboard.prototype.setOpacity = function (opacity) {
     this._billboardsHandler && this._billboardsHandler.setOpacityArr(this._billboardsHandlerIndex, opacity);
 };
 
-og.Billboard.prototype.setImageUrl = function (url) {
-    if (this._billboardsHandler) {
+og.Billboard.prototype.setUrl = function (url) {
+    this._url = url;
+    if (this._billboardsHandler && url) {
         var icm = this._billboardsHandler._billboardsCollection._imagesCacheManager;
         var ta = this._billboardsHandler._billboardsCollection._textureAtlas;
         var that = this;
         icm.load(url, function (img) {
-            if (ta._nodes[img.__nodeIndex]) {
+            if (ta.nodes[img.__nodeIndex]) {
                 that.image = img;
-                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta._nodes[that.image.__nodeIndex].texCoords);
+                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
             } else {                
                 ta.addImage(img);
                 that.image = img;
@@ -49,10 +51,6 @@ og.Billboard.prototype.setImageUrl = function (url) {
             }
         });
     }
-};
-
-og.Billboard.prototype.setImage = function (img) {
-    //...
 };
 
 og.Billboard.prototype.setOffset = function (offset) {
@@ -90,6 +88,7 @@ og.Billboard.prototype.getVisibility = function () {
 
 og.Billboard.prototype.addTo = function (billboardCollection) {
     billboardCollection.add(this);
+    this.setUrl(this._url);
     return this;
 };
 
