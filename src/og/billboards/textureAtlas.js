@@ -95,7 +95,7 @@ og.TextureAtlas.prototype.getCanvas = function () {
 };
 
 og.TextureAtlas.prototype.clearCanvas = function () {
-    this.canvas.fillColor("rgba(0,0,0,0)");
+    this.canvas.fillEmpty();
 };
 
 og.TextureAtlas.prototype.assignHandler = function (handler) {
@@ -109,8 +109,6 @@ og.TextureAtlas.getDiagonal = function (image) {
 };
 
 og.TextureAtlas.prototype.addImage = function (image) {
-
-    this.clearCanvas();
 
     if (!(image.width && image.height)) {
         return;
@@ -134,6 +132,8 @@ og.TextureAtlas.prototype._makeAtlas = function () {
     var w = this.canvas.getWidth(),
         h = this.canvas.getHeight();
     this._btree = new og.TextureAtlasNode(new og.Rectangle(0, 0, w, h));
+
+    this.clearCanvas();
 
     var newNodes = [];
     for (var i = 0; i < im.length; i++) {
