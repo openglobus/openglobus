@@ -38,8 +38,8 @@ og.TextureAtlasNode.prototype.insert = function (img) {
             return null;
 
         var rc = this.rect;
-        var w = img.width + 4;
-        var h = img.height + 4;
+        var w = img.width + og.TextureAtlas.BORDER_SIZE;
+        var h = img.height + og.TextureAtlas.BORDER_SIZE;
 
         if (w > rc.getWidth() || h > rc.getHeight())
             return null;
@@ -83,6 +83,8 @@ og.TextureAtlas = function () {
     this.nodes = [];
     this._btree = null;
 };
+
+og.TextureAtlas.BORDER_SIZE = 4;
 
 og.TextureAtlas.prototype.getImage = function () {
     return this.canvas.getImage();
@@ -137,16 +139,17 @@ og.TextureAtlas.prototype._makeAtlas = function () {
     for (var i = 0; i < im.length; i++) {
         var node = this._btree.insert(im[i]);
         var r = node.rect;
-        this.canvas.drawImage(node.image, r.left + 2, r.top + 2);
+        var bs = Math.round(og.TextureAtlas.BORDER_SIZE * 0.5);
+        this.canvas.drawImage(node.image, r.left + bs, r.top + bs);
         var tc = node.texCoords;
-        tc[0] = (r.left + 2) / w;
-        tc[1] = (r.top + 2) / h;
-        tc[2] = (r.right - 2) / w;
-        tc[3] = (r.top + 2) / h;
-        tc[4] = (r.left + 2) / w;
-        tc[5] = (r.bottom - 2) / h;
-        tc[6] = (r.right - 2) / w;
-        tc[7] = (r.bottom - 2) / h;
+        tc[0] = (r.left + bs) / w;
+        tc[1] = (r.top + bs) / h;
+        tc[2] = (r.right - bs) / w;
+        tc[3] = (r.top + bs) / h;
+        tc[4] = (r.left + bs) / w;
+        tc[5] = (r.bottom - bs) / h;
+        tc[6] = (r.right - bs) / w;
+        tc[7] = (r.bottom - bs) / h;
         newNodes[node.image.__nodeIndex] = node;
     }
     this.nodes = [];
