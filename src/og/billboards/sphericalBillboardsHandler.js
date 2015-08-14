@@ -130,12 +130,12 @@ og.SphericalBillboardsHandler.prototype.add = function (billboard) {
 og.SphericalBillboardsHandler.prototype._makeCommonArrays = function (billboard) {
 
     if (billboard.visibility) {
-        og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [-0.5, 0.5, 0, 0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0]);
+        og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0]);
     } else {
         og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
 
-    og.SphericalBillboardsHandler.concArr(this._texCoordArr, 2, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]/*[0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1]*/);
+    og.SphericalBillboardsHandler.concArr(this._texCoordArr, 2, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
     var x = billboard.position.x, y = billboard.position.y, z = billboard.position.z;
     og.SphericalBillboardsHandler.concArr(this._positionArr, 3, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
@@ -425,7 +425,7 @@ og.SphericalBillboardsHandler.prototype.setTexCoordArr = function (index, tcoord
 og.SphericalBillboardsHandler.prototype.setVisibility = function (index, visibility) {
     var vArr;
     if (visibility) {
-        vArr = [-0.5, 0.5, 0, 0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0];
+        vArr = [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0];               
     } else {
         vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }

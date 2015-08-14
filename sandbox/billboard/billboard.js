@@ -32,7 +32,7 @@ my.Billboard.prototype.initialization = function () {
     blb.addTo(bc);
 
     blb1 = new og.Billboard();
-    blb1.setUrl("ship2.png");
+    blb1.setUrl("ship.png");
     blb1.setPosition(new og.math.Vector3(0, 500, 0));
     blb1.setSize(new og.math.Vector2(80, 80));
     blb1.addTo(bc);
