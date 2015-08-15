@@ -25,8 +25,8 @@ og.ImageCanvas.prototype.fillEmpty = function () {
 };
 
 og.ImageCanvas.prototype.fillColor = function (color) {
-    this._context.fillStyle = color;
-    this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+    //this._context.fillStyle = color;
+    //this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
 };
 
 og.ImageCanvas.prototype.setData = function (data) {

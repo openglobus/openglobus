@@ -42,7 +42,7 @@ og.AlignedAxisBillboardsHandler.prototype._makeAlignedAxisArray = function (bill
 
 og.AlignedAxisBillboardsHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) {
 
-    var i = 18 + index * 21;
+    var i = index * 18;
     var a = this._alignedAxisArr, x = alignedAxis.x, y = alignedAxis.y, z = alignedAxis.z;
 
     a[i] = x;
@@ -69,10 +69,6 @@ og.AlignedAxisBillboardsHandler.prototype.setAlignedAxisArr = function (index, a
     a[i + 16] = y;
     a[i + 17] = z;
 
-    a[i + 18] = x;
-    a[i + 19] = y;
-    a[i + 20] = z;
-
     this._changedBuffers[og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER] = true;
 };
 
@@ -82,19 +78,19 @@ og.AlignedAxisBillboardsHandler.prototype.remove = function (billboard) {
 
         this._billboards.splice(bi, 1);
 
-        var i = 18 + bi * 21;
-        this._offsetArr.splice(i, 21);
-        this._vertexArr.splice(i, 21);
-        this._positionArr.splice(i, 21);
-        this._alignedAxisArr.splice(i, 21);
+        var i = bi * 18;
+        this._offsetArr.splice(i, 18);
+        this._vertexArr.splice(i, 18);
+        this._positionArr.splice(i, 18);
+        this._alignedAxisArr.splice(i, 18);
 
-        i = 12 + bi * 14;
-        this._sizeArr.splice(i, 14);
-        this._texCoordArr.splice(i, 14);
+        i = bi * 12;
+        this._sizeArr.splice(i, 12);
+        this._texCoordArr.splice(i, 12);
 
-        i = 6 + bi * 7;
-        this._opacityArr.splice(i, 7);
-        this._rotationArr.splice(i, 7);
+        i = bi * 6;
+        this._opacityArr.splice(i, 6);
+        this._rotationArr.splice(i, 6);
 
         this.reindexBillbordsArray(bi);
         this.refresh();
@@ -118,14 +114,14 @@ og.AlignedAxisBillboardsHandler.prototype.clear = function () {
     this._rotationArr.length = 0;
     this._alignedAxisArr.length = 0;
 
-    this._texCoordArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this._vertexArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this._positionArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this._sizeArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this._offsetArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    this._opacityArr = [0, 0, 0, 0, 0, 0];
-    this._rotationArr = [0, 0, 0, 0, 0, 0];
-    this._alignedAxisArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this._texCoordArr = [];
+    this._vertexArr = [];
+    this._positionArr = [];
+    this._sizeArr = [];
+    this._offsetArr = [];
+    this._opacityArr = [];
+    this._rotationArr = [];
+    this._alignedAxisArr = [];
 
     this.refresh();
 };

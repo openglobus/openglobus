@@ -142,14 +142,25 @@ og.TextureAtlas.prototype._makeAtlas = function () {
         var bs = Math.round(og.TextureAtlas.BORDER_SIZE * 0.5);
         this.canvas.drawImage(node.image, r.left + bs, r.top + bs);
         var tc = node.texCoords;
+
         tc[0] = (r.left + bs) / w;
         tc[1] = (r.top + bs) / h;
+
         tc[2] = (r.left + bs) / w;
         tc[3] = (r.bottom - bs) / h;
+
         tc[4] = (r.right - bs) / w;
-        tc[5] = (r.top + bs) / h;
+        tc[5] = (r.bottom - bs) / h;
+
         tc[6] = (r.right - bs) / w;
         tc[7] = (r.bottom - bs) / h;
+
+        tc[8] = (r.right - bs) / w;
+        tc[9] = (r.top + bs) / h;
+
+        tc[10] = (r.left + bs) / w;
+        tc[11] = (r.top + bs) / h;
+
         newNodes[node.image.__nodeIndex] = node;
     }
     this.nodes = [];
