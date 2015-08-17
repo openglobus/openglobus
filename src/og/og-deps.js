@@ -3,10 +3,10 @@
 goog.addDependency('../../../og/src/og/ajax.js', ['og.Ajax'], []);
 goog.addDependency('../../../og/src/og/billboards/alignedAxisBillboardsHandler.js', ['og.AlignedAxisBillboardsHandler'], ['og.SphericalBillboardsHandler', 'og.inheritance', 'og.shaderProgram.alignedAxisBillboard']);
 goog.addDependency('../../../og/src/og/billboards/billboard.js', ['og.Billboard'], ['og.math.Vector2', 'og.math.Vector3']);
-goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.AlignedAxisBillboardsHandler', 'og.ImagesCacheManager', 'og.SphericalBillboardsHandler', 'og.TextureAtlas']);
+goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.AlignedAxisBillboardsHandler', 'og.SphericalBillboardsHandler', 'og.TextureAtlas']);
 goog.addDependency('../../../og/src/og/billboards/imagesCacheManager.js', ['og.ImagesCacheManager'], ['og.QueueArray']);
 goog.addDependency('../../../og/src/og/billboards/sphericalBillboardsHandler.js', ['og.SphericalBillboardsHandler'], ['og.shaderProgram.sphericalBillboard']);
-goog.addDependency('../../../og/src/og/billboards/textureAtlas.js', ['og.TextureAtlas', 'og.TextureAtlasNode'], ['og.ImageCanvas', 'og.Rectangle']);
+goog.addDependency('../../../og/src/og/billboards/textureAtlas.js', ['og.TextureAtlas', 'og.TextureAtlasNode'], ['og.ImageCanvas', 'og.ImagesCacheManager', 'og.Rectangle']);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);

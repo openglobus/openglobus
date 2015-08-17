@@ -3,6 +3,7 @@ goog.provide('og.TextureAtlasNode');
 
 goog.require('og.ImageCanvas');
 goog.require('og.Rectangle');
+goog.require('og.ImagesCacheManager');
 
 
 /**
@@ -82,6 +83,7 @@ og.TextureAtlas = function () {
     this._images = [];
     this.nodes = [];
     this._btree = null;
+    this._imagesCacheManager = new og.ImagesCacheManager();
 };
 
 og.TextureAtlas.BORDER_SIZE = 4;
@@ -172,4 +174,8 @@ og.TextureAtlas.prototype.makeTexture = function () {
         this._handler.gl.deleteTexture(this.texture);
         this.texture = this._handler.createTexture_mm(this.canvas._canvas);
     }
+};
+
+og.TextureAtlas.prototype.loadImage = function (url, success) {
+    this._imagesCacheManager.load(url, success);
 };

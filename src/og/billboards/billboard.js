@@ -36,18 +36,18 @@ og.Billboard.prototype.setOpacity = function (opacity) {
 
 og.Billboard.prototype.setUrl = function (url) {
     this._url = url;
-    if (this._billboardsHandler && url) {
-        var icm = this._billboardsHandler._billboardsCollection._imagesCacheManager;
-        var ta = this._billboardsHandler._billboardsCollection._textureAtlas;
+    var bh = this._billboardsHandler;
+    if ( bh && url) {
+        var ta = bh._billboardsCollection._textureAtlas;
         var that = this;
-        icm.load(url, function (img) {
+        ta.loadImage(url, function (img) {
             if (ta.nodes[img.__nodeIndex]) {
                 that.image = img;
-                that._billboardsHandler.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
+                bh.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
             } else {                
                 ta.addImage(img);
                 that.image = img;
-                that._billboardsHandler.refreshTexCoordsArr();
+                bh.refreshTexCoordsArr();
             }
         });
     }

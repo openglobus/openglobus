@@ -4,7 +4,6 @@ goog.provide('og.BillboardsCollection');
 goog.require('og.SphericalBillboardsHandler');
 goog.require('og.AlignedAxisBillboardsHandler');
 goog.require('og.TextureAtlas');
-goog.require('og.ImagesCacheManager');
 
 /*
  * og.BillboardsCollection
@@ -18,7 +17,6 @@ og.BillboardsCollection = function () {
     this._sphericalBillboardsHandler = new og.SphericalBillboardsHandler(this);
     this._alignedAxisBillboardsHandler = new og.AlignedAxisBillboardsHandler(this);
     this._textureAtlas = new og.TextureAtlas();
-    this._imagesCacheManager = new og.ImagesCacheManager();
 };
 
 og.BillboardsCollection.prototype.setVisibility = function (visibility) {
