@@ -128,7 +128,7 @@ og.TextureAtlas.prototype._makeAtlas = function () {
 
     var im = this._images.slice(0);
 
-    im.sort(function (a, b) {
+    im.sort(function (b, a) {
         return a.width - b.width || a.height - b.height;
     });
 
