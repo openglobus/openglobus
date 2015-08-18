@@ -102,6 +102,7 @@ og.TextureAtlas.prototype.clearCanvas = function () {
 
 og.TextureAtlas.prototype.assignHandler = function (handler) {
     this._handler = handler;
+    this.makeTexture();
 };
 
 og.TextureAtlas.getDiagonal = function (image) {

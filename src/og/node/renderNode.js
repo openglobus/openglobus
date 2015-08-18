@@ -6,6 +6,7 @@ goog.require('og.node.Node');
 goog.require('og.webgl');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
+goog.require('og.TextureAtlas');
 
 og.node.RenderNode = function (name) {
     og.inheritance.base(this, name);
@@ -29,6 +30,7 @@ og.node.RenderNode = function (name) {
     this._pointLightsNames = [];
 
     this.billboardsCollections = [];
+    this.billboardsTextureAtlas = new og.TextureAtlas();
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
@@ -136,6 +138,13 @@ og.node.RenderNode.prototype.transformLights = function () {
     }
 };
 
+og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
+    for (var i = 0; i < this.billboardsCollections.length; i++) {
+        this.billboardsCollections[i]._sphericalBillboardsHandler.refreshTexCoordsArr();
+        this.billboardsCollections[i]._alignedAxisBillboardsHandler.refreshTexCoordsArr();
+    }
+};
+
 og.node.RenderNode.prototype.drawBillboards = function () {
     var i = this.billboardsCollections.length;
     while (i--) {
@@ -145,10 +154,10 @@ og.node.RenderNode.prototype.drawBillboards = function () {
 
 og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
+    this.billboardsTextureAtlas.assignHandler(renderer.handler);
 
     for (var i = 0; i < this.billboardsCollections.length; i++) {
         this.billboardsCollections[i]._sphericalBillboardsHandler.setRenderer(renderer);
         this.billboardsCollections[i]._alignedAxisBillboardsHandler.setRenderer(renderer);
-        this.billboardsCollections[i]._textureAtlas.assignHandler(renderer.handler);
     }
 };

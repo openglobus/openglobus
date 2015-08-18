@@ -57,7 +57,11 @@ og.SphericalBillboardsHandler.VERTEX_BUFFER = 6;
 og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER = 7;
 
 og.SphericalBillboardsHandler.prototype.initShaderProgram = function () {
-    this._renderer.handler.addShaderProgram(og.shaderProgram.sphericalBillboard());
+    if (this._renderer.handler) {
+        if (!this._renderer.handler.shaderPrograms.sphericalBillboard) {
+            this._renderer.handler.addShaderProgram(og.shaderProgram.sphericalBillboard());
+        }
+    }
 };
 
 og.SphericalBillboardsHandler.prototype.setRenderer = function (renderer) {
@@ -176,8 +180,6 @@ og.SphericalBillboardsHandler.prototype.draw = function () {
     var gl = h.gl;
 
     //to optimize or not to optimize, that is it!
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._billboardsCollection._textureAtlas.texture);
     gl.uniform1i(shu.u_texture._pName, 0);
 
     //TODO:extract to the renderNode renderer loop
@@ -485,14 +487,17 @@ og.SphericalBillboardsHandler.prototype.createTexCoordBuffer = function () {
 };
 
 og.SphericalBillboardsHandler.prototype.refreshTexCoordsArr = function () {
-    var ta = this._billboardsCollection._textureAtlas;
-    for (var i = 0; i < this._billboards.length; i++) {
-        var bi = this._billboards[i];
-        var img = bi.image;
-        if (img) {
-            var imageNode = ta.nodes[bi.image.__nodeIndex];
-            if (imageNode) {
-                this.setTexCoordArr(bi._billboardsHandlerIndex, imageNode.texCoords);
+    var bc = this._billboardsCollection;
+    if (bc && bc.renderNode) {
+        var ta = bc.renderNode.billboardsTextureAtlas;
+        for (var i = 0; i < this._billboards.length; i++) {
+            var bi = this._billboards[i];
+            var img = bi.image;
+            if (img) {
+                var imageNode = ta.nodes[bi.image.__nodeIndex];
+                if (imageNode) {
+                    this.setTexCoordArr(bi._billboardsHandlerIndex, imageNode.texCoords);
+                }
             }
         }
     }

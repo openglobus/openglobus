@@ -3,7 +3,6 @@ goog.provide('og.BillboardsCollection');
 
 goog.require('og.SphericalBillboardsHandler');
 goog.require('og.AlignedAxisBillboardsHandler');
-goog.require('og.TextureAtlas');
 
 /*
  * og.BillboardsCollection
@@ -16,7 +15,6 @@ og.BillboardsCollection = function () {
     this.visibility = true;
     this._sphericalBillboardsHandler = new og.SphericalBillboardsHandler(this);
     this._alignedAxisBillboardsHandler = new og.AlignedAxisBillboardsHandler(this);
-    this._textureAtlas = new og.TextureAtlas();
 };
 
 og.BillboardsCollection.prototype.setVisibility = function (visibility) {
@@ -64,9 +62,21 @@ og.BillboardsCollection.prototype.addTo = function (renderNode) {
         renderNode.billboardsCollections.push(this);
         this._sphericalBillboardsHandler.setRenderer(renderNode.renderer);
         this._alignedAxisBillboardsHandler.setRenderer(renderNode.renderer);
-        this._textureAtlas.assignHandler(renderNode.renderer.handler);
+        this.updateBillboardsTextureAtlas();
     }
     return this;
+};
+
+og.BillboardsCollection.prototype.updateBillboardsTextureAtlas = function () {
+    var b = this._sphericalBillboardsHandler._billboards;
+    for (var i = 0; i < b.length; i++) {
+        b[i].setUrl(b[i]._url);
+    }
+
+    b = this._alignedAxisBillboardsHandler._billboards;
+    for (var i = 0; i < b.length; i++) {
+        b[i].setUrl(b[i]._url);
+    }
 };
 
 og.BillboardsCollection.prototype.remove = function () {
@@ -81,11 +91,20 @@ og.BillboardsCollection.prototype.remove = function () {
 };
 
 og.BillboardsCollection.prototype.draw = function () {
-    if (this.visibility) {
-        var gl = this.renderNode.renderer.handler.gl;
+    var s = this._sphericalBillboardsHandler,
+        a = this._alignedAxisBillboardsHandler;
+
+    if (this.visibility && (s._billboards.length || a._billboards.length)) {
+        var rn = this.renderNode
+        var gl = rn.renderer.handler.gl;
         gl.disable(gl.CULL_FACE);
-        this._sphericalBillboardsHandler.draw();
-        this._alignedAxisBillboardsHandler.draw();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, rn.billboardsTextureAtlas.texture);
+
+        s.draw();
+        a.draw();
+
         gl.enable(gl.CULL_FACE);
     }
 };

@@ -38,18 +38,21 @@ og.Billboard.prototype.setUrl = function (url) {
     this._url = url;
     var bh = this._billboardsHandler;
     if ( bh && url) {
-        var ta = bh._billboardsCollection._textureAtlas;
-        var that = this;
-        ta.loadImage(url, function (img) {
-            if (ta.nodes[img.__nodeIndex]) {
-                that.image = img;
-                bh.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
-            } else {                
-                ta.addImage(img);
-                that.image = img;
-                bh.refreshTexCoordsArr();
-            }
-        });
+        var rn = bh._billboardsCollection.renderNode;
+        if (rn) {
+            var ta = rn.billboardsTextureAtlas;
+            var that = this;
+            ta.loadImage(url, function (img) {
+                if (ta.nodes[img.__nodeIndex]) {
+                    that.image = img;
+                    bh.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
+                } else {
+                    ta.addImage(img);
+                    that.image = img;
+                    rn.updateBillboardsTexCoords();
+                }
+            });
+        }
     }
 };
 

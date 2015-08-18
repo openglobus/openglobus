@@ -27,7 +27,11 @@ og.AlignedAxisBillboardsHandler.prototype.createAlignedAxisBuffer = function () 
 };
 
 og.AlignedAxisBillboardsHandler.prototype.initShaderProgram = function () {
-    this._renderer.handler.addShaderProgram(og.shaderProgram.alignedAxisBillboard());
+    if (this._renderer.handler) {
+        if (!this._renderer.handler.shaderPrograms.alignedAxisBillboard) {
+            this._renderer.handler.addShaderProgram(og.shaderProgram.alignedAxisBillboard());
+        }
+    }
 };
 
 og.AlignedAxisBillboardsHandler.prototype._addBillboardToArrays = function (billboard) {
