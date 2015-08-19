@@ -25,6 +25,11 @@ og.math.Vector3.prototype.clone = function () {
 og.math.Vector3.prototype.toString = function () {
     return "(" + this.x + "," + this.y + "," + this.z + ")";
 };
+
+og.math.Vector3.prototype.isZero = function () {
+    return !(this.x || this.y || this.z);
+};
+
 og.math.Vector3.add = function (a, b) {
     var res = new og.math.Vector3(a.x, a.y, a.z);
     res.add(b);

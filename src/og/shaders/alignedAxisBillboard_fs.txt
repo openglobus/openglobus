@@ -1,10 +1,10 @@
 precision highp float;
-                            uniform sampler2D u_texture;
-                            varying vec2 v_texCoords;
-                            varying float v_opacity;
-                            void main () {
-                                vec4 color = texture2D(u_texture, v_texCoords);
-                                if(color.a<0.1)
-                                    discard;
-                                gl_FragColor = vec4(color.rgb,color.a*v_opacity);
-                            }
+uniform sampler2D u_texture;
+varying vec2 v_texCoords;
+varying float v_opacity;
+void main () {
+    vec4 color = texture2D(u_texture, v_texCoords);
+    if(color.a<0.1)
+        discard;
+    gl_FragColor = vec4(color.rgb,color.a*v_opacity);
+}

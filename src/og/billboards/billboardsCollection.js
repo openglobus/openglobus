@@ -29,21 +29,19 @@ og.BillboardsCollection.prototype.addBillboards = function (bArr) {
 };
 
 og.BillboardsCollection.prototype.add = function (billboard) {
-    if (billboard.alignedAxis) {
-        this._alignedAxisBillboardsHandler.add(billboard);
-    } else {
+    if (billboard.alignedAxis.isZero()) {
         this._sphericalBillboardsHandler.add(billboard);
+    } else {
+        this._alignedAxisBillboardsHandler.add(billboard);
     }
+    billboard.setUrl(billboard._url);
     return this;
 };
 
 og.BillboardsCollection.prototype.removeBillboard = function (billboard) {
-    if (billboard.alignedAxis) {
-        billboard._billboardsHandler && this._alignedAxisBillboardsHandler.remove(billboard._billboardsHandlerIndex);
-    } else {
-        billboard._billboardsHandler && this._sphericalBillboardsHandler.remove(billboard._billboardsHandlerIndex);
+    if (billboard._billboardsHandler && this._renderNodeIndex == billboard._billboardsHandler._billboardsCollection._renderNodeIndex) {
+        billboard.remove();
     }
-    return this;
 };
 
 og.BillboardsCollection.prototype.forEach = function (callback, autoRefresh) {
@@ -90,24 +88,24 @@ og.BillboardsCollection.prototype.remove = function () {
     }
 };
 
-og.BillboardsCollection.prototype.draw = function () {
-    var s = this._sphericalBillboardsHandler,
-        a = this._alignedAxisBillboardsHandler;
+//og.BillboardsCollection.prototype.draw = function () {
+//    var s = this._sphericalBillboardsHandler,
+//        a = this._alignedAxisBillboardsHandler;
 
-    if (this.visibility && (s._billboards.length || a._billboards.length)) {
-        var rn = this.renderNode
-        var gl = rn.renderer.handler.gl;
-        gl.disable(gl.CULL_FACE);
+//    if (this.visibility && (s._billboards.length || a._billboards.length)) {
+//        var rn = this.renderNode
+//        var gl = rn.renderer.handler.gl;
+//        gl.disable(gl.CULL_FACE);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, rn.billboardsTextureAtlas.texture);
+//        gl.activeTexture(gl.TEXTURE0);
+//        gl.bindTexture(gl.TEXTURE_2D, rn.billboardsTextureAtlas.texture);
 
-        s.draw();
-        a.draw();
+//        s.draw();
+//        a.draw();
 
-        gl.enable(gl.CULL_FACE);
-    }
-};
+//        gl.enable(gl.CULL_FACE);
+//    }
+//};
 
 og.BillboardsCollection.prototype.clear = function () {
     this._sphericalBillboardsHandler.clear();

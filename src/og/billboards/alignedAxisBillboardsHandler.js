@@ -9,11 +9,11 @@ goog.require('og.shaderProgram.alignedAxisBillboard');
  *
  *
  */
-og.AlignedAxisBillboardsHandler = function () {
-    og.inheritance.base(this);
+og.AlignedAxisBillboardsHandler = function (billboardsCollection) {
+    og.inheritance.base(this, billboardsCollection);
 
-    this._alignedAxisBuffer = [];
-    this._alignedAxisArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this._alignedAxisBuffer = null;
+    this._alignedAxisArr = [];
     this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER] = this.createAlignedAxisBuffer;
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 };
@@ -22,8 +22,8 @@ og.inheritance.extend(og.AlignedAxisBillboardsHandler, og.SphericalBillboardsHan
 
 og.AlignedAxisBillboardsHandler.prototype.createAlignedAxisBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._alignedAxisArr);
-    this._alignedAxisArr = h.createArrayBuffer(new Float32Array(this._alignedAxisArr), 3, this._alignedAxisArr.length / 3);
+    h.gl.deleteBuffer(this._alignedAxisBuffer);
+    this._alignedAxisBuffer = h.createArrayBuffer(new Float32Array(this._alignedAxisArr), 3, this._alignedAxisArr.length / 3);
 };
 
 og.AlignedAxisBillboardsHandler.prototype.initShaderProgram = function () {
@@ -41,7 +41,7 @@ og.AlignedAxisBillboardsHandler.prototype._addBillboardToArrays = function (bill
 
 og.AlignedAxisBillboardsHandler.prototype._makeAlignedAxisArray = function (billboard) {
     var x = billboard.alignedAxis.x, y = billboard.alignedAxis.y, z = billboard.alignedAxis.z;
-    og.SphericalBillboardsHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z]);
+    og.SphericalBillboardsHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 };
 
 og.AlignedAxisBillboardsHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) {
@@ -76,32 +76,30 @@ og.AlignedAxisBillboardsHandler.prototype.setAlignedAxisArr = function (index, a
     this._changedBuffers[og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER] = true;
 };
 
-og.AlignedAxisBillboardsHandler.prototype.remove = function (billboard) {
-    if (this.__staticIndex == billboard._billboardsHandler.__staticIndex) {
-        var bi = billboard._billboardsHandlerIndex;
+og.AlignedAxisBillboardsHandler.prototype._removeBillboard = function (billboard) {
+    var bi = billboard._billboardsHandlerIndex;
 
-        this._billboards.splice(bi, 1);
+    this._billboards.splice(bi, 1);
 
-        var i = bi * 18;
-        this._offsetArr.splice(i, 18);
-        this._vertexArr.splice(i, 18);
-        this._positionArr.splice(i, 18);
-        this._alignedAxisArr.splice(i, 18);
+    var i = bi * 18;
+    this._offsetArr.splice(i, 18);
+    this._vertexArr.splice(i, 18);
+    this._positionArr.splice(i, 18);
+    this._alignedAxisArr.splice(i, 18);
 
-        i = bi * 12;
-        this._sizeArr.splice(i, 12);
-        this._texCoordArr.splice(i, 12);
+    i = bi * 12;
+    this._sizeArr.splice(i, 12);
+    this._texCoordArr.splice(i, 12);
 
-        i = bi * 6;
-        this._opacityArr.splice(i, 6);
-        this._rotationArr.splice(i, 6);
+    i = bi * 6;
+    this._opacityArr.splice(i, 6);
+    this._rotationArr.splice(i, 6);
 
-        this.reindexBillbordsArray(bi);
-        this.refresh();
+    this.reindexBillbordsArray(bi);
+    this.refresh();
 
-        billboard._billboardsHandlerIndex = -1;
-        billboard._billboardsHandler = null;
-    }
+    billboard._billboardsHandlerIndex = -1;
+    billboard._billboardsHandler = null;
 };
 
 og.AlignedAxisBillboardsHandler.prototype.clear = function () {
@@ -130,8 +128,52 @@ og.AlignedAxisBillboardsHandler.prototype.clear = function () {
     this.refresh();
 };
 
-og.AlignedAxisBillboardsHandler.prototype.draw = function () {
+og.AlignedAxisBillboardsHandler.prototype._displayPASS = function () {
 
-    //...
+    var r = this._renderer;
+    var h = r.handler;
+    h.shaderPrograms.alignedAxisBillboard.activate();
+    var sh = h.shaderPrograms.alignedAxisBillboard._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
 
+    var gl = h.gl;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
+    gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    //same as the spherical code below
+    gl.uniform1i(shu.u_texture._pName, 0);
+
+    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
+    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
+
+    gl.uniform2fv(shu.uViewSize._pName, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
+    gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+
+    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera.viewAngle * og.math.RADIANS_HALF);
+    gl.uniform1f(shu.uRatio._pName, r.handler.canvas.aspect);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
+    gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+    gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
+    gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+    gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
+    gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+    gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 };

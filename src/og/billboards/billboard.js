@@ -11,7 +11,7 @@ og.Billboard = function () {
     this._url = null;
     this.offset = new og.math.Vector3();
     this.size = new og.math.Vector2(32, 32);
-    this.alignedAxis = null;
+    this.alignedAxis = new og.math.Vector3();
     this.visibility = true;
     this._billboardsHandler = null;
     this._billboardsHandlerIndex = -1;
@@ -37,7 +37,7 @@ og.Billboard.prototype.setOpacity = function (opacity) {
 og.Billboard.prototype.setUrl = function (url) {
     this._url = url;
     var bh = this._billboardsHandler;
-    if ( bh && url) {
+    if (bh && url) {
         var rn = bh._billboardsCollection.renderNode;
         if (rn) {
             var ta = rn.billboardsTextureAtlas;
@@ -69,14 +69,28 @@ og.Billboard.prototype.setSize = function (size) {
 };
 
 og.Billboard.prototype.setAlignedAxis = function (alignedAxis) {
-    if (this.alignedAxis) {
-        this.alignedAxis.x = alignedAxis.x;
-        this.alignedAxis.y = alignedAxis.y;
-        this.alignedAxis.z = alignedAxis.z;
-        this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
-    } else {
-        this.remove();
-        this._billboardsHandler.alignedAxisBillboardsHandler.add(this);
+
+    var aligned = !this.alignedAxis.isZero();
+
+    this.alignedAxis.x = alignedAxis.x;
+    this.alignedAxis.y = alignedAxis.y;
+    this.alignedAxis.z = alignedAxis.z;
+
+    var h = this._billboardsHandler;
+    if (h) {
+        if (aligned) {
+            if (alignedAxis.isZero()) {
+                var bc = h._billboardsCollection;
+                this.remove();
+                bc.add(this);
+            } else {
+                h.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
+            }
+        } else if (!alignedAxis.isZero()) {
+            var bc = h._billboardsCollection;
+            this.remove();
+            bc.add(this);
+        }
     }
 };
 
@@ -91,7 +105,6 @@ og.Billboard.prototype.getVisibility = function () {
 
 og.Billboard.prototype.addTo = function (billboardCollection) {
     billboardCollection.add(this);
-    this.setUrl(this._url);
     return this;
 };
 

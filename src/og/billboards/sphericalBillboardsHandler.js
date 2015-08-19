@@ -133,43 +133,41 @@ og.SphericalBillboardsHandler.prototype.add = function (billboard) {
 og.SphericalBillboardsHandler.prototype._makeCommonArrays = function (billboard) {
 
     if (billboard.visibility) {
-        og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]);
+        og.SphericalBillboardsHandler.concArr(this._vertexArr, [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]);
     } else {
-        og.SphericalBillboardsHandler.concArr(this._vertexArr, 3, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        og.SphericalBillboardsHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
 
-    og.SphericalBillboardsHandler.concArr(this._texCoordArr, 2, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    og.SphericalBillboardsHandler.concArr(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
     var x = billboard.position.x, y = billboard.position.y, z = billboard.position.z;
-    og.SphericalBillboardsHandler.concArr(this._positionArr, 3, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+    og.SphericalBillboardsHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
     x = billboard.size.x; y = billboard.size.y;
-    og.SphericalBillboardsHandler.concArr(this._sizeArr, 2, [x, y, x, y, x, y, x, y, x, y, x, y]);
+    og.SphericalBillboardsHandler.concArr(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
     x = billboard.offset.x; y = billboard.offset.y; z = billboard.offset.z;
-    og.SphericalBillboardsHandler.concArr(this._offsetArr, 3, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+    og.SphericalBillboardsHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
     x = billboard.opacity;
-    og.SphericalBillboardsHandler.concArr(this._opacityArr, 1, [x, x, x, x, x, x]);
+    og.SphericalBillboardsHandler.concArr(this._opacityArr, [x, x, x, x, x, x]);
 
     x = billboard.rotation;
-    og.SphericalBillboardsHandler.concArr(this._rotationArr, 1, [x, x, x, x, x, x]);
+    og.SphericalBillboardsHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
 };
 
 og.SphericalBillboardsHandler.prototype._addBillboardToArrays = function (billboard) {
     this._makeCommonArrays(billboard);
 };
 
-og.SphericalBillboardsHandler.concArr = function (dest, elSize, curr) {
+og.SphericalBillboardsHandler.concArr = function (dest, curr) {
     for (var i = 0; i < curr.length; i++) {
         dest.push(curr[i]);
     }
 };
 
-og.SphericalBillboardsHandler.prototype.draw = function () {
 
-    this.update();
-
+og.SphericalBillboardsHandler.prototype._displayPASS = function () {
     var r = this._renderer;
     var h = r.handler;
     h.shaderPrograms.sphericalBillboard.activate();
@@ -179,13 +177,7 @@ og.SphericalBillboardsHandler.prototype.draw = function () {
 
     var gl = h.gl;
 
-    //to optimize or not to optimize, that is it!
     gl.uniform1i(shu.u_texture._pName, 0);
-
-    //TODO:extract to the renderNode renderer loop
-    gl.enable(gl.BLEND);
-    gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
@@ -220,6 +212,13 @@ og.SphericalBillboardsHandler.prototype.draw = function () {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 };
 
+og.SphericalBillboardsHandler.prototype.draw = function () {
+    if (this._billboardsCollection.visibility && this._billboards.length) {
+        this.update();
+        this._displayPASS();
+    }
+};
+
 og.SphericalBillboardsHandler.prototype.reindexBillbordsArray = function (startIndex) {
     var b = this._billboards;
 
@@ -228,31 +227,34 @@ og.SphericalBillboardsHandler.prototype.reindexBillbordsArray = function (startI
     }
 };
 
+og.SphericalBillboardsHandler.prototype._removeBillboard = function (billboard) {
+    var bi = billboard._billboardsHandlerIndex;
+
+    this._billboards.splice(bi, 1);
+
+    var i = bi * 18;
+    this._offsetArr.splice(i, 18);
+    this._vertexArr.splice(i, 18);
+    this._positionArr.splice(i, 18);
+
+    i = bi * 12;
+    this._sizeArr.splice(i, 12);
+    this._texCoordArr.splice(i, 12);
+
+    i = bi * 6;
+    this._opacityArr.splice(i, 6);
+    this._rotationArr.splice(i, 6);
+
+    this.reindexBillbordsArray(bi);
+    this.refresh();
+
+    billboard._billboardsHandlerIndex = -1;
+    billboard._billboardsHandler = null;
+};
+
 og.SphericalBillboardsHandler.prototype.remove = function (billboard) {
-    if (this.__staticId == billboard._billboardsHandler.__staticId) {
-
-        var bi = billboard._billboardsHandlerIndex;
-
-        this._billboards.splice(bi, 1);
-
-        var i = bi * 18;
-        this._offsetArr.splice(i, 18);
-        this._vertexArr.splice(i, 18);
-        this._positionArr.splice(i, 18);
-
-        i = bi * 12;
-        this._sizeArr.splice(i, 12);
-        this._texCoordArr.splice(i, 12);
-
-        i = bi * 6;
-        this._opacityArr.splice(i, 6);
-        this._rotationArr.splice(i, 6);
-
-        this.reindexBillbordsArray(bi);
-        this.refresh();
-
-        billboard._billboardsHandlerIndex = -1;
-        billboard._billboardsHandler = null;
+    if (billboard._billboardsHandler && this.__staticId == billboard._billboardsHandler.__staticId) {
+        this._removeBillboard(billboard);
     }
 };
 

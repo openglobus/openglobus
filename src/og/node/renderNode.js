@@ -146,9 +146,33 @@ og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
 };
 
 og.node.RenderNode.prototype.drawBillboards = function () {
-    var i = this.billboardsCollections.length;
-    while (i--) {
-        this.billboardsCollections[i].draw();
+
+    var bc = this.billboardsCollections;
+
+    if (bc.length) {
+        var gl = this.renderer.handler.gl;
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+        gl.disable(gl.CULL_FACE);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+
+        //spherical
+        var i = bc.length;
+        while (i--) {
+            bc[i]._sphericalBillboardsHandler.draw();
+        }
+
+        //aligned axis
+        i = bc.length;
+        while (i--) {
+            bc[i]._alignedAxisBillboardsHandler.draw();
+        }
+
+        gl.enable(gl.CULL_FACE);
     }
 };
 
