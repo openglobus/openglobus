@@ -1,8 +1,8 @@
-goog.provide('og.ImagesCacheManager');
+goog.provide('og.utils.ImagesCacheManager');
 
 goog.require('og.QueueArray');
 
-og.ImagesCacheManager = function () {
+og.utils.ImagesCacheManager = function () {
     this.imagesCache = {};
 
     this._counter = 0;
@@ -10,7 +10,7 @@ og.ImagesCacheManager = function () {
     this._imageIndexCounter = 0;
 };
 
-og.ImagesCacheManager.prototype.load = function (url, success) {
+og.utils.ImagesCacheManager.prototype.load = function (url, success) {
     if (this.imagesCache[url]) {
         success(this.imagesCache[url]);
     } else {
@@ -23,7 +23,7 @@ og.ImagesCacheManager.prototype.load = function (url, success) {
     }
 };
 
-og.ImagesCacheManager.prototype._exec = function (req) {
+og.utils.ImagesCacheManager.prototype._exec = function (req) {
     this._counter++;
     var that = this;
 
@@ -43,7 +43,7 @@ og.ImagesCacheManager.prototype._exec = function (req) {
     img.src = req.url;
 };
 
-og.ImagesCacheManager.prototype._dequeueRequest = function () {
+og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
     this._counter--;
     if (this._pendingsQueue.length && this._counter < 1) {
         var req = this._whilePendings();
@@ -57,7 +57,7 @@ og.ImagesCacheManager.prototype._dequeueRequest = function () {
     }
 };
 
-og.ImagesCacheManager.prototype._whilePendings = function () {
+og.utils.ImagesCacheManager.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         var seg = this._pendingsQueue.pop();
         if (seg) {
