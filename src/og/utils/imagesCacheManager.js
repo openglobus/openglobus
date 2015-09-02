@@ -46,23 +46,20 @@ og.utils.ImagesCacheManager.prototype._exec = function (req) {
 og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
     this._counter--;
     if (this._pendingsQueue.length && this._counter < 1) {
-        var req = this._whilePendings();
-        if (req) {
-            if (this.imagesCache[req.url]) {
-                req.success(this.imagesCache[req.url]);
-            } else {
-                this._exec(req);
+        while (this._pendingsQueue.length) {
+            var req = this._pendingsQueue.pop();
+            if (req) {
+                if (this.imagesCache[req.url]) {
+                    if (this._counter <= 0)
+                        this._counter = 0;
+                    else
+                        this._counter--;
+                    req.success(this.imagesCache[req.url]);
+                } else {
+                    this._exec(req);
+                    break;
+                }
             }
         }
     }
-};
-
-og.utils.ImagesCacheManager.prototype._whilePendings = function () {
-    while (this._pendingsQueue.length) {
-        var seg = this._pendingsQueue.pop();
-        if (seg) {
-            return seg;
-        }
-    }
-    return null;
 };

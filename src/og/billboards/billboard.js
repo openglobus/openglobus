@@ -69,29 +69,10 @@ og.Billboard.prototype.setSize = function (size) {
 };
 
 og.Billboard.prototype.setAlignedAxis = function (alignedAxis) {
-
-    var aligned = !this.alignedAxis.isZero();
-
     this.alignedAxis.x = alignedAxis.x;
     this.alignedAxis.y = alignedAxis.y;
     this.alignedAxis.z = alignedAxis.z;
-
-    var h = this._billboardsHandler;
-    if (h) {
-        if (aligned) {
-            if (alignedAxis.isZero()) {
-                var bc = h._billboardsCollection;
-                this.remove();
-                bc.add(this);
-            } else {
-                h.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
-            }
-        } else if (!alignedAxis.isZero()) {
-            var bc = h._billboardsCollection;
-            this.remove();
-            bc.add(this);
-        }
-    }
+    this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);;
 };
 
 og.Billboard.prototype.setVisibility = function (visibility) {

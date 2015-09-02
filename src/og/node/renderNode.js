@@ -143,7 +143,6 @@ og.node.RenderNode.prototype.transformLights = function () {
 og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
     for (var i = 0; i < this.billboardsCollections.length; i++) {
         this.billboardsCollections[i]._sphericalBillboardsHandler.refreshTexCoordsArr();
-        this.billboardsCollections[i]._alignedAxisBillboardsHandler.refreshTexCoordsArr();
     }
 };
 
@@ -162,16 +161,9 @@ og.node.RenderNode.prototype.drawBillboards = function () {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
-        //spherical
         var i = bc.length;
         while (i--) {
             bc[i]._sphericalBillboardsHandler.draw();
-        }
-
-        //aligned axis
-        i = bc.length;
-        while (i--) {
-            bc[i]._alignedAxisBillboardsHandler.draw();
         }
 
         gl.enable(gl.CULL_FACE);
@@ -184,6 +176,5 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
 
     for (var i = 0; i < this.billboardsCollections.length; i++) {
         this.billboardsCollections[i]._sphericalBillboardsHandler.setRenderer(renderer);
-        this.billboardsCollections[i]._alignedAxisBillboardsHandler.setRenderer(renderer);
     }
 };

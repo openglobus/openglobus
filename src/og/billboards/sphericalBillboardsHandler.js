@@ -1,6 +1,6 @@
 goog.provide('og.SphericalBillboardsHandler');
 
-goog.require('og.shaderProgram.sphericalBillboard');
+goog.require('og.shaderProgram.billboard');
 
 /*
  * og.SphericalBillboardsHandler
@@ -22,6 +22,8 @@ og.SphericalBillboardsHandler = function (billboardsCollection) {
     this._rotationBuffer = null;
     this._texCoordBuffer = null;
     this._vertexBuffer = null;
+    this._alignedAxisBuffer = null;
+
 
     this._texCoordArr = [];
     this._vertexArr = [];
@@ -30,6 +32,8 @@ og.SphericalBillboardsHandler = function (billboardsCollection) {
     this._offsetArr = [];
     this._opacityArr = [];
     this._rotationArr = [];
+    this._alignedAxisArr = [];
+
 
     this._buffersUpdateCallbacks = [];
     this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.POSITION_BUFFER] = this.createPositionBuffer;
@@ -39,6 +43,7 @@ og.SphericalBillboardsHandler = function (billboardsCollection) {
     this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.ROTATION_BUFFER] = this.createRotationBuffer;
     this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.TEXCOORD_BUFFER] = this.createTexCoordBuffer;
     this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.VERTEX_BUFFER] = this.createVertexBuffer;
+    this._buffersUpdateCallbacks[og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER] = this.createAlignedAxisBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -58,8 +63,8 @@ og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER = 7;
 
 og.SphericalBillboardsHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
-        if (!this._renderer.handler.shaderPrograms.sphericalBillboard) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.sphericalBillboard());
+        if (!this._renderer.handler.shaderPrograms.billboard) {
+            this._renderer.handler.addShaderProgram(og.shaderProgram.billboard());
         }
     }
 };
@@ -88,6 +93,7 @@ og.SphericalBillboardsHandler.prototype.clear = function () {
     this._offsetArr.length = 0;
     this._opacityArr.length = 0;
     this._rotationArr.length = 0;
+    this._alignedAxisArr.length = 0;
 
     this._texCoordArr = [];
     this._vertexArr = [];
@@ -96,6 +102,8 @@ og.SphericalBillboardsHandler.prototype.clear = function () {
     this._offsetArr = [];
     this._opacityArr = [];
     this._rotationArr = [];
+    this._alignedAxisArr = [];
+
     this.refresh();
 };
 
@@ -154,6 +162,9 @@ og.SphericalBillboardsHandler.prototype._makeCommonArrays = function (billboard)
 
     x = billboard.rotation;
     og.SphericalBillboardsHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
+
+    x = billboard.alignedAxis.x, y = billboard.alignedAxis.y, z = billboard.alignedAxis.z;
+    og.SphericalBillboardsHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 };
 
 og.SphericalBillboardsHandler.prototype._addBillboardToArrays = function (billboard) {
@@ -170,8 +181,8 @@ og.SphericalBillboardsHandler.concArr = function (dest, curr) {
 og.SphericalBillboardsHandler.prototype._displayPASS = function () {
     var r = this._renderer;
     var h = r.handler;
-    h.shaderPrograms.sphericalBillboard.activate();
-    var sh = h.shaderPrograms.sphericalBillboard._program;
+    h.shaderPrograms.billboard.activate();
+    var sh = h.shaderPrograms.billboard._program;
     var sha = sh.attributes,
         shu = sh.uniforms;
 
@@ -209,6 +220,9 @@ og.SphericalBillboardsHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
     gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
+    gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 };
 
@@ -236,6 +250,7 @@ og.SphericalBillboardsHandler.prototype._removeBillboard = function (billboard) 
     this._offsetArr.splice(i, 18);
     this._vertexArr.splice(i, 18);
     this._positionArr.splice(i, 18);
+    this._alignedAxisArr.splice(i, 18);
 
     i = bi * 12;
     this._sizeArr.splice(i, 12);
@@ -446,6 +461,38 @@ og.SphericalBillboardsHandler.prototype.setVertexArr = function (index, vertexAr
     this._changedBuffers[og.SphericalBillboardsHandler.VERTEX_BUFFER] = true;
 };
 
+og.SphericalBillboardsHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) {
+
+    var i = index * 18;
+    var a = this._alignedAxisArr, x = alignedAxis.x, y = alignedAxis.y, z = alignedAxis.z;
+
+    a[i] = x;
+    a[i + 1] = y;
+    a[i + 2] = z;
+
+    a[i + 3] = x;
+    a[i + 4] = y;
+    a[i + 5] = z;
+
+    a[i + 6] = x;
+    a[i + 7] = y;
+    a[i + 8] = z;
+
+    a[i + 9] = x;
+    a[i + 10] = y;
+    a[i + 11] = z;
+
+    a[i + 12] = x;
+    a[i + 13] = y;
+    a[i + 14] = z;
+
+    a[i + 15] = x;
+    a[i + 16] = y;
+    a[i + 17] = z;
+
+    this._changedBuffers[og.SphericalBillboardsHandler.ALIGNEDAXIS_BUFFER] = true;
+};
+
 og.SphericalBillboardsHandler.prototype.createPositionBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._positionBuffer);
@@ -486,6 +533,12 @@ og.SphericalBillboardsHandler.prototype.createTexCoordBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._texCoordBuffer);
     this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 2, this._texCoordArr.length / 2);
+};
+
+og.SphericalBillboardsHandler.prototype.createAlignedAxisBuffer = function () {
+    var h = this._renderer.handler;
+    h.gl.deleteBuffer(this._alignedAxisBuffer);
+    this._alignedAxisBuffer = h.createArrayBuffer(new Float32Array(this._alignedAxisArr), 3, this._alignedAxisArr.length / 3);
 };
 
 og.SphericalBillboardsHandler.prototype.refreshTexCoordsArr = function () {

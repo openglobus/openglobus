@@ -2,7 +2,6 @@ goog.provide('og.BillboardsCollection');
 
 
 goog.require('og.SphericalBillboardsHandler');
-goog.require('og.AlignedAxisBillboardsHandler');
 
 /*
  * og.BillboardsCollection
@@ -14,7 +13,6 @@ og.BillboardsCollection = function () {
     this.renderNode = null;
     this.visibility = true;
     this._sphericalBillboardsHandler = new og.SphericalBillboardsHandler(this);
-    this._alignedAxisBillboardsHandler = new og.AlignedAxisBillboardsHandler(this);
 };
 
 og.BillboardsCollection.prototype.setVisibility = function (visibility) {
@@ -29,11 +27,7 @@ og.BillboardsCollection.prototype.addBillboards = function (bArr) {
 };
 
 og.BillboardsCollection.prototype.add = function (billboard) {
-    if (billboard.alignedAxis.isZero()) {
-        this._sphericalBillboardsHandler.add(billboard);
-    } else {
-        this._alignedAxisBillboardsHandler.add(billboard);
-    }
+    this._sphericalBillboardsHandler.add(billboard);
     billboard.setUrl(billboard._url);
     return this;
 };
@@ -46,10 +40,8 @@ og.BillboardsCollection.prototype.removeBillboard = function (billboard) {
 
 og.BillboardsCollection.prototype.forEach = function (callback, autoRefresh) {
     this._sphericalBillboardsHandler.forEach(callback);
-    this._alignedAxisBillboardsHandler.forEach(callback);
     if (autoRefresh) {
         this._sphericalBillboardsHandler.refresh();
-        this._alignedAxisBillboardsHandler.refresh();
     }
 };
 
@@ -59,7 +51,6 @@ og.BillboardsCollection.prototype.addTo = function (renderNode) {
         this.renderNode = renderNode;
         renderNode.billboardsCollections.push(this);
         this._sphericalBillboardsHandler.setRenderer(renderNode.renderer);
-        this._alignedAxisBillboardsHandler.setRenderer(renderNode.renderer);
         this.updateBillboardsTextureAtlas();
     }
     return this;
@@ -67,11 +58,6 @@ og.BillboardsCollection.prototype.addTo = function (renderNode) {
 
 og.BillboardsCollection.prototype.updateBillboardsTextureAtlas = function () {
     var b = this._sphericalBillboardsHandler._billboards;
-    for (var i = 0; i < b.length; i++) {
-        b[i].setUrl(b[i]._url);
-    }
-
-    b = this._alignedAxisBillboardsHandler._billboards;
     for (var i = 0; i < b.length; i++) {
         b[i].setUrl(b[i]._url);
     }
@@ -109,5 +95,4 @@ og.BillboardsCollection.prototype.remove = function () {
 
 og.BillboardsCollection.prototype.clear = function () {
     this._sphericalBillboardsHandler.clear();
-    this._alignedAxisBillboardsHandler.clear();
 };
