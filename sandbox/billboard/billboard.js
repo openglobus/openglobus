@@ -26,7 +26,7 @@ my.Billboard.prototype.initialization = function () {
     bc.addTo(this);
 
     //blb = new og.Billboard();
-    //blb.setUrl("ship.png");
+    //blb.setUrl("marker.png");
     //blb.setPosition(new og.math.Vector3(500, 0, 0));
     //blb.setSize(new og.math.Vector2(80, 80));
     //blb.addTo(bc);
@@ -43,8 +43,8 @@ my.Billboard.prototype.initialization = function () {
     //blb2.setSize(new og.math.Vector2(80, 80));
     //blb2.addTo(bc);
 
-    for (var i = 0; i < 50; i++) {
-        for (var j = 0; j < 50; j++) {
+    for (var i = 0; i < 100; i++) {
+        for (var j = 0; j < 100; j++) {
             var blb = new og.Billboard();
             blb.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
             blb.setSize(new og.math.Vector2(40, 40));
