@@ -10,11 +10,11 @@ og.utils.ImagesCacheManager = function () {
     this._imageIndexCounter = 0;
 };
 
-og.utils.ImagesCacheManager.prototype.load = function (url, success) {
-    if (this.imagesCache[url]) {
-        success(this.imagesCache[url]);
+og.utils.ImagesCacheManager.prototype.load = function (src, success) {
+    if (this.imagesCache[src]) {
+        success(this.imagesCache[src]);
     } else {
-        var req = { "url": url, "success": success };
+        var req = { "src": src, "success": success };
         if (this._counter >= 1) {
             this._pendingsQueue.push(req);
         } else {
@@ -30,7 +30,7 @@ og.utils.ImagesCacheManager.prototype._exec = function (req) {
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
-        that.imagesCache[req.url] = this;
+        that.imagesCache[req.src] = this;
         this.__nodeIndex = that._imageIndexCounter++;
         req.success(this);
         that._dequeueRequest();
@@ -40,7 +40,7 @@ og.utils.ImagesCacheManager.prototype._exec = function (req) {
         that._dequeueRequest();
     };
 
-    img.src = req.url;
+    img.src = req.src;
 };
 
 og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
@@ -49,12 +49,12 @@ og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
         while (this._pendingsQueue.length) {
             var req = this._pendingsQueue.pop();
             if (req) {
-                if (this.imagesCache[req.url]) {
+                if (this.imagesCache[req.src]) {
                     if (this._counter <= 0)
                         this._counter = 0;
                     else
                         this._counter--;
-                    req.success(this.imagesCache[req.url]);
+                    req.success(this.imagesCache[req.src]);
                 } else {
                     this._exec(req);
                     break;

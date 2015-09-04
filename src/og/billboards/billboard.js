@@ -1,48 +1,36 @@
 goog.provide('og.Billboard');
-goog.require('og.math.Vector3');
+
+goog.require('og.BaseBillboard');
+goog.require('og.inheritance');
 goog.require('og.math.Vector2');
 
 
+/**
+ *
+ *
+ *
+ */
 og.Billboard = function () {
-    this.position = new og.math.Vector3();
-    this.rotation = 0;
-    this.opacity = 1.0;
+
+    og.inheritance.base(this);
+
+    this.src = null;
     this.image = null;
-    this._url = null;
-    this.offset = new og.math.Vector3();
-    this.size = new og.math.Vector2(32, 32);
-    this.alignedAxis = new og.math.Vector3();
-    this.visibility = true;
-    this._billboardsHandler = null;
-    this._billboardsHandlerIndex = -1;
+    this.width = 0;
+    this.height = 0;
 };
 
-og.Billboard.prototype.setPosition = function (position) {
-    this.position.x = position.x;
-    this.position.y = position.y;
-    this.position.z = position.z;
-    this._billboardsHandler && this._billboardsHandler.setPositionArr(this._billboardsHandlerIndex, position);
-};
+og.inheritance.extend(og.Billboard, og.BaseBillboard);
 
-og.Billboard.prototype.setRotation = function (rotation) {
-    this.rotation = rotation;
-    this._billboardsHandler && this._billboardsHandler.setRotationArr(this._billboardsHandlerIndex, rotation);
-};
-
-og.Billboard.prototype.setOpacity = function (opacity) {
-    this.opacity = opacity;
-    this._billboardsHandler && this._billboardsHandler.setOpacityArr(this._billboardsHandlerIndex, opacity);
-};
-
-og.Billboard.prototype.setUrl = function (url) {
-    this._url = url;
+og.Billboard.prototype.setSrc = function (src) {
+    this.src = src;
     var bh = this._billboardsHandler;
-    if (bh && url) {
+    if (bh && src) {
         var rn = bh._billboardsCollection.renderNode;
         if (rn) {
             var ta = rn.billboardsTextureAtlas;
             var that = this;
-            ta.loadImage(url, function (img) {
+            ta.loadImage(src, function (img) {
                 if (ta.nodes[img.__nodeIndex]) {
                     that.image = img;
                     bh.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
@@ -56,39 +44,16 @@ og.Billboard.prototype.setUrl = function (url) {
     }
 };
 
-og.Billboard.prototype.setOffset = function (offset) {
-    this.offset.x = offset.x;
-    this.offset.y = offset.y;
-    this._billboardsHandler && this._billboardsHandler.setOffsetArr(this._billboardsHandlerIndex, offset);
+og.Billboard.prototype.setSize = function (width, height) {
+    this.width = width;
+    this.height = height;
+    this._billboardsHandler && this._billboardsHandler.setSizeArr(this._billboardsHandlerIndex, width, height);
 };
 
-og.Billboard.prototype.setSize = function (size) {
-    this.size.x = size.x;
-    this.size.y = size.y;
-    this._billboardsHandler && this._billboardsHandler.setSizeArr(this._billboardsHandlerIndex, size);
+og.Billboard.prototype.setWidth = function (width) {
+    this.setSize(width, this.height);
 };
 
-og.Billboard.prototype.setAlignedAxis = function (alignedAxis) {
-    this.alignedAxis.x = alignedAxis.x;
-    this.alignedAxis.y = alignedAxis.y;
-    this.alignedAxis.z = alignedAxis.z;
-    this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);;
-};
-
-og.Billboard.prototype.setVisibility = function (visibility) {
-    this.visibility = visibility;
-    this._billboardsHandler && this._billboardsHandler.setVisibility(this._billboardsHandlerIndex, visibility);
-};
-
-og.Billboard.prototype.getVisibility = function () {
-    return this.visibility;
-};
-
-og.Billboard.prototype.addTo = function (billboardCollection) {
-    billboardCollection.add(this);
-    return this;
-};
-
-og.Billboard.prototype.remove = function () {
-    this._billboardsHandler && this._billboardsHandler.remove(this);
+og.Billboard.prototype.setHeight = function (height) {
+    this.setSize(this.width, height);
 };

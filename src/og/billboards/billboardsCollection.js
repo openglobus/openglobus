@@ -28,7 +28,7 @@ og.BillboardsCollection.prototype.addBillboards = function (bArr) {
 
 og.BillboardsCollection.prototype.add = function (billboard) {
     this._sphericalBillboardsHandler.add(billboard);
-    billboard.setUrl(billboard._url);
+    billboard.setSrc(billboard.src);
     return this;
 };
 
@@ -59,7 +59,7 @@ og.BillboardsCollection.prototype.addTo = function (renderNode) {
 og.BillboardsCollection.prototype.updateBillboardsTextureAtlas = function () {
     var b = this._sphericalBillboardsHandler._billboards;
     for (var i = 0; i < b.length; i++) {
-        b[i].setUrl(b[i]._url);
+        b[i].setSrc(b[i].src);
     }
 };
 

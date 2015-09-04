@@ -151,7 +151,7 @@ og.SphericalBillboardsHandler.prototype._makeCommonArrays = function (billboard)
     var x = billboard.position.x, y = billboard.position.y, z = billboard.position.z;
     og.SphericalBillboardsHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-    x = billboard.size.x; y = billboard.size.y;
+    x = billboard.width; y = billboard.height;
     og.SphericalBillboardsHandler.concArr(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
     x = billboard.offset.x; y = billboard.offset.y; z = billboard.offset.z;
@@ -305,10 +305,10 @@ og.SphericalBillboardsHandler.prototype.setPositionArr = function (index, positi
     this._changedBuffers[og.SphericalBillboardsHandler.POSITION_BUFFER] = true;
 };
 
-og.SphericalBillboardsHandler.prototype.setSizeArr = function (index, size) {
+og.SphericalBillboardsHandler.prototype.setSizeArr = function (index, width, height) {
 
     var i = index * 12;
-    var a = this._sizeArr, x = size.x, y = size.y;
+    var a = this._sizeArr, x = width, y = height;
 
     a[i] = x;
     a[i + 1] = y;

@@ -177,6 +177,6 @@ og.utils.TextureAtlas.prototype.makeTexture = function () {
     }
 };
 
-og.utils.TextureAtlas.prototype.loadImage = function (url, success) {
-    this._imagesCacheManager.load(url, success);
+og.utils.TextureAtlas.prototype.loadImage = function (src, success) {
+    this._imagesCacheManager.load(src, success);
 };

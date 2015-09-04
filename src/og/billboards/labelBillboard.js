@@ -12,9 +12,9 @@ og.LabelBillboard = function (billboard) {
 
     og.inheritance.base(this, billboard);
 
-    this.text = null;
+    this.text = "";
     this.font = null;
-    this.size = null;
+    this.size = 12;
     this.style = null;
     this.weight = null;
     this._fontIndex;

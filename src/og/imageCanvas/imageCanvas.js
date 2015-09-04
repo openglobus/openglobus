@@ -54,6 +54,11 @@ og.ImageCanvas.prototype.getImage = function () {
     return img;
 };
 
+og.ImageCanvas.prototype.getTextWidth = function (text) {
+    var metrics = this._context.measureText(text);
+    return Math.round(metrics.width);
+};
+
 og.ImageCanvas.prototype.drawText = function (text, x, y, font) {
     this._context.font = font || 'normal 14px Verdana';
     this._context.fillText(text, x || 0, y || 14);

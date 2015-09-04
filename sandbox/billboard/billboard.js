@@ -47,9 +47,9 @@ my.Billboard.prototype.initialization = function () {
         for (var j = 0; j < 100; j++) {
             var blb = new og.Billboard();
             blb.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
-            blb.setSize(new og.math.Vector2(40, 40));
+            blb.setSize(40, 40);
             blb.addTo(bc);
-            blb.setUrl("ship.png");
+            blb.setSrc("ship.png");
         }
     }
 

@@ -1,25 +1,29 @@
 goog.provide('og.BaseBillboard');
 
+goog.require('og.math.Vector3');
+
 /**
  *
  *
  *
  */
-og.BaseBillboard = function (billboard) {
-    this._billboard = billboard;
+og.BaseBillboard = function () {
     this._billboardsHandler = null;
     this._billboardsHandlerIndex = -1;
 
-    this.position = null;
+    this.position = new og.math.Vector3();
     this.rotation = 0;
     this.opacity = 1.0;
     this.alignedAxis = new og.math.Vector3();
     this.offset = new og.math.Vector3();
     this.visibility = true;
+    this.size = null;
 };
 
 og.BaseBillboard.prototype.setPosition = function (position) {
-    this.position = position;
+    this.position.x = position.x;
+    this.position.y = position.y;
+    this.position.z = position.z;
     this._billboardsHandler && this._billboardsHandler.setPositionArr(this._billboardsHandlerIndex, position);
 };
 
@@ -48,4 +52,13 @@ og.BaseBillboard.prototype.setAlignedAxis = function (alignedAxis) {
     this.alignedAxis.y = alignedAxis.y;
     this.alignedAxis.z = alignedAxis.z;
     this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
+};
+
+og.BaseBillboard.prototype.addTo = function (billboardCollection) {
+    billboardCollection.add(this);
+    return this;
+};
+
+og.BaseBillboard.prototype.remove = function () {
+    this._billboardsHandler && this._billboardsHandler.remove(this);
 };
