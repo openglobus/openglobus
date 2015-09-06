@@ -26,7 +26,7 @@ og.Billboard.prototype.setSrc = function (src) {
     this.src = src;
     var bh = this._billboardHandler;
     if (bh && src) {
-        var rn = bh._billboardsCollection.renderNode;
+        var rn = bh._entityCollection.renderNode;
         if (rn) {
             var ta = rn.billboardsTextureAtlas;
             var that = this;

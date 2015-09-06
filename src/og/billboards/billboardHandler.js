@@ -7,9 +7,9 @@ goog.require('og.shaderProgram.billboard');
  *
  *
  */
-og.BillboardHandler = function (billboardsCollection) {
+og.BillboardHandler = function (entityCollection) {
 
-    this._billboardsCollection = billboardsCollection;
+    this._entityCollection = entityCollection;
 
     this._renderer = null;
 
@@ -219,7 +219,7 @@ og.BillboardHandler.prototype._displayPASS = function () {
 };
 
 og.BillboardHandler.prototype.draw = function () {
-    if (this._billboardsCollection.visibility && this._billboards.length) {
+    if (this._entityCollection.visibility && this._billboards.length) {
         this.update();
         this._displayPASS();
     }
@@ -534,7 +534,7 @@ og.BillboardHandler.prototype.createAlignedAxisBuffer = function () {
 };
 
 og.BillboardHandler.prototype.refreshTexCoordsArr = function () {
-    var bc = this._billboardsCollection;
+    var bc = this._entityCollection;
     if (bc && bc.renderNode) {
         var ta = bc.renderNode.billboardsTextureAtlas;
         for (var i = 0; i < this._billboards.length; i++) {

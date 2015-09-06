@@ -2,7 +2,7 @@ goog.provide('my.Billboard');
 
 goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
-goog.require('og.BillboardsCollection');
+goog.require('og.EntityCollection');
 goog.require('og.Billboard');
 
 goog.require('og.math.Vector2');
@@ -22,7 +22,7 @@ my.Billboard.prototype.initialization = function () {
 
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 
-    bc = new og.BillboardsCollection();
+    bc = new og.EntityCollection();
     bc.addTo(this);
 
     blb = new og.Billboard();

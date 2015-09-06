@@ -1,6 +1,5 @@
 goog.provide('og.node.RenderNode');
 
-
 goog.require('og.inheritance');
 goog.require('og.node.Node');
 goog.require('og.webgl');
@@ -30,20 +29,20 @@ og.node.RenderNode = function (name) {
     this._pointLightsParamsf = [];
     this._pointLightsNames = [];
 
-    this.billboardsCollections = [];
+    this.entityCollections = [];
     this.billboardsTextureAtlas = new og.utils.TextureAtlas();
     this.fontsAtlas = new og.FontsAtlas();
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
 
-og.node.RenderNode.prototype.addBillboardsCollection = function (billboardCollection) {
-    billboardCollection.addTo(this);
+og.node.RenderNode.prototype.addEntityCollection = function (entityCollection) {
+    entityCollection.addTo(this);
     return this;
 };
 
-og.node.RenderNode.prototype.removeBillboardsCollection = function (billboardCollection) {
-    billboardCollection.remove();
+og.node.RenderNode.prototype.removeEntityCollection = function (entityCollection) {
+    entityCollection.remove();
 };
 
 og.node.RenderNode.prototype.addLight = function (light) {
@@ -119,7 +118,7 @@ og.node.RenderNode.prototype.drawNodes = function () {
     }
 
     if (this.show) {
-        this.drawBillboards();
+        this.drawEntities();
         if (this.frame) {
             //if (this.lightEnabled) {
             //    this.transformLights();
@@ -141,14 +140,14 @@ og.node.RenderNode.prototype.transformLights = function () {
 };
 
 og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
-    for (var i = 0; i < this.billboardsCollections.length; i++) {
-        this.billboardsCollections[i]._billboardHandler.refreshTexCoordsArr();
+    for (var i = 0; i < this.entityCollections.length; i++) {
+        this.entityCollections[i]._billboardHandler.refreshTexCoordsArr();
     }
 };
 
-og.node.RenderNode.prototype.drawBillboards = function () {
+og.node.RenderNode.prototype.drawEntities = function () {
 
-    var bc = this.billboardsCollections;
+    var bc = this.entityCollections;
 
     if (bc.length) {
         var gl = this.renderer.handler.gl;
@@ -174,7 +173,7 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
     this.billboardsTextureAtlas.assignHandler(renderer.handler);
 
-    for (var i = 0; i < this.billboardsCollections.length; i++) {
-        this.billboardsCollections[i]._billboardHandler.setRenderer(renderer);
+    for (var i = 0; i < this.entityCollections.length; i++) {
+        this.entityCollections[i]._billboardHandler.setRenderer(renderer);
     }
 };
