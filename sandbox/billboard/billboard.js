@@ -25,40 +25,40 @@ my.Billboard.prototype.initialization = function () {
     bc = new og.BillboardsCollection();
     bc.addTo(this);
 
-    //blb = new og.Billboard();
-    //blb.setUrl("marker.png");
-    //blb.setPosition(new og.math.Vector3(500, 0, 0));
-    //blb.setSize(new og.math.Vector2(80, 80));
-    //blb.addTo(bc);
+    blb = new og.Billboard();
+    blb.setSrc("marker.png");
+    blb.setPosition(new og.math.Vector3(500, 0, 0));
+    blb.setSize(80, 80);
+    blb.addTo(bc);
 
-    //blb1 = new og.Billboard();
-    //blb1.setUrl("ship.png");
-    //blb1.setPosition(new og.math.Vector3(0, 500, 0));
-    //blb1.setSize(new og.math.Vector2(80, 80));
-    //blb1.addTo(bc);
+    blb1 = new og.Billboard();
+    blb1.setSrc("ship.png");
+    blb1.setPosition(new og.math.Vector3(0, 500, 0));
+    blb1.setSize(80, 80);
+    blb1.addTo(bc);
 
-    //blb2 = new og.Billboard();
-    //blb2.setUrl("wall.jpg");
-    //blb2.setPosition(new og.math.Vector3(0, 0, 500));
-    //blb2.setSize(new og.math.Vector2(80, 80));
-    //blb2.addTo(bc);
+    blb2 = new og.Billboard();
+    blb2.setSrc("wall.jpg");
+    blb2.setPosition(new og.math.Vector3(0, 0, 500));
+    blb2.setSize(80, 80);
+    blb2.addTo(bc);
 
-    for (var i = 0; i < 100; i++) {
-        for (var j = 0; j < 100; j++) {
-            var blb = new og.Billboard();
-            blb.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
-            blb.setSize(40, 40);
-            blb.addTo(bc);
-            blb.setSrc("ship.png");
-        }
-    }
+    //for (var i = 0; i < 100; i++) {
+    //    for (var j = 0; j < 100; j++) {
+    //        var blb = new og.Billboard();
+    //        blb.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
+    //        blb.setSize(40, 40);
+    //        blb.addTo(bc);
+    //        blb.setSrc("ship.png");
+    //    }
+    //}
 
-    var that = this;
-    var img = new Image();
-    img.onload = function () {
-        bc._sphericalBillboardsHandler.texture = that.renderer.handler.createTexture(this);
-    };
-    img.src = "ship.png"
+    //var that = this;
+    //var img = new Image();
+    //img.onload = function () {
+    //    bc._sphericalBillboardsHandler.texture = that.renderer.handler.createTexture(this);
+    //};
+    //img.src = "ship.png"
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {

@@ -24,7 +24,7 @@ og.inheritance.extend(og.Billboard, og.BaseBillboard);
 
 og.Billboard.prototype.setSrc = function (src) {
     this.src = src;
-    var bh = this._billboardsHandler;
+    var bh = this._billboardHandler;
     if (bh && src) {
         var rn = bh._billboardsCollection.renderNode;
         if (rn) {
@@ -33,7 +33,7 @@ og.Billboard.prototype.setSrc = function (src) {
             ta.loadImage(src, function (img) {
                 if (ta.nodes[img.__nodeIndex]) {
                     that.image = img;
-                    bh.setTexCoordArr(that._billboardsHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
+                    bh.setTexCoordArr(that._billboardHandlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
                 } else {
                     ta.addImage(img);
                     that.image = img;
@@ -47,7 +47,7 @@ og.Billboard.prototype.setSrc = function (src) {
 og.Billboard.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
-    this._billboardsHandler && this._billboardsHandler.setSizeArr(this._billboardsHandlerIndex, width, height);
+    this._billboardHandler && this._billboardHandler.setSizeArr(this._billboardHandlerIndex, width, height);
 };
 
 og.Billboard.prototype.setWidth = function (width) {

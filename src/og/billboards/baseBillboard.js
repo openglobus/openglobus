@@ -8,8 +8,8 @@ goog.require('og.math.Vector3');
  *
  */
 og.BaseBillboard = function () {
-    this._billboardsHandler = null;
-    this._billboardsHandlerIndex = -1;
+    this._billboardHandler = null;
+    this._billboardHandlerIndex = -1;
 
     this.position = new og.math.Vector3();
     this.rotation = 0;
@@ -24,34 +24,34 @@ og.BaseBillboard.prototype.setPosition = function (position) {
     this.position.x = position.x;
     this.position.y = position.y;
     this.position.z = position.z;
-    this._billboardsHandler && this._billboardsHandler.setPositionArr(this._billboardsHandlerIndex, position);
+    this._billboardHandler && this._billboardHandler.setPositionArr(this._billboardHandlerIndex, position);
 };
 
 og.BaseBillboard.prototype.setOffset = function (offset) {
     this.offset.x = offset.x;
     this.offset.y = offset.y;
-    this._billboardsHandler && this._billboardsHandler.setOffsetArr(this._billboardsHandlerIndex, offset);
+    this._billboardHandler && this._billboardHandler.setOffsetArr(this._billboardHandlerIndex, offset);
 };
 
 og.BaseBillboard.prototype.setRotation = function (rotation) {
     this.rotation = rotation;
-    this._billboardsHandler && this._billboardsHandler.setRotationArr(this._billboardsHandlerIndex, rotation);
+    this._billboardHandler && this._billboardHandler.setRotationArr(this._billboardHandlerIndex, rotation);
 };
 
 og.BaseBillboard.prototype.setOpacity = function (opacity) {
     this.opacity = opacity;
-    this._billboardsHandler && this._billboardsHandler.setOpacityArr(this._billboardsHandlerIndex, opacity);
+    this._billboardHandler && this._billboardHandler.setOpacityArr(this._billboardHandlerIndex, opacity);
 };
 
 og.BaseBillboard.prototype.setVisibility = function (visibility) {
-    this._billboardsHandler && this._billboardsHandler.setVisibility(this._billboardsHandlerIndex, visibility);
+    this._billboardHandler && this._billboardHandler.setVisibility(this._billboardHandlerIndex, visibility);
 };
 
 og.BaseBillboard.prototype.setAlignedAxis = function (alignedAxis) {
     this.alignedAxis.x = alignedAxis.x;
     this.alignedAxis.y = alignedAxis.y;
     this.alignedAxis.z = alignedAxis.z;
-    this._billboardsHandler && this._billboardsHandler.setAlignedAxisArr(this._billboardsHandlerIndex, alignedAxis);
+    this._billboardHandler && this._billboardHandler.setAlignedAxisArr(this._billboardHandlerIndex, alignedAxis);
 };
 
 og.BaseBillboard.prototype.addTo = function (billboardCollection) {
@@ -60,5 +60,5 @@ og.BaseBillboard.prototype.addTo = function (billboardCollection) {
 };
 
 og.BaseBillboard.prototype.remove = function () {
-    this._billboardsHandler && this._billboardsHandler.remove(this);
+    this._billboardHandler && this._billboardHandler.remove(this);
 };

@@ -3,9 +3,10 @@
 goog.addDependency('../../../og/src/og/ajax.js', ['og.Ajax'], []);
 goog.addDependency('../../../og/src/og/billboards/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3']);
 goog.addDependency('../../../og/src/og/billboards/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2']);
-goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.SphericalBillboardsHandler']);
+goog.addDependency('../../../og/src/og/billboards/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard']);
+goog.addDependency('../../../og/src/og/billboards/billboardsCollection.js', ['og.BillboardsCollection'], ['og.BillboardHandler']);
+goog.addDependency('../../../og/src/og/billboards/imageBillboard.js', ['og.ImageBillboard'], ['og.BaseBillboard', 'og.inheritance']);
 goog.addDependency('../../../og/src/og/billboards/labelBillboard.js', ['og.LabelBillboard'], ['og.BaseBillboard', 'og.inheritance']);
-goog.addDependency('../../../og/src/og/billboards/sphericalBillboardsHandler.js', ['og.SphericalBillboardsHandler'], ['og.shaderProgram.billboard']);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3']);
