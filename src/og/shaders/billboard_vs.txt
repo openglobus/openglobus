@@ -41,7 +41,7 @@ void main() {
     //right = normalize(mix(right, cross(look,up), a));
   	//look = cross(up,right);
 
-    float focalSize = 2.0 * length(a_positions - uCamPos) * tan(uViewAngle) * uXRatio;
+    float focalSize = 2.0 * length(a_positions - uCamPos) * uViewAngle * uXRatio;
     vec2 offset = a_offset.xy * focalSize;
     vec2 scale = a_size * focalSize;
     float cosRot = cos(a_rotation);

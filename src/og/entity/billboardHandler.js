@@ -188,7 +188,7 @@ og.BillboardHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera.viewAngle * og.math.RADIANS_HALF);
+    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera._tanViewAngle_hrad);
     gl.uniform1f(shu.uXRatio._pName, r.handler.canvas._oneByHeight);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);

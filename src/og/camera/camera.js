@@ -23,6 +23,7 @@ og.Camera = function (renderer, options) {
     this.nearDist = 0;
     this.farDist = 0;
     this.viewAngle = 0;
+    this._tanViewAngle_hrad = 0;
 
     this.nMatrix = new og.math.Matrix3();
     this.pMatrix = new og.math.Matrix4();
@@ -139,6 +140,7 @@ og.Camera.prototype.setDistanceVisibility = function (distance, near) {
 
 og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this.viewAngle = angle;
+    this._tanViewAngle_hrad = Math.tan(angle * og.math.RADIANS_HALF);
     this.aspect = aspect;
     this.nearDist = near;
     this.farDist = far;
@@ -240,5 +242,5 @@ og.Camera.prototype.rotateVertical = function (angle, center, up) {
 };
 
 og.Camera.prototype.projectedSize = function (p) {
-    return this.eye.distance(p) * Math.tan(this.viewAngle * og.math.RADIANS * 0.5);
+    return this.eye.distance(p) * this._tanViewAngle_hrad;
 };
