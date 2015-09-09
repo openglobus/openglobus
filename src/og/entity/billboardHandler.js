@@ -186,11 +186,10 @@ og.BillboardHandler.prototype._displayPASS = function () {
     gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
 
-    gl.uniform2fv(shu.uViewSize._pName, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
     gl.uniform1f(shu.uViewAngle._pName, r.activeCamera.viewAngle * og.math.RADIANS_HALF);
-    gl.uniform1f(shu.uRatio._pName, r.handler.canvas.aspect);
+    gl.uniform1f(shu.uXRatio._pName, r.handler.canvas._oneByHeight);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
     gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);

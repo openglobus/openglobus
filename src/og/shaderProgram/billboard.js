@@ -11,10 +11,9 @@ og.shaderProgram.billboard = function () {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uViewSize: { type: og.shaderProgram.types.VEC2 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uViewAngle: { type: og.shaderProgram.types.FLOAT },
-            uRatio: { type: og.shaderProgram.types.FLOAT }
+            uXRatio: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC3, enableArray: true },

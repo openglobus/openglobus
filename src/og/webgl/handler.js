@@ -254,6 +254,7 @@ og.webgl.Handler.prototype.setSize = function (width, height) {
     this.canvas.width = w;
     this.canvas.height = h;
     this.canvas.aspect = w / h;
+    this.canvas._oneByHeight = 1 / h;
     if (this.gl) {
         this.gl.viewport(0, 0, w, h);
     }
