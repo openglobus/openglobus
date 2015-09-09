@@ -4,6 +4,7 @@ goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.EntityCollection');
 goog.require('og.Billboard');
+goog.require('og.Entity');
 
 goog.require('og.math.Vector2');
 goog.require('og.math.Vector3');
@@ -22,26 +23,32 @@ my.Billboard.prototype.initialization = function () {
 
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 
-    bc = new og.EntityCollection();
-    bc.addTo(this);
+    ec = new og.EntityCollection();
+    ec.addTo(this);
 
     blb = new og.Billboard();
     blb.setSrc("marker.png");
     blb.setPosition(new og.math.Vector3(500, 0, 0));
     blb.setSize(80, 80);
-    blb.addTo(bc);
+    eee = new og.Entity();
+    eee.setBillboard(blb);
+    eee.addTo(ec);
 
     blb1 = new og.Billboard();
     blb1.setSrc("ship.png");
     blb1.setPosition(new og.math.Vector3(0, 500, 0));
     blb1.setSize(80, 80);
-    blb1.addTo(bc);
+    eee1 = new og.Entity();
+    eee1.setBillboard(blb1);
+    eee1.addTo(ec);
 
     blb2 = new og.Billboard();
     blb2.setSrc("wall.jpg");
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(80, 80);
-    blb2.addTo(bc);
+    eee2 = new og.Entity();
+    eee2.setBillboard(blb2);
+    eee2.addTo(ec);
 
     //for (var i = 0; i < 100; i++) {
     //    for (var j = 0; j < 100; j++) {
@@ -73,10 +80,10 @@ var i = 0;
 
 my.Billboard.prototype.frame = function () {
 
-    bc.forEach(function (b) {
-        b.setPosition(new og.math.Vector3(b.position.x, Math.sin(i * Math.PI / 180.0) * 300, b.position.z));
+    //bc.forEach(function (b) {
+    //    b.setPosition(new og.math.Vector3(b.position.x, Math.sin(i * Math.PI / 180.0) * 300, b.position.z));
         //b.setRotation(i*Math.PI/180);
-    });
+    //});
 
     i++;
 

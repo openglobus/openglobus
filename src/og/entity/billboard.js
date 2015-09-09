@@ -10,9 +10,9 @@ goog.require('og.math.Vector2');
  *
  *
  */
-og.Billboard = function () {
+og.Billboard = function (options) {
 
-    og.inheritance.base(this);
+    og.inheritance.base(this, options);
 
     this.src = null;
     this.image = null;

@@ -147,9 +147,9 @@ og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
 
 og.node.RenderNode.prototype.drawEntities = function () {
 
-    var bc = this.entityCollections;
+    var ec = this.entityCollections;
 
-    if (bc.length) {
+    if (ec.length) {
         var gl = this.renderer.handler.gl;
 
         gl.enable(gl.BLEND);
@@ -160,9 +160,9 @@ og.node.RenderNode.prototype.drawEntities = function () {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
-        var i = bc.length;
+        var i = ec.length;
         while (i--) {
-            bc[i]._billboardHandler.draw();
+            ec[i]._billboardHandler.draw();
         }
 
         gl.enable(gl.CULL_FACE);

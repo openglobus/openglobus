@@ -7,9 +7,12 @@ goog.require('og.math.Vector3');
  *
  *
  */
-og.BaseBillboard = function () {
+og.BaseBillboard = function (options) {
+    options = options || {};
     this._billboardHandler = null;
     this._billboardHandlerIndex = -1;
+
+    this.id = options.id || ("noname_" + og.BaseBillboard.__staticId++);
 
     this.position = new og.math.Vector3();
     this.rotation = 0;
@@ -19,6 +22,8 @@ og.BaseBillboard = function () {
     this.visibility = true;
     this.size = null;
 };
+
+og.BaseBillboard.__staticId = 0;
 
 og.BaseBillboard.prototype.setPosition = function (position) {
     this.position.x = position.x;
@@ -52,11 +57,6 @@ og.BaseBillboard.prototype.setAlignedAxis = function (alignedAxis) {
     this.alignedAxis.y = alignedAxis.y;
     this.alignedAxis.z = alignedAxis.z;
     this._billboardHandler && this._billboardHandler.setAlignedAxisArr(this._billboardHandlerIndex, alignedAxis);
-};
-
-og.BaseBillboard.prototype.addTo = function (billboardCollection) {
-    billboardCollection.add(this);
-    return this;
 };
 
 og.BaseBillboard.prototype.remove = function () {

@@ -133,6 +133,7 @@ og.BillboardHandler.prototype.add = function (billboard) {
         this._billboards.push(billboard);
         this._addBillboardToArrays(billboard);
         this.refresh();
+        billboard.setSrc(billboard.src);
     }
 };
 
@@ -227,7 +228,6 @@ og.BillboardHandler.prototype.draw = function () {
 
 og.BillboardHandler.prototype.reindexBillbordsArray = function (startIndex) {
     var b = this._billboards;
-
     for (var i = startIndex; i < b.length; i++) {
         b[i]._billboardHandlerIndex = i;
     }
