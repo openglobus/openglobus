@@ -6,7 +6,7 @@ goog.require('og.webgl');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
 goog.require('og.utils.TextureAtlas');
-goog.require('og.FontsAtlas');
+goog.require('og.utils.FontAtlas');
 
 og.node.RenderNode = function (name) {
     og.inheritance.base(this, name);
@@ -31,7 +31,7 @@ og.node.RenderNode = function (name) {
 
     this.entityCollections = [];
     this.billboardsTextureAtlas = new og.utils.TextureAtlas();
-    this.fontsAtlas = new og.FontsAtlas();
+    this.fontAtlas = new og.utils.FontAtlas();
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
