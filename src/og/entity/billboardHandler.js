@@ -127,9 +127,9 @@ og.BillboardHandler.prototype.update = function () {
 };
 
 og.BillboardHandler.prototype.add = function (billboard) {
-    if (billboard._billboardHandlerIndex == -1) {
-        billboard._billboardHandler = this;
-        billboard._billboardHandlerIndex = this._billboards.length;
+    if (billboard._handlerIndex == -1) {
+        billboard._handler = this;
+        billboard._handlerIndex = this._billboards.length;
         this._billboards.push(billboard);
         this._addBillboardToArrays(billboard);
         this.refresh();
@@ -228,12 +228,12 @@ og.BillboardHandler.prototype.draw = function () {
 og.BillboardHandler.prototype.reindexBillbordsArray = function (startIndex) {
     var b = this._billboards;
     for (var i = startIndex; i < b.length; i++) {
-        b[i]._billboardHandlerIndex = i;
+        b[i]._handlerIndex = i;
     }
 };
 
 og.BillboardHandler.prototype._removeBillboard = function (billboard) {
-    var bi = billboard._billboardHandlerIndex;
+    var bi = billboard._handlerIndex;
 
     this._billboards.splice(bi, 1);
 
@@ -254,12 +254,12 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
     this.reindexBillbordsArray(bi);
     this.refresh();
 
-    billboard._billboardHandlerIndex = -1;
-    billboard._billboardHandler = null;
+    billboard._handlerIndex = -1;
+    billboard._handler = null;
 };
 
 og.BillboardHandler.prototype.remove = function (billboard) {
-    if (billboard._billboardHandler && this.__staticId == billboard._billboardHandler.__staticId) {
+    if (billboard._handler && this.__staticId == billboard._handler.__staticId) {
         this._removeBillboard(billboard);
     }
 };
@@ -542,7 +542,7 @@ og.BillboardHandler.prototype.refreshTexCoordsArr = function () {
             if (img) {
                 var imageNode = ta.nodes[bi.image.__nodeIndex];
                 if (imageNode) {
-                    this.setTexCoordArr(bi._billboardHandlerIndex, imageNode.texCoords);
+                    this.setTexCoordArr(bi._handlerIndex, imageNode.texCoords);
                 }
             }
         }

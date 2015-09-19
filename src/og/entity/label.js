@@ -24,7 +24,7 @@ og.inheritance.extend(og.Label, og.BaseBillboard);
 
 og.Label.prototype.setText = function (text) {
     this.text = text;
-    this._billboardHandler && this._billboardHandler.setText(this._billboardHandlerIndex, text);
+    this._handler && this._handler.setText(this._handlerIndex, text);
 };
 
 og.Label.prototype.setFont = function (font) {

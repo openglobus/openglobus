@@ -11,7 +11,7 @@ og.Entity = function (options) {
     this.id = options.id || ("noname_" + og.Entity.__staticCounter++);
 
     this.billboard = null;
-    //this.label = null;
+    this.label = null;
     //...
 
     this.childrenNodes = [];
@@ -35,10 +35,10 @@ og.Entity.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
 
     //billboards
-    this._billboard.setVisibility(visibility);
+    this.billboard && this.billboard.setVisibility(visibility);
 
     //labels
-    //...
+    this.label && this.label.setVisibility(visibility);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setVisibility(visibility);
@@ -47,10 +47,10 @@ og.Entity.prototype.setVisibility = function (visibility) {
 
 og.Entity.prototype.setPosition = function (position) {
     //billboards
-    this._billboard.setPosition(position);
+    this.billboard && this.billboard.setPosition(position);
 
     //labels
-    //...
+    this.label && this.label.setPosition(position);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPosition(position);

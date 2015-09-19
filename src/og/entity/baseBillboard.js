@@ -9,8 +9,8 @@ goog.require('og.math.Vector3');
  */
 og.BaseBillboard = function (options) {
     options = options || {};
-    this._billboardHandler = null;
-    this._billboardHandlerIndex = -1;
+    this._handler = null;
+    this._handlerIndex = -1;
 
     this.id = options.id || ("noname_" + og.BaseBillboard.__staticId++);
 
@@ -29,36 +29,36 @@ og.BaseBillboard.prototype.setPosition = function (position) {
     this.position.x = position.x;
     this.position.y = position.y;
     this.position.z = position.z;
-    this._billboardHandler && this._billboardHandler.setPositionArr(this._billboardHandlerIndex, position);
+    this._handler && this._handler.setPositionArr(this._handlerIndex, position);
 };
 
 og.BaseBillboard.prototype.setOffset = function (offset) {
     this.offset.x = offset.x;
     this.offset.y = offset.y;
-    this._billboardHandler && this._billboardHandler.setOffsetArr(this._billboardHandlerIndex, offset);
+    this._handler && this._handler.setOffsetArr(this._handlerIndex, offset);
 };
 
 og.BaseBillboard.prototype.setRotation = function (rotation) {
     this.rotation = rotation;
-    this._billboardHandler && this._billboardHandler.setRotationArr(this._billboardHandlerIndex, rotation);
+    this._handler && this._handler.setRotationArr(this._handlerIndex, rotation);
 };
 
 og.BaseBillboard.prototype.setOpacity = function (opacity) {
     this.opacity = opacity;
-    this._billboardHandler && this._billboardHandler.setOpacityArr(this._billboardHandlerIndex, opacity);
+    this._handler && this._handler.setOpacityArr(this._handlerIndex, opacity);
 };
 
 og.BaseBillboard.prototype.setVisibility = function (visibility) {
-    this._billboardHandler && this._billboardHandler.setVisibility(this._billboardHandlerIndex, visibility);
+    this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
 };
 
 og.BaseBillboard.prototype.setAlignedAxis = function (alignedAxis) {
     this.alignedAxis.x = alignedAxis.x;
     this.alignedAxis.y = alignedAxis.y;
     this.alignedAxis.z = alignedAxis.z;
-    this._billboardHandler && this._billboardHandler.setAlignedAxisArr(this._billboardHandlerIndex, alignedAxis);
+    this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
 };
 
 og.BaseBillboard.prototype.remove = function () {
-    this._billboardHandler && this._billboardHandler.remove(this);
+    this._handler && this._handler.remove(this);
 };
