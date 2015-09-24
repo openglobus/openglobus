@@ -66,7 +66,11 @@ og.Entity.prototype.setBillboard = function (billboard) {
 };
 
 og.Entity.prototype.setLabel = function (label) {
-    //...
+    if (this.label) {
+        this.label.remove();
+    }
+    this.label = label;
+    this._entityCollection && this._entityCollection._labelHandler.add(label);
 };
 
 og.Entity.prototype.appendChild = function (entity) {

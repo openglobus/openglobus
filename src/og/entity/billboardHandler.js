@@ -105,13 +105,13 @@ og.BillboardHandler.prototype.clear = function () {
     this.refresh();
 };
 
-og.BillboardHandler.prototype.forEach = function (callback) {
-    var b = this._billboards;
-    var i = b.length;
-    while (i--) {
-        callback.call(this, b[i]);
-    }
-};
+//og.BillboardHandler.prototype.forEach = function (callback) {
+//    var b = this._billboards;
+//    var i = b.length;
+//    while (i--) {
+//        callback.call(this, b[i]);
+//    }
+//};
 
 
 og.BillboardHandler.prototype.update = function () {

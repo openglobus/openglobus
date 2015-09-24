@@ -2,6 +2,7 @@ goog.provide('og.EntityCollection');
 
 
 goog.require('og.BillboardHandler');
+goog.require('og.LabelHandler');
 
 /*
  * og.EntityCollection
@@ -13,7 +14,7 @@ og.EntityCollection = function () {
     this.renderNode = null;
     this.visibility = true;
     this._billboardHandler = new og.BillboardHandler(this);
-    //...
+    this._labelHandler = new og.LabelHandler(this);
 
     this.entities = [];
 };
@@ -25,10 +26,10 @@ og.EntityCollection.prototype.setVisibility = function (visibility) {
 og.EntityCollection.prototype._addRecursively = function (entity) {
 
     //billboard
-    this._billboardHandler.add(entity.billboard);
+    entity.billboard && this._billboardHandler.add(entity.billboard);
 
     //label
-    //this._labelHandler.add(entity.label);
+    entity.label && this._labelHandler.add(entity.label);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         entity.childrenNodes[i]._entityCollection = this;
@@ -56,10 +57,10 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     entity._entityCollectionIndex = -1;
 
     //billboard
-    this._billboardHandler.remove(entity.billboard);
+    entity.billboard && this._billboardHandler.remove(entity.billboard);
 
     //label
-    //this._labelHandler.remove(entity.label);
+    entity.label && this._labelHandler.remove(entity.label);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         this._removeRecursively(entity.childrenNodes[i]);
@@ -83,13 +84,6 @@ og.BillboardHandler.prototype.reindexEntitiesArray = function (startIndex) {
         e[i]._entityCollectionIndex = i;
     }
 };
-
-//og.EntityCollection.prototype.forEach = function (callback, autoRefresh) {
-//    this._billboardHandler.forEach(callback);
-//    if (autoRefresh) {
-//        this._billboardHandler.refresh();
-//    }
-//};
 
 og.EntityCollection.prototype.addTo = function (renderNode) {
     if (!this.renderNode) {
