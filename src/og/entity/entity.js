@@ -62,6 +62,8 @@ og.Entity.prototype.setBillboard = function (billboard) {
         this.billboard.remove();
     }
     this.billboard = billboard;
+    this.billboard.setPosition(this.position);
+    this.billboard.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
 };
 
@@ -70,6 +72,8 @@ og.Entity.prototype.setLabel = function (label) {
         this.label.remove();
     }
     this.label = label;
+    this.label.setPosition(this.position);
+    this.label.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
 };
 

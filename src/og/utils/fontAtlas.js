@@ -8,6 +8,7 @@ og.utils.FontAtlas = function () {
     this.atlasesArr = [];
     this.atlasIndexes = {};
     this.tokenImageSize = 64;
+    this.samplerArr = [];
 };
 
 og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -25,21 +26,23 @@ og.utils.FontAtlas.getFullIndex = function (face, style, weight) {
     return (face.toLowerCase() + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal"));
 };
 
-og.utils.FontAtlas.prototype.getTokenNode = function (token, face, style, weight) {
-    var fn = og.FontAtlas.getFullIndex(face, style, weight);
-    var ai = this.atlasIndexes[fn];
-    var n = this.atlasesArr[ai].nodes[token];
-    return n;
-};
+//og.utils.FontAtlas.prototype.getTokenNode = function (token, face, style, weight) {
+//    var fn = og.FontAtlas.getFullIndex(face, style, weight);
+//    var ai = this.atlasIndexes[fn];
+//    var n = this.atlasesArr[ai].nodes[token];
+//    return n;
+//};
 
-og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
-    if (!this.getFontIndex(face, style, weight)) {
+og.utils.FontAtlas.prototype.getFontIndex = function (face, style, weight) {
+    var fn = this.getFontIndex(face, style, weight);
+    if (fn == undefined) {
         var tis = this.tokenImageSize;
         var atlasSize = og.math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(og.utils.FontAtlas.tokens.length)) / tis + (og.utils.FontAtlas.tokens.length - 1) * og.utils.TextureAtlas.BORDER_SIZE);
-        var fn = og.utils.FontAtlas.getFullIndex(face, style, weight);
+        fn = og.utils.FontAtlas.getFullIndex(face, style, weight);
         this.atlasIndexes[fn] = this.atlasesArr.length;
         var atlas = new og.utils.TextureAtlas(atlasSize, atlasSize);
         this.atlasesArr.push(atlas);
+        this.samplerArr.push(this.atlasesArr.length);
 
         var canvas = new og.ImageCanvas(tis, tis);
         var cY = Math.round(tis * 0.5);
@@ -61,5 +64,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
 
         atlas.makeTexture();
     }
+
+    return fn;
 };
 

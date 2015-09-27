@@ -17,7 +17,7 @@ og.shaderProgram.label = function () {
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
+            a_texCoord: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_size: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },

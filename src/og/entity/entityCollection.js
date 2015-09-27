@@ -92,6 +92,7 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         renderNode.entityCollections.push(this);
         this._billboardHandler.setRenderer(renderNode.renderer);
         this.updateBillboardsTextureAtlas();
+        this.updateLabelsFontAtlas();
     }
     return this;
 };
@@ -100,6 +101,15 @@ og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
     var b = this._billboardHandler._billboards;
     for (var i = 0; i < b.length; i++) {
         b[i].setSrc(b[i].src);
+    }
+};
+
+og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
+    if (this.renderNode) {
+        var b = this._labelHandler._billboards;
+        for (var i = 0; i < b.length; i++) {
+            b[i]._fontAtlas = this.renderNode.fontAtlas;
+        }
     }
 };
 
