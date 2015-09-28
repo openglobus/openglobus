@@ -47,9 +47,11 @@ og.LabelHandler.prototype.add = function (label) {
     }
 };
 
-og.LabelHandler.prototypre.assignFontAtlas = function (label) {
+og.LabelHandler.prototype.assignFontAtlas = function (label) {
     if (this._entityCollection && this._entityCollection.renderNode) {
         label._fontAtlas = this._entityCollection.renderNode.fontAtlas;
+        label._fontIndex = label._fontAtlas.getFontIndex(label.font, label.style, label.weight);
+        label.setText(label.text);
     }
 };
 
@@ -191,6 +193,8 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
 
     billboard._handlerIndex = -1;
     billboard._handler = null;
+    billboard._fontIndex = 0;
+    billboard._fontAtlas = null;
 };
 
 og.LabelHandler.prototype.setText = function (index, text, fontIndex) {

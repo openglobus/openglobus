@@ -24,21 +24,20 @@ my.Billboard.prototype.initialization = function () {
     this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 
     ec = new og.EntityCollection();
-    ec.addTo(this);
 
     blb = new og.Billboard();
     blb.setSrc("marker.png");
-    blb.setPosition(new og.math.Vector3(500, 0, 0));
     blb.setSize(80, 80);
     eee = new og.Entity();
+    eee.setPosition(new og.math.Vector3(500, 0, 0));
     eee.setBillboard(blb);
     eee.addTo(ec);
 
     blb1 = new og.Billboard();
     blb1.setSrc("ship.png");
-    blb1.setPosition(new og.math.Vector3(0, 500, 0));
     blb1.setSize(80, 80);
     eee1 = new og.Entity();
+    eee1.setPosition(new og.math.Vector3(0, 500, 0));
     eee1.setBillboard(blb1);
     eee1.addTo(ec);
 
@@ -47,8 +46,12 @@ my.Billboard.prototype.initialization = function () {
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(80, 80);
     eee2 = new og.Entity();
+    eee2.setPosition(new og.math.Vector3(0, 0, 500));
     eee2.setBillboard(blb2);
     eee2.addTo(ec);
+
+    ec.addTo(this);
+
 
     //for (var i = 0; i < 100; i++) {
     //    for (var j = 0; j < 100; j++) {

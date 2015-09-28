@@ -161,17 +161,21 @@ og.node.RenderNode.prototype.drawEntities = function () {
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
         var i = 0;
-        var fa = this.fontAtlas.atlasesArr;
-        for (i = 0; i < fa.length; i++) {
-            gl.activeTexture(gl.TEXTURE1 + i);
-            gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
-        }
+        //var fa = this.fontAtlas.atlasesArr;
+        //for (i = 0; i < fa.length; i++) {
+        //    gl.activeTexture(gl.TEXTURE1 + i);
+        //    gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+        //}
 
         i = ec.length;
         while (i--) {
             ec[i]._billboardHandler.draw();
-            ec[i]._labelHandler.draw();
         }
+
+        //i = ec.length;
+        //while (i--) {
+        //    ec[i]._labelHandler.draw();
+        //}
 
         gl.enable(gl.CULL_FACE);
     }

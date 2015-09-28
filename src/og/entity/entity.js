@@ -46,6 +46,8 @@ og.Entity.prototype.setVisibility = function (visibility) {
 };
 
 og.Entity.prototype.setPosition = function (position) {
+    this.position = position;
+
     //billboards
     this.billboard && this.billboard.setPosition(position);
 

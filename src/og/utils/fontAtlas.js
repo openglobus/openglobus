@@ -19,11 +19,11 @@ og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', '
 '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '[', ']', '{', '}', '\\', '|', ';', ':', '"', ',', '.', '/', '<', '>', '?', ' ', '    '];
 
 og.utils.FontAtlas.prototype.getFontIndex = function (face, style, weight) {
-    return this.atlasIndexes[og.utils.FontAtlas.getFullIndex(face, style, weight)];
+    return this.atlasIndexes[og.utils.FontAtlas.getFullIndex(face.trim(), style.trim(), weight.trim())];
 };
 
 og.utils.FontAtlas.getFullIndex = function (face, style, weight) {
-    return (face.toLowerCase() + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal"));
+    return ((face ? face.toLowerCase() : "arial") + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal"));
 };
 
 //og.utils.FontAtlas.prototype.getTokenNode = function (token, face, style, weight) {
