@@ -6,11 +6,11 @@ attribute float a_size;
 attribute float a_rotation;
 attribute float a_opacity;
 attribute vec3 a_alignedAxis;
-attribute int a_fontIndex;
+attribute float a_fontIndex;
 
 varying vec2 v_texCoords;
 varying float v_opacity;
-varying int v_fontIndex;
+varying float v_fontIndex;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
@@ -22,7 +22,6 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 	
-	//TODO
 	v_fontIndex = a_fontIndex;
 
     v_texCoords = a_texCoord.xy;
@@ -52,7 +51,7 @@ void main() {
     float scale = a_size * focalSize;
     float cosRot = cos(a_rotation);
     float sinRot = sin(a_rotation);
-    vec3 rr = (right * cosRot - up * sinRot) * (scale * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + offset.y) + normalize(look) * a_vertices.z + a_positions;
+    vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z) + offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + offset.y) + normalize(look) * a_vertices.z + a_positions;
 
     gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
 	gl_Position.z += a_offset.z;

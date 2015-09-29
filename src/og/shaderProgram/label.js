@@ -24,10 +24,9 @@ og.shaderProgram.label = function () {
             a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_fontIndex: { type: og.shaderProgram.types.INT, enableArray: true },
-            a_letterOffset: { type: og.shaderProgram.types.FLOAT, enableArray: true }
+            a_fontIndex: { type: og.shaderProgram.types.FLOAT, enableArray: true }
     },
-        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "billboard_vs.txt"),
-        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "billboard_fs.txt")
+        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "label_vs.txt"),
+        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "label_fs.txt")
     });
 };

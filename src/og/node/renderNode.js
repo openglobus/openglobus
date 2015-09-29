@@ -157,25 +157,28 @@ og.node.RenderNode.prototype.drawEntities = function () {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.disable(gl.CULL_FACE);
 
+        var i = 0;
+
+        //billboards pass
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
-
-        var i = 0;
-        //var fa = this.fontAtlas.atlasesArr;
-        //for (i = 0; i < fa.length; i++) {
-        //    gl.activeTexture(gl.TEXTURE1 + i);
-        //    gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
-        //}
 
         i = ec.length;
         while (i--) {
             ec[i]._billboardHandler.draw();
         }
 
-        //i = ec.length;
-        //while (i--) {
-        //    ec[i]._labelHandler.draw();
-        //}
+        //labels path
+        var fa = this.fontAtlas.atlasesArr;
+        for (i = 0; i < fa.length; i++) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+        }
+
+        i = ec.length;
+        while (i--) {
+            ec[i]._labelHandler.draw();
+        }
 
         gl.enable(gl.CULL_FACE);
     }
@@ -184,6 +187,7 @@ og.node.RenderNode.prototype.drawEntities = function () {
 og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
     this.billboardsTextureAtlas.assignHandler(renderer.handler);
+    this.fontAtlas.assignHandler(renderer.handler);
 
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i]._billboardHandler.setRenderer(renderer);

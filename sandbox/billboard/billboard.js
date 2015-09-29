@@ -4,6 +4,7 @@ goog.require('og.node.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.EntityCollection');
 goog.require('og.Billboard');
+goog.require('og.Label');
 goog.require('og.Entity');
 
 goog.require('og.math.Vector2');
@@ -94,6 +95,13 @@ my.Billboard.prototype.frame = function () {
         i = 0;
 
 };
+
+function test() {
+    eee.setLabel(new og.Label());
+    eee.label.setSize(68);
+    eee.label.setPosition(new og.math.Vector3());
+    eee.label.setText("Hello World!");
+}
 
 /*
 void CreateBillboardMatrix(Matrix44f &bbmat, const Vector3f &right, const Vector3f &up, const Vector3f &look, const Vertex3f &pos)

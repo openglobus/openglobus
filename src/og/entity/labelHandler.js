@@ -1,6 +1,6 @@
 goog.provide('og.LabelHandler');
 
-goog.require('og.shaderProgram.billboard');
+goog.require('og.shaderProgram.label');
 goog.require('og.BillboardHandler');
 goog.require('og.inheritance');
 
@@ -21,7 +21,7 @@ og.LabelHandler = function (entityCollection) {
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-    this._maxLetters = 2;
+    this._maxLetters = 12;
 };
 
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);
@@ -50,7 +50,7 @@ og.LabelHandler.prototype.add = function (label) {
 og.LabelHandler.prototype.assignFontAtlas = function (label) {
     if (this._entityCollection && this._entityCollection.renderNode) {
         label._fontAtlas = this._entityCollection.renderNode.fontAtlas;
-        label._fontIndex = label._fontAtlas.getFontIndex(label.font, label.style, label.weight);
+        label._fontIndex = label._fontAtlas.createFont(label.font, label.style, label.weight);
         label.setText(label.text);
     }
 };
@@ -163,7 +163,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
-    gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(sha.a_fontIndex._pName, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 };
@@ -205,12 +205,11 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
     var a = this._texCoordArr;
 
     var c;
-    var offset = -fa.nodes[text[0]].emptySize;
+    var offset = 0;//-fa.nodes[text[0]].emptySize;
     for (c = 0; c < text.length; c++) {
         var j = i + c * 18;
         var n = fa.nodes[text[c]];
         var tc = n.texCoords;
-        offset += n.emptySize;
 
         a[j] = tc[0];
         a[j + 1] = tc[1];
@@ -235,6 +234,8 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
         a[j + 15] = tc[10];
         a[j + 16] = tc[11];
         a[j + 17] = offset;
+
+        offset += n.emptySize;
     }
 
     for (var c = c; c < this._maxLetters; c++) {
@@ -465,12 +466,12 @@ og.LabelHandler.prototype.setFontIndexArr = function (index, fontIndex) {
 
     for (var q = 0; q < this._maxLetters; q++) {
         var j = i + q * 6;
-        a[j] = rotation;
-        a[j + 1] = rotation;
-        a[j + 2] = rotation;
-        a[j + 3] = rotation;
-        a[j + 4] = rotation;
-        a[j + 5] = rotation;
+        a[j] = fontIndex;
+        a[j + 1] = fontIndex;
+        a[j + 2] = fontIndex;
+        a[j + 3] = fontIndex;
+        a[j + 4] = fontIndex;
+        a[j + 5] = fontIndex;
     }
 
     this._changedBuffers[og.LabelHandler.FONTINDEX_BUFFER] = true;

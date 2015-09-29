@@ -22,10 +22,10 @@ goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellips
 goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3']);
 goog.addDependency('../../../og/src/og/entity/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2']);
 goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard']);
-goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity'], ['og.math.Vector3']);
+goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity'], ['og.Billboard', 'og.Label', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/entity/entityCollection.js', ['og.EntityCollection'], ['og.BillboardHandler', 'og.LabelHandler']);
 goog.addDependency('../../../og/src/og/entity/label.js', ['og.Label'], ['og.BaseBillboard', 'og.inheritance']);
-goog.addDependency('../../../og/src/og/entity/labelHandler.js', ['og.LabelHandler'], ['og.BillboardHandler', 'og.inheritance', 'og.shaderProgram.billboard']);
+goog.addDependency('../../../og/src/og/entity/labelHandler.js', ['og.LabelHandler'], ['og.BillboardHandler', 'og.inheritance', 'og.shaderProgram.label']);
 goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], []);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent'], ['og.LonLat', 'og.math']);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], []);

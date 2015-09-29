@@ -91,6 +91,7 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         this.renderNode = renderNode;
         renderNode.entityCollections.push(this);
         this._billboardHandler.setRenderer(renderNode.renderer);
+        this._labelHandler.setRenderer(renderNode.renderer);
         this.updateBillboardsTextureAtlas();
         this.updateLabelsFontAtlas();
     }

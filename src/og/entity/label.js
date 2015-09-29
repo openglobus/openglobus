@@ -32,7 +32,7 @@ og.Label.prototype.setText = function (text) {
 og.Label.prototype.setFont = function (font) {
     this.font = font.trim();
     if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.getFontIndex(this.font, this.style, this.weight);
+        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
         this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
     }
 };
@@ -45,7 +45,7 @@ og.Label.prototype.setSize = function (size) {
 og.Label.prototype.setStyle = function (style) {
     this.style = style.trim();
     if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.getFontIndex(this.font, this.style, this.weight);
+        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
         this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
     }
 };
@@ -53,7 +53,7 @@ og.Label.prototype.setStyle = function (style) {
 og.Label.prototype.setWeight = function (weight) {
     this.weight = weight.trim();
     if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.getFontIndex(this.font, this.style, this.weight);
+        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
         this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
     }
 };

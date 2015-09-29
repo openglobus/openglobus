@@ -1,6 +1,8 @@
 goog.provide('og.Entity');
 
 goog.require('og.math.Vector3');
+goog.require('og.Billboard');
+goog.require('og.Label');
 
 og.Entity = function (options) {
 
