@@ -6,8 +6,14 @@ varying vec2 v_texCoords;
 varying float v_opacity;
 
 void main () {
-    const int fi = 0;//int(v_fontIndex);
-    vec4 color = texture2D(u_fontTextureArr[fi], v_texCoords);
+    int fi = int(v_fontIndex);
+	vec4 color;
+	for(int i=0; i<5; i++){
+	    if(i==fi){
+            color = texture2D(u_fontTextureArr[i], v_texCoords);
+			break;
+		}
+	}
     if(color.a<0.1)
         discard;
     gl_FragColor = vec4(color.rgb,color.a*v_opacity);
