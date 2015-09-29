@@ -22,6 +22,11 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 	
+    if(a_texCoord.z == -1.0){
+	    gl_Position = vec4(0.0);
+		return;
+	}
+
 	v_fontIndex = a_fontIndex;
 
     v_texCoords = a_texCoord.xy;

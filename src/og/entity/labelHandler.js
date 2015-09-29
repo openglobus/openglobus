@@ -21,7 +21,7 @@ og.LabelHandler = function (entityCollection) {
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-    this._maxLetters = 12;
+    this._maxLetters = 32;
 };
 
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);
@@ -205,7 +205,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
     var a = this._texCoordArr;
 
     var c;
-    var offset = 0;//-fa.nodes[text[0]].emptySize;
+    var offset = text.length ? fa.nodes[text[0]].emptySize : 0;
     for (c = 0; c < text.length; c++) {
         var j = i + c * 18;
         var n = fa.nodes[text[c]];

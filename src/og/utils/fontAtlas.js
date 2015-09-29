@@ -44,8 +44,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
         this.atlasesArr.push(atlas);
 
         var canvas = new og.ImageCanvas(tis, tis);
-        //var cY = Math.round(tis * 0.5);
-        var pT = Math.round(tis * 1);
+        var pT = Math.round(tis * 0.75);
         var tF = (style || "normal") + " " + (weight || "normal") + " " + pT + "px " + face;
         var t = og.utils.FontAtlas.tokens;
 
@@ -58,7 +57,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
             img.__nodeIndex = ti;
             var n = atlas.addImage(img, true, true);
             var tokenWidth = canvas.getTextWidth(ti);
-            n.emptySize = tokenWidth / pT;
+            n.emptySize = tokenWidth / tis;
         }
 
         atlas.makeTexture();
