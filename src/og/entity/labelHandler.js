@@ -205,7 +205,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
     var a = this._texCoordArr;
 
     var c;
-    var offset = text.length ? fa.nodes[text[0]].emptySize : 0;
+    var offset = 0.5;
     for (c = 0; c < text.length; c++) {
         var j = i + c * 18;
         var n = fa.nodes[text[c]];
