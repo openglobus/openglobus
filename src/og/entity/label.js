@@ -14,7 +14,7 @@ og.Label = function (options) {
 
     this.text = "";
     this.font = null;
-    this.size = 12;
+    this.size = 32;
     this.style = null;
     this.weight = null;
 
@@ -30,12 +30,8 @@ og.Label.prototype.setText = function (text) {
 };
 
 og.Label.prototype.setFont = function (font) {
-    this.font = font.trim();
-    if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
-        this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-        this._handler && this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
-    }
+    this.font = font.trim().toLowerCase();
+    this.update();
 };
 
 og.Label.prototype.setSize = function (size) {
@@ -44,19 +40,26 @@ og.Label.prototype.setSize = function (size) {
 };
 
 og.Label.prototype.setStyle = function (style) {
-    this.style = style.trim();
-    if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
-        this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-        this._handler && this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
-    }
+    this.style = style.trim().toLowerCase();
+    this.update();
 };
 
 og.Label.prototype.setWeight = function (weight) {
-    this.weight = weight.trim();
+    this.weight = weight.trim().toLowerCase();
+    this.update();
+};
+
+og.Label.prototype.update = function () {
     if (this._fontAtlas) {
         this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
-        this._handler && this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-        this._handler && this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
+        if (this._handler) {
+            this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
+            this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
+        }
     }
+};
+
+og.Label.prototype.assignFontAtlas = function (fontAtlas) {
+    !this._fontAtlas && (this._fontAtlas = fontAtlas);
+    this.update();
 };

@@ -29,26 +29,35 @@ my.Billboard.prototype.initialization = function () {
     blb = new og.Billboard();
     blb.setSrc("marker.png");
     blb.setSize(80, 80);
+    lbl = new og.Label();
+    lbl.setText("Billboard");
     eee = new og.Entity();
     eee.setPosition(new og.math.Vector3(500, 0, 0));
     eee.setBillboard(blb);
+    eee.setLabel(lbl);
     eee.addTo(ec);
 
     blb1 = new og.Billboard();
     blb1.setSrc("ship.png");
     blb1.setSize(80, 80);
+    lbl1 = new og.Label();
+    lbl1.setText("Billboard 1");
     eee1 = new og.Entity();
     eee1.setPosition(new og.math.Vector3(0, 500, 0));
     eee1.setBillboard(blb1);
+    eee1.setLabel(lbl1);
     eee1.addTo(ec);
 
     blb2 = new og.Billboard();
     blb2.setSrc("wall.jpg");
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(80, 80);
+    lbl2 = new og.Label();
+    lbl2.setText("Billboard 2");
     eee2 = new og.Entity();
     eee2.setPosition(new og.math.Vector3(0, 0, 500));
     eee2.setBillboard(blb2);
+    eee2.setLabel(lbl2);
     eee2.addTo(ec);
 
     ec.addTo(this);
@@ -88,6 +97,10 @@ my.Billboard.prototype.frame = function () {
     //    b.setPosition(new og.math.Vector3(b.position.x, Math.sin(i * Math.PI / 180.0) * 300, b.position.z));
         //b.setRotation(i*Math.PI/180);
     //});
+
+    lbl.setText(i.toString());
+    lbl1.setText("Number: " + i.toString());
+    lbl2.setText(i.toString());
 
     i++;
 

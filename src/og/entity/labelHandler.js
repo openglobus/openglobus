@@ -49,9 +49,10 @@ og.LabelHandler.prototype.add = function (label) {
 
 og.LabelHandler.prototype.assignFontAtlas = function (label) {
     if (this._entityCollection && this._entityCollection.renderNode) {
-        label._fontAtlas = this._entityCollection.renderNode.fontAtlas;
-        label._fontIndex = label._fontAtlas.createFont(label.font, label.style, label.weight);
-        label.setText(label.text);
+        //label._fontAtlas = this._entityCollection.renderNode.fontAtlas;
+        //label._fontIndex = label._fontAtlas.createFont(label.font, label.style, label.weight);
+        label.assignFontAtlas(this._entityCollection.renderNode.fontAtlas);
+        //label.setText(label.text);
     }
 };
 
@@ -101,7 +102,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.size;
         og.BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
 
-        x = label.offset.x; y = label.offset.y; z = label.offset.z;
+        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.01;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = label.opacity;
@@ -201,7 +202,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
 
     var fa = this._entityCollection.renderNode.fontAtlas.atlasesArr[fontIndex];
 
-    var i = index * 18;
+    var i = index * 18 * this._maxLetters;
     var a = this._texCoordArr;
 
     var c;
@@ -258,7 +259,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
 };
 
 og.LabelHandler.prototype.setPositionArr = function (index, position) {
-    var i = index * 18;
+    var i = index * 18 * this._maxLetters;
     var a = this._positionArr, x = position.x, y = position.y, z = position.z;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -293,7 +294,7 @@ og.LabelHandler.prototype.setPositionArr = function (index, position) {
 
 og.LabelHandler.prototype.setSizeArr = function (index, size) {
 
-    var i = index * 6;
+    var i = index * 6 * this._maxLetters;
     var a = this._sizeArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -311,7 +312,7 @@ og.LabelHandler.prototype.setSizeArr = function (index, size) {
 
 og.LabelHandler.prototype.setOffsetArr = function (index, offset) {
 
-    var i = index * 18;
+    var i = index * 18 * this._maxLetters;
     var a = this._offsetArr, x = offset.x, y = offset.y, z = offset.z;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -345,7 +346,7 @@ og.LabelHandler.prototype.setOffsetArr = function (index, offset) {
 };
 
 og.LabelHandler.prototype.setOpacityArr = function (index, opacity) {
-    var i = index * 6;
+    var i = index * 6 * this._maxLetters;
     var a = this._opacityArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -363,7 +364,7 @@ og.LabelHandler.prototype.setOpacityArr = function (index, opacity) {
 
 og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
 
-    var i = index * 6;
+    var i = index * 6 * this._maxLetters;
     var a = this._rotationArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -391,7 +392,7 @@ og.LabelHandler.prototype.setVisibility = function (index, visibility) {
 
 og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
 
-    var i = index * 18;
+    var i = index * 18 * this._maxLetters;
     var a = this._vertexArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -425,7 +426,7 @@ og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
 };
 
 og.LabelHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) {
-    var i = index * 18;
+    var i = index * 18 * this._maxLetters;
     var a = this._alignedAxisArr, x = alignedAxis.x, y = alignedAxis.y, z = alignedAxis.z;
 
     for (var q = 0; q < this._maxLetters; q++) {
@@ -461,7 +462,7 @@ og.LabelHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) {
 
 og.LabelHandler.prototype.setFontIndexArr = function (index, fontIndex) {
 
-    var i = index * 6;
+    var i = index * 6 * this._maxLetters;
     var a = this._fontIndexArr;
 
     for (var q = 0; q < this._maxLetters; q++) {

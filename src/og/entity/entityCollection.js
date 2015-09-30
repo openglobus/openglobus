@@ -107,9 +107,9 @@ og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
 
 og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
     if (this.renderNode) {
-        var b = this._labelHandler._billboards;
-        for (var i = 0; i < b.length; i++) {
-            b[i]._fontAtlas = this.renderNode.fontAtlas;
+        var l = this._labelHandler._billboards;
+        for (var i = 0; i < l.length; i++) {
+            l[i].assignFontAtlas(this.renderNode.fontAtlas);
         }
     }
 };
