@@ -44,17 +44,12 @@ og.BaseBillboard.prototype.setRotation = function (rotation) {
     this._handler && this._handler.setRotationArr(this._handlerIndex, rotation);
 };
 
-og.BaseBillboard.prototype.setOpacity = function (opacity) {
-    this.opacity = opacity;
-    this._handler && this._handler.setOpacityArr(this._handlerIndex, opacity);
-};
-
 og.BaseBillboard.prototype.setRgba = function (rgba) {
     this.rgba.x = rgba.x;
     this.rgba.y = rgba.y;
     this.rgba.z = rgba.z;
     this.rgba.w = rgba.w;
-    this._handler && this._handler.setOpacityArr(this._handlerIndex, rgba);
+    this._handler && this._handler.setRgbaArr(this._handlerIndex, rgba);
 };
 
 og.BaseBillboard.prototype.setVisibility = function (visibility) {

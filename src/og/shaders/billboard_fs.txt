@@ -10,5 +10,5 @@ void main () {
     if(color.a < 0.1)
         discard;
 
-    gl_FragColor = vec4(color.rgb, color.a * v_rgba.a);
+    gl_FragColor = color * v_rgba;
 }

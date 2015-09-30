@@ -59,7 +59,8 @@ og.ImageCanvas.prototype.getTextWidth = function (text) {
     return Math.round(metrics.width);
 };
 
-og.ImageCanvas.prototype.drawText = function (text, x, y, font) {
+og.ImageCanvas.prototype.drawText = function (text, x, y, font, color) {
+    this._context.fillStyle = color || 'black';
     this._context.font = font || 'normal 14px Verdana';
     this._context.fillText(text, x || 0, y || 14);
 };

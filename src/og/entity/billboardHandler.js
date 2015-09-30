@@ -350,7 +350,7 @@ og.BillboardHandler.prototype.setOffsetArr = function (index, offset) {
 og.BillboardHandler.prototype.setRgbaArr = function (index, rgba) {
 
     var i = index * 24;
-    var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, z = rgba.w;
+    var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
 
     a[i] = x;
     a[i + 1] = y;
