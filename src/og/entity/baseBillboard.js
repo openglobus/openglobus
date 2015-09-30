@@ -1,6 +1,7 @@
 goog.provide('og.BaseBillboard');
 
 goog.require('og.math.Vector3');
+goog.require('og.math.Vector4');
 
 /**
  *
@@ -16,7 +17,7 @@ og.BaseBillboard = function (options) {
 
     this.position = new og.math.Vector3();
     this.rotation = 0;
-    this.opacity = 1.0;
+    this.rgba = new og.math.Vector4(1.0, 1.0, 1.0, 1.0);
     this.alignedAxis = new og.math.Vector3();
     this.offset = new og.math.Vector3();
     this.visibility = true;
@@ -46,6 +47,14 @@ og.BaseBillboard.prototype.setRotation = function (rotation) {
 og.BaseBillboard.prototype.setOpacity = function (opacity) {
     this.opacity = opacity;
     this._handler && this._handler.setOpacityArr(this._handlerIndex, opacity);
+};
+
+og.BaseBillboard.prototype.setRgba = function (rgba) {
+    this.rgba.x = rgba.x;
+    this.rgba.y = rgba.y;
+    this.rgba.z = rgba.z;
+    this.rgba.w = rgba.w;
+    this._handler && this._handler.setOpacityArr(this._handlerIndex, rgba);
 };
 
 og.BaseBillboard.prototype.setVisibility = function (visibility) {

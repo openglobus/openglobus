@@ -6,7 +6,7 @@ uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
 varying float v_fontIndex;
 varying vec2 v_texCoords;
-varying float v_opacity;
+varying vec4 v_rgba;
 
 void main () {
     int fi = int(v_fontIndex);
@@ -39,5 +39,5 @@ void main () {
     if(color.a < 0.1)
         discard;
 
-    gl_FragColor = vec4(color.rgb,color.a*v_opacity);
+    gl_FragColor = vec4(color.rgb, color.a * v_rgba.a);
 }

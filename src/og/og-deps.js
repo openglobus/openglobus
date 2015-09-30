@@ -19,7 +19,7 @@ goog.addDependency('../../../og/src/og/control/touchNavigation.js', ['og.control
 goog.addDependency('../../../og/src/og/control/zoomControl.js', ['og.control.ZoomControl'], ['og.control.Control', 'og.control.MouseNavigation', 'og.inheritance']);
 goog.addDependency('../../../og/src/og/ellipsoid/ellipsoid.js', ['og.Ellipsoid'], ['og.LonLat', 'og.math', 'og.math.Vector3']);
 goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellipsoid.wgs84'], ['og.Ellipsoid']);
-goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3']);
+goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3', 'og.math.Vector4']);
 goog.addDependency('../../../og/src/og/entity/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2']);
 goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard']);
 goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity'], ['og.Billboard', 'og.Label', 'og.math.Vector3']);

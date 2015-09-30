@@ -4,12 +4,12 @@ attribute vec3 a_positions;
 attribute vec3 a_offset;
 attribute float a_size;
 attribute float a_rotation;
-attribute float a_opacity;
+attribute vec4 a_rgba;
 attribute vec3 a_alignedAxis;
 attribute float a_fontIndex;
 
 varying vec2 v_texCoords;
-varying float v_opacity;
+varying vec4 v_rgba;
 varying float v_fontIndex;
 
 uniform mat4 uMVMatrix;
@@ -30,7 +30,7 @@ void main() {
 	v_fontIndex = a_fontIndex;
 
     v_texCoords = a_texCoord.xy;
-    v_opacity = a_opacity;
+    v_rgba = a_rgba;
 
     vec3 look = a_positions - uCamPos;
     

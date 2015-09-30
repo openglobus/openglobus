@@ -4,11 +4,11 @@ attribute vec3 a_positions;
 attribute vec3 a_offset;
 attribute vec2 a_size;
 attribute float a_rotation;
-attribute float a_opacity;
+attribute vec4 a_rgba;
 attribute vec3 a_alignedAxis;
 
 varying vec2 v_texCoords;
-varying float v_opacity;
+varying vec4 v_rgba;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
@@ -20,7 +20,7 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
     v_texCoords = a_texCoord;
-    v_opacity = a_opacity;
+    v_rgba = a_rgba;
 
     vec3 look = a_positions - uCamPos;
     

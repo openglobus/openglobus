@@ -18,7 +18,7 @@ og.BillboardHandler = function (entityCollection) {
     this._positionBuffer = null;
     this._sizeBuffer = null;
     this._offsetBuffer = null;
-    this._opacityBuffer = null;
+    this._rgbaBuffer = null;
     this._rotationBuffer = null;
     this._texCoordBuffer = null;
     this._vertexBuffer = null;
@@ -29,7 +29,7 @@ og.BillboardHandler = function (entityCollection) {
     this._positionArr = [];
     this._sizeArr = [];
     this._offsetArr = [];
-    this._opacityArr = [];
+    this._rgbaArr = [];
     this._rotationArr = [];
     this._alignedAxisArr = [];
 
@@ -37,7 +37,7 @@ og.BillboardHandler = function (entityCollection) {
     this._buffersUpdateCallbacks[og.BillboardHandler.POSITION_BUFFER] = this.createPositionBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.SIZE_BUFFER] = this.createSizeBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.OFFSET_BUFFER] = this.createOffsetBuffer;
-    this._buffersUpdateCallbacks[og.BillboardHandler.OPACITY_BUFFER] = this.createOpacityBuffer;
+    this._buffersUpdateCallbacks[og.BillboardHandler.RGBA_BUFFER] = this.createRgbaBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.ROTATION_BUFFER] = this.createRotationBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.TEXCOORD_BUFFER] = this.createTexCoordBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.VERTEX_BUFFER] = this.createVertexBuffer;
@@ -53,7 +53,7 @@ og.BillboardHandler.staticCounter = 0;
 og.BillboardHandler.POSITION_BUFFER = 0;
 og.BillboardHandler.SIZE_BUFFER = 1;
 og.BillboardHandler.OFFSET_BUFFER = 2;
-og.BillboardHandler.OPACITY_BUFFER = 3;
+og.BillboardHandler.RGBA_BUFFER = 3;
 og.BillboardHandler.ROTATION_BUFFER = 4;
 og.BillboardHandler.TEXCOORD_BUFFER = 5;
 og.BillboardHandler.VERTEX_BUFFER = 6;
@@ -89,7 +89,7 @@ og.BillboardHandler.prototype.clear = function () {
     this._positionArr.length = 0;
     this._sizeArr.length = 0;
     this._offsetArr.length = 0;
-    this._opacityArr.length = 0;
+    this._rgbaArr.length = 0;
     this._rotationArr.length = 0;
     this._alignedAxisArr.length = 0;
 
@@ -98,7 +98,7 @@ og.BillboardHandler.prototype.clear = function () {
     this._positionArr = [];
     this._sizeArr = [];
     this._offsetArr = [];
-    this._opacityArr = [];
+    this._rgbaArr = [];
     this._rotationArr = [];
     this._alignedAxisArr = [];
 
@@ -146,8 +146,8 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
     x = billboard.offset.x; y = billboard.offset.y; z = billboard.offset.z;
     og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-    x = billboard.opacity;
-    og.BillboardHandler.concArr(this._opacityArr, [x, x, x, x, x, x]);
+    x = billboard.rgba.x; y = billboard.rgba.y; z = billboard.rgba.z; w = billboard.rgba.w;
+    og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
     x = billboard.rotation;
     og.BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
@@ -191,8 +191,8 @@ og.BillboardHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
-    gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
+    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
     gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -228,7 +228,10 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
 
     this._billboards.splice(bi, 1);
 
-    var i = bi * 18;
+    var i = bi * 24;
+    this._rgbaArr.splice(i, 24);
+
+    i = bi * 18;
     this._offsetArr.splice(i, 18);
     this._vertexArr.splice(i, 18);
     this._positionArr.splice(i, 18);
@@ -239,7 +242,6 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
     this._texCoordArr.splice(i, 12);
 
     i = bi * 6;
-    this._opacityArr.splice(i, 6);
     this._rotationArr.splice(i, 6);
 
     this.reindexBillbordsArray(bi);
@@ -345,19 +347,42 @@ og.BillboardHandler.prototype.setOffsetArr = function (index, offset) {
     this._changedBuffers[og.BillboardHandler.OFFSET_BUFFER] = true;
 };
 
-og.BillboardHandler.prototype.setOpacityArr = function (index, opacity) {
+og.BillboardHandler.prototype.setRgbaArr = function (index, rgba) {
 
-    var i = index * 6;
-    var a = this._opacityArr;
+    var i = index * 24;
+    var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, z = rgba.w;
 
-    a[i] = opacity;
-    a[i + 1] = opacity;
-    a[i + 2] = opacity;
-    a[i + 3] = opacity;
-    a[i + 4] = opacity;
-    a[i + 5] = opacity;
+    a[i] = x;
+    a[i + 1] = y;
+    a[i + 2] = z;
+    a[i + 3] = w;
 
-    this._changedBuffers[og.BillboardHandler.OPACITY_BUFFER] = true;
+    a[i + 4] = x;
+    a[i + 5] = y;
+    a[i + 6] = z;
+    a[i + 7] = w;
+
+    a[i + 8] = x;
+    a[i + 9] = y;
+    a[i + 10] = z;
+    a[i + 11] = w;
+
+    a[i + 12] = x;
+    a[i + 13] = y;
+    a[i + 14] = z;
+    a[i + 15] = w;
+
+    a[i + 16] = x;
+    a[i + 17] = y;
+    a[i + 18] = z;
+    a[i + 19] = w;
+
+    a[i + 20] = x;
+    a[i + 21] = y;
+    a[i + 22] = z;
+    a[i + 23] = w;
+
+    this._changedBuffers[og.BillboardHandler.RGBA_BUFFER] = true;
 };
 
 og.BillboardHandler.prototype.setRotationArr = function (index, rotation) {
@@ -493,10 +518,10 @@ og.BillboardHandler.prototype.createOffsetBuffer = function () {
     this._offsetBuffer = h.createArrayBuffer(new Float32Array(this._offsetArr), 3, this._offsetArr.length / 3);
 };
 
-og.BillboardHandler.prototype.createOpacityBuffer = function () {
+og.BillboardHandler.prototype.createRgbaBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._opacityBuffer);
-    this._opacityBuffer = h.createArrayBuffer(new Float32Array(this._opacityArr), 1, this._opacityArr.length);
+    h.gl.deleteBuffer(this._rgbaBuffer);
+    this._rgbaBuffer = h.createArrayBuffer(new Float32Array(this._rgbaArr), 4, this._rgbaArr.length / 4);
 };
 
 og.BillboardHandler.prototype.createRotationBuffer = function () {

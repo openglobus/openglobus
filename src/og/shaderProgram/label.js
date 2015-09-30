@@ -21,7 +21,7 @@ og.shaderProgram.label = function () {
             a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_size: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_opacity: { type: og.shaderProgram.types.FLOAT, enableArray: true },
+            a_rgba: { type: og.shaderProgram.types.VEC4, enableArray: true },
             a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_fontIndex: { type: og.shaderProgram.types.FLOAT, enableArray: true }

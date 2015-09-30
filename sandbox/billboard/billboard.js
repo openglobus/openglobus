@@ -26,60 +26,60 @@ my.Billboard.prototype.initialization = function () {
 
     ec = new og.EntityCollection();
 
-    //blb = new og.Billboard();
-    //blb.setSrc("marker.png");
-    //blb.setSize(80, 80);
-    //lbl = new og.Label();
-    //lbl.setText("Billboard");
-    //eee = new og.Entity();
-    //eee.setPosition(new og.math.Vector3(500, 0, 0));
-    //eee.setBillboard(blb);
-    //eee.setLabel(lbl);
-    //eee.addTo(ec);
+    blb = new og.Billboard();
+    blb.setSrc("marker.png");
+    blb.setSize(80, 80);
+    lbl = new og.Label();
+    lbl.setText("Billboard");
+    eee = new og.Entity();
+    eee.setPosition(new og.math.Vector3(500, 0, 0));
+    eee.setBillboard(blb);
+    eee.setLabel(lbl);
+    eee.addTo(ec);
 
-    //blb1 = new og.Billboard();
-    //blb1.setSrc("ship.png");
-    //blb1.setSize(80, 80);
-    //lbl1 = new og.Label();
-    //lbl1.setText("Billboard 1");
-    //eee1 = new og.Entity();
-    //eee1.setPosition(new og.math.Vector3(0, 500, 0));
-    //eee1.setBillboard(blb1);
-    //eee1.setLabel(lbl1);
-    //eee1.addTo(ec);
+    blb1 = new og.Billboard();
+    blb1.setSrc("ship.png");
+    blb1.setSize(80, 80);
+    lbl1 = new og.Label();
+    lbl1.setText("Billboard 1");
+    eee1 = new og.Entity();
+    eee1.setPosition(new og.math.Vector3(0, 500, 0));
+    eee1.setBillboard(blb1);
+    eee1.setLabel(lbl1);
+    eee1.addTo(ec);
 
-    //blb2 = new og.Billboard();
-    //blb2.setSrc("wall.jpg");
-    //blb2.setPosition(new og.math.Vector3(0, 0, 500));
-    //blb2.setSize(80, 80);
-    //lbl2 = new og.Label();
-    //lbl2.setText("Billboard 2");
-    //eee2 = new og.Entity();
-    //eee2.setPosition(new og.math.Vector3(0, 0, 500));
-    //eee2.setBillboard(blb2);
-    //eee2.setLabel(lbl2);
-    //eee2.addTo(ec);
+    blb2 = new og.Billboard();
+    blb2.setSrc("wall.jpg");
+    blb2.setPosition(new og.math.Vector3(0, 0, 500));
+    blb2.setSize(80, 80);
+    lbl2 = new og.Label();
+    lbl2.setText("Billboard 2");
+    eee2 = new og.Entity();
+    eee2.setPosition(new og.math.Vector3(0, 0, 500));
+    eee2.setBillboard(blb2);
+    eee2.setLabel(lbl2);
+    eee2.addTo(ec);
 
     ec.addTo(this);
 
 
-    for (var i = 0; i < 50; i++) {
-        for (var j = 0; j < 50; j++) {
-            //var blb = new og.Billboard();
-            //blb.setSize(40, 40);
-            //blb.setSrc("ship.png");
+    //for (var i = 0; i < 50; i++) {
+    //    for (var j = 0; j < 50; j++) {
+    //        //var blb = new og.Billboard();
+    //        //blb.setSize(40, 40);
+    //        //blb.setSrc("ship.png");
 
-            var lbl = new og.Label();
-            lbl.setText("Number:" + (i * 50 + j).toString());
+    //        var lbl = new og.Label();
+    //        lbl.setText("Number:" + (i * 50 + j).toString());
 
-            var eee = new og.Entity();
-            eee.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
-            //eee.setBillboard(blb);
-            eee.setLabel(lbl);
-            eee.addTo(ec);
+    //        var eee = new og.Entity();
+    //        eee.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
+    //        //eee.setBillboard(blb);
+    //        eee.setLabel(lbl);
+    //        eee.addTo(ec);
 
-        }
-    }
+    //    }
+    //}
 
     //var that = this;
     //var img = new Image();

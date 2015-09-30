@@ -66,7 +66,7 @@ og.LabelHandler.prototype.clear = function () {
     this._positionArr.length = 0;
     this._sizeArr.length = 0;
     this._offsetArr.length = 0;
-    this._opacityArr.length = 0;
+    this._rgbaArr.length = 0;
     this._rotationArr.length = 0;
     this._alignedAxisArr.length = 0;
     this._fontIndexArr.length = 0;
@@ -77,7 +77,7 @@ og.LabelHandler.prototype.clear = function () {
     this._positionArr = [];
     this._sizeArr = [];
     this._offsetArr = [];
-    this._opacityArr = [];
+    this._rgbaArr = [];
     this._rotationArr = [];
     this._alignedAxisArr = [];
     this._fontIndexArr = [];
@@ -105,8 +105,8 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.01;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = label.opacity;
-        og.BillboardHandler.concArr(this._opacityArr, [x, x, x, x, x, x]);
+        x = label.rgba.x; y = label.rgba.y; z = label.rgba.z; w = label.rgba.w;
+        og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
         x = label.rotation;
         og.BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
@@ -148,8 +148,8 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._opacityBuffer);
-    gl.vertexAttribPointer(sha.a_opacity._pName, this._opacityBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
+    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
     gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -174,18 +174,21 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
 
     this._billboards.splice(bi, 1);
 
-    var i = bi * 18;
-    var ml = 18 * this._maxLetters;
+    var ml = 24 * this._maxLetters;
+    var i = bi * ml;
+    this._rgbaArr.splice(i, ml);
+
+    ml = 18 * this._maxLetters;
+    i = bi * ml;
     this._offsetArr.splice(i, ml);
     this._vertexArr.splice(i, ml);
     this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
     this._texCoordArr.splice(i, ml);
 
-    i = bi * 6;
     ml = 6 * this._maxLetters;
+    i = bi * ml;
     this._sizeArr.splice(i, ml);
-    this._opacityArr.splice(i, ml);
     this._rotationArr.splice(i, ml);
     this._fontIndexArr.splice(i, ml);
 
@@ -345,21 +348,45 @@ og.LabelHandler.prototype.setOffsetArr = function (index, offset) {
     this._changedBuffers[og.BillboardHandler.OFFSET_BUFFER] = true;
 };
 
-og.LabelHandler.prototype.setOpacityArr = function (index, opacity) {
-    var i = index * 6 * this._maxLetters;
-    var a = this._opacityArr;
+og.LabelHandler.prototype.setRgbaArr = function (index, rgba) {
+    var i = index * 24 * this._maxLetters;
+    var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
 
     for (var q = 0; q < this._maxLetters; q++) {
-        var j = i + q * 6;
-        a[j] = opacity;
-        a[j + 1] = opacity;
-        a[j + 2] = opacity;
-        a[j + 3] = opacity;
-        a[j + 4] = opacity;
-        a[j + 5] = opacity;
+        var j = i + q * 24;
+
+        a[j] = x;
+        a[j + 1] = y;
+        a[j + 2] = z;
+        a[j + 3] = w;
+
+        a[j + 4] = x;
+        a[j + 5] = y;
+        a[j + 6] = z;
+        a[j + 7] = w;
+
+        a[j + 8] = x;
+        a[j + 9] = y;
+        a[j + 10] = z;
+        a[j + 11] = w;
+
+        a[j + 12] = x;
+        a[j + 13] = y;
+        a[j + 14] = z;
+        a[j + 15] = w;
+
+        a[j + 16] = x;
+        a[j + 17] = y;
+        a[j + 18] = z;
+        a[j + 19] = w;
+
+        a[j + 20] = x;
+        a[j + 21] = y;
+        a[j + 22] = z;
+        a[j + 23] = w;
     }
 
-    this._changedBuffers[og.BillboardHandler.OPACITY_BUFFER] = true;
+    this._changedBuffers[og.BillboardHandler.RGBA_BUFFER] = true;
 };
 
 og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
@@ -380,15 +407,15 @@ og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
     this._changedBuffers[og.BillboardHandler.ROTATION_BUFFER] = true
 };
 
-og.LabelHandler.prototype.setVisibility = function (index, visibility) {
-    var vArr;
-    if (visibility) {
-        vArr = [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0];
-    } else {
-        vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    }
-    this.setVertexArr(index, vArr);
-};
+//og.LabelHandler.prototype.setVisibility = function (index, visibility) {
+//    var vArr;
+//    if (visibility) {
+//        vArr = [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0];
+//    } else {
+//        vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+//    }
+//    this.setVertexArr(index, vArr);
+//};
 
 og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
 
