@@ -63,18 +63,18 @@ my.Billboard.prototype.initialization = function () {
     ec.addTo(this);
 
 
-    for (var i = 0; i < 15; i++) {
-        for (var j = 0; j < 15; j++) {
-            var blb = new og.Billboard();
-            blb.setSize(40, 40);
-            blb.setSrc("ship.png");
+    for (var i = 0; i < 50; i++) {
+        for (var j = 0; j < 50; j++) {
+            //var blb = new og.Billboard();
+            //blb.setSize(40, 40);
+            //blb.setSrc("ship.png");
 
             var lbl = new og.Label();
-            //lbl.setText((i * 10 + j).toString());
+            lbl.setText("Number:" + (i * 50 + j).toString());
 
             var eee = new og.Entity();
             eee.setPosition(new og.math.Vector3(j * 200, 0, i * 200));
-            eee.setBillboard(blb);
+            //eee.setBillboard(blb);
             eee.setLabel(lbl);
             eee.addTo(ec);
 
@@ -100,15 +100,9 @@ my.Billboard.prototype.toogleWireframe = function (e) {
 var i = 0;
 
 my.Billboard.prototype.frame = function () {
-
-    //bc.forEach(function (b) {
-    //    b.setPosition(new og.math.Vector3(b.position.x, Math.sin(i * Math.PI / 180.0) * 300, b.position.z));
-    //b.setRotation(i*Math.PI/180);
-    //});
-
-    for (var k = 0; k < ec.entities.length; k++) {
-        ec.entities[k].label.setText("Billboard = " + k +", counter: " + i);
-    }
+    //for (var k = 0; k < ec.entities.length; k++) {
+    //    ec.entities[k].label.setText("Billboard = " + k +", counter: " + i);
+    //}
 
     //lbl.setText(i.toString());
     //lbl1.setText("Number: " + i.toString());

@@ -1,35 +1,43 @@
 precision highp float;
-uniform sampler2D u_fontTextureArr[5];
+
+const int MAX_SIZE = 11;
+
+uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
 varying float v_fontIndex;
 varying vec2 v_texCoords;
 varying float v_opacity;
 
-
-/*vec4 getSampleFromArray(sampler2D textures[4], int ndx, vec2 uv) {
-    vec4 color;
-    if (ndx == 0) {
-      color = texture2D(u_textures[0], uv);
-    } else if (ndx == 1) {
-      color = texture2D(u_textures[1], uv);
-    } else if (ndx == 2) {
-      color = texture2D(u_textures[2], uv);
-    } else {
-      color = texture2D(u_textures[3], uv);
-    }
-    return color;
-}*/
-
 void main () {
     int fi = int(v_fontIndex);
+
 	vec4 color;
-	for(int i=0; i<5; i++){
-	    if(i==fi){
-            color = texture2D(u_fontTextureArr[i], v_texCoords);
-			break;
-		}
-	}
-    if(color.a<0.1)
+    if (fi == 0) {
+        color = texture2D(u_fontTextureArr[0], v_texCoords);
+    } else if (fi == 1) {
+        color = texture2D(u_fontTextureArr[1], v_texCoords);
+    } else if (fi == 2) {
+        color = texture2D(u_fontTextureArr[2], v_texCoords);
+    } else if (fi == 3) {
+        color = texture2D(u_fontTextureArr[3], v_texCoords);
+    } else if (fi == 4) {
+        color = texture2D(u_fontTextureArr[4], v_texCoords);
+    } else if (fi == 5) {
+        color = texture2D(u_fontTextureArr[5], v_texCoords);
+    } else if (fi == 6) {
+        color = texture2D(u_fontTextureArr[6], v_texCoords);
+    } else if (fi == 7) {
+        color = texture2D(u_fontTextureArr[7], v_texCoords);
+    } else if (fi == 8) {
+        color = texture2D(u_fontTextureArr[8], v_texCoords);
+    } else if (fi == 9) {
+        color = texture2D(u_fontTextureArr[9], v_texCoords);
+    }else{
+        color = texture2D(u_fontTextureArr[10], v_texCoords);    
+    }
+
+    if(color.a < 0.1)
         discard;
+
     gl_FragColor = vec4(color.rgb,color.a*v_opacity);
 }
