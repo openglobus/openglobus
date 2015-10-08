@@ -1,7 +1,11 @@
-/.metadata
+.metadata
+
 Thumbs.db
-Release/
-Debug/
-private/
+
+Release
+
+Debug
+
 *.opensdf
+
 *.sdf
