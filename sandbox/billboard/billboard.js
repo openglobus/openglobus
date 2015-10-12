@@ -31,6 +31,8 @@ my.Billboard.prototype.initialization = function () {
     blb.setSize(80, 80);
     lbl = new og.Label();
     lbl.setText("Billboard");
+    lbl.setFace("Monospace");
+    lbl.setStyle("italic");
     eee = new og.Entity();
     eee.setPosition(new og.math.Vector3(500, 0, 0));
     eee.setBillboard(blb);
@@ -53,6 +55,7 @@ my.Billboard.prototype.initialization = function () {
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(80, 80);
     lbl2 = new og.Label();
+    lbl2.setWeight("bold");
     lbl2.setText("Billboard 2");
     eee2 = new og.Entity();
     eee2.setPosition(new og.math.Vector3(0, 0, 500));

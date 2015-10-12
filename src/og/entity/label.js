@@ -13,7 +13,7 @@ og.Label = function (options) {
     og.inheritance.base(this, options);
 
     this.text = "";
-    this.font = null;
+    this.face = null;
     this.size = 32;
     this.style = null;
     this.weight = null;
@@ -29,8 +29,8 @@ og.Label.prototype.setText = function (text) {
     this._handler && this._handler.setText(this._handlerIndex, text, this._fontIndex);
 };
 
-og.Label.prototype.setFont = function (font) {
-    this.font = font.trim().toLowerCase();
+og.Label.prototype.setFace = function (face) {
+    this.face = face.trim().toLowerCase();
     this.update();
 };
 
@@ -49,12 +49,21 @@ og.Label.prototype.setWeight = function (weight) {
     this.update();
 };
 
+og.Label.prototype._applyFontIndex = function (fontIndex) {
+    this._fontIndex = fontIndex;
+    if (this._handler) {
+        this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
+        this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
+    }
+};
+
 og.Label.prototype.update = function () {
     if (this._fontAtlas) {
-        this._fontIndex = this._fontAtlas.createFont(this.font, this.style, this.weight);
-        if (this._handler) {
-            this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-            this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
+        var fontIndex = this._fontAtlas.getFontIndex(this.face, this.style, this.weight);
+        if (fontIndex == undefined) {
+            this._fontAtlas.createFontAsync(this.face, this.style, this.weight, this._applyFontIndex.bind(this));
+        } else {
+            this._applyFontIndex(fontIndex);
         }
     }
 };

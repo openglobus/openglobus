@@ -36,6 +36,7 @@ og.Billboard.prototype.setSrc = function (src) {
                     bh.setTexCoordArr(that._handlerIndex, ta.nodes[that.image.__nodeIndex].texCoords);
                 } else {
                     ta.addImage(img);
+                    ta.createTexture();
                     that.image = img;
                     rn.updateBillboardsTexCoords();
                 }

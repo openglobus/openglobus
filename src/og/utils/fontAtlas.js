@@ -3,13 +3,17 @@ goog.provide('og.utils.FontAtlas');
 goog.require('og.utils.TextureAtlas');
 goog.require('og.ImageCanvas');
 goog.require('og.math');
+goog.require('og.QueueArray');
 
 og.utils.FontAtlas = function () {
     this.atlasesArr = [];
     this.atlasIndexes = {};
     this.tokenImageSize = 64;
-    this.samplerArr = [];
+    this.samplerArr = [0];
     this._handler = null;
+
+    this._counter = 0;
+    this._pendingsQueue = new og.QueueArray();
 };
 
 og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -40,7 +44,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
         fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
         var atlas = new og.utils.TextureAtlas(atlasSize, atlasSize);
         atlas.assignHandler(this._handler);
-        this.samplerArr.push(this.atlasesArr.length);
+        this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
         this.atlasesArr.push(atlas);
 
         var canvas = new og.ImageCanvas(tis, tis);
@@ -60,9 +64,42 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
             n.emptySize = tokenWidth / tis;
         }
 
-        atlas.makeTexture();
+        atlas.createTexture();
     }
 
     return fontIndex;
 };
 
+og.utils.FontAtlas.prototype.createFontAsync = function (face, style, weight, callback) {
+    var obj = { "face": face, "style": style, "weight": weight, "callback": callback };
+    if (this._counter >= 1) {
+        this._pendingsQueue.push(obj);
+    } else {
+        this._exec(obj);
+    }
+};
+
+og.utils.FontAtlas.prototype._exec = function (obj) {
+    this._counter++;
+    var that = this;
+    setTimeout(function () {
+        var fontIndex = that.createFont(obj.face, obj.style, obj.weight);
+        obj.callback(fontIndex);
+        that._dequeueRequest();
+    }, 0);
+};
+
+og.utils.FontAtlas.prototype._dequeueRequest = function () {
+    this._counter--;
+    if (this._pendingsQueue.length && this._counter < 1) {
+        var obj;
+        if (obj = this._whilePendings())
+            this._exec(obj);
+    }
+};
+
+og.utils.FontAtlas.prototype._whilePendings = function () {
+    while (this._pendingsQueue.length) {
+        return this._pendingsQueue.pop();
+    }
+};

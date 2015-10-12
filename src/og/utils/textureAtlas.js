@@ -102,7 +102,7 @@ og.utils.TextureAtlas.prototype.clearCanvas = function () {
 
 og.utils.TextureAtlas.prototype.assignHandler = function (handler) {
     this._handler = handler;
-    this.makeTexture();
+    this.createTexture();
 };
 
 og.utils.TextureAtlas.getDiagonal = function (image) {
@@ -111,7 +111,7 @@ og.utils.TextureAtlas.getDiagonal = function (image) {
     return Math.sqrt(w * w + h * h);
 };
 
-og.utils.TextureAtlas.prototype.addImage = function (image, fastInsert, dontMakeTexture) {
+og.utils.TextureAtlas.prototype.addImage = function (image, fastInsert) {
 
     if (!(image.width && image.height)) {
         return;
@@ -120,10 +120,6 @@ og.utils.TextureAtlas.prototype.addImage = function (image, fastInsert, dontMake
     this._images.push(image);
 
     this._makeAtlas(fastInsert);
-
-    if (!dontMakeTexture) {
-        this.makeTexture();
-    }
 
     return this.nodes[image.__nodeIndex];
 };
@@ -185,7 +181,7 @@ og.utils.TextureAtlas.prototype._makeAtlas = function (fastInsert) {
     }
 };
 
-og.utils.TextureAtlas.prototype.makeTexture = function () {
+og.utils.TextureAtlas.prototype.createTexture = function () {
     if (this._handler) {
         this._handler.gl.deleteTexture(this.texture);
         this.texture = this._handler.createTexture_mm(this.canvas._canvas);
