@@ -4,6 +4,7 @@ goog.require('og.utils.TextureAtlas');
 goog.require('og.ImageCanvas');
 goog.require('og.math');
 goog.require('og.QueueArray');
+goog.require('og.FontDetector');
 
 og.utils.FontAtlas = function () {
     this.atlasesArr = [];
@@ -11,9 +12,11 @@ og.utils.FontAtlas = function () {
     this.tokenImageSize = 64;
     this.samplerArr = [0];
     this._handler = null;
+    this.defaultFace = "arial";
 
     this._counter = 0;
     this._pendingsQueue = new og.QueueArray();
+    this.fontDetector = new og.FontDetector();
 };
 
 og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -28,11 +31,15 @@ og.utils.FontAtlas.prototype.assignHandler = function (handler) {
 };
 
 og.utils.FontAtlas.prototype.getFontIndex = function (face, style, weight) {
-    return this.atlasIndexes[og.utils.FontAtlas.getFullIndex(face && face.trim(), style && style.trim(), weight && weight.trim())];
+    return this.atlasIndexes[this.getFullIndex(face, style, weight)];
 };
 
-og.utils.FontAtlas.getFullIndex = function (face, style, weight) {
-    return ((face ? face.toLowerCase() : "arial") + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal"));
+og.utils.FontAtlas.prototype.getFullIndex = function (face, style, weight) {
+    face = face && face.trim().toLowerCase();
+    if (!face || face && !this.fontDetector.detect(face)) {
+        face = this.defaultFace;
+    }
+    return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
 };
 
 og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
@@ -40,7 +47,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
     if (fontIndex == undefined) {
         var tis = this.tokenImageSize;
         var atlasSize = og.math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(og.utils.FontAtlas.tokens.length)) / tis + (og.utils.FontAtlas.tokens.length - 1) * og.utils.TextureAtlas.BORDER_SIZE);
-        var fontName = og.utils.FontAtlas.getFullIndex(face, style, weight);
+        var fontName = this.getFullIndex(face, style, weight);
         fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
         var atlas = new og.utils.TextureAtlas(atlasSize, atlasSize);
         atlas.assignHandler(this._handler);
