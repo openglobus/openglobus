@@ -215,6 +215,7 @@ og.Camera.prototype.project = function (v) {
 
 og.Camera.prototype.setEye = function (p) {
     this.eye.copy(p);
+    this.refresh();
 };
 
 og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {

@@ -1,6 +1,6 @@
 precision highp float;
 
-const int MAX_SIZE = 11;
+const int MAX_SIZE = 12;
 
 uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
@@ -36,8 +36,23 @@ void main () {
         color = texture2D(u_fontTextureArr[10], v_texCoords);    
     }
 
-    if(color.a < 0.1)
+    if(color.a == 0.0)
         discard;
 
-    gl_FragColor = color * v_rgba;
+	float mask = color.a;
+	// use current drawing color
+	vec4 clr;
+	clr.rgb = v_rgba.rgb;
+ 
+	// perform simple thresholding
+	if( mask < 0.5 )  
+		clr.a = 0.0;
+	else  
+		clr.a = 1.0;
+
+	// do some anti-aliasing
+	clr.a *= smoothstep(0.25, 0.75, mask);
+
+	// final color
+	gl_FragColor = clr;
 }
