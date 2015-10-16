@@ -1,0 +1,15 @@
+attribute vec2 aPos;
+
+uniform vec2 uTexSize;
+uniform vec2 uOrd;
+
+varying vec2 TexCoord;
+varying vec2 vTexSize;
+
+void main(){
+  TexCoord = (aPos * uOrd + 1.0) * 0.5;
+  TexCoord *= uTexSize;
+  vTexSize = uTexSize;
+  gl_Position.xy = aPos;
+  gl_Position.zw = vec2(0.0, 1.0);
+}

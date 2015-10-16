@@ -45,7 +45,7 @@ my.Df.prototype.initialization = function () {
     img.onload = function () {
         that.texture = h.createTexture_l(this);
     };
-    img.src = "pan.png";
+    img.src = "hw.png";
 
     var sdfShader = new og.shaderProgram.ShaderProgram("sdf", {
         uniforms: {

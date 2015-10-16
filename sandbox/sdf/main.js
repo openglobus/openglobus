@@ -1,39 +1,28 @@
-var width = 256;
-var height = 256;
+goog.require('og.webgl.Handler');
+goog.require('og.Renderer');
+goog.require('og.control.SimpleNavigation');
+goog.require('og.control.ShowFps');
+goog.require('og.shaderProgram');
+goog.require('og.node.Axes');
+goog.require('my.SDF');
+goog.require('og.math.Vector3');
 
-var canvas = document.createElement("canvas");
-canvas.width = width;
-canvas.height = height;
-var context = canvas.getContext('2d');
+function start() {
 
-var canvasDst = document.createElement("canvas");
-canvasDst.width = width;
-canvasDst.height = height;
-var contextDst = canvasDst.getContext('2d');
+    og.webgl.MAX_FRAME_DELAY = 15;
 
-var img = new Image();
+    context = new og.webgl.Handler("canvas", { alpha: false });
+    context.init();
 
-function main() {
+    renderer = new og.Renderer(context);
+    renderer.init();
 
-    img.onload = function () {
-        proceed();
-    }
+    s = new my.SDF("SDF");
+    renderer.addRenderNode(s);
 
-    img.src = "test.bmp";
+    renderer.addControls([
+        new og.control.ShowFps({ autoActivate: true })
+    ]);
+
+    renderer.start();
 };
-
-function proceed() {
-    context.drawImage(img, 0, 0);
-    var imgd = context.getImageData(0, 0, width, height);
-
-    var dest = new Array(width * height * 4);
-    makeSDF(imgd.data, dest);
-
-    var imageData = contextDst.createImageData(width, height);
-    imageData.data.set(dest);
-    contextDst.putImageData(imageData, 0, 0);
-
-    document.body.appendChild(canvas);
-    document.body.appendChild(canvasDst);
-    
-}
