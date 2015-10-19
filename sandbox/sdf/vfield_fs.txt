@@ -2,12 +2,12 @@ precision highp float;
 
 uniform sampler2D uTex1;
 uniform bool uHPass;
-uniform float uMod16;
+uniform int uDistance;
 
 varying vec2 TexCoord;
 varying vec2 vTexSize;
 
-const int uDistance = 40;
+const int maxDistance = 200;
 
 float CalcC(float H, float V)
 {
@@ -16,8 +16,11 @@ float CalcC(float H, float V)
 
 float CalcDistance(){
   float dist = CalcC( 0.0, texture2D( uTex1, TexCoord / vTexSize ).r );
-  for ( int i = 1; i <= uDistance; i++ )
+  for ( int i = 1; i <= maxDistance; i++ )
   {
+  	if(i > uDistance)
+		break;
+
     float H = float(i) / float(uDistance);
     dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord + vec2( float(i), 0.0) ) / vTexSize ).r ) );
     dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord - vec2( float(i), 0.0) ) / vTexSize ).r ) );
@@ -30,10 +33,10 @@ void main(){
 	{
 	  float dist = CalcDistance();
 
-	  if( ( uMod16 != 0.0 ) && ( dist < 1.0 ) )
-	  { 
-		dist = fract( dist * float(uDistance) / 15.999 );
-	  }
+	  //if( ( uMod16 != 0.0 ) && ( dist < 1.0 ) )
+	  //{ 
+	  //	dist = fract( dist * float(uDistance) / 15.999 );
+	  //}
    
 	  gl_FragColor = vec4(dist);
 	  gl_FragColor.w = 1.0;
@@ -47,8 +50,11 @@ void main(){
 		return;
 	  }
 
-	  for ( int i=1; i <= uDistance; i++ )
+	  for ( int i=1; i <= maxDistance; i++ )
 	  {
+		if(i > uDistance)
+			break;
+
 		if ( texture2D(uTex1, ( TexCoord + vec2(0.0, float(i)) ) / vTexSize ).r > 0.5 )
 		{
 			gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );
@@ -61,5 +67,5 @@ void main(){
 		}
 	  }
 	  gl_FragColor = vec4(1.0);  
-	  }
+	}
 }

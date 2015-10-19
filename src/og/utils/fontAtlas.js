@@ -62,7 +62,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
         for (var i = 0; i < t.length; i++) {
             var ti = t[i];
             canvas.fillEmpty();
-            canvas.drawText(ti, 0, pT, tF, "white");
+            canvas.drawText(ti, 20, pT, tF, "white");
 
             var img = canvas.getImage();
             img.__nodeIndex = ti;
