@@ -3,12 +3,13 @@ goog.provide('og.webgl.Framebuffer');
 goog.require('og.webgl');
 goog.require('og.ImageCanvas');
 
-og.webgl.Framebuffer = function (gl, width, height) {
+og.webgl.Framebuffer = function (gl, width, height, initialize) {
     this.gl = gl;
     this.fbo;
     this.width = width || 256;
     this.height = height || 256;
     this.texture = null;
+    initialize && this.initialize();
 };
 
 og.webgl.Framebuffer.prototype.initialize = function () {

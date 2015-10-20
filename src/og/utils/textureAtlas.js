@@ -16,6 +16,7 @@ og.utils.TextureAtlasNode = function (rect) {
     this.image = null;
     this.rect = rect;
     this.texCoords = new Array(8);
+    this.atlas = null;
 };
 
 /**
@@ -39,8 +40,8 @@ og.utils.TextureAtlasNode.prototype.insert = function (img) {
             return null;
 
         var rc = this.rect;
-        var w = img.width + og.utils.TextureAtlas.BORDER_SIZE;
-        var h = img.height + og.utils.TextureAtlas.BORDER_SIZE;
+        var w = (img.atlasWidth || img.width) + this.atlas.borderSize;
+        var h = (img.atlasHeight || img.height) + this.atlas.borderSize;
 
         if (w > rc.getWidth() || h > rc.getHeight())
             return null;
@@ -52,7 +53,9 @@ og.utils.TextureAtlasNode.prototype.insert = function (img) {
 
         this.childNodes = new Array(2);
         this.childNodes[0] = new og.utils.TextureAtlasNode();
+        this.childNodes[0].atlas = this.atlas;
         this.childNodes[1] = new og.utils.TextureAtlasNode();
+        this.childNodes[1].atlas = this.atlas;
 
         var dw = rc.getWidth() - w;
         var dh = rc.getHeight() - h;
@@ -84,6 +87,7 @@ og.utils.TextureAtlas = function (width, height) {
     this.nodes = [];
     this._btree = null;
     this._imagesCacheManager = new og.utils.ImagesCacheManager();
+    this.borderSize = 4;
 };
 
 og.utils.TextureAtlas.BORDER_SIZE = 4;
@@ -97,7 +101,7 @@ og.utils.TextureAtlas.prototype.getCanvas = function () {
 };
 
 og.utils.TextureAtlas.prototype.clearCanvas = function () {
-    this.canvas.fillEmpty();
+    this.canvas.fillEmpty("black");
 };
 
 og.utils.TextureAtlas.prototype.assignHandler = function (handler) {
@@ -106,8 +110,8 @@ og.utils.TextureAtlas.prototype.assignHandler = function (handler) {
 };
 
 og.utils.TextureAtlas.getDiagonal = function (image) {
-    var w = image.width,
-        h = image.height;
+    var w = image.atlasWidth || image.width,
+        h = image.atlasHeight || image.height;
     return Math.sqrt(w * w + h * h);
 };
 
@@ -130,8 +134,8 @@ og.utils.TextureAtlas.prototype._completeNode = function (nodes, node) {
             h = this.canvas.getHeight();
         var im = node.image;
         var r = node.rect;
-        var bs = Math.round(og.utils.TextureAtlas.BORDER_SIZE * 0.5);
-        this.canvas.drawImage(node.image, r.left + bs, r.top + bs);
+        var bs = Math.round(this.borderSize * 0.5);
+        this.canvas.drawImage(im, r.left + bs, r.top + bs, im.atlasWidth, im.atlasHeight);
         var tc = node.texCoords;
 
         tc[0] = (r.left + bs) / w;
@@ -165,10 +169,11 @@ og.utils.TextureAtlas.prototype._makeAtlas = function (fastInsert) {
         var im = this._images.slice(0);
 
         im.sort(function (b, a) {
-            return a.width - b.width || a.height - b.height;
+            return ((a.atlasWidth || a.width) - (b.atlasWidth || b.width)) || ((a.atlasHeight || a.height) - (b.atlasHeight || b.height));
         });
 
         this._btree = new og.utils.TextureAtlasNode(new og.Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight()));
+        this._btree.atlas = this;
 
         this.clearCanvas();
 
@@ -184,7 +189,7 @@ og.utils.TextureAtlas.prototype._makeAtlas = function (fastInsert) {
 og.utils.TextureAtlas.prototype.createTexture = function () {
     if (this._handler) {
         this._handler.gl.deleteTexture(this.texture);
-        this.texture = this._handler.createTexture_mm(this.canvas._canvas);
+        this.texture = this._handler.createTexture(this.canvas._canvas);
     }
 };
 

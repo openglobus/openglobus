@@ -14,10 +14,18 @@ og.LabelHandler = function (entityCollection) {
     og.inheritance.base(this, entityCollection);
 
     this._fontIndexBuffer = null;
+    this._nobufferAABuffer = null;
+    this._bufferAABuffer = null;
+    this._rgbaBufferBuffer = null;
 
     this._fontIndexArr = [];
+    this._nobufferAAArr = [];
+    this._bufferAAArr = [];
+    this._rgbaBufferArr = [];
 
     this._buffersUpdateCallbacks[og.LabelHandler.FONTINDEX_BUFFER] = this.createFontIndexBuffer;
+    this._buffersUpdateCallbacks[og.LabelHandler.BUFFERAA_BUFFER] = this.createBufferAABuffer;
+    this._buffersUpdateCallbacks[og.LabelHandler.RGBABUFFER_BUFFER] = this.createRgbaBufferBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -27,6 +35,8 @@ og.LabelHandler = function (entityCollection) {
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);
 
 og.LabelHandler.FONTINDEX_BUFFER = 8;
+og.LabelHandler.BUFFERAA_BUFFER = 9;
+og.LabelHandler.RGBABUFFER_BUFFER = 10;
 
 og.LabelHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
@@ -71,6 +81,9 @@ og.LabelHandler.prototype.clear = function () {
     this._alignedAxisArr.length = 0;
     this._fontIndexArr.length = 0;
     this._letterOffsetArr.length = 0;
+    this._nobufferAAArr.length = 0;
+    this._bufferAAArr.length = 0;
+    this._rgbaBufferArr.length = 0;
 
     this._texCoordArr = [];
     this._vertexArr = [];
@@ -82,6 +95,9 @@ og.LabelHandler.prototype.clear = function () {
     this._alignedAxisArr = [];
     this._fontIndexArr = [];
     this._letterOffsetArr = [];
+    this._nobufferAAArr = [];
+    this._bufferAAArr = [];
+    this._rgbaBufferArr = [];
 
     this.refresh();
 };
@@ -116,6 +132,16 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
 
         x = label._fontIndex;
         og.BillboardHandler.concArr(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
+
+        x = label.buffer, y = 0.0;
+        og.BillboardHandler.concArr(this._bufferAAArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+
+        x = 192 / 256, y = 0.7;
+        og.BillboardHandler.concArr(this._nobufferAAArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+
+        x = label.rgbaBuffer.x; y = label.rgbaBuffer.y; z = label.rgbaBuffer.z; w = label.rgbaBuffer.w;
+        og.BillboardHandler.concArr(this._rgbaBufferArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+
     }
 };
 
@@ -148,9 +174,6 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
-    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
     gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -166,7 +189,26 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
     gl.vertexAttribPointer(sha.a_fontIndex._pName, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+    //buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBufferBuffer);
+    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBufferBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferAABuffer);
+    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._bufferAABuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.uniform1f(shu.uZ._pName, 0.0);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+    //nobuffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
+    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._nobufferAABuffer);
+    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._nobufferAABuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.uniform1f(shu.uZ._pName, -0.01);
+    gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
 };
 
 og.LabelHandler.prototype._removeBillboard = function (billboard) {
@@ -177,6 +219,7 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     var ml = 24 * this._maxLetters;
     var i = bi * ml;
     this._rgbaArr.splice(i, ml);
+    this._rgbaBufferArr.splice(i, ml);
 
     ml = 18 * this._maxLetters;
     i = bi * ml;
@@ -185,6 +228,11 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
     this._texCoordArr.splice(i, ml);
+
+    ml = 12 * this._maxLetters;
+    i = bi * ml;
+    this._bufferAAArr.splice(i, ml);
+    this._nobufferAAArr.splice(i, ml);
 
     ml = 6 * this._maxLetters;
     i = bi * ml;
@@ -389,6 +437,70 @@ og.LabelHandler.prototype.setRgbaArr = function (index, rgba) {
     this._changedBuffers[og.BillboardHandler.RGBA_BUFFER] = true;
 };
 
+og.LabelHandler.prototype.setRgbaBufferArr = function (index, rgba) {
+    var i = index * 24 * this._maxLetters;
+    var a = this._rgbaBufferArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
+
+    for (var q = 0; q < this._maxLetters; q++) {
+        var j = i + q * 24;
+
+        a[j] = x;
+        a[j + 1] = y;
+        a[j + 2] = z;
+        a[j + 3] = w;
+
+        a[j + 4] = x;
+        a[j + 5] = y;
+        a[j + 6] = z;
+        a[j + 7] = w;
+
+        a[j + 8] = x;
+        a[j + 9] = y;
+        a[j + 10] = z;
+        a[j + 11] = w;
+
+        a[j + 12] = x;
+        a[j + 13] = y;
+        a[j + 14] = z;
+        a[j + 15] = w;
+
+        a[j + 16] = x;
+        a[j + 17] = y;
+        a[j + 18] = z;
+        a[j + 19] = w;
+
+        a[j + 20] = x;
+        a[j + 21] = y;
+        a[j + 22] = z;
+        a[j + 23] = w;
+    }
+
+    this._changedBuffers[og.LabelHandler.RGBABUFFER_BUFFER] = true;
+};
+
+og.LabelHandler.prototype.setBufferAAArr = function (index, buffer) {
+    var i = index * 12 * this._maxLetters;
+    var a = this._bufferAAArr;
+
+    for (var q = 0; q < this._maxLetters; q++) {
+        var j = i + q * 12;
+
+        a[j] = buffer;
+
+        a[j + 2] = buffer;
+
+        a[j + 4] = buffer;
+
+        a[j + 6] = buffer;
+
+        a[j + 8] = buffer;
+
+        a[j + 10] = buffer;
+    }
+
+    this._changedBuffers[og.LabelHandler.BUFFERAA_BUFFER] = true;
+};
+
 og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
 
     var i = index * 6 * this._maxLetters;
@@ -521,6 +633,22 @@ og.LabelHandler.prototype.createTexCoordBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._texCoordBuffer);
     this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 3, this._texCoordArr.length / 3);
+};
+
+og.LabelHandler.prototype.createBufferAABuffer = function () {
+    var h = this._renderer.handler;
+
+    h.gl.deleteBuffer(this._bufferAABuffer);
+    this._bufferAABuffer = h.createArrayBuffer(new Float32Array(this._bufferAAArr), 2, this._bufferAAArr.length / 2);
+
+    h.gl.deleteBuffer(this._nobufferAABuffer);
+    this._nobufferAABuffer = h.createArrayBuffer(new Float32Array(this._nobufferAAArr), 2, this._nobufferAAArr.length / 2);
+};
+
+og.BillboardHandler.prototype.createRgbaBufferBuffer = function () {
+    var h = this._renderer.handler;
+    h.gl.deleteBuffer(this._rgbaBufferBuffer);
+    this._rgbaBufferBuffer = h.createArrayBuffer(new Float32Array(this._rgbaBufferArr), 4, this._rgbaBufferArr.length / 4);
 };
 
 og.LabelHandler.prototype.setMaxLetters = function (c) {

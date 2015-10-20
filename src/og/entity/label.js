@@ -2,6 +2,7 @@ goog.provide('og.Label');
 
 goog.require('og.BaseBillboard');
 goog.require('og.inheritance');
+goog.require('og.math.Vector4');
 
 /**
  *
@@ -17,6 +18,8 @@ og.Label = function (options) {
     this.size = 32;
     this.style = null;
     this.weight = null;
+    this.buffer = 0.5;
+    this.rgbaBuffer = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
 
     this._fontIndex = 0;
     this._fontAtlas = null;
@@ -55,6 +58,19 @@ og.Label.prototype._applyFontIndex = function (fontIndex) {
         this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
         this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
     }
+};
+
+og.Label.prototype.setBuffer = function (buffer) {
+    this.buffer = buffer;
+    this._handler && this._handler.setBufferAAArr(this._handlerIndex, 1.0 - buffer);
+};
+
+og.Label.prototype.setBufferRGBA = function (rgba) {
+    this.rgbaBuffer.x = rgba.x;
+    this.rgbaBuffer.y = rgba.y;
+    this.rgbaBuffer.z = rgba.z;
+    this.rgbaBuffer.w = rgba.w;
+    this._handler && this._handler.setRgbaBufferArr(this._handlerIndex, rgba);
 };
 
 og.Label.prototype.update = function () {

@@ -7,21 +7,26 @@ attribute float a_rotation;
 attribute vec4 a_rgba;
 attribute vec3 a_alignedAxis;
 attribute float a_fontIndex;
+attribute vec2 a_bufferAA;
 
 varying vec2 v_texCoords;
 varying vec4 v_rgba;
 varying float v_fontIndex;
+varying vec2 v_bufferAA;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 uniform vec3 uCamPos;
 uniform float uViewAngle;
 uniform float uXRatio;
+uniform float uZ;
 
 const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 	
+	v_bufferAA = a_bufferAA;
+
     if(a_texCoord.z == -1.0){
 	    gl_Position = vec4(0.0);
 		return;
@@ -52,5 +57,5 @@ void main() {
     vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z) + offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + offset.y) + normalize(look) * a_vertices.z + a_positions;
 
     gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
-	gl_Position.z += a_offset.z;
+	gl_Position.z += a_offset.z + uZ;
 }

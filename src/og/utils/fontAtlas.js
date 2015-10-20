@@ -5,6 +5,7 @@ goog.require('og.ImageCanvas');
 goog.require('og.math');
 goog.require('og.QueueArray');
 goog.require('og.FontDetector');
+goog.require('og.utils.SDFCreator');
 
 og.utils.FontAtlas = function () {
     this.atlasesArr = [];
@@ -17,6 +18,8 @@ og.utils.FontAtlas = function () {
     this._counter = 0;
     this._pendingsQueue = new og.QueueArray();
     this.fontDetector = new og.FontDetector();
+
+    this._sdfCreator = new og.utils.SDFCreator();
 };
 
 og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -46,29 +49,35 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
     var fontIndex = this.getFontIndex(face, style, weight);
     if (fontIndex == undefined) {
         var tis = this.tokenImageSize;
-        var atlasSize = og.math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(og.utils.FontAtlas.tokens.length)) / tis + (og.utils.FontAtlas.tokens.length - 1) * og.utils.TextureAtlas.BORDER_SIZE);
+        var atlasSize = 1024;//og.math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(og.utils.FontAtlas.tokens.length)) / tis + (og.utils.FontAtlas.tokens.length - 1) * og.utils.TextureAtlas.BORDER_SIZE);
         var fontName = this.getFullIndex(face, style, weight);
         fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
         var atlas = new og.utils.TextureAtlas(atlasSize, atlasSize);
         atlas.assignHandler(this._handler);
+        atlas.borderSize = 0;
         this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
         this.atlasesArr.push(atlas);
+        atlas.canvas.fillColor("black");
 
-        var canvas = new og.ImageCanvas(tis, tis);
-        var pT = Math.round(tis * 0.75);
-        var tF = (style || "normal") + " " + (weight || "normal") + " " + pT + "px " + face;
         var t = og.utils.FontAtlas.tokens;
+
+        var sdfSize = 512;
+        var sdfCanvas = new og.ImageCanvas(sdfSize, sdfSize);
+        var sc = this._sdfCreator;
+        var pT = Math.round(sdfSize * 0.66);
+        var tF = (style || "normal") + " " + (weight || "normal") + " " + pT + "px " + (face || this.defaultFace);
 
         for (var i = 0; i < t.length; i++) {
             var ti = t[i];
-            canvas.fillEmpty();
-            canvas.drawText(ti, 20, pT, tF, "white");
 
-            var img = canvas.getImage();
-            img.__nodeIndex = ti;
-            var n = atlas.addImage(img, true, true);
-            var tokenWidth = canvas.getTextWidth(ti);
-            n.emptySize = tokenWidth / tis;
+            sdfCanvas.fillColor("black");
+            sdfCanvas.drawText(ti, 49, pT, tF, "white");
+            var res = sc.createSDF(sdfCanvas._canvas, tis, tis);
+            res.__nodeIndex = ti;
+            var n = atlas.addImage(res, true, true);
+
+            var tokenWidth = sdfCanvas.getTextWidth(ti);
+            n.emptySize = tokenWidth / sdfSize;
         }
 
         atlas.createTexture();

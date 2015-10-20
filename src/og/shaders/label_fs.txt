@@ -1,3 +1,5 @@
+#extension GL_OES_standard_derivatives : enable
+
 precision highp float;
 
 const int MAX_SIZE = 12;
@@ -6,8 +8,7 @@ uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
 varying float v_fontIndex;
 varying vec2 v_texCoords;
-varying vec4 v_rgba;
-
+varying vec4 v_rgba;varying vec2 v_bufferAA;
 void main () {
     int fi = int(v_fontIndex);
 
@@ -36,8 +37,14 @@ void main () {
         color = texture2D(u_fontTextureArr[10], v_texCoords);    
     }
 
-    if(color.a < 0.1)
-        discard;
+	float u_gamma = 0.0;
 
-    gl_FragColor = color * v_rgba;
+    //float alpha = smoothstep(u_buffer - u_gamma, u_buffer + u_gamma, color.r);
+    float afwidth = v_bufferAA.y * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
+    float alpha = smoothstep ( v_bufferAA.x - afwidth, v_bufferAA.x + afwidth, color.r );
+
+    if( alpha <= 0.1 )
+		discard;
+
+    gl_FragColor = vec4(v_rgba.rgb, alpha * v_rgba.a);
 }

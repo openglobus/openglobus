@@ -189,7 +189,7 @@ og.webgl.Handler.prototype.init = function () {
     this._initialized = true;
 
     //deafult extensions
-    //this._params.extensions.push("OES_standard_derivatives");
+    this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
 
     var i = this._params.extensions.length;

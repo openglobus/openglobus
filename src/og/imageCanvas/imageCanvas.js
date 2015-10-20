@@ -46,9 +46,9 @@ og.ImageCanvas.prototype.resize = function (width, height) {
     this._context = this._canvas.getContext('2d');
 };
 
-og.ImageCanvas.prototype.drawImage = function (img, x, y) {
+og.ImageCanvas.prototype.drawImage = function (img, x, y, width, height) {
     this._context = this._canvas.getContext('2d');
-    this._context.drawImage(img, x || 0, y || 0);
+    this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
 };
 
 og.ImageCanvas.prototype.getImage = function () {
