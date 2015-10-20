@@ -27,7 +27,7 @@ void main() {
 	
 	v_bufferAA = a_bufferAA;
 
-    if(a_texCoord.z == -1.0){
+    if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
 	    gl_Position = vec4(0.0);
 		return;
 	}

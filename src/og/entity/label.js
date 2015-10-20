@@ -18,7 +18,7 @@ og.Label = function (options) {
     this.size = 32;
     this.style = null;
     this.weight = null;
-    this.buffer = 0.5;
+    this.buffer = 0.9;
     this.rgbaBuffer = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
 
     this._fontIndex = 0;

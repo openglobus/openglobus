@@ -133,7 +133,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label._fontIndex;
         og.BillboardHandler.concArr(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
 
-        x = label.buffer, y = 0.0;
+        x = 1.0 - label.buffer, y = 0.0;
         og.BillboardHandler.concArr(this._bufferAAArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = 192 / 256, y = 0.7;
@@ -252,6 +252,8 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
 og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
 
     var fa = this._entityCollection.renderNode.fontAtlas.atlasesArr[fontIndex];
+
+    if (!fa) return;
 
     var i = index * 18 * this._maxLetters;
     var a = this._texCoordArr;
