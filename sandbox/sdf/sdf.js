@@ -39,7 +39,7 @@ my.SDF.prototype.initialization = function () {
     this.sourceCanvas.drawText(letter, 49 * tis / 512, pT, tF, "white");
 
     this.outsideDistance = Math.round(80 * tis / 512);
-    this.insideDistance = Math.round(12 * tis / 512);
+    this.insideDistance = Math.round(17 * tis / 512);
     this.outsideMix = 0.710;
     this.insideMix = 0.679;
 

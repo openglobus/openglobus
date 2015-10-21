@@ -19,7 +19,7 @@ og.utils.FontAtlas = function () {
     this._pendingsQueue = new og.QueueArray();
     this.fontDetector = new og.FontDetector();
 
-    this._sdfCreator = new og.utils.SDFCreator();
+    this._sdfCreator = new og.utils.SDFCreator(256, 256);
 };
 
 og.utils.FontAtlas.tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
