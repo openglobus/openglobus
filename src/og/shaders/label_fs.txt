@@ -40,8 +40,9 @@ void main () {
         color = texture2D(u_fontTextureArr[10], v_texCoords);    
     }
 
-	float u_gamma =  v_bufferAA.y * 10.0 / v_scale;
-	float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * 0.7 * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
+	float u_gamma =  v_bufferAA.y * 8.0 / v_scale;
+	//float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * 0.7 * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
+	float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
     float alpha = smoothstep ( v_bufferAA.x - afwidth - u_gamma, v_bufferAA.x + afwidth + u_gamma, color.r );
 
     if( alpha < 0.2 )
