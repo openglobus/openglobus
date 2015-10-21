@@ -29,7 +29,7 @@ my.SDF.prototype.initialization = function () {
     var face = "arial";
     var style = "normal";
     var weight = "normal";
-    var tis = 256;
+    var tis = 512;
 
     this.sourceCanvas = new og.ImageCanvas(tis, tis);
     var pT = Math.round(tis * 0.66);
@@ -38,10 +38,10 @@ my.SDF.prototype.initialization = function () {
     this.sourceCanvas.fillColor("black");
     this.sourceCanvas.drawText(letter, 49 * tis / 512, pT, tF, "white");
 
-    this.outsideDistance = Math.round(45 * tis / 512);
+    this.outsideDistance = Math.round(80 * tis / 512);
     this.insideDistance = Math.round(12 * tis / 512);
     this.outsideMix = 0.710;
-    this.insideMix = 0.6850;
+    this.insideMix = 0.679;
 
     this.createContext(this.sourceCanvas._canvas);
 };
@@ -52,7 +52,8 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
         uniforms: {
             uTexSize: { type: og.shaderProgram.types.VEC2 },
             uTex1: { type: og.shaderProgram.types.SAMPLER2D },
-            uDistance: { type: og.shaderProgram.types.INT }
+            uDistance: { type: og.shaderProgram.types.INT },
+            uNeg: { type: og.shaderProgram.types.VEC2 }
         },
         attributes: {
             aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
@@ -73,21 +74,22 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
             "precision highp float;\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
+            uniform vec2 uNeg;\n\
             varying vec2 TexCoord;\n\
             varying vec2 vTexSize;\n\
             const int maxDistance = "+ this.outsideDistance + ";\n\
             void main() {\n\
-                if ( texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
-                    gl_FragColor = vec4(0.0,0.0,0.0,1.0);\n\
+                if ( uNeg.x - uNeg.y*texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
+                    gl_FragColor = vec4(vec3(0.0),1.0);\n\
                     return;\n\
                 }\n\
                 for ( int i=1; i <= maxDistance; i++ ) {\n\
                     if(i > uDistance) break;\n\
-                    if ( texture2D(uTex1, ( TexCoord + vec2(0.0, float(i)) ) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\n\
                         return;\n\
                     }\n\
-                    if ( texture2D(uTex1, ( TexCoord - vec2(0.0, float(i))) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\n\
                         return;\n\
                     }\n\
@@ -140,37 +142,14 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
             }"
     });
 
-    var neg = new og.shaderProgram.ShaderProgram("neg", {
-        uniforms: {
-            uTex1: { type: og.shaderProgram.types.SAMPLER2D },
-        },
-        attributes: {
-            aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        vertexShader:
-            "attribute vec2 aPos;\n\
-            varying vec2 TexCoord;\n\
-            void main(){\n\
-            TexCoord = (aPos + 1.0) * 0.5;\n\
-            gl_Position.xy = aPos;\n\
-            gl_Position.zw = vec2(0.0, 1.0);\n\
-        }",
-        fragmentShader:
-            "precision highp float;\n\
-            uniform sampler2D uTex1;\n\
-            varying vec2 TexCoord;\n\
-            void main(){\n\
-                vec4 color = texture2D(uTex1, TexCoord);\n\
-                gl_FragColor = vec4(vec3(1.0) - color.rgb, color.a); \n\
-            }"
-    });
-
 
     var sum = new og.shaderProgram.ShaderProgram("sum", {
         uniforms: {
             outside: { type: og.shaderProgram.types.SAMPLER2D },
             inside: { type: og.shaderProgram.types.SAMPLER2D },
-            source: { type: og.shaderProgram.types.SAMPLER2D }
+            source: { type: og.shaderProgram.types.SAMPLER2D },
+            u_o: { type: og.shaderProgram.types.FLOAT },
+            u_i: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
@@ -186,6 +165,8 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
                         uniform sampler2D outside;\n\
                         uniform sampler2D inside;\n\
                         uniform sampler2D source;\n\
+                        uniform float u_o;\n\
+                        uniform float u_i;\n\
                         varying vec2 TexCoord;\n\
                         void main(){\n\
                             float o = texture2D(outside, TexCoord).r;\n\
@@ -197,7 +178,7 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
                             //} else {\n\
                             //    d = 0.715;\n\
                             //}\n\
-                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, s < 1.0 ? "+ this.outsideMix + " : " + this.insideMix + " )), 1.0); \n\
+                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, s < 1.0 ? u_o : u_i )), 1.0); \n\
                         }"
     });
 
@@ -212,7 +193,7 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
     });
     this._handler.addShaderProgram(vfield);
     this._handler.addShaderProgram(hfield);
-    this._handler.addShaderProgram(neg);
+//    this._handler.addShaderProgram(neg);
     this._handler.addShaderProgram(sum);
     this._handler.init();
     this._handler.deactivateFaceCulling();
@@ -236,6 +217,39 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
 
 };
 
+var om = 0.710;
+var im = 0.6850;
+
+my.SDF.prototype.frame = function () {
+
+    var h = this._handler,
+    gl = h.gl;
+
+    //SUM
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    h.shaderPrograms.sum.activate();
+    var sh = h.shaderPrograms.sum._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.framebuffer1.texture);
+    gl.uniform1i(shu.outside._pName, 0);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.framebuffer0.texture);
+    gl.uniform1i(shu.inside._pName, 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
+    gl.uniform1i(shu.source._pName, 2);
+    gl.uniform1f(shu.u_o._pName, om);
+    gl.uniform1f(shu.u_i._pName, im);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+};
+
 my.SDF.prototype.makeDF = function () {
     var h = this._handler,
         gl = h.gl;
@@ -247,11 +261,14 @@ my.SDF.prototype.makeDF = function () {
     var sha = sh.attributes,
         shu = sh.uniforms;
 
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
     gl.uniform1i(shu.uTex1._pName, 0);
     gl.uniform2fv(shu.uTexSize._pName, [this.width, this.height]);
     gl.uniform1i(shu.uDistance._pName, this.outsideDistance);
+    gl.uniform2fv(shu.uNeg._pName, [0.0, -1.0]);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -270,6 +287,7 @@ my.SDF.prototype.makeDF = function () {
     gl.bindTexture(gl.TEXTURE_2D, this.framebuffer0.texture);
     gl.uniform1i(shu.uTex1._pName, 0);
     gl.uniform2fv(shu.uTexSize._pName, [this.width, this.height]);
+    //gl.uniform2fv(shu.uNeg._pName, [0.0,-1.0]);
     gl.uniform1i(shu.uDistance._pName, this.outsideDistance);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -277,20 +295,20 @@ my.SDF.prototype.makeDF = function () {
     this.framebuffer1.deactivate();
 
     //NEG
-    this.framebuffer0.activate();
-    h.shaderPrograms.neg.activate();
-    var sh = h.shaderPrograms.neg._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
+    //this.framebuffer0.activate();
+    //h.shaderPrograms.neg.activate();
+    //var sh = h.shaderPrograms.neg._program;
+    //var sha = sh.attributes,
+    //    shu = sh.uniforms;
 
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
-    gl.uniform1i(shu.uTex1._pName, 0);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    this.framebuffer0.deactivate();
+    //gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //gl.activeTexture(gl.TEXTURE0);
+    //gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
+    //gl.uniform1i(shu.uTex1._pName, 0);
+    //gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    //gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    //this.framebuffer0.deactivate();
 
     //NEG VERT
     this.framebuffer2.activate();
@@ -302,8 +320,9 @@ my.SDF.prototype.makeDF = function () {
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.framebuffer0.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
     gl.uniform1i(shu.uTex1._pName, 0);
+    gl.uniform2fv(shu.uNeg._pName, [1.0,1.0]);
     gl.uniform2fv(shu.uTexSize._pName, [this.width, this.height]);
     gl.uniform1i(shu.uDistance._pName, this.insideDistance);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
@@ -323,6 +342,7 @@ my.SDF.prototype.makeDF = function () {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.framebuffer2.texture);
     gl.uniform1i(shu.uTex1._pName, 0);
+    //gl.uniform2fv(shu.uNeg._pName, [1.0,1.0]);
     gl.uniform2fv(shu.uTexSize._pName, [this.width, this.height]);
     gl.uniform1i(shu.uDistance._pName, this.insideDistance);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
@@ -330,28 +350,8 @@ my.SDF.prototype.makeDF = function () {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     this.framebuffer0.deactivate();
 
-    this._handler.setSize(64, 64);
-    //SUM
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+ //   this._handler.setSize(64, 64);
 
-    h.shaderPrograms.sum.activate();
-    var sh = h.shaderPrograms.sum._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.framebuffer1.texture);
-    gl.uniform1i(shu.outside._pName, 0);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.framebuffer0.texture);
-    gl.uniform1i(shu.inside._pName, 1);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
-    gl.uniform1i(shu.source._pName, 2);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
 
     document.body.appendChild(this._handler.canvas);

@@ -15,10 +15,10 @@ og.utils.SDFCreator = function (width, height) {
     this._width = width || 512;
     this._height = height || 512;
     var s = Math.max(this._width, this._height);
-    this._outsideDistance = Math.round(45 * s / 512);
+    this._outsideDistance = Math.round(80 * s / 512);
     this._insideDistance = Math.round(12 * s / 512);
     this._outsideMix = 0.710;
-    this._insideMix = 0.685;
+    this._insideMix = 0.679;
     this._sourceTexture = null;
 
     this.initialize();
@@ -51,7 +51,8 @@ og.utils.SDFCreator.prototype._initShaders = function () {
         uniforms: {
             uTexSize: { type: og.shaderProgram.types.VEC2 },
             uTex1: { type: og.shaderProgram.types.SAMPLER2D },
-            uDistance: { type: og.shaderProgram.types.INT }
+            uDistance: { type: og.shaderProgram.types.INT },
+            uNeg: { type: og.shaderProgram.types.VEC2 }
         },
         attributes: {
             aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
@@ -69,24 +70,25 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                 gl_Position.zw = vec2(0.0, 1.0);\n\
             }",
         fragmentShader:
-            "precision highp float;\n\
+              "precision highp float;\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
+            uniform vec2 uNeg;\n\
             varying vec2 TexCoord;\n\
             varying vec2 vTexSize;\n\
             const int maxDistance = "+ this._outsideDistance + ";\n\
             void main() {\n\
-                if ( texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
-                    gl_FragColor = vec4(0.0,0.0,0.0,1.0);\n\
+                if ( uNeg.x - uNeg.y*texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
+                    gl_FragColor = vec4(vec3(0.0),1.0);\n\
                     return;\n\
                 }\n\
                 for ( int i=1; i <= maxDistance; i++ ) {\n\
                     if(i > uDistance) break;\n\
-                    if ( texture2D(uTex1, ( TexCoord + vec2(0.0, float(i)) ) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\n\
                         return;\n\
                     }\n\
-                    if ( texture2D(uTex1, ( TexCoord - vec2(0.0, float(i))) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\n\
                         return;\n\
                     }\n\
@@ -139,32 +141,6 @@ og.utils.SDFCreator.prototype._initShaders = function () {
             }"
     });
 
-    var neg = new og.shaderProgram.ShaderProgram("neg", {
-        uniforms: {
-            uTex1: { type: og.shaderProgram.types.SAMPLER2D },
-        },
-        attributes: {
-            aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        vertexShader:
-            "attribute vec2 aPos;\n\
-            varying vec2 TexCoord;\n\
-            void main(){\n\
-            TexCoord = (aPos + 1.0) * 0.5;\n\
-            gl_Position.xy = aPos;\n\
-            gl_Position.zw = vec2(0.0, 1.0);\n\
-        }",
-        fragmentShader:
-            "precision highp float;\n\
-            uniform sampler2D uTex1;\n\
-            varying vec2 TexCoord;\n\
-            void main(){\n\
-                vec4 color = texture2D(uTex1, TexCoord);\n\
-                gl_FragColor = vec4(vec3(1.0) - color.rgb, color.a); \n\
-            }"
-    });
-
-
     var sum = new og.shaderProgram.ShaderProgram("sum", {
         uniforms: {
             outside: { type: og.shaderProgram.types.SAMPLER2D },
@@ -194,7 +170,7 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                         }"
     });
 
-    this._handler.addShaderPrograms([vfield, hfield, neg, sum]);
+    this._handler.addShaderPrograms([vfield, hfield, sum]);
 };
 
 og.utils.SDFCreator.prototype.setSize = function (width, height) {
@@ -218,8 +194,6 @@ og.utils.SDFCreator.prototype.createSDF = function (sourceCanvas, width, height)
 
     this._sourceTexture = h.createTexture_l(sourceCanvas);
 
-    //VERT
-    this._framebuffer0.activate();
     h.shaderPrograms.vfield.activate();
     var sh = h.shaderPrograms.vfield._program;
     var sha = sh.attributes,
@@ -229,82 +203,47 @@ og.utils.SDFCreator.prototype.createSDF = function (sourceCanvas, width, height)
     gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
     gl.uniform1i(shu.uTex1._pName, 0);
     gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
-    gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    this._framebuffer0.deactivate();
 
-    //HORIZ
-    this._framebuffer1.activate();
-    h.shaderPrograms.hfield.activate();
-    var sh = h.shaderPrograms.hfield._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
-    gl.uniform1i(shu.uTex1._pName, 0);
-    gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
-    gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    this._framebuffer1.deactivate();
-
-    //NEG
+    //VERT
     this._framebuffer0.activate();
-    h.shaderPrograms.neg.activate();
-    var sh = h.shaderPrograms.neg._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-    gl.uniform1i(shu.uTex1._pName, 0);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
+    gl.uniform2fv(shu.uNeg._pName, [0.0, -1.0]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     this._framebuffer0.deactivate();
 
     //NEG VERT
     this._framebuffer2.activate();
-    h.shaderPrograms.vfield.activate();
-    var sh = h.shaderPrograms.vfield._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
-    gl.uniform1i(shu.uTex1._pName, 0);
-    gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
+    gl.uniform2fv(shu.uNeg._pName, [1.0, 1.0]);
     gl.uniform1i(shu.uDistance._pName, this._insideDistance);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     this._framebuffer2.deactivate();
 
-    //NEG HORIZ
-    this._framebuffer0.activate();
     h.shaderPrograms.hfield.activate();
     var sh = h.shaderPrograms.hfield._program;
     var sha = sh.attributes,
         shu = sh.uniforms;
 
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    //HORIZ
+    this._framebuffer1.activate();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
+    gl.uniform1i(shu.uTex1._pName, 0);
+    gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    this._framebuffer1.deactivate();
+
+    //NEG HORIZ
+    this._framebuffer0.activate();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._framebuffer2.texture);
     gl.uniform1i(shu.uTex1._pName, 0);
-    gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
     gl.uniform1i(shu.uDistance._pName, this._insideDistance);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-    gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     this._framebuffer0.deactivate();
 

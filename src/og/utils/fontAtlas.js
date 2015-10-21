@@ -54,7 +54,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
         fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
         var atlas = new og.utils.TextureAtlas(atlasSize, atlasSize);
         atlas.assignHandler(this._handler);
-        atlas.borderSize = 0;
+        atlas.borderSize = 6;
         this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
         this.atlasesArr.push(atlas);
         atlas.canvas.fillColor("black");
