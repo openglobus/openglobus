@@ -41,11 +41,10 @@ void main () {
     }
 
 	float u_gamma =  v_bufferAA.y * 10.0 / v_scale;
-
-    float afwidth = 0.0;//v_bufferAA.y * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
+	float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * 0.7 * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
     float alpha = smoothstep ( v_bufferAA.x - afwidth - u_gamma, v_bufferAA.x + afwidth + u_gamma, color.r );
 
-    if( alpha <= 0.3 )
+    if( alpha < 0.2 )
 		discard;
 
     gl_FragColor = vec4(v_rgba.rgb, alpha * v_rgba.a);

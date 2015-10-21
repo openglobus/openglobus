@@ -21,7 +21,6 @@ og.control.SimpleNavigation.prototype.init = function () {
     this.renderer.events.on("onkeypressed", this, this.onCameraTurnRight, og.input.KEY_RIGHT);
     this.renderer.events.on("onkeypressed", this, this.onCameraRollLeft, og.input.KEY_Q);
     this.renderer.events.on("onkeypressed", this, this.onCameraRollRight, og.input.KEY_E);
-    this.renderer.events.on("onkeypressed", this, this.onCameraGrowAlt, og.input.KEY_SPACE);
 };
 
 og.control.SimpleNavigation.prototype.onCameraMoveForward = function (event) {

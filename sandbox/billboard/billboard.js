@@ -22,7 +22,7 @@ my.Billboard.prototype.initialization = function () {
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
+    //this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
 
     ec = new og.EntityCollection();
 
@@ -34,6 +34,7 @@ my.Billboard.prototype.initialization = function () {
     lbl.setSize(15);
     lbl.setRgba(new og.math.Vector4(0, 0, 0, 1));
     lbl.setBufferRGBA(new og.math.Vector4(1, 1, 1, 1));
+    lbl.setFace("Verdana");
     //lbl.setFace("arial");
     //lbl.setFace("Monospace");
     //lbl.setStyle("italic");
@@ -48,6 +49,7 @@ my.Billboard.prototype.initialization = function () {
     blb1.setSize(80, 80);
     lbl1 = new og.Label();
     lbl1.setText("Billboard 1");
+    lbl1.setFace("arial black");
     eee1 = new og.Entity();
     eee1.setPosition(new og.math.Vector3(0, 500, 0));
     eee1.setBillboard(blb1);
@@ -59,6 +61,7 @@ my.Billboard.prototype.initialization = function () {
     blb2.setPosition(new og.math.Vector3(0, 0, 500));
     blb2.setSize(80, 80);
     lbl2 = new og.Label();
+    lbl2.setFace("monospace");
     //lbl2.setWeight("bold");
     lbl2.setText("Billboard 2");
     eee2 = new og.Entity();
@@ -95,6 +98,46 @@ my.Billboard.prototype.initialization = function () {
     //    bc._sphericalBillboardsHandler.texture = that.renderer.handler.createTexture(this);
     //};
     //img.src = "ship.png"
+
+   document.getElementById('size1').oninput = function () {
+        lbl.setSize(this.value);
+    };
+   document.getElementById('buffer1').oninput = function () {
+       lbl.setBuffer(this.value);
+   };
+   document.getElementById('rotation1').oninput = function () {
+       lbl.setRotation(this.value * Math.PI / 180.0);
+   };
+   document.getElementById('text1').oninput = function () {
+       lbl.setText(this.value);
+   };
+
+   document.getElementById('size2').oninput = function () {
+       lbl1.setSize(this.value);
+   };
+   document.getElementById('buffer2').oninput = function () {
+       lbl1.setBuffer(this.value);
+   };
+   document.getElementById('rotation2').oninput = function () {
+       lbl1.setRotation(this.value * Math.PI / 180.0);
+   };
+   document.getElementById('text2').oninput = function () {
+       lbl1.setText(this.value);
+   };
+
+   document.getElementById('size3').oninput = function () {
+       lbl2.setSize(this.value);
+   };
+   document.getElementById('buffer3').oninput = function () {
+       lbl2.setBuffer(this.value);
+   };
+   document.getElementById('rotation3').oninput = function () {
+       lbl2.setRotation(this.value * Math.PI / 180.0);
+   };
+   document.getElementById('text3').oninput = function () {
+       lbl2.setText(this.value);
+   };
+
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {
@@ -123,51 +166,3 @@ my.Billboard.prototype.frame = function () {
         i = 0;
 
 };
-/*
-void CreateBillboardMatrix(Matrix44f &bbmat, const Vector3f &right, const Vector3f &up, const Vector3f &look, const Vertex3f &pos)
-{
-    bbmat.matrix[0] = right.x;
-    bbmat.matrix[1] = right.y;
-    bbmat.matrix[2] = right.z;
-    bbmat.matrix[3] = 0;
-    bbmat.matrix[4] = up.x;
-    bbmat.matrix[5] = up.y;
-    bbmat.matrix[6] = up.z;
-    bbmat.matrix[7] = 0;
-    bbmat.matrix[8] = look.x;
-    bbmat.matrix[9] = look.y;
-    bbmat.matrix[10] = look.z;
-    bbmat.matrix[11] = 0;
-    // Add the translation in as well.
-    bbmat.matrix[12] = pos.x;
-    bbmat.matrix[13] = pos.y;
-    bbmat.matrix[14] = pos.z;
-    bbmat.matrix[15] = 1;
-}
-
-void BillboardAxis(const Vertex3f &pos, const Vector3f &axis, const Vertex3f &camPos)
-{	// create the look vector: pos -> camPos
-    Vector3f	look	= camPos - pos;
-    look.Normalize();
-
-    // billboard about the direction vector
-    Vector3f	up		= axis;
-    Vector3f	right	= up.Cross(look);
-
-    // watch out when the look vector is almost equal to the up vector the right
-    // vector gets close to zeroed, normalize it
-    right.Normalize();
-
-    // the billboard won't actually face the direction of the look vector we
-    // created earlier, that was just used as a tempory vector to create the
-    // right vector so we could calculate the correct look vector from that.
-    look = right.Cross(up);
-
-    Matrix44f	bbmat;
-    CreateBillboardMatrix(bbmat, right, up, look, pos);
-
-    // apply the billboard
-    glMultMatrixf(bbmat.matrix);
-};
-
-*/
