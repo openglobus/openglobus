@@ -31,6 +31,9 @@ my.Billboard.prototype.initialization = function () {
     blb.setSize(80, 80);
     lbl = new og.Label();
     lbl.setText("Billboard");
+    lbl.setSize(15);
+    lbl.setRgba(new og.math.Vector4(0, 0, 0, 1));
+    lbl.setBufferRGBA(new og.math.Vector4(1, 1, 1, 1));
     //lbl.setFace("arial");
     //lbl.setFace("Monospace");
     //lbl.setStyle("italic");

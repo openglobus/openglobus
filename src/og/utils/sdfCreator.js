@@ -78,17 +78,17 @@ og.utils.SDFCreator.prototype._initShaders = function () {
             varying vec2 vTexSize;\n\
             const int maxDistance = "+ this._outsideDistance + ";\n\
             void main() {\n\
-                if ( uNeg.x - uNeg.y*texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
-                    gl_FragColor = vec4(vec3(0.0),1.0);\n\
+                if ( uNeg.x - uNeg.y * texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n\
                     return;\n\
                 }\n\
                 for ( int i=1; i <= maxDistance; i++ ) {\n\
                     if(i > uDistance) break;\n\
-                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\n\
                         return;\n\
                     }\n\
-                    if ( uNeg.x - uNeg.y*texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\n\
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\n\
                         gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\n\
                         return;\n\
                     }\n\
