@@ -179,6 +179,7 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
                             //    d = 0.715;\n\
                             //}\n\
                             gl_FragColor = vec4( vec3(1.0 - mix(i, o, s < 1.0 ? u_o : u_i )), 1.0); \n\
+                            //gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * u_i + (1.0 - step(0.5, s)) * u_o )), 1.0); \n\
                         }"
     });
 

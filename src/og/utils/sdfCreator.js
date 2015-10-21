@@ -166,10 +166,14 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                             float o = texture2D(outside, TexCoord).r;\n\
                             float i = 1.0 - texture2D(inside, TexCoord).r;\n\
                             float s = texture2D(source, TexCoord).r;\n\
-                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, s < 1.0 ? "+ this._outsideMix + " : " + this._insideMix + " )), 1.0); \n\
+                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * " + this._outsideMix + " + (1.0 - step(0.5, s)) * " + this._insideMix + " )), 1.0);\n\
                         }"
     });
 
+    //s < 1.0 ? o : i
+
+    //o,s,i
+    //step()
     this._handler.addShaderPrograms([vfield, hfield, sum]);
 };
 
