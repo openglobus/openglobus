@@ -14,18 +14,18 @@ og.LabelHandler = function (entityCollection) {
     og.inheritance.base(this, entityCollection);
 
     this._fontIndexBuffer = null;
-    this._nobufferAABuffer = null;
-    this._bufferAABuffer = null;
-    this._rgbaBufferBuffer = null;
+    this._noOutlineBuffer = null;
+    this._outlineBuffer = null;
+    this._outlineColorBuffer = null;
 
     this._fontIndexArr = [];
-    this._nobufferAAArr = [];
-    this._bufferAAArr = [];
-    this._rgbaBufferArr = [];
+    this._noOutlineArr = [];
+    this._outlineArr = [];
+    this._outlineColorArr = [];
 
     this._buffersUpdateCallbacks[og.LabelHandler.FONTINDEX_BUFFER] = this.createFontIndexBuffer;
-    this._buffersUpdateCallbacks[og.LabelHandler.BUFFERAA_BUFFER] = this.createBufferAABuffer;
-    this._buffersUpdateCallbacks[og.LabelHandler.RGBABUFFER_BUFFER] = this.createRgbaBufferBuffer;
+    this._buffersUpdateCallbacks[og.LabelHandler.OUTLINE_BUFFER] = this.createOutlineBuffer;
+    this._buffersUpdateCallbacks[og.LabelHandler.OUTLINECOLOR_BUFFER] = this.createOutlineColorBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -35,8 +35,8 @@ og.LabelHandler = function (entityCollection) {
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);
 
 og.LabelHandler.FONTINDEX_BUFFER = 8;
-og.LabelHandler.BUFFERAA_BUFFER = 9;
-og.LabelHandler.RGBABUFFER_BUFFER = 10;
+og.LabelHandler.OUTLINE_BUFFER = 9;
+og.LabelHandler.OUTLINECOLOR_BUFFER = 10;
 
 og.LabelHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
@@ -81,9 +81,9 @@ og.LabelHandler.prototype.clear = function () {
     this._alignedAxisArr.length = 0;
     this._fontIndexArr.length = 0;
     this._letterOffsetArr.length = 0;
-    this._nobufferAAArr.length = 0;
-    this._bufferAAArr.length = 0;
-    this._rgbaBufferArr.length = 0;
+    this._noOutlineArr.length = 0;
+    this._outlineArr.length = 0;
+    this._outlineColorArr.length = 0;
 
     this._texCoordArr = [];
     this._vertexArr = [];
@@ -95,9 +95,9 @@ og.LabelHandler.prototype.clear = function () {
     this._alignedAxisArr = [];
     this._fontIndexArr = [];
     this._letterOffsetArr = [];
-    this._nobufferAAArr = [];
-    this._bufferAAArr = [];
-    this._rgbaBufferArr = [];
+    this._noOutlineArr = [];
+    this._outlineArr = [];
+    this._outlineColorArr = [];
 
     this.refresh();
 };
@@ -133,14 +133,14 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label._fontIndex;
         og.BillboardHandler.concArr(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
 
-        x = 1.0 - label.buffer, y = 0.0;
-        og.BillboardHandler.concArr(this._bufferAAArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+        x = 1.0 - label.outline, y = 0.0;
+        og.BillboardHandler.concArr(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-        x = 192 / 256, y = 0.7;
-        og.BillboardHandler.concArr(this._nobufferAAArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+        x = 0.75, y = 0.7;
+        og.BillboardHandler.concArr(this._noOutlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-        x = label.rgbaBuffer.x; y = label.rgbaBuffer.y; z = label.rgbaBuffer.z; w = label.rgbaBuffer.w;
-        og.BillboardHandler.concArr(this._rgbaBufferArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        x = label.outlineColor.x; y = label.outlineColor.y; z = label.outlineColor.z; w = label.outlineColor.w;
+        og.BillboardHandler.concArr(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
     }
 };
@@ -190,11 +190,11 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.vertexAttribPointer(sha.a_fontIndex._pName, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     //buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBufferBuffer);
-    gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBufferBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
+    gl.vertexAttribPointer(sha.a_rgba._pName, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._bufferAABuffer);
-    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._bufferAABuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
+    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.uniform1f(shu.uZ._pName, 0.0);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
@@ -203,8 +203,8 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
     gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._nobufferAABuffer);
-    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._nobufferAABuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
+    gl.vertexAttribPointer(sha.a_bufferAA._pName, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.uniform1f(shu.uZ._pName, -0.01);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
@@ -219,7 +219,7 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     var ml = 24 * this._maxLetters;
     var i = bi * ml;
     this._rgbaArr.splice(i, ml);
-    this._rgbaBufferArr.splice(i, ml);
+    this._outlineColorArr.splice(i, ml);
 
     ml = 18 * this._maxLetters;
     i = bi * ml;
@@ -231,8 +231,8 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
 
     ml = 12 * this._maxLetters;
     i = bi * ml;
-    this._bufferAAArr.splice(i, ml);
-    this._nobufferAAArr.splice(i, ml);
+    this._outlineArr.splice(i, ml);
+    this._noOutlineArr.splice(i, ml);
 
     ml = 6 * this._maxLetters;
     i = bi * ml;
@@ -439,9 +439,9 @@ og.LabelHandler.prototype.setRgbaArr = function (index, rgba) {
     this._changedBuffers[og.BillboardHandler.RGBA_BUFFER] = true;
 };
 
-og.LabelHandler.prototype.setRgbaBufferArr = function (index, rgba) {
+og.LabelHandler.prototype.setOutlineColorArr = function (index, rgba) {
     var i = index * 24 * this._maxLetters;
-    var a = this._rgbaBufferArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
+    var a = this._outlineColorArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
 
     for (var q = 0; q < this._maxLetters; q++) {
         var j = i + q * 24;
@@ -477,30 +477,30 @@ og.LabelHandler.prototype.setRgbaBufferArr = function (index, rgba) {
         a[j + 23] = w;
     }
 
-    this._changedBuffers[og.LabelHandler.RGBABUFFER_BUFFER] = true;
+    this._changedBuffers[og.LabelHandler.OUTLINECOLOR_BUFFER] = true;
 };
 
-og.LabelHandler.prototype.setBufferAAArr = function (index, buffer) {
+og.LabelHandler.prototype.setOutlineArr = function (index, outline) {
     var i = index * 12 * this._maxLetters;
-    var a = this._bufferAAArr;
+    var a = this._outlineArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
         var j = i + q * 12;
 
-        a[j] = buffer;
+        a[j] = outline;
 
-        a[j + 2] = buffer;
+        a[j + 2] = outline;
 
-        a[j + 4] = buffer;
+        a[j + 4] = outline;
 
-        a[j + 6] = buffer;
+        a[j + 6] = outline;
 
-        a[j + 8] = buffer;
+        a[j + 8] = outline;
 
-        a[j + 10] = buffer;
+        a[j + 10] = outline;
     }
 
-    this._changedBuffers[og.LabelHandler.BUFFERAA_BUFFER] = true;
+    this._changedBuffers[og.LabelHandler.OUTLINE_BUFFER] = true;
 };
 
 og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
@@ -637,20 +637,20 @@ og.LabelHandler.prototype.createTexCoordBuffer = function () {
     this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 3, this._texCoordArr.length / 3);
 };
 
-og.LabelHandler.prototype.createBufferAABuffer = function () {
+og.LabelHandler.prototype.createOutlineBuffer = function () {
     var h = this._renderer.handler;
 
-    h.gl.deleteBuffer(this._bufferAABuffer);
-    this._bufferAABuffer = h.createArrayBuffer(new Float32Array(this._bufferAAArr), 2, this._bufferAAArr.length / 2);
+    h.gl.deleteBuffer(this._outlineBuffer);
+    this._outlineBuffer = h.createArrayBuffer(new Float32Array(this._outlineArr), 2, this._outlineArr.length / 2);
 
-    h.gl.deleteBuffer(this._nobufferAABuffer);
-    this._nobufferAABuffer = h.createArrayBuffer(new Float32Array(this._nobufferAAArr), 2, this._nobufferAAArr.length / 2);
+    h.gl.deleteBuffer(this._noOutlineBuffer);
+    this._noOutlineBuffer = h.createArrayBuffer(new Float32Array(this._noOutlineArr), 2, this._noOutlineArr.length / 2);
 };
 
-og.BillboardHandler.prototype.createRgbaBufferBuffer = function () {
+og.BillboardHandler.prototype.createOutlineColorBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._rgbaBufferBuffer);
-    this._rgbaBufferBuffer = h.createArrayBuffer(new Float32Array(this._rgbaBufferArr), 4, this._rgbaBufferArr.length / 4);
+    h.gl.deleteBuffer(this._outlineColorBuffer);
+    this._outlineColorBuffer = h.createArrayBuffer(new Float32Array(this._outlineColorArr), 4, this._outlineColorArr.length / 4);
 };
 
 og.LabelHandler.prototype.setMaxLetters = function (c) {

@@ -9,8 +9,7 @@ uniform sampler2D u_fontTextureArr[MAX_SIZE];
 varying float v_fontIndex;
 varying vec2 v_texCoords;
 varying vec4 v_rgba;
-varying vec2 v_bufferAA;
-varying float v_scale;
+varying vec3 v_bufferAA;
 
 void main () {
     int fi = int(v_fontIndex);
@@ -40,10 +39,8 @@ void main () {
         color = texture2D(u_fontTextureArr[10], v_texCoords);    
     }
 
-	float u_gamma =  v_bufferAA.y * 8.0 / v_scale;
-	//float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * 0.7 * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
-	float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * length ( vec2 ( dFdx ( color.r ) , dFdy ( color.r )) );
-    float alpha = smoothstep ( v_bufferAA.x - afwidth - u_gamma, v_bufferAA.x + afwidth + u_gamma, color.r );
+	float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );
+    float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );
 
     if( alpha < 0.2 )
 		discard;

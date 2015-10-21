@@ -33,7 +33,7 @@ my.Billboard.prototype.initialization = function () {
     lbl.setText("Billboard");
     lbl.setSize(15);
     lbl.setRgba(new og.math.Vector4(0, 0, 0, 1));
-    lbl.setBufferRGBA(new og.math.Vector4(1, 1, 1, 1));
+    lbl.setOutlineColor(new og.math.Vector4(1, 1, 1, 1));
     lbl.setFace("Verdana");
     //lbl.setFace("arial");
     //lbl.setFace("Monospace");
@@ -103,7 +103,7 @@ my.Billboard.prototype.initialization = function () {
         lbl.setSize(this.value);
     };
    document.getElementById('buffer1').oninput = function () {
-       lbl.setBuffer(this.value);
+       lbl.setOutline(this.value);
    };
    document.getElementById('rotation1').oninput = function () {
        lbl.setRotation(this.value * Math.PI / 180.0);
@@ -116,7 +116,7 @@ my.Billboard.prototype.initialization = function () {
        lbl1.setSize(this.value);
    };
    document.getElementById('buffer2').oninput = function () {
-       lbl1.setBuffer(this.value);
+       lbl1.setOutline(this.value);
    };
    document.getElementById('rotation2').oninput = function () {
        lbl1.setRotation(this.value * Math.PI / 180.0);
@@ -129,7 +129,7 @@ my.Billboard.prototype.initialization = function () {
        lbl2.setSize(this.value);
    };
    document.getElementById('buffer3').oninput = function () {
-       lbl2.setBuffer(this.value);
+       lbl2.setOutline(this.value);
    };
    document.getElementById('rotation3').oninput = function () {
        lbl2.setRotation(this.value * Math.PI / 180.0);

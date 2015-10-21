@@ -12,8 +12,7 @@ attribute vec2 a_bufferAA;
 varying vec2 v_texCoords;
 varying vec4 v_rgba;
 varying float v_fontIndex;
-varying vec2 v_bufferAA;
-varying float v_scale;
+varying vec3 v_bufferAA;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
@@ -26,8 +25,6 @@ const vec3 ZERO3 = vec3(0.0);
 
 void main() {
 	
-	v_bufferAA = a_bufferAA;
-
     if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
 	    gl_Position = vec4(0.0);
 		return;
@@ -49,7 +46,9 @@ void main() {
     	right = normalize(cross(look,up));
     	look = cross(up,right);
 	}
-	v_scale = a_size;
+
+	v_bufferAA = vec3(a_bufferAA, 8.0 * a_bufferAA.y / a_size);
+
     float focalSize = 2.0 * length(a_positions - uCamPos) * uViewAngle * uXRatio;
     vec2 offset = a_offset.xy * focalSize;
     float scale = a_size * focalSize;

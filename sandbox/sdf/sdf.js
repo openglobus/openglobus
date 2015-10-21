@@ -172,12 +172,6 @@ my.SDF.prototype.createContext = function (sourceCanvas) {
                             float o = texture2D(outside, TexCoord).r;\n\
                             float i = 1.0 - texture2D(inside, TexCoord).r;\n\
                             float s = texture2D(source, TexCoord).r;\n\
-                            //float r;\n\
-                            //if(s == 1.0) {\n\
-                            //    d = 0.709;\n\
-                            //} else {\n\
-                            //    d = 0.715;\n\
-                            //}\n\
                             gl_FragColor = vec4( vec3(1.0 - mix(i, o, s < 1.0 ? u_o : u_i )), 1.0); \n\
                             //gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * u_i + (1.0 - step(0.5, s)) * u_o )), 1.0); \n\
                         }"

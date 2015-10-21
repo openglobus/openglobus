@@ -68,17 +68,15 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
 };
 
 og.EntityCollection.prototype.removeEntity = function (entity) {
-    entity._entityCollection = null;
     this.entities.splice(entity._entityCollectionIndex, 1);
     this.reindexEntitiesArray(entity._entityCollectionIndex);
-    entity._entityCollectionIndex = -1;
 
     if (this.belongs(entity)) {
         this._removeRecursively(entity);
     }
 };
 
-og.BillboardHandler.prototype.reindexEntitiesArray = function (startIndex) {
+og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
     var e = this.entities;
     for (var i = startIndex; i < e.length; i++) {
         e[i]._entityCollectionIndex = i;

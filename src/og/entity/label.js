@@ -18,8 +18,8 @@ og.Label = function (options) {
     this.size = 32;
     this.style = null;
     this.weight = null;
-    this.buffer = 0.9;
-    this.rgbaBuffer = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
+    this.outline = 0.9;
+    this.outlineColor = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
 
     this._fontIndex = 0;
     this._fontAtlas = null;
@@ -60,17 +60,17 @@ og.Label.prototype._applyFontIndex = function (fontIndex) {
     }
 };
 
-og.Label.prototype.setBuffer = function (buffer) {
-    this.buffer = buffer;
-    this._handler && this._handler.setBufferAAArr(this._handlerIndex, 1.0 - buffer);
+og.Label.prototype.setOutline = function (outline) {
+    this.outline = outline;
+    this._handler && this._handler.setOutlineArr(this._handlerIndex, 1.0 - outline);
 };
 
-og.Label.prototype.setBufferRGBA = function (rgba) {
-    this.rgbaBuffer.x = rgba.x;
-    this.rgbaBuffer.y = rgba.y;
-    this.rgbaBuffer.z = rgba.z;
-    this.rgbaBuffer.w = rgba.w;
-    this._handler && this._handler.setRgbaBufferArr(this._handlerIndex, rgba);
+og.Label.prototype.setOutlineColor = function (rgba) {
+    this.outlineColor.x = rgba.x;
+    this.outlineColor.y = rgba.y;
+    this.outlineColor.z = rgba.z;
+    this.outlineColor.w = rgba.w;
+    this._handler && this._handler.setOutlineColorArr(this._handlerIndex, rgba);
 };
 
 og.Label.prototype.update = function () {
