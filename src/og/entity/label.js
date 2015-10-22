@@ -3,6 +3,7 @@ goog.provide('og.Label');
 goog.require('og.BaseBillboard');
 goog.require('og.inheritance');
 goog.require('og.math.Vector4');
+goog.require('og.utils');
 
 /**
  *
@@ -65,12 +66,21 @@ og.Label.prototype.setOutline = function (outline) {
     this._handler && this._handler.setOutlineArr(this._handlerIndex, 1.0 - outline);
 };
 
-og.Label.prototype.setOutlineColor = function (rgba) {
+og.Label.prototype.setOutlineColor4v = function (rgba) {
     this.outlineColor.x = rgba.x;
     this.outlineColor.y = rgba.y;
     this.outlineColor.z = rgba.z;
     this.outlineColor.w = rgba.w;
     this._handler && this._handler.setOutlineColorArr(this._handlerIndex, rgba);
+};
+
+og.Label.prototype.setOutlineColor = function (color) {
+    this.setOutlineColor4v(og.utils.htmlColor2rgba(color));
+};
+
+og.Label.prototype.setOutlineOpacity = function (opacity) {
+    this.outlineColor.w = opacity;
+    this._handler && this._handler.setOutlineColorArr(this._handlerIndex, this.outlineColor);
 };
 
 og.Label.prototype.update = function () {

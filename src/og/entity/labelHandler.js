@@ -121,7 +121,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.01;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = label.rgba.x; y = label.rgba.y; z = label.rgba.z; w = label.rgba.w;
+        x = label.color.x; y = label.color.y; z = label.color.z; w = label.color.w;
         og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
         x = label.rotation;

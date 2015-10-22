@@ -146,7 +146,7 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
     x = billboard.offset.x; y = billboard.offset.y; z = billboard.offset.z;
     og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-    x = billboard.rgba.x; y = billboard.rgba.y; z = billboard.rgba.z; w = billboard.rgba.w;
+    x = billboard.color.x; y = billboard.color.y; z = billboard.color.z; w = billboard.color.w;
     og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
     x = billboard.rotation;

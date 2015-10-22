@@ -47,17 +47,26 @@ og.Entity.prototype.setVisibility = function (visibility) {
     }
 };
 
-og.Entity.prototype.setPosition = function (position) {
-    this.position = position;
+og.Entity.prototype.setPosition3v = function (position) {
+    this.setPosition(position.x, position.y, position.z);
+};
+
+og.Entity.prototype.setPosition = function (x, y, z) {
+
+    var p = this.position;
+
+    p.x = x;
+    p.y = y;
+    p.z = z;
 
     //billboards
-    this.billboard && this.billboard.setPosition(position);
+    this.billboard && this.billboard.setPosition3v(p);
 
     //labels
-    this.label && this.label.setPosition(position);
+    this.label && this.label.setPosition3v(p);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
-        this.childrenNodes[i].setPosition(position);
+        this.childrenNodes[i].setPosition3v(p);
     }
 };
 
@@ -66,7 +75,7 @@ og.Entity.prototype.setBillboard = function (billboard) {
         this.billboard.remove();
     }
     this.billboard = billboard;
-    this.billboard.setPosition(this.position);
+    this.billboard.setPosition3v(this.position);
     this.billboard.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
 };
@@ -76,7 +85,7 @@ og.Entity.prototype.setLabel = function (label) {
         this.label.remove();
     }
     this.label = label;
-    this.label.setPosition(this.position);
+    this.label.setPosition3v(this.position);
     this.label.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
 };
