@@ -16,7 +16,7 @@ og.control.MouseNavigation = function (options) {
     this.earthUp = new og.math.Vector3();
     this.inertia = 0.007;
     this.grabbedSpheroid = new og.bv.Sphere();
-    this.planet;
+    this.planet = null;
     this.qRot = new og.math.Quaternion();
     this.scaleRot = 0;
 

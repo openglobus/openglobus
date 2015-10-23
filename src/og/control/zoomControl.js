@@ -12,7 +12,7 @@ og.control.ZoomControl = function (options) {
     this.stepsForward = null;
     this.stepIndex = 0;
 
-    this.planet;
+    this.planet = null;
 };
 
 og.inheritance.extend(og.control.ZoomControl, og.control.Control);

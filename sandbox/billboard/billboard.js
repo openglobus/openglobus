@@ -80,7 +80,9 @@ my.Billboard.prototype.initialization = function () {
 
             var lbl = new og.Label();
             lbl.setText((i * 50 + j).toString());
-            lbl.setOutline(0.5);
+            lbl.setOutline(0.0);
+            lbl.setColor4v(new og.math.Vector4(0, 0, 0, 1));
+            lbl.setSize(20);
 
             var eee = new og.Entity();
             eee.setPosition3v(new og.math.Vector3(j * 200, 0, i * 200));

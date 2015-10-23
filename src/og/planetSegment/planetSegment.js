@@ -40,16 +40,16 @@ og.planetSegment.PlanetSegment = function () {
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this.extent;
+    this.extent = null;
     //this.wgs84extent;
     this.extentParams = [];
-    this.gridSize;
+    this.gridSize = null;
 
-    this.zoomIndex;
-    this.tileX;
-    this.tileY;
+    this.zoomIndex = null;
+    this.tileX = null;
+    this.tileY = null;
 
-    this.planet;
+    this.planet = null;
     this.handler = null;
 
     this.ready = false;
@@ -73,7 +73,7 @@ og.planetSegment.PlanetSegment = function () {
     this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
     this.alfaArr = new Float32Array(og.layer.MAX_OVERLAYS);
 
-    this.node;
+    this.node = null;
 };
 
 og.planetSegment.PlanetSegment.RATIO_LOD = 1.12;

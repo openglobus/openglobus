@@ -35,16 +35,16 @@ goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
     this.ellipsoid = ellipsoid;
-    this.quadTree;
-    this.quadTreeNorth;
-    this.quadTreeSouth;
+    this.quadTree = null;
+    this.quadTreeNorth = null;
+    this.quadTreeSouth = null;
     this.events = new og.Events();
 
     this.layers = [];
     this.visibleLayers = [];
     this.tcolorArr = [];
-    this.baseLayer;
-    this.terrainProvider;
+    this.baseLayer = null;
+    this.terrainProvider = null;
 
     //this.renderer.activeCamera pointer
     this.camera = null;
@@ -56,7 +56,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.mousePositionOnEarth = new og.math.Vector3();
 
     this.indexesBuffers = [];
-    this.backbuffer;
+    this.backbuffer = null;
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
 
@@ -406,7 +406,7 @@ og.node.Planet.prototype.frame = function () {
     if (this.createdNodesCount > 1370) {
         setTimeout(function () {
             that.memClear();
-        }), 0
+        }, 0);
         that.createdNodesCount = 0;
     }
 

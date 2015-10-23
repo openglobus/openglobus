@@ -11,7 +11,7 @@ goog.require('og.utils.FontAtlas');
 og.node.RenderNode = function (name) {
     og.inheritance.base(this, name);
     this.renderer = null;
-    this.drawMode;
+    this.drawMode = null;
     this.show = true;
     this._isActive = true;
     this._zIndex = 1000;

@@ -7,12 +7,12 @@ goog.require('og.ImageCanvas');
 
 og.webgl.Handler = function (id, params) {
     this.lastAnimationFrameTime = 0;
-    this.fps;
-    this.delta;
+    this.fps = 0;
+    this.delta = 0;
     this.animSpeed = 1.0;
     this._id = id;
     this.canvas = null;
-    this.gl;
+    this.gl = null;
     this._initialized = false;
     this.drawback = function (x) { };
     this.shaderPrograms = {};

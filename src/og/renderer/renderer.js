@@ -11,7 +11,7 @@ og.Renderer = function (handler) {
     this._renderNodesArr = [];
     this.renderNodes = {};
     this.cameras = [];
-    this.activeCamera;
+    this.activeCamera = null;
     this.events = new og.RendererEvents(handler.gl.canvas);
     this.controls = [];
     this.controlsBag = {};

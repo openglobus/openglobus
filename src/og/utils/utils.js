@@ -39,7 +39,7 @@ og.utils.htmlColor2rgba = function (htmlColor, opacity) {
         var m = htmlColor.split(",");
 
         if (parseFloat(m[3]) == undefined) {
-            opacity == 1.0;
+            opacity = 1.0;
         }
 
         res = new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), opacity);

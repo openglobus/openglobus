@@ -13,13 +13,13 @@ goog.require('og.mercator');
  * @api
  */
 og.quadTree.QuadNode = function (planetSegmentPrototype) {
-    this.parentNode;
+    this.parentNode = null;
     this.nodes = [];
-    this.planetSegment;
-    this.partId;
-    this.nodeId;
-    this.planet;
-    this.state;
+    this.planetSegment = null;
+    this.partId = null;
+    this.nodeId = null;
+    this.planet = null;
+    this.state = null;
     this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
     this.sideSize = [0, 0, 0, 0];

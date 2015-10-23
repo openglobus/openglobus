@@ -5,7 +5,7 @@ goog.require('og.ImageCanvas');
 
 og.webgl.Framebuffer = function (gl, width, height, initialize) {
     this.gl = gl;
-    this.fbo;
+    this.fbo = null;
     this.width = width || 256;
     this.height = height || 256;
     this.texture = null;
