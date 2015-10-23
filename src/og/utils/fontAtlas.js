@@ -116,6 +116,12 @@ og.utils.FontAtlas.prototype._dequeueRequest = function () {
 
 og.utils.FontAtlas.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
-        return this._pendingsQueue.pop();
+        var f = this._pendingsQueue.pop();
+        var fontIndex = this.getFontIndex(f.face, f.style, f.weight);
+        if (fontIndex != undefined) {
+            f.callback(fontIndex);
+            continue;
+        }
+        return f;
     }
 };

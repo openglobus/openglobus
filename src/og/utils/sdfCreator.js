@@ -70,7 +70,7 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                 gl_Position.zw = vec2(0.0, 1.0);\n\
             }",
         fragmentShader:
-              "precision highp float;\n\
+              "precision lowp float;\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
             uniform vec2 uNeg;\n\
@@ -119,7 +119,7 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                 gl_Position.zw = vec2(0.0, 1.0);\n\
             }",
         fragmentShader:
-            "precision highp float;\n\
+            "precision lowp float;\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
             varying vec2 TexCoord;\n\

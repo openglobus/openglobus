@@ -1,6 +1,6 @@
 #extension GL_OES_standard_derivatives : enable
 
-precision highp float;
+precision lowp float;
 
 const int MAX_SIZE = 12;
 
