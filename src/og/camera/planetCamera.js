@@ -10,7 +10,7 @@ og.PlanetCamera = function (planet, options) {
     og.inheritance.base(this, planet.renderer, options);
 
     this.lonLat = new og.LonLat();
-    this.altitude;
+    this.altitude = 0;
     this.minAlt = options.minAltitude || 50;
     this.earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
     this.bindEllipsoid(this._ellipsoid);

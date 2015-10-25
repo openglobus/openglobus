@@ -7,8 +7,8 @@ goog.require('og.node.RenderNode');
 og.node.Axes = function (size) {
     og.inheritance.base(this, "Axes");
     this.size = size;
-    this.axesBuffer;
-    this.axesColorBuffer;
+    this.axesBuffer = null;
+    this.axesColorBuffer = null;
 };
 
 og.inheritance.extend(og.node.Axes, og.node.RenderNode);
@@ -42,7 +42,7 @@ og.node.Axes.prototype.createAxisBuffer = function (gridSize) {
     var colors = [
         1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,   // x - R
         0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,   // y - B
-        0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,   // z - G
+        0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0    // z - G
     ];
 
     this.axisBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
