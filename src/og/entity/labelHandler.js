@@ -3,6 +3,7 @@ goog.provide('og.LabelHandler');
 goog.require('og.shaderProgram.label');
 goog.require('og.BillboardHandler');
 goog.require('og.inheritance');
+goog.require('og.Label');
 
 /*
  * og.LabelHandler
@@ -110,7 +111,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
             og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
 
-        og.BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1]);
+        og.BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
 
         var x = label.position.x, y = label.position.y, z = label.position.z;
         og.BillboardHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
@@ -220,13 +221,13 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     var i = bi * ml;
     this._rgbaArr.splice(i, ml);
     this._outlineColorArr.splice(i, ml);
+    this._texCoordArr.splice(i, ml);
 
     ml = 18 * this._maxLetters;
     i = bi * ml;
     this._offsetArr.splice(i, ml);
     this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
-    this._texCoordArr.splice(i, ml);
 
     ml = 12 * this._maxLetters;
     i = bi * ml;
@@ -249,63 +250,93 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     billboard._fontAtlas = null;
 };
 
-og.LabelHandler.prototype.setText = function (index, text, fontIndex) {
+og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {
 
     var fa = this._entityCollection.renderNode.fontAtlas.atlasesArr[fontIndex];
 
     if (!fa) return;
 
-    var i = index * 18 * this._maxLetters;
+    var i = index * 24 * this._maxLetters;
     var a = this._texCoordArr;
 
-    var c;
-    var offset = 0.5;
+    var c = 0;
+
+    var j = i + c * 24;
+    var n = fa.nodes[text[c]];
+    var f = n.emptySize;
+    var offset = f;
+
     for (c = 0; c < text.length; c++) {
-        var j = i + c * 18;
+        var j = i + c * 24;
         var n = fa.nodes[text[c]];
         var tc = n.texCoords;
 
         a[j] = tc[0];
         a[j + 1] = tc[1];
         a[j + 2] = offset;
+        a[j + 3] = 0.0;
 
-        a[j + 3] = tc[2];
-        a[j + 4] = tc[3];
-        a[j + 5] = offset;
+        a[j + 4] = tc[2];
+        a[j + 5] = tc[3];
+        a[j + 6] = offset;
+        a[j + 7] = 0.0;
 
-        a[j + 6] = tc[4];
-        a[j + 7] = tc[5];
-        a[j + 8] = offset;
+        a[j + 8] = tc[4];
+        a[j + 9] = tc[5];
+        a[j + 10] = offset;
+        a[j + 11] = 0.0;
 
-        a[j + 9] = tc[6];
-        a[j + 10] = tc[7];
-        a[j + 11] = offset;
-
-        a[j + 12] = tc[8];
-        a[j + 13] = tc[9];
+        a[j + 12] = tc[6];
+        a[j + 13] = tc[7];
         a[j + 14] = offset;
+        a[j + 15] = 0.0;
 
-        a[j + 15] = tc[10];
-        a[j + 16] = tc[11];
-        a[j + 17] = offset;
+        a[j + 16] = tc[8];
+        a[j + 17] = tc[9];
+        a[j + 18] = offset;
+        a[j + 19] = 0.0;
+
+        a[j + 20] = tc[10];
+        a[j + 21] = tc[11];
+        a[j + 22] = offset;
+        a[j + 23] = 0.0;
 
         offset += n.emptySize;
     }
 
+    //49/512 - font atlas left border letter offset
+    if (align == og.Label.CENTER) {
+        offset = (f + 49 / 512 - offset) * 0.5;
+        for (c = 0; c < text.length; c++) {
+            var j = i + c * 24;
+            a[j + 3] = offset;
+            a[j + 7] = offset;
+            a[j + 11] = offset;
+            a[j + 15] = offset;
+            a[j + 19] = offset;
+            a[j + 23] = offset;
+        }
+    } else if (align == og.Label.LEFT) {
+        offset = (f + 49 / 512 - offset);
+        for (c = 0; c < text.length; c++) {
+            var j = i + c * 24;
+            a[j + 3] = offset;
+            a[j + 7] = offset;
+            a[j + 11] = offset;
+            a[j + 15] = offset;
+            a[j + 19] = offset;
+            a[j + 23] = offset;
+        }
+    }
+
     for (var c = c; c < this._maxLetters; c++) {
-        var j = i + c * 18;
-
-        a[j + 2] = -1;
-
-        a[j + 5] = -1;
-
-        a[j + 8] = -1;
-
-        a[j + 11] = -1;
-
-        a[j + 14] = -1;
-
-        a[j + 17] = -1;
+        var j = i + c * 24;
+        a[j + 2] = -1.0;
+        a[j + 6] = -1.0;
+        a[j + 10] = -1.0;
+        a[j + 14] = -1.0;
+        a[j + 18] = -1.0;
+        a[j + 17] = -1.0;
     }
 
     this._changedBuffers[og.BillboardHandler.TEXCOORD_BUFFER] = true;
@@ -626,7 +657,7 @@ og.LabelHandler.prototype.createFontIndexBuffer = function () {
 og.LabelHandler.prototype.createTexCoordBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._texCoordBuffer);
-    this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 3, this._texCoordArr.length / 3);
+    this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 4, this._texCoordArr.length / 4);
 };
 
 og.LabelHandler.prototype.createOutlineBuffer = function () {

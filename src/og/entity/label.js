@@ -21,6 +21,7 @@ og.Label = function (options) {
     this.weight = null;
     this.outline = 0.9;
     this.outlineColor = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
+    this.align = og.Label.RIGHT;
 
     this._fontIndex = 0;
     this._fontAtlas = null;
@@ -28,9 +29,24 @@ og.Label = function (options) {
 
 og.inheritance.extend(og.Label, og.BaseBillboard);
 
+og.Label.RIGHT = 0;
+og.Label.LEFT = 1;
+og.Label.CENTER = 2;
+
+og.Label.ALIGN = {
+    "left": og.Label.LEFT,
+    "right": og.Label.RIGHT,
+    "center": og.Label.CENTER
+};
+
 og.Label.prototype.setText = function (text) {
     this.text = text;
-    this._handler && this._handler.setText(this._handlerIndex, text, this._fontIndex);
+    this._handler && this._handler.setText(this._handlerIndex, text, this._fontIndex, this.align);
+};
+
+og.Label.prototype.setAlign = function (align) {
+    this.align = og.Label.ALIGN[align.trim().toLowerCase()];
+    this._handler && this._handler.setText(this._handlerIndex, this.text, this._fontIndex, this.align);
 };
 
 og.Label.prototype.setFace = function (face) {
