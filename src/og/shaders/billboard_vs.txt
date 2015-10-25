@@ -1,4 +1,4 @@
-attribute vec3 a_vertices;
+attribute vec2 a_vertices;
 attribute vec2 a_texCoord;
 attribute vec3 a_positions;
 attribute vec3 a_offset;
@@ -46,7 +46,7 @@ void main() {
     vec2 scale = a_size * focalSize;
     float cosRot = cos(a_rotation);
     float sinRot = sin(a_rotation);
-    vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + normalize(look) * a_vertices.z + a_positions;
+    vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + a_positions;
 
     gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
 	gl_Position.z += a_offset.z;

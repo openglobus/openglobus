@@ -105,9 +105,9 @@ og.LabelHandler.prototype.clear = function () {
 og.LabelHandler.prototype._addBillboardToArrays = function (label) {
     for (var i = 0; i < this._maxLetters; i++) {
         if (label.visibility) {
-            og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]);
+            og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
         } else {
-            og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
 
         og.BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1]);
@@ -224,13 +224,13 @@ og.LabelHandler.prototype._removeBillboard = function (billboard) {
     ml = 18 * this._maxLetters;
     i = bi * ml;
     this._offsetArr.splice(i, ml);
-    this._vertexArr.splice(i, ml);
     this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
     this._texCoordArr.splice(i, ml);
 
     ml = 12 * this._maxLetters;
     i = bi * ml;
+    this._vertexArr.splice(i, ml);
     this._outlineArr.splice(i, ml);
     this._noOutlineArr.splice(i, ml);
 
@@ -533,11 +533,11 @@ og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
 
 og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
 
-    var i = index * 18 * this._maxLetters;
+    var i = index * 12 * this._maxLetters;
     var a = this._vertexArr;
 
     for (var q = 0; q < this._maxLetters; q++) {
-        var j = i + q * 18;
+        var j = i + q * 12;
         a[j] = vertexArr[0];
         a[j + 1] = vertexArr[1];
         a[j + 2] = vertexArr[2];
@@ -553,14 +553,6 @@ og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
         a[j + 9] = vertexArr[9];
         a[j + 10] = vertexArr[10];
         a[j + 11] = vertexArr[11];
-
-        a[j + 12] = vertexArr[12];
-        a[j + 13] = vertexArr[13];
-        a[j + 14] = vertexArr[14];
-
-        a[j + 15] = vertexArr[15];
-        a[j + 16] = vertexArr[16];
-        a[j + 17] = vertexArr[17];
     }
 
     this._changedBuffers[og.BillboardHandler.VERTEX_BUFFER] = true;

@@ -130,9 +130,9 @@ og.BillboardHandler.prototype.add = function (billboard) {
 
 og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
     if (billboard.visibility) {
-        og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]);
+        og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
     } else {
-        og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0,  0, 0, 0,  0, 0, 0,  0, 0, 0]);
     }
 
     og.BillboardHandler.concArr(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -233,11 +233,11 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
 
     i = bi * 18;
     this._offsetArr.splice(i, 18);
-    this._vertexArr.splice(i, 18);
     this._positionArr.splice(i, 18);
     this._alignedAxisArr.splice(i, 18);
 
     i = bi * 12;
+    this._vertexArr.splice(i, 12);
     this._sizeArr.splice(i, 12);
     this._texCoordArr.splice(i, 12);
 
@@ -429,16 +429,16 @@ og.BillboardHandler.prototype.setTexCoordArr = function (index, tcoordArr) {
 og.BillboardHandler.prototype.setVisibility = function (index, visibility) {
     var vArr;
     if (visibility) {
-        vArr = [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0];
+        vArr = [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];
     } else {
-        vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
     this.setVertexArr(index, vArr);
 };
 
 og.BillboardHandler.prototype.setVertexArr = function (index, vertexArr) {
 
-    var i = index * 18;
+    var i = index * 12;
     var a = this._vertexArr;
 
     a[i] = vertexArr[0];
@@ -456,14 +456,6 @@ og.BillboardHandler.prototype.setVertexArr = function (index, vertexArr) {
     a[i + 9] = vertexArr[9];
     a[i + 10] = vertexArr[10];
     a[i + 11] = vertexArr[11];
-
-    a[i + 12] = vertexArr[12];
-    a[i + 13] = vertexArr[13];
-    a[i + 14] = vertexArr[14];
-
-    a[i + 15] = vertexArr[15];
-    a[i + 16] = vertexArr[16];
-    a[i + 17] = vertexArr[17];
 
     this._changedBuffers[og.BillboardHandler.VERTEX_BUFFER] = true;
 };
@@ -533,7 +525,7 @@ og.BillboardHandler.prototype.createRotationBuffer = function () {
 og.BillboardHandler.prototype.createVertexBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._vertexBuffer);
-    this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 3, this._vertexArr.length / 3);
+    this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 2, this._vertexArr.length / 2);
 };
 
 og.BillboardHandler.prototype.createTexCoordBuffer = function () {
