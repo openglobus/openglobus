@@ -200,20 +200,20 @@ og.math.Matrix4.prototype.scale = function (v) {
     return this;
 };
 
-og.math.Matrix4.prototype.setFrustum = function (a, b, c, d, e, g) {
+og.math.Matrix4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 
-    this.right = b;
-    this.left = a;
-    this.top = d;
-    this.bottom = c;
-    this.far = g;
-    this.near = e;
+    this.left = left;
+    this.right = right;
+    this.bottom = bottom;
+    this.top = top;
+    this.near = near;
+    this.far = far;
 
-    var h = b - a, i = d - c, j = g - e;
-    this._m[0] = e * 2 / h; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
-    this._m[4] = 0; this._m[5] = e * 2 / i; this._m[6] = 0; this._m[7] = 0;
-    this._m[8] = (b + a) / h; this._m[9] = (d + c) / i; this._m[10] = -(g + e) / j; this._m[11] = -1;
-    this._m[12] = 0; this._m[13] = 0; this._m[14] = -(g * e * 2) / j; this._m[15] = 0;
+    var h = right - left, i = top - bottom, j = far - near;
+    this._m[0] = near * 2 / h; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
+    this._m[4] = 0; this._m[5] = near * 2 / i; this._m[6] = 0; this._m[7] = 0;
+    this._m[8] = (right + left) / h; this._m[9] = (top + bottom) / i; this._m[10] = -(far + near) / j; this._m[11] = -1;
+    this._m[12] = 0; this._m[13] = 0; this._m[14] = -(far * near * 2) / j; this._m[15] = 0;
     return this;
 };
 
@@ -221,6 +221,31 @@ og.math.Matrix4.prototype.setPerspective = function (angle, aspect, near, far) {
     angle = near * Math.tan(angle * Math.PI / 360);
     aspect = angle * aspect;
     return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
+};
+
+og.math.Matrix4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
+    var lr = 1.0 / (left - right),
+        bt = 1.0 / (bottom - top),
+        nf = 1.0 / (near - far),
+        m = this._m;
+
+    m[0] = -2.0 * lr;
+    m[1] = 0;
+    m[2] = 0;
+    m[3] = 0;
+    m[4] = 0;
+    m[5] = -2.0 * bt;
+    m[6] = 0;
+    m[7] = 0;
+    m[8] = 0;
+    m[9] = 0;
+    m[10] = 2.0 * nf;
+    m[11] = 0;
+    m[12] = (left + right) * lr;
+    m[13] = (top + bottom) * bt;
+    m[14] = (far + near) * nf;
+    m[15] = 1.0;
+    return this;
 };
 
 og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
