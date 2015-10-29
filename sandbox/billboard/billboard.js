@@ -138,7 +138,7 @@ my.Billboard.prototype.initialization = function () {
    document.getElementById('text3').oninput = function () {
        lbl2.setText(this.value);
    };
-
+   lbl2.setAlign("center");
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {

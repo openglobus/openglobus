@@ -73,7 +73,7 @@ og.Label.prototype._applyFontIndex = function (fontIndex) {
     this._fontIndex = fontIndex;
     if (this._handler) {
         this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-        this._handler.setText(this._handlerIndex, this.text, this._fontIndex);
+        this._handler.setText(this._handlerIndex, this.text, this._fontIndex, this.align);
     }
 };
 
