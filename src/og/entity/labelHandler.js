@@ -119,7 +119,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.size;
         og.BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
 
-        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.01;
+        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.1;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = label.color.x; y = label.color.y; z = label.color.z; w = label.color.w;
@@ -207,7 +207,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
     gl.vertexAttribPointer(sha.a_bufferAA._pName, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1f(shu.uZ._pName, -0.01);
+    gl.uniform1f(shu.uZ._pName, -0.05);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
 };

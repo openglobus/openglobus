@@ -23,6 +23,10 @@ uniform float uZ;
 
 const vec3 ZERO3 = vec3(0.0);
 
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
 void main() {
 	
     if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
@@ -58,5 +62,6 @@ void main() {
     vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + offset.y) + a_positions;
 
     gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
+    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 	gl_Position.z += a_offset.z + uZ;
 }
