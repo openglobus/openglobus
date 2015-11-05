@@ -41,9 +41,9 @@ og.utils.SDFCreator.prototype._initHandler = function (width, height) {
 
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]), 2, 4);
 
-    this._framebuffer0 = new og.webgl.Framebuffer(this._handler.gl, width, height, true);
-    this._framebuffer1 = new og.webgl.Framebuffer(this._handler.gl, width, height, true);
-    this._framebuffer2 = new og.webgl.Framebuffer(this._handler.gl, width, height, true);
+    this._framebuffer0 = new og.webgl.Framebuffer(this._handler);
+    this._framebuffer1 = new og.webgl.Framebuffer(this._handler);
+    this._framebuffer2 = new og.webgl.Framebuffer(this._handler);
 };
 
 og.utils.SDFCreator.prototype._initShaders = function () {

@@ -26,7 +26,7 @@ og.GeoImage = function (options) {
 };
 
 og.GeoImage.prototype.initialize = function () {
-    this._mercFramebuffer = new og.webgl.Framebuffer(this.planet.geoImageTileCreator._handler.gl, 256, 256);
+    this._mercFramebuffer = new og.webgl.Framebuffer(this.planet.geoImageTileCreator._handler);
     this.loadImage(this.src);
     this.setCorners(this._wgs84Corners);
 };

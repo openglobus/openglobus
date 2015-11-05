@@ -98,8 +98,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._handler.deactivateDepthTest();
 
     //create hidden handler buffer
-    this._framebuffer = new og.webgl.Framebuffer(this._handler.gl, this._width, this._height);
-    this._framebuffer.initialize();
+    this._framebuffer = new og.webgl.Framebuffer(this._handler);
 
     //creating vertices hached array for differents grid size segment
     for (var p = 1; p <= 6; p++) {

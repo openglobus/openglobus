@@ -119,7 +119,7 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.size;
         og.BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
 
-        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.1;
+        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.05;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = label.color.x; y = label.color.y; z = label.color.z; w = label.color.w;

@@ -264,8 +264,7 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
     //backbuffer initialization
-    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
-    this.backbuffer.initialize();
+    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler);
 
     this.updateVisibleLayers();
 

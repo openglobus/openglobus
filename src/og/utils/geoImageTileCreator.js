@@ -95,7 +95,7 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
     this._handler.deactivateFaceCulling();
     this._handler.deactivateDepthTest();
 
-    this._framebufferPASS_ONE = new og.webgl.Framebuffer(this._handler.gl, 1024, 1024);
+    this._framebufferPASS_ONE = new og.webgl.Framebuffer(this._handler);
 
     this._texCoordsBuffer = this._handler.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
     this._vertexBuffer = this._handler.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
@@ -104,9 +104,10 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
 //this function must be synchronous callee for _handler
 og.utils.GeoImageTileCreator.prototype.createMercatorSamplerPASS = function (geoImage) {
 
+    this._handler.setSize(geoImage.image.width, geoImage.image.height);
+
     this._framebufferPASS_ONE.setSize(geoImage.image.width, geoImage.image.height);
     geoImage._mercFramebuffer.setSize(geoImage.image.width, geoImage.image.height);
-    this._handler.setSize(geoImage.image.width, geoImage.image.height);
 
     var h = this._handler;
     var gl = h.gl;
