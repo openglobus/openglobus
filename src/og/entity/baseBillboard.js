@@ -10,6 +10,9 @@ goog.require('og.math.Vector4');
  */
 og.BaseBillboard = function (options) {
     options = options || {};
+
+    this._entity = null;
+
     this._handler = null;
     this._handlerIndex = -1;
 
@@ -82,5 +85,6 @@ og.BaseBillboard.prototype.setAlignedAxis = function (x, y, z) {
 };
 
 og.BaseBillboard.prototype.remove = function () {
+    this._entity = null;
     this._handler && this._handler.remove(this);
 };

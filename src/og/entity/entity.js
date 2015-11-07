@@ -21,6 +21,8 @@ og.Entity = function (options) {
 
     this._entityCollection = null;
     this._entityCollectionIndex = -1;
+
+    this._pickingColor = new og.math.Vector3(0, 0, 0);
 };
 
 og.Entity.__staticCounter = 0;
@@ -75,6 +77,7 @@ og.Entity.prototype.setBillboard = function (billboard) {
         this.billboard.remove();
     }
     this.billboard = billboard;
+    this.billboard._entity = this;
     this.billboard.setPosition3v(this.position);
     this.billboard.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
@@ -85,6 +88,7 @@ og.Entity.prototype.setLabel = function (label) {
         this.label.remove();
     }
     this.label = label;
+    this.label._entity = this;
     this.label.setPosition3v(this.position);
     this.label.setVisibility(this.visbility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
@@ -92,6 +96,7 @@ og.Entity.prototype.setLabel = function (label) {
 
 og.Entity.prototype.appendChild = function (entity) {
     entity._entityCollection = this._entityCollection;
+    entity._pickingColor = this._pickingColor;
     entity.parent = this;
     this.childrenNodes.push(entity);
     this._entityCollection && this._entityCollection._addRecursively(entity);

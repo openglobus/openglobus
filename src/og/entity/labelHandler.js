@@ -60,10 +60,7 @@ og.LabelHandler.prototype.add = function (label) {
 
 og.LabelHandler.prototype.assignFontAtlas = function (label) {
     if (this._entityCollection && this._entityCollection.renderNode) {
-        //label._fontAtlas = this._entityCollection.renderNode.fontAtlas;
-        //label._fontIndex = label._fontAtlas.createFont(label.font, label.style, label.weight);
         label.assignFontAtlas(this._entityCollection.renderNode.fontAtlas);
-        //label.setText(label.text);
     }
 };
 

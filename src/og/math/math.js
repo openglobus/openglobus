@@ -114,3 +114,11 @@ og.math.bezier = function (t, p0, p1, p2, p3) {
     return p0.scaleTo(uuu).add(p1.scaleTo(3 * uu * t))
         .add(p2.scaleTo(3 * u * tt)).add(p3.scaleTo(ttt));
 };
+
+og.math.randomi = function (min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+};
+
+og.math.random = function (min, max) {
+    return Math.random() * (max - min) + min;
+};

@@ -80,7 +80,7 @@ og.GeoImage.prototype.setVisibility = function (visibility) {
 og.GeoImage.prototype.addTo = function (planet) {
     this.planet = planet;
     this.initialize();
-    planet.geoImagesArray.push(this);
+    planet.geoImagesArray.unshift(this);
     planet.redrawGeoImages();
 };
 

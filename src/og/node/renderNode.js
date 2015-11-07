@@ -190,6 +190,6 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.fontAtlas.assignHandler(renderer.handler);
 
     for (var i = 0; i < this.entityCollections.length; i++) {
-        this.entityCollections[i]._billboardHandler.setRenderer(renderer);
+        this.entityCollections[i].setRenderer(renderer);
     }
 };

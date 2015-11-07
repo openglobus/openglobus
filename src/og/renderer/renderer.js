@@ -4,6 +4,7 @@ goog.require('og.math.Vector3');
 goog.require('og.RendererEvents');
 goog.require('og.Camera');
 goog.require('og.math.Pixel');
+goog.require('og.utils');
 
 og.Renderer = function (handler) {
     this.div = null;
@@ -15,6 +16,38 @@ og.Renderer = function (handler) {
     this.events = new og.RendererEvents(handler.gl.canvas);
     this.controls = [];
     this.controlsBag = {};
+    this._colorObjects = { "0_0_0": { emptyObject: true } };
+};
+
+og.Renderer.prototype.pickObject_a = function (color) {
+    return this._colorObjects[color[0] + "_" + color[1] + "_" + color[2]];
+};
+
+og.Renderer.prototype.pickObject_v = function (color) {
+    return this._colorObjects[color.x + "_" + color.y + "_" + color.z];
+};
+
+og.Renderer.prototype.assignPickingColor = function (obj) {
+    var r = 0, g = 0, b = 0;
+    var str = "0_0_0";
+    while (this._colorObjects[str]) {
+        r = og.math.randomi(1, 255);
+        g = og.math.randomi(1, 255);
+        b = og.math.randomi(1, 255);
+        str = r + "_" + g + "_" + b;
+    }
+    obj._pickingColor.x = r;
+    obj._pickingColor.y = g;
+    obj._pickingColor.z = b;
+    this._colorObjects[str] = obj;
+};
+
+og.Renderer.prototype.clearPickingColor = function (obj) {
+    var c = obj._pickingColor;
+    if (!c.isZero()) {
+        delete this._colorObjects[c.x + "_" + c.y + "_" + c.z];
+        c.x = c.y = c.z = 0;
+    }
 };
 
 /**

@@ -16,39 +16,27 @@ og.utils.readTextFile = function (fileUrl) {
     return res;
 };
 
-
-og.utils.htmlColor2rgba = function (htmlColor, opacity) {
-
-    var res;
-
+og.utils.colorToVector = function (htmlColor, opacity) {
     if (htmlColor[0] == "#") {
-        if (htmlColor.length == 7) {
-            res = new og.math.Veector4(
-                parseInt(htmlColor[1] + htmlColor[3], 16),
-                parseInt(htmlColor[3] + htmlColor[5], 16),
-                parseInt(htmlColor[5] + htmlColor[7], 16),
-                1.0);
-        } else {
-            res = new og.math.Vector4(
-                parseInt(htmlColor[1], 16),
-                parseInt(htmlColor[2], 16),
-                parseInt(htmlColor[3], 16),
-                1.0)
-        }
+        return og.utils.hexStringToVector(htmlColor, opacity);
     } else {
-        var m = htmlColor.split(",");
-
-        if (parseFloat(m[3]) == undefined) {
-            opacity = 1.0;
-        }
-
-        res = new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), opacity);
+        return og.utils.rgbaStringToVector(htmlColor, opacity);
     }
-
-    if (opacity != undefined) {
-        res.w = opacity;
-    }
-
-    return res;
 };
 
+og.utils.rgbaStringToVector = function (rgbaString, opacity) {
+    if (opacity == undefined) {
+        opacity = 1.0;
+    }
+    var m = htmlColor.split(",");
+    return new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
+};
+
+og.utils.hexStringToVector = function (hex, opacity) {
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), (opacity == undefined ? 1.0 : opacity));
+};

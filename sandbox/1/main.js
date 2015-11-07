@@ -81,47 +81,49 @@ function start() {
         "autoActivated": true
     });
 
-    //var ql = new og.GeoImage({
-    //    src: "ql.jpg",
-    //    corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
+
+    //ql2 = new og.GeoImage({
+    //    src: "ql2.jpg",
+    //    corners: [og.lonLat(20.91, 47.21), og.lonLat(20.22, 47.00), og.lonLat(20.00, 47.32), og.lonLat(20.70, 47.53)],
     //    opacity: 0.8
     //});
-    //ql.addTo(globus.planet);
+    //ql2.addTo(globus.planet);
 
-    ql2 = new og.GeoImage({
-        src: "ql2.jpg",
-        corners: [og.lonLat(20.91, 47.21), og.lonLat(20.22, 47.00), og.lonLat(20.00, 47.32), og.lonLat(20.70, 47.53)],
+    //ql3 = new og.GeoImage({
+    //    src: "ql3.jpg",
+    //    corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
+    //    opacity: 0.8
+    //});
+    //ql3.addTo(globus.planet);
+
+    var ql = new og.GeoImage({
+        src: "ql.jpg",
+        corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
         opacity: 0.8
     });
-    ql2.addTo(globus.planet);
-
-    ql3 = new og.GeoImage({
-        src: "ql3.jpg",
-        corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
-        opacity: 0.8
-    });
-    ql3.addTo(globus.planet);
+    ql.addTo(globus.planet);
 
     ql4 = new og.GeoImage({
         src: "bm.jpg",
         corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-        opacity: 0.5
+        opacity: 1.0
     });
     ql4.addTo(globus.planet);
 
-    ql5 = new og.GeoImage({
-        src: "ql5.jpg",
-        corners: [og.lonLat(-16.25, 22.22), og.lonLat(-16.62, 21.84), og.lonLat(-16.9, 22.07), og.lonLat(-16.53, 22.45)],
-        opacity: 0.8
-    });
-    ql5.addTo(globus.planet);
 
-    ql6 = new og.GeoImage({
-        src: "ql6.jpg",
-        corners: [og.lonLat(8.95, 42.32), og.lonLat(8.36, 42.04), og.lonLat(8.10, 42.33), og.lonLat(8.69, 42.61)],
-        opacity: 0.8
-    });
-    ql6.addTo(globus.planet);
+    //ql5 = new og.GeoImage({
+    //    src: "ql5.jpg",
+    //    corners: [og.lonLat(-16.25, 22.22), og.lonLat(-16.62, 21.84), og.lonLat(-16.9, 22.07), og.lonLat(-16.53, 22.45)],
+    //    opacity: 0.8
+    //});
+    //ql5.addTo(globus.planet);
+
+    //ql6 = new og.GeoImage({
+    //    src: "ql6.jpg",
+    //    corners: [og.lonLat(8.95, 42.32), og.lonLat(8.36, 42.04), og.lonLat(8.10, 42.33), og.lonLat(8.69, 42.61)],
+    //    opacity: 0.8
+    //});
+    //ql6.addTo(globus.planet);
 
     /*    globus2 = new og.Globus({
             "target": "globus2",
@@ -137,7 +139,7 @@ function start() {
             "layers": [new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: true })],
             "autoActivated": true
         });*/
-    globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function () { alert("ok"); });
+    //globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function () { alert("ok"); });
 
     globus.planet.events.on("ondraw", null, function (e) {
         e.camera.rotateRight(speed, true);

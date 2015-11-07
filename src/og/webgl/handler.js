@@ -281,7 +281,7 @@ og.webgl.Handler.prototype.drawFrame = function (now) {
 
     if (this.viewportResized()) {
         this.setSize(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-        this.onCanvasResize(this.gl.canvas);
+        this.onCanvasResize(this.canvas);
     }
 
     this.calculateFPS(now);

@@ -34,6 +34,7 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         entity.childrenNodes[i]._entityCollection = this;
         entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
+        entity.childrenNodes[i]._pickingColor = entity._pickingColor;
         this._addRecursively(entity.childrenNodes[i]);
     }
 };
@@ -43,6 +44,7 @@ og.EntityCollection.prototype.add = function (entity) {
         entity._entityCollection = this;
         entity._entityCollectionIndex = this.entities.length;
         this.entities.push(entity);
+        this.renderNode && this.renderNode.renderer && this.renderNode.renderer.assignPickingColor(entity);
         this._addRecursively(entity);
     }
     return this;
@@ -71,8 +73,22 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
     this.entities.splice(entity._entityCollectionIndex, 1);
     this.reindexEntitiesArray(entity._entityCollectionIndex);
 
+    //clear picking color
+    this.renderNode && this.renderNode.renderer && this.renderNode.renderer.clearPickingColor(entity);
+
     if (this.belongs(entity)) {
         this._removeRecursively(entity);
+    }
+};
+
+og.EntityCollection.prototype.updatePickingColors = function () {
+    if (this.renderNode && this.renderNode.renderer) {
+        var e = this.entities;
+        for (var i = 0; i < e.length; i++) {
+            if (!e[i].parent) {
+                this.renderNode.renderer.assignPickingColor(e[i]);
+            }
+        }
     }
 };
 
@@ -88,12 +104,19 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         this._renderNodeIndex = renderNode.entityCollections.length;
         this.renderNode = renderNode;
         renderNode.entityCollections.push(this);
-        this._billboardHandler.setRenderer(renderNode.renderer);
-        this._labelHandler.setRenderer(renderNode.renderer);
-        this.updateBillboardsTextureAtlas();
-        this.updateLabelsFontAtlas();
+        this.setRenderer(renderNode.renderer);
     }
     return this;
+};
+
+og.EntityCollection.prototype.setRenderer = function (renderer) {
+    if (renderer) {
+        this._billboardHandler.setRenderer(renderer);
+        this._labelHandler.setRenderer(renderer);
+        this.updateBillboardsTextureAtlas();
+        this.updateLabelsFontAtlas();
+        this.updatePickingColors();
+    }
 };
 
 og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
