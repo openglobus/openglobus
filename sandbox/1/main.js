@@ -59,13 +59,14 @@ function start() {
     //    "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
     //});
 
+    var ls = new og.control.LayerSwitcher({ autoActivate: true });
     var controls = [
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
         new og.control.MousePosition({ autoActivate: true }),
-        new og.control.LayerSwitcher({ autoActivate: true }),
+        ls,
     	//new og.control.ShowFps({ autoActivate: true }),
     	new og.control.ZoomControl({ autoActivate: true }),
         new og.control.TouchNavigation({ autoActivate: true })

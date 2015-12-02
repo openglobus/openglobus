@@ -81,6 +81,7 @@ og.GeoImage.prototype.addTo = function (planet) {
     this.planet = planet;
     this.initialize();
     planet.geoImagesArray.unshift(this);
+    planet.events.dispatch(planet.events.ongeoimageadded, this);
     planet.redrawGeoImages();
 };
 

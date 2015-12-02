@@ -17,6 +17,12 @@ og.Renderer = function (handler) {
     this.controls = [];
     this.controlsBag = {};
     this._colorObjects = { "0_0_0": { emptyObject: true } };
+    this._pickingCallbacks = [];
+    this._pickingFramebuffer = null;
+};
+
+og.Renderer.prototype.addPickingCallback = function (callback) {
+    this._pickingCallbacks.push(callback);
 };
 
 og.Renderer.prototype.pickObject_a = function (color) {
@@ -118,8 +124,11 @@ og.Renderer.prototype.init = function () {
 
     this.handler.onCanvasResize = function (obj) {
         that.activeCamera.refresh();
+        that._pickingFramebuffer.setSize(obj.width, obj.height);
         that.events.dispatch(that.events.onresize, obj);
     }
+
+    this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
 };
 
 og.Renderer.prototype.addRenderNode = function (renderNode) {
@@ -146,12 +155,34 @@ og.Renderer.prototype.draw = function () {
 
     this.events.dispatch(this.events.ondraw, this);
 
-    for (var i = 0; i < this._renderNodesArr.length; i++) {
-        this._renderNodesArr[i].drawNode();
+    var rn = this._renderNodesArr;
+    var i = rn.length;
+    while (i--) {
+        rn[i].drawNode();
     }
+
+    this._drawPickingBuffer();
 
     this.events.mouseState.moving = false;
     this.events.touchState.moving = false;
+};
+
+og.Renderer.prototype._drawPickingBuffer = function () {
+    this._pickingFramebuffer.activate();
+
+    var h = this.handler;
+    var gl = h.gl;
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.disable(h.gl.BLEND);
+
+    var dp = this._pickingCallbacks;
+    var i = dp.length;
+    while (i--) {
+        dp[i]();
+    }
+
+    this._pickingFramebuffer.deactivate();
 };
 
 og.Renderer.prototype.start = function () {

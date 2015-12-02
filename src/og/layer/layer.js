@@ -17,7 +17,12 @@ og.layer.Layer = function (name, options) {
     this.planet = null;
 
     this.events = new og.Events();
-    this.events.registerNames(["onload", "onloadend", "onvisibilitychanged"]);
+    this.events.registerNames([
+        "onload",
+        "onloadend",
+        "onvisibilitychanged",
+        "onadded",
+        "onremoved"]);
 
     options = options || {};
     this.isBaseLayer = options.isBaseLayer || false;

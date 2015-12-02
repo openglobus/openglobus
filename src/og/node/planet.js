@@ -56,7 +56,7 @@ og.node.Planet = function (name, ellipsoid) {
     this.mousePositionOnEarth = new og.math.Vector3();
 
     this.indexesBuffers = [];
-    this.backbuffer = null;
+    this._heightBackbuffer = null;
     this._currentDistanceFromPixel = 0;
     this._viewChanged = true;
 
@@ -73,6 +73,16 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.minCurrZoom = og.math.MAX;
     this.maxCurrZoom = og.math.MIN;
+
+    //events initialization
+    this.events.registerNames([
+        "ondraw",
+        "onlayeradded",
+        "onbaselayerchanged",
+        "onlayerremoved",
+        "onlayervisibilitychanged",
+        "ongeoimageadded"
+    ]);
 };
 
 og.node.Planet.SUN_DISTANCE = 149600000000;
@@ -264,25 +274,20 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
 
     //backbuffer initialization
-    this.backbuffer = new og.webgl.Framebuffer(this.renderer.handler);
+    this._heightBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
 
     this.updateVisibleLayers();
 
-    //events initialization
-    this.events.registerNames([
-        "ondraw",
-        "onlayeradded",
-        "onbaselayerchanged",
-        "onlayerremoved",
-        "onlayervisibilitychanged"
-    ]);
-    this.renderer.events.on("onresize", this.backbuffer, function (e) {
+    this.renderer.events.on("onresize", this._heightBackbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
     this.renderer.activeCamera.events.on("onviewchanged", this, function (e) {
         this._viewChanged = true;
     });
     this.renderer.events.on("onmousemove", this, function (e) {
+        this._viewChanged = true;
+    });
+    this.renderer.events.on("ontouchmove", this, function (e) {
         this._viewChanged = true;
     });
 
@@ -398,7 +403,7 @@ og.node.Planet.prototype.frame = function () {
     this.transformLights();
 
     this.renderNodesPASS();
-    this.renderDistanceBackbufferPASS();
+    this.renderHeightBackbufferPASS();
 
     //free memory
     var that = this;
@@ -575,7 +580,7 @@ og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     if (this._viewChanged) {
         this._viewChanged = false;
-        var color = og.math.Vector4.fromVec(this.backbuffer.readPixel(px.x, this.backbuffer.height - px.y));
+        var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x, this._heightBackbuffer.height - px.y));
         if (!(color.x | color.y | color.z | color.w)) {
             return this.getDistanceFromPixelEllipsoid(px);
         }
@@ -584,8 +589,8 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     return this._currentDistanceFromPixel;
 };
 
-og.node.Planet.prototype.renderDistanceBackbufferPASS = function () {
-    var b = this.backbuffer,
+og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
+    var b = this._heightBackbuffer,
         r = this.renderer;
     var h = r.handler;
     var pp = h.shaderPrograms.picking;

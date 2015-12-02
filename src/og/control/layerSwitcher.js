@@ -7,6 +7,7 @@ og.control.LayerSwitcher = function (options) {
     this.dialog = null;
     this.baseLayersDiv = null;
     this.overlaysDiv = null;
+    this.geoImagesDiv = null;
     this._id = og.control.LayerSwitcher.numSwitches++;
 };
 
@@ -17,29 +18,47 @@ og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
 og.control.LayerSwitcher.prototype.init = function () {
     this.renderer.renderNodes.Earth.events.on("onlayeradded", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("onlayerremoved", this, this.onLayerRemoved);
-    this.renderer.renderNodes.Earth.events.on("onbaselayerchanged", this, this.onBaseLayerChanged);
-    this.renderer.renderNodes.Earth.events.on("onlayervisibilitychanged", this, this.onLayerVisibilityChanged);
+    this.renderer.renderNodes.Earth.events.on("ongeoimageadded", this, this.onGeoImageAdded);
     this.createSwitcher();
     this.createDialog();
 };
 
+og.control.LayerSwitcher.prototype.onGeoImageAdded = function (geoImage) {
+    this.addSwitcher("checkbox", geoImage, this.geoImagesDiv, this._id);
+};
+
+og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container, id) {
+    var inp = document.createElement('input');
+    inp.type = type;
+    inp.name = "ogBaseLayerRadiosId" + (id || "");
+    inp.checked = obj.visibility;
+    inp.className = "ogLayerSwitcherInput";
+    var that = this;
+    inp.onclick = function () {
+        obj.setVisibility(this.checked);
+    };
+
+    var lbl = document.createElement('label');
+    lbl.className = "ogLayerSwitcherLabel";
+    lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
+
+    container.appendChild(inp);
+    container.appendChild(lbl);
+};
+
 og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
-    console.log("added");
+    if (layer.isBaseLayer) {
+        this.addSwitcher("radio", layer, this.baseLayersDiv);
+    } else {
+        this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
+    }
 };
 
 og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
     console.log("removed");
 };
 
-og.control.LayerSwitcher.prototype.onBaseLayerChanged = function (layer) {
-    console.log("basechanged");
-};
-
-og.control.LayerSwitcher.prototype.onLayerVisibilityChanged = function (layer) {
-    console.log("changed " + layer.id);
-};
-
-og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
+og.control.LayerSwitcher.prototype.createBaseLayersContainer = function () {
     var layersDiv = document.createElement('div');
     layersDiv.className = "layersDiv";
     this.dialog.appendChild(layersDiv);
@@ -51,10 +70,9 @@ og.control.LayerSwitcher.prototype.createBaseLayersDiv = function () {
 
     this.baseLayersDiv = document.createElement('div');
     layersDiv.appendChild(this.baseLayersDiv);
-    this.createBaseLayersList(this.baseLayersDiv);
 };
 
-og.control.LayerSwitcher.prototype.createOverlaysDiv = function () {
+og.control.LayerSwitcher.prototype.createOverlaysContainer = function () {
     var overlaysDiv = document.createElement('div');
     overlaysDiv.className = "layersDiv";
     this.dialog.appendChild(overlaysDiv);
@@ -66,7 +84,20 @@ og.control.LayerSwitcher.prototype.createOverlaysDiv = function () {
 
     this.overlaysDiv = document.createElement('div');
     overlaysDiv.appendChild(this.overlaysDiv);
-    this.createOverlaysList(this.overlaysDiv);
+};
+
+og.control.LayerSwitcher.prototype.createGeoImagesContainer = function () {
+    var geoImagesDiv = document.createElement('div');
+    geoImagesDiv.className = "layersDiv";
+    this.dialog.appendChild(geoImagesDiv);
+
+    var overlaysLbl = document.createElement('div');
+    overlaysLbl.className = "layersDiv";
+    overlaysLbl.innerHTML = "Geo Images";
+    geoImagesDiv.appendChild(overlaysLbl);
+
+    this.geoImagesDiv = document.createElement('div');
+    geoImagesDiv.appendChild(this.geoImagesDiv);
 };
 
 og.control.LayerSwitcher.prototype.createDialog = function () {
@@ -75,65 +106,9 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
     this.dialog.className = "displayNone";
     this.renderer.div.appendChild(this.dialog);
 
-    this.createBaseLayersDiv();
-    this.createOverlaysDiv();
-};
-
-og.control.LayerSwitcher.prototype.createOverlaysList = function (block) {
-    var i, inp, lbl, that = this,
-        layers = this.renderer.renderNodes.Earth.layers;
-
-    for (i = 0; i < layers.length; i++) {
-        if (!layers[i].isBaseLayer) {
-            inp = document.createElement('input');
-            inp.type = "checkbox";
-            inp.value = i;
-            inp.checked = layers[i].visibility;
-            inp.name = "ogBaseLayerCheckbox";
-            inp.className = "ogLayerSwitcherInput";
-            inp.onclick = function () { that.switchLayerVisibility.call(that, this); };
-            block.appendChild(inp);
-
-            lbl = document.createElement('label');
-            lbl.className = "ogLayerSwitcherLabel";
-            lbl.innerHTML = layers[i].name + "</br>";
-            block.appendChild(lbl);
-        }
-    }
-};
-
-og.control.LayerSwitcher.prototype.createBaseLayersList = function (block) {
-    var i, inp, lbl, that = this,
-        layers = this.renderer.renderNodes.Earth.layers;
-
-    for (i = 0; i < layers.length; i++) {
-        if (layers[i].isBaseLayer) {
-            inp = document.createElement('input');
-            inp.type = "radio";
-            inp.value = i;
-            inp.checked = layers[i].visibility;
-            inp.name = "ogBaseLayerRadiosId" + this._id;
-            inp.className = "ogLayerSwitcherInput";
-            inp.onclick = function () { that.switchLayer.call(that, this); };
-            block.appendChild(inp);
-
-            lbl = document.createElement('label');
-            lbl.className = "ogLayerSwitcherLabel";
-            lbl.innerHTML = layers[i].name + "</br>";
-            block.appendChild(lbl);
-        }
-    }
-};
-
-og.control.LayerSwitcher.prototype.switchLayer = function (obj) {
-    var rn = this.renderer.renderNodes.Earth;
-    rn.setBaseLayer(rn.layers[obj.value]);
-};
-
-og.control.LayerSwitcher.prototype.switchLayerVisibility = function (obj) {
-    var rn = this.renderer.renderNodes.Earth;
-    var lr = rn.layers[obj.value];
-    lr.setVisibility(lr.getVisibility() ? false : true);
+    this.createBaseLayersContainer();
+    this.createOverlaysContainer();
+    this.createGeoImagesContainer();
 };
 
 og.control.LayerSwitcher.prototype.createSwitcher = function () {

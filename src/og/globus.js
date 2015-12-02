@@ -79,9 +79,6 @@ og.Globus = function (options) {
      * @type {Object}
      */
     this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
-    if (options.layers) {
-        this.planet.addLayers(options.layers);
-    }
 
     //Attach terrain provider
     if (options.terrain) {
@@ -95,6 +92,10 @@ og.Globus = function (options) {
     //Add controls
     if (options.controls) {
         this.renderer.addControls(options.controls)
+    }
+
+    if (options.layers) {
+        this.planet.addLayers(options.layers);
     }
 
     og.Globus.__id++;
