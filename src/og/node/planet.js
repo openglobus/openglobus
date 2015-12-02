@@ -139,6 +139,7 @@ og.node.Planet.prototype.addLayer = function (layer) {
     }
     this.layers.push(layer);
     this.events.dispatch(this.events.onlayeradded, layer);
+    layer.events.dispatch(layer.events.onadd, this);
     this.updateVisibleLayers();
 };
 
@@ -177,6 +178,8 @@ og.node.Planet.prototype.removeLayer = function (layer) {
                 }
             });
             this.events.dispatch(this.events.onlayerremoved, layer);
+            layer.events.dispatch(layer.events.onremoved, this);
+            layer.planet = null;
             return layer;
         }
     }

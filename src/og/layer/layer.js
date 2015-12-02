@@ -40,6 +40,14 @@ og.layer.Layer = function (name, options) {
     this.pendingsQueue = new og.QueueArray();
 };
 
+og.layer.Layer.prototype.addTo = function (planet) {
+    planet.addLayer(this);
+};
+
+og.layer.Layer.prototype.remove = function () {
+    this.planet && this.planet.removeLayer(this);
+};
+
 og.layer.Layer.prototype.setAttribution = function (html) {
     this._attribution = html;
     this.planet.updateAttributionsList();

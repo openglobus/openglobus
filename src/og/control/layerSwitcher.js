@@ -42,6 +42,11 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
     lbl.className = "ogLayerSwitcherLabel";
     lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
 
+    obj._removeCallback = function () {
+        container.removeChild(inp);
+        container.removeChild(lbl);
+    }
+
     container.appendChild(inp);
     container.appendChild(lbl);
 };
@@ -55,7 +60,8 @@ og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
 };
 
 og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
-    console.log("removed");
+    layer._removeCallback();
+    layer._removeCallback = null;
 };
 
 og.control.LayerSwitcher.prototype.createBaseLayersContainer = function () {
