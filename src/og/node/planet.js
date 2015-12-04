@@ -15,7 +15,7 @@ goog.require('og.shaderProgram.overlays_wl');
 goog.require('og.shaderProgram.overlays_nl');
 goog.require('og.shaderProgram.single_nl');
 goog.require('og.shaderProgram.single_wl');
-goog.require('og.shaderProgram.picking');
+goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
 goog.require('og.planetSegment.Wgs84PlanetSegment');
@@ -274,7 +274,7 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_wl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.picking(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
 
     //backbuffer initialization
     this._heightBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
@@ -513,7 +513,7 @@ og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
     var b = this._heightBackbuffer,
         r = this.renderer;
     var h = r.handler;
-    var pp = h.shaderPrograms.picking;
+    var pp = h.shaderPrograms.heightPicking;
     h.gl.disable(h.gl.BLEND);
     b.activate();
     b.clear();
@@ -521,7 +521,7 @@ og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
     var i = this.renderedNodes.length;
     while (i--) {
-        this.renderedNodes[i].planetSegment.drawPicking();
+        this.renderedNodes[i].planetSegment.drawHeightPicking();
     }
     b.deactivate();
 };

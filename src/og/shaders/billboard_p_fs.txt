@@ -1,0 +1,8 @@
+precision highp float;
+uniform sampler2D u_texture;
+
+varying vec3 v_color;
+
+void main () {
+    gl_FragColor = color;
+}

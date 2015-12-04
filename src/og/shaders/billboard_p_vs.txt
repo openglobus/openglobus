@@ -1,0 +1,49 @@
+attribute vec2 a_vertices;
+attribute vec3 a_positions;
+attribute vec3 a_offset;
+attribute vec2 a_size;
+attribute float a_rotation;
+attribute vec4 a_color;
+attribute vec3 a_alignedAxis;
+
+varying vec4 v_color;
+
+uniform mat4 uMVMatrix;
+uniform mat4 uPMatrix;
+uniform vec3 uCamPos;
+uniform float uViewAngle;
+uniform float uXRatio;
+
+const vec3 ZERO3 = vec3(0.0);
+
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
+void main() {
+    v_color = a_color;
+
+    vec3 look = a_positions - uCamPos;
+    
+	vec3 right, up;
+	if(a_alignedAxis == ZERO3){
+    	up = vec3( uMVMatrix[0][1], uMVMatrix[1][1], uMVMatrix[2][1] );
+	    right = vec3( uMVMatrix[0][0], uMVMatrix[1][0], uMVMatrix[2][0] );
+	}else{
+	    up = normalize(a_alignedAxis);
+    	right = normalize(cross(look,up));
+    	look = cross(up,right);
+	}
+
+	float dist = dot(uCamPos - a_positions, vec3(uMVMatrix[0][2], uMVMatrix[1][2], uMVMatrix[2][2]));
+    float focalSize = 2.0 * dist * uViewAngle * uXRatio;
+    vec2 offset = a_offset.xy * focalSize;
+    vec2 scale = a_size * focalSize;
+    float cosRot = cos(a_rotation);
+    float sinRot = sin(a_rotation);
+    vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + offset.y) + a_positions;	
+
+    gl_Position = uPMatrix * uMVMatrix * vec4(rr, 1);
+	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+	gl_Position.z += a_offset.z;
+}

@@ -835,10 +835,10 @@ og.planetSegment.PlanetSegment.prototype._setVIb = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
+og.planetSegment.PlanetSegment.prototype.drawHeightPicking = function () {
     if (this.ready) {
         var gl = this.handler.gl;
-        var sh = this.handler.shaderPrograms.picking._program;
+        var sh = this.handler.shaderPrograms.heightPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
