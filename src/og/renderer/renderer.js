@@ -21,8 +21,8 @@ og.Renderer = function (handler) {
     this._pickingFramebuffer = null;
 };
 
-og.Renderer.prototype.addPickingCallback = function (callback) {
-    this._pickingCallbacks.push(callback);
+og.Renderer.prototype.addPickingCallback = function (sender, callback) {
+    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
 };
 
 og.Renderer.prototype.pickObject_a = function (color) {
@@ -158,6 +158,7 @@ og.Renderer.prototype.draw = function () {
     var rn = this._renderNodesArr;
     var i = rn.length;
     while (i--) {
+        //renderNodes frame call
         rn[i].drawNode();
     }
 
@@ -179,7 +180,7 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     var dp = this._pickingCallbacks;
     var i = dp.length;
     while (i--) {
-        dp[i]();
+        dp[i].callback.call(dp[i].sender);
     }
 
     this._pickingFramebuffer.deactivate();

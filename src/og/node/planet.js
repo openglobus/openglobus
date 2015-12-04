@@ -318,6 +318,8 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("keypress", this, function () {
         that.sunlight._position = that.renderer.activeCamera.eye;
     }, og.input.KEY_V);
+
+    this.renderer.addPickingCallback(this, this._planetPickingCallback);
 };
 
 og.node.Planet.prototype.updateAttributionsList = function () {
@@ -379,6 +381,10 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 
 og.node.Planet.prototype.collectRenderNodes = function () {
 
+    //clear first
+    this.renderedNodes.length = 0;
+    this.renderedNodes = [];
+
     this.minCurrZoom = og.math.MAX;
     this.maxCurrZoom = og.math.MIN;
 
@@ -416,8 +422,6 @@ og.node.Planet.prototype.frame = function () {
         }, 0);
         that.createdNodesCount = 0;
     }
-
-    this.renderedNodes.length = 0;
 };
 
 og.node.Planet.prototype.memClear = function () {
@@ -505,6 +509,32 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     gl.disable(gl.BLEND);
 };
 
+og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
+    var b = this._heightBackbuffer,
+        r = this.renderer;
+    var h = r.handler;
+    var pp = h.shaderPrograms.picking;
+    h.gl.disable(h.gl.BLEND);
+    b.activate();
+    b.clear();
+    pp.activate();
+    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
+    var i = this.renderedNodes.length;
+    while (i--) {
+        this.renderedNodes[i].planetSegment.drawPicking();
+    }
+    b.deactivate();
+};
+
+og.node.Planet.prototype._planetPickingCallback = function () {
+    var r = this.renderer;
+    var h = r.handler;
+    var i = this.renderedNodes.length;
+    while (i--) {
+        //this.renderedNodes[i].planetSegment.drawPicking();
+    }
+};
+
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transpose();
     var sx = new og.math.Ray(mxTr.mulVec3(origin),
@@ -590,24 +620,6 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px) {
         return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
     }
     return this._currentDistanceFromPixel;
-};
-
-og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
-    var b = this._heightBackbuffer,
-        r = this.renderer;
-    var h = r.handler;
-    var pp = h.shaderPrograms.picking;
-    h.gl.disable(h.gl.BLEND);
-    b.activate();
-    b.clear();
-    pp.activate();
-    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    var i = this.renderedNodes.length;
-    while (i--) {
-        this.renderedNodes[i].planetSegment.drawPicking();
-    }
-    b.deactivate();
-    this.renderedNodes.length = 0;
 };
 
 og.node.Planet.prototype.viewExtent = function (extent) {

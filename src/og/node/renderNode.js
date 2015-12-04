@@ -188,8 +188,13 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
     this.billboardsTextureAtlas.assignHandler(renderer.handler);
     this.fontAtlas.assignHandler(renderer.handler);
+    renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
 
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i].setRenderer(renderer);
     }
+};
+
+og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
+    var x = 100;
 };
