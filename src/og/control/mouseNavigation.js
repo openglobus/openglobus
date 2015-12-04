@@ -123,15 +123,15 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
 og.control.MouseNavigation.prototype.init = function () {
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("onmousewheel", this, this.onMouseWheel);
-    this.renderer.events.on("onmouselbuttonhold", this, this.onMouseLeftButtonDown);
-    this.renderer.events.on("onmouserbuttonhold", this, this.onMouseRightButtonDown);
-    this.renderer.events.on("onmouselbuttondown", this, this.onMouseLeftButtonClick);
-    this.renderer.events.on("onmouselbuttonup", this, this.onMouseLeftButtonUp);
-    this.renderer.events.on("onmouserbuttondown", this, this.onMouseRightButtonClick);
-    this.renderer.events.on("onmouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
-    this.renderer.events.on("onmouseclick", this, this.onMouseClick);
-    this.renderer.events.on("ondraw", this, this.onDraw);
+    this.renderer.events.on("mousewheel", this, this.onMouseWheel);
+    this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);
+    this.renderer.events.on("mouserbuttonhold", this, this.onMouseRightButtonDown);
+    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
+    this.renderer.events.on("mouserbuttondown", this, this.onMouseRightButtonClick);
+    this.renderer.events.on("mouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
+    this.renderer.events.on("mouseclick", this, this.onMouseClick);
+    this.renderer.events.on("draw", this, this.onDraw);
 };
 
 og.control.MouseNavigation.prototype.onMouseClick = function () {

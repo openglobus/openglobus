@@ -142,7 +142,7 @@ function start() {
         });*/
     //globus.planet.camera.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4), null, null, function () { alert("ok"); });
 
-    globus.planet.events.on("ondraw", null, function (e) {
+    globus.planet.events.on("draw", null, function (e) {
         e.camera.rotateRight(speed, true);
     })
 };

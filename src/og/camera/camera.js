@@ -12,7 +12,7 @@ og.Camera = function (renderer, options) {
     this.events = new og.Events();
     this.renderer = null;
 
-    this.events.registerNames(["onviewchanged"]);
+    this.events.registerNames(["viewchange"]);
 
     this.eye = new og.math.Vector3();
     this.u = new og.math.Vector3(0, 1, 0); //up x n
@@ -103,7 +103,7 @@ og.Camera.prototype.update = function () {
     this.frustum.setFrustum(this.pmvMatrix._m);
     this.ipmvMatrix = this.pmvMatrix.inverse();
     this.nMatrix = this.mvMatrix.toInverseMatrix3().transpose();
-    this.events.dispatch(this.events.onviewchanged, this);
+    this.events.dispatch(this.events.viewchange, this);
 };
 
 og.Camera.prototype.setModelViewMatrix = function () {

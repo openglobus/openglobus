@@ -49,8 +49,8 @@ my.Plane.prototype.initialization = function () {
 
     this.lightEnabled = true;
 
-    this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
-    this.renderer.events.on("oncharkeypressed", this, this.toogleLightPosition, og.input.KEY_C);
+    this.renderer.events.on("charkeypress", this, this.toogleWireframe, og.input.KEY_X);
+    this.renderer.events.on("charkeypress", this, this.toogleLightPosition, og.input.KEY_C);
 
 
     this.normalMapHelper = new og.utils.NormalMapCreator();

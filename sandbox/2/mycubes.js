@@ -36,14 +36,14 @@ my.Cubes.prototype.initialization = function () {
     this.mxTranslation1.translate(new og.math.Vector3(0, 0, 0));
     this.mxTranslation2.translate(new og.math.Vector3(1000, 1000, 1000));
     this.mxTranslation3.translate(new og.math.Vector3(2000, 2000, 2000));
-    this.renderer.events.on("onresize", this, this.onResize);
+    this.renderer.events.on("resize", this, this.onResize);
     this.framebuffer = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.framebuffer.initialize();
 
     this.ff = new og.webgl.Framebuffer(this.renderer.handler.gl);
     this.ff.initialize();
 
-    this.renderer.events.on("onmouselbuttonclick", this, function (e) {
+    this.renderer.events.on("mouselbuttonclick", this, function (e) {
         var x = e.x,
             y = e.y;
         var pixelValues = this.framebuffer.readPixels(x, this.renderer.handler.gl.canvas.height - y);

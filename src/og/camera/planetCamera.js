@@ -45,7 +45,7 @@ og.PlanetCamera.prototype.update = function () {
 
     this.lonLat = this._ellipsoid.ECEF2LonLat(this.eye);
 
-    this.events.dispatch(this.events.onviewchanged, this);
+    this.events.dispatch(this.events.viewchange, this);
 };
 
 og.PlanetCamera.prototype.setAltitude = function (alt) {

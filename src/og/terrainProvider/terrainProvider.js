@@ -52,7 +52,9 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this.MAX_LOADING_TILES = options.MAX_LOADING_TILES || og.terrainProvider.defaultOptions.MAX_LOADING_TILES;
 
     this.events = new og.Events();
-    this.events.registerNames(["onload", "onloadend"]);
+    this.events.registerNames([
+        "load",
+        "loadend"]);
 
     this.active = true;
     this._counter = 0;
@@ -118,7 +120,7 @@ og.terrainProvider.TerrainProvider.prototype.loadSegmentTerrainData = function (
 og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (segment, data) {
     if (segment) {
         var elevations = this.getElevations(data);
-        var e = this.events.onload;
+        var e = this.events.load;
         if (e.length) {
             this.events.dispatch(e, {
                 "elevations": elevations,
@@ -139,7 +141,7 @@ og.terrainProvider.TerrainProvider.prototype.dequeueRequest = function () {
                 this.loadSegmentTerrainData.call(this, pseg);
         }
     } else if (this._counter == 0) {
-        this.events.dispatch(this.events.onloadend);
+        this.events.dispatch(this.events.loadend);
     }
 };
 

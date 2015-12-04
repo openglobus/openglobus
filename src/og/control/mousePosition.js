@@ -66,7 +66,7 @@ og.control.MousePosition.prototype.init = function () {
     };
     this.renderer.div.appendChild(this.display);
 
-    this.renderer.events.on("onmousemove", this, this.onMouseMove);
+    this.renderer.events.on("mousemove", this, this.onMouseMove);
 };
 
 og.control.MousePosition.prototype.showPosition = function () {

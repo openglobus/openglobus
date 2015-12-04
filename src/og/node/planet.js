@@ -76,12 +76,12 @@ og.node.Planet = function (name, ellipsoid) {
 
     //events initialization
     this.events.registerNames([
-        "ondraw",
-        "onlayeradded",
-        "onbaselayerchanged",
-        "onlayerremoved",
-        "onlayervisibilitychanged",
-        "ongeoimageadded"
+        "draw",
+        "layeradd",
+        "baselayerchange",
+        "layerremove",
+        "layervisibilitychang",
+        "geoimageadd"
     ]);
 };
 
@@ -133,18 +133,18 @@ og.node.Planet.prototype.addGeoImage = function (geoImage) {
  */
 og.node.Planet.prototype.addLayer = function (layer) {
     layer.planet = this;
-    layer.events.on("onvisibilitychanged", this, this._onLayerVisibilityChanged);
+    layer.events.on("visibilitychange", this, this._onLayerVisibilityChanged);
     if (layer.isBaseLayer && layer.visibility) {
         this.setBaseLayer(layer);
     }
     this.layers.push(layer);
-    this.events.dispatch(this.events.onlayeradded, layer);
-    layer.events.dispatch(layer.events.onadd, this);
+    this.events.dispatch(this.events.layeradd, layer);
+    layer.events.dispatch(layer.events.add, this);
     this.updateVisibleLayers();
 };
 
 og.node.Planet.prototype._onLayerVisibilityChanged = function (layer) {
-    this.events.dispatch(this.events.onlayervisibilitychanged, layer);
+    this.events.dispatch(this.events.layervisibilitychange, layer);
 };
 
 /**
@@ -177,8 +177,8 @@ og.node.Planet.prototype.removeLayer = function (layer) {
                     mats[lid] = null;
                 }
             });
-            this.events.dispatch(this.events.onlayerremoved, layer);
-            layer.events.dispatch(layer.events.onremoved, this);
+            this.events.dispatch(this.events.layerremove, layer);
+            layer.events.dispatch(layer.events.remove, this);
             layer.planet = null;
             return layer;
         }
@@ -214,11 +214,11 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
                 if (li.isBaseLayer) {
                     li.visibility = false;
                     if (li.id != layer.id)
-                        li.events.dispatch(li.events.onvisibilitychanged, li);
+                        li.events.dispatch(li.events.visibilitychange, li);
                 }
             }
             layer.visibility = true;
-            layer.events.dispatch(layer.events.onvisibilitychanged, layer);
+            layer.events.dispatch(layer.events.visibilitychange, layer);
             this.baseLayer.abortLoading();
             this.baseLayer = layer;
         }
@@ -226,7 +226,7 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
         this.baseLayer = layer;
         this.baseLayer.setVisibility(true);
     }
-    this.events.dispatch(this.events.onbaselayerchanged, layer);
+    this.events.dispatch(this.events.baselayerchange, layer);
     this.updateVisibleLayers();
 };
 
@@ -281,16 +281,16 @@ og.node.Planet.prototype.initialization = function () {
 
     this.updateVisibleLayers();
 
-    this.renderer.events.on("onresize", this._heightBackbuffer, function (e) {
+    this.renderer.events.on("resize", this._heightBackbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
-    this.renderer.activeCamera.events.on("onviewchanged", this, function (e) {
+    this.renderer.activeCamera.events.on("viewchange", this, function (e) {
         this._viewChanged = true;
     });
-    this.renderer.events.on("onmousemove", this, function (e) {
+    this.renderer.events.on("mousemove", this, function (e) {
         this._viewChanged = true;
     });
-    this.renderer.events.on("ontouchmove", this, function (e) {
+    this.renderer.events.on("touchmove", this, function (e) {
         this._viewChanged = true;
     });
 
@@ -313,9 +313,9 @@ og.node.Planet.prototype.initialization = function () {
 
     //temporary initializations
     var that = this;
-    this.renderer.events.on("oncharkeypressed", this, function () { that.memClear(); }, og.input.KEY_C);
-    this.renderer.events.on("oncharkeypressed", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
-    this.renderer.events.on("onkeypressed", this, function () {
+    this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
+    this.renderer.events.on("charkeypress", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
+    this.renderer.events.on("keypress", this, function () {
         that.sunlight._position = that.renderer.activeCamera.eye;
     }, og.input.KEY_V);
 };
@@ -395,7 +395,7 @@ og.node.Planet.prototype.frame = function () {
     cam.checkCollision();
 
     //Here is the planet node dispatches a draw event before rendering begins.
-    this.events.dispatch(this.events.ondraw, this);
+    this.events.dispatch(this.events.draw, this);
 
     this.collectRenderNodes();
 

@@ -41,7 +41,7 @@ og.control.ZoomControl.prototype.init = function () {
     };
 
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("ondraw", this, this.onDraw);
+    this.renderer.events.on("draw", this, this.onDraw);
 };
 
 og.control.ZoomControl.prototype.zoomIn = function () {

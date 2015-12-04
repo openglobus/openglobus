@@ -26,7 +26,7 @@ og.input.KeyboardHandler = function () {
             priority = 1600;
         }
         switch (event) {
-            case "onkeypressed": {
+            case "keypress": {
                 if (keyCode == null) {
                     _anykeyCallback = { "callback": callback, "sender": sender || _that };
                 } else {
@@ -37,7 +37,7 @@ og.input.KeyboardHandler = function () {
                     _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 }
             } break;
-            case "oncharkeypressed": {
+            case "charkeypress": {
                 if (!_charkeysCallbacks[keyCode]) {
                     _charkeysCallbacks[keyCode] = [];
                 }

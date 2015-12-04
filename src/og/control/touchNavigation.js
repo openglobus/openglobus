@@ -32,11 +32,11 @@ og.inheritance.extend(og.control.TouchNavigation, og.control.Control);
 
 og.control.TouchNavigation.prototype.init = function () {
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("ontouchstart", this, this.onTouchStart);
-    this.renderer.events.on("ontouchend", this, this.onTouchEnd);
-    this.renderer.events.on("ontouchcancel", this, this.onTouchCancel);
-    this.renderer.events.on("ontouchmove", this, this.onTouchMove);
-    this.renderer.events.on("ondraw", this, this.onDraw);
+    this.renderer.events.on("touchstart", this, this.onTouchStart);
+    this.renderer.events.on("touchend", this, this.onTouchEnd);
+    this.renderer.events.on("touchcancel", this, this.onTouchCancel);
+    this.renderer.events.on("touchmove", this, this.onTouchMove);
+    this.renderer.events.on("draw", this, this.onDraw);
 };
 
 og.control.TouchNavigation.prototype.onTouchStart = function (e) {

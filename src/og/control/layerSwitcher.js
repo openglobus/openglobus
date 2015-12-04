@@ -16,15 +16,28 @@ og.control.LayerSwitcher.numSwitches = 0;
 og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
 
 og.control.LayerSwitcher.prototype.init = function () {
-    this.renderer.renderNodes.Earth.events.on("onlayeradded", this, this.onLayerAdded);
-    this.renderer.renderNodes.Earth.events.on("onlayerremoved", this, this.onLayerRemoved);
-    this.renderer.renderNodes.Earth.events.on("ongeoimageadded", this, this.onGeoImageAdded);
+    this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
+    this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);
+    this.renderer.renderNodes.Earth.events.on("geoimageadd", this, this.onGeoImageAdded);
     this.createSwitcher();
     this.createDialog();
 };
 
 og.control.LayerSwitcher.prototype.onGeoImageAdded = function (geoImage) {
     this.addSwitcher("checkbox", geoImage, this.geoImagesDiv, this._id);
+};
+
+og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
+    if (layer.isBaseLayer) {
+        this.addSwitcher("radio", layer, this.baseLayersDiv);
+    } else {
+        this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
+    }
+};
+
+og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
+    layer._removeCallback();
+    layer._removeCallback = null;
 };
 
 og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container, id) {
@@ -49,19 +62,6 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
 
     container.appendChild(inp);
     container.appendChild(lbl);
-};
-
-og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
-    if (layer.isBaseLayer) {
-        this.addSwitcher("radio", layer, this.baseLayersDiv);
-    } else {
-        this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
-    }
-};
-
-og.control.LayerSwitcher.prototype.onLayerRemoved = function (layer) {
-    layer._removeCallback();
-    layer._removeCallback = null;
 };
 
 og.control.LayerSwitcher.prototype.createBaseLayersContainer = function () {

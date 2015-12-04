@@ -38,7 +38,7 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
-        var e = that.events.onload;
+        var e = that.events.load;
         if (e.length) {
             that.events.dispatch(e, {
                 "image": this,
@@ -75,7 +75,7 @@ og.layer.XYZ.prototype.dequeueRequest = function () {
                 this.loadSegmentTileImage.call(this, pmat);
         }
     } else if (this.counter == 0) {
-        this.events.dispatch(this.events.onloadend);
+        this.events.dispatch(this.events.loadend);
     }
 };
 

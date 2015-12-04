@@ -70,34 +70,34 @@ og.RendererEvents.prototype.isKeyPressed = function (keyCode) {
 og.RendererEvents.prototype.initialize = function () {
 
     this.registerNames([
-        "ondraw",
-        "onmousemove",
-        "onmousestop",
-        "onmouselbuttondoubleclick",
-        "onmouseclick",
-        "onmouselbuttondown",
-        "onmouselbuttonhold",
-        "onmouserbuttondown",
-        "onmouserbuttonhold",
-        "onmouselbuttonup",
-        "onmouserbuttonup",
-        "onresize",
-        "onmousewheel",
-        "ontouchstart",
-        "ontouchend",
-        "ontouchcancel",
-        "ontouchmove"
+        "draw",
+        "mousemove",
+        "mousestop",
+        "mouselbuttondoubleclick",
+        "mouseclick",
+        "mouselbuttondown",
+        "mouselbuttonhold",
+        "mouserbuttondown",
+        "mouserbuttonhold",
+        "mouselbuttonup",
+        "mouserbuttonup",
+        "resize",
+        "mousewheel",
+        "touchstart",
+        "touchend",
+        "touchcancel",
+        "touchmove"
     ]);
 
-    this.mouseHandler.setEvent("onmouseup", this, this.onMouseUp);
-    this.mouseHandler.setEvent("onmousemove", this, this.onMouseMove);
-    this.mouseHandler.setEvent("onmousedown", this, this.onMouseDown);
-    this.mouseHandler.setEvent("onmousewheel", this, this.onMouseWheel);
+    this.mouseHandler.setEvent("mouseup", this, this.onMouseUp);
+    this.mouseHandler.setEvent("mousemove", this, this.onMouseMove);
+    this.mouseHandler.setEvent("mousedown", this, this.onMouseDown);
+    this.mouseHandler.setEvent("mousewheel", this, this.onMouseWheel);
 
-    this.touchHandler.setEvent("ontouchstart", this, this.onTouchStart);
-    this.touchHandler.setEvent("ontouchend", this, this.onTouchEnd);
-    this.touchHandler.setEvent("ontouchcancel", this, this.onTouchCancel);
-    this.touchHandler.setEvent("ontouchmove", this, this.onTouchMove);
+    this.touchHandler.setEvent("touchstart", this, this.onTouchStart);
+    this.touchHandler.setEvent("touchend", this, this.onTouchEnd);
+    this.touchHandler.setEvent("touchcancel", this, this.onTouchCancel);
+    this.touchHandler.setEvent("touchmove", this, this.onTouchMove);
 };
 
 og.RendererEvents.prototype.onMouseWheel = function (event) {
@@ -195,50 +195,50 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         ce = this.dispatch;
 
     if (ms.click) {
-        ce(this.onmouseclick, ms);
+        ce(this.mouseclick, ms);
         ms.click = false;
     }
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
-            ce(this.onmouselbuttonhold, ms);
+            ce(this.mouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
-            ce(this.onmouselbuttondown, ms);
+            ce(this.mouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
-            ce(this.onmouserbuttonhold, ms);
+            ce(this.mouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
-            ce(this.onmouserbuttondown, ms);
+            ce(this.mouserbuttondown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
         ms.leftButtonUp = false;
-        ce(this.onmouselbuttonup, ms);
+        ce(this.mouselbuttonup, ms);
     }
 
     if (ms.rightButtonUp) {
         ms.rightButtonUp = false;
-        ce(this.onmouserbuttonup, ms);
+        ce(this.mouserbuttonup, ms);
     }
 
     if (ms.leftButtonDoubleClick) {
-        ce(this.onmouselbuttondoubleclick, ms);
+        ce(this.mouselbuttondoubleclick, ms);
         ms.leftButtonDoubleClick = false;
     }
 
     if (ms.wheelDelta) {
-        ce(this.onmousewheel, ms);
+        ce(this.mousewheel, ms);
         ms.wheelDelta = 0;
     }
 
     if (ms.moving) {
-        ce(this.onmousemove, ms);
+        ce(this.mousemove, ms);
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
         this._dblClkBegins = 0;
@@ -246,25 +246,25 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
 
     if (ts.touchEnd) {
         ts.touchEnd = false;
-        ce(this.ontouchend, ts);
+        ce(this.touchend, ts);
     }
 
     if (ts.touchCancel) {
         ts.touchCancel = false;
-        ce(this.ontouchcancel, ts);
+        ce(this.touchcancel, ts);
     }
 
     if (ts.touchStart) {
         ts.touchStart = false;
-        ce(this.ontouchstart, ts);
+        ce(this.touchstart, ts);
     }
 
     if (ts.moving) {
-        ce(this.ontouchmove, ts);
+        ce(this.touchmove, ts);
     }
 
     if (ms.justStopped) {
-        ce(this.onmousestop, ms);
+        ce(this.mousestop, ms);
         ms.justStopped = false;
     }
 };

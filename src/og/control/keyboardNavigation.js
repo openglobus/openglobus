@@ -11,17 +11,17 @@ og.control.KeyboardNavigation = function (options) {
 og.inheritance.extend(og.control.KeyboardNavigation, og.control.Control);
 
 og.control.KeyboardNavigation.prototype.init = function () {
-    this.renderer.events.on("onkeypressed", this, this.onCameraMoveForward, og.input.KEY_W);
-    this.renderer.events.on("onkeypressed", this, this.onCameraMoveBackward, og.input.KEY_S);
-    this.renderer.events.on("onkeypressed", this, this.onCameraStrifeLeft, og.input.KEY_A);
-    this.renderer.events.on("onkeypressed", this, this.onCameraStrifeRight, og.input.KEY_D);
-    this.renderer.events.on("onkeypressed", this, this.onCameraLookUp, og.input.KEY_UP);
-    this.renderer.events.on("onkeypressed", this, this.onCameraLookDown, og.input.KEY_DOWN);
-    this.renderer.events.on("onkeypressed", this, this.onCameraTurnLeft, og.input.KEY_LEFT);
-    this.renderer.events.on("onkeypressed", this, this.onCameraTurnRight, og.input.KEY_RIGHT);
-    this.renderer.events.on("onkeypressed", this, this.onCameraRollLeft, og.input.KEY_Q);
-    this.renderer.events.on("onkeypressed", this, this.onCameraRollRight, og.input.KEY_E);
-    this.renderer.events.on("onkeypressed", this, this.onCameraGrowAlt, og.input.KEY_SPACE);
+    this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);
+    this.renderer.events.on("keypress", this, this.onCameraMoveBackward, og.input.KEY_S);
+    this.renderer.events.on("keypress", this, this.onCameraStrifeLeft, og.input.KEY_A);
+    this.renderer.events.on("keypress", this, this.onCameraStrifeRight, og.input.KEY_D);
+    this.renderer.events.on("keypress", this, this.onCameraLookUp, og.input.KEY_UP);
+    this.renderer.events.on("keypress", this, this.onCameraLookDown, og.input.KEY_DOWN);
+    this.renderer.events.on("keypress", this, this.onCameraTurnLeft, og.input.KEY_LEFT);
+    this.renderer.events.on("keypress", this, this.onCameraTurnRight, og.input.KEY_RIGHT);
+    this.renderer.events.on("keypress", this, this.onCameraRollLeft, og.input.KEY_Q);
+    this.renderer.events.on("keypress", this, this.onCameraRollRight, og.input.KEY_E);
+    this.renderer.events.on("keypress", this, this.onCameraGrowAlt, og.input.KEY_SPACE);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {

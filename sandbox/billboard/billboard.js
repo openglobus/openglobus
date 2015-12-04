@@ -22,7 +22,7 @@ my.Billboard.prototype.initialization = function () {
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    //this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
+    //this.renderer.events.on("charkeypress", this, this.toogleWireframe, og.input.KEY_X);
 
     ec = new og.EntityCollection();
 

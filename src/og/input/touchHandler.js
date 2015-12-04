@@ -6,26 +6,26 @@ og.input.TouchHandler = function (htmlObject) {
 
 og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
     switch (event) {
-        case "ontouchcancel": {
+        case "touchcancel": {
             this._htmlObject.ontouchcancel = function (event) {
                 event.preventDefault();
                 callback.call(sender, event);
             };
         }
             break;
-        case "ontouchstart": {
+        case "touchstart": {
             this._htmlObject.ontouchstart = function (event) {
                 event.preventDefault();
                 callback.call(sender, event);
             };
         } break;
-        case "ontouchend": {
+        case "touchend": {
             this._htmlObject.ontouchend = function (event) {
                 event.preventDefault();
                 callback.call(sender, event);
             };
         } break;
-        case "ontouchmove": {
+        case "touchmove": {
             this._htmlObject.ontouchmove = function (event) {
                 event.preventDefault();
                 var rect = this.getBoundingClientRect();

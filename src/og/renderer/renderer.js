@@ -125,7 +125,7 @@ og.Renderer.prototype.init = function () {
     this.handler.onCanvasResize = function (obj) {
         that.activeCamera.refresh();
         that._pickingFramebuffer.setSize(obj.width, obj.height);
-        that.events.dispatch(that.events.onresize, obj);
+        that.events.dispatch(that.events.resize, obj);
     }
 
     this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
@@ -153,7 +153,7 @@ og.Renderer.prototype.draw = function () {
     this.events.mouseState.direction = this.activeCamera.unproject(this.events.mouseState.x, this.events.mouseState.y);
     this.events.handleEvents();
 
-    this.events.dispatch(this.events.ondraw, this);
+    this.events.dispatch(this.events.draw, this);
 
     var rn = this._renderNodesArr;
     var i = rn.length;

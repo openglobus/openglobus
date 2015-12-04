@@ -25,7 +25,7 @@ my.Label.prototype.initialization = function () {
     this.createBuffers();
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    this.renderer.events.on("oncharkeypressed", this, this.toogleWireframe, og.input.KEY_X);
+    this.renderer.events.on("charkeypress", this, this.toogleWireframe, og.input.KEY_X);
 
     var that = this;
     var img = new Image();

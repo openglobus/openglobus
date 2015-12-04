@@ -18,11 +18,11 @@ og.layer.Layer = function (name, options) {
 
     this.events = new og.Events();
     this.events.registerNames([
-        "onload",
-        "onloadend",
-        "onvisibilitychanged",
-        "onadded",
-        "onremoved"]);
+        "load",
+        "loadend",
+        "visibilitychange",
+        "add",
+        "remove"]);
 
     options = options || {};
     this.isBaseLayer = options.isBaseLayer || false;
@@ -81,7 +81,7 @@ og.layer.Layer.prototype.setVisibility = function (visibility) {
         this.abortLoading();
     }
     if (visibility != this.visibility) {
-        this.events.dispatch(this.events.onvisibilitychanged, this);
+        this.events.dispatch(this.events.visibilitychange, this);
         this.visibility = visibility;
         this.planet.updateVisibleLayers();
     }
