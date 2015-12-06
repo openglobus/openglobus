@@ -74,20 +74,22 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
     this.reindexEntitiesArray(entity._entityCollectionIndex);
 
     //clear picking color
-    this.renderNode && this.renderNode.renderer && this.renderNode.renderer.clearPickingColor(entity);
+    if (this.renderNode && this.renderNode.renderer) {
+        this.renderNode.renderer.clearPickingColor(entity);
+        entity._pickingColor.clear();
+    }
 
     if (this.belongs(entity)) {
         this._removeRecursively(entity);
     }
 };
 
-og.EntityCollection.prototype.updatePickingColors = function () {
-    if (this.renderNode && this.renderNode.renderer) {
-        var e = this.entities;
-        for (var i = 0; i < e.length; i++) {
-            if (!e[i].parent) {
-                this.renderNode.renderer.assignPickingColor(e[i]);
-            }
+og.EntityCollection.prototype.createPickingColors = function () {
+    var e = this.entities;
+    for (var i = 0; i < e.length; i++) {
+        if (!e[i].parent) {
+            this.renderNode.renderer.assignPickingColor(e[i]);
+            e[i].setPickingColor();
         }
     }
 };
@@ -115,7 +117,7 @@ og.EntityCollection.prototype.setRenderer = function (renderer) {
         this._labelHandler.setRenderer(renderer);
         this.updateBillboardsTextureAtlas();
         this.updateLabelsFontAtlas();
-        this.updatePickingColors();
+        this.createPickingColors();
     }
 };
 
@@ -145,25 +147,6 @@ og.EntityCollection.prototype.remove = function () {
         }
     }
 };
-
-//og.EntityCollection.prototype.draw = function () {
-//    var s = this._billboardHandler,
-//        a = this._alignedAxisBillboardsHandler;
-
-//    if (this.visibility && (s._billboards.length || a._billboards.length)) {
-//        var rn = this.renderNode
-//        var gl = rn.renderer.handler.gl;
-//        gl.disable(gl.CULL_FACE);
-
-//        gl.activeTexture(gl.TEXTURE0);
-//        gl.bindTexture(gl.TEXTURE_2D, rn.billboardsTextureAtlas.texture);
-
-//        s.draw();
-//        a.draw();
-
-//        gl.enable(gl.CULL_FACE);
-//    }
-//};
 
 og.EntityCollection.prototype.clear = function () {
     for (var i = 0; i < this.entities.length; i++) {

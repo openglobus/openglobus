@@ -72,6 +72,21 @@ og.Entity.prototype.setPosition = function (x, y, z) {
     }
 };
 
+og.Entity.prototype.setPickingColor = function () {
+
+    var c = this._pickingColor;
+
+    //billboards
+    this.billboard && this.billboard.setPickingColor3v(c);
+
+    //labels
+    this.label && this.label.setPickingColor3v(c);
+
+    for (var i = 0; i < this.childrenNodes.length; i++) {
+        this.childrenNodes[i].setPickingColor3v(c);
+    }
+};
+
 og.Entity.prototype.setBillboard = function (billboard) {
     if (this.billboard) {
         this.billboard.remove();

@@ -83,6 +83,9 @@ og.node.Planet = function (name, ellipsoid) {
         "layervisibilitychang",
         "geoimageadd"
     ]);
+
+    this._pickingColor = new og.math.Vector3(0, 0, 0);
+    this._isCameraSunlight = false;
 };
 
 og.node.Planet.SUN_DISTANCE = 149600000000;
@@ -316,9 +319,10 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
     this.renderer.events.on("charkeypress", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
     this.renderer.events.on("keypress", this, function () {
-        that.sunlight._position = that.renderer.activeCamera.eye;
+        that._isCameraSunlight = true;
     }, og.input.KEY_V);
 
+    this.renderer.assignPickingColor(this);
     this.renderer.addPickingCallback(this, this._planetPickingCallback);
 };
 
@@ -407,7 +411,12 @@ og.node.Planet.prototype.frame = function () {
 
     //print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
-    this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
+    if (!this._isCameraSunlight)
+        this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
+    else
+        this.sunlight._position = cam.eye;
+
+    this._isCameraSunlight = false;
 
     this.transformLights();
 
@@ -530,8 +539,10 @@ og.node.Planet.prototype._planetPickingCallback = function () {
     var r = this.renderer;
     var h = r.handler;
     var i = this.renderedNodes.length;
+    //...
+    //...
     while (i--) {
-        //this.renderedNodes[i].planetSegment.drawPicking();
+        this.renderedNodes[i].planetSegment.drawPicking();
     }
 };
 

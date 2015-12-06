@@ -173,7 +173,7 @@ og.Renderer.prototype._drawPickingBuffer = function () {
 
     var h = this.handler;
     var gl = h.gl;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0, 0.0, 0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.disable(h.gl.BLEND);
 
@@ -184,6 +184,15 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     }
 
     this._pickingFramebuffer.deactivate();
+
+    var x = this.events.mouseState.x,
+        y = this.events.mouseState.y;
+    var color = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+    //print2d("lbTiles", "r = " + color[0] + ", g = " + color[1] + ", b = " + color[2], 100, 100);
+    var n = color[0] + "_" + color[1] + "_" + color[2];
+    var e = this._colorObjects[n];
+
+    print2d("lbTiles", e && e.label && e.label.text, 100, 100);
 };
 
 og.Renderer.prototype.start = function () {

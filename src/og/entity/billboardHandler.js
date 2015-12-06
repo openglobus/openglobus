@@ -1,6 +1,7 @@
 goog.provide('og.BillboardHandler');
 
 goog.require('og.shaderProgram.billboard');
+goog.require('og.shaderProgram.billboardPicking');
 
 /*
  * og.BillboardHandler
@@ -33,7 +34,11 @@ og.BillboardHandler = function (entityCollection) {
     this._rotationArr = [];
     this._alignedAxisArr = [];
 
+    this._pickingColorBuffer = null;
+    this._pickingColorArr = [];
+
     this._buffersUpdateCallbacks = [];
+    this._buffersUpdateCallbacks[og.BillboardHandler.PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.POSITION_BUFFER] = this.createPositionBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.SIZE_BUFFER] = this.createSizeBuffer;
     this._buffersUpdateCallbacks[og.BillboardHandler.OFFSET_BUFFER] = this.createOffsetBuffer;
@@ -50,19 +55,23 @@ og.BillboardHandler = function (entityCollection) {
 
 og.BillboardHandler.staticCounter = 0;
 
-og.BillboardHandler.POSITION_BUFFER = 0;
-og.BillboardHandler.SIZE_BUFFER = 1;
-og.BillboardHandler.OFFSET_BUFFER = 2;
-og.BillboardHandler.RGBA_BUFFER = 3;
-og.BillboardHandler.ROTATION_BUFFER = 4;
-og.BillboardHandler.TEXCOORD_BUFFER = 5;
-og.BillboardHandler.VERTEX_BUFFER = 6;
-og.BillboardHandler.ALIGNEDAXIS_BUFFER = 7;
+og.BillboardHandler.PICKINGCOLOR_BUFFER = 0;
+og.BillboardHandler.POSITION_BUFFER = 1;
+og.BillboardHandler.SIZE_BUFFER = 2;
+og.BillboardHandler.OFFSET_BUFFER = 3;
+og.BillboardHandler.RGBA_BUFFER = 4;
+og.BillboardHandler.ROTATION_BUFFER = 5;
+og.BillboardHandler.TEXCOORD_BUFFER = 6;
+og.BillboardHandler.VERTEX_BUFFER = 7;
+og.BillboardHandler.ALIGNEDAXIS_BUFFER = 8;
 
 og.BillboardHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
         if (!this._renderer.handler.shaderPrograms.billboard) {
             this._renderer.handler.addShaderProgram(og.shaderProgram.billboard());
+        }
+        if (!this._renderer.handler.shaderPrograms.billboardPicking) {
+            this._renderer.handler.addShaderProgram(og.shaderProgram.billboardPicking());
         }
     }
 };
@@ -92,6 +101,7 @@ og.BillboardHandler.prototype.clear = function () {
     this._rgbaArr.length = 0;
     this._rotationArr.length = 0;
     this._alignedAxisArr.length = 0;
+    this._pickingColorArr.length = 0;
 
     this._texCoordArr = [];
     this._vertexArr = [];
@@ -101,6 +111,7 @@ og.BillboardHandler.prototype.clear = function () {
     this._rgbaArr = [];
     this._rotationArr = [];
     this._alignedAxisArr = [];
+    this._pickingColorArr = [];
 
     this.refresh();
 };
@@ -132,7 +143,7 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
     if (billboard.visibility) {
         og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
     } else {
-        og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0,  0, 0, 0,  0, 0, 0,  0, 0, 0]);
+        og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     }
 
     og.BillboardHandler.concArr(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -154,6 +165,9 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
 
     x = billboard.alignedAxis.x, y = billboard.alignedAxis.y, z = billboard.alignedAxis.z;
     og.BillboardHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+    x = billboard._entity._pickingColor.x / 255, y = billboard._entity._pickingColor.y / 255, z = billboard._entity._pickingColor.z / 255;
+    og.BillboardHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 };
 
 og.BillboardHandler.concArr = function (dest, curr) {
@@ -209,10 +223,58 @@ og.BillboardHandler.prototype._displayPASS = function () {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 };
 
+og.BillboardHandler.prototype._pickingPASS = function () {
+    var r = this._renderer;
+    var h = r.handler;
+    h.shaderPrograms.billboardPicking.activate();
+    var sh = h.shaderPrograms.billboardPicking._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var gl = h.gl;
+
+    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
+    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
+
+    gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+
+    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera._tanViewAngle_hrad);
+    gl.uniform1f(shu.uXRatio._pName, r.handler.canvas._oneByHeight);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+    gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
+    gl.vertexAttribPointer(sha.a_pickingColor._pName, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+    gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
+    gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+    gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
+    gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+};
+
 og.BillboardHandler.prototype.draw = function () {
     if (this._entityCollection.visibility && this._billboards.length) {
         this.update();
         this._displayPASS();
+    }
+};
+
+og.BillboardHandler.prototype.drawPicking = function () {
+    if (this._entityCollection.visibility && this._billboards.length) {
+        this._pickingPASS();
     }
 };
 
@@ -235,6 +297,7 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
     this._offsetArr.splice(i, 18);
     this._positionArr.splice(i, 18);
     this._alignedAxisArr.splice(i, 18);
+    this._pickingColorArr.splice(i, 18);
 
     i = bi * 12;
     this._vertexArr.splice(i, 12);
@@ -287,6 +350,38 @@ og.BillboardHandler.prototype.setPositionArr = function (index, position) {
     a[i + 17] = z;
 
     this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
+};
+
+og.BillboardHandler.prototype.setPickingColorArr = function (index, color) {
+
+    var i = index * 18;
+    var a = this._pickingColorArr, x = color.x / 255, y = color.y / 255, z = color.z / 255;
+
+    a[i] = x;
+    a[i + 1] = y;
+    a[i + 2] = z;
+
+    a[i + 3] = x;
+    a[i + 4] = y;
+    a[i + 5] = z;
+
+    a[i + 6] = x;
+    a[i + 7] = y;
+    a[i + 8] = z;
+
+    a[i + 9] = x;
+    a[i + 10] = y;
+    a[i + 11] = z;
+
+    a[i + 12] = x;
+    a[i + 13] = y;
+    a[i + 14] = z;
+
+    a[i + 15] = x;
+    a[i + 16] = y;
+    a[i + 17] = z;
+
+    this._changedBuffers[og.BillboardHandler.PICKINGCOLOR_BUFFER] = true;
 };
 
 og.BillboardHandler.prototype.setSizeArr = function (index, width, height) {
@@ -538,6 +633,12 @@ og.BillboardHandler.prototype.createAlignedAxisBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._alignedAxisBuffer);
     this._alignedAxisBuffer = h.createArrayBuffer(new Float32Array(this._alignedAxisArr), 3, this._alignedAxisArr.length / 3);
+};
+
+og.BillboardHandler.prototype.createPickingColorBuffer = function () {
+    var h = this._renderer.handler;
+    h.gl.deleteBuffer(this._pickingColorBuffer);
+    this._pickingColorBuffer = h.createArrayBuffer(new Float32Array(this._pickingColorArr), 3, this._pickingColorArr.length / 3);
 };
 
 og.BillboardHandler.prototype.refreshTexCoordsArr = function () {

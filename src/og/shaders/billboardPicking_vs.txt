@@ -3,10 +3,10 @@ attribute vec3 a_positions;
 attribute vec3 a_offset;
 attribute vec2 a_size;
 attribute float a_rotation;
-attribute vec4 a_color;
+attribute vec3 a_pickingColor;
 attribute vec3 a_alignedAxis;
 
-varying vec4 v_color;
+varying vec3 v_color;
 
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
@@ -21,7 +21,7 @@ const float far = 149.6e+9;
 float logc = 2.0 / log( C * far + 1.0 );
 
 void main() {
-    v_color = a_color;
+    v_color = a_pickingColor;
 
     vec3 look = a_positions - uCamPos;
     

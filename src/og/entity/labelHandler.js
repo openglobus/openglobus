@@ -1,6 +1,7 @@
 goog.provide('og.LabelHandler');
 
 goog.require('og.shaderProgram.label');
+goog.require('og.shaderProgram.labelPicking');
 goog.require('og.BillboardHandler');
 goog.require('og.inheritance');
 goog.require('og.Label');
@@ -35,14 +36,17 @@ og.LabelHandler = function (entityCollection) {
 
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);
 
-og.LabelHandler.FONTINDEX_BUFFER = 8;
-og.LabelHandler.OUTLINE_BUFFER = 9;
-og.LabelHandler.OUTLINECOLOR_BUFFER = 10;
+og.LabelHandler.FONTINDEX_BUFFER = 9;
+og.LabelHandler.OUTLINE_BUFFER = 10;
+og.LabelHandler.OUTLINECOLOR_BUFFER = 11;
 
 og.LabelHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
         if (!this._renderer.handler.shaderPrograms.label) {
             this._renderer.handler.addShaderProgram(og.shaderProgram.label());
+        }
+        if (!this._renderer.handler.shaderPrograms.labelPicking) {
+            this._renderer.handler.addShaderProgram(og.shaderProgram.labelPicking());
         }
     }
 };
@@ -140,6 +144,8 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
         x = label.outlineColor.x; y = label.outlineColor.y; z = label.outlineColor.z; w = label.outlineColor.w;
         og.BillboardHandler.concArr(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
+        x = label._entity._pickingColor.x / 255, y = label._entity._pickingColor.y / 255, z = label._entity._pickingColor.z / 255;
+        og.BillboardHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 };
 
@@ -209,42 +215,88 @@ og.LabelHandler.prototype._displayPASS = function () {
 
 };
 
-og.LabelHandler.prototype._removeBillboard = function (billboard) {
-    var bi = billboard._handlerIndex;
+og.LabelHandler.prototype._pickingPASS = function () {
+    var r = this._renderer;
+    var h = r.handler;
+    h.shaderPrograms.labelPicking.activate();
+    var sh = h.shaderPrograms.labelPicking._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
 
-    this._billboards.splice(bi, 1);
+    var gl = h.gl;
+
+    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
+    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
+
+    gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+
+    gl.uniform1f(shu.uViewAngle._pName, r.activeCamera._tanViewAngle_hrad);
+    gl.uniform1f(shu.uXRatio._pName, r.handler.canvas._oneByHeight);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+    gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
+    gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+    gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+    gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
+    gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+    gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
+    gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
+    gl.vertexAttribPointer(sha.a_pickingColor._pName, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+};
+
+og.LabelHandler.prototype._removeBillboard = function (label) {
+    var li = label._handlerIndex;
+
+    this._billboards.splice(li, 1);
 
     var ml = 24 * this._maxLetters;
-    var i = bi * ml;
+    var i = li * ml;
     this._rgbaArr.splice(i, ml);
     this._outlineColorArr.splice(i, ml);
     this._texCoordArr.splice(i, ml);
 
     ml = 18 * this._maxLetters;
-    i = bi * ml;
+    i = li * ml;
     this._offsetArr.splice(i, ml);
     this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
+    this._pickingColorArr.splice(i, ml);
 
     ml = 12 * this._maxLetters;
-    i = bi * ml;
+    i = li * ml;
     this._vertexArr.splice(i, ml);
     this._outlineArr.splice(i, ml);
     this._noOutlineArr.splice(i, ml);
 
     ml = 6 * this._maxLetters;
-    i = bi * ml;
+    i = li * ml;
     this._sizeArr.splice(i, ml);
     this._rotationArr.splice(i, ml);
     this._fontIndexArr.splice(i, ml);
 
-    this.reindexBillbordsArray(bi);
+    this.reindexBillbordsArray(li);
     this.refresh();
 
-    billboard._handlerIndex = -1;
-    billboard._handler = null;
-    billboard._fontIndex = 0;
-    billboard._fontAtlas = null;
+    label._handlerIndex = -1;
+    label._handler = null;
+    label._fontIndex = 0;
+    label._fontAtlas = null;
 };
 
 og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {
@@ -371,6 +423,40 @@ og.LabelHandler.prototype.setPositionArr = function (index, position) {
     }
 
     this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
+};
+
+og.LabelHandler.prototype.setPickingColorArr = function (index, color) {
+    var i = index * 18 * this._maxLetters;
+    var a = this._pickingColorArr, x = color.x / 255, y = color.y / 255, z = color.z / 255;
+
+    for (var q = 0; q < this._maxLetters; q++) {
+        var j = i + q * 18;
+        a[j] = x;
+        a[j + 1] = y;
+        a[j + 2] = z;
+
+        a[j + 3] = x;
+        a[j + 4] = y;
+        a[j + 5] = z;
+
+        a[j + 6] = x;
+        a[j + 7] = y;
+        a[j + 8] = z;
+
+        a[j + 9] = x;
+        a[j + 10] = y;
+        a[j + 11] = z;
+
+        a[j + 12] = x;
+        a[j + 13] = y;
+        a[j + 14] = z;
+
+        a[j + 15] = x;
+        a[j + 16] = y;
+        a[j + 17] = z;
+    }
+
+    this._changedBuffers[og.BillboardHandler.PICKINGCOLOR_BUFFER] = true;
 };
 
 og.LabelHandler.prototype.setSizeArr = function (index, size) {

@@ -36,6 +36,10 @@ og.BaseBillboard.prototype.setPosition3v = function (position) {
     this._handler && this._handler.setPositionArr(this._handlerIndex, position);
 };
 
+og.BaseBillboard.prototype.setPickingColor3v = function (color) {
+    this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
+};
+
 og.BaseBillboard.prototype.setPosition = function (x, y, z) {
     this.position.x = x;
     this.position.y = y;

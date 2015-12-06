@@ -196,5 +196,25 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
 };
 
 og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
-    var x = 100;
+    var ec = this.entityCollections;
+
+    if (ec.length) {
+        var gl = this.renderer.handler.gl;
+
+        gl.disable(gl.CULL_FACE);
+
+        var i = 0;
+
+        i = ec.length;
+        while (i--) {
+            ec[i]._billboardHandler.drawPicking();
+        }
+
+        i = ec.length;
+        while (i--) {
+            ec[i]._labelHandler.drawPicking();
+        }
+
+        gl.enable(gl.CULL_FACE);
+    }
 };
