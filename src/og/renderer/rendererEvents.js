@@ -7,11 +7,14 @@ goog.require('og.input.TouchHandler');
 goog.require('og.Events');
 goog.require('og.inheritance');
 
-og.RendererEvents = function (canvas) {
+og.RendererEvents = function (renderer) {
+    
     og.inheritance.base(this);
 
-    this.touchHandler = new og.input.TouchHandler(canvas);
-    this.mouseHandler = new og.input.MouseHandler(canvas);
+    this.renderer = renderer;
+
+    this.touchHandler = new og.input.TouchHandler(renderer.handler.gl.canvas);
+    this.mouseHandler = new og.input.MouseHandler(renderer.handler.gl.canvas);
     this.keyboardHandler = new og.input.KeyboardHandler();
 
     this.mouseState = {
@@ -51,6 +54,8 @@ og.RendererEvents = function (canvas) {
 og.inheritance.extend(og.RendererEvents, og.Events);
 
 og.RendererEvents.prototype.handleEvents = function () {
+    this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
+    this.entityPickingEvents();
     this.keyboardHandler.handleEvents();
     this.handleMouseAndTouchEvents();
 };
@@ -187,6 +192,52 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
     var ts = this.touchState;
     ts.sys = event;
     ts.moving = true;
+};
+
+og.RendererEvents.prototype.entityPickingEvents = function () {
+    var r = this.renderer;
+
+    var o = r._colorObjects;
+
+    var c = r._currPickingColor,
+        p = r._prevPickingColor;
+
+    var ts = this.touchState,
+        ms = this.mouseState;
+
+    //same object
+    if (c[0] == p[0] && c[1] == p[1] && c[2] == p[2]) {
+        //not black
+        if (c[0] || c[1] || c[2]) {
+            if (ms.moving) {
+                var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                var pe = po._entityCollection.events;
+                pe.dispatch(pe.mousemove, po);
+            }
+        }
+    } else {
+        //object changed
+
+        //current black
+        if (!(c[0] || c[1] || c[2])) {
+            var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+            var pe = po._entityCollection.events;
+            pe.dispatch(pe.mouseout, po);
+        } else {
+            //current not black
+
+            //previous not black
+            if (p[0] || p[1] || p[2]) {
+                var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                var pe = po._entityCollection.events;
+                pe.dispatch(pe.mouseout, po);
+            }
+
+            var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+            var ce = co._entityCollection.events;
+            ce.dispatch(ce.mousein, co);
+        }
+    }
 };
 
 og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {

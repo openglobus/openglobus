@@ -3,6 +3,7 @@ goog.provide('og.EntityCollection');
 
 goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
+goog.require('og.Events');
 
 /*
  * og.EntityCollection
@@ -10,6 +11,7 @@ goog.require('og.LabelHandler');
  *
  */
 og.EntityCollection = function () {
+    this.events = new og.Events();
     this._renderNodeIndex = -1;
     this.renderNode = null;
     this.visibility = true;
@@ -17,10 +19,33 @@ og.EntityCollection = function () {
     this._labelHandler = new og.LabelHandler(this);
 
     this.entities = [];
+
+    this.events.registerNames([
+        "add",
+        "remove",
+        "entityadd",
+        "entityremove",
+        "visibilitychange",
+        "mousemove",
+        "mousein",
+        "mouseout",
+        "mouselbuttonclick",
+        "mouselbuttondown",
+        "mouselbuttonup",
+        "mouserbuttonclick",
+        "mouserbuttondown",
+        "mouserbuttonup",
+        "touchstart",
+        "touchend"
+    ]);
+
+    this.labelPickingEnabled = true;
+    this.billboardPickingEnabled = true;
 };
 
 og.EntityCollection.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
+    this.events.dispatch(this.events.visibilitychange, this);
 };
 
 og.EntityCollection.prototype._addRecursively = function (entity) {
@@ -30,6 +55,8 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
 
     //label
     entity.label && this._labelHandler.add(entity.label);
+
+    this.events.dispatch(this.events.entityadd, entity);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         entity.childrenNodes[i]._entityCollection = this;
@@ -63,6 +90,8 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
 
     //label
     entity.label && this._labelHandler.remove(entity.label);
+
+    this.events.dispatch(this.events.entityremove, entity);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         this._removeRecursively(entity.childrenNodes[i]);
@@ -107,6 +136,7 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         this.renderNode = renderNode;
         renderNode.entityCollections.push(this);
         this.setRenderer(renderNode.renderer);
+        this.events.dispatch(this.events.add, this);
     }
     return this;
 };
@@ -145,6 +175,7 @@ og.EntityCollection.prototype.remove = function () {
         for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
             this.renderNode.entityCollections._renderNodeIndex = i;
         }
+        this.events.dispatch(this.events.remove, this);
     }
 };
 

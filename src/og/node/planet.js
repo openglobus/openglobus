@@ -80,7 +80,7 @@ og.node.Planet = function (name, ellipsoid) {
         "layeradd",
         "baselayerchange",
         "layerremove",
-        "layervisibilitychang",
+        "layervisibilitychange",
         "geoimageadd"
     ]);
 

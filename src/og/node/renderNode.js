@@ -207,12 +207,12 @@ og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i]._billboardHandler.drawPicking();
+            ec[i].billboardPickingEnabled && ec[i]._billboardHandler.drawPicking();
         }
 
         i = ec.length;
         while (i--) {
-            ec[i]._labelHandler.drawPicking();
+            ec[i].labelPickingEnabled && ec[i]._labelHandler.drawPicking();
         }
 
         gl.enable(gl.CULL_FACE);

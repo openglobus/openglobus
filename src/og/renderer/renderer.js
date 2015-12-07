@@ -13,12 +13,14 @@ og.Renderer = function (handler) {
     this.renderNodes = {};
     this.cameras = [];
     this.activeCamera = null;
-    this.events = new og.RendererEvents(handler.gl.canvas);
+    this.events = new og.RendererEvents(this);
     this.controls = [];
     this.controlsBag = {};
     this._colorObjects = { "0_0_0": { emptyObject: true } };
     this._pickingCallbacks = [];
     this._pickingFramebuffer = null;
+    this._currPickingColor = [0, 0, 0];
+    this._prevPickingColor = [0, 0, 0];
 };
 
 og.Renderer.prototype.addPickingCallback = function (sender, callback) {
@@ -150,7 +152,6 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 
 og.Renderer.prototype.draw = function () {
 
-    this.events.mouseState.direction = this.activeCamera.unproject(this.events.mouseState.x, this.events.mouseState.y);
     this.events.handleEvents();
 
     this.events.dispatch(this.events.draw, this);
@@ -187,12 +188,11 @@ og.Renderer.prototype._drawPickingBuffer = function () {
 
     var x = this.events.mouseState.x,
         y = this.events.mouseState.y;
-    var color = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
-    //print2d("lbTiles", "r = " + color[0] + ", g = " + color[1] + ", b = " + color[2], 100, 100);
-    var n = color[0] + "_" + color[1] + "_" + color[2];
-    var e = this._colorObjects[n];
 
-    print2d("lbTiles", e && e.label && e.label.text, 100, 100);
+    this._prevPickingColor[0] = this._currPickingColor[0];
+    this._prevPickingColor[1] = this._currPickingColor[1];
+    this._prevPickingColor[2] = this._currPickingColor[2];
+    this._currPickingColor = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
 };
 
 og.Renderer.prototype.start = function () {
