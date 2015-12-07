@@ -34,7 +34,8 @@ og.RendererEvents = function (renderer) {
         moving: false,
         justStopped: false,
         doubleClickDelay: 300,
-        wheelDelta: 0
+        wheelDelta: 0,
+        pickingObject: null
     };
 
     this.touchState = {
@@ -42,7 +43,8 @@ og.RendererEvents = function (renderer) {
         touchEnd: false,
         touchStart: false,
         touchCancel: false,
-        sys: null
+        sys: null,
+        pickingObject: null
     };
 
     this._mousestopThread = null;
@@ -205,14 +207,21 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
     var ts = this.touchState,
         ms = this.mouseState;
 
+    ms.pickingObject = null;
+    ts.pickingObject = null;
+
+    var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+
+    ms.pickingObject = co;
+    ts.pickingObject = co;
+
     //same object
     if (c[0] == p[0] && c[1] == p[1] && c[2] == p[2]) {
         //not black
         if (c[0] || c[1] || c[2]) {
             if (ms.moving) {
-                var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                var pe = po._entityCollection.events;
-                pe.dispatch(pe.mousemove, po);
+                var ce = co._entityCollection.events;
+                ce.dispatch(ce.mousemove, ms);
             }
         }
     } else {
@@ -222,7 +231,8 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
         if (!(c[0] || c[1] || c[2])) {
             var po = o[p[0] + "_" + p[1] + "_" + p[2]];
             var pe = po._entityCollection.events;
-            pe.dispatch(pe.mouseout, po);
+            ms.pickingObject = po;
+            pe.dispatch(pe.mouseout, ms);
         } else {
             //current not black
 
@@ -230,12 +240,13 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
             if (p[0] || p[1] || p[2]) {
                 var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                 var pe = po._entityCollection.events;
-                pe.dispatch(pe.mouseout, po);
+                ms.pickingObject = po;
+                pe.dispatch(pe.mouseout, ms);
             }
 
-            var co = o[c[0] + "_" + c[1] + "_" + c[2]];
             var ce = co._entityCollection.events;
-            ce.dispatch(ce.mousein, co);
+            ms.pickingObject = co;
+            ce.dispatch(ce.mousein, ms);
         }
     }
 };

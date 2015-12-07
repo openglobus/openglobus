@@ -16,7 +16,7 @@ og.Renderer = function (handler) {
     this.events = new og.RendererEvents(this);
     this.controls = [];
     this.controlsBag = {};
-    this._colorObjects = { "0_0_0": { emptyObject: true } };
+    this._colorObjects = {};
     this._pickingCallbacks = [];
     this._pickingFramebuffer = null;
     this._currPickingColor = [0, 0, 0];
@@ -38,7 +38,7 @@ og.Renderer.prototype.pickObject_v = function (color) {
 og.Renderer.prototype.assignPickingColor = function (obj) {
     var r = 0, g = 0, b = 0;
     var str = "0_0_0";
-    while (this._colorObjects[str]) {
+    while (!(r || g || b) || this._colorObjects[str]) {
         r = og.math.randomi(1, 255);
         g = og.math.randomi(1, 255);
         b = og.math.randomi(1, 255);
