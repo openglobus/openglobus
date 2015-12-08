@@ -189,10 +189,13 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     var x = this.events.mouseState.x,
         y = this.events.mouseState.y;
 
-    this._prevPickingColor[0] = this._currPickingColor[0];
-    this._prevPickingColor[1] = this._currPickingColor[1];
-    this._prevPickingColor[2] = this._currPickingColor[2];
-    this._currPickingColor = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+    if (!(this.events.mouseState.leftButtonHold || this.events.mouseState.rightButtonHold)) {
+        this._prevPickingColor[0] = this._currPickingColor[0];
+        this._prevPickingColor[1] = this._currPickingColor[1];
+        this._prevPickingColor[2] = this._currPickingColor[2];
+
+        this._currPickingColor = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+    }
 };
 
 og.Renderer.prototype.start = function () {

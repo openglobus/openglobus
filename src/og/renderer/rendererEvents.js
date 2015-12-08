@@ -51,8 +51,6 @@ og.RendererEvents = function (renderer) {
     this._dblClkBegins = 0;
     this._clickX = 0;
     this._clickY = 0;
-
-    this._holdPickedObject = false;
 };
 
 og.inheritance.extend(og.RendererEvents, og.Events);
@@ -147,7 +145,6 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
     var ms = this.mouseState;
     if (event.button === og.input.MB_LEFT) {
         ms.leftButtonDown = false;
-        ms.leftButtonHold = false;
         ms.leftButtonUp = true;
 
         if (this._dblClkBegins) {
@@ -167,7 +164,6 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
 
     } else {
         ms.rightButtonDown = false;
-        ms.rightButtonHold = false;
         ms.rightButtonUp = true;
     }
 };
@@ -199,7 +195,10 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
 };
 
 og.RendererEvents.prototype.entityPickingEvents = function () {
-    if (!this._holdPickedObject) {
+    var ts = this.touchState,
+        ms = this.mouseState;
+
+    if (!(ms.leftButtonHold || ms.rightButtonHold)) {
 
         var r = this.renderer;
 
@@ -207,9 +206,6 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 
         var c = r._currPickingColor,
             p = r._prevPickingColor;
-
-        var ts = this.touchState,
-            ms = this.mouseState;
 
         ms.pickingObject = null;
         ts.pickingObject = null;
@@ -260,38 +256,38 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
-            po && this._holdPickedObject && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonhold, ms);
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonhold, ms);
             ce(this.mouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
-            po && (this._holdPickedObject = true) && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondown, ms);
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondown, ms);
             ce(this.mouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
-            po && this._holdPickedObject && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonhold, ms);
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonhold, ms);
             ce(this.mouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
-            po && (this._holdPickedObject = true) && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondown, ms);
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondown, ms);
             ce(this.mouserbuttondown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
-        ms.leftButtonUp = false;
-        this._holdPickedObject = false;
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonup, ms);
         ce(this.mouselbuttonup, ms);
+        ms.leftButtonUp = false;
+        ms.leftButtonHold = false;
     }
 
     if (ms.rightButtonUp) {
-        ms.rightButtonUp = false;
-        this._holdPickedObject = false;
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonup, ms);
         ce(this.mouserbuttonup, ms);
+        ms.rightButtonUp = false;
+        ms.rightButtonHold = false;
     }
 
     if (ms.leftButtonDoubleClick) {
