@@ -34,7 +34,6 @@ og.EntityCollection = function () {
         "mouselbuttondown",
         "mouselbuttonhold",
         "mouselbuttonup",
-        "mouserbuttondoubleclick",
         "mouserbuttondown",
         "mouserbuttonhold",
         "mouserbuttonup",

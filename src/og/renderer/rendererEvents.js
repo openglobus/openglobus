@@ -8,7 +8,7 @@ goog.require('og.Events');
 goog.require('og.inheritance');
 
 og.RendererEvents = function (renderer) {
-    
+
     og.inheritance.base(this);
 
     this.renderer = renderer;
@@ -51,6 +51,8 @@ og.RendererEvents = function (renderer) {
     this._dblClkBegins = 0;
     this._clickX = 0;
     this._clickY = 0;
+
+    this._holdPickedObject = false;
 };
 
 og.inheritance.extend(og.RendererEvents, og.Events);
@@ -78,6 +80,7 @@ og.RendererEvents.prototype.initialize = function () {
 
     this.registerNames([
         "draw",
+        "resize",
         "mousemove",
         "mousestop",
         "mouselbuttondoubleclick",
@@ -88,7 +91,6 @@ og.RendererEvents.prototype.initialize = function () {
         "mouserbuttonhold",
         "mouselbuttonup",
         "mouserbuttonup",
-        "resize",
         "mousewheel",
         "touchstart",
         "touchend",
@@ -197,56 +199,49 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
 };
 
 og.RendererEvents.prototype.entityPickingEvents = function () {
-    var r = this.renderer;
+    if (!this._holdPickedObject) {
 
-    var o = r._colorObjects;
+        var r = this.renderer;
 
-    var c = r._currPickingColor,
-        p = r._prevPickingColor;
+        var o = r._colorObjects;
 
-    var ts = this.touchState,
-        ms = this.mouseState;
+        var c = r._currPickingColor,
+            p = r._prevPickingColor;
 
-    ms.pickingObject = null;
-    ts.pickingObject = null;
+        var ts = this.touchState,
+            ms = this.mouseState;
 
-    var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+        ms.pickingObject = null;
+        ts.pickingObject = null;
 
-    ms.pickingObject = co;
-    ts.pickingObject = co;
+        var co = o[c[0] + "_" + c[1] + "_" + c[2]];
 
-    //same object
-    if (c[0] == p[0] && c[1] == p[1] && c[2] == p[2]) {
-        //not black
-        if (c[0] || c[1] || c[2]) {
-            if (ms.moving) {
-                var ce = co._entityCollection.events;
-                ce.dispatch(ce.mousemove, ms);
-            }
-        }
-    } else {
+        ms.pickingObject = co;
+        ts.pickingObject = co;
+
         //object changed
-
-        //current black
-        if (!(c[0] || c[1] || c[2])) {
-            var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-            var pe = po._entityCollection.events;
-            ms.pickingObject = po;
-            pe.dispatch(pe.mouseout, ms);
-        } else {
-            //current not black
-
-            //previous not black
-            if (p[0] || p[1] || p[2]) {
+        if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
+            //current black
+            if (!(c[0] || c[1] || c[2])) {
                 var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                 var pe = po._entityCollection.events;
                 ms.pickingObject = po;
                 pe.dispatch(pe.mouseout, ms);
-            }
+            } else {
+                //current not black
 
-            var ce = co._entityCollection.events;
-            ms.pickingObject = co;
-            ce.dispatch(ce.mousein, ms);
+                //previous not black
+                if (p[0] || p[1] || p[2]) {
+                    var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                    var pe = po._entityCollection.events;
+                    ms.pickingObject = po;
+                    pe.dispatch(pe.mouseout, ms);
+                }
+
+                var ce = co._entityCollection.events;
+                ms.pickingObject = co;
+                ce.dispatch(ce.mousein, ms);
+            }
         }
     }
 };
@@ -255,51 +250,64 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
     var ms = this.mouseState,
         ts = this.touchState,
         ce = this.dispatch;
+    var po = ms.pickingObject || ts.pickingObject;
 
     if (ms.click) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouseclick, ms);
         ce(this.mouseclick, ms);
         ms.click = false;
     }
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
+            po && this._holdPickedObject && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonhold, ms);
             ce(this.mouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
+            po && (this._holdPickedObject = true) && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondown, ms);
             ce(this.mouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
+            po && this._holdPickedObject && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonhold, ms);
             ce(this.mouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
+            po && (this._holdPickedObject = true) && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondown, ms);
             ce(this.mouserbuttondown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
         ms.leftButtonUp = false;
+        this._holdPickedObject = false;
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonup, ms);
         ce(this.mouselbuttonup, ms);
     }
 
     if (ms.rightButtonUp) {
         ms.rightButtonUp = false;
+        this._holdPickedObject = false;
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonup, ms);
         ce(this.mouserbuttonup, ms);
     }
 
     if (ms.leftButtonDoubleClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondoubleclick, ms);
         ce(this.mouselbuttondoubleclick, ms);
         ms.leftButtonDoubleClick = false;
     }
 
     if (ms.wheelDelta) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousewheel, ms);
         ce(this.mousewheel, ms);
         ms.wheelDelta = 0;
     }
 
     if (ms.moving) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousemove, ms);
         ce(this.mousemove, ms);
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
