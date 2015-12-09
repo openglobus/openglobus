@@ -30,11 +30,14 @@ og.RendererEvents = function (renderer) {
         leftButtonHold: false,
         rightButtonHold: false,
         leftButtonDoubleClick: false,
-        click: false,
+        rightButtonDoubleClick: false,
+        leftButtonClick: false,
+        rightButtonClick: false,
         moving: false,
         justStopped: false,
         doubleClickDelay: 300,
         wheelDelta: 0,
+        sys: null,
         pickingObject: null
     };
 
@@ -48,9 +51,12 @@ og.RendererEvents = function (renderer) {
     };
 
     this._mousestopThread = null;
-    this._dblClkBegins = 0;
-    this._clickX = 0;
-    this._clickY = 0;
+    this._ldblClkBegins = 0;
+    this._rdblClkBegins = 0;
+    this._lclickX = 0;
+    this._lclickY = 0;
+    this._rclickX = 0;
+    this._rclickY = 0;
 };
 
 og.inheritance.extend(og.RendererEvents, og.Events);
@@ -82,7 +88,7 @@ og.RendererEvents.prototype.initialize = function () {
         "mousemove",
         "mousestop",
         "mouselbuttondoubleclick",
-        "mouseclick",
+        "mouselbuttonclick",
         "mouselbuttondown",
         "mouselbuttonhold",
         "mouserbuttondown",
@@ -113,6 +119,7 @@ og.RendererEvents.prototype.onMouseWheel = function (event) {
 
 og.RendererEvents.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
+    ms.sys = event;
 
     if (ms.x == event.clientX && ms.y == event.clientY) {
         return;
@@ -133,38 +140,58 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
 
 og.RendererEvents.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
-        this._clickX = event.clientX;
-        this._clickY = event.clientY;
+        this._lclickX = event.clientX;
+        this._lclickY = event.clientY;
+        this.mouseState.sys = event;
         this.mouseState.leftButtonDown = true;
-    } else {
+    } else if (event.button === og.input.MB_RIGHT) {
+        this._rclickX = event.clientX;
+        this._rclickY = event.clientY;
+        this.mouseState.sys = event;
         this.mouseState.rightButtonDown = true;
     }
 };
 
 og.RendererEvents.prototype.onMouseUp = function (event) {
     var ms = this.mouseState;
+    ms.sys = event;
     if (event.button === og.input.MB_LEFT) {
         ms.leftButtonDown = false;
         ms.leftButtonUp = true;
 
-        if (this._dblClkBegins) {
-            var deltatime = new Date().getTime() - this._dblClkBegins;
+        if (this._ldblClkBegins) {
+            var deltatime = new Date().getTime() - this._ldblClkBegins;
             if (deltatime <= ms.doubleClickDelay) {
                 ms.leftButtonDoubleClick = true;
             }
-            this._dblClkBegins = 0;
+            this._ldblClkBegins = 0;
         } else {
-            this._dblClkBegins = new Date().getTime();
+            this._ldblClkBegins = new Date().getTime();
         }
 
-        if (this._clickX == event.clientX &&
-            this._clickY == event.clientY) {
-            ms.click = true;
+        if (this._lclickX == event.clientX &&
+            this._lclickY == event.clientY) {
+            ms.leftButtonClick = true;
         }
 
-    } else {
+    } else if (event.button === og.input.MB_RIGHT) {
         ms.rightButtonDown = false;
         ms.rightButtonUp = true;
+
+        if (this._rdblClkBegins) {
+            var deltatime = new Date().getTime() - this._rdblClkBegins;
+            if (deltatime <= ms.doubleClickDelay) {
+                ms.rightButtonDoubleClick = true;
+            }
+            this._rdblClkBegins = 0;
+        } else {
+            this._rdblClkBegins = new Date().getTime();
+        }
+
+        if (this._rclickX == event.clientX &&
+            this._rclickY == event.clientY) {
+            ms.rightButtonClick = true;
+        }
     }
 };
 
@@ -248,10 +275,16 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         ce = this.dispatch;
     var po = ms.pickingObject || ts.pickingObject;
 
-    if (ms.click) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouseclick, ms);
-        ce(this.mouseclick, ms);
-        ms.click = false;
+    if (ms.leftButtonClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonclick, ms);
+        ce(this.mouselbuttonclick, ms);
+        ms.leftButtonClick = false;
+    }
+
+    if (ms.rightButtonClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonclick, ms);
+        ce(this.mouserbuttonclick, ms);
+        ms.rightButtonClick = false;
     }
 
     if (ms.leftButtonDown) {
@@ -296,6 +329,12 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         ms.leftButtonDoubleClick = false;
     }
 
+    if (ms.rightButtonDoubleClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondoubleclick, ms);
+        ce(this.mouserbuttondoubleclick, ms);
+        ms.rightButtonDoubleClick = false;
+    }
+
     if (ms.wheelDelta) {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mousewheel, ms);
         ce(this.mousewheel, ms);
@@ -307,7 +346,8 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         ce(this.mousemove, ms);
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
-        this._dblClkBegins = 0;
+        this._ldblClkBegins = 0;
+        this._rdblClkBegins = 0;
     }
 
     if (ts.touchEnd) {

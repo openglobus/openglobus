@@ -130,12 +130,7 @@ og.control.MouseNavigation.prototype.init = function () {
     this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
     this.renderer.events.on("mouserbuttondown", this, this.onMouseRightButtonClick);
     this.renderer.events.on("mouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
-    this.renderer.events.on("mouseclick", this, this.onMouseClick);
     this.renderer.events.on("draw", this, this.onDraw);
-};
-
-og.control.MouseNavigation.prototype.onMouseClick = function () {
-    // console.log("click");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
