@@ -1,16 +1,12 @@
 goog.provide('og.control.Control');
 
-/**
- * Class Control
- * Controls affect the display or behaviour of the render. They allow everything
- * from navigating to displaying a scale indicator.
- * Example:
+/*
+ * og.control.Control is a base class for implementing renderer controls.
+ * All other controls extend from this class.
  *
- * >
- * >
- * >
+ * @class
+ * @params {*} options - Control activation options.
  */
-
 og.control.Control = function (options) {
     this.renderer = null;
     this.activated = false;

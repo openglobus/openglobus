@@ -6,35 +6,114 @@ goog.require('og.Camera');
 goog.require('og.math.Pixel');
 goog.require('og.utils');
 
+/**
+ * Represents high level WebGL context interface that starts WebGL handler works real time.
+ *
+ * @class
+ * @param {og.webgl.Handler} handler - WebGL handler context.
+ */
 og.Renderer = function (handler) {
+
+    /**
+     * Div element with WebGL canvas.
+     * @public
+     * @type {object}
+     */
     this.div = null;
+
+    /**
+     * WebGL handler context.
+     * @public
+     * @type {og.webgl.Handler}
+     */
     this.handler = handler;
+
+    /**
+     * Render nodes drawing queue.
+     * @private
+     * @type {Array.<og.node.RenderNode>}
+     */
     this._renderNodesArr = [];
+
+    /**
+     * Render nodes store for the comfortable access by the node name.
+     * @public
+     * @type {Object.<og.node.RenderNode>}
+     */
     this.renderNodes = {};
+
+    /**
+     * Cameras array.
+     * @public
+     * @type {Array.<og.Camera>}
+     */
     this.cameras = [];
+
+    /**
+     * Current active camera.
+     * @public
+     * @type {og.Camera}
+     */
     this.activeCamera = null;
+
+    /**
+     * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
+     * @public
+     * @type {og.RendererEvents}
+     */
     this.events = new og.RendererEvents(this);
+
+    /**
+     * OpenGlobus controls array.
+     * @public
+     * @type {Array.<og.control.Control>}
+     */
     this.controls = [];
+
+    /**
+     * Provide exchange between controls.
+     * @public
+     * @type {Object.<*>}
+     */
     this.controlsBag = {};
+
+    /**
+     * Hash table for drawing objects.
+     * @private
+     * @type {Object.<*>}
+     */
     this._colorObjects = {};
+
+    /**
+     * Color picking objects rendering queue.
+     * @private
+     * @callback colorPickingCallback
+     * @type {Array.<colorPickingCallback>}
+     */
     this._pickingCallbacks = [];
+
     this._pickingFramebuffer = null;
+
+    /**
+     * Stores current picking color by mouse position
+     */
     this._currPickingColor = [0, 0, 0];
     this._prevPickingColor = [0, 0, 0];
 };
 
+/**
+ * Adds picking rendering callback function.
+ * @param {object} sender - Callback context.
+ * @param {colorPickingCallback} callback - Rendering callback.
+ */
 og.Renderer.prototype.addPickingCallback = function (sender, callback) {
     this._pickingCallbacks.push({ "callback": callback, "sender": sender });
 };
 
-og.Renderer.prototype.pickObject_a = function (color) {
-    return this._colorObjects[color[0] + "_" + color[1] + "_" + color[2]];
-};
-
-og.Renderer.prototype.pickObject_v = function (color) {
-    return this._colorObjects[color.x + "_" + color.y + "_" + color.z];
-};
-
+/**
+ * Assign picking color to the object.
+ * @param {Object} obj - Object that pressuming to be picked.
+ */
 og.Renderer.prototype.assignPickingColor = function (obj) {
     var r = 0, g = 0, b = 0;
     var str = "0_0_0";
@@ -59,19 +138,22 @@ og.Renderer.prototype.clearPickingColor = function (obj) {
 };
 
 /**
- * Returns client width
+ * Get the client width
  */
 og.Renderer.prototype.getWidth = function () {
     return this.handler.gl.canvas.width;
 };
 
 /**
- * Returns client height
+ * Get the client height
  */
 og.Renderer.prototype.getHeight = function () {
     return this.handler.gl.canvas.height;
 };
 
+/**
+ * Get center of the screen
+ */
 og.Renderer.prototype.getCenter = function () {
     var cnv = this.handler.gl.canvas;
     return new og.math.Pixel(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
@@ -100,8 +182,7 @@ og.Renderer.prototype.addControls = function (cArr) {
 /**
  * Remove the given control from the renderer.
  * @param {og.control.Control} control Control.
- * @return {og.control.Control|undefined} The removed control of undefined
- *     if the control was not found.
+ * @return {og.control.Control|undefined} The removed control of undefined if the control was not found.
  */
 og.Renderer.prototype.removeControl = function (control) {
     for (var i = 0; i < this.controls.length; i++) {
@@ -169,6 +250,17 @@ og.Renderer.prototype.draw = function () {
     this.events.touchState.moving = false;
 };
 
+/**
+ * Get an picking object by screen coordinates
+ * @params {number} x - X position
+ * @params {number} y - Y position
+ * @return {Object} Object
+ */
+og.Renderer.prototype.getPickingObject = function (x, y) {
+    var c = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+    return this._colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
+};
+
 og.Renderer.prototype._drawPickingBuffer = function () {
     this._pickingFramebuffer.activate();
 
@@ -199,6 +291,9 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     }
 };
 
+/**
+ * Function starts rendering
+ */
 og.Renderer.prototype.start = function () {
     this.handler.start();
 };

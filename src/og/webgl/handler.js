@@ -5,6 +5,7 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 
+/** A WebGL handler for accessing low-level WebGL capabilities. */
 og.webgl.Handler = function (id, params) {
     this.lastAnimationFrameTime = 0;
     this.fps = 0;

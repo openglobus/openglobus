@@ -7,6 +7,11 @@ goog.require('og.ellipsoid.wgs84');
 goog.require('og.terrainProvider.EmptyTerrainProvider');
 
 /**
+ * Creates a WebGL context with globe.
+ * @class
+ *
+ * Example:
+ * 
  * var globe = new og.Globus({
  *   viewExtent: new og.Extent(new og.LonLat(-180,-90), new og.LonLat(180,90)),
  *   ellipsoid: og.ellipsoid.wgs84,
@@ -21,8 +26,9 @@ goog.require('og.terrainProvider.EmptyTerrainProvider');
  *   ],
  *   name: "Earth",
  *   target: 'globus'
+ *
+ * @param {object} options - Options.
  */
-
 og.Globus = function (options) {
 
     //Canvas creation.
@@ -35,6 +41,7 @@ og.Globus = function (options) {
     _canvas.style.opacity = "1.0";
 
     /**
+     * Dom element where WebGL canvas creates
      * @public
      * @type {Element}
      */
@@ -51,8 +58,9 @@ og.Globus = function (options) {
     _handler.init();
 
     /**
+     * Interface for the renderer context(events, input states, renderer nodes etc.)
      * @public
-     * @type {Element}
+     * @type {og.Renderer}
      */
     this.renderer = new og.Renderer(_handler);
     this.renderer.init();
@@ -67,16 +75,16 @@ og.Globus = function (options) {
     }
 
     /**
-     * Planet node name. Access by this.renderer.<name>
+     * Planet node name. Access with this.renderer.<name>
      * @private
      * @type {String}
      */
     this._planetName = options.name ? options.name : og.Globus.PLANET_NAME_PREFIX + og.Globus.__id;
 
     /**
-     * Planet node
+     * Render node renders a planet
      * @public
-     * @type {Object}
+     * @type {og.node.RenderNode}
      */
     this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
 
@@ -109,6 +117,11 @@ og.Globus = function (options) {
     var fadeHandler = null;
     var stopHandler = null;
 
+    /**
+     * Starts light fading in effect with duration time
+     * @public
+     * @param {number} - fadein duration time
+     */
     this.fadeIn = function (duration) {
         clearInterval(stopHandler);
         clearInterval(fadeHandler);
@@ -127,6 +140,11 @@ og.Globus = function (options) {
         }, delta);
     };
 
+    /**
+     * Starts light fading out effect with duration time
+     * @public
+     * @param {number} - fadeout duration time
+     */
     this.fadeOut = function (duration) {
         clearInterval(stopHandler);
         clearInterval(fadeHandler);
@@ -151,12 +169,11 @@ og.Globus = function (options) {
         this.renderer.start();
 };
 
-/**
- * og.Globus static variables
- *
- */
+/** @const {number} */
 og.Globus.__id = 1;
+/** @const {string} */
 og.Globus.CANVAS_ID_PREFIX = "globus_viewport_";
+/** @const {string} */
 og.Globus.PLANET_NAME_PREFIX = "globus_planet_";
 
 function isUndefined(obj) {
