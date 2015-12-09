@@ -7,6 +7,11 @@ goog.require('og.input.TouchHandler');
 goog.require('og.Events');
 goog.require('og.inheritance');
 
+/*
+ * Renderer events here
+ * @class
+ * @param {og.Renderer} renderer - Renderer object, events that works for.
+ */
 og.RendererEvents = function (renderer) {
 
     og.inheritance.base(this);
@@ -17,6 +22,10 @@ og.RendererEvents = function (renderer) {
     this.mouseHandler = new og.input.MouseHandler(renderer.handler.gl.canvas);
     this.keyboardHandler = new og.input.KeyboardHandler();
 
+    /**
+     * Store mouse per frame state.
+     * @enum {*}
+     */
     this.mouseState = {
         x: 0,
         y: 0,
@@ -69,6 +78,126 @@ og.RendererEvents = function (renderer) {
 
 og.inheritance.extend(og.RendererEvents, og.Events);
 
+/**
+ * Renderer events names
+ * @const {Array.<string>}
+ */
+og.RendererEvents.EVENT_NAMES = [
+        /**
+         * Triggered before scene frame is rendered(before render nodes).
+         * @event og.RendererEvents#draw
+         */
+        "draw",
+
+        /**
+         * Triggered when screen is resized.
+         * @event og.RendererEvents#resize
+         */
+        "resize",
+
+        /**
+         * Mouse is moving.
+         * @event og.RendererEvents#mousemove
+         */
+        "mousemove",
+        /**
+         * Mouse is just stopped.
+         * @event og.RendererEvents#mousestop
+         */
+        "mousestop",
+
+        /**
+         * Mouse left button clicked.
+         * @event og.RendererEvents#mouselbuttonclick
+         */
+        "mouselbuttonclick",
+        /**
+         * Mouse right button clicked.
+         * @event og.RendererEvents#mouserbuttonclick
+         */
+        "mouserbuttonclick",
+        /**
+         * Mouse middle button clicked.
+         * @event og.RendererEvents#mousembuttonclick
+         */
+        "mousembuttonclick",
+
+        /**
+         * Mouse left button double click.
+         * @event og.RendererEvents#mouselbuttondoubleclick
+         */
+        "mouselbuttondoubleclick",
+        /**
+         * Mouse right button double click.
+         * @event og.RendererEvents#mouserbuttondoubleclick
+         */
+        "mouserbuttondoubleclick",
+        /**
+         * Mouse middle button double click.
+         * @event og.RendererEvents#mousembuttondoubleclick
+         */
+        "mousembuttondoubleclick",
+
+        /**
+         * Mouse left button up(stop pressing).
+         * @event og.RendererEvents#mouselbuttonup
+         */
+        "mouselbuttonup",
+        /**
+         * Mouse right button up(stop pressing).
+         * @event og.RendererEvents#mouserbuttonup
+         */
+        "mouserbuttonup",
+        /**
+         * Mouse middle button up(stop pressing).
+         * @event og.RendererEvents#mousembuttonup
+         */
+        "mousembuttonup",
+
+        /**
+         * Mouse left button is just pressed down(start pressing).
+         * @event og.RendererEvents#mouselbuttondown
+         */
+        "mouselbuttondown",
+        /**
+         * Mouse right button is just pressed down(start pressing).
+         * @event og.RendererEvents#mouserbuttondown
+         */
+        "mouserbuttondown",
+        /**
+         * Mouse middle button is just pressed down(start pressing).
+         * @event og.RendererEvents#mousembuttondown
+         */
+        "mousembuttondown",
+
+        /**
+         * Mouse left button is pressing.
+         * @event og.RendererEvents#mouselbuttonhold
+         */
+        "mouselbuttonhold",
+        /**
+         * Mouse right button is pressing.
+         * @event og.RendererEvents#mouserbuttonhold
+         */
+        "mouserbuttonhold",
+        /**
+         * Mouse middle button is pressing.
+         * @event og.RendererEvents#mousembuttonhold
+         */
+        "mousembuttonhold",
+
+        /**
+         * Mouse wheel is rotated.
+         * @event og.RendererEvents#mousewheel
+         */
+        "mousewheel",
+
+        "touchstart",
+        "touchend",
+        "touchcancel",
+        "touchmove"
+];
+
 og.RendererEvents.prototype.handleEvents = function () {
     this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
     this.entityPickingEvents();
@@ -76,6 +205,14 @@ og.RendererEvents.prototype.handleEvents = function () {
     this.handleMouseAndTouchEvents();
 };
 
+/**
+ * Set render event callback.
+ * @param {string} name - Event name
+ * @param {*} sender - Callback context
+ * @param {eventCallback} callback - Callback function
+ * @param {number} [key] - Key code from og.input
+ * @param {number} [priority] - Event callback priority
+ */
 og.RendererEvents.prototype.on = function (name, sender, callback, key, priority) {
     if (!this[name]) {
         this.keyboardHandler.addEvent(name, sender, callback, key, priority);
@@ -84,44 +221,18 @@ og.RendererEvents.prototype.on = function (name, sender, callback, key, priority
     }
 };
 
+/**
+ * Check key is pressed.
+ * @param {number} keyCode - Key code
+ * @return {boolean}
+ */
 og.RendererEvents.prototype.isKeyPressed = function (keyCode) {
     return this.keyboardHandler.isKeyPressed(keyCode);
 };
 
 og.RendererEvents.prototype.initialize = function () {
 
-    this.registerNames([
-        "draw",
-        "resize",
-        "mousemove",
-        "mousestop",
-
-        "mouselbuttonclick",
-        "mouserbuttonclick",
-        "mousembuttonclick",
-
-        "mouselbuttondoubleclick",
-        "mouserbuttondoubleclick",
-        "mousembuttondoubleclick",
-
-        "mouselbuttonup",
-        "mouserbuttonup",
-        "mousembuttonup",
-
-        "mouselbuttondown",
-        "mouserbuttondown",
-        "mousembuttondown",
-
-        "mouselbuttonhold",
-        "mouserbuttonhold",
-        "mousembuttonhold",
-
-        "mousewheel",
-        "touchstart",
-        "touchend",
-        "touchcancel",
-        "touchmove"
-    ]);
+    this.registerNames(og.RendererEvents.EVENT_NAMES);
 
     this.mouseHandler.setEvent("mouseup", this, this.onMouseUp);
     this.mouseHandler.setEvent("mousemove", this, this.onMouseMove);

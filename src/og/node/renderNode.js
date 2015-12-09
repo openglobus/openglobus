@@ -1,5 +1,6 @@
 goog.provide('og.node.RenderNode');
 
+goog.require('og.Events');
 goog.require('og.inheritance');
 goog.require('og.node.Node');
 goog.require('og.webgl');
@@ -32,6 +33,8 @@ og.node.RenderNode = function (name) {
     this.entityCollections = [];
     this.billboardsTextureAtlas = new og.utils.TextureAtlas();
     this.fontAtlas = new og.utils.FontAtlas();
+
+    this.events = new og.Events();
 };
 
 og.inheritance.extend(og.node.RenderNode, og.node.Node);

@@ -23,7 +23,6 @@ goog.require('og.planetSegment.PlanetSegmentHelper');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
-goog.require('og.Events');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
@@ -38,7 +37,6 @@ og.node.Planet = function (name, ellipsoid) {
     this.quadTree = null;
     this.quadTreeNorth = null;
     this.quadTreeSouth = null;
-    this.events = new og.Events();
 
     this.layers = [];
     this.visibleLayers = [];
@@ -75,22 +73,23 @@ og.node.Planet = function (name, ellipsoid) {
     this.maxCurrZoom = og.math.MIN;
 
     //events initialization
-    this.events.registerNames([
-        "draw",
-        "layeradd",
-        "baselayerchange",
-        "layerremove",
-        "layervisibilitychange",
-        "geoimageadd"
-    ]);
+    this.events.registerNames(og.node.Planet.EVENT_NAMES);
 
     this._pickingColor = new og.math.Vector3(0, 0, 0);
     this._isCameraSunlight = false;
 };
 
-og.node.Planet.SUN_DISTANCE = 149600000000;
-
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
+
+og.node.Planet.EVENT_NAMES = [
+        "draw",
+        "layeradd",
+        "baselayerchange",
+        "layerremove",
+        "layervisibilitychange",
+        "geoimageadd"];
+
+og.node.Planet.SUN_DISTANCE = 149600000000;
 
 og.node.Planet.defaultEmptyColor = "#C5C5C5";
 
