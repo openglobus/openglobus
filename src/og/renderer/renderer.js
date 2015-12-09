@@ -190,7 +190,7 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     var x = ms.x,
         y = ms.y;
 
-    if (!(ms.leftButtonHold || ms.rightButtonHold)) {
+    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
         this._prevPickingColor[0] = this._currPickingColor[0];
         this._prevPickingColor[1] = this._currPickingColor[1];
         this._prevPickingColor[2] = this._currPickingColor[2];

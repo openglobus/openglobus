@@ -25,14 +25,19 @@ og.RendererEvents = function (renderer) {
         direction: new og.math.Vector3(),
         leftButtonUp: false,
         rightButtonUp: false,
+        middleButtonUp: false,
         leftButtonDown: false,
         rightButtonDown: false,
+        middleButtonDown: false,
         leftButtonHold: false,
         rightButtonHold: false,
+        middleButtonHold: false,
         leftButtonDoubleClick: false,
         rightButtonDoubleClick: false,
+        middleButtonDoubleClick: false,
         leftButtonClick: false,
         rightButtonClick: false,
+        middleButtonClick: false,
         moving: false,
         justStopped: false,
         doubleClickDelay: 300,
@@ -53,10 +58,13 @@ og.RendererEvents = function (renderer) {
     this._mousestopThread = null;
     this._ldblClkBegins = 0;
     this._rdblClkBegins = 0;
+    this._mdblClkBegins = 0;
     this._lclickX = 0;
     this._lclickY = 0;
     this._rclickX = 0;
     this._rclickY = 0;
+    this._mclickX = 0;
+    this._mclickY = 0;
 };
 
 og.inheritance.extend(og.RendererEvents, og.Events);
@@ -87,14 +95,27 @@ og.RendererEvents.prototype.initialize = function () {
         "resize",
         "mousemove",
         "mousestop",
-        "mouselbuttondoubleclick",
+
         "mouselbuttonclick",
-        "mouselbuttondown",
-        "mouselbuttonhold",
-        "mouserbuttondown",
-        "mouserbuttonhold",
+        "mouserbuttonclick",
+        "mousembuttonclick",
+
+        "mouselbuttondoubleclick",
+        "mouserbuttondoubleclick",
+        "mousembuttondoubleclick",
+
         "mouselbuttonup",
         "mouserbuttonup",
+        "mousembuttonup",
+
+        "mouselbuttondown",
+        "mouserbuttondown",
+        "mousembuttondown",
+
+        "mouselbuttonhold",
+        "mouserbuttonhold",
+        "mousembuttonhold",
+
         "mousewheel",
         "touchstart",
         "touchend",
@@ -149,6 +170,11 @@ og.RendererEvents.prototype.onMouseDown = function (event) {
         this._rclickY = event.clientY;
         this.mouseState.sys = event;
         this.mouseState.rightButtonDown = true;
+    } else if (event.button === og.input.MB_MIDDLE) {
+        this._mclickX = event.clientX;
+        this._mclickY = event.clientY;
+        this.mouseState.sys = event;
+        this.mouseState.middleButtonDown = true;
     }
 };
 
@@ -192,6 +218,24 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
             this._rclickY == event.clientY) {
             ms.rightButtonClick = true;
         }
+    } else if (event.button === og.input.MB_MIDDLE) {
+        ms.middleButtonDown = false;
+        ms.middleButtonUp = true;
+
+        if (this._mdblClkBegins) {
+            var deltatime = new Date().getTime() - this._mdblClkBegins;
+            if (deltatime <= ms.doubleClickDelay) {
+                ms.middleButtonDoubleClick = true;
+            }
+            this._mdblClkBegins = 0;
+        } else {
+            this._mdblClkBegins = new Date().getTime();
+        }
+
+        if (this._mclickX == event.clientX &&
+            this._mclickY == event.clientY) {
+            ms.middleButtonClick = true;
+        }
     }
 };
 
@@ -225,7 +269,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
     var ts = this.touchState,
         ms = this.mouseState;
 
-    if (!(ms.leftButtonHold || ms.rightButtonHold)) {
+    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
 
         var r = this.renderer;
 
@@ -249,7 +293,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                 var pe = po._entityCollection.events;
                 ms.pickingObject = po;
-                pe.dispatch(pe.mouseout, ms);
+                pe.dispatch(pe.mouseleave, ms);
             } else {
                 //current not black
 
@@ -258,12 +302,12 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     var pe = po._entityCollection.events;
                     ms.pickingObject = po;
-                    pe.dispatch(pe.mouseout, ms);
+                    pe.dispatch(pe.mouseleave, ms);
                 }
 
                 var ce = co._entityCollection.events;
                 ms.pickingObject = co;
-                ce.dispatch(ce.mousein, ms);
+                ce.dispatch(ce.mouseenter, ms);
             }
         }
     }
@@ -285,6 +329,12 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonclick, ms);
         ce(this.mouserbuttonclick, ms);
         ms.rightButtonClick = false;
+    }
+
+    if (ms.middleButtonClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonclick, ms);
+        ce(this.mousembuttonclick, ms);
+        ms.middleButtonClick = false;
     }
 
     if (ms.leftButtonDown) {
@@ -309,6 +359,17 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         }
     }
 
+    if (ms.middleButtonDown) {
+        if (ms.middleButtonHold) {
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonhold, ms);
+            ce(this.mousembuttonhold, ms);
+        } else {
+            ms.middleButtonHold = true;
+            po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttondown, ms);
+            ce(this.mousembuttondown, ms);
+        }
+    }
+
     if (ms.leftButtonUp) {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonup, ms);
         ce(this.mouselbuttonup, ms);
@@ -323,6 +384,13 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         ms.rightButtonHold = false;
     }
 
+    if (ms.middleButtonUp) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonup, ms);
+        ce(this.mousembuttonup, ms);
+        ms.middleButtonUp = false;
+        ms.middleButtonHold = false;
+    }
+
     if (ms.leftButtonDoubleClick) {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondoubleclick, ms);
         ce(this.mouselbuttondoubleclick, ms);
@@ -333,6 +401,12 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondoubleclick, ms);
         ce(this.mouserbuttondoubleclick, ms);
         ms.rightButtonDoubleClick = false;
+    }
+
+    if (ms.middleButtonDoubleClick) {
+        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttondoubleclick, ms);
+        ce(this.mousembuttondoubleclick, ms);
+        ms.middleButtonDoubleClick = false;
     }
 
     if (ms.wheelDelta) {

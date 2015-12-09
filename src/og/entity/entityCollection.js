@@ -26,19 +26,30 @@ og.EntityCollection = function () {
         "entityadd",
         "entityremove",
         "visibilitychange",
+        "mousemove",
+        "mouseenter",
+        "mouseleave",
+
         "mouselbuttonclick",
         "mouserbuttonclick",
-        "mousemove",
-        "mousein",
-        "mouseout",
+        "mousembuttonclick",
+
         "mouselbuttondoubleclick",
         "mouserbuttondoubleclick",
-        "mouselbuttondown",
-        "mouselbuttonhold",
+        "mousembuttondoubleclick",
+
         "mouselbuttonup",
-        "mouserbuttondown",
-        "mouserbuttonhold",
         "mouserbuttonup",
+        "mousembuttonup",
+
+        "mouselbuttondown",
+        "mouserbuttondown",
+        "mousembuttondown",
+
+        "mouselbuttonhold",
+        "mouserbuttonhold",
+        "mousembuttonhold",
+
         "mousewheel",
         "touchstart",
         "touchend"
