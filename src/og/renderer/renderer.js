@@ -11,6 +11,30 @@ goog.require('og.utils');
  *
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler context.
+ * @fires og.RendererEvents#draw
+ * @fires og.RendererEvents#resize
+ * @fires og.RendererEvents#mousemove
+ * @fires og.RendererEvents#mousestop
+ * @fires og.RendererEvents#mouselbuttonclick
+ * @fires og.RendererEvents#mouserbuttonclick
+ * @fires og.RendererEvents#mousembuttonclick
+ * @fires og.RendererEvents#mouselbuttondoubleclick
+ * @fires og.RendererEvents#mouserbuttondoubleclick
+ * @fires og.RendererEvents#mousembuttondoubleclick
+ * @fires og.RendererEvents#mouselbuttonup
+ * @fires og.RendererEvents#mouserbuttonup
+ * @fires og.RendererEvents#mousembuttonup
+ * @fires og.RendererEvents#mouselbuttondown
+ * @fires og.RendererEvents#mouserbuttondown
+ * @fires og.RendererEvents#mousembuttondown
+ * @fires og.RendererEvents#mouselbuttonhold
+ * @fires og.RendererEvents#mouserbuttonhold
+ * @fires og.RendererEvents#mousembuttonhold
+ * @fires og.RendererEvents#mousewheel
+ * @fires og.RendererEvents#touchstart
+ * @fires og.RendererEvents#touchend
+ * @fires og.RendererEvents#touchcancel
+ * @fires og.RendererEvents#touchmove
  */
 og.Renderer = function (handler) {
 

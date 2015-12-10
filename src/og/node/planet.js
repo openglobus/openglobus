@@ -30,7 +30,19 @@ goog.require('og.light.PointLight');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 
-
+/**
+ * Main class for rendering planet
+ *
+ * @extends {og.node.RenderNode}
+ * @param {string} name - Planet name(Earth by default)
+ * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
+ * @fires og.Event#draw
+ * @fires og.Event#layeradd
+ * @fires og.Event#baselayerchange
+ * @fires og.Event#layerremove
+ * @fires og.Event#layervisibilitychange
+ * @fires og.Event#geoimageadd
+ */
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
     this.ellipsoid = ellipsoid;
@@ -38,10 +50,26 @@ og.node.Planet = function (name, ellipsoid) {
     this.quadTreeNorth = null;
     this.quadTreeSouth = null;
 
+    /**
+     * All layers array
+     * @type {Array.<og.layer.Layer>}
+     */
     this.layers = [];
+
+    /**
+     * Current visible layers array
+     * @type {Array.<og.layer.Layer>}
+     */
     this.visibleLayers = [];
+
     this.tcolorArr = [];
+
+    /**
+     * There is only one base layer on the globe when layer.isBaseLayer is true.
+     * @type {og.layer.Layer}
+     */
     this.baseLayer = null;
+
     this.terrainProvider = null;
 
     //this.renderer.activeCamera pointer
@@ -49,6 +77,11 @@ og.node.Planet = function (name, ellipsoid) {
 
     this.createdNodesCount = 0;
     this.renderedNodes = [];
+
+    /**
+     * Height scale factor. 1 - is normal elevation scale
+     * @type {number}
+     */
     this.heightFactor = 1.0;
 
     this.mousePositionOnEarth = new og.math.Vector3();
@@ -62,6 +95,10 @@ og.node.Planet = function (name, ellipsoid) {
     this.transparentTexture = null;
     this.defaultTexture = null;
 
+    /**
+     * Point light source.
+     * @type {og.light.PointLight}
+     */
     this.sunlight = null;
 
     this.normalMapCreator = null;
@@ -75,22 +112,65 @@ og.node.Planet = function (name, ellipsoid) {
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
 
-    this._pickingColor = new og.math.Vector3(0, 0, 0);
     this._isCameraSunlight = false;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 
+/**
+ * Planet node events names
+ * @type {Array.<string>}
+ * @const
+ */
 og.node.Planet.EVENT_NAMES = [
+        /**
+         * Triggered before globe frame begins to render.
+         * @event og.Events#draw
+         */
         "draw",
+
+        /**
+         * Triggered when layer has added to the planet.
+         * @event og.Events#layeradd
+         */
         "layeradd",
+
+        /**
+         * Triggered when base layer changed.
+         * @event og.Events#baselayerchange
+         */
         "baselayerchange",
+
+        /**
+         * Triggered when layer has removed from the planet.
+         * @event og.Events#layerremove
+         */
         "layerremove",
+
+        /**
+         * Triggered when some layer visibility changed.
+         * @event og.Events#layervisibilitychange
+         */
         "layervisibilitychange",
+
+        /**
+         * Triggered when geo image added.
+         * @event og.Events#geoimageadd
+         */
         "geoimageadd"];
 
+/**
+ * Distance from center of scene to the Sun
+ * @type {number}
+ * @const
+ */
 og.node.Planet.SUN_DISTANCE = 149600000000;
 
+/**
+ * Default planet empty color
+ * @type {string}
+ * @const
+ */
 og.node.Planet.defaultEmptyColor = "#C5C5C5";
 
 og.node.Planet.prototype.createDefaultTexture = function (params) {
@@ -130,8 +210,9 @@ og.node.Planet.prototype.addGeoImage = function (geoImage) {
 };
 
 /**
- * Adds the given layer to the top of this map.
- * @param {og.layer.Layer} layer Layer.
+ * Adds the given layer to the planet.
+ * @param {og.layer.Layer} layer - Layer object.
+ * @public
  */
 og.node.Planet.prototype.addLayer = function (layer) {
     layer.planet = this;
@@ -145,13 +226,19 @@ og.node.Planet.prototype.addLayer = function (layer) {
     this.updateVisibleLayers();
 };
 
+/**
+ * Dispatch layer visibility changing event.
+ * @param {og.layer.Layer} layer - Changed layer.
+ * @private
+ */
 og.node.Planet.prototype._onLayerVisibilityChanged = function (layer) {
     this.events.dispatch(this.events.layervisibilitychange, layer);
 };
 
 /**
- * Adds the given layers array to the top of this map.
- * @param {og.layer.Layer} layer Layer.
+ * Adds the given layers array to the planet.
+ * @param {Array.<og.layer.Layer>} layers - Layers array.
+ * @public
  */
 og.node.Planet.prototype.addLayers = function (layers) {
     for (var i = 0; i < layers.length; i++) {
@@ -160,10 +247,10 @@ og.node.Planet.prototype.addLayers = function (layers) {
 };
 
 /**
- * Removes the given layer from the map.
- * @param {og.layer.Layer} layer Layer.
- * @return {og.layer.Layer|undefined} The removed layer or undefined if the
- *     layer was not found.
+ * Removes the given layer from the planet.
+ * @param {og.layer.Layer} layer - Layer to remove.
+ * @return {og.layer.Layer|undefined} The removed layer or undefined if the layer was not found.
+ * @public
  */
 og.node.Planet.prototype.removeLayer = function (layer) {
     var lid = layer.id;
@@ -188,6 +275,9 @@ og.node.Planet.prototype.removeLayer = function (layer) {
     return undefined;
 };
 
+/**
+ * @private
+ */
 og.node.Planet.prototype.redrawGeoImages = function () {
     this.geoImagesArray.sort(function (a, b) {
         return b.zIndex - a.zIndex;
@@ -202,12 +292,18 @@ og.node.Planet.prototype.redrawGeoImages = function () {
 
 /**
  * Get the collection of layers associated with this planet.
- * @return {Array} Layers.
+ * @return {Array.<og.layer.Layer>} Layers.
+ * @public
  */
 og.node.Planet.prototype.getLayers = function () {
     return this.layers;
 };
 
+/**
+ * Sets base layer coverage to the planet.
+ * @param {og.layer.Layer} layer - Layer object.
+ * @public
+ */
 og.node.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
         if (layer.id != this.baseLayer.id) {
@@ -325,6 +421,9 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.addPickingCallback(this, this._planetPickingCallback);
 };
 
+/**
+ * @private
+ */
 og.node.Planet.prototype.updateAttributionsList = function () {
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
@@ -432,6 +531,9 @@ og.node.Planet.prototype.frame = function () {
     }
 };
 
+/**
+ * Clear memory thread.
+ */
 og.node.Planet.prototype.memClear = function () {
     this.quadTree.clearTree();
     this.quadTreeNorth.clearTree();
@@ -545,6 +647,9 @@ og.node.Planet.prototype._planetPickingCallback = function () {
     }
 };
 
+/**
+ *
+ */
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transpose();
     var sx = new og.math.Ray(mxTr.mulVec3(origin),

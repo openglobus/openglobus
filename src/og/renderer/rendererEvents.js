@@ -80,7 +80,8 @@ og.inheritance.extend(og.RendererEvents, og.Events);
 
 /**
  * Renderer events names
- * @const {Array.<string>}
+ * @type {Array.<string>}
+ * @const
  */
 og.RendererEvents.EVENT_NAMES = [
         /**
