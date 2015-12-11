@@ -18,6 +18,7 @@ og.Billboard = function (options) {
     this.image = null;
     this.width = 0;
     this.height = 0;
+    this.scale = 1.0;
 };
 
 og.inheritance.extend(og.Billboard, og.BaseBillboard);
@@ -52,7 +53,12 @@ og.Billboard.prototype.setImage = function (image) {
 og.Billboard.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
-    this._handler && this._handler.setSizeArr(this._handlerIndex, width, height);
+    this._handler && this._handler.setSizeArr(this._handlerIndex, width * this.scale, height * this.scale);
+};
+
+og.Billboard.prototype.setScale = function (scale) {
+    this.scale = scale;
+    this._handler && this._handler.setSizeArr(this._handlerIndex, this.width * scale, this.height * scale);
 };
 
 og.Billboard.prototype.setWidth = function (width) {

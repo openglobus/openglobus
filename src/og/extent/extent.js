@@ -1,8 +1,15 @@
 goog.provide('og.Extent');
+goog.provide('og.extent');
 
 goog.require('og.LonLat');
 goog.require('og.math');
 
+/**
+ * Represents geographical coordinates extent.
+ * @class
+ * @param {og.LonLat} [sw] - South West extent corner coordiantes.
+ * @param {og.LonLat} [ne] - North East extent corner coordiantes.
+ */
 og.Extent = function (sw, ne) {
     this.southWest = sw || new og.LonLat();
     this.northEast = ne || new og.LonLat();
@@ -111,6 +118,13 @@ og.Extent.prototype.getSouth = function () {
     return this.southWest.lat;
 };
 
+/**
+ * Creates extent by meractor grid tile coordinates.
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @returns {og.Extent}
+ */
 og.Extent.fromTile = function (x, y, z) {
     var H = Math.pow(2, z),
         W = Math.pow(2, z),
@@ -126,8 +140,9 @@ og.Extent.fromTile = function (x, y, z) {
 };
 
 /**
- * @param {og.Extent} extent Extent.
- * @return {boolean} Equals.
+ * Returns extents are equals.
+ * @param {og.Extent} extent - Extent.
+ * @returns {boolean}
  */
 og.Extent.prototype.equals = function (extent) {
     return this.southWest.lon == extent.southWest.lon && this.southWest.lat == extent.southWest.lat &&

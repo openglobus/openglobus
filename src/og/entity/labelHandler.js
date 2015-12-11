@@ -312,7 +312,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {
 
     var j = i + c * 24;
     var n = fa.nodes[text[c]];
-    var f = n.emptySize;
+    var f = n ? n.emptySize : 0.0;
     var offset = f;
 
     for (c = 0; c < text.length; c++) {
