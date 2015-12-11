@@ -147,9 +147,12 @@ og.Renderer.prototype.assignPickingColor = function (obj) {
         b = og.math.randomi(1, 255);
         str = r + "_" + g + "_" + b;
     }
-    obj._pickingColor.x = r;
-    obj._pickingColor.y = g;
-    obj._pickingColor.z = b;
+
+    if (!obj._pickingColor)
+        obj._pickingColor = new og.math.Vector3(r, g, b);
+    else
+        obj._pickingColor.set(r, g, b);
+
     this._colorObjects[str] = obj;
 };
 

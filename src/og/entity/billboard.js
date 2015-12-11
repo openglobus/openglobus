@@ -45,6 +45,10 @@ og.Billboard.prototype.setSrc = function (src) {
     }
 };
 
+og.Billboard.prototype.setImage = function (image) {
+    this.setSrc(image.src);
+};
+
 og.Billboard.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;

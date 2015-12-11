@@ -196,6 +196,12 @@ og.node.Planet.prototype.createDefaultTexture = function (params) {
     return texture;
 };
 
+/**
+ * Return layer by it name
+ * @param {string} name - Name of the layer. og.layer.Layer.prototype.name
+ * @public
+ * @returns {og.layer.Layer}
+ */
 og.node.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;
     while (i--) {
@@ -328,6 +334,10 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
     this.updateVisibleLayers();
 };
 
+/**
+ * Sets elevation scale. 1.0 is default.
+ * @param {number} factor - Elevation scale.
+ */
 og.node.Planet.prototype.setHeightFactor = function (factor) {
     if (this.heightFactor !== factor) {
         this.heightFactor = factor;
@@ -495,6 +505,10 @@ og.node.Planet.prototype.collectRenderNodes = function () {
     this.quadTree.renderTree();
 };
 
+/**
+ * Render node callback.
+ * @private
+ */
 og.node.Planet.prototype.frame = function () {
 
     var cam = this.renderer.activeCamera;
@@ -532,7 +546,7 @@ og.node.Planet.prototype.frame = function () {
 };
 
 /**
- * Clear memory thread.
+ * Starts clear memory thread.
  */
 og.node.Planet.prototype.memClear = function () {
     this.quadTree.clearTree();
@@ -540,6 +554,9 @@ og.node.Planet.prototype.memClear = function () {
     this.quadTreeSouth.clearTree();
 };
 
+/**
+ * @private
+ */
 og.node.Planet.prototype.renderNodesPASS = function () {
     var sh, drawCallback;
     var renderer = this.renderer;
@@ -619,6 +636,9 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     gl.disable(gl.BLEND);
 };
 
+/**
+ * @private
+ */
 og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
     var b = this._heightBackbuffer,
         r = this.renderer;
@@ -648,7 +668,12 @@ og.node.Planet.prototype._planetPickingCallback = function () {
 };
 
 /**
- *
+ * Returns ray vector hit ellipsoid coordinates. 
+ * If the ray doesn't hit ellipsoit returns null.
+ * @public
+ * @param {og.math.Vector3} origin - Ray origin point.
+ * @param {og.math.VEctor3} direction - Ray direction.
+ * @returns {og.math.Vector3}
  */
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transpose();
@@ -660,25 +685,37 @@ og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     return null;
 };
 
+/**
+ * Returns ray vector hit ellipsoid coordinates. 
+ * If the ray doesn't hit ellipsoit returns null.
+ * @public
+ * @param {og.math.Ray} ray - Ray 3d.
+ * @returns {og.math.Vector3}
+ */
+og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
+    return this.hitRayEllipsoid(ray.origin, ray.direction);
+};
+
+/**
+ * Returns 2d screen coordanates projection point to the planet ellipsoid 3d coordinates.
+ * @public
+ * @param {og.math.Pixel} px - 2D sreen coordinates.
+ */
 og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var cam = this.renderer.activeCamera;
     return this.hitRayEllipsoid(cam.eye, cam.unproject(px.x, px.y));
 };
 
+/**
+ * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
+ * @public
+ * @param {og.math.Pixel} px - 2D screen coordinates.
+ * @returns {og.LonLat}
+ */
 og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     if (coords) {
         return this.ellipsoid.ECEF2LonLat(coords);
-    }
-    return null;
-};
-
-og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
-    var mxTr = this.transformationMatrix.transpose();
-    var sx = new og.math.Ray(mxTr.mulVec3(ray.origin),
-        mxTr.mulVec3(ray.direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
-    if (sx) {
-        return this.itransformationMatrix.mulVec3(sx);
     }
     return null;
 };

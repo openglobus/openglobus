@@ -10,8 +10,11 @@ og.utils.ImagesCacheManager = function () {
     this._imageIndexCounter = 0;
 };
 
+og.utils.ImagesCacheManager.MAX_SRC_LENGTH = 64;
+
 og.utils.ImagesCacheManager.prototype.load = function (src, success) {
-    if (this.imagesCache[src]) {
+    if (src.length < og.utils.ImagesCacheManager.MAX_SRC_LENGTH &&
+        this.imagesCache[src]) {
         success(this.imagesCache[src]);
     } else {
         var req = { "src": src, "success": success };
@@ -30,7 +33,9 @@ og.utils.ImagesCacheManager.prototype._exec = function (req) {
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
-        that.imagesCache[req.src] = this;
+        if (req.src.length < og.utils.ImagesCacheManager.MAX_SRC_LENGTH) {
+            that.imagesCache[req.src] = this;
+        }
         this.__nodeIndex = that._imageIndexCounter++;
         req.success(this);
         that._dequeueRequest();
@@ -49,7 +54,8 @@ og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
         while (this._pendingsQueue.length) {
             var req = this._pendingsQueue.pop();
             if (req) {
-                if (this.imagesCache[req.src]) {
+                if (req.src.length < og.utils.ImagesCacheManager.MAX_SRC_LENGTH &&
+                    this.imagesCache[req.src]) {
                     if (this._counter <= 0)
                         this._counter = 0;
                     else
