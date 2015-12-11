@@ -86,7 +86,9 @@ og.node.RenderNode = function (name) {
      */
     this.fontAtlas = new og.utils.FontAtlas();
 
-    //TODO
+    /**
+     * @public
+     */
     this.events = new og.Events();
 };
 

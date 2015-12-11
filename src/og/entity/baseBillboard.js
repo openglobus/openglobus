@@ -4,7 +4,7 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 
 /**
- *
+ * Base class for billboards and label
  *
  *
  */

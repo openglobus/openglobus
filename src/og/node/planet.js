@@ -282,7 +282,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 };
 
 /**
- * @private
+ * @public
  */
 og.node.Planet.prototype.redrawGeoImages = function () {
     this.geoImagesArray.sort(function (a, b) {
@@ -432,7 +432,7 @@ og.node.Planet.prototype.initialization = function () {
 };
 
 /**
- * @private
+ * @public
  */
 og.node.Planet.prototype.updateAttributionsList = function () {
     var html = "";
@@ -507,7 +507,7 @@ og.node.Planet.prototype.collectRenderNodes = function () {
 
 /**
  * Render node callback.
- * @private
+ * @public
  */
 og.node.Planet.prototype.frame = function () {
 
@@ -547,6 +547,7 @@ og.node.Planet.prototype.frame = function () {
 
 /**
  * Starts clear memory thread.
+ * @public
  */
 og.node.Planet.prototype.memClear = function () {
     this.quadTree.clearTree();

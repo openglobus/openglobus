@@ -103,10 +103,10 @@ og.Renderer = function (handler) {
 
     /**
      * Hash table for drawing objects.
-     * @private
+     * @public
      * @type {Object.<*>}
      */
-    this._colorObjects = {};
+    this.colorObjects = {};
 
     /**
      * Color picking objects rendering queue.
@@ -141,7 +141,7 @@ og.Renderer.prototype.addPickingCallback = function (sender, callback) {
 og.Renderer.prototype.assignPickingColor = function (obj) {
     var r = 0, g = 0, b = 0;
     var str = "0_0_0";
-    while (!(r || g || b) || this._colorObjects[str]) {
+    while (!(r || g || b) || this.colorObjects[str]) {
         r = og.math.randomi(1, 255);
         g = og.math.randomi(1, 255);
         b = og.math.randomi(1, 255);
@@ -153,13 +153,13 @@ og.Renderer.prototype.assignPickingColor = function (obj) {
     else
         obj._pickingColor.set(r, g, b);
 
-    this._colorObjects[str] = obj;
+    this.colorObjects[str] = obj;
 };
 
 og.Renderer.prototype.clearPickingColor = function (obj) {
     var c = obj._pickingColor;
     if (!c.isZero()) {
-        delete this._colorObjects[c.x + "_" + c.y + "_" + c.z];
+        delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
         c.x = c.y = c.z = 0;
     }
 };
@@ -285,7 +285,7 @@ og.Renderer.prototype.draw = function () {
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
     var c = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
-    return this._colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
+    return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
 og.Renderer.prototype._drawPickingBuffer = function () {

@@ -16,14 +16,35 @@ og.RendererEvents = function (renderer) {
 
     og.inheritance.base(this);
 
+    /**
+     * @public
+     */
     this.renderer = renderer;
 
-    this.touchHandler = new og.input.TouchHandler(renderer.handler.gl.canvas);
-    this.mouseHandler = new og.input.MouseHandler(renderer.handler.gl.canvas);
-    this.keyboardHandler = new og.input.KeyboardHandler();
+    /**
+     * Low level touch events handler.
+     * @private
+     * @type {og.input.TouchHandler}
+     */
+    this._touchHandler = new og.input.TouchHandler(renderer.handler.gl.canvas);
+
+    /**
+     * Low level mouse events handler.
+     * @private
+     * @type {og.input.MouseHandler}
+     */
+    this._mouseHandler = new og.input.MouseHandler(renderer.handler.gl.canvas);
+
+    /**
+     * Low level keyboard events handler.
+     * @private
+     * @type {og.input.KeyboardHandler}
+     */
+    this._keyboardHandler = new og.input.KeyboardHandler();
 
     /**
      * Store mouse per frame state.
+     * @public
      * @enum {*}
      */
     this.mouseState = {
@@ -55,6 +76,11 @@ og.RendererEvents = function (renderer) {
         pickingObject: null
     };
 
+    /**
+     * Stores touch state.
+     * @public
+     * @enum {*}
+     */
     this.touchState = {
         moving: false,
         touchEnd: false,
@@ -199,15 +225,20 @@ og.RendererEvents.EVENT_NAMES = [
         "touchmove"
 ];
 
+/**
+ * Used in render node frame.
+ * @public
+ */
 og.RendererEvents.prototype.handleEvents = function () {
     this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
     this.entityPickingEvents();
-    this.keyboardHandler.handleEvents();
+    this._keyboardHandler.handleEvents();
     this.handleMouseAndTouchEvents();
 };
 
 /**
  * Set render event callback.
+ * @public
  * @param {string} name - Event name
  * @param {*} sender - Callback context
  * @param {eventCallback} callback - Callback function
@@ -216,7 +247,7 @@ og.RendererEvents.prototype.handleEvents = function () {
  */
 og.RendererEvents.prototype.on = function (name, sender, callback, key, priority) {
     if (!this[name]) {
-        this.keyboardHandler.addEvent(name, sender, callback, key, priority);
+        this._keyboardHandler.addEvent(name, sender, callback, key, priority);
     } else {
         this.constructor.superclass.on.call(this, name, sender, callback);
     }
@@ -224,26 +255,27 @@ og.RendererEvents.prototype.on = function (name, sender, callback, key, priority
 
 /**
  * Check key is pressed.
+ * @public
  * @param {number} keyCode - Key code
  * @return {boolean}
  */
 og.RendererEvents.prototype.isKeyPressed = function (keyCode) {
-    return this.keyboardHandler.isKeyPressed(keyCode);
+    return this._keyboardHandler.isKeyPressed(keyCode);
 };
 
 og.RendererEvents.prototype.initialize = function () {
 
     this.registerNames(og.RendererEvents.EVENT_NAMES);
 
-    this.mouseHandler.setEvent("mouseup", this, this.onMouseUp);
-    this.mouseHandler.setEvent("mousemove", this, this.onMouseMove);
-    this.mouseHandler.setEvent("mousedown", this, this.onMouseDown);
-    this.mouseHandler.setEvent("mousewheel", this, this.onMouseWheel);
+    this._mouseHandler.setEvent("mouseup", this, this.onMouseUp);
+    this._mouseHandler.setEvent("mousemove", this, this.onMouseMove);
+    this._mouseHandler.setEvent("mousedown", this, this.onMouseDown);
+    this._mouseHandler.setEvent("mousewheel", this, this.onMouseWheel);
 
-    this.touchHandler.setEvent("touchstart", this, this.onTouchStart);
-    this.touchHandler.setEvent("touchend", this, this.onTouchEnd);
-    this.touchHandler.setEvent("touchcancel", this, this.onTouchCancel);
-    this.touchHandler.setEvent("touchmove", this, this.onTouchMove);
+    this._touchHandler.setEvent("touchstart", this, this.onTouchStart);
+    this._touchHandler.setEvent("touchend", this, this.onTouchEnd);
+    this._touchHandler.setEvent("touchcancel", this, this.onTouchCancel);
+    this._touchHandler.setEvent("touchmove", this, this.onTouchMove);
 };
 
 og.RendererEvents.prototype.onMouseWheel = function (event) {
@@ -385,7 +417,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 
         var r = this.renderer;
 
-        var o = r._colorObjects;
+        var o = r.colorObjects;
 
         var c = r._currPickingColor,
             p = r._prevPickingColor;

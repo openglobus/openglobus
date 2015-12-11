@@ -10,7 +10,7 @@ goog.require('og.utils.ImagesCacheManager');
  *
  *
  *
- **/
+ */
 og.utils.TextureAtlasNode = function (rect) {
     this.childNodes = null;
     this.image = null;
@@ -20,9 +20,8 @@ og.utils.TextureAtlasNode = function (rect) {
 };
 
 /**
-  * source: http://www.blackpawn.com/texts/lightmaps/default.html
-  *
- **/
+ * source: http://www.blackpawn.com/texts/lightmaps/default.html
+ */
 og.utils.TextureAtlasNode.prototype.insert = function (img) {
 
     if (this.childNodes) {
