@@ -720,6 +720,12 @@ og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     return null;
 };
 
+/**
+ * Returns 3d cartesian coordinates on the relief planet by mouse cursor 
+ * position or null if mouse cursor is outside the planet.
+ * @public
+ * @returns {og.math.Vector3}
+ */
 og.node.Planet.prototype.getCartesianFromMouseTerrain = function () {
     var ms = this.renderer.events.mouseState;
     var distance = this.getDistanceFromPixel(ms);
@@ -729,6 +735,13 @@ og.node.Planet.prototype.getCartesianFromMouseTerrain = function () {
     return null;
 };
 
+/**
+ * Returns 3d cartesian coordinates on the relief planet by 2d screen coordinates.
+ * position or null if input coordinates is outside the planet.
+ * @public
+ * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
+ * @returns {og.math.Vector3}
+ */
 og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
     var distance = this.getDistanceFromPixel(px);
     if (distance) {
@@ -738,6 +751,13 @@ og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
     return null;
 };
 
+/**
+ * Returns geographical coordinates on the relief planet by 2d screen coordinates.
+ * position or null if input coordinates is outside the planet.
+ * @public
+ * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
+ * @returns {og.LonLat}
+ */
 og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
     var coords = this.getCartesianFromPixelTerrain(px);
     if (coords) {
@@ -746,10 +766,22 @@ og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
     return null;
 };
 
+/**
+ * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
+ * @public
+ * @param {og.math.Vector3} coords - Cartesian coordinates.
+ * @returns {og.math.Vector2}
+ */
 og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
     return this.renderer.activeCamera.project(coords);
 };
 
+/**
+ * Returns projected 2d screen coordinates by geographical coordinates.
+ * @public
+ * @param {og.LonLat} lonlat - Geographical coordinates.
+ * @returns {og.math.Vector2}
+ */
 og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
     var coords = this.ellipsoid.LonLat2ECEF(lonlat);
     if (coords)
@@ -757,11 +789,27 @@ og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
     return null;
 };
 
+/**
+ * Returns distance from active camera to the the planet ellipsoid 
+ * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
+ * @public
+ * @param {og.math.Vector2} px
+ * @returns {number}
+ */
 og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     return coords ? coords.distance(this.renderer.activeCamera.eye) : null;
 };
 
+/**
+ * Returns distance from active camera to the the relief planet coordiantes unprojected 
+ * by 2d screen coordiantes, or null if screen coordinates outside the planet. 
+ * If screen coordinates inside the planet but relief is not exists in the 
+ * point than function returns distance to the planet ellipsoid.
+ * @public
+ * @param {og.math.Vector2} px
+ * @returns {number}
+ */
 og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     if (this._viewChanged) {
         this._viewChanged = false;
@@ -774,26 +822,61 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px) {
     return this._currentDistanceFromPixel;
 };
 
+/**
+ * Sets camera to the planet geographical extent.
+ * @public
+ * @param {og.Extent} extent - Geographical extent.
+ */
 og.node.Planet.prototype.viewExtent = function (extent) {
     this.renderer.activeCamera.viewExtent(extent);
 };
 
+/**
+ * Sets camera to the planet geographical position.
+ * @public
+ * @param {og.LonLat} lonlat - New geographical position.
+ * @param {og.math.Vector3} [up] - Camera UP vector.
+ */
 og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
     this.renderer.activeCamera.viewLonLat(lonlat, up);
 };
 
+/**
+ * Fly camera to the planet geographical extent.
+ * @public
+ * @param {og.Extent} extent - Geographical extent.
+ * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+ */
 og.node.Planet.prototype.flyExtent = function (extent, up) {
-    this.renderer.activeCamera.flyCartesian(extent, up);
+    this.renderer.activeCamera.flyExtent(extent, up);
 };
 
+/**
+ * Fly camera to the new point.
+ * @public
+ * @param {og.math.Vector3} cartesian - Fly coordiantes.
+ * @param {og.math.Vector3} [look] - Camera "look at" point.
+ * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+ */
 og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
     this.renderer.activeCamera.flyCartesian(cartesian, look, up);
 };
 
+/**
+ * Fly camera to the new geographical position.
+ * @public
+ * @param {og.LonLat} lonlat - Fly geographical coordiantes.
+ * @param {og.math.Vector3} [look] - Camera "look at" point on the end of a flying.
+ * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+ */
 og.node.Planet.prototype.flyLonLat = function (lonlat, look, up) {
     this.renderer.activeCamera.flyLonLat(lonlat, look, up);
 };
 
+/**
+ * Breaks the flight.
+ * @public
+ */
 og.node.Planet.prototype.stopFlying = function () {
     this.renderer.activeCamera.stopFlying();
 };
