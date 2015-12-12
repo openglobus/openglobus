@@ -1,63 +1,229 @@
 goog.provide('og.EntityCollection');
 
-
 goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
 goog.require('og.Events');
 
-/*
- * og.EntityCollection
- *
- *
+/**
+ * An observable collection of og.Entity instances where each entity has a unique id.
+ * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
+ * @constructor
+ * @fires og.Events#add
+ * @fires og.Events#remove
+ * @fires og.Events#entityadd
+ * @fires og.Events#entityremove
+ * @fires og.Events#visibilitychange
+ * @fires og.Events#mousemove
+ * @fires og.Events#mouseenter
+ * @fires og.Events#mouseleave
+ * @fires og.Events#mouselbuttonclick
+ * @fires og.Events#mouserbuttonclick
+ * @fires og.Events#mousembuttonclick
+ * @fires og.Events#mouselbuttondoubleclick
+ * @fires og.Events#mouserbuttondoubleclick
+ * @fires og.Events#mousembuttondoubleclick
+ * @fires og.Events#mouselbuttonup
+ * @fires og.Events#mouserbuttonup
+ * @fires og.Events#mousembuttonup
+ * @fires og.Events#mouselbuttondown
+ * @fires og.Events#mouserbuttondown
+ * @fires og.Events#mousembuttondown
+ * @fires og.Events#mouselbuttonhold
+ * @fires og.Events#mouserbuttonhold
+ * @fires og.Events#mousembuttonhold
+ * @fires og.Events#mousewheel
+ * @fires og.Events#touchstart
+ * @fires og.Events#touchend
  */
 og.EntityCollection = function () {
-    this.events = new og.Events();
-    this._renderNodeIndex = -1;
-    this.renderNode = null;
-    this.visibility = true;
-    this._billboardHandler = new og.BillboardHandler(this);
-    this._labelHandler = new og.LabelHandler(this);
 
+    this._renderNodeIndex = -1;
+
+    /**
+     * Render node context.
+     * @public
+     * @type {og.node.RenderNode}
+     */
+    this.renderNode = null;
+
+    /**
+     * Visibility option.
+     * @public
+     * @type {boolean}
+     */
+    this.visibility = true;
+
+    this.billboardHandler = new og.BillboardHandler(this);
+    this.labelHandler = new og.LabelHandler(this);
+
+    /**
+     * Entities array.
+     * @public
+     * type {Array.<og.Entity>}
+     */
     this.entities = [];
 
-    this.events.registerNames([
+    /**
+     *Entity collection events handler.
+     * @public
+     * @type {og.Events}
+     */
+    this.events = new og.Events();
+    this.events.registerNames(og.EntityCollection.EVENT_NAMES);
+};
+
+/**
+ * Entity collection events names
+ * @type {Array.<string>}
+ * @const
+ */
+og.EntityCollection.EVENT_NAMES = [
+        /**
+         * Triggered when added to the render node.
+         * @event og.Events#add
+         */
         "add",
+
+        /**
+         * Triggered when removed from the render node.
+         * @event og.Events#remove
+         */
         "remove",
+
+        /**
+         * Triggered when new entity added to the collection.
+         * @event og.Events#entityadd
+         */
         "entityadd",
+
+        /**
+         * Triggered when entity removes from the collection.
+         * @event og.Events#entityremove
+         */
         "entityremove",
+
+        /**
+         * Triggered when visibility changes.
+         * @event og.Events#visibilitychange
+         */
         "visibilitychange",
+
+        /**
+         * Triggered when mouse moves over the entity.
+         * @event og.Events#mousemove
+         */
         "mousemove",
+
+        /**
+         * Triggered when mouse has entered over the entity.
+         * @event og.Events#mouseenter
+         */
         "mouseenter",
+
+        /**
+         * Triggered when mouse leaves the entity.
+         * @event og.Events#mouseenter
+         */
         "mouseleave",
 
+        /**
+         * Mouse left button clicked.
+         * @event og.Events#mouselbuttonclick
+         */
         "mouselbuttonclick",
+
+        /**
+         * Mouse right button clicked.
+         * @event og.Events#mouserbuttonclick
+         */
         "mouserbuttonclick",
+
+        /**
+         * Mouse right button clicked.
+         * @event og.Events#mousembuttonclick
+         */
         "mousembuttonclick",
 
+        /**
+         * Mouse left button double click.
+         * @event og.Events#mouselbuttondoubleclick
+         */
         "mouselbuttondoubleclick",
+
+        /**
+         * Mouse right button double click.
+         * @event og.Events#mouserbuttondoubleclick
+         */
         "mouserbuttondoubleclick",
+
+        /**
+         * Mouse middle button double click.
+         * @event og.Events#mousembuttondoubleclick
+         */
         "mousembuttondoubleclick",
 
+        /**
+         * Mouse left button up(stop pressing).
+         * @event og.Events#mouselbuttonup
+         */
         "mouselbuttonup",
+
+        /**
+         * Mouse right button up(stop pressing).
+         * @event og.Events#mouserbuttonup
+         */
         "mouserbuttonup",
+
+        /**
+         * Mouse middle button up(stop pressing).
+         * @event og.Events#mouserbuttonup
+         */
         "mousembuttonup",
 
+        /**
+         * Mouse left button is just pressed down(start pressing).
+         * @event og.Events#mouselbuttondown
+         */
         "mouselbuttondown",
+
+        /**
+         * Mouse right button is just pressed down(start pressing).
+         * @event og.Events#mouserbuttondown
+         */
         "mouserbuttondown",
+
+        /**
+         * Mouse middle button is just pressed down(start pressing).
+         * @event og.Events#mousembuttondown
+         */
         "mousembuttondown",
 
+        /**
+         * Mouse left button is pressing.
+         * @event og.Events#mouselbuttonhold
+         */
         "mouselbuttonhold",
+
+        /**
+         * Mouse right button is pressing.
+         * @event og.Events#mouserbuttonhold
+         */
         "mouserbuttonhold",
+
+        /**
+         * Mouse middle button is pressing.
+         * @event og.Events#mousembuttonhold
+         */
         "mousembuttonhold",
 
+        /**
+         * Mouse wheel is rotated.
+         * @event og.Events#mousewheel
+         */
         "mousewheel",
-        "touchstart",
-        "touchend"
-    ]);
 
-    this.labelPickingEnabled = true;
-    this.billboardPickingEnabled = true;
-};
+        "touchstart",
+        "touchend"];
 
 og.EntityCollection.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
@@ -67,10 +233,10 @@ og.EntityCollection.prototype.setVisibility = function (visibility) {
 og.EntityCollection.prototype._addRecursively = function (entity) {
 
     //billboard
-    entity.billboard && this._billboardHandler.add(entity.billboard);
+    entity.billboard && this.billboardHandler.add(entity.billboard);
 
     //label
-    entity.label && this._labelHandler.add(entity.label);
+    entity.label && this.labelHandler.add(entity.label);
 
     this.events.dispatch(this.events.entityadd, entity);
 
@@ -102,10 +268,10 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     entity._entityCollectionIndex = -1;
 
     //billboard
-    entity.billboard && this._billboardHandler.remove(entity.billboard);
+    entity.billboard && this.billboardHandler.remove(entity.billboard);
 
     //label
-    entity.label && this._labelHandler.remove(entity.label);
+    entity.label && this.labelHandler.remove(entity.label);
 
     this.events.dispatch(this.events.entityremove, entity);
 
@@ -159,8 +325,8 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
 
 og.EntityCollection.prototype.setRenderer = function (renderer) {
     if (renderer) {
-        this._billboardHandler.setRenderer(renderer);
-        this._labelHandler.setRenderer(renderer);
+        this.billboardHandler.setRenderer(renderer);
+        this.labelHandler.setRenderer(renderer);
         this.updateBillboardsTextureAtlas();
         this.updateLabelsFontAtlas();
         this.createPickingColors();
@@ -168,7 +334,7 @@ og.EntityCollection.prototype.setRenderer = function (renderer) {
 };
 
 og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
-    var b = this._billboardHandler._billboards;
+    var b = this.billboardHandler._billboards;
     for (var i = 0; i < b.length; i++) {
         b[i].setSrc(b[i].src);
     }
@@ -176,7 +342,7 @@ og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
 
 og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
     if (this.renderNode) {
-        var l = this._labelHandler._billboards;
+        var l = this.labelHandler._billboards;
         for (var i = 0; i < l.length; i++) {
             l[i].assignFontAtlas(this.renderNode.fontAtlas);
         }

@@ -228,7 +228,7 @@ og.node.RenderNode.prototype.transformLights = function () {
 
 og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
     for (var i = 0; i < this.entityCollections.length; i++) {
-        this.entityCollections[i]._billboardHandler.refreshTexCoordsArr();
+        this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
     }
 };
 
@@ -252,7 +252,7 @@ og.node.RenderNode.prototype.drawEntities = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i]._billboardHandler.draw();
+            ec[i].billboardHandler.draw();
         }
 
         //labels path
@@ -264,7 +264,7 @@ og.node.RenderNode.prototype.drawEntities = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i]._labelHandler.draw();
+            ec[i].labelHandler.draw();
         }
 
         gl.enable(gl.CULL_FACE);
@@ -299,12 +299,12 @@ og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i].billboardPickingEnabled && ec[i]._billboardHandler.drawPicking();
+            ec[i].billboardHandler.drawPicking();
         }
 
         i = ec.length;
         while (i--) {
-            ec[i].labelPickingEnabled && ec[i]._labelHandler.drawPicking();
+            ec[i].labelHandler.drawPicking();
         }
 
         gl.enable(gl.CULL_FACE);

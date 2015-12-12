@@ -10,6 +10,13 @@ goog.require('og.shaderProgram.billboardPicking');
  */
 og.BillboardHandler = function (entityCollection) {
 
+    /**
+     * Picking rendering option.
+     * @public
+     * @type {boolean}
+     */
+    this.pickingEnabled = true;
+
     this._entityCollection = entityCollection;
 
     this._renderer = null;
@@ -273,7 +280,7 @@ og.BillboardHandler.prototype.draw = function () {
 };
 
 og.BillboardHandler.prototype.drawPicking = function () {
-    if (this._entityCollection.visibility && this._billboards.length) {
+    if (this._entityCollection.visibility && this._billboards.length && this.pickingEnabled) {
         this._pickingPASS();
     }
 };

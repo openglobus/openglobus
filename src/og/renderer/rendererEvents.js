@@ -127,6 +127,7 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mousemove
          */
         "mousemove",
+
         /**
          * Mouse is just stopped.
          * @event og.RendererEvents#mousestop
@@ -138,11 +139,13 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mouselbuttonclick
          */
         "mouselbuttonclick",
+
         /**
          * Mouse right button clicked.
          * @event og.RendererEvents#mouserbuttonclick
          */
         "mouserbuttonclick",
+
         /**
          * Mouse middle button clicked.
          * @event og.RendererEvents#mousembuttonclick
@@ -154,11 +157,13 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mouselbuttondoubleclick
          */
         "mouselbuttondoubleclick",
+
         /**
          * Mouse right button double click.
          * @event og.RendererEvents#mouserbuttondoubleclick
          */
         "mouserbuttondoubleclick",
+
         /**
          * Mouse middle button double click.
          * @event og.RendererEvents#mousembuttondoubleclick
@@ -170,11 +175,13 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mouselbuttonup
          */
         "mouselbuttonup",
+
         /**
          * Mouse right button up(stop pressing).
          * @event og.RendererEvents#mouserbuttonup
          */
         "mouserbuttonup",
+
         /**
          * Mouse middle button up(stop pressing).
          * @event og.RendererEvents#mousembuttonup
@@ -186,11 +193,13 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mouselbuttondown
          */
         "mouselbuttondown",
+
         /**
          * Mouse right button is just pressed down(start pressing).
          * @event og.RendererEvents#mouserbuttondown
          */
         "mouserbuttondown",
+
         /**
          * Mouse middle button is just pressed down(start pressing).
          * @event og.RendererEvents#mousembuttondown
@@ -202,11 +211,13 @@ og.RendererEvents.EVENT_NAMES = [
          * @event og.RendererEvents#mouselbuttonhold
          */
         "mouselbuttonhold",
+
         /**
          * Mouse right button is pressing.
          * @event og.RendererEvents#mouserbuttonhold
          */
         "mouserbuttonhold",
+
         /**
          * Mouse middle button is pressing.
          * @event og.RendererEvents#mousembuttonhold
