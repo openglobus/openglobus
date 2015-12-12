@@ -37,6 +37,11 @@ goog.require('og.Events');
  */
 og.EntityCollection = function () {
 
+    /**
+     * Render node collections array index.
+     * @private
+     * @type {number}
+     */
     this._renderNodeIndex = -1;
 
     /**
@@ -53,7 +58,18 @@ og.EntityCollection = function () {
      */
     this.visibility = true;
 
+    /**
+     * Billboards handler
+     * @public
+     * @type {og.BillboardHandler}
+     */
     this.billboardHandler = new og.BillboardHandler(this);
+
+    /**
+     * Labels handler
+     * @public
+     * @type {og.LabelHandler}
+     */
     this.labelHandler = new og.LabelHandler(this);
 
     /**
@@ -64,7 +80,7 @@ og.EntityCollection = function () {
     this.entities = [];
 
     /**
-     *Entity collection events handler.
+     * Entity collection events handler.
      * @public
      * @type {og.Events}
      */
@@ -225,6 +241,11 @@ og.EntityCollection.EVENT_NAMES = [
         "touchstart",
         "touchend"];
 
+/**
+ * Sets collection visibility.
+ * @public
+ * @param {boolean} visibility - Visibility flag.
+ */
 og.EntityCollection.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
     this.events.dispatch(this.events.visibilitychange, this);
@@ -248,6 +269,12 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     }
 };
 
+/**
+ * Adds entity to the collection and returns collection.
+ * @public
+ * @param {og.Entity} entity - Entity.
+ * @returns {og.EntityCollection}
+ */
 og.EntityCollection.prototype.add = function (entity) {
     if (!entity._entityCollection) {
         entity._entityCollection = this;
@@ -259,6 +286,12 @@ og.EntityCollection.prototype.add = function (entity) {
     return this;
 };
 
+/**
+ * Returns true if the entity belongs this collection, otherwise returns false.
+ * @public
+ * @param {og.Entity} entity - Entity.
+ * @returns {boolean}
+ */
 og.EntityCollection.prototype.belongs = function (entity) {
     return (entity._entityCollection && this._renderNodeIndex == entity._entityCollection._renderNodeIndex);
 };
@@ -280,6 +313,11 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     }
 };
 
+/**
+ * Removes entity from this collection.
+ * @public
+ * @param {og.Entity} entity - Entity to remove.
+ */
 og.EntityCollection.prototype.removeEntity = function (entity) {
     this.entities.splice(entity._entityCollectionIndex, 1);
     this.reindexEntitiesArray(entity._entityCollectionIndex);
@@ -295,6 +333,10 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
     }
 };
 
+/**
+ * Creates or refresh collected entities picking color.
+ * @public
+ */
 og.EntityCollection.prototype.createPickingColors = function () {
     var e = this.entities;
     for (var i = 0; i < e.length; i++) {
@@ -305,6 +347,11 @@ og.EntityCollection.prototype.createPickingColors = function () {
     }
 };
 
+/**
+ * Refresh collected entities indexes from startIndex entitytes collection array position.
+ * @public
+ * @param {number} startIndex - Entities collection array index.
+ */
 og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
     var e = this.entities;
     for (var i = startIndex; i < e.length; i++) {
@@ -312,6 +359,12 @@ og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
     }
 };
 
+/**
+ * Assign this collection to render node.
+ * @public
+ * @param {og.node.RenderNode} renderNode - Render node.
+ * @returns {og.EntityCollection}
+ */
 og.EntityCollection.prototype.addTo = function (renderNode) {
     if (!this.renderNode) {
         this._renderNodeIndex = renderNode.entityCollections.length;
@@ -323,6 +376,11 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
     return this;
 };
 
+/**
+ * Sets renderer. Used in renderer initialization, when entity collection starts before renderer has initialized.
+ * @public
+ * @param {og.Renderer} renderer - Renderer.
+ */
 og.EntityCollection.prototype.setRenderer = function (renderer) {
     if (renderer) {
         this.billboardHandler.setRenderer(renderer);
@@ -333,6 +391,10 @@ og.EntityCollection.prototype.setRenderer = function (renderer) {
     }
 };
 
+/**
+ * Updates billboard texture atlas.
+ * @public
+ */
 og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
     var b = this.billboardHandler._billboards;
     for (var i = 0; i < b.length; i++) {
@@ -340,6 +402,10 @@ og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
     }
 };
 
+/**
+ * Updates labels font atlas.
+ * @public
+ */
 og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
     if (this.renderNode) {
         var l = this.labelHandler._billboards;
@@ -349,6 +415,10 @@ og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
     }
 };
 
+/**
+ * Removes collection from render node.
+ * @public
+ */
 og.EntityCollection.prototype.remove = function () {
     if (this.renderNode) {
         this.renderNode.billboardCollection.splice(this._renderNodeIndex, 1);
@@ -361,6 +431,10 @@ og.EntityCollection.prototype.remove = function () {
     }
 };
 
+/**
+ * Removes all entities from colection.
+ * @public
+ */
 og.EntityCollection.prototype.clear = function () {
     for (var i = 0; i < this.entities.length; i++) {
         this.entities[i].remove();
