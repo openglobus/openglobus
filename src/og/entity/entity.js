@@ -53,14 +53,28 @@ og.Entity = function (options) {
 
 og.Entity.__staticCounter = 0;
 
+/**
+ * Adds current entity into the specified entity collection.
+ * @public
+ * @param {og.EntityCollection} entityCollection - Specified entity collection.
+ */
 og.Entity.prototype.addTo = function (entityCollection) {
     entityCollection.add(this);
 };
 
+/**
+ * Removes current entity from specifeid entity collection.
+ * @public
+ */
 og.Entity.prototype.remove = function () {
     this._entityCollection && this._entityCollection.removeEntity(this);
 };
 
+/**
+ * Sets the entity visibility.
+ * @public
+ * @param {boolean} visibilty - Entity visibility.
+ */
 og.Entity.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
 
@@ -75,18 +89,31 @@ og.Entity.prototype.setVisibility = function (visibility) {
     }
 };
 
+/**
+ * Returns entity visibility.
+ * @public
+ * @returns {boolean}
+ */
 og.Entity.prototype.getVisibility = function () {
     return this._visibility;
 };
 
-og.Entity.prototype.getPosition = function () {
-    return this._position;
-};
-
+/**
+ * Sets entity position.
+ * @public
+ * @param {og.math.Vector3} position - Position in 3d space.
+ */
 og.Entity.prototype.setPosition3v = function (position) {
     this.setPosition(position.x, position.y, position.z);
 };
 
+/**
+ * Sets entity position.
+ * @public
+ * @param {number} x - 3d space X - position.
+ * @param {number} y - 3d space Y - position.
+ * @param {number} z - 3d space Z - position.
+ */
 og.Entity.prototype.setPosition = function (x, y, z) {
 
     var p = this._position;
@@ -106,6 +133,64 @@ og.Entity.prototype.setPosition = function (x, y, z) {
     }
 };
 
+/**
+ * Returns position.
+ * @public
+ * @returns {og.math.Vector3}
+ */
+og.Entity.prototype.getPosition = function () {
+    return this._position;
+};
+
+/**
+ * Sets entity billboard.
+ * @public
+ * @param {og.Billboard} billboard - Billboard image.
+ */
+og.Entity.prototype.setBillboard = function (billboard) {
+    if (this.billboard) {
+        this.billboard.remove();
+    }
+    this.billboard = billboard;
+    this.billboard._entity = this;
+    this.billboard.setPosition3v(this._position);
+    this.billboard.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
+};
+
+/**
+ * Sets entity label.
+ * @public
+ * @param {og.Label} label - Text label.
+ */
+og.Entity.prototype.setLabel = function (label) {
+    if (this.label) {
+        this.label.remove();
+    }
+    this.label = label;
+    this.label._entity = this;
+    this.label.setPosition3v(this._position);
+    this.label.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._labelHandler.add(label);
+};
+
+/**
+ * Append child entity.
+ * @public
+ * @param {og.Entity} entity - Entity child.
+ */
+og.Entity.prototype.appendChild = function (entity) {
+    entity._entityCollection = this._entityCollection;
+    entity._pickingColor = this._pickingColor;
+    entity.parent = this;
+    this.childrenNodes.push(entity);
+    this._entityCollection && this._entityCollection._addRecursively(entity);
+};
+
+/**
+ * Appends entity items(billboard, label etc.) picking color.
+ * @public
+ */
 og.Entity.prototype.setPickingColor = function () {
 
     var c = this._pickingColor;
@@ -119,34 +204,4 @@ og.Entity.prototype.setPickingColor = function () {
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPickingColor3v(c);
     }
-};
-
-og.Entity.prototype.setBillboard = function (billboard) {
-    if (this.billboard) {
-        this.billboard.remove();
-    }
-    this.billboard = billboard;
-    this.billboard._entity = this;
-    this.billboard.setPosition3v(this._position);
-    this.billboard.setVisibility(this._visibility);
-    this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
-};
-
-og.Entity.prototype.setLabel = function (label) {
-    if (this.label) {
-        this.label.remove();
-    }
-    this.label = label;
-    this.label._entity = this;
-    this.label.setPosition3v(this._position);
-    this.label.setVisibility(this._visibility);
-    this._entityCollection && this._entityCollection._labelHandler.add(label);
-};
-
-og.Entity.prototype.appendChild = function (entity) {
-    entity._entityCollection = this._entityCollection;
-    entity._pickingColor = this._pickingColor;
-    entity.parent = this;
-    this.childrenNodes.push(entity);
-    this._entityCollection && this._entityCollection._addRecursively(entity);
 };
