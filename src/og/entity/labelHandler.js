@@ -106,7 +106,7 @@ og.LabelHandler.prototype.clear = function () {
 
 og.LabelHandler.prototype._addBillboardToArrays = function (label) {
     for (var i = 0; i < this._maxLetters; i++) {
-        if (label.visibility) {
+        if (label._visibility) {
             og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
         } else {
             og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -114,34 +114,34 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
 
         og.BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
 
-        var x = label.position.x, y = label.position.y, z = label.position.z;
+        var x = label._position.x, y = label._position.y, z = label._position.z;
         og.BillboardHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = label.size;
+        x = label._size;
         og.BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
 
-        x = label.offset.x; y = label.offset.y; z = label.offset.z - 0.05;
+        x = label._offset.x; y = label._offset.y; z = label._offset.z - 0.05;
         og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = label.color.x; y = label.color.y; z = label.color.z; w = label.color.w;
+        x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
         og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-        x = label.rotation;
+        x = label._rotation;
         og.BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
 
-        x = label.alignedAxis.x, y = label.alignedAxis.y, z = label.alignedAxis.z;
+        x = label._alignedAxis.x, y = label._alignedAxis.y, z = label._alignedAxis.z;
         og.BillboardHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = label._fontIndex;
         og.BillboardHandler.concArr(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
 
-        x = 1.0 - label.outline, y = 0.0;
+        x = 1.0 - label._outline, y = 0.0;
         og.BillboardHandler.concArr(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
         x = 0.75, y = 0.7;
         og.BillboardHandler.concArr(this._noOutlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-        x = label.outlineColor.x; y = label.outlineColor.y; z = label.outlineColor.z; w = label.outlineColor.w;
+        x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
         og.BillboardHandler.concArr(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
         x = label._entity._pickingColor.x / 255, y = label._entity._pickingColor.y / 255, z = label._entity._pickingColor.z / 255;
@@ -600,17 +600,11 @@ og.LabelHandler.prototype.setOutlineArr = function (index, outline) {
 
     for (var q = 0; q < this._maxLetters; q++) {
         var j = i + q * 12;
-
         a[j] = outline;
-
         a[j + 2] = outline;
-
         a[j + 4] = outline;
-
         a[j + 6] = outline;
-
         a[j + 8] = outline;
-
         a[j + 10] = outline;
     }
 
@@ -634,16 +628,6 @@ og.LabelHandler.prototype.setRotationArr = function (index, rotation) {
 
     this._changedBuffers[og.BillboardHandler.ROTATION_BUFFER] = true
 };
-
-//og.LabelHandler.prototype.setVisibility = function (index, visibility) {
-//    var vArr;
-//    if (visibility) {
-//        vArr = [-0.5, 0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0];
-//    } else {
-//        vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-//    }
-//    this.setVertexArr(index, vArr);
-//};
 
 og.LabelHandler.prototype.setVertexArr = function (index, vertexArr) {
 
@@ -765,5 +749,6 @@ og.LabelHandler.prototype.setMaxLetters = function (c) {
 };
 
 og.LabelHandler.prototype.refreshTexCoordsArr = function () {
+    //it is empty
     return null;
 };

@@ -53,10 +53,10 @@ og.EntityCollection = function () {
 
     /**
      * Visibility option.
-     * @public
+     * @private
      * @type {boolean}
      */
-    this.visibility = true;
+    this._visibility = true;
 
     /**
      * Billboards handler
@@ -247,8 +247,17 @@ og.EntityCollection.EVENT_NAMES = [
  * @param {boolean} visibility - Visibility flag.
  */
 og.EntityCollection.prototype.setVisibility = function (visibility) {
-    this.visibility = visibility;
+    this._visibility = visibility;
     this.events.dispatch(this.events.visibilitychange, this);
+};
+
+/**
+ * Returns collection visibility.
+ * @public
+ * @returns {boolean}
+ */
+og.EntityCollection.prototype.getVisibility = function () {
+    return this._visibility;
 };
 
 og.EntityCollection.prototype._addRecursively = function (entity) {
@@ -398,7 +407,7 @@ og.EntityCollection.prototype.setRenderer = function (renderer) {
 og.EntityCollection.prototype.updateBillboardsTextureAtlas = function () {
     var b = this.billboardHandler._billboards;
     for (var i = 0; i < b.length; i++) {
-        b[i].setSrc(b[i].src);
+        b[i].setSrc(b[i]._src);
     }
 };
 

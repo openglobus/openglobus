@@ -142,12 +142,12 @@ og.BillboardHandler.prototype.add = function (billboard) {
         this._billboards.push(billboard);
         this._addBillboardToArrays(billboard);
         this.refresh();
-        billboard.setSrc(billboard.src);
+        billboard.setSrc(billboard._src);
     }
 };
 
 og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
-    if (billboard.visibility) {
+    if (billboard._visibility) {
         og.BillboardHandler.concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
     } else {
         og.BillboardHandler.concArr(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -155,22 +155,22 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
 
     og.BillboardHandler.concArr(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
-    var x = billboard.position.x, y = billboard.position.y, z = billboard.position.z;
+    var x = billboard._position.x, y = billboard._position.y, z = billboard._position.z;
     og.BillboardHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-    x = billboard.width; y = billboard.height;
+    x = billboard._width; y = billboard._height;
     og.BillboardHandler.concArr(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-    x = billboard.offset.x; y = billboard.offset.y; z = billboard.offset.z;
+    x = billboard._offset.x; y = billboard._offset.y; z = billboard._offset.z;
     og.BillboardHandler.concArr(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-    x = billboard.color.x; y = billboard.color.y; z = billboard.color.z; w = billboard.color.w;
+    x = billboard._color.x; y = billboard._color.y; z = billboard._color.z; w = billboard._color.w;
     og.BillboardHandler.concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-    x = billboard.rotation;
+    x = billboard._rotation;
     og.BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
 
-    x = billboard.alignedAxis.x, y = billboard.alignedAxis.y, z = billboard.alignedAxis.z;
+    x = billboard._alignedAxis.x, y = billboard._alignedAxis.y, z = billboard._alignedAxis.z;
     og.BillboardHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
     x = billboard._entity._pickingColor.x / 255, y = billboard._entity._pickingColor.y / 255, z = billboard._entity._pickingColor.z / 255;
@@ -273,14 +273,14 @@ og.BillboardHandler.prototype._pickingPASS = function () {
 };
 
 og.BillboardHandler.prototype.draw = function () {
-    if (this._entityCollection.visibility && this._billboards.length) {
+    if (this._entityCollection._visibility && this._billboards.length) {
         this.update();
         this._displayPASS();
     }
 };
 
 og.BillboardHandler.prototype.drawPicking = function () {
-    if (this._entityCollection.visibility && this._billboards.length && this.pickingEnabled) {
+    if (this._entityCollection._visibility && this._billboards.length && this.pickingEnabled) {
         this._pickingPASS();
     }
 };
@@ -654,9 +654,9 @@ og.BillboardHandler.prototype.refreshTexCoordsArr = function () {
         var ta = bc.renderNode.billboardsTextureAtlas;
         for (var i = 0; i < this._billboards.length; i++) {
             var bi = this._billboards[i];
-            var img = bi.image;
+            var img = bi._image;
             if (img) {
-                var imageNode = ta.nodes[bi.image.__nodeIndex];
+                var imageNode = ta.nodes[bi._image.__nodeIndex];
                 if (imageNode) {
                     this.setTexCoordArr(bi._handlerIndex, imageNode.texCoords);
                 }

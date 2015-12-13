@@ -4,13 +4,19 @@ goog.require('og.math.Vector3');
 goog.require('og.Billboard');
 goog.require('og.Label');
 
+/**
+ * Entity instances aggregate multiple forms of visualization into a single high-level object.
+ * They can be created manually and added to entity collection.
+ *
+ * @class
+ * @param {Object} [options] - Object with the following properties:
+ * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
+ */
 og.Entity = function (options) {
 
     options = options || {};
-
-    this.position = new og.math.Vector3();
-    this.visibility = true;
-    this.id = options.id || ("noname_" + og.Entity.__staticCounter++);
+    
+    this.name = options.name || ("noname_" + og.Entity.__staticCounter++);
 
     this.billboard = null;
     this.label = null;
@@ -19,7 +25,27 @@ og.Entity = function (options) {
     this.childrenNodes = [];
     this.parent = null;
 
+    /**
+     * Entity position
+     * @private
+     * @type {og.math.Vector3}
+     */
+    this._position = new og.math.Vector3();
+
+    /**
+     * Visibility.
+     * @private
+     * @type {boolean}
+     */
+    this._visibility = true;
+
+    /**
+     * Entity collection that this entity belongs to.
+     * @private
+     * @type {og.EntityCollection}
+     */
     this._entityCollection = null;
+
     this._entityCollectionIndex = -1;
 
     this._pickingColor = new og.math.Vector3(0, 0, 0);
@@ -36,7 +62,7 @@ og.Entity.prototype.remove = function () {
 };
 
 og.Entity.prototype.setVisibility = function (visibility) {
-    this.visibility = visibility;
+    this._visibility = visibility;
 
     //billboards
     this.billboard && this.billboard.setVisibility(visibility);
@@ -49,13 +75,21 @@ og.Entity.prototype.setVisibility = function (visibility) {
     }
 };
 
+og.Entity.prototype.getVisibility = function () {
+    return this._visibility;
+};
+
+og.Entity.prototype.getPosition = function () {
+    return this._position;
+};
+
 og.Entity.prototype.setPosition3v = function (position) {
     this.setPosition(position.x, position.y, position.z);
 };
 
 og.Entity.prototype.setPosition = function (x, y, z) {
 
-    var p = this.position;
+    var p = this._position;
 
     p.x = x;
     p.y = y;
@@ -93,8 +127,8 @@ og.Entity.prototype.setBillboard = function (billboard) {
     }
     this.billboard = billboard;
     this.billboard._entity = this;
-    this.billboard.setPosition3v(this.position);
-    this.billboard.setVisibility(this.visbility);
+    this.billboard.setPosition3v(this._position);
+    this.billboard.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
 };
 
@@ -104,8 +138,8 @@ og.Entity.prototype.setLabel = function (label) {
     }
     this.label = label;
     this.label._entity = this;
-    this.label.setPosition3v(this.position);
-    this.label.setVisibility(this.visbility);
+    this.label.setPosition3v(this._position);
+    this.label.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
 };
 
