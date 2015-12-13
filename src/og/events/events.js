@@ -9,7 +9,7 @@ og.Events.prototype.registerNames = function (eventNames) {
 };
 
 og.Events.prototype.on = function (name, sender, callback) {
-    this[name].handlers.push({ sender: sender, callback: callback });
+    this[name].handlers.unshift({ sender: sender, callback: callback });
 };
 
 og.Events.prototype.dispatch = function (event, obj) {
