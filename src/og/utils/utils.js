@@ -3,6 +3,16 @@ goog.provide('og.utils');
 goog.require('og.Ajax');
 goog.require('og.math.Vector4');
 
+/**
+ * Openglobus utility namespace.
+ * @namespace og.utils
+ */
+
+/**
+ * Synchronous text file loading. Returns file text.
+ * @param {string} fileUrl - File name path.
+ * @returns {string}
+ */
 og.utils.readTextFile = function (fileUrl) {
     var res = "";
 
@@ -16,6 +26,12 @@ og.utils.readTextFile = function (fileUrl) {
     return res;
 };
 
+/**
+ * Convert html color string to the RGBA number vector.
+ * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
+ * @param {number} [opacity] - Opacity for the output vector.
+ * @returns {og.math.Vector4}
+ */
 og.utils.colorToVector = function (htmlColor, opacity) {
     if (htmlColor[0] == "#") {
         return og.utils.hexStringToVector(htmlColor, opacity);
@@ -24,6 +40,12 @@ og.utils.colorToVector = function (htmlColor, opacity) {
     }
 };
 
+/**
+ * Converts HTML rgba style string to the number vector.
+ * @param {string} rgbaString - HTML string color.
+ * @param {number} [opacity] - Opacity for the output vector.
+ * @returns {og.math.Vector4}
+ */
 og.utils.rgbaStringToVector = function (rgbaString, opacity) {
     if (opacity == undefined) {
         opacity = 1.0;
@@ -32,6 +54,12 @@ og.utils.rgbaStringToVector = function (rgbaString, opacity) {
     return new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
 };
 
+/**
+ * Converts HTML hex style string to the number vector.
+ * @param {string} hex- HTML hex style string color.
+ * @param {number} [opacity] - Opacity for the output vector.
+ * @returns {og.math.Vector4}
+ */
 og.utils.hexStringToVector = function (hex, opacity) {
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
