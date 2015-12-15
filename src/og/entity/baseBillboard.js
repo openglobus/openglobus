@@ -22,24 +22,31 @@ og.BaseBillboard = function (options) {
     this._offset = new og.math.Vector3();
     this._visibility = true;
 
+    /**
+     * Entity instance that holds this billboard.
+     * @private
+     * @type {og.Entity}
+     */
     this._entity = null;
+
+    /**
+     * Handler that stores and renders this billboard object.
+     * @private
+     * @type {og.BillboardHandler}
+     */
     this._handler = null;
     this._handlerIndex = -1;
 };
 
 og.BaseBillboard.__staticId = 0;
 
-og.BaseBillboard.prototype.getPosition = function () {
-    return this._position;
-};
-
-og.BaseBillboard.prototype.setPosition3v = function (position) {
-    this._position.x = position.x;
-    this._position.y = position.y;
-    this._position.z = position.z;
-    this._handler && this._handler.setPositionArr(this._handlerIndex, position);
-};
-
+/**
+ * Sets billboard position.
+ * @public
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @param {number} z - Z coordinate.
+ */
 og.BaseBillboard.prototype.setPosition = function (x, y, z) {
     this._position.x = x;
     this._position.y = y;
@@ -47,25 +54,99 @@ og.BaseBillboard.prototype.setPosition = function (x, y, z) {
     this._handler && this._handler.setPositionArr(this._handlerIndex, this._position);
 };
 
-og.BaseBillboard.prototype.setOffset = function (offset) {
+/**
+ * Sets billboard position.
+ * @public
+ * @param {og.math.Vector3} position - Cartesian coordinates.
+ */
+og.BaseBillboard.prototype.setPosition3v = function (position) {
+    this._position.x = position.x;
+    this._position.y = position.y;
+    this._position.z = position.z;
+    this._handler && this._handler.setPositionArr(this._handlerIndex, position);
+};
+
+/**
+ * Returns billboard position.
+ * @public
+ * @returns {og.math.Vector3}
+ */
+og.BaseBillboard.prototype.getPosition = function () {
+    return this._position;
+};
+
+/**
+ * Sets screen space offset.
+ * @public
+ * @param {number} x - X offset size.
+ * @param {number} y - Y offset size.
+ */
+og.BaseBillboard.prototype.setOffset = function (x, y) {
+    this._offset.x = x;
+    this._offset.y = y;
+    this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
+};
+
+/**
+ * Sets screen space offset.
+ * @public
+ * @param {og.math.Vector2} offset - Offset size.
+ */
+og.BaseBillboard.prototype.setOffset2v = function (offset) {
     this._offset.x = offset.x;
     this._offset.y = offset.y;
     this._handler && this._handler.setOffsetArr(this._handlerIndex, offset);
 };
 
+/**
+ * Returns billboard screen space offset size.
+ * @public
+ * @returns {og.math.Vector2}
+ */
 og.BaseBillboard.prototype.getOffset = function () {
     return this._offset;
 };
 
+/**
+ * Sets billboard screen space rotation in radians.
+ * @public
+ * @param {number} rotation - Screen space rotation in radians.
+ */
 og.BaseBillboard.prototype.setRotation = function (rotation) {
     this._rotation = rotation;
     this._handler && this._handler.setRotationArr(this._handlerIndex, rotation);
 };
 
+/**
+ * Gets screen space rotation.
+ * @public
+ * @returns {number}
+ */
 og.BaseBillboard.prototype.getRotation = function () {
     return this._rotation;
 };
 
+/**
+ * Sets RGBA color. Each channel from 0.0 to 1.0.
+ * @public
+ * @param {number} r - Red.
+ * @param {number} g - Green.
+ * @param {number} b - Blue.
+ * @param {number} a - Alpha.
+ */
+og.BaseBillboard.prototype.setColor = function (r, g, b, a) {
+    this._color.x = r;
+    this._color.y = g;
+    this._color.z = b;
+    this._color.w = a;
+    this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
+};
+
+/**
+ * Sets RGBA color. Each channel from 0.0 to 1.0.
+ * @public
+ * @param {og.math.Vector4} color - RGBA vector.
+ */
 og.BaseBillboard.prototype.setColor4v = function (color) {
     this._color.x = color.x;
     this._color.y = color.y;
@@ -74,34 +155,50 @@ og.BaseBillboard.prototype.setColor4v = function (color) {
     this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
 };
 
+/**
+ * Sets billboard color.
+ * @public
+ * @param {string} color - HTML style color.
+ */
+og.BaseBillboard.prototype.setColorHTML = function (color) {
+    this.setColor4v(og.utils.htmlColor2rgba(color));
+};
+
+/**
+ * Returns RGBA color.
+ * @public
+ * @returns {og.math.Vector4}
+ */
 og.BaseBillboard.prototype.getColor = function () {
     return this._color;
 };
 
-og.BaseBillboard.prototype.setColor = function (color) {
-    this.setColor4v(og.utils.htmlColor2rgba(color));
-};
-
+/**
+ * Sets billboard visibility.
+ * @public
+ * @param {boolean} visibility - Visibility flag.
+ */
 og.BaseBillboard.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
     this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
 };
 
+/**
+ * Returns billboard visibility.
+ * @public
+ * @returns {boolean}
+ */
 og.BaseBillboard.prototype.getVisibility = function () {
     return this._visibility;
 };
 
-og.BaseBillboard.prototype.setAlignedAxis3v = function (alignedAxis) {
-    this._alignedAxis.x = alignedAxis.x;
-    this._alignedAxis.y = alignedAxis.y;
-    this._alignedAxis.z = alignedAxis.z;
-    this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
-};
-
-og.BaseBillboard.prototype.getAlignedAxis = function () {
-    return this._alignedAxis;
-};
-
+/**
+ * Sets billboard cartesian aligned vector.
+ * @public
+ * @param {number} x - Aligned vector X coordinate.
+ * @param {number} y - Aligned vector Y coordinate.
+ * @param {number} z - Aligned vector Z coordinate.
+ */
 og.BaseBillboard.prototype.setAlignedAxis = function (x, y, z) {
     this._alignedAxis.x = x;
     this._alignedAxis.y = y;
@@ -109,11 +206,41 @@ og.BaseBillboard.prototype.setAlignedAxis = function (x, y, z) {
     this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
 };
 
+/**
+ * Sets billboard aligned vector.
+ * @public
+ * @param {og.math.Vecto3} alignedAxis - Vector to align.
+ */
+og.BaseBillboard.prototype.setAlignedAxis3v = function (alignedAxis) {
+    this._alignedAxis.x = alignedAxis.x;
+    this._alignedAxis.y = alignedAxis.y;
+    this._alignedAxis.z = alignedAxis.z;
+    this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
+};
+
+/**
+ * Returns aligned vector.
+ * @public
+ * @returns {og.math.Vector3}
+ */
+og.BaseBillboard.prototype.getAlignedAxis = function () {
+    return this._alignedAxis;
+};
+
+/**
+ * Removes billboard from hander.
+ * @public
+ */
 og.BaseBillboard.prototype.remove = function () {
     this._entity = null;
     this._handler && this._handler.remove(this);
 };
 
+/**
+ * Sets billboard picking color.
+ * @public
+ * @param {og.math.Vector3} color - Picking color.
+ */
 og.BaseBillboard.prototype.setPickingColor3v = function (color) {
     this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
 };
