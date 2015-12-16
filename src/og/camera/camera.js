@@ -393,3 +393,48 @@ og.Camera.prototype.rotateVertical = function (angle, center) {
 og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * this._tanViewAngle_hrad;
 };
+
+/**
+ * Returns normal matrix.
+ * @public
+ * @type {og.math.Matrix3}
+ */
+og.Camera.prototype.getNormalMatrix = function () {
+    return this._nMatrix;
+};
+
+/**
+ * Returns projection matrix.
+ * @public
+ * @type {og.math.Matrix4}
+ */
+og.Camera.prototype.getProjectionMatrix = function () {
+    return this._pMatrix;
+};
+
+/**
+ * Returns model matrix.
+ * @public
+ * @type {og.math.Matrix4}
+ */
+og.Camera.prototype.getModelviewMatrix = function () {
+    return this._mvMatrix;
+};
+
+/**
+ * Returns projection and model matrix product.
+ * @public
+ * @type {og.math.Matrix4}
+ */
+og.Camera.prototype.getProjectionModelviewMatrix = function () {
+    return this._pmvMatrix;
+};
+
+/**
+ * Returns inverse projection and model matrix product.
+ * @public
+ * @type {og.math.Matrix4}
+ */
+og.Camera.prototype.getInverseProjecttionModelviewMatrix = function () {
+    return this._ipmvMatrix;
+};

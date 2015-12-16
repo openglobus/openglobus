@@ -24,14 +24,37 @@ og.PlanetCamera = function (planet, options) {
 
     og.inheritance.base(this, planet.renderer, options);
 
+    /**
+     * Minimal alltitude that camera can reach over the terrain.
+     * @public
+     * @type {number}
+     */
     this.minAltitude = options.minAltitude || 50;
 
+    /**
+     * Current geographical position.
+     * @private
+     * @type {og.LonLat}
+     */
     this._lonLat = this.planet.ellipsoid.ECEF2LonLat(this.eye);
-    this._earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
+
+    /**
+     * Current altitude.
+     * @private
+     * @type {number}
+     */
     this._altitude = this._lonLat.height;
 
-    this._nodeCameraPosition = null;
+    this._earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
+
+    /**
+     * Quad node that camera flies over.
+     * @private
+     * @type {og.quadTree.QuadNode}
+     */
     this._cameraInsideNode = this.planet.quadTree;
+
+    this._nodeCameraPosition = null;
 
     /** Camera's flying frames */
     this._framesArr = [];
@@ -111,11 +134,10 @@ og.PlanetCamera.prototype.getAltitude = function () {
  * @param {og.LonLat} lonlat - Geographical position.
  */
 og.PlanetCamera.prototype.setLonLat = function (lonlat, up) {
-    this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height ? lonlat.height : this._lonLat.height);
+    this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
     var newEye = this.planet.ellipsoid.LonLat2ECEF(this._lonLat);
     var rot = new og.math.Matrix4().rotateBetweenVectors(newEye.normal(), this.eye.normal());
     this.eye = newEye;
-
     this._v = rot.mulVec3(this._v);
     this._u = rot.mulVec3(this._u);
     this._n = rot.mulVec3(this._n);
@@ -147,8 +169,9 @@ og.PlanetCamera.prototype.getHeight = function () {
  */
 og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
     this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-    var newEye = this.planet.ellipsoid.LonLat2ECEF(this._lonLat);
-    var newLook = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(this._lonLat.lon, this._lonLat.lat, 0));
+    var el = this.planet.ellipsoid;
+    var newEye = el.LonLat2ECEF(this._lonLat);
+    var newLook = el.LonLat2ECEF(new og.LonLat(this._lonLat.lon, this._lonLat.lat, 0));
     this.set(newEye, newLook, up || og.math.Vector3.UP);
 };
 
@@ -169,14 +192,16 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
         east += 360;
     }
 
+    var f = this.planet.ellipsoid.LonLat2ECEF;
+
     var cart = new og.LonLat(east, north);
-    var northEast = this.planet.ellipsoid.LonLat2ECEF(cart);
+    var northEast = f(cart);
     cart.lat = south;
-    var southEast = this.planet.ellipsoid.LonLat2ECEF(cart);
+    var southEast = f(cart);
     cart.lon = west;
-    var southWest = this.planet.ellipsoid.LonLat2ECEF(cart);
+    var southWest = f(cart);
     cart.lat = north;
-    var northWest = this.planet.ellipsoid.LonLat2ECEF(cart);
+    var northWest = f(cart);
 
     var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
 
@@ -184,7 +209,7 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
     if (mag < 0.000001) {
         cart.lon = (east + west) * 0.5;
         cart.lat = (north + south) * 0.5;
-        center = this.planet.ellipsoid.LonLat2ECEF(cart);
+        center = f(cart);
     }
 
     northWest.sub(center);
@@ -239,7 +264,8 @@ og.PlanetCamera.prototype.viewExtent = function (extent) {
  * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
  */
 og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, startCallback) {
-    this.flyCartesian(this.getExtentPosition(extent, this.planet.ellipsoid), og.math.Vector3.ZERO, up, completeCallback, startCallback);
+    this.flyCartesian(this.getExtentPosition(extent, this.planet.ellipsoid), og.math.Vector3.ZERO,
+        up, completeCallback, startCallback);
 };
 
 /**
