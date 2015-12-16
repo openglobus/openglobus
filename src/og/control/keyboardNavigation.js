@@ -30,25 +30,25 @@ og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {
 
 og.control.KeyboardNavigation.prototype.onCameraMoveForward = function (event) {
     var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, -camera.lonLat.height / 30);
+    camera.slide(0, 0, -camera._lonLat.height / 30);
     camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraMoveBackward = function (event) {
     var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, camera.lonLat.height / 30);
+    camera.slide(0, 0, camera._lonLat.height / 30);
     camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeLeft = function (event) {
     var camera = this.renderer.activeCamera;
-    camera.slide(-camera.lonLat.height / 30, 0, 0);
+    camera.slide(-camera._lonLat.height / 30, 0, 0);
     camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
     var camera = this.renderer.activeCamera;
-    camera.slide(camera.lonLat.height / 30, 0, 0);
+    camera.slide(camera._lonLat.height / 30, 0, 0);
     camera.update();
 };
 
@@ -57,7 +57,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
         cam.pitch(50 * this.renderer.handler.delta);
     } else {
-        cam.rotateVertical(cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
+        cam.rotateVertical(cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
     cam.update();
 };
@@ -67,7 +67,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
         cam.pitch(-50 * this.renderer.handler.delta);
     } else {
-        cam.rotateVertical(-cam.lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
+        cam.rotateVertical(-cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
     cam.update();
 };
@@ -77,7 +77,7 @@ og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
         cam.yaw(50 * this.renderer.handler.delta);
     } else {
-        cam.rotateHorizontal(cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+        cam.rotateHorizontal(cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
     cam.update();
 };
@@ -87,7 +87,7 @@ og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
         cam.yaw(-50 * this.renderer.handler.delta);
     } else {
-        cam.rotateHorizontal(-cam.lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+        cam.rotateHorizontal(-cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
     cam.update();
 };

@@ -140,7 +140,7 @@ og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, camer
         return { "distance": xyz.distance(res), "earth": res };
     }
 
-    return { "distance": camera.lonLat.height, "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction) };
+    return { "distance": camera._lonLat.height, "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction) };
 };
 
 og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {

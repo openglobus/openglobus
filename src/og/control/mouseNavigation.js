@@ -54,7 +54,7 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
 
     var scaled_n = n.scaleTo(d);
 
-    if (a && cam.lonLat.height > 9000 && n.dot(eye.normal()) > 0.6) {
+    if (a && cam._lonLat.height > 9000 && n.dot(eye.normal()) > 0.6) {
         var grabbedSpheroid = new og.bv.Sphere();
         grabbedSpheroid.radius = a.length();
 
@@ -200,7 +200,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.mouseState.moving) {
-        var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam.lonLat.height * og.math.RADIANS;
+        var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * og.math.RADIANS;
         if (l > 0.007) l = 0.007;
         cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
         cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);

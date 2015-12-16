@@ -187,9 +187,9 @@ og.quadTree.QuadNode.prototype.getState = function () {
 og.quadTree.QuadNode.VISIBLE_DISTANCE = 3570;
 
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
-    if (cam.lonLat.height < 3000000.0) {
+    if (cam._lonLat.height < 3000000.0) {
         var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
-        var horizon = og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam.lonLat.height);
+        var horizon = og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height);
         if (distance < horizon) {
             this.renderNode();
         } else {
