@@ -372,7 +372,6 @@ og.node.Planet.prototype.initialization = function () {
     this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     //Just initials
-    this.renderer.activeCamera.cameraInsideNode = this.quadTree;
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
     this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
     this.updateMatrices();
@@ -513,8 +512,7 @@ og.node.Planet.prototype.frame = function () {
 
     var cam = this.renderer.activeCamera;
 
-    cam.flyFrame();
-    cam.checkCollision();
+    cam.prepareFrame();
 
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
@@ -524,7 +522,7 @@ og.node.Planet.prototype.frame = function () {
     //print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
     if (!this._isCameraSunlight)
-        this.sunlight._position = cam.v.scaleTo(cam.altitude * 0.2).add(cam.u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
+        this.sunlight._position = cam._v.scaleTo(cam.altitude * 0.2).add(cam._u.scaleTo(cam.altitude * 0.4)).add(cam.eye);
     else
         this.sunlight._position = cam.eye;
 
@@ -581,15 +579,15 @@ og.node.Planet.prototype.renderNodesPASS = function () {
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
-            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
-            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._nMatrix._m);
+            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
 
         } else {
             h.shaderPrograms.overlays_nl.activate();
             sh = h.shaderPrograms.overlays_nl._program;
-            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._pmvMatrix._m);
         }
 
         var layers = this.visibleLayers;
@@ -617,15 +615,15 @@ og.node.Planet.prototype.renderNodesPASS = function () {
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera.nMatrix._m);
-            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera.mvMatrix._m);
-            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera.pMatrix._m);
+            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._nMatrix._m);
+            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
         } else {
             h.shaderPrograms.single_nl.activate();
             sh = h.shaderPrograms.single_nl._program;
 
-            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera.pmvMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._pmvMatrix._m);
         }
     }
 
@@ -839,7 +837,7 @@ og.node.Planet.prototype.viewExtent = function (extent) {
  * @param {og.math.Vector3} [up] - Camera UP vector.
  */
 og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
-    this.renderer.activeCamera.viewLonLat(lonlat, up);
+    this.renderer.activeCamera.setLonLat(lonlat, up);
 };
 
 /**

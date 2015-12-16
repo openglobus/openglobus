@@ -47,13 +47,13 @@ og.control.ZoomControl.prototype.init = function () {
 og.control.ZoomControl.prototype.zoomIn = function () {
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera.n.getNegate());
+        this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.getNegate());
 };
 
 og.control.ZoomControl.prototype.zoomOut = function () {
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera.n.getNegate());
+        this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.getNegate());
 };
 
 og.control.ZoomControl.prototype.onDraw = function (e) {
@@ -62,9 +62,9 @@ og.control.ZoomControl.prototype.onDraw = function (e) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
-        cam.v = sf.v;
-        cam.u = sf.u;
-        cam.n = sf.n;
+        cam._v = sf.v;
+        cam._u = sf.u;
+        cam._n = sf.n;
         cam.update();
     }
 };

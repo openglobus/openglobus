@@ -843,7 +843,7 @@ og.planetSegment.PlanetSegment.prototype.drawHeightPicking = function () {
             shu = sh.uniforms;
 
         var cam = this.node.planet.renderer.activeCamera;
-        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, cam.pmvMatrix._m);
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, cam._pmvMatrix._m);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

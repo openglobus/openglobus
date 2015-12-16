@@ -29,7 +29,7 @@ og.node.SkyBox.prototype.frame = function () {
     h.shaderPrograms.skybox.activate();
     sh = h.shaderPrograms.skybox._program;
     var shu = sh.uniforms;
-    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, cam.pmvMatrix._m);
+    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, cam._pmvMatrix._m);
     gl.uniform3fv(shu.pos._pName, cam.eye.toVec());
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);

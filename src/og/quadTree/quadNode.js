@@ -219,7 +219,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         planet = this.planet;
 
     if (this.parentNode) {
-        this.cameraInside = cam.isInsideSegment(this.planetSegment);
+        this.cameraInside = cam._isInsideSegment(this.planetSegment);
     } else {
         this.cameraInside = true;
     }

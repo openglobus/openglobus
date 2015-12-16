@@ -102,7 +102,7 @@ og.node.SkySphere.prototype.frame = function () {
 
     sh.activate();
 
-    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera.pmvMatrix._m);
+    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._pmvMatrix._m);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
     gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);

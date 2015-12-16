@@ -79,9 +79,9 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
             this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
             var rot = this.qRot;
             cam.eye = rot.mulVec3(cam.eye);
-            cam.v = rot.mulVec3(cam.v);
-            cam.u = rot.mulVec3(cam.u);
-            cam.n = rot.mulVec3(cam.n);
+            cam._v = rot.mulVec3(cam._v);
+            cam._u = rot.mulVec3(cam._u);
+            cam._n = rot.mulVec3(cam._n);
             cam.update();
         }
 
@@ -94,9 +94,9 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
-        cam.v = sf.v;
-        cam.u = sf.u;
-        cam.n = sf.n;
+        cam._v = sf.v;
+        cam._u = sf.u;
+        cam._n = sf.n;
         cam.update();
     }
 
@@ -115,9 +115,9 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
             this.scaleRot = 0;
         }
         cam.eye = rot.mulVec3(cam.eye);
-        cam.v = rot.mulVec3(cam.v);
-        cam.u = rot.mulVec3(cam.u);
-        cam.n = rot.mulVec3(cam.n);
+        cam._v = rot.mulVec3(cam._v);
+        cam._u = rot.mulVec3(cam._u);
+        cam._n = rot.mulVec3(cam._n);
         cam.update();
     }
 };

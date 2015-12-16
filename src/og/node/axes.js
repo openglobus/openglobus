@@ -23,7 +23,7 @@ og.node.Axes.prototype.frame = function () {
     this.renderer.handler.shaderPrograms.flat.activate();
 
     this.renderer.handler.shaderPrograms.flat.set({
-        uPMVMatrix: this.renderer.activeCamera.pmvMatrix._m,
+        uPMVMatrix: this.renderer.activeCamera._pmvMatrix._m,
         aVertexPosition: this.axisBuffer,
         aVertexColor: this.axisColorBuffer
     });

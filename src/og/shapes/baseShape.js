@@ -118,9 +118,9 @@ og.shapes.BaseShape.prototype.draw = function () {
         gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
         gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
         gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
-        gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera.pMatrix._m);
-        gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera.mvMatrix._m);
-        gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera.nMatrix._m);
+        gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
+        gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera._mvMatrix._m);
+        gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera._nMatrix._m);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
         gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -134,7 +134,7 @@ og.shapes.BaseShape.prototype.draw = function () {
         sh.activate();
 
         gl.uniform4fv(shu.uColor._pName, this.color);
-        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera.pmvMatrix._m);
+        gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._pmvMatrix._m);
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
