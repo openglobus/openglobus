@@ -279,15 +279,15 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
     for (var i = 0; i < vl.length; i++) {
         var li = vl[i],
-            pml_id = pm[li.id];
+            pml_id = pm[li._id];
 
         if (!pml_id) {
-            pml_id = seg.materials[li.id] = new og.planetSegment.PlanetSegmentMaterial(seg, li);
+            pml_id = seg.materials[li._id] = new og.planetSegment.PlanetSegmentMaterial(seg, li);
         }
 
         if (!pml_id.imageReady) {
             pml_id.loadTileImage();
-            this.whileTextureLoading(li.id);
+            this.whileTextureLoading(li._id);
         }
     }
 
@@ -611,10 +611,10 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 /**
  * Static function returns triangles coordinates array due the source triangles array.
  * @param {Array} sourceArr Source array
- * @param {Integer} gridSize SourceArray square matrix size
- * @param {Integer} i0 First row index source array matrix
- * @param {Integer} j0 First column index
- * @param {Integer} size Square matrix result size.
+ * @param {number} gridSize SourceArray square matrix size
+ * @param {number} i0 First row index source array matrix
+ * @param {number} j0 First column index
+ * @param {number} size Square matrix result size.
  * @return{Array} The inside quad triangles array.
  */
 og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {

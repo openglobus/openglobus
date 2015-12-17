@@ -25,6 +25,12 @@ function start() {
         var imgCnv = new og.ImageCanvas();
         imgCnv.fillColor("#c6c6c6");
         applyCanvas(imgCnv._canvas);
+        
+        var img = new Image();
+        img.onload = function (e) {
+            applyCanvas(this);
+        };
+        img.src = "ship.png";
     };
 
     var layer = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", zIndex: 0, visibility: false, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });

@@ -68,3 +68,22 @@ og.utils.hexStringToVector = function (hex, opacity) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), (opacity == undefined ? 1.0 : opacity));
 };
+
+/**
+ * Adds substrings with template.
+ * @param {string} template - String with templates in "{" and "}"
+ * @param {Object} params - Template named object with subsrtings.
+ * @example <caption>Example from og.terrainProvider that replaces tile indexes in url:</caption>
+ * var substrings = {
+ *       "tilex": 12,
+ *       "tiley": 15,
+ *       "zoom": 8
+ * }
+ * og.utils.stringTemplate("http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm", substrins);
+ * //returns http://earth3.openglobus.org/8/15/12.ddm
+ */
+og.utils.stringTemplate = function (template, params) {
+    return template.replace(/{[^{}]+}/g, function (key) {
+        return params[key.replace(/[{}]+/g, "")] || "";
+    });
+};

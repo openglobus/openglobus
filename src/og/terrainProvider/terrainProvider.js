@@ -8,6 +8,7 @@ goog.require('og.Events');
 goog.require('og.proj.EPSG3857');
 goog.require('og.inheritance');
 goog.require('og.QueueArray');
+goog.require('og.utils');
 
 og.terrainProvider.defaultOptions = {
     url: "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm",
@@ -92,7 +93,7 @@ og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (se
 };
 
 og.terrainProvider.TerrainProvider.prototype.getServerUrl = function (segment) {
-    return og.layer.replaceTemplate(this.url, {
+    return og.utils.stringTemplate(this.url, {
         "tilex": segment.tileX.toString(),
         "tiley": segment.tileY.toString(),
         "zoom": segment.zoomIndex.toString()

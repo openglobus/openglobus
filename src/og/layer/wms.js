@@ -11,7 +11,7 @@ og.layer.WMS = function (name, options) {
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
 
 og.layer.WMS.prototype.handleSegmentTile = function (material) {
-    if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
+    if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
         this.pendingsQueue.push(material);
     } else {
         this.loadSegmentTileImage(material);

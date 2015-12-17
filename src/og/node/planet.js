@@ -221,12 +221,12 @@ og.node.Planet.prototype.addGeoImage = function (geoImage) {
  * @public
  */
 og.node.Planet.prototype.addLayer = function (layer) {
-    layer.planet = this;
+    this.layers.push(layer);
+    layer._planet = this;
     layer.events.on("visibilitychange", this, this._onLayerVisibilityChanged);
     if (layer.isBaseLayer && layer.visibility) {
         this.setBaseLayer(layer);
     }
-    this.layers.push(layer);
     this.events.dispatch(this.events.layeradd, layer);
     layer.events.dispatch(layer.events.add, this);
     this.updateVisibleLayers();
@@ -259,12 +259,11 @@ og.node.Planet.prototype.addLayers = function (layers) {
  * @public
  */
 og.node.Planet.prototype.removeLayer = function (layer) {
-    var lid = layer.id;
+    var lid = layer._id;
     for (var i = 0; i < this.layers.length; i++) {
-        if (this.layers[i].id == lid) {
+        if (this.layers[i]._id == lid) {
             this.layers.splice(i, 1);
             layer.setVisibility(false);
-            layer.abortLoading();
             this.quadTree.traverseTree(function (node) {
                 var mats = node.planetSegment.materials;
                 if (mats[lid]) {
@@ -274,7 +273,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
             });
             this.events.dispatch(this.events.layerremove, layer);
             layer.events.dispatch(layer.events.remove, this);
-            layer.planet = null;
+            layer._planet = null;
             return layer;
         }
     }
@@ -312,26 +311,17 @@ og.node.Planet.prototype.getLayers = function () {
  */
 og.node.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
-        if (layer.id != this.baseLayer.id) {
-            for (var i = 0; i < this.layers.length; i++) {
-                var li = this.layers[i];
-                if (li.isBaseLayer) {
-                    li.visibility = false;
-                    if (li.id != layer.id)
-                        li.events.dispatch(li.events.visibilitychange, li);
-                }
-            }
-            layer.visibility = true;
-            layer.events.dispatch(layer.events.visibilitychange, layer);
-            this.baseLayer.abortLoading();
+        if (!this.baseLayer.isEqual(layer)) {
+            this.baseLayer.setVisibility(false);
             this.baseLayer = layer;
+            layer.setVisibility(true);
+            this.events.dispatch(this.events.baselayerchange, layer);
         }
     } else {
         this.baseLayer = layer;
         this.baseLayer.setVisibility(true);
+        this.events.dispatch(this.events.baselayerchange, layer);
     }
-    this.events.dispatch(this.events.baselayerchange, layer);
-    this.updateVisibleLayers();
 };
 
 /**
@@ -486,7 +476,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     this.visibleLayers.sort(function (a, b) {
-        return a.isBaseLayer ? -1 : a.zIndex - b.zIndex;
+        return a.isBaseLayer ? -1 : a._zIndex - b._zIndex;
     })
 };
 

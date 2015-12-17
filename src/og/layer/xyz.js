@@ -4,16 +4,55 @@ goog.require('og.inheritance');
 goog.require('og.layer.Layer');
 goog.require('og.quadTree');
 goog.require('og.proj.EPSG3857');
+goog.require('og.utils');
 
 og.layer.XYZ = function (name, options) {
     og.inheritance.base(this, name, options);
+
+    this.events.registerNames(og.layer.XYZ.EVENT_NAMES);
+
+    this.url = options.url || "";
+
+    this.counter = 0;
+    this.pendingsQueue = new og.QueueArray();
 };
 
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
 
+og.layer.XYZ.EVENT_NAMES = [
+    "load",
+    "loadend"];
+
+og.layer.XYZ.prototype.abortLoading = function () {
+    var q = this.pendingsQueue;
+    for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
+        if (q._array[i]) {
+            q._array[i].abortLoading();
+        }
+    }
+    this.pendingsQueue.clear();
+};
+
+og.layer.XYZ.prototype.setVisibility = function (visibility) {
+    if (visibility != this.visibility) {
+        this.visibility = visibility;
+        if (this.isBaseLayer && visibility) {
+            this._planet.setBaseLayer(this);
+        } else if (!visibility) {
+            this.abortLoading();
+        }
+        this._planet.updateVisibleLayers();
+        this.events.dispatch(this.events.visibilitychange, this);
+    }
+};
+
+og.layer.XYZ.prototype.setUrl = function (url) {
+    this.url = url;
+};
+
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     if (material.segment._projection.id == og.proj.EPSG3857.id) {
-        if (og.layer.requestsCounter >= og.layer.MAX_REQUESTS && this.counter) {
+        if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
             this.pendingsQueue.push(material);
         } else {
             this.loadSegmentTileImage(material);
@@ -23,8 +62,11 @@ og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     };
 };
 
+og.layer.XYZ.__requestsCounter = 0;
+og.layer.XYZ.MAX_REQUESTS = 7;
+
 og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
-    return og.layer.replaceTemplate(this.url, {
+    return og.utils.stringTemplate(this.url, {
         "tilex": segment.tileX.toString(),
         "tiley": segment.tileY.toString(),
         "zoom": segment.zoomIndex.toString()
@@ -34,7 +76,7 @@ og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
 og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
     var that = this;
     this.counter++;
-    og.layer.requestsCounter++;
+    og.layer.XYZ.__requestsCounter++;
     var img = new Image();
     img.crossOrigin = '';
     img.onload = function () {
@@ -67,9 +109,9 @@ og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
 
 og.layer.XYZ.prototype.dequeueRequest = function () {
     this.counter--;
-    og.layer.requestsCounter--;
+    og.layer.XYZ.__requestsCounter--;
     if (this.pendingsQueue.length) {
-        if (og.layer.requestsCounter < og.layer.MAX_REQUESTS) {
+        if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
             var pmat;
             if (pmat = this.whilePendings())
                 this.loadSegmentTileImage.call(this, pmat);

@@ -53,7 +53,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
 
 og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
     //TODO: texture have to stop loading
-    //This is not corrert
+    //This is a bug
     this.imageIsLoading = true;
     this.textureExists = false;
 };

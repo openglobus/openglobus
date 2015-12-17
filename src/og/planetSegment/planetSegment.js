@@ -69,9 +69,9 @@ og.planetSegment.PlanetSegment = function () {
     this.geoImageTexture = null;
     this.geoImageTextureBias = [0, 0, 1];
 
-    this.texBiasArr = new Float32Array(og.layer.MAX_OVERLAYS * 3);
-    this.samplerArr = new Int32Array(og.layer.MAX_OVERLAYS);
-    this.alfaArr = new Float32Array(og.layer.MAX_OVERLAYS);
+    this.texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
+    this.samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
+    this.alfaArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS);
 
     this.node = null;
 };
@@ -747,7 +747,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
             shu = sh.uniforms;
         var layers = segment.planet.visibleLayers;
         if (layers.length) {
-            var baseMat = segment.materials[layers[0].id];
+            var baseMat = segment.materials[layers[0]._id];
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
             gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
@@ -778,7 +778,7 @@ og.planetSegment.drawOverlays = function (sh, segment) {
 
         for (var l = 0; l < layers.length; l++) {
             var ll = layers[l];
-            var mat = segment.materials[ll.id];
+            var mat = segment.materials[ll._id];
             var nt3 = l * 3;
             //var nt4 = l * 4;
 
