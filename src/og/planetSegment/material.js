@@ -1,6 +1,6 @@
-goog.provide('og.planetSegment.PlanetSegmentMaterial');
+goog.provide('og.planetSegment.Material');
 
-og.planetSegment.PlanetSegmentMaterial = function (segment, layer) {
+og.planetSegment.Material = function (segment, layer) {
     this.segment = segment;
     this.layer = layer;
     this.imageReady = false;
@@ -11,11 +11,11 @@ og.planetSegment.PlanetSegmentMaterial = function (segment, layer) {
     this.textureExists = false;
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.assignLayer = function (layer) {
+og.planetSegment.Material.prototype.assignLayer = function (layer) {
     this.layer = layer;
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
+og.planetSegment.Material.prototype.loadTileImage = function () {
 
     if (this.layer._isBaseLayer) {
         this.texture = this.segment.planet.solidTexture;
@@ -30,7 +30,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.loadTileImage = function () {
     }
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.abortLoading = function () {
+og.planetSegment.Material.prototype.abortLoading = function () {
     if (this.image) {
         this.image.src = "";
         this.image = null;
@@ -39,7 +39,7 @@ og.planetSegment.PlanetSegmentMaterial.prototype.abortLoading = function () {
     this.imageReady = false;
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
+og.planetSegment.Material.prototype.applyTexture = function (img) {
     if (!this.imageReady) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
@@ -51,14 +51,14 @@ og.planetSegment.PlanetSegmentMaterial.prototype.applyTexture = function (img) {
     }
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.textureNotExists = function () {
+og.planetSegment.Material.prototype.textureNotExists = function () {
     //TODO: texture have to stop loading
     //This is a bug
     this.imageIsLoading = true;
     this.textureExists = false;
 };
 
-og.planetSegment.PlanetSegmentMaterial.prototype.clear = function () {
+og.planetSegment.Material.prototype.clear = function () {
     this.imageIsLoading = false;
     if (this.imageReady) {
         this.imageReady = false;

@@ -1,45 +1,45 @@
-goog.provide('og.planetSegment.Wgs84PlanetSegment');
+goog.provide('og.planetSegment.SegmentWGS84');
 
-goog.require('og.planetSegment.PlanetSegment');
+goog.require('og.planetSegment.Segment');
 goog.require('og.inheritance');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG4326');
 
-og.planetSegment.Wgs84PlanetSegment = function () {
+og.planetSegment.SegmentWGS84 = function () {
     og.inheritance.base(this);
 
     this._projection = og.proj.EPSG4326;
 };
 
-og.planetSegment.Wgs84PlanetSegment._heightLat = 90.0 - og.mercator.MAX_LAT;
-og.planetSegment.Wgs84PlanetSegment._maxPoleZoom = 7;
-og.planetSegment.Wgs84PlanetSegment._pieceSize = og.planetSegment.Wgs84PlanetSegment._heightLat / Math.pow(2, og.planetSegment.Wgs84PlanetSegment._maxPoleZoom);
+og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;
+og.planetSegment.SegmentWGS84._maxPoleZoom = 7;
+og.planetSegment.SegmentWGS84._pieceSize = og.planetSegment.SegmentWGS84._heightLat / Math.pow(2, og.planetSegment.SegmentWGS84._maxPoleZoom);
 
 
-og.inheritance.extend(og.planetSegment.Wgs84PlanetSegment, og.planetSegment.PlanetSegment);
+og.inheritance.extend(og.planetSegment.SegmentWGS84, og.planetSegment.Segment);
 
-og.planetSegment.Wgs84PlanetSegment.RATIO_LOD = 1.12;
+og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
 
-og.planetSegment.Wgs84PlanetSegment.prototype.acceptForRendering = function (camera) {
+og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
 
     var maxPoleZoom;
     var lat = this.extent.northEast.lat;
     if (lat > 0) {
         //north pole limits
-        var Yz = Math.floor((90.0 - lat) / og.planetSegment.Wgs84PlanetSegment._pieceSize);
+        var Yz = Math.floor((90.0 - lat) / og.planetSegment.SegmentWGS84._pieceSize);
         maxPoleZoom = Math.floor(Yz / 16) + 7;
     } else {
         //south pole limits
-        var Yz = Math.floor((og.mercator.MIN_LAT - lat) / og.planetSegment.Wgs84PlanetSegment._pieceSize);
+        var Yz = Math.floor((og.mercator.MIN_LAT - lat) / og.planetSegment.SegmentWGS84._pieceSize);
         maxPoleZoom = 12 - Math.floor(Yz / 16);
     }
 
-    return camera.projectedSize(sphere.center) > og.planetSegment.Wgs84PlanetSegment.RATIO_LOD * sphere.radius ||
+    return camera.projectedSize(sphere.center) > og.planetSegment.SegmentWGS84.RATIO_LOD * sphere.radius ||
         this.zoomIndex > maxPoleZoom;
 };
 
-og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
+og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     this.wgs84extent = extent;
@@ -58,7 +58,7 @@ og.planetSegment.Wgs84PlanetSegment.prototype.assignTileIndexes = function (zoom
     this.extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
 };
 
-og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gridSize) {
+og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize) {
     var verts = this.plainVertices;
     var norms = this.plainNormals;
     var ind = 0;
@@ -92,7 +92,7 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createPlainVertices = function (gr
     this.normalMapTexture = this.planet.transparentTexture;
 };
 
-og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function () {
+og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this.extent;
 
@@ -117,7 +117,7 @@ og.planetSegment.Wgs84PlanetSegment.prototype.createBoundsByExtent = function ()
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
-og.planetSegment.Wgs84PlanetSegment.prototype.drawGeoImage = function (geoImage) {
+og.planetSegment.SegmentWGS84.prototype.drawGeoImage = function (geoImage) {
     if (geoImage.visibility && geoImage.imageLoaded && geoImage._wgs84Extent.intersects(this.extent)) {
         var tc = this.planet.geoImageTileCreator;
         var h = tc._handler;

@@ -1,6 +1,6 @@
 goog.provide('og.utils.NormalMapCreator');
 
-goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.PlanetSegmentHelper');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
@@ -113,7 +113,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
         }
 
         this._verticesBufferArray[gs] = this._handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
-        var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
+        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
         this._indexBufferArray[gs] = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 

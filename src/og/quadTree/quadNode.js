@@ -1,6 +1,6 @@
 goog.provide('og.quadTree.QuadNode');
 
-goog.require('og.planetSegment.PlanetSegmentMaterial');
+goog.require('og.planetSegment.Material');
 goog.require('og.Extent');
 goog.require('og.LonLat');
 goog.require('og.quadTree');
@@ -282,7 +282,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
             pml_id = pm[li._id];
 
         if (!pml_id) {
-            pml_id = seg.materials[li._id] = new og.planetSegment.PlanetSegmentMaterial(seg, li);
+            pml_id = seg.materials[li._id] = new og.planetSegment.Material(seg, li);
         }
 
         if (!pml_id.imageReady) {

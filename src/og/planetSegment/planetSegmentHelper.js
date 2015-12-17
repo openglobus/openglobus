@@ -1,25 +1,25 @@
-goog.provide('og.planetSegment.PlanetSegmentHelper');
+goog.provide('og.PlanetSegmentHelper');
 
 goog.require('og.quadTree');
 
-og.planetSegment.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
-    if (powerOfTwo != og.planetSegment.PlanetSegmentHelper.powerOfTwo) {
-        og.planetSegment.PlanetSegmentHelper.powerOfTwo = powerOfTwo;
-        og.planetSegment.PlanetSegmentHelper.centerIndexesTable = og.planetSegment.PlanetSegmentHelper.initIndexBodiesTable(powerOfTwo);
-        og.planetSegment.PlanetSegmentHelper.textureCoordsTable = og.planetSegment.PlanetSegmentHelper.initTextureCoordsTable(powerOfTwo);
-        og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable = og.planetSegment.PlanetSegmentHelper.initIndexesBodySkirts(powerOfTwo);
+og.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
+    if (powerOfTwo != og.PlanetSegmentHelper.powerOfTwo) {
+        og.PlanetSegmentHelper.powerOfTwo = powerOfTwo;
+        og.PlanetSegmentHelper.centerIndexesTable = og.PlanetSegmentHelper.initIndexBodiesTable(powerOfTwo);
+        og.PlanetSegmentHelper.textureCoordsTable = og.PlanetSegmentHelper.initTextureCoordsTable(powerOfTwo);
+        og.PlanetSegmentHelper.skirtsIndexesTable = og.PlanetSegmentHelper.initIndexesBodySkirts(powerOfTwo);
     }
-    og.planetSegment.PlanetSegmentHelper.centerIndexesTable[0] = [];
-    og.planetSegment.PlanetSegmentHelper.textureCoordsTable[0] = [];
+    og.PlanetSegmentHelper.centerIndexesTable[0] = [];
+    og.PlanetSegmentHelper.textureCoordsTable[0] = [];
 };
 
-og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (size, sidesSizes) {
+og.PlanetSegmentHelper.createSegmentIndexes = function (size, sidesSizes) {
     if (size != 1) {
-        var c = og.planetSegment.PlanetSegmentHelper.centerIndexesTable[size],
-            w = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]],
-            n = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]],
-            e = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]],
-            s = og.planetSegment.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]];
+        var c = og.PlanetSegmentHelper.centerIndexesTable[size],
+            w = og.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.W][size][sidesSizes[og.quadTree.W]],
+            n = og.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.N][size][sidesSizes[og.quadTree.N]],
+            e = og.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.E][size][sidesSizes[og.quadTree.E]],
+            s = og.PlanetSegmentHelper.skirtsIndexesTable[og.quadTree.S][size][sidesSizes[og.quadTree.S]];
         var indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
         var k = 0, i = 0;
         for (k = 0; k < c.length; k++) {
@@ -43,7 +43,7 @@ og.planetSegment.PlanetSegmentHelper.createSegmentIndexes = function (size, side
     }
 };
 
-og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes = function (size, indexes) {
+og.PlanetSegmentHelper.createCenterBodyIndexes = function (size, indexes) {
 
     var i0 = 1,
         j0 = 1;
@@ -64,7 +64,7 @@ og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes = function (size, i
     indexes.push(indexes[indexes.length - 1], size * size - size);
 };
 
-og.planetSegment.PlanetSegmentHelper.createWestNeighborSkirt = function (size, deltaGr, indexes) {
+og.PlanetSegmentHelper.createWestNeighborSkirt = function (size, deltaGr, indexes) {
     var grCount = (size - 1) / deltaGr;
     var b = size * size - size;
     var k = 0;
@@ -83,7 +83,7 @@ og.planetSegment.PlanetSegmentHelper.createWestNeighborSkirt = function (size, d
     }
 };
 
-og.planetSegment.PlanetSegmentHelper.createNorthNeighborSkirt = function (size, deltaGr, indexes) {
+og.PlanetSegmentHelper.createNorthNeighborSkirt = function (size, deltaGr, indexes) {
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     for (var i = 0; i < size - 2; i++) {
@@ -101,7 +101,7 @@ og.planetSegment.PlanetSegmentHelper.createNorthNeighborSkirt = function (size, 
     }
 };
 
-og.planetSegment.PlanetSegmentHelper.createEastNeighborSkirt = function (size, deltaGr, indexes) {
+og.PlanetSegmentHelper.createEastNeighborSkirt = function (size, deltaGr, indexes) {
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     for (var i = 0; i < size - 2; i++) {
@@ -119,7 +119,7 @@ og.planetSegment.PlanetSegmentHelper.createEastNeighborSkirt = function (size, d
     }
 };
 
-og.planetSegment.PlanetSegmentHelper.createSouthNeighborSkirt = function (size, deltaGr, indexes) {
+og.PlanetSegmentHelper.createSouthNeighborSkirt = function (size, deltaGr, indexes) {
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     var rb = size * (size - 1) - 2;
@@ -139,7 +139,7 @@ og.planetSegment.PlanetSegmentHelper.createSouthNeighborSkirt = function (size, 
     indexes.push(size * size - size);
 };
 
-og.planetSegment.PlanetSegmentHelper.initIndexesBodySkirts = function (pow) {
+og.PlanetSegmentHelper.initIndexesBodySkirts = function (pow) {
     var table = [];
     table[og.quadTree.N] = [];
     table[og.quadTree.W] = [];
@@ -169,35 +169,35 @@ og.planetSegment.PlanetSegmentHelper.initIndexesBodySkirts = function (pow) {
             var wt = table[og.quadTree.W][d][dd] = [];
             var st = table[og.quadTree.S][d][dd] = [];
             var et = table[og.quadTree.E][d][dd] = [];
-            og.planetSegment.PlanetSegmentHelper.createWestNeighborSkirt(d + 1, dd, wt);
-            og.planetSegment.PlanetSegmentHelper.createNorthNeighborSkirt(d + 1, dd, nt);
-            og.planetSegment.PlanetSegmentHelper.createEastNeighborSkirt(d + 1, dd, et);
-            og.planetSegment.PlanetSegmentHelper.createSouthNeighborSkirt(d + 1, dd, st);
+            og.PlanetSegmentHelper.createWestNeighborSkirt(d + 1, dd, wt);
+            og.PlanetSegmentHelper.createNorthNeighborSkirt(d + 1, dd, nt);
+            og.PlanetSegmentHelper.createEastNeighborSkirt(d + 1, dd, et);
+            og.PlanetSegmentHelper.createSouthNeighborSkirt(d + 1, dd, st);
         }
     }
     return table;
 };
 
-og.planetSegment.PlanetSegmentHelper.initTextureCoordsTable = function (pow) {
+og.PlanetSegmentHelper.initTextureCoordsTable = function (pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
-        table[d] = og.planetSegment.PlanetSegmentHelper.createTextureCoords(d);
+        table[d] = og.PlanetSegmentHelper.createTextureCoords(d);
     }
     return table;
 };
 
-og.planetSegment.PlanetSegmentHelper.initIndexBodiesTable = function (pow) {
+og.PlanetSegmentHelper.initIndexBodiesTable = function (pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
         var t = table[d] = [];
-        og.planetSegment.PlanetSegmentHelper.createCenterBodyIndexes(d + 1, t);
+        og.PlanetSegmentHelper.createCenterBodyIndexes(d + 1, t);
     }
     return table;
 };
 
-og.planetSegment.PlanetSegmentHelper.createTextureCoords = function (size) {
+og.PlanetSegmentHelper.createTextureCoords = function (size) {
     var texCoords = [];
     for (var i = 0; i <= size; i++) {
         for (var j = 0; j <= size; j++) {

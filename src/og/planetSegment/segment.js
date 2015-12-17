@@ -1,7 +1,7 @@
 goog.provide('og.planetSegment');
-goog.provide('og.planetSegment.PlanetSegment');
+goog.provide('og.planetSegment.Segment');
 
-goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.PlanetSegmentHelper');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.layer');
@@ -17,7 +17,7 @@ goog.require('og.proj.EPSG3857');
  * @class
  * @api
  */
-og.planetSegment.PlanetSegment = function () {
+og.planetSegment.Segment = function () {
     this._projection = og.proj.EPSG3857;
 
     this.plainVertices = [];
@@ -76,15 +76,15 @@ og.planetSegment.PlanetSegment = function () {
     this.node = null;
 };
 
-og.planetSegment.PlanetSegment.RATIO_LOD = 1.12;
+og.planetSegment.Segment.RATIO_LOD = 1.12;
 //og.planetSegment.PlanetSegment.RATIO_LOD = 1.8;//the best for lighting
 
-og.planetSegment.PlanetSegment.prototype.acceptForRendering = function (camera) {
+og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
-    return camera.projectedSize(sphere.center) > og.planetSegment.PlanetSegment.RATIO_LOD * sphere.radius;
+    return camera.projectedSize(sphere.center) > og.planetSegment.Segment.RATIO_LOD * sphere.radius;
 };
 
-og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, camera) {
+og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
     var ne = this.extent.northEast,
         sw = this.extent.southWest,
         size = this.gridSize,
@@ -143,7 +143,7 @@ og.planetSegment.PlanetSegment.prototype.getEarthPoint = function (lonlat, camer
     return { "distance": camera._lonLat.height, "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction) };
 };
 
-og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
+og.planetSegment.Segment.prototype.loadTerrain = function () {
     if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
             this.terrainReady = false;
@@ -156,7 +156,7 @@ og.planetSegment.PlanetSegment.prototype.loadTerrain = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations) {
+og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
 
@@ -333,7 +333,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsExists = function (elevations
     elevations.length = 0;
 };
 
-og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
+og.planetSegment.Segment.prototype.elevationsNotExists = function () {
     if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
         if (this.ready && this.terrainIsLoading) {
             this.terrainIsLoading = false;
@@ -380,7 +380,7 @@ og.planetSegment.PlanetSegment.prototype.elevationsNotExists = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side, i_a, vert) {
+og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, vert) {
 
     var n = this.node.neighbors[side];
 
@@ -470,7 +470,7 @@ og.planetSegment.PlanetSegment.prototype.normalMapEdgeEqualize = function (side,
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
+og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
 
     if (this.zoomIndex > this.planet.terrainProvider.maxZoom)
         return;
@@ -507,7 +507,7 @@ og.planetSegment.PlanetSegment.prototype.createNormalMapTexture = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.createGeoImageTileTexture = function () {
+og.planetSegment.Segment.prototype.createGeoImageTileTexture = function () {
     var canvas = this.planet.geoImageTileCreator.draw(this);
     if (canvas) {
         this.geoImageTexture = this.handler.createTexture_mm(canvas);
@@ -518,7 +518,7 @@ og.planetSegment.PlanetSegment.prototype.createGeoImageTileTexture = function ()
     this.geoImageReady = true;
 };
 
-og.planetSegment.PlanetSegment.prototype.drawGeoImage = function (geoImage) {
+og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
     if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
 
         var tc = this.planet.geoImageTileCreator;
@@ -548,7 +548,7 @@ og.planetSegment.PlanetSegment.prototype.drawGeoImage = function (geoImage) {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
+og.planetSegment.Segment.prototype.applyTerrain = function (elevations) {
     if (elevations.length) {
         this.elevationsExists(elevations);
     } else {
@@ -556,7 +556,7 @@ og.planetSegment.PlanetSegment.prototype.applyTerrain = function (elevations) {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
+og.planetSegment.Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
     gl.deleteBuffer(this.vertexPositionBuffer);
     gl.deleteBuffer(this.vertexIndexBuffer);
@@ -567,12 +567,12 @@ og.planetSegment.PlanetSegment.prototype.deleteBuffers = function () {
     this.vertexTextureCoordBuffer = null;
 };
 
-og.planetSegment.PlanetSegment.prototype.clearBuffers = function () {
+og.planetSegment.Segment.prototype.clearBuffers = function () {
     this.ready = false;
     this.deleteBuffers();
 };
 
-og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
+og.planetSegment.Segment.prototype.deleteElevations = function () {
     this._inTheQueue = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
@@ -596,7 +596,7 @@ og.planetSegment.PlanetSegment.prototype.deleteElevations = function () {
     this.normalMapTextureBias = [0, 0, 1];
 };
 
-og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {
+og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
         if (m[i].layer == layer) {
@@ -605,7 +605,7 @@ og.planetSegment.PlanetSegment.prototype.getMaterialByLayer = function (layer) {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.getMaterialByLayerName = function (name) {
+og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
         if (m[i].layer.name == name) {
@@ -614,13 +614,13 @@ og.planetSegment.PlanetSegment.prototype.getMaterialByLayerName = function (name
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.clearSegment = function () {
+og.planetSegment.Segment.prototype.clearSegment = function () {
     this.clearBuffers();
     this.deleteMaterials();
     this.deleteElevations();
 };
 
-og.planetSegment.PlanetSegment.prototype.deleteMaterials = function () {
+og.planetSegment.Segment.prototype.deleteMaterials = function () {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
         var mi = m[i];
@@ -631,7 +631,7 @@ og.planetSegment.PlanetSegment.prototype.deleteMaterials = function () {
     m.length = 0;
 };
 
-og.planetSegment.PlanetSegment.prototype.createBoundsByExtent = function () {
+og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this.extent;
 
@@ -656,7 +656,7 @@ og.planetSegment.PlanetSegment.prototype.createBoundsByExtent = function () {
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
-og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
+og.planetSegment.Segment.prototype.destroySegment = function () {
     this.node.state = og.quadTree.NOTRENDERING;
 
     this.clearSegment();
@@ -670,18 +670,18 @@ og.planetSegment.PlanetSegment.prototype.destroySegment = function () {
     this.node.parentNode = null;
 };
 
-og.planetSegment.PlanetSegment.prototype.createCoordsBuffers = function (vertices, gridSize) {
+og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
-    this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.planetSegment.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
+    this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
 };
 
-og.planetSegment.PlanetSegment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
-    var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, sidesSizes);
+og.planetSegment.Segment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
+    var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gridSize, sidesSizes);
     this.vertexIndexBuffer = this.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 };
 
-og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex, extent) {
+og.planetSegment.Segment.prototype.assignTileIndexes = function (zoomIndex, extent) {
     this.zoomIndex = zoomIndex;
     this.extent = extent;
     var pole = og.mercator.POLE;
@@ -691,7 +691,7 @@ og.planetSegment.PlanetSegment.prototype.assignTileIndexes = function (zoomIndex
     this.extentParams = [this.extent.southWest.lon, this.extent.southWest.lat, 2.0 / this.extent.getWidth(), 2.0 / this.extent.getHeight()];
 };
 
-og.planetSegment.PlanetSegment.prototype.createPlainVertices = function (gridSize) {
+og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     var verts = this.plainVertices,
         norms = this.plainNormals,
         nmVerts = this.normalMapVertices,
@@ -811,7 +811,7 @@ og.planetSegment.drawOverlays = function (sh, segment) {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
+og.planetSegment.Segment.prototype.draw = function (sh) {
     var gl = this.handler.gl;
     var sha = sh.attributes;
 
@@ -825,7 +825,7 @@ og.planetSegment.PlanetSegment.prototype.draw = function (sh) {
     this.node.hasNeighbor = [false, false, false, false];
 };
 
-og.planetSegment.PlanetSegment.prototype._setVIb = function () {
+og.planetSegment.Segment.prototype._setVIb = function () {
     if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
         this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
         this._vib = this.planet.indexesBuffers[this.gridSize];
@@ -835,7 +835,7 @@ og.planetSegment.PlanetSegment.prototype._setVIb = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.drawHeightPicking = function () {
+og.planetSegment.Segment.prototype.drawHeightPicking = function () {
     if (this.ready) {
         var gl = this.handler.gl;
         var sh = this.handler.shaderPrograms.heightPicking._program;
@@ -856,7 +856,7 @@ og.planetSegment.PlanetSegment.prototype.drawHeightPicking = function () {
     }
 };
 
-og.planetSegment.PlanetSegment.prototype.drawPicking = function () {
+og.planetSegment.Segment.prototype.drawPicking = function () {
     //if (this.ready) {
     //    var gl = this.handler.gl;
     //    var sh = this.handler.shaderPrograms.heightPicking._program;

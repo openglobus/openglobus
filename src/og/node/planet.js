@@ -18,8 +18,9 @@ goog.require('og.shaderProgram.single_wl');
 goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
-goog.require('og.planetSegment.Wgs84PlanetSegment');
-goog.require('og.planetSegment.PlanetSegmentHelper');
+goog.require('og.planetSegment.Segment');
+goog.require('og.planetSegment.SegmentWGS84');
+goog.require('og.PlanetSegmentHelper');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
@@ -341,12 +342,12 @@ og.node.Planet.prototype.setTerrainProvider = function (terrain) {
 
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
-    og.planetSegment.PlanetSegmentHelper.initIndexesTables(6);
+    og.PlanetSegmentHelper.initIndexesTables(6);
 
     //Iniytialize indexes buffers array
     for (var i = 0; i <= 6; i++) {
         var gridSize = Math.pow(2, i);
-        var indexes = og.planetSegment.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
+        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
         this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
@@ -357,9 +358,9 @@ og.node.Planet.prototype.initialization = function () {
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
-    this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-    this.quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
-    this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.Wgs84PlanetSegment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
+    this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this.quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
+    this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     //Just initials
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
