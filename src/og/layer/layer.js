@@ -14,8 +14,7 @@ og.layer.Layer = function (name, options) {
     this.events.registerNames(og.layer.Layer.EVENT_NAMES);
 
     options = options || {};
-    this.isBaseLayer = options.isBaseLayer || false;
-    this.visibility = options.visibility || false;
+
     this.opacity = options.opacity || 1.0;
     this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
 
@@ -23,6 +22,8 @@ og.layer.Layer = function (name, options) {
     this._id = og.layer.__layersCounter++;
     this._attribution = options.attribution || "";
     this._zIndex = options.zIndex || 0;
+    this._isBaseLayer = options.isBaseLayer || false;
+    this._visibility = options.visibility || false;
 };
 
 og.layer.Layer.EVENT_NAMES = [
@@ -62,10 +63,24 @@ og.layer.Layer.prototype.getZIndex = function () {
     return this._zIndex;
 };
 
+og.layer.Layer.prototype.isBaseLayer = function () {
+    return this._isBaseLayer;
+};
+
+og.layer.Layer.prototype.setBaseLayer = function (flag) {
+    this._isBaseLayer = flag;
+
+    if (this._planet && !flag && this.isEqual(this._planet.baseLayer)) {
+        this._planet.baseLayer = null;
+    }
+
+    this._planet.updateVisibleLayers();
+};
+
 og.layer.Layer.prototype.setVisibility = function (visibility) {
-    if (visibility != this.visibility) {
-        this.visibility = visibility;
-        if (this.isBaseLayer && visibility) {
+    if (visibility != this._visibility) {
+        this._visibility = visibility;
+        if (this._isBaseLayer && visibility) {
             this._planet.setBaseLayer(this);
         }
         this._planet.updateVisibleLayers();
@@ -74,7 +89,7 @@ og.layer.Layer.prototype.setVisibility = function (visibility) {
 };
 
 og.layer.Layer.prototype.getVisibility = function () {
-    return this.visibility;
+    return this._visibility;
 };
 
 og.layer.Layer.prototype.setName = function (name) {

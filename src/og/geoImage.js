@@ -77,6 +77,10 @@ og.GeoImage.prototype.setVisibility = function (visibility) {
     this.planet.redrawGeoImages();
 };
 
+og.GeoImage.prototype.getVisibility = function () {
+    return this.visibility;
+};
+
 og.GeoImage.prototype.addTo = function (planet) {
     this.planet = planet;
     this.initialize();

@@ -34,9 +34,9 @@ og.layer.XYZ.prototype.abortLoading = function () {
 };
 
 og.layer.XYZ.prototype.setVisibility = function (visibility) {
-    if (visibility != this.visibility) {
-        this.visibility = visibility;
-        if (this.isBaseLayer && visibility) {
+    if (visibility != this._visibility) {
+        this._visibility = visibility;
+        if (this._isBaseLayer && visibility) {
             this._planet.setBaseLayer(this);
         } else if (!visibility) {
             this.abortLoading();

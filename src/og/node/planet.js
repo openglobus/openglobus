@@ -224,7 +224,7 @@ og.node.Planet.prototype.addLayer = function (layer) {
     this.layers.push(layer);
     layer._planet = this;
     layer.events.on("visibilitychange", this, this._onLayerVisibilityChanged);
-    if (layer.isBaseLayer && layer.visibility) {
+    if (layer._isBaseLayer && layer._visibility) {
         this.setBaseLayer(layer);
     }
     this.events.dispatch(this.events.layeradd, layer);
@@ -427,7 +427,7 @@ og.node.Planet.prototype.updateAttributionsList = function () {
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
         var li = this.layers[i];
-        if (li.visibility) {
+        if (li._visibility) {
             if (li._attribution.length) {
                 html += "<li>" + li._attribution + "</li>";
             }
@@ -450,8 +450,8 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
         var li = this.layers[i];
-        if (li.visibility) {
-            if (li.isBaseLayer) {
+        if (li._visibility) {
+            if (li._isBaseLayer) {
                 this.baseLayer = li;
             }
             this.visibleLayers.push(li);
@@ -476,7 +476,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
     this.visibleLayers.sort(function (a, b) {
-        return a.isBaseLayer ? -1 : a._zIndex - b._zIndex;
+        return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
     })
 };
 

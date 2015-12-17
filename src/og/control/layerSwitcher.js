@@ -28,7 +28,7 @@ og.control.LayerSwitcher.prototype.onGeoImageAdded = function (geoImage) {
 };
 
 og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
-    if (layer.isBaseLayer) {
+    if (layer.isBaseLayer()) {
         this.addSwitcher("radio", layer, this.baseLayersDiv);
     } else {
         this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
@@ -44,7 +44,7 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
     var inp = document.createElement('input');
     inp.type = type;
     inp.name = "ogBaseLayerRadiosId" + (id || "");
-    inp.checked = obj.visibility;
+    inp.checked = obj.getVisibility();
     inp.className = "ogLayerSwitcherInput";
     var that = this;
     inp.onclick = function () {
