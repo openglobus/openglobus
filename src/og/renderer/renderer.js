@@ -224,9 +224,10 @@ og.Renderer.prototype.removeControl = function (control) {
 
 og.Renderer.prototype.init = function () {
     var that = this;
-    this.handler.drawback = function () {
+
+    this.handler.setFrameCallback(function () {
         that.draw();
-    }
+    });
 
     this.activeCamera = new og.Camera(this, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
@@ -259,6 +260,8 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
 };
 
 og.Renderer.prototype.draw = function () {
+
+    this.handler.clearFrame();
 
     this.events.handleEvents();
 

@@ -7,30 +7,37 @@ goog.require('og.ImageCanvas');
 
 /** A WebGL handler for accessing low-level WebGL capabilities. */
 og.webgl.Handler = function (id, params) {
-    this.lastAnimationFrameTime = 0;
+
+    this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
+
     this.fps = 0;
     this.delta = 0;
-    this.animSpeed = 1.0;
-    this._id = id;
+    this.animationSpeed = 1.0;
+
     this.canvas = null;
     this.gl = null;
-    this._initialized = false;
-    this.drawback = function (x) { };
     this.shaderPrograms = {};
     this.activeShaderProgram = null;
-    this.af = 4;
+
     //set parameters
     this._params = params || {};
-    this._params.width = this._params.width || og.webgl.Handler.defaultWidth;
-    this._params.height = this._params.height || og.webgl.Handler.defaultHeight;
+    this._params.width = this._params.width || 256;
+    this._params.height = this._params.height || 256;
     this._params.context = this._params.context || {};
     this._params.extensions = this._params.extensions || [];
     this._pExtensions = {};
-    this.backgroundColor = { r: 0.41, g: 0.41, b: 0.41 };
+
+    this._id = id;
+    this._af = 4;
+    this._lastAnimationFrameTime = 0;
+    this._initialized = false;
+
+    this._frameCallback = function () { };
 };
 
-og.webgl.Handler.defaultWidth = 256;
-og.webgl.Handler.defaultHeight = 256;
+og.webgl.Handler.prototype.setFrameCallback = function (callback) {
+    callback && (this._frameCallback = callback);
+};
 
 og.webgl.Handler.prototype.createTexture_n = function (image) {
     var gl = this.gl;
@@ -81,7 +88,7 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.af);
+    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._af);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -165,7 +172,7 @@ og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
     }
 };
 
-og.webgl.Handler.prototype.initShaderPrograms = function () {
+og.webgl.Handler.prototype._initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
         this._initShaderController(this.shaderPrograms[p]);
     }
@@ -189,7 +196,7 @@ og.webgl.Handler.prototype.init = function () {
     this.gl = og.webgl.initWebGLContext(this.canvas, this._params.context);
     this._initialized = true;
 
-    //deafult extensions
+    /** Sets deafult extensions */
     this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
 
@@ -197,14 +204,16 @@ og.webgl.Handler.prototype.init = function () {
     while (i--) {
         this.initExtension(this._params.extensions[i]);
     }
+
     if (!this._pExtensions.EXT_texture_filter_anisotropic)
         this.createTexture = this.createTexture_mm;
 
-    this.initShaderPrograms();
-    this.setDefaults();
+    /** Initilalize shaders and rendering parameters*/
+    this._initShaderPrograms();
+    this._setDefaults();
 };
 
-og.webgl.Handler.prototype.setDefaults = function () {
+og.webgl.Handler.prototype._setDefaults = function () {
     this.activateDepthTest();
     this.setSize(this.canvas.width, this.canvas.height);
     this.gl.frontFace(this.gl.CCW);
@@ -255,13 +264,6 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     return buffer;
 };
 
-function print2d(id, text, x, y) {
-    var el = document.getElementById(id);
-    el.innerHTML = text;
-    el.style.left = x;
-    el.style.top = y;
-};
-
 og.webgl.Handler.prototype.setSize = function (width, height) {
     var w = width, h = Math.max(1, height);
     this.canvas.width = w;
@@ -273,32 +275,23 @@ og.webgl.Handler.prototype.setSize = function (width, height) {
     }
 };
 
-og.webgl.Handler.prototype.viewportResized = function () {
-    return this.canvas.clientWidth != this.canvas.width ||
-            this.canvas.clientHeight != this.canvas.height;
-};
-
 og.webgl.Handler.prototype.drawFrame = function (now) {
 
-    if (this.viewportResized()) {
-        this.setSize(this.gl.canvas.clientWidth, this.gl.canvas.clientHeight);
-        this.onCanvasResize(this.canvas);
+    /** Canvas resize checking */
+    var canvas = this.canvas;
+    if (canvas.clientWidth != canvas.width ||
+        canvas.clientHeight != canvas.height) {
+        this.setSize(canvas.clientWidth, canvas.clientHeight);
+        this.onCanvasResize(canvas);
     }
 
-    this.calculateFPS(now);
-    this.clearFrame();
-    this.drawback();
+    /** Calculate FPS */
+    this.fps = 1000.0 / (now - this._lastAnimationFrameTime);
+    this._lastAnimationFrameTime = now;
+    this.delta = this.animationSpeed / this.fps;
 
-    var that = this;
-    window.requestAnimationFrame(function () {
-        that.drawFrame(new Date().getTime());
-    });
-};
-
-og.webgl.Handler.prototype.calculateFPS = function (now) {
-    this.fps = 1000 / (now - this.lastAnimationFrameTime);
-    this.lastAnimationFrameTime = now;
-    this.delta = this.animSpeed / this.fps;
+    /** Draw frame */
+    this._frameCallback();
 };
 
 og.webgl.Handler.prototype.clearFrame = function () {
@@ -309,8 +302,13 @@ og.webgl.Handler.prototype.clearFrame = function () {
 };
 
 og.webgl.Handler.prototype.start = function () {
+    this._animationFrameCallback(new Date().getTime());
+};
+
+og.webgl.Handler.prototype._animationFrameCallback = function (now) {
     var that = this;
     window.requestAnimationFrame(function () {
-        that.drawFrame(new Date().getTime());
+        that.drawFrame(now);
+        that._animationFrameCallback(new Date().getTime());
     });
 };

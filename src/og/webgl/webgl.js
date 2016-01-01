@@ -1,7 +1,5 @@
 goog.provide('og.webgl');
 
-goog.require('og.utils');
-
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
 if (COMPILED) {
@@ -9,7 +7,6 @@ if (COMPILED) {
 } else {
     og.webgl.RESOURCES_URL = "../../resources/";
 }
-
 
 og.webgl.getExtension = function (gl, name) {
     var i, ext;

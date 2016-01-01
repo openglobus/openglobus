@@ -87,3 +87,10 @@ og.utils.stringTemplate = function (template, params) {
         return params[key.replace(/[{}]+/g, "")] || "";
     });
 };
+
+function print2d(id, text, x, y) {
+    var el = document.getElementById(id);
+    el.innerHTML = text;
+    el.style.left = x;
+    el.style.top = y;
+};
