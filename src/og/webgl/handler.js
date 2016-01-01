@@ -19,30 +19,93 @@ goog.require('og.ImageCanvas');
  */
 og.webgl.Handler = function (id, params) {
 
+    /**
+     * Frame background color.
+     * @public
+     * @type {Object}
+     * @type {number} r - Red
+     * @type {number} g - Green
+     * @type {number} b - Blue
+     */
     this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
 
+    /**
+     * Calculated frame per second value.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     this.fps = 0;
+
+    /**
+     * Calculated time synchronization value uses for the different fps time synchonization.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     this.delta = 0;
+
+    /**
+     * Animation speed. 1.0 - by deafault. x1.0 means normal time speed.
+     * @public
+     * @type {number}
+     */
     this.animationSpeed = 1.0;
 
+    /**
+     * WebGL rendering canvas element.
+     * @public
+     * @type {Object}
+     */
     this.canvas = null;
+
+    /**
+     * WebGL context.
+     * @public
+     * @type {Object}
+     */
     this.gl = null;
+
+    /**
+     * Shader program controller list.
+     * @public
+     * @type {Object.<og.webgl.ShaderController>}
+     */
     this.shaderPrograms = {};
+
+    /**
+     * Current active shader program controller.
+     * @public
+     * @type {og.webgl.ShaderController}
+     */
     this.activeShaderProgram = null;
 
-    //set parameters
+    /**
+     * @private
+     * @type {Object}
+     */
     this._params = params || {};
     this._params.anisotropy = this._params.anisotropy || 8;
     this._params.width = this._params.width || 256;
     this._params.height = this._params.height || 256;
     this._params.context = this._params.context || {};
     this._params.extensions = this._params.extensions || [];
+
+    /**
+     * @private
+     * @type {Object}
+     */
     this._pExtensions = {};
 
     this._id = id;
     this._lastAnimationFrameTime = 0;
     this._initialized = false;
 
+    /**
+     * Animation frame function assigned from outside(Ex. from Renderer).
+     * @private
+     * @type {frameCallback}
+     */
     this._frameCallback = function () { };
 };
 
