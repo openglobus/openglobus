@@ -5,7 +5,18 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 
-/** A WebGL handler for accessing low-level WebGL capabilities. */
+/** 
+ * A WebGL handler for accessing low-level WebGL capabilities. 
+ * @class
+ * @param {string} id - Canvas element id that WebGL handler assings with. If it's null or undefined creates 
+ * hidden canvas and handler bacomes hidden.
+ * @param {Object} [param] - Handler options:
+ * @param {number} [param.anisotropy] - Anisitropy filter degree. 8 is default.
+ * @param {number} [param.width] - Hidden handler width. 256 is default.
+ * @param {number} [param.height] - Hidden handler height. 256 is default.
+ * @param {Object} [param.context] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
+ * @param {Array.<string>} [param.extensions] - Additional WebGL extension list. Available by default: OES_standard_derivatives, EXT_texture_filter_anisotropic.
+ */
 og.webgl.Handler = function (id, params) {
 
     this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
@@ -21,6 +32,7 @@ og.webgl.Handler = function (id, params) {
 
     //set parameters
     this._params = params || {};
+    this._params.anisotropy = this._params.anisotropy || 8;
     this._params.width = this._params.width || 256;
     this._params.height = this._params.height || 256;
     this._params.context = this._params.context || {};
@@ -28,7 +40,6 @@ og.webgl.Handler = function (id, params) {
     this._pExtensions = {};
 
     this._id = id;
-    this._af = 4;
     this._lastAnimationFrameTime = 0;
     this._initialized = false;
 
@@ -88,7 +99,7 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._af);
+    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
