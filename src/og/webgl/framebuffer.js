@@ -7,7 +7,7 @@ og.webgl.Framebuffer = function (handler, width, height) {
     this.handler = handler;
     this.fbo = null;
     this.width = width || handler.canvas.width;
-    this.height = height || handler.canvas.width;
+    this.height = height || handler.canvas.height;
     this.texture = null;
     this._initialize();
 };

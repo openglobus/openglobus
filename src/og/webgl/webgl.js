@@ -24,7 +24,6 @@ og.webgl.initWebGLContext = function (canvas, params) {
     try {
         ctx = canvas.getContext("experimental-webgl", params);
         ctx.canvas = canvas;
-        canvas.aspect = canvas.width / canvas.height;
     }
     catch (ex) {
         alert("Exception during the GL context initialization");

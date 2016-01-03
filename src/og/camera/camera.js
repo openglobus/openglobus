@@ -81,7 +81,7 @@ og.Camera.prototype.initialize = function (renderer, options) {
 
     var d = og.Camera.defaultOptions;
 
-    this.setProjectionMatrix(options.viewAngle || d.viewAngle, renderer.handler.gl.canvas.aspect,
+    this.setProjectionMatrix(options.viewAngle || d.viewAngle, this._aspect || renderer.handler.getClientAspect(),
         options.near || d.near, options.far || d.far);
 
     this.set(options.eye || d.eye.clone(), options.look || d.look.clone(),
@@ -143,8 +143,26 @@ og.Camera.prototype._setModelViewMatrix = function () {
  * @public
  */
 og.Camera.prototype.refresh = function () {
-    this.setProjectionMatrix(this._viewAngle, this.renderer.handler.gl.canvas.aspect, this._nearDist, this._farDist);
+    this.setProjectionMatrix(this._viewAngle, this._aspect, this._nearDist, this._farDist);
     this.update();
+};
+
+/**
+ * Sets aspect ratio.
+ * @public
+ */
+og.Camera.prototype.setAspectRatio = function (aspect) {
+    this._aspect = aspect;
+    this.refresh();
+};
+
+/**
+ * Returns aspect ratio.
+ * @public
+ * @returns {number}
+ */
+og.Camera.prototype.getAspectRatio = function () {
+    return this._aspect;
 };
 
 /**

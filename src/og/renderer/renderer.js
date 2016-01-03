@@ -234,8 +234,8 @@ og.Renderer.prototype.init = function () {
     this.events.initialize();
 
     this.handler.onCanvasResize = function (obj) {
-        that.activeCamera.refresh();
-        that._pickingFramebuffer.setSize(obj.width, obj.height);
+        that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
+        that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
     }
 

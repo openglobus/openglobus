@@ -90,6 +90,7 @@ og.webgl.Handler = function (id, params) {
     this._params.height = this._params.height || 256;
     this._params.context = this._params.context || {};
     this._params.extensions = this._params.extensions || [];
+    this._oneByHeight = 1 / this._params.height;
 
     /**
      * @private
@@ -109,10 +110,22 @@ og.webgl.Handler = function (id, params) {
     this._frameCallback = function () { };
 };
 
+/**
+ * Sets animation frame function.
+ * @public
+ * @callback frameCallback - Frame callback function.
+ * @param {frameCallback}
+ */
 og.webgl.Handler.prototype.setFrameCallback = function (callback) {
     callback && (this._frameCallback = callback);
 };
 
+/**
+ * Creates NEAREST filter texture.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.createTexture_n = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -127,6 +140,12 @@ og.webgl.Handler.prototype.createTexture_n = function (image) {
     return texture;
 };
 
+/**
+ * Creates LINEAR filter texture.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.createTexture_l = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -140,6 +159,12 @@ og.webgl.Handler.prototype.createTexture_l = function (image) {
     return texture;
 };
 
+/**
+ * Creates MIPMAP filter texture.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.createTexture_mm = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -154,6 +179,12 @@ og.webgl.Handler.prototype.createTexture_mm = function (image) {
     return texture;
 };
 
+/**
+ * Creates ANISOTROPY filter texture.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.createTexture_af = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -169,8 +200,26 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
     return texture;
 };
 
+/**
+ * Creates DEFAULT filter texture, ANISOTROPY is default.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_af;
 
+/**
+ * Creates cube texture.
+ * @public
+ * @param {Object.<string>} params - Face image urls:
+ * @param {string} params.px - Positive X or right image url.
+ * @param {string} params.nx - Negative X or left image url.
+ * @param {string} params.py - Positive Y or up image url.
+ * @param {string} params.ny - Negative Y or bottom image url.
+ * @param {string} params.pz - Positive Z or face image url.
+ * @param {string} params.nz - Negative Z or back image url.
+ * @returns {Object} - WebGL texture object.
+ */
 og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     var gl = this.gl;
     var texture = gl.createTexture();
@@ -214,6 +263,12 @@ og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     return texture;
 };
 
+/**
+ * Adds shader program to the handler.
+ * @public
+ * @param {og.shaderProgram.ShaderProgram} program - Shader program.
+ * @param {boolean} [notActivate] - If it's true program will not compile.
+ */
 og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     if (!this.shaderPrograms[program.name]) {
         var sc = new og.webgl.ShaderController(this, program);
@@ -226,6 +281,22 @@ og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     }
 };
 
+/**
+ * Adds shader programs to the handler.
+ * @public
+ * @param {Array.<og.shaderProgram.ShaderProgram>} programsArr - Shader program array.
+ */
+og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
+    for (var i = 0; i < programsArr.length; i++) {
+        this.addShaderProgram(programsArr[i]);
+    }
+};
+
+/**
+ * Used in addShaderProgram
+ * @private
+ * @param {og.webgl.ShaderController}
+ */
 og.webgl.Handler.prototype._initShaderController = function (sc) {
     if (this._initialized) {
         sc.initialize();
@@ -240,23 +311,30 @@ og.webgl.Handler.prototype._initShaderController = function (sc) {
     }
 };
 
-og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
-    for (var i = 0; i < programsArr.length; i++) {
-        this.addShaderProgram(programsArr[i]);
-    }
-};
-
+/**
+ * Used in init function.
+ * @private
+ */
 og.webgl.Handler.prototype._initShaderPrograms = function () {
     for (var p in this.shaderPrograms) {
         this._initShaderController(this.shaderPrograms[p]);
     }
 };
 
-og.webgl.Handler.prototype.initExtension = function (extensionStr) {
+/**
+ * Initialize additional WebGL extensions.
+ * @private
+ * @param {string} extensionStr - Extension name.
+ */
+og.webgl.Handler.prototype._initExtension = function (extensionStr) {
     if (!(this._pExtensions && this._pExtensions[extensionStr]))
         this._pExtensions[extensionStr] = og.webgl.getExtension(this.gl, extensionStr);
 };
 
+/**
+ * Main function that initialize handler.
+ * @public
+ */
 og.webgl.Handler.prototype.init = function () {
 
     if (this._id) {
@@ -273,10 +351,9 @@ og.webgl.Handler.prototype.init = function () {
     /** Sets deafult extensions */
     this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
-
     var i = this._params.extensions.length;
     while (i--) {
-        this.initExtension(this._params.extensions[i]);
+        this._initExtension(this._params.extensions[i]);
     }
 
     if (!this._pExtensions.EXT_texture_filter_anisotropic)
@@ -287,39 +364,75 @@ og.webgl.Handler.prototype.init = function () {
     this._setDefaults();
 };
 
+/**
+ * Sets default gl render parameters. Used in init function.
+ * @private
+ */
 og.webgl.Handler.prototype._setDefaults = function () {
     this.activateDepthTest();
-    this.setSize(this.canvas.width, this.canvas.height);
+    this.setSize(this._params.width, this._params.height);
     this.gl.frontFace(this.gl.CCW);
     this.gl.cullFace(this.gl.BACK);
     this.activateFaceCulling();
     this.deactivateBlending();
 };
 
+/**
+ * Activate depth test.
+ * @public
+ */
 og.webgl.Handler.prototype.activateDepthTest = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
 };
 
+/**
+ * Deactivate depth test.
+ * @public
+ */
 og.webgl.Handler.prototype.deactivateDepthTest = function () {
     this.gl.disable(this.gl.DEPTH_TEST);
 };
 
+/**
+ * Activate face culling.
+ * @public
+ */
 og.webgl.Handler.prototype.activateFaceCulling = function () {
     this.gl.enable(this.gl.CULL_FACE);
 };
 
+/**
+ * Deactivate face cullting.
+ * @public
+ */
 og.webgl.Handler.prototype.deactivateFaceCulling = function () {
     this.gl.disable(this.gl.CULL_FACE);
 };
 
+/**
+ * Activate blending.
+ * @public
+ */
 og.webgl.Handler.prototype.activateBlending = function () {
     this.gl.enable(this.gl.BLEND);
 };
 
+/**
+ * Deactivate blending.
+ * @public
+ */
 og.webgl.Handler.prototype.deactivateBlending = function () {
     this.gl.disable(this.gl.BLEND);
 };
 
+/**
+ * Creates ARRAY buffer.
+ * @public
+ * @param {Array.<number>} array - Input array.
+ * @param {number} itemSize - Array item size.
+ * @param {number} numItems - Items quantity.
+ * @return {Object}
+ */
 og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems) {
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
@@ -329,6 +442,14 @@ og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numIte
     return buffer;
 };
 
+/**
+ * Creates ELEMENT ARRAY buffer.
+ * @public
+ * @param {Array.<number>} array - Input array.
+ * @param {number} itemSize - Array item size.
+ * @param {number} numItems - Items quantity.
+ * @return {Object}
+ */
 og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems) {
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
@@ -338,25 +459,42 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     return buffer;
 };
 
-og.webgl.Handler.prototype.setSize = function (width, height) {
-    var w = width, h = Math.max(1, height);
+/**
+ * Sets handler canvas size.
+ * @public
+ * @param {number} width - Canvas width.
+ * @param {number} height - Canvas height.
+ */
+og.webgl.Handler.prototype.setSize = function (w, h) {
+
+    this._params.width = w;
+    this._params.height = h;
     this.canvas.width = w;
     this.canvas.height = h;
-    this.canvas.aspect = w / h;
-    this.canvas._oneByHeight = 1 / h;
-    if (this.gl) {
-        this.gl.viewport(0, 0, w, h);
-    }
+    this._oneByHeight = 1 / h;
+
+    this.gl && this.gl.viewport(0, 0, w, h);
+    this.onCanvasResize && this.onCanvasResize(this.canvas);
 };
 
-og.webgl.Handler.prototype.drawFrame = function (now) {
+og.webgl.Handler.prototype.getClientAspect = function () {
+    return this.canvas.clientWidth / this.canvas.clientHeight;
+};
+
+/**
+ * Draw single frame.
+ * @public
+ * @param {number} now - Frame current time milliseconds.
+ */
+og.webgl.Handler.prototype.drawFrame = function () {
+
+    var now = new Date().getTime();
 
     /** Canvas resize checking */
     var canvas = this.canvas;
     if (canvas.clientWidth != canvas.width ||
         canvas.clientHeight != canvas.height) {
         this.setSize(canvas.clientWidth, canvas.clientHeight);
-        this.onCanvasResize(canvas);
     }
 
     /** Calculate FPS */
@@ -368,6 +506,10 @@ og.webgl.Handler.prototype.drawFrame = function (now) {
     this._frameCallback();
 };
 
+/**
+ * Clearing gl frame.
+ * @public
+ */
 og.webgl.Handler.prototype.clearFrame = function () {
     var gl = this.gl;
     var bc = this.backgroundColor;
@@ -375,14 +517,22 @@ og.webgl.Handler.prototype.clearFrame = function () {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
+/**
+ * Starts animation loop.
+ * @public
+ */
 og.webgl.Handler.prototype.start = function () {
-    this._animationFrameCallback(new Date().getTime());
+    this._animationFrameCallback();
 };
 
-og.webgl.Handler.prototype._animationFrameCallback = function (now) {
+/**
+ * Make animation.
+ * @private
+ */
+og.webgl.Handler.prototype._animationFrameCallback = function () {
     var that = this;
     window.requestAnimationFrame(function () {
-        that.drawFrame(now);
-        that._animationFrameCallback(new Date().getTime());
+        that.drawFrame();
+        that._animationFrameCallback();
     });
 };
