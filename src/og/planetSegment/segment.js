@@ -13,7 +13,7 @@ goog.require('og.LonLat');
 goog.require('og.proj.EPSG3857');
 
 /**
- * Planet segment Web Mercator tile class
+ * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
  * @api
  */
@@ -45,7 +45,7 @@ og.planetSegment.Segment = function () {
     this.extentParams = [];
     this.gridSize = null;
 
-    this.zoomIndex = null;
+    this.tileZoom = null;
     this.tileX = null;
     this.tileY = null;
 
@@ -144,7 +144,7 @@ og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
 };
 
 og.planetSegment.Segment.prototype.loadTerrain = function () {
-    if (this.zoomIndex >= this.planet.terrainProvider.minZoom) {
+    if (this.tileZoom >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
             this.terrainReady = false;
             this.terrainIsLoading = true;
@@ -161,7 +161,7 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     if (this.ready && this.terrainIsLoading) {
 
         var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
-        var tgs = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+        var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
         var fileGridSize = this.planet.terrainProvider.fileGridSize || (Math.sqrt(elevations.length) - 1);
         var fileGridSize_one = fileGridSize + 1;
         var gs = tgs + 1;
@@ -334,13 +334,13 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
 };
 
 og.planetSegment.Segment.prototype.elevationsNotExists = function () {
-    if (this.zoomIndex <= this.planet.terrainProvider.maxZoom) {
+    if (this.tileZoom <= this.planet.terrainProvider.maxZoom) {
         if (this.ready && this.terrainIsLoading) {
             this.terrainIsLoading = false;
             this.terrainReady = true;
             this.terrainExists = false;
             this.node.appliedTerrainNodeId = this.node.nodeId;
-            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.zoomIndex];
+            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
 
             this.deleteBuffers();
 
@@ -348,7 +348,7 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
                 this.planet.normalMapCreator.queue(this);
             }
 
-            if (this.zoomIndex > 5) {
+            if (this.tileZoom > 5) {
                 var step = 3 * this.gridSize;
                 var step2 = step * 0.5;
                 var lb = step * (this.gridSize + 1);
@@ -388,12 +388,12 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
 
         var ns = n.planetSegment;
 
-        this._appliedNeighborsZoom[side] = ns.zoomIndex;
+        this._appliedNeighborsZoom[side] = ns.tileZoom;
 
         if (ns.terrainReady && ns.terrainExists) {
 
             if (!ns._inTheQueue &&
-                this.zoomIndex > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
+                this.tileZoom > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
                 this.planet.normalMapCreator.queue(ns);
                 return;
             }
@@ -407,7 +407,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
 
             //there is no cases when zoom indexes different between neighbor more than 2
 
-            if (this.zoomIndex == ns.zoomIndex) {
+            if (this.tileZoom == ns.tileZoom) {
                 //there is only one neighbor on the side
 
                 if (vert) {
@@ -429,7 +429,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
                         seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
                     }
                 }
-            } else if (this.zoomIndex > ns.zoomIndex) {
+            } else if (this.tileZoom > ns.tileZoom) {
                 //there is only one neighbor on the side
 
                 var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
@@ -454,7 +454,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
                     }
                 }
 
-            } else if (this.zoomIndex < ns.zoomIndex) {
+            } else if (this.tileZoom < ns.tileZoom) {
                 //there are one or two neghbors on the side
                 if (!ns._inTheQueue) {
                     this.planet.normalMapCreator.queue(ns);
@@ -472,7 +472,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
 
 og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
 
-    if (this.zoomIndex > this.planet.terrainProvider.maxZoom)
+    if (this.tileZoom > this.planet.terrainProvider.maxZoom)
         return;
 
     var nb = this.node.neighbors;
@@ -483,7 +483,7 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
             nbs = nb[og.quadTree.S],
             nbw = nb[og.quadTree.W];
 
-        if (this.zoomIndex > this.planet.terrainProvider.minZoom) {
+        if (this.tileZoom > this.planet.terrainProvider.minZoom) {
             if (nbn && nbn.planetSegment.terrainIsLoading ||
                 nbe && nbe.planetSegment.terrainIsLoading ||
                 nbs && nbs.planetSegment.terrainIsLoading ||
@@ -582,7 +582,7 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
     this.plainNormals.length = 0;
-    if (/*this.normalMapTexture && */this.normalMapReady) {
+    if (this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
     if (this.geoImageReady && !this.geoImageTexture.default) {
@@ -681,8 +681,8 @@ og.planetSegment.Segment.prototype.createIndexesBuffer = function (sidesSizes, g
     this.vertexIndexBuffer = this.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 };
 
-og.planetSegment.Segment.prototype.assignTileIndexes = function (zoomIndex, extent) {
-    this.zoomIndex = zoomIndex;
+og.planetSegment.Segment.prototype.assignTileIndexes = function (tileZoom, extent) {
+    this.tileZoom = tileZoom;
     this.extent = extent;
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));

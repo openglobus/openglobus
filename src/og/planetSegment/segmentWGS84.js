@@ -36,11 +36,11 @@ og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
     }
 
     return camera.projectedSize(sphere.center) > og.planetSegment.SegmentWGS84.RATIO_LOD * sphere.radius ||
-        this.zoomIndex > maxPoleZoom;
+        this.tileZoom > maxPoleZoom;
 };
 
-og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (zoomIndex, extent) {
-    this.zoomIndex = zoomIndex;
+og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (tileZoom, extent) {
+    this.tileZoom = tileZoom;
     this.extent = extent;
     this.wgs84extent = extent;
 

@@ -242,6 +242,11 @@ og.Renderer.prototype.init = function () {
     this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
 };
 
+/**
+ * Adds render node to the renderer.
+ * @public
+ * @param {og.node.RenderNode} renderNode - Render node.
+ */
 og.Renderer.prototype.addRenderNode = function (renderNode) {
     if (!this.renderNodes[renderNode.name]) {
         renderNode.assignRenderer(this);
@@ -253,6 +258,11 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
     }
 };
 
+/**
+ * Adds render nodes array to the renderer.
+ * @public
+ * @param {Array.<og.node.RenderNode>} nodesArr - Render nodes array.
+ */
 og.Renderer.prototype.addRenderNodes = function (nodesArr) {
     for (var i = 0; i < nodesArr; i++) {
         this.addRenderNode(nodesArr[i]);

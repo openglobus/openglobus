@@ -477,6 +477,11 @@ og.webgl.Handler.prototype.setSize = function (w, h) {
     this.onCanvasResize && this.onCanvasResize(this.canvas);
 };
 
+/**
+ * Returns canvas aspect ratio.
+ * @public
+ * @returns {number}
+ */
 og.webgl.Handler.prototype.getClientAspect = function () {
     return this.canvas.clientWidth / this.canvas.clientHeight;
 };

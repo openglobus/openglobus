@@ -29,7 +29,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
 
 og.planetSegment.NormalMapCreatorQueue.prototype.queue = function (segment) {
 
-    if (this.active || segment.zoomIndex <= segment.planet.terrainProvider.minZoom) {
+    if (this.active || segment.tileZoom <= segment.planet.terrainProvider.minZoom) {
         segment._inTheQueue = true;
         if (this._counter >= 1) {
             this._pendingsQueue.push(segment);

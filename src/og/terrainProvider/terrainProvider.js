@@ -96,7 +96,7 @@ og.terrainProvider.TerrainProvider.prototype.getServerUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
         "tilex": segment.tileX.toString(),
         "tiley": segment.tileY.toString(),
-        "zoom": segment.zoomIndex.toString()
+        "zoom": segment.tileZoom.toString()
     });
 };
 

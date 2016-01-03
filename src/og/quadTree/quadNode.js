@@ -33,7 +33,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype) {
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
 og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.length) - 1;
 
-og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, partId, parent, id, zoomIndex, extent) {
+og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
     var node = new og.quadTree.QuadNode();
     node.partId = partId;
     node.parentNode = parent;
@@ -44,8 +44,8 @@ og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, part
     node.planetSegment.node = node;
     node.planetSegment.planet = planet;
     node.planetSegment.handler = planet.renderer.handler;
-    node.planetSegment.assignTileIndexes(zoomIndex, extent);
-    node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[zoomIndex];
+    node.planetSegment.assignTileIndexes(tileZoom, extent);
+    node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
     node.createBounds();
     node.planet.createdNodesCount++;
     return node;
@@ -55,10 +55,10 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
 
     var seg = this.planetSegment;
 
-    if (!seg.zoomIndex) {
+    if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
         seg.bsphere.center = new og.math.Vector3();
-    } else if (seg.zoomIndex < seg.planet.terrainProvider.minZoom) {
+    } else if (seg.tileZoom < seg.planet.terrainProvider.minZoom) {
         seg.createBoundsByExtent();
     } else {
         var pn = this;
@@ -67,7 +67,7 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
             pn = pn.parentNode;
         }
 
-        var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+        var scale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
 
         var dZ2 = Math.pow(2, scale);
 
@@ -141,7 +141,7 @@ og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
     var size_x = ext.getWidth() * 0.5;
     var size_y = ext.getHeight() * 0.5;
     var ne = ext.northEast, sw = ext.southWest;
-    var z = ps.zoomIndex + 1;
+    var z = ps.tileZoom + 1;
     var id = this.nodeId * 4 + 1;
     var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.nodes;
@@ -230,7 +230,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             this.prepareForRendering(cam);
         }
         else {
-            if (seg.zoomIndex < planet.terrainProvider.gridSizeByZoom.length - 1) {
+            if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes();
             }
             else {
@@ -243,7 +243,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 };
 
 og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
-    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.zoomIndex];
+    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.tileZoom];
     segment.gridSize = gridSize;
     this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     segment.createPlainVertices(gridSize);
@@ -293,12 +293,12 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
 
     //minimal and maximal zoom index on the screen
-    if (seg.zoomIndex > this.planet.maxCurrZoom) {
-        this.planet.maxCurrZoom = seg.zoomIndex;
+    if (seg.tileZoom > this.planet.maxCurrZoom) {
+        this.planet.maxCurrZoom = seg.tileZoom;
     }
 
-    if (seg.zoomIndex < this.planet.minCurrZoom) {
-        this.planet.minCurrZoom = seg.zoomIndex;
+    if (seg.tileZoom < this.planet.minCurrZoom) {
+        this.planet.minCurrZoom = seg.tileZoom;
     }
 
     this.addToRender(this);
@@ -314,7 +314,7 @@ og.quadTree.QuadNode.prototype.createGeoImage = function () {
             pn = pn.parentNode;
         }
 
-        var scale = seg.zoomIndex - pn.planetSegment.zoomIndex;
+        var scale = seg.tileZoom - pn.planetSegment.tileZoom;
 
         var dZ2 = Math.pow(2, scale);
 
@@ -345,7 +345,7 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
             if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
                 var ap = node.planetSegment;
                 var bp = ni.planetSegment;
-                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.zoomIndex - ap.zoomIndex));
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
@@ -415,7 +415,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
         pn = pn.parentNode;
     }
 
-    var scale = seg.zoomIndex - pn.planetSegment.zoomIndex;
+    var scale = seg.tileZoom - pn.planetSegment.tileZoom;
 
     var dZ2 = Math.pow(2, scale);
 
@@ -429,14 +429,14 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (seg.zoomIndex <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+    if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
         seg.planet.normalMapCreator.shift(seg);
-    } else if (seg.zoomIndex > maxZ) {
-        if (pn.planetSegment.zoomIndex == maxZ) {
+    } else if (seg.tileZoom > maxZ) {
+        if (pn.planetSegment.tileZoom == maxZ) {
             seg.parentNormalMapReady = true;
         } else {
             pn = this;
-            while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+            while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
                 pn = pn.parentNode;
             }
             var pns = pn.planetSegment;
@@ -458,7 +458,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         pn = pn.parentNode;
     }
 
-    var scale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+    var scale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
 
     var dZ2 = Math.pow(2, scale);
 
@@ -568,8 +568,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             }
         }
 
-        if (seg.zoomIndex > maxZ) {
-            if (pn.planetSegment.zoomIndex >= maxZ) {
+        if (seg.tileZoom > maxZ) {
+            if (pn.planetSegment.tileZoom >= maxZ) {
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
@@ -595,7 +595,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 }
             } else {
                 pn = this;
-                while (pn.parentNode && pn.planetSegment.zoomIndex != maxZ) {
+                while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
                     pn = pn.parentNode;
                 }
                 var pns = pn.planetSegment;
@@ -646,7 +646,7 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
         psegm = pn.planetSegment.materials[mId];
     }
 
-    var texScale = this.planetSegment.zoomIndex - pn.planetSegment.zoomIndex;
+    var texScale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
 
     var dZ2 = Math.pow(2, texScale);
 
@@ -679,7 +679,7 @@ og.quadTree.QuadNode.prototype.clearTree = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    if (this.planetSegment.zoomIndex <= this.planetSegment.planet.terrainProvider.minZoom)
+    if (this.planetSegment.tileZoom <= this.planetSegment.planet.terrainProvider.minZoom)
         return;
 
     if (cls) {
