@@ -62,15 +62,16 @@ og.control.ZoomControl.prototype.zoomOut = function () {
 
 og.control.ZoomControl.prototype.onDraw = function (e) {
 
+    var cam = this.renderer.activeCamera;
+
     if (this.stepIndex) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-        var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
         cam._v = sf.v;
         cam._u = sf.u;
         cam._n = sf.n;
         cam.update();
-    } else {
+    } else if (!cam._flying) {
         this.planet.normalMapCreator.active = true;
         this.planet.terrainProvider.active = true;
     }

@@ -394,6 +394,15 @@ og.PlanetCamera.prototype.stopFlying = function () {
 };
 
 /**
+ * Returns camera is flying.
+ * @public
+ * @returns {boolean}
+ */
+og.PlanetCamera.prototype.isFlying = function () {
+    return this._flying;
+};
+
+/**
  * Rotates around planet to the left.
  * @public
  * @param {number} angle - Rotation angle.
