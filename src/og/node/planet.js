@@ -416,9 +416,6 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("keypress", this, function () {
         that._isCameraSunlight = true;
     }, og.input.KEY_V);
-
-    this.renderer.assignPickingColor(this);
-    this.renderer.addPickingCallback(this, this._planetPickingCallback);
 };
 
 /**
@@ -644,17 +641,6 @@ og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
         this.renderedNodes[i].planetSegment.drawHeightPicking();
     }
     b.deactivate();
-};
-
-og.node.Planet.prototype._planetPickingCallback = function () {
-    var r = this.renderer;
-    var h = r.handler;
-    var i = this.renderedNodes.length;
-    //...
-    //...
-    while (i--) {
-        this.renderedNodes[i].planetSegment.drawPicking();
-    }
 };
 
 /**

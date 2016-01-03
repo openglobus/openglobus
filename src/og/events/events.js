@@ -8,6 +8,7 @@ goog.provide('og.Events');
 og.Events = function (eventNames) {
     eventNames && this.registerNames(eventNames);
     this._counter = 0;
+    this._stopPropagation = false;
 };
 
 /**
@@ -38,7 +39,7 @@ og.Events.prototype._stamp = function (obj) {
  */
 og.Events.prototype.on = function (name, sender, callback) {
     if (this._stamp(callback)) {
-        this[name].handlers.unshift({ "sender": sender, "callback": callback });
+        this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
     }
 };
 
@@ -78,9 +79,14 @@ og.Events.prototype.dispatch = function (event, obj) {
     if (event && event.active) {
         var h = event.handlers;
         var i = h.length;
-        while (i--) {
+        while (i-- && !this._stopPropagation) {
             var e = h[i];
             e.callback.call(e.sender, obj);
         }
     }
+    this._stopPropagation = false;
+};
+
+og.Events.prototype.stopPropagation = function () {
+    this._stopPropagation = true;
 };

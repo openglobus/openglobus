@@ -855,24 +855,3 @@ og.planetSegment.Segment.prototype.drawHeightPicking = function () {
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
     }
 };
-
-og.planetSegment.Segment.prototype.drawPicking = function () {
-    //if (this.ready) {
-    //    var gl = this.handler.gl;
-    //    var sh = this.handler.shaderPrograms.heightPicking._program;
-    //    var sha = sh.attributes,
-    //        shu = sh.uniforms;
-
-    //    var cam = this.node.planet.renderer.activeCamera;
-    //    gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, cam.pmvMatrix._m);
-
-    //    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-    //    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    //    this._setVIb();
-
-    //    sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._vib);
-
-    //    this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
-    //}
-};
