@@ -15,11 +15,25 @@ goog.require('og.proj.EPSG3857');
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
- * @api
  */
 og.planetSegment.Segment = function () {
-    this._projection = og.proj.EPSG3857;
 
+    this.node = null;
+    this.planet = null;
+    this.handler = null;
+    this.bbox = new og.bv.Box();
+    this.bsphere = new og.bv.Sphere();
+    this.extent = null;
+    this.extentParams = [];
+    this.gridSize = null;
+
+    this.tileX = null;
+    this.tileY = null;
+    this.tileZoom = null;
+
+    this.materials = [];
+
+    this.plainIndexes = [];
     this.plainVertices = [];
     this.plainNormals = [];
     this.terrainVertices = [];
@@ -30,42 +44,19 @@ og.planetSegment.Segment = function () {
     this.normalMapVertices = [];
     this.normalMapNormals = [];
 
-    this.plainIndexes = [];
-
-    this.bbox = new og.bv.Box();
-    this.bsphere = new og.bv.Sphere();
-
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this.extent = null;
-    //this.wgs84extent;
-    this.extentParams = [];
-    this.gridSize = null;
-
-    this.tileZoom = null;
-    this.tileX = null;
-    this.tileY = null;
-
-    this.planet = null;
-    this.handler = null;
-
     this.ready = false;
-
-    this.materials = [];
-
-    this._inTheQueue = false;
-    this._inTheGeoImageTileCreatorQueue = false;
-    this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
+    this.geoImageReady = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.terrainExists = false;
 
-    this.geoImageReady = false;
     this.geoImageTexture = null;
     this.geoImageTextureBias = [0, 0, 1];
 
@@ -73,7 +64,10 @@ og.planetSegment.Segment = function () {
     this.samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
     this.alfaArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS);
 
-    this.node = null;
+    this._projection = og.proj.EPSG3857;
+    this._inTheQueue = false;
+    this._inTheGeoImageTileCreatorQueue = false;
+    this._appliedNeighborsZoom = [0, 0, 0, 0];
 };
 
 og.planetSegment.Segment.RATIO_LOD = 1.12;

@@ -462,9 +462,9 @@ og.node.Planet.prototype.initialization = function () {
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
-    this._quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-    this._quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
-    this._quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
+    this._quadTree = new og.quadTree.QuadNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this._quadTreeNorth = new og.quadTree.QuadNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
+    this._quadTreeSouth = new og.quadTree.QuadNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     //Just initials
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;

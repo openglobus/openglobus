@@ -8,47 +8,74 @@ goog.require('og.proj.EPSG4326');
 goog.require('og.mercator');
 
 /**
- * Quad tree node class.
- * @class
- * @api
+ * Quad tree planet segment node.
+ * @constructor
+ * @param {og.planetSegment.Segment|og.planetSegment.SegmentWGS84} planetSegmentPrototype - Planet segment node constructor.
+ * @param {og.node.RenderNode} planet - Planet render node.
+ * @param {number} partId - NorthEast, SouthWest etc.
+ * @param {og.quadTree.QuadNode} parent - Parent of this node.
+ * @param {number} id - Tree node identifier (id * 4 + 1);
+ * @param {number} tileZoom - Deep index of the quad tree.
+ * @param {og.Extent} extent - Planet segment extent. 
  */
-og.quadTree.QuadNode = function (planetSegmentPrototype) {
-    this.parentNode = null;
+og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
+
+    this.planet = planet;
+
+    this.parentNode = parent;
     this.nodes = [];
-    this.planetSegment = null;
-    this.partId = null;
-    this.nodeId = null;
-    this.planet = null;
+    this.partId = partId;
+    this.nodeId = partId + id;
+
     this.state = null;
+
     this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
+
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
     this.cameraInside = false;
 
-    this.planetSegmentPrototype = planetSegmentPrototype;
+    this._planetSegmentPrototype = planetSegmentPrototype;
+
+    this.planetSegment = new planetSegmentPrototype();
+    this.planetSegment.node = this;
+    this.planetSegment.planet = planet;
+    this.planetSegment.handler = planet.renderer.handler;
+    this.planetSegment.assignTileIndexes(tileZoom, extent);
+    this.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
+
+    this.createBounds();
+    this.planet._createdNodesCount++;
 };
 
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
 og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.length) - 1;
 
-og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
-    var node = new og.quadTree.QuadNode();
-    node.partId = partId;
-    node.parentNode = parent;
-    node.nodeId = partId + id;
-    node.planet = planet;
-    node.planetSegment = new planetSegmentPrototype();
-    node.planetSegmentPrototype = planetSegmentPrototype;
-    node.planetSegment.node = node;
-    node.planetSegment.planet = planet;
-    node.planetSegment.handler = planet.renderer.handler;
-    node.planetSegment.assignTileIndexes(tileZoom, extent);
-    node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
-    node.createBounds();
-    node.planet._createdNodesCount++;
-    return node;
+og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
+    var p = this.planet;
+    var ps = this.planetSegment;
+    var ext = ps.extent;
+    var size_x = ext.getWidth() * 0.5;
+    var size_y = ext.getHeight() * 0.5;
+    var ne = ext.northEast, sw = ext.southWest;
+    var z = ps.tileZoom + 1;
+    var id = this.nodeId * 4 + 1;
+    var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
+    var nd = this.nodes;
+
+    nd[og.quadTree.NW] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.NW, this, id, z,
+        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)));
+
+    nd[og.quadTree.NE] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.NE, this, id, z,
+        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)));
+
+    nd[og.quadTree.SW] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.SW, this, id, z,
+        new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
+
+    nd[og.quadTree.SE] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.SE, this, id, z,
+         new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function () {
@@ -132,31 +159,6 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
             seg.createBoundsByExtent();
         }
     }
-};
-
-og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
-    var p = this.planet;
-    var ps = this.planetSegment;
-    var ext = ps.extent;
-    var size_x = ext.getWidth() * 0.5;
-    var size_y = ext.getHeight() * 0.5;
-    var ne = ext.northEast, sw = ext.southWest;
-    var z = ps.tileZoom + 1;
-    var id = this.nodeId * 4 + 1;
-    var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
-    var nd = this.nodes;
-
-    nd[og.quadTree.NW] = og.quadTree.QuadNode.createNode(this.planetSegmentPrototype, p, og.quadTree.NW, this, id, z,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)));
-
-    nd[og.quadTree.NE] = og.quadTree.QuadNode.createNode(this.planetSegmentPrototype, p, og.quadTree.NE, this, id, z,
-        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)));
-
-    nd[og.quadTree.SW] = og.quadTree.QuadNode.createNode(this.planetSegmentPrototype, p, og.quadTree.SW, this, id, z,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
-
-    nd[og.quadTree.SE] = og.quadTree.QuadNode.createNode(this.planetSegmentPrototype, p, og.quadTree.SE, this, id, z,
-         new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
 };
 
 og.quadTree.QuadNode.prototype.reloadTerrain = function () {
