@@ -125,22 +125,37 @@ og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
 
         var d = ray.hitTriangle(v0, v1, v2, res);
         if (d == og.math.Ray.INSIDE) {
-            return { "distance": xyz.distance(res), "earth": res };
+            return {
+                "distance": xyz.distance(res),
+                "earth": res
+            };
         }
 
         d = ray.hitTriangle(v1, v3, v2, res);
         if (d == og.math.Ray.INSIDE) {
-            return { "distance": xyz.distance(res), "earth": res };
+            return {
+                "distance": xyz.distance(res),
+                "earth": res
+            };
         }
 
         if (d == og.math.Ray.AWAY) {
-            return { "distance": -xyz.distance(res), "earth": res };
+            return {
+                "distance": -xyz.distance(res),
+                "earth": res
+            };
         }
 
-        return { "distance": xyz.distance(res), "earth": res };
+        return {
+            "distance": xyz.distance(res),
+            "earth": res
+        };
     }
 
-    return { "distance": camera._lonLat.height, "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction) };
+    return {
+        "distance": camera._lonLat.height,
+        "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction)
+    };
 };
 
 og.planetSegment.Segment.prototype.loadTerrain = function () {
@@ -165,7 +180,7 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
         var fileGridSize = this.planet.terrainProvider.fileGridSize || (Math.sqrt(elevations.length) - 1);
         var fileGridSize_one = fileGridSize + 1;
         var gs = tgs + 1;
-        var hf = this.planet.heightFactor;
+        var hf = this.planet._heightFactor;
         var terrainVertices = [];
         var normalMapVertices = [];
 
@@ -828,7 +843,7 @@ og.planetSegment.Segment.prototype.draw = function (sh) {
 og.planetSegment.Segment.prototype._setVIb = function () {
     if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
         this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
-        this._vib = this.planet.indexesBuffers[this.gridSize];
+        this._vib = this.planet._indexesBuffers[this.gridSize];
     } else {
         this.createIndexesBuffer(this.node.sideSize, this.gridSize);
         this._vib = this.vertexIndexBuffer;

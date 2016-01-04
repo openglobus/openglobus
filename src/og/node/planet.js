@@ -46,51 +46,52 @@ goog.require('og.planetSegment.GeoImageTileCreatorQueue');
  */
 og.node.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
-    this.ellipsoid = ellipsoid;
-    this.quadTree = null;
-    this.quadTreeNorth = null;
-    this.quadTreeSouth = null;
 
     /**
-     * All layers array
+     * @public
+     * @type {og.Ellipsoid}
+     */
+    this.ellipsoid = ellipsoid;
+
+    /**
+     * All layers array.
+     * @public
      * @type {Array.<og.layer.Layer>}
      */
     this.layers = [];
 
     /**
      * Current visible layers array
+     * @public
      * @type {Array.<og.layer.Layer>}
      */
     this.visibleLayers = [];
 
-    this.tcolorArr = [];
-
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
+     * @public
      * @type {og.layer.Layer}
      */
     this.baseLayer = null;
 
+    /**
+     * Terrain provider.
+     * @public
+     * @type {og.terrainProvider.TerrainProvider}
+     */
     this.terrainProvider = null;
 
-    //this.renderer.activeCamera pointer
+    /**
+     * Camera is this.renderer.activeCamera pointer.
+     * @public
+     * @type {og.PlanetCamera}
+     */
     this.camera = null;
 
-    this.createdNodesCount = 0;
-    this.renderedNodes = [];
-
     /**
-     * Height scale factor. 1 - is normal elevation scale
-     * @type {number}
+     * @public
      */
-    this.heightFactor = 1.0;
-
     this.mousePositionOnEarth = new og.math.Vector3();
-
-    this.indexesBuffers = [];
-    this._heightBackbuffer = null;
-    this._currentDistanceFromPixel = 0;
-    this._viewChanged = true;
 
     this.emptyTexture = null;
     this.transparentTexture = null;
@@ -98,22 +99,117 @@ og.node.Planet = function (name, ellipsoid) {
 
     /**
      * Point light source.
+     * @public
      * @type {og.light.PointLight}
      */
     this.sunlight = null;
 
+    /**
+     * Object async creates normal map segment textures.
+     * @public
+     * @type {og.planetSegment.NormalMapCreatorQueue}
+     */
     this.normalMapCreator = null;
+
+    /**
+     * Async gGeo images tile creator.
+     * @public
+     * @type {og.planetSegment.GeoImageTileCreatorQueue}
+     */
     this.geoImageTileCreator = null;
 
+    /**
+     * @public
+     * @type {Array.<og.GeoImage>}
+     */
     this.geoImagesArray = [];
 
+    /**
+     * Current visible minimal zoom index planet segment.
+     * @public
+     * @type {number}
+     */
     this.minCurrZoom = og.math.MAX;
+
+    /**
+     * Current visible maximal zoom index planet segment.
+     * @public
+     * @type {number}
+     */
     this.maxCurrZoom = og.math.MIN;
+
+    /**
+     * @private
+     */
+    this._createdNodesCount = 0;
+
+    /**
+     * @private
+     */
+    this._renderedNodes = [];
+
+    /**
+     * @private
+     */
+    this._tcolorArr = [];
+
+    /**
+     * Height scale factor. 1 - is normal elevation scale.
+     * @private
+     * @type {number}
+     */
+    this._heightFactor = 1.0;
+
+    /**
+     * Precomputed indexes buffer array for differrent grid size segments.
+     * @private
+     * @type {Array.<Array.<number>>}
+     */
+    this._indexesBuffers = [];
+
+    /**
+     * Backbuffer for relief.
+     * @private
+     * @type {Object}
+     */
+    this._heightBackbuffer = null;
+
+    /**
+     * Calculates when mouse is moving or planet is rotating.
+     * @private
+     * @type {number}
+     */
+    this._currentDistanceFromPixel = 0;
+
+    /**
+     * @private
+     */
+    this._viewChanged = true;
+
+    /**
+     * @private
+     */
+    this._quadTree = null;
+
+    /**
+     * @private
+     */
+    this._quadTreeNorth = null;
+
+    /**
+     * @private
+     */
+    this._quadTreeSouth = null;
+
+    /**
+     * Sunlight position in camera eye.
+     * @private
+     * @type {boolean}
+     */
+    this._isCameraSunlight = false;
 
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
-
-    this._isCameraSunlight = false;
 };
 
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
@@ -265,7 +361,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
         if (this.layers[i]._id == lid) {
             this.layers.splice(i, 1);
             layer.setVisibility(false);
-            this.quadTree.traverseTree(function (node) {
+            this._quadTree.traverseTree(function (node) {
                 var mats = node.planetSegment.materials;
                 if (mats[lid]) {
                     mats[lid].clear();
@@ -291,9 +387,9 @@ og.node.Planet.prototype.redrawGeoImages = function () {
     var refresh = function (node) {
         node.planetSegment.geoImageReady = false;
     }
-    this.quadTree.traverseTree(refresh);
-    this.quadTreeNorth.traverseTree(refresh);
-    this.quadTreeSouth.traverseTree(refresh);
+    this._quadTree.traverseTree(refresh);
+    this._quadTreeNorth.traverseTree(refresh);
+    this._quadTreeSouth.traverseTree(refresh);
 };
 
 /**
@@ -330,10 +426,18 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
  * @param {number} factor - Elevation scale.
  */
 og.node.Planet.prototype.setHeightFactor = function (factor) {
-    if (this.heightFactor !== factor) {
-        this.heightFactor = factor;
-        this.quadTree.reloadTerrain();
+    if (this._heightFactor !== factor) {
+        this._heightFactor = factor;
+        this._quadTree.reloadTerrain();
     }
+};
+
+/**
+ * Gets elevation scale.
+ * @returns {number}
+ */
+og.node.Planet.prototype.getHeightFactor = function () {
+    return this._heightFactor;
 };
 
 og.node.Planet.prototype.setTerrainProvider = function (terrain) {
@@ -348,7 +452,7 @@ og.node.Planet.prototype.initialization = function () {
     for (var i = 0; i <= 6; i++) {
         var gridSize = Math.pow(2, i);
         var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
-        this.indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
+        this._indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
     }
 
     //create empty textures
@@ -358,9 +462,9 @@ og.node.Planet.prototype.initialization = function () {
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
     //Creating quad trees nodes
-    this.quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-    this.quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
-    this.quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
+    this._quadTree = og.quadTree.QuadNode.createNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this._quadTreeNorth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
+    this._quadTreeSouth = og.quadTree.QuadNode.createNode(og.planetSegment.SegmentWGS84, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     //Just initials
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
@@ -481,15 +585,15 @@ og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
 og.node.Planet.prototype.collectRenderNodes = function () {
 
     //clear first
-    this.renderedNodes.length = 0;
-    this.renderedNodes = [];
+    this._renderedNodes.length = 0;
+    this._renderedNodes = [];
 
     this.minCurrZoom = og.math.MAX;
     this.maxCurrZoom = og.math.MIN;
 
-    this.quadTreeNorth.renderTree();
-    this.quadTreeSouth.renderTree();
-    this.quadTree.renderTree();
+    this._quadTreeNorth.renderTree();
+    this._quadTreeSouth.renderTree();
+    this._quadTree.renderTree();
 };
 
 /**
@@ -523,11 +627,11 @@ og.node.Planet.prototype.frame = function () {
 
     //free memory
     var that = this;
-    if (this.createdNodesCount > 1370) {
+    if (this._createdNodesCount > 1370) {
         setTimeout(function () {
             that.memClear();
         }, 0);
-        that.createdNodesCount = 0;
+        that._createdNodesCount = 0;
     }
 };
 
@@ -536,9 +640,9 @@ og.node.Planet.prototype.frame = function () {
  * @public
  */
 og.node.Planet.prototype.memClear = function () {
-    this.quadTree.clearTree();
-    this.quadTreeNorth.clearTree();
-    this.quadTreeSouth.clearTree();
+    this._quadTree.clearTree();
+    this._quadTreeNorth.clearTree();
+    this._quadTreeSouth.clearTree();
 };
 
 /**
@@ -583,14 +687,14 @@ og.node.Planet.prototype.renderNodesPASS = function () {
         while (i--) {
             var ll = layers[i];
             var nt4 = i * 4;
-            this.tcolorArr[nt4] = ll.transparentColor[0];
-            this.tcolorArr[nt4 + 1] = ll.transparentColor[1];
-            this.tcolorArr[nt4 + 2] = ll.transparentColor[2];
-            this.tcolorArr[nt4 + 3] = ll.opacity;
+            this._tcolorArr[nt4] = ll.transparentColor[0];
+            this._tcolorArr[nt4 + 1] = ll.transparentColor[1];
+            this._tcolorArr[nt4 + 2] = ll.transparentColor[2];
+            this._tcolorArr[nt4 + 3] = ll.opacity;
         }
 
         gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
-        gl.uniform4fv(sh.uniforms.tcolorArr._pName, this.tcolorArr);
+        gl.uniform4fv(sh.uniforms.tcolorArr._pName, this._tcolorArr);
 
     } else {
         drawCallback = og.planetSegment.drawSingle;
@@ -616,9 +720,9 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     }
 
     //draw planet's nodes
-    var i = this.renderedNodes.length;
+    var i = this._renderedNodes.length;
     while (i--) {
-        drawCallback(sh, this.renderedNodes[i].planetSegment);
+        drawCallback(sh, this._renderedNodes[i].planetSegment);
     }
     gl.disable(gl.BLEND);
 };
@@ -636,9 +740,9 @@ og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
     b.clear();
     pp.activate();
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    var i = this.renderedNodes.length;
+    var i = this._renderedNodes.length;
     while (i--) {
-        this.renderedNodes[i].planetSegment.drawHeightPicking();
+        this._renderedNodes[i].planetSegment.drawHeightPicking();
     }
     b.deactivate();
 };

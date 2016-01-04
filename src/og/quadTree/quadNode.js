@@ -47,7 +47,7 @@ og.quadTree.QuadNode.createNode = function (planetSegmentPrototype, planet, part
     node.planetSegment.assignTileIndexes(tileZoom, extent);
     node.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
     node.createBounds();
-    node.planet.createdNodesCount++;
+    node.planet._createdNodesCount++;
     return node;
 };
 
@@ -332,7 +332,7 @@ og.quadTree.QuadNode.prototype.createGeoImage = function () {
 };
 
 og.quadTree.QuadNode.prototype.addToRender = function (node) {
-    var nodes = this.planet.renderedNodes;
+    var nodes = this.planet._renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         var cs = node.getCommonSide(ni);
