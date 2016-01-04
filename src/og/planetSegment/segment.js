@@ -18,20 +18,113 @@ goog.require('og.proj.EPSG3857');
  */
 og.planetSegment.Segment = function () {
 
+    /**
+     * Quad tree node of the segment.
+     * @type {og.quadTree.QuadNode}
+     */
     this.node = null;
+
+    /**
+     * Planet pointer.
+     * @type {pg.node.RenderNode}
+     */
     this.planet = null;
+
+    /**
+     * WebGl handler pointer.
+     * @type {og.webgl.Handler}
+     */
     this.handler = null;
+
+    /**
+     * Segment bounding box.
+     * @type {og.bv.Box}
+     */
     this.bbox = new og.bv.Box();
+
+    /**
+     * Segment bounding box.
+     * @type {og.bv.Sphere}
+     */
     this.bsphere = new og.bv.Sphere();
+
+    /**
+     * Geographical extent.
+     * @type {og.Extent}
+     */
     this.extent = null;
-    this.extentParams = [];
+
+    /**
+     * Vertices grid size.
+     * @type {number}
+     */
     this.gridSize = null;
 
+    /**
+     * Horizontal tile index.
+     * @type {number}
+     */
     this.tileX = null;
+
+    /**
+     * Vertical tile index.
+     * @type {number}
+     */
     this.tileY = null;
+
+    /**
+     * Tile zoom index.
+     * @type {number}
+     */
     this.tileZoom = null;
 
+    /**
+     * Texture materials array.
+     * @type {Array.<og.planetSegment.Material>}
+     */
     this.materials = [];
+
+    /**
+     * Segment is ready for rendering.
+     * @type {boolean}
+     */
+    this.ready = false;
+
+    /**
+     * Normal map is allready made.
+     * @type {boolean}
+     */
+    this.normalMapReady = false;
+
+    /**
+     * Parent normal map is made allready.
+     * @type {boolean}
+     */
+    this.parentNormalMapReady = false;
+    
+    /**
+     * GeoImages already made for the segment.
+     * @type {boolean}
+     */
+    this.geoImageReady = false;
+
+    /**
+     * Terrain is allready applied flag.
+     * @type {boolean}
+     */
+    this.terrainReady = false;
+
+    /**
+     * Terrain is loading now flag.
+     * @type {boolean}
+     */
+    this.terrainIsLoading = false;
+
+    /**
+     * Terrain existing flag.
+     * @type {boolean}
+     */
+    this.terrainExists = false;
 
     this.plainIndexes = [];
     this.plainVertices = [];
@@ -49,36 +142,42 @@ og.planetSegment.Segment = function () {
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this.ready = false;
-    this.normalMapReady = false;
-    this.parentNormalMapReady = false;
-    this.geoImageReady = false;
-    this.terrainReady = false;
-    this.terrainIsLoading = false;
-    this.terrainExists = false;
-
     this.geoImageTexture = null;
     this.geoImageTextureBias = [0, 0, 1];
 
-    this.texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
-    this.samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
-    this.alfaArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS);
+    this._texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
+    this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
 
+    this._extentParams = [];
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
     this._inTheGeoImageTileCreatorQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 };
 
+/**
+ * Level of the visible segment detalization.
+ * @type {number}
+ */
 og.planetSegment.Segment.RATIO_LOD = 1.12;
-//og.planetSegment.PlanetSegment.RATIO_LOD = 1.8;//the best for lighting
 
+/**
+ * Returns that segment good for rendering with camera by current RATIO_LOD.
+ * @public
+ * @returns {boolean}
+ */
 og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
     return camera.projectedSize(sphere.center) > og.planetSegment.Segment.RATIO_LOD * sphere.radius;
 };
 
-og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
+/**
+ * Returns cartesian coordinates on the relief terrain of the segment of the camera.
+ * @public
+ * @param {og.PlanetCamera}
+ * @returns {Object} - Returns camera cartesian coordiantes and altitude.
+ */
+og.planetSegment.Segment.prototype.getCameraEarthPoint = function (camera) {
     var ne = this.extent.northEast,
         sw = this.extent.southWest,
         size = this.gridSize,
@@ -88,8 +187,8 @@ og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
         ymax = ne.lat,
         xmin = sw.lon,
         ymin = sw.lat,
-        x = lonlat.lon,
-        y = lonlat.lat;
+        x = camera._nodeCameraPosition.lon,
+        y = camera._nodeCameraPosition.lat;
 
     var sxn = xmax - xmin,
         syn = ymax - ymin;
@@ -152,6 +251,9 @@ og.planetSegment.Segment.prototype.getEarthPoint = function (lonlat, camera) {
     };
 };
 
+/**
+ * Starts and load terrain provider to make terrain.
+ */
 og.planetSegment.Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
@@ -165,6 +267,10 @@ og.planetSegment.Segment.prototype.loadTerrain = function () {
     }
 };
 
+/**
+ * Terrain obtained from server.
+ * @param {Array.<number>} elevation - Elevation data.
+ */
 og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
@@ -342,6 +448,9 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     elevations.length = 0;
 };
 
+/**
+ * Terrain is not obtained or not exists on the server.
+ */
 og.planetSegment.Segment.prototype.elevationsNotExists = function () {
     if (this.tileZoom <= this.planet.terrainProvider.maxZoom) {
         if (this.ready && this.terrainIsLoading) {
@@ -479,6 +588,9 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
     }
 };
 
+/**
+ * Creates normal map texture for the segment.
+ */
 og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
 
     if (this.tileZoom > this.planet.terrainProvider.maxZoom)
@@ -516,6 +628,9 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
     }
 };
 
+/**
+ * Render geoImages to the segment texture.
+ */
 og.planetSegment.Segment.prototype.createGeoImageTileTexture = function () {
     var canvas = this.planet.geoImageTileCreator.draw(this);
     if (canvas) {
@@ -547,7 +662,7 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
         gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
         gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.u_extentParams._pName, this.extentParams);
+        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
         gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
@@ -557,6 +672,9 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
     }
 };
 
+/**
+ * Callback that calls in terrain provider to complete the terrain.
+ */
 og.planetSegment.Segment.prototype.applyTerrain = function (elevations) {
     if (elevations.length) {
         this.elevationsExists(elevations);
@@ -565,22 +683,39 @@ og.planetSegment.Segment.prototype.applyTerrain = function (elevations) {
     }
 };
 
+/**
+ * Delete segment gl buffers.
+ */
 og.planetSegment.Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
+    gl.deleteBuffer(this.vertexNormalBuffer);
     gl.deleteBuffer(this.vertexPositionBuffer);
     gl.deleteBuffer(this.vertexIndexBuffer);
     gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
+    this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
     this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 };
 
-og.planetSegment.Segment.prototype.clearBuffers = function () {
-    this.ready = false;
-    this.deleteBuffers();
+/**
+ * Delete materials.
+ */
+og.planetSegment.Segment.prototype.deleteMaterials = function () {
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        var mi = m[i];
+        if (mi) {
+            mi.clear();
+        }
+    }
+    m.length = 0;
 };
 
+/**
+ * Delete elevation data.
+ */
 og.planetSegment.Segment.prototype.deleteElevations = function () {
     this._inTheQueue = false;
     this.terrainReady = false;
@@ -605,41 +740,36 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.normalMapTextureBias = [0, 0, 1];
 };
 
-og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
-    var m = this.materials;
-    for (var i = 0; i < m.length; i++) {
-        if (m[i].layer == layer) {
-            return m[i];
-        }
-    }
-};
-
-og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
-    var m = this.materials;
-    for (var i = 0; i < m.length; i++) {
-        if (m[i].layer.name == name) {
-            return m[i];
-        }
-    }
-};
-
+/**
+ * Clear but not destroy segment data.
+ */
 og.planetSegment.Segment.prototype.clearSegment = function () {
-    this.clearBuffers();
+    this.ready = false;
+    this.deleteBuffers();
     this.deleteMaterials();
     this.deleteElevations();
 };
 
-og.planetSegment.Segment.prototype.deleteMaterials = function () {
-    var m = this.materials;
-    for (var i = 0; i < m.length; i++) {
-        var mi = m[i];
-        if (mi) {
-            mi.clear();
-        }
-    }
-    m.length = 0;
+/**
+ * Clear and destroy all segment data.
+ */
+og.planetSegment.Segment.prototype.destroySegment = function () {
+    this.node.state = og.quadTree.NOTRENDERING;
+
+    this.clearSegment();
+    this.extent = null;
+
+    this._appliedNeighborsZoom = null;
+    this.normalMapTextureBias = null;
+
+    this.node.neighbors = null;
+    this.node.hasNeighbors = null;
+    this.node.parentNode = null;
 };
 
+/**
+ * Creates bound volumes by segment geographical extent.
+ */
 og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this.extent;
@@ -665,20 +795,6 @@ og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
-og.planetSegment.Segment.prototype.destroySegment = function () {
-    this.node.state = og.quadTree.NOTRENDERING;
-
-    this.clearSegment();
-    this.extent = null;
-
-    this._appliedNeighborsZoom = null;
-    this.normalMapTextureBias = null;
-
-    this.node.neighbors = null;
-    this.node.hasNeighbors = null;
-    this.node.parentNode = null;
-};
-
 og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
@@ -696,8 +812,7 @@ og.planetSegment.Segment.prototype.assignTileIndexes = function (tileZoom, exten
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
-
-    this.extentParams = [this.extent.southWest.lon, this.extent.southWest.lat, 2.0 / this.extent.getWidth(), 2.0 / this.extent.getHeight()];
+    this._extentParams = [this.extent.southWest.lon, this.extent.southWest.lat, 2.0 / this.extent.getWidth(), 2.0 / this.extent.getHeight()];
 };
 
 og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
@@ -749,6 +864,36 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     this.normalMapTexture = this.planet.transparentTexture;
 };
 
+/**
+ * Gets material by layer object.
+ * @public
+ * @param {og.layer.Layer} layer - Layer object.
+ * @returns {og.planetSegment.Material}
+ */
+og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        if (m[i].layer == layer) {
+            return m[i];
+        }
+    }
+};
+
+/**
+ * Gets material by layer name.
+ * @public
+ * @param {string} name - Layer name.
+ * @returns {og.planetSegment.Material}
+ */
+og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
+    var m = this.materials;
+    for (var i = 0; i < m.length; i++) {
+        if (m[i].layer.name == name) {
+            return m[i];
+        }
+    }
+};
+
 og.planetSegment.drawSingle = function (sh, segment) {
     if (segment.ready) {
         var gl = segment.handler.gl;
@@ -791,18 +936,18 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             var nt3 = l * 3;
             //var nt4 = l * 4;
 
-            segment.texBiasArr[nt3] = mat.texBias[0];
-            segment.texBiasArr[nt3 + 1] = mat.texBias[1];
-            segment.texBiasArr[nt3 + 2] = mat.texBias[2];
+            segment._texBiasArr[nt3] = mat.texBias[0];
+            segment._texBiasArr[nt3 + 1] = mat.texBias[1];
+            segment._texBiasArr[nt3 + 2] = mat.texBias[2];
 
-            segment.samplerArr[l] = l;
+            segment._samplerArr[l] = l;
 
             gl.activeTexture(gl.TEXTURE0 + sh._textureID + l);
             gl.bindTexture(gl.TEXTURE_2D, mat.texture);
         }
 
-        gl.uniform3fv(shu.texBiasArr._pName, segment.texBiasArr);
-        gl.uniform1iv(shu.uSamplerArr._pName, segment.samplerArr);
+        gl.uniform3fv(shu.texBiasArr._pName, segment._texBiasArr);
+        gl.uniform1iv(shu.uSamplerArr._pName, segment._samplerArr);
 
         if (segment.planet.lightEnabled) {
             gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);

@@ -487,7 +487,7 @@ og.PlanetCamera.prototype._checkCollision = function () {
             this._earthPoint.earth = this.planet.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
             this._earthPoint.distance = this._altitude = this._lonLat.height;
         } else {
-            this._earthPoint = seg.getEarthPoint(this._nodeCameraPosition, this);
+            this._earthPoint = seg.getCameraEarthPoint(this);
             this._altitude = this._earthPoint.distance;
         }
         if (this._altitude < this.minAltitude) {

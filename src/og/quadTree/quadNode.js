@@ -163,7 +163,8 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
 
 og.quadTree.QuadNode.prototype.reloadTerrain = function () {
 
-    this.planetSegment.clearBuffers();
+    this.planetSegment.ready = false;
+    this.planetSegment.deleteBuffers();
     this.planetSegment.deleteElevations();
 
     if (this.getState() === og.quadTree.WALKTHROUGH) {
