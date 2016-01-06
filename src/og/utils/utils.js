@@ -94,3 +94,15 @@ function print2d(id, text, x, y) {
     el.style.left = x;
     el.style.top = y;
 };
+
+og.utils.defaultString = function (str, def) {
+    return str ? str.trim().toLowerCase() : def;
+};
+
+og.utils.defaultVector3 = function (v, def) {
+    return v ? v.clone() : def || new og.math.Vector3();
+};
+
+og.utils.defaultVector4 = function (v, def) {
+    return v ? v.clone() : def || new og.math.Vector4();
+};

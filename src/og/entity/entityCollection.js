@@ -72,6 +72,9 @@ og.EntityCollection = function () {
      */
     this.labelHandler = new og.LabelHandler(this);
 
+    //this.lineStringHandler = new og.LineStringHandler(this);
+    //...
+
     /**
      * Entities array.
      * @public

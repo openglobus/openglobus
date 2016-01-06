@@ -1,4 +1,5 @@
 goog.provide('og.Entity');
+goog.provide('og.entity');
 
 goog.require('og.math.Vector3');
 goog.require('og.Billboard');
@@ -9,18 +10,18 @@ goog.require('og.Label');
  * They can be created manually and added to entity collection.
  *
  * @class
- * @param {Object} [options] - Object with the following properties:
+ * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
+ * @param {Object} [properties] - Entity properties.
  */
-og.Entity = function (options) {
+og.Entity = function (options, properties) {
 
     options = options || {};
-    
-    this.name = options.name || ("noname_" + og.Entity.__staticCounter++);
 
-    this.billboard = null;
-    this.label = null;
-    //...
+    this.id = og.Entity.__staticCounter++;
+
+    this.properties = properties || {};
+    this.properties.name = this.properties.name || "noname";
 
     this.childrenNodes = [];
     this.parent = null;
@@ -30,14 +31,14 @@ og.Entity = function (options) {
      * @private
      * @type {og.math.Vector3}
      */
-    this._position = new og.math.Vector3();
+    this._position = og.utils.defaultVector3(options.position);
 
     /**
      * Visibility.
      * @private
      * @type {boolean}
      */
-    this._visibility = true;
+    this._visibility = options.visibility != undefined ? options.visibility : true;
 
     /**
      * Entity collection that this entity belongs to.
@@ -49,9 +50,33 @@ og.Entity = function (options) {
     this._entityCollectionIndex = -1;
 
     this._pickingColor = new og.math.Vector3(0, 0, 0);
+
+    this._featureConstructorArray = {
+        "billboard": [og.Billboard, this.setBillboard],
+        "label": [og.Label, this.setLabel]
+    };
+
+    this.billboard = this._createOptionFeature('billboard', options.billboard);
+    this.label = this._createOptionFeature('label', options.label);
+    //this.lineString = null;
+    //this.linearRing = null;
+    //this.polygon = null;
+    //this.multiPolygon = null;
+    //...
+};
+
+og.entity = function (options, properties) {
+    return new og.Entity(options, properties);
 };
 
 og.Entity.__staticCounter = 0;
+
+og.Entity.prototype._createOptionFeature = function (featureName, options) {
+    if (options) {
+        var c = this._featureConstructorArray[featureName];
+        return c[1].call(this, new c[0](options));
+    } return null;
+};
 
 /**
  * Adds current entity into the specified entity collection.
@@ -60,6 +85,7 @@ og.Entity.__staticCounter = 0;
  */
 og.Entity.prototype.addTo = function (entityCollection) {
     entityCollection.add(this);
+    return this;
 };
 
 /**
@@ -156,6 +182,7 @@ og.Entity.prototype.setBillboard = function (billboard) {
     this.billboard.setPosition3v(this._position);
     this.billboard.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
+    return billboard;
 };
 
 /**
@@ -172,6 +199,7 @@ og.Entity.prototype.setLabel = function (label) {
     this.label.setPosition3v(this._position);
     this.label.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
+    return label;
 };
 
 /**

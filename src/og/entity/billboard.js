@@ -10,17 +10,24 @@ goog.require('og.math.Vector2');
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Options:
- * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  */
 og.Billboard = function (options) {
+    options = options || {};
 
     og.inheritance.base(this, options);
 
     this._src = null;
     this._image = null;
-    this._width = 0;
-    this._height = 0;
-    this._scale = 1.0;
+    if (options.image) {
+        if (typeof (options.image) == "string") {
+            this._src = options.image;
+        } else if (options.image instanceof HTMLImageElement) {
+            this._image = options.image;
+        }
+    }
+    this._width = options.width || (options.size ? options.size.x : 0);
+    this._height = options.height || (options.size ? options.size.y : 0);
+    this._scale = options.scale || 1.0;
 };
 
 og.inheritance.extend(og.Billboard, og.BaseBillboard);

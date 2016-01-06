@@ -10,20 +10,20 @@ goog.require('og.utils');
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Options:
- * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  */
 og.Label = function (options) {
+    options = options || {};
 
     og.inheritance.base(this, options);
 
-    this._text = "";
-    this._face = null;
-    this._size = 32;
-    this._style = null;
-    this._weight = null;
-    this._outline = 0.9;
-    this._outlineColor = new og.math.Vector4(0.0, 0.0, 0.0, 1.0);
-    this._align = og.Label.RIGHT;
+    this._text = options.text;
+    this._face = og.utils.defaultString(options.face, null);
+    this._size = options.size || 32;
+    this._style = og.utils.defaultString(options.style, null);
+    this._weight = og.utils.defaultString(options.weight, null);
+    this._outline = options.outline || 0.9;
+    this._outlineColor = og.utils.defaultVector4(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
+    this._align = options.align ? og.Label.ALIGN[options.align.trim().toLowerCase()] || og.Label.RIGHT : og.Label.RIGHT;
 
     this._fontIndex = 0;
     this._fontAtlas = null;

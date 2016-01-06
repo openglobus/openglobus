@@ -19,7 +19,7 @@ goog.addDependency('../../../og/src/og/control/touchNavigation.js', ['og.control
 goog.addDependency('../../../og/src/og/control/zoomControl.js', ['og.control.ZoomControl'], ['og.control.Control', 'og.control.MouseNavigation', 'og.inheritance'], false);
 goog.addDependency('../../../og/src/og/ellipsoid/ellipsoid.js', ['og.Ellipsoid'], ['og.LonLat', 'og.math', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellipsoid.wgs84'], ['og.Ellipsoid'], false);
-goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3', 'og.math.Vector4'], false);
+goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3', 'og.math.Vector4', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/entity/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2'], false);
 goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard', 'og.shaderProgram.billboardPicking'], false);
 goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity'], ['og.Billboard', 'og.Label', 'og.math.Vector3'], false);
@@ -39,7 +39,7 @@ goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseH
 goog.addDependency('../../../og/src/og/input/touchHandler.js', ['og.input.TouchHandler'], [], false);
 goog.addDependency('../../../og/src/og/layer/canvasTiles.js', ['og.layer.CanvasTiles'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer'], false);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.QueueArray'], false);
-goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], [], false);
+goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection'], false);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);
 goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/light/pointLight.js', ['og.light.PointLight'], ['og.math.Vector3'], false);
@@ -102,4 +102,4 @@ goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax'
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl'], false);
 goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.ImageCanvas', 'og.math', 'og.webgl', 'og.webgl.ShaderController'], false);
 goog.addDependency('../../../og/src/og/webgl/shaderController.js', ['og.webgl.ShaderController'], [], false);
-goog.addDependency('../../../og/src/og/webgl/webgl.js', ['og.webgl'], ['og.utils'], false);
+goog.addDependency('../../../og/src/og/webgl/webgl.js', ['og.webgl'], [], false);

@@ -26,52 +26,56 @@ my.Billboard.prototype.initialization = function () {
 
     ec = new og.EntityCollection();
 
-    blb = new og.Billboard();
-    blb.setSrc("ship.png");
-    blb.setSize(80, 80);
-    lbl = new og.Label();
-    lbl.setText("Billboard");
-    lbl.setSize(15);
-    lbl.setColor4v(new og.math.Vector4(0, 0, 0, 1));
-    lbl.setOutlineColor4v(new og.math.Vector4(1, 1, 1, 1));
-    lbl.setFace("Verdana");
-    //lbl.setFace("arial");
-    //lbl.setFace("Monospace");
-    //lbl.setStyle("italic");
-    eee = new og.Entity();
-    eee.setPosition3v(new og.math.Vector3(500, 0, 0));
-    eee.setBillboard(blb);
-    eee.setLabel(lbl);
+    eee = new og.Entity({
+        position: new og.math.Vector3(500, 0, 0),
+        billboard: {
+            image: "ship.png",
+            width: 80,
+            height: 80
+        },
+        label: {
+            text: "Billboard",
+            size: 15,
+            color: new og.math.Vector4(0, 0, 0, 1),
+            outlineColor: new og.math.Vector4(1, 1, 1, 1),
+            face: "verdana"
+        }
+    });
     eee.addTo(ec);
 
-    blb1 = new og.Billboard();
-    blb1.setSrc("ship.png");
-    blb1.setSize(80, 80);
-    lbl1 = new og.Label();
-    lbl1.setText("Billboard 1");
-    lbl1.setFace("arial black");
-    eee1 = new og.Entity();
-    eee1.setPosition3v(new og.math.Vector3(0, 500, 0));
-    eee1.setBillboard(blb1);
-    eee1.setLabel(lbl1);
+    eee1 = new og.Entity({
+        position: new og.math.Vector3(0, 500, 0),
+        billboard: {
+            image: "ship.png",
+            width: 80,
+            height: 80
+        },
+        label: {
+            face: "arial black",
+            text: "Billboard 1"
+        }
+    });
+
     eee1.addTo(ec);
 
-    blb2 = new og.Billboard();
-    blb2.setSrc("wall.jpg");
-    blb2.setPosition3v(new og.math.Vector3(0, 0, 500));
-    blb2.setSize(80, 80);
-    lbl2 = new og.Label();
-    lbl2.setFace("monospace");
-    //lbl2.setWeight("bold");
-    lbl2.setText("Billboard 2");
-    eee2 = new og.Entity();
-    eee2.setPosition3v(new og.math.Vector3(0, 0, 500));
-    eee2.setBillboard(blb2);
-    eee2.setLabel(lbl2);
-    eee2.addTo(ec);
-    
+    eee2 = new og.Entity({
+        position: new og.math.Vector3(0, 0, 500),
+        billboard: {
+            image: "wall.jpg",
+            width: 80,
+            height: 80
+        },
+        label: {
+            face: "monospace",
+            text: "Billboard 2",
+            weight: "bold"
+        }
+    }).addTo(ec);
+
+    //eee2.addTo(ec);
+
     ec.addTo(this);
-    
+
     //for (var i = 0; i < 50; i++) {
     //    for (var j = 0; j < 50; j++) {
     //        var blb = new og.Billboard();
@@ -100,45 +104,45 @@ my.Billboard.prototype.initialization = function () {
     //};
     //img.src = "ship.png"
 
-   document.getElementById('size1').oninput = function () {
+    document.getElementById('size1').oninput = function () {
         lbl.setSize(this.value);
     };
-   document.getElementById('buffer1').oninput = function () {
-       lbl.setOutline(this.value);
-   };
-   document.getElementById('rotation1').oninput = function () {
-       lbl.setRotation(this.value * Math.PI / 180.0);
-   };
-   document.getElementById('text1').oninput = function () {
-       lbl.setText(this.value);
-   };
+    document.getElementById('buffer1').oninput = function () {
+        lbl.setOutline(this.value);
+    };
+    document.getElementById('rotation1').oninput = function () {
+        lbl.setRotation(this.value * Math.PI / 180.0);
+    };
+    document.getElementById('text1').oninput = function () {
+        lbl.setText(this.value);
+    };
 
-   document.getElementById('size2').oninput = function () {
-       lbl1.setSize(this.value);
-   };
-   document.getElementById('buffer2').oninput = function () {
-       lbl1.setOutline(this.value);
-   };
-   document.getElementById('rotation2').oninput = function () {
-       lbl1.setRotation(this.value * Math.PI / 180.0);
-   };
-   document.getElementById('text2').oninput = function () {
-       lbl1.setText(this.value);
-   };
+    document.getElementById('size2').oninput = function () {
+        lbl1.setSize(this.value);
+    };
+    document.getElementById('buffer2').oninput = function () {
+        lbl1.setOutline(this.value);
+    };
+    document.getElementById('rotation2').oninput = function () {
+        lbl1.setRotation(this.value * Math.PI / 180.0);
+    };
+    document.getElementById('text2').oninput = function () {
+        lbl1.setText(this.value);
+    };
 
-   document.getElementById('size3').oninput = function () {
-       lbl2.setSize(this.value);
-   };
-   document.getElementById('buffer3').oninput = function () {
-       lbl2.setOutline(this.value);
-   };
-   document.getElementById('rotation3').oninput = function () {
-       lbl2.setRotation(this.value * Math.PI / 180.0);
-   };
-   document.getElementById('text3').oninput = function () {
-       lbl2.setText(this.value);
-   };
-   //lbl2.setAlign("center");
+    document.getElementById('size3').oninput = function () {
+        lbl2.setSize(this.value);
+    };
+    document.getElementById('buffer3').oninput = function () {
+        lbl2.setOutline(this.value);
+    };
+    document.getElementById('rotation3').oninput = function () {
+        lbl2.setRotation(this.value * Math.PI / 180.0);
+    };
+    document.getElementById('text3').oninput = function () {
+        lbl2.setText(this.value);
+    };
+    //lbl2.setAlign("center");
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {

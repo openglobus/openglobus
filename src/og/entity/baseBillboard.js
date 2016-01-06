@@ -2,25 +2,24 @@ goog.provide('og.BaseBillboard');
 
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
+goog.require('og.utils');
 
 /**
  * Base prototype for billboard and label classes.
  * @class
  * @param {Object} [options] - Options:
- * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  */
 og.BaseBillboard = function (options) {
-
     options = options || {};
 
-    this.name = options.name || ("noname_" + og.BaseBillboard.__staticId++);
+    this.id = og.BaseBillboard.__staticId++;
 
-    this._position = new og.math.Vector3();
-    this._rotation = 0;
-    this._color = new og.math.Vector4(1.0, 1.0, 1.0, 1.0);
-    this._alignedAxis = new og.math.Vector3();
-    this._offset = new og.math.Vector3();
-    this._visibility = true;
+    this._position = og.utils.defaultVector3(options.position);
+    this._rotation = options.rotation || 0;
+    this._color = og.utils.defaultVector4(options.color, new og.math.Vector4(1.0, 1.0, 1.0, 1.0));
+    this._alignedAxis = og.utils.defaultVector3(options.algnedAxis);
+    this._offset = og.utils.defaultVector3(options.offset)
+    this._visibility = options.visibility != undefined ? options.visibility : true;
 
     /**
      * Entity instance that holds this billboard.
