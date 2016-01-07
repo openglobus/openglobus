@@ -12,18 +12,43 @@ goog.require('og.Label');
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
+ * @param {og.math.Vector3|Array.<number>} [options.position] - Spatial entities like billboard, lanel, sphere etc. position.
+ * @param {boolean} [options.visibility] - Entity visibility.
+ * @param {Object} [options.billboard] - Billboard options.
+ * @param {Object} [options.label] - Label options.
  * @param {Object} [properties] - Entity properties.
  */
 og.Entity = function (options, properties) {
 
     options = options || {};
 
+    /**
+     * Unic identifier.
+     * @public
+     * @readonly
+     */
     this.id = og.Entity.__staticCounter++;
 
+    /**
+     * Entity user defined properties.
+     * @public
+     * @type {Object}
+     */
     this.properties = properties || {};
     this.properties.name = this.properties.name || "noname";
 
+    /**
+     * Children entities.
+     * @public
+     * @type {og.Entity}
+     */
     this.childrenNodes = [];
+
+    /**
+     * Parent entity.
+     * @public
+     * @type {og.Entity}
+     */
     this.parent = null;
 
     /**
@@ -47,8 +72,16 @@ og.Entity = function (options, properties) {
      */
     this._entityCollection = null;
 
+    /**
+     * Entity collection array store index.
+     * @private
+     */
     this._entityCollectionIndex = -1;
 
+    /**
+     * Picking color.
+     * @private
+     */
     this._pickingColor = new og.math.Vector3(0, 0, 0);
 
     this._featureConstructorArray = {
