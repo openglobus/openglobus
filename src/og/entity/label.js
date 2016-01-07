@@ -35,7 +35,7 @@ og.Label = function (options) {
     this._size = options.size || 32;
     this._style = og.utils.defaultString(options.style, null);
     this._weight = og.utils.defaultString(options.weight, null);
-    this._outline = options.outline || 0.9;
+    this._outline = options.outline != undefined ? options.outline : 0.9;
     this._outlineColor = og.utils.createColor(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
     this._align = options.align ? og.Label.ALIGN[options.align.trim().toLowerCase()] || og.Label.RIGHT : og.Label.RIGHT;
 

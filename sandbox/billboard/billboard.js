@@ -38,6 +38,7 @@ my.Billboard.prototype.initialization = function () {
             size: 15,
             color: new og.math.Vector4(0, 0, 0, 1),
             outlineColor: new og.math.Vector4(1, 1, 1, 1),
+            outline: 0,
             face: "verdana"
         }
     });
