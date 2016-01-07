@@ -8,17 +8,23 @@ goog.require('og.utils');
  * Base prototype for billboard and label classes.
  * @class
  * @param {Object} [options] - Options:
+ * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {number} [options.rotation] - Screen angle rotaion.
+ * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {og.math.Vector3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {boolean} [options.visibility] - Visibility.
  */
 og.BaseBillboard = function (options) {
     options = options || {};
 
     this.id = og.BaseBillboard.__staticId++;
 
-    this._position = og.utils.defaultVector3(options.position);
+    this._position = og.utils.createVector3(options.position);
     this._rotation = options.rotation || 0;
-    this._color = og.utils.defaultVector4(options.color, new og.math.Vector4(1.0, 1.0, 1.0, 1.0));
-    this._alignedAxis = og.utils.defaultVector3(options.algnedAxis);
-    this._offset = og.utils.defaultVector3(options.offset)
+    this._color = og.utils.createColor(options.color, new og.math.Vector4(1.0, 1.0, 1.0, 1.0));
+    this._alignedAxis = og.utils.createVector3(options.algnedAxis);
+    this._offset = og.utils.createVector3(options.offset)
     this._visibility = options.visibility != undefined ? options.visibility : true;
 
     /**
@@ -123,6 +129,16 @@ og.BaseBillboard.prototype.setRotation = function (rotation) {
  */
 og.BaseBillboard.prototype.getRotation = function () {
     return this._rotation;
+};
+
+/**
+ * Sets billboard opacity.
+ * @public
+ * @param {number} a - Billboard opacity.
+ */
+og.BaseBillboard.prototype.setOpacity = function (a) {
+    this._color.w = a;
+    this.setColor(this._color.x, this._color.y, this._color.z, a);
 };
 
 /**

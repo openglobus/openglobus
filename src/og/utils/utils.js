@@ -99,10 +99,43 @@ og.utils.defaultString = function (str, def) {
     return str ? str.trim().toLowerCase() : def;
 };
 
-og.utils.defaultVector3 = function (v, def) {
-    return v ? v.clone() : def || new og.math.Vector3();
+og.utils.createVector3 = function (v, def) {
+    if (v) {
+        if (v instanceof og.math.Vector3) {
+            return v.clone();
+        } else if (v instanceof Array) {
+            return og.math.Vector3.fromArr(v);
+        }
+    } else if (def) {
+        return def.clone();
+    }
+    return new og.math.Vector3();
 };
 
-og.utils.defaultVector4 = function (v, def) {
-    return v ? v.clone() : def || new og.math.Vector4();
+og.utils.createVector4 = function (v, def) {
+    if (v) {
+        if (v instanceof og.math.Vector4) {
+            return v.clone();
+        } else if (v instanceof Array) {
+            return og.math.Vector4.fromArr(v);
+        }
+    } else if (def) {
+        return def.clone();
+    }
+    return new og.math.Vector4();
+};
+
+og.utils.createColor = function (c, def) {
+    if (c) {
+        if (c instanceof String) {
+            return og.utils.htmlColor2rgba(c);
+        } else if (c instanceof Array) {
+            return new og.math.Vector4.fromVec(c);
+        } else if (c instanceof og.math.Vector4) {
+            return new og.math.Vector4(c.x, c.y, c.z, c.w);
+        }
+    } else if (def) {
+        return def.clone();
+    }
+    return og.math.Vector4(1.0, 1.0, 1.0, 1.0);
 };

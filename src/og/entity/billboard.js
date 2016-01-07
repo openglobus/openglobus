@@ -10,21 +10,25 @@ goog.require('og.math.Vector2');
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Options:
+ * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {number} [options.rotation] - Screen angle rotaion.
+ * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {og.math.Vector3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {boolean} [options.visibility] - Visibility.
+ * @param {string} [options.src] - Billboard image url source.
+ * @param {Image} [options.image] - Billboard image object.
+ * @param {number} [options.width] - Screen width.
+ * @param {number} [options.height] - Screen height.
+ * @param {number} [options.scale] - Billboard scale.
  */
 og.Billboard = function (options) {
     options = options || {};
 
     og.inheritance.base(this, options);
 
-    this._src = null;
-    this._image = null;
-    if (options.image) {
-        if (typeof (options.image) == "string") {
-            this._src = options.image;
-        } else if (options.image instanceof HTMLImageElement) {
-            this._image = options.image;
-        }
-    }
+    this._src = options.src || null;
+    this._image = options.image || null;
     this._width = options.width || (options.size ? options.size.x : 0);
     this._height = options.height || (options.size ? options.size.y : 0);
     this._scale = options.scale || 1.0;

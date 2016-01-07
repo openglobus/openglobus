@@ -10,6 +10,20 @@ goog.require('og.utils');
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Options:
+ * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {number} [options.rotation] - Screen angle rotaion.
+ * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {og.math.Vector3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {boolean} [options.visibility] - Visibility.
+ * @param {string} [options.text] - Text string.
+ * @param {string} [options.face] - Font face.
+ * @param {number} [options.size] - Font size.
+ * @param {string} [options.style] - Font HTML5 style.
+ * @param {string} [options.weight] - Font HTML5 weight.
+ * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline.
+ * @param {og.math.Vector4|string|Array.<number>} [options.outlineColor] - Outline color.
+ * @param {og.Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
  */
 og.Label = function (options) {
     options = options || {};
@@ -22,7 +36,7 @@ og.Label = function (options) {
     this._style = og.utils.defaultString(options.style, null);
     this._weight = og.utils.defaultString(options.weight, null);
     this._outline = options.outline || 0.9;
-    this._outlineColor = og.utils.defaultVector4(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
+    this._outlineColor = og.utils.createColor(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
     this._align = options.align ? og.Label.ALIGN[options.align.trim().toLowerCase()] || og.Label.RIGHT : og.Label.RIGHT;
 
     this._fontIndex = 0;
@@ -181,6 +195,18 @@ og.Label.prototype.setOutline = function (outline) {
  */
 og.Label.prototype.getOutline = function () {
     return this._outline;
+};
+
+/**
+ * Sets label opacity.
+ * @public
+ * @param {number} a - Label opacity.
+ */
+og.Label.prototype.setOpacity = function (a) {
+    this._color.w = a;
+    this.setColor4v(this._color);
+    this._outlineColor.w = a;
+    this.setOutlineColor4v(this._outlineColor);
 };
 
 /**

@@ -31,7 +31,7 @@ og.Entity = function (options, properties) {
      * @private
      * @type {og.math.Vector3}
      */
-    this._position = og.utils.defaultVector3(options.position);
+    this._position = og.utils.createVector3(options.position);
 
     /**
      * Visibility.

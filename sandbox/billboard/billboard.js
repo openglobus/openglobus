@@ -29,7 +29,7 @@ my.Billboard.prototype.initialization = function () {
     eee = new og.Entity({
         position: new og.math.Vector3(500, 0, 0),
         billboard: {
-            image: "ship.png",
+            src: "ship.png",
             width: 80,
             height: 80
         },
@@ -46,7 +46,7 @@ my.Billboard.prototype.initialization = function () {
     eee1 = new og.Entity({
         position: new og.math.Vector3(0, 500, 0),
         billboard: {
-            image: "ship.png",
+            src: "ship.png",
             width: 80,
             height: 80
         },
@@ -61,7 +61,7 @@ my.Billboard.prototype.initialization = function () {
     eee2 = new og.Entity({
         position: new og.math.Vector3(0, 0, 500),
         billboard: {
-            image: "wall.jpg",
+            src: "wall.jpg",
             width: 80,
             height: 80
         },
