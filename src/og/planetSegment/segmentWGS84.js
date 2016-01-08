@@ -74,7 +74,7 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
 
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
-            var v = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
+            var v = this.planet.ellipsoid.lonLatToCartesian(new og.LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
             var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
             var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
             verts[ind] = v.x;
@@ -104,7 +104,7 @@ og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
         new og.LonLat(extent.northEast.lon, extent.southWest.lat));
 
     for (var i = 0; i < v.length; i++) {
-        var coord = ellipsoid.LonLat2ECEF(v[i]);
+        var coord = ellipsoid.lonLatToCartesian(v[i]);
         var x = coord.x, y = coord.y, z = coord.z;
         if (x < xmin) xmin = x;
         if (x > xmax) xmax = x;

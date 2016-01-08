@@ -795,7 +795,7 @@ og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
 og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     if (coords) {
-        return this.ellipsoid.ECEF2LonLat(coords);
+        return this.ellipsoid.cartesianToLonLat(coords);
     }
     return null;
 };
@@ -841,7 +841,7 @@ og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
 og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
     var coords = this.getCartesianFromPixelTerrain(px);
     if (coords) {
-        return this.ellipsoid.ECEF2LonLat(coords);
+        return this.ellipsoid.cartesianToLonLat(coords);
     }
     return null;
 };
@@ -863,7 +863,7 @@ og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
  * @returns {og.math.Vector2}
  */
 og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
-    var coords = this.ellipsoid.LonLat2ECEF(lonlat);
+    var coords = this.ellipsoid.lonLatToCartesian(lonlat);
     if (coords)
         return this.renderer.activeCamera.project(coords);
     return null;

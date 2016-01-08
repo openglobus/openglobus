@@ -4,6 +4,7 @@ goog.provide('og.entity');
 goog.require('og.math.Vector3');
 goog.require('og.Billboard');
 goog.require('og.Label');
+goog.require('og.LonLat');
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -13,6 +14,8 @@ goog.require('og.Label');
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  * @param {og.math.Vector3|Array.<number>} [options.position] - Spatial entities like billboard, lanel, sphere etc. position.
+ * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. position.
+ * @param {boolean} [options.aground] - Geodetic type entity replaces over a relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {Object} [options.billboard] - Billboard options.
  * @param {Object} [options.label] - Label options.
@@ -59,6 +62,19 @@ og.Entity = function (options, properties) {
     this._position = og.utils.createVector3(options.position);
 
     /**
+     * Geodetic entity coordiantes.
+     * @private
+     * @type {og.LonLat}
+     */
+    this._lonlat = og.utils.createLonLat(options.lonlat);
+
+    /**
+     * Entity is stay on the Earth.
+     * @public
+     */
+    this.aground = options.aground || false;
+
+    /**
      * Visibility.
      * @private
      * @type {boolean}
@@ -91,6 +107,9 @@ og.Entity = function (options, properties) {
 
     this.billboard = this._createOptionFeature('billboard', options.billboard);
     this.label = this._createOptionFeature('label', options.label);
+    //this.sphere = null;
+    //this.box = null;
+    //this.model = null;
     //this.lineString = null;
     //this.linearRing = null;
     //this.polygon = null;

@@ -106,42 +106,42 @@ my.Billboard.prototype.initialization = function () {
     //img.src = "ship.png"
 
     document.getElementById('size1').oninput = function () {
-        lbl.setSize(this.value);
+        eee.label.setSize(this.value);
     };
     document.getElementById('buffer1').oninput = function () {
-        lbl.setOutline(this.value);
+        eee.label.setOutline(this.value);
     };
     document.getElementById('rotation1').oninput = function () {
-        lbl.setRotation(this.value * Math.PI / 180.0);
+        eee.label.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text1').oninput = function () {
-        lbl.setText(this.value);
+        eee.label.setText(this.value);
     };
 
     document.getElementById('size2').oninput = function () {
-        lbl1.setSize(this.value);
+        eee1.label.setSize(this.value);
     };
     document.getElementById('buffer2').oninput = function () {
-        lbl1.setOutline(this.value);
+        eee1.label.setOutline(this.value);
     };
     document.getElementById('rotation2').oninput = function () {
-        lbl1.setRotation(this.value * Math.PI / 180.0);
+        eee1.label.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text2').oninput = function () {
-        lbl1.setText(this.value);
+        eee1.label.setText(this.value);
     };
 
     document.getElementById('size3').oninput = function () {
-        lbl2.setSize(this.value);
+        eee2.label.setSize(this.value);
     };
     document.getElementById('buffer3').oninput = function () {
-        lbl2.setOutline(this.value);
+        eee2.label.setOutline(this.value);
     };
     document.getElementById('rotation3').oninput = function () {
-        lbl2.setRotation(this.value * Math.PI / 180.0);
+        eee2.label.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text3').oninput = function () {
-        lbl2.setText(this.value);
+        eee2.label.setText(this.value);
     };
     //lbl2.setAlign("center");
 };

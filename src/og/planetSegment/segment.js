@@ -782,7 +782,7 @@ og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
         og.LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat));
 
     for (var i = 0; i < v.length; i++) {
-        var coord = ellipsoid.LonLat2ECEF(v[i]);
+        var coord = ellipsoid.lonLatToCartesian(v[i]);
         var x = coord.x, y = coord.y, z = coord.z;
         if (x < xmin) xmin = x;
         if (x > xmax) xmax = x;
@@ -834,7 +834,7 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
         nmInd = 0;
     for (var i = 0; i < gs; i++) {
         for (var j = 0; j < gs; j++) {
-            var v = this.planet.ellipsoid.LonLat2ECEF(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+            var v = this.planet.ellipsoid.lonLatToCartesian(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
             var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
             var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
             var nxl = nx * l, nyl = ny * l, nzl = nz * l;

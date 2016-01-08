@@ -1,7 +1,9 @@
 goog.provide('og.utils');
 
 goog.require('og.Ajax');
+goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
+goog.require('og.LonLat');
 
 /**
  * Openglobus utility namespace.
@@ -132,10 +134,23 @@ og.utils.createColor = function (c, def) {
         } else if (c instanceof Array) {
             return new og.math.Vector4.fromVec(c);
         } else if (c instanceof og.math.Vector4) {
-            return new og.math.Vector4(c.x, c.y, c.z, c.w);
+            return c.clone();
         }
     } else if (def) {
         return def.clone();
     }
-    return og.math.Vector4(1.0, 1.0, 1.0, 1.0);
+    return new og.math.Vector4(1.0, 1.0, 1.0, 1.0);
+};
+
+og.utils.createLonLat = function (l, def) {
+    if (l) {
+        if (l instanceof Array) {
+            return new og.LonLat(l[0], l[1], l[2] || 0.0);
+        } else if (l instanceof og.LonLat) {
+            return l.clone();
+        }
+    } else if (def) {
+        return def.clone();
+    }
+    return og.LonLat();
 };

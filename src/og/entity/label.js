@@ -21,7 +21,7 @@ goog.require('og.utils');
  * @param {number} [options.size] - Font size.
  * @param {string} [options.style] - Font HTML5 style.
  * @param {string} [options.weight] - Font HTML5 weight.
- * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline.
+ * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
  * @param {og.math.Vector4|string|Array.<number>} [options.outlineColor] - Outline color.
  * @param {og.Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
  */
@@ -35,7 +35,7 @@ og.Label = function (options) {
     this._size = options.size || 32;
     this._style = og.utils.defaultString(options.style, null);
     this._weight = og.utils.defaultString(options.weight, null);
-    this._outline = options.outline != undefined ? options.outline : 0.9;
+    this._outline = options.outline != undefined ? options.outline : 0.58;
     this._outlineColor = og.utils.createColor(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
     this._align = options.align ? og.Label.ALIGN[options.align.trim().toLowerCase()] || og.Label.RIGHT : og.Label.RIGHT;
 

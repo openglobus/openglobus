@@ -36,7 +36,7 @@ og.PlanetCamera = function (planet, options) {
      * @private
      * @type {og.LonLat}
      */
-    this._lonLat = this.planet.ellipsoid.ECEF2LonLat(this.eye);
+    this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 
     /**
      * Current altitude.
@@ -104,7 +104,7 @@ og.PlanetCamera.prototype.update = function () {
 
     this._nMatrix = this._mvMatrix.toInverseMatrix3().transpose();
 
-    this._lonLat = this.planet.ellipsoid.ECEF2LonLat(this.eye);
+    this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 
     this.events.dispatch(this.events.viewchange, this);
 };
@@ -135,7 +135,7 @@ og.PlanetCamera.prototype.getAltitude = function () {
  */
 og.PlanetCamera.prototype.setLonLat = function (lonlat, up) {
     this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-    var newEye = this.planet.ellipsoid.LonLat2ECEF(this._lonLat);
+    var newEye = this.planet.ellipsoid.lonLatToCartesian(this._lonLat);
     var rot = new og.math.Matrix4().rotateBetweenVectors(newEye.normal(), this.eye.normal());
     this.eye = newEye;
     this._v = rot.mulVec3(this._v);
@@ -170,8 +170,8 @@ og.PlanetCamera.prototype.getHeight = function () {
 og.PlanetCamera.prototype.viewLonLat = function (lonlat, up) {
     this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
     var el = this.planet.ellipsoid;
-    var newEye = el.LonLat2ECEF(this._lonLat);
-    var newLook = el.LonLat2ECEF(new og.LonLat(this._lonLat.lon, this._lonLat.lat, 0));
+    var newEye = el.lonLatToCartesian(this._lonLat);
+    var newLook = el.lonLatToCartesian(new og.LonLat(this._lonLat.lon, this._lonLat.lat, 0));
     this.set(newEye, newLook, up || og.math.Vector3.UP);
 };
 
@@ -192,7 +192,7 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
         east += 360;
     }
 
-    var f = this.planet.ellipsoid.LonLat2ECEF;
+    var f = this.planet.ellipsoid.lonLatToCartesian;
 
     var cart = new og.LonLat(east, north);
     var northEast = f(cart);
@@ -279,7 +279,7 @@ og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, st
     var c = geoImage.getCorners();
     var el = this.planet.ellipsoid;
     this.flyExtent(geoImage.getExtent(),
-        el.LonLat2ECEF(c[0]).sub(el.LonLat2ECEF(c[3])).add(el.LonLat2ECEF(c[1]).sub(el.LonLat2ECEF(c[2]))).normalize(),
+        el.lonLatToCartesian(c[0]).sub(el.lonLatToCartesian(c[3])).add(el.lonLatToCartesian(c[1]).sub(el.lonLatToCartesian(c[2]))).normalize(),
         completeCallback, startCallback);
 };
 
@@ -304,16 +304,16 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
 
     var _look = look || og.math.Vector3.ZERO;
     if (look instanceof og.LonLat) {
-        _look = this.planet.ellipsoid.LonLat2ECEF(look);
+        _look = this.planet.ellipsoid.lonLatToCartesian(look);
     }
 
-    var ground_a = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(this._lonLat.lon, this._lonLat.lat));
+    var ground_a = this.planet.ellipsoid.lonLatToCartesian(new og.LonLat(this._lonLat.lon, this._lonLat.lat));
     var v_a = this._v,
         n_a = this._n;
 
-    var lonlat_b = this.planet.ellipsoid.ECEF2LonLat(cartesian);
+    var lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
     var up_b = up || og.math.Vector3.UP;
-    var ground_b = this.planet.ellipsoid.LonLat2ECEF(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
+    var ground_b = this.planet.ellipsoid.LonLatToCarte(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
     var eye_b = cartesian;
     var n_b = og.math.Vector3.sub(eye_b, _look);
     var u_b = up_b.cross(n_b);
@@ -377,7 +377,7 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
  */
 og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up, completeCallback, startCallback) {
     var _lonlat = new og.LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-    this.flyCartesian(this.planet.ellipsoid.LonLat2ECEF(_lonlat), look, up, completeCallback, startCallback);
+    this.flyCartesian(this.planet.ellipsoid.lonLatToCartesian(_lonlat), look, up, completeCallback, startCallback);
 };
 
 /**

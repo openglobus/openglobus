@@ -22,7 +22,7 @@ og.BaseBillboard = function (options) {
 
     this._position = og.utils.createVector3(options.position);
     this._rotation = options.rotation || 0;
-    this._color = og.utils.createColor(options.color, new og.math.Vector4(1.0, 1.0, 1.0, 1.0));
+    this._color = og.utils.createColor(options.color);
     this._alignedAxis = og.utils.createVector3(options.algnedAxis);
     this._offset = og.utils.createVector3(options.offset)
     this._visibility = options.visibility != undefined ? options.visibility : true;
