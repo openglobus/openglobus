@@ -172,13 +172,14 @@ og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
 };
 
 /**
- * Returns cartesian coordinates on the relief terrain of the segment of the camera.
+ * Returns distance from object to terrain coordinates.
  * @public
+ * @param {og.math.Vector3} res - - Result cartesian coordiantes on the terrain.
  * @param {og.math.Vector3} xyz - Cartesian object position.
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
- * @returns {og.math.Vector3} - Returns camera cartesian coordiantes on the terrain.
+ * @returns {og.math.Vector3}
  */
-og.planetSegment.Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition) {
+og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
     var ne = this.extent.northEast,
         sw = this.extent.southWest,
         size = this.gridSize;
@@ -214,39 +215,29 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (xyz, insideSegmen
             v2 = new og.math.Vector3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]),
             v3 = new og.math.Vector3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-        var res = new og.math.Vector3();
-
         var d = ray.hitTriangle(v0, v1, v2, res);
         if (d == og.math.Ray.INSIDE) {
-            return res;
+            return xyz.distance(res);
         }
 
         d = ray.hitTriangle(v1, v3, v2, res);
         if (d == og.math.Ray.INSIDE) {
-            return res;
+            return xyz.distance(res);
         }
 
         if (d == og.math.Ray.AWAY) {
-            return res;
+            return -xyz.distance(res);
         }
 
-        return res;
+        return xyz.distance(res);
     }
 
-    return this.planet.hitRayEllipsoid(ray.origin, ray.direction);    
+    res.copy(this.planet.hitRayEllipsoid(ray.origin, ray.direction));
+    return xyz.distance(res);
 };
 
-og.planetSegment.Segment.prototype._projectNative = function (coords) {
+og.planetSegment.Segment.prototype.projectNative = function (coords) {
     return coords.forwardMercator();
-};
-
-og.planetSegment.Segment.prototype.checkInside = function (obj) {
-    obj._insideSegmentPosition = this._projectNative(obj._lonLat);
-    if (this.extent.isInside(obj._insideSegmentPosition)) {
-        obj._insideSegment = this;
-        return true;
-    }
-    return false;
 };
 
 /**

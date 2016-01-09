@@ -226,8 +226,13 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
+    this.objectInside = false;
     if (this.parentNode && this.parentNode.objectInside) {
-        this.objectInside = seg.checkInside(cam);
+        cam._insideSegmentPosition = seg.projectNative(cam._lonLat);
+        if (seg.extent.isInside(cam._insideSegmentPosition)) {
+            cam._insideSegment = seg;
+            this.objectInside = true;
+        }
     } else {
         this.objectInside = true;
     }

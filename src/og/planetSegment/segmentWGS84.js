@@ -20,12 +20,13 @@ og.inheritance.extend(og.planetSegment.SegmentWGS84, og.planetSegment.Segment);
 
 og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
 
-og.planetSegment.SegmentWGS84.prototype._projectNative = function (coords) {
+og.planetSegment.SegmentWGS84.prototype.projectNative = function (coords) {
     return coords;
 };
 
-og.planetSegment.SegmentWGS84.prototype.getTerrainPoint = function (xyz) {
-    return this.planet.hitRayEllipsoid(xyz, xyz.getNegate().normalize());
+og.planetSegment.SegmentWGS84.prototype.getTerrainPoint = function (res, xyz) {
+    res.copy(this.planet.hitRayEllipsoid(xyz, xyz.getNegate().normalize()));
+    return xyz.distance(res);
 };
 
 og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {

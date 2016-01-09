@@ -486,8 +486,7 @@ og.PlanetCamera.prototype._flyFrame = function () {
 og.PlanetCamera.prototype._checkCollision = function () {
     this._terrainAltitude = this._lonLat.height;
     if (this._lonLat.height < 1000000) {
-        this._terrainPoint = this._insideSegment.getTerrainPoint(this.eye, this._insideSegmentPosition);
-        this._terrainAltitude = this.eye.distance(this._terrainPoint);
+        this._terrainAltitude = this._insideSegment.getTerrainPoint(this._terrainPoint, this.eye, this._insideSegmentPosition);
         if (this._terrainAltitude < this.minAltitude) {
             this.setAltitude(this.minAltitude);
         }
