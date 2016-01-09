@@ -52,9 +52,8 @@ og.PlanetCamera = function (planet, options) {
      * @private
      * @type {og.quadTree.QuadNode}
      */
-    this._cameraInsideNode = this.planet.quadTree;
-
-    this._nodeCameraPosition = null;
+    this._insideSegment = null;//this.planet.quadTree;
+    this._insideSegmentPosition = null;
 
     /** Camera's flying frames */
     this._framesArr = [];
@@ -482,7 +481,7 @@ og.PlanetCamera.prototype._flyFrame = function () {
 og.PlanetCamera.prototype._checkCollision = function () {
     if (this._lonLat.height < 1000000) {
         //getting from activeCamera
-        var seg = this._cameraInsideNode.planetSegment;
+        var seg = this._insideSegment;
         if (seg._projection.id == og.proj.EPSG4326.id) {
             this._earthPoint.earth = this.planet.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
             this._earthPoint.distance = this._altitude = this._lonLat.height;
@@ -496,19 +495,4 @@ og.PlanetCamera.prototype._checkCollision = function () {
     } else {
         this._altitude = this._lonLat.height;
     }
-};
-
-// Maybe better to replace it to the planetSegment
-og.PlanetCamera.prototype._isInsideSegment = function (planetSegment) {
-    if (planetSegment._projection.id == og.proj.EPSG4326.id) {
-        this._nodeCameraPosition = this._lonLat;
-    } else {
-        this._nodeCameraPosition = this._lonLat.forwardMercator();
-    }
-    if (planetSegment.node.parentNode.cameraInside &&
-        planetSegment.extent.isInside(this._nodeCameraPosition)) {
-        this._cameraInsideNode = planetSegment.node;
-        return true;
-    }
-    return false;
 };

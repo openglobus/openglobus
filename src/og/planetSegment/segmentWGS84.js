@@ -20,6 +20,10 @@ og.inheritance.extend(og.planetSegment.SegmentWGS84, og.planetSegment.Segment);
 
 og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
 
+og.planetSegment.SegmentWGS84.prototype._projectNative = function (coords) {
+    return coords;
+};
+
 og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
 

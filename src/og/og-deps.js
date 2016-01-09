@@ -22,7 +22,7 @@ goog.addDependency('../../../og/src/og/ellipsoid/wgs84ellipsoid.js', ['og.ellips
 goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillboard'], ['og.math.Vector3', 'og.math.Vector4', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/entity/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2'], false);
 goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard', 'og.shaderProgram.billboardPicking'], false);
-goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity'], ['og.Billboard', 'og.Label', 'og.math.Vector3'], false);
+goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity', 'og.entity'], ['og.Billboard', 'og.Label', 'og.LonLat', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/entity/entityCollection.js', ['og.EntityCollection'], ['og.BillboardHandler', 'og.Events', 'og.LabelHandler'], false);
 goog.addDependency('../../../og/src/og/entity/label.js', ['og.Label'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector4', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/entity/labelHandler.js', ['og.LabelHandler'], ['og.BillboardHandler', 'og.Label', 'og.inheritance', 'og.shaderProgram.label', 'og.shaderProgram.labelPicking'], false);
@@ -98,7 +98,7 @@ goog.addDependency('../../../og/src/og/utils/imagesCacheManager.js', ['og.utils.
 goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.NormalMapCreator'], ['og.PlanetSegmentHelper', 'og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/sdfCreator.js', ['og.utils.SDFCreator'], ['og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/textureAtlas.js', ['og.utils.TextureAtlas', 'og.utils.TextureAtlasNode'], ['og.ImageCanvas', 'og.Rectangle', 'og.utils.ImagesCacheManager'], false);
-goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax', 'og.math.Vector4'], false);
+goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax', 'og.LonLat', 'og.math.Vector3', 'og.math.Vector4'], false);
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl'], false);
 goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.ImageCanvas', 'og.math', 'og.webgl', 'og.webgl.ShaderController'], false);
 goog.addDependency('../../../og/src/og/webgl/shaderController.js', ['og.webgl.ShaderController'], [], false);

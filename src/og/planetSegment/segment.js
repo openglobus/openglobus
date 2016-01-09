@@ -187,8 +187,8 @@ og.planetSegment.Segment.prototype.getCameraEarthPoint = function (camera) {
         ymax = ne.lat,
         xmin = sw.lon,
         ymin = sw.lat,
-        x = camera._nodeCameraPosition.lon,
-        y = camera._nodeCameraPosition.lat;
+        x = camera._insideSegmentPosition.lon,
+        y = camera._insideSegmentPosition.lat;
 
     var sxn = xmax - xmin,
         syn = ymax - ymin;
@@ -249,6 +249,20 @@ og.planetSegment.Segment.prototype.getCameraEarthPoint = function (camera) {
         "distance": camera._lonLat.height,
         "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction)
     };
+};
+
+og.planetSegment.Segment.prototype._projectNative = function (coords) {
+    return coords.forwardMercator();
+};
+
+og.planetSegment.Segment.prototype._isCameraInside = function (cam) {
+    cam._insideSegmentPosition = this._projectNative(cam._lonLat);
+    if (this.node.parentNode.cameraInside &&
+        this.extent.isInside( cam._insideSegmentPosition)) {
+        cam._insideSegment = this;
+        return true;
+    }
+    return false;
 };
 
 /**
