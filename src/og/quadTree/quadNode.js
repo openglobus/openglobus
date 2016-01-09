@@ -35,7 +35,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
-    this.cameraInside = false;
+    this.objectInside = false;
 
     this._planetSegmentPrototype = planetSegmentPrototype;
 
@@ -214,6 +214,11 @@ og.quadTree.QuadNode.prototype.traverseNodes = function () {
     this.nodes[og.quadTree.SE].renderTree();
 };
 
+og.quadTree.QuadNode.prototype.isBrother = function (node) {
+    return !(this.parentNode || node.parentNode) ||
+        this.parentNode.id == node.parentNode.id;
+};
+
 og.quadTree.QuadNode.prototype.renderTree = function () {
     this.state = og.quadTree.WALKTHROUGH;
 
@@ -221,13 +226,13 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
-    if (this.parentNode) {
-        this.cameraInside = seg._isCameraInside(cam);
+    if (this.parentNode && this.parentNode.objectInside) {
+        this.objectInside = seg.checkInside(cam);
     } else {
-        this.cameraInside = true;
+        this.objectInside = true;
     }
 
-    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {
+    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.objectInside) {
 
         if (seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam);

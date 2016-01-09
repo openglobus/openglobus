@@ -43,9 +43,14 @@ og.PlanetCamera = function (planet, options) {
      * @private
      * @type {number}
      */
-    this._altitude = this._lonLat.height;
+    this._terrainAltitude = this._lonLat.height;
 
-    this._earthPoint = { "distance": 0, "earth": new og.math.Vector3() };
+    /**
+     * Cartesian coordinates on the terrain.
+     * @private
+     * @type {og.math.Vector3}
+     */
+    this._terrainPoint = new og.math.Vector3();
 
     /**
      * Quad node that camera flies over.
@@ -115,8 +120,8 @@ og.PlanetCamera.prototype.update = function () {
  */
 og.PlanetCamera.prototype.setAltitude = function (alt) {
     var n = this.eye.normal();
-    this.eye = this._earthPoint.earth.add(n.scale(alt));
-    this._altitude = alt;
+    this.eye = this._terrainPoint.add(n.scale(alt));
+    this._terrainAltitude = alt;
 };
 
 /**
@@ -124,7 +129,7 @@ og.PlanetCamera.prototype.setAltitude = function (alt) {
  * @public
  */
 og.PlanetCamera.prototype.getAltitude = function () {
-    return this._altitude;
+    return this._terrainAltitude;
 };
 
 /**
@@ -479,20 +484,12 @@ og.PlanetCamera.prototype._flyFrame = function () {
 };
 
 og.PlanetCamera.prototype._checkCollision = function () {
+    this._terrainAltitude = this._lonLat.height;
     if (this._lonLat.height < 1000000) {
-        //getting from activeCamera
-        var seg = this._insideSegment;
-        if (seg._projection.id == og.proj.EPSG4326.id) {
-            this._earthPoint.earth = this.planet.hitRayEllipsoid(this.eye, this.eye.getNegate().normalize());
-            this._earthPoint.distance = this._altitude = this._lonLat.height;
-        } else {
-            this._earthPoint = seg.getCameraEarthPoint(this.eye, this._insideSegmentPosition);
-            this._altitude = this._earthPoint.distance;
-        }
-        if (this._altitude < this.minAltitude) {
+        this._terrainPoint = this._insideSegment.getTerrainPoint(this.eye, this._insideSegmentPosition);
+        this._terrainAltitude = this.eye.distance(this._terrainPoint);
+        if (this._terrainAltitude < this.minAltitude) {
             this.setAltitude(this.minAltitude);
         }
-    } else {
-        this._altitude = this._lonLat.height;
     }
 };

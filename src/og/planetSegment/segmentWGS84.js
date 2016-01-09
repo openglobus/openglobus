@@ -24,6 +24,10 @@ og.planetSegment.SegmentWGS84.prototype._projectNative = function (coords) {
     return coords;
 };
 
+og.planetSegment.SegmentWGS84.prototype.getTerrainPoint = function (xyz) {
+    return this.planet.hitRayEllipsoid(xyz, xyz.getNegate().normalize());
+};
+
 og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
 
