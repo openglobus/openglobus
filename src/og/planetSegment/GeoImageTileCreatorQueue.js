@@ -16,7 +16,6 @@ og.planetSegment.GeoImageTileCreatorQueue = function (width, height) {
 og.inheritance.extend(og.planetSegment.GeoImageTileCreatorQueue, og.utils.GeoImageTileCreator);
 
 og.planetSegment.GeoImageTileCreatorQueue.prototype.shift = function (segment) {
-
     if (this.active) {
         segment._inTheGeoImageTileCreatorQueue = true;
         if (this._counter >= 1) {
@@ -28,7 +27,6 @@ og.planetSegment.GeoImageTileCreatorQueue.prototype.shift = function (segment) {
 };
 
 og.planetSegment.GeoImageTileCreatorQueue.prototype.queue = function (segment) {
-
     if (this.active) {
         segment._inTheGeoImageTileCreatorQueue = true;
         if (this._counter >= 1) {
