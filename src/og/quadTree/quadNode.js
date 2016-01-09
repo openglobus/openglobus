@@ -225,7 +225,6 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         this.cameraInside = seg._isCameraInside(cam);
     } else {
         this.cameraInside = true;
-        cam._insideSegment = seg;
     }
 
     if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {

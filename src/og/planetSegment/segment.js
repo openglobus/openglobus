@@ -101,7 +101,7 @@ og.planetSegment.Segment = function () {
      * @type {boolean}
      */
     this.parentNormalMapReady = false;
-    
+
     /**
      * GeoImages already made for the segment.
      * @type {boolean}
@@ -177,18 +177,17 @@ og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
  * @param {og.PlanetCamera}
  * @returns {Object} - Returns camera cartesian coordiantes and altitude.
  */
-og.planetSegment.Segment.prototype.getCameraEarthPoint = function (camera) {
+og.planetSegment.Segment.prototype.getCameraEarthPoint = function (xyz, insideSegmentPosition) {
     var ne = this.extent.northEast,
         sw = this.extent.southWest,
-        size = this.gridSize,
-        xyz = camera.eye;
+        size = this.gridSize;
 
     var xmax = ne.lon,
         ymax = ne.lat,
         xmin = sw.lon,
         ymin = sw.lat,
-        x = camera._insideSegmentPosition.lon,
-        y = camera._insideSegmentPosition.lat;
+        x = insideSegmentPosition.lon,
+        y = insideSegmentPosition.lat;
 
     var sxn = xmax - xmin,
         syn = ymax - ymin;
@@ -246,7 +245,7 @@ og.planetSegment.Segment.prototype.getCameraEarthPoint = function (camera) {
     }
 
     return {
-        "distance": camera._lonLat.height,
+        "distance": insideSegmentPosition.height,
         "earth": this.planet.hitRayEllipsoid(ray.origin, ray.direction)
     };
 };
@@ -258,7 +257,7 @@ og.planetSegment.Segment.prototype._projectNative = function (coords) {
 og.planetSegment.Segment.prototype._isCameraInside = function (cam) {
     cam._insideSegmentPosition = this._projectNative(cam._lonLat);
     if (this.node.parentNode.cameraInside &&
-        this.extent.isInside( cam._insideSegmentPosition)) {
+        this.extent.isInside(cam._insideSegmentPosition)) {
         cam._insideSegment = this;
         return true;
     }

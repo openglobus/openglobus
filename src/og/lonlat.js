@@ -28,24 +28,24 @@ og.LonLat.prototype.clone = function () {
     return new og.LonLat(this.lon, this.lat, this.height);
 };
 
-og.LonLat.forwardMercator = function (lon, lat) {
+og.LonLat.forwardMercator = function (lon, lat, height) {
     var x = lon * og.mercator.POLE / 180;
     var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * og.mercator.POLE;
-    return new og.LonLat(x, y);
+    return new og.LonLat(x, y, height);
 };
 
-og.LonLat.inverseMercator = function (x, y) {
+og.LonLat.inverseMercator = function (x, y, height) {
     var lon = 180 * x / og.mercator.POLE;
     var lat = 180 / Math.PI * (2 * Math.atan(Math.exp((y / og.mercator.POLE) * Math.PI)) - Math.PI / 2);
-    return new og.LonLat(lon, lat);
+    return new og.LonLat(lon, lat, height);
 };
 
 og.LonLat.prototype.forwardMercator = function () {
-    return og.LonLat.forwardMercator(this.lon, this.lat);
+    return og.LonLat.forwardMercator(this.lon, this.lat, this.height);
 };
 
 og.LonLat.prototype.inverseMercator = function () {
-    return og.LonLat.inverseMercator(this.lon, this.lat);
+    return og.LonLat.inverseMercator(this.lon, this.lat, this.height);
 };
 
 og.LonLat.prototype.equal = function (b) {

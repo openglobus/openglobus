@@ -483,10 +483,10 @@ og.PlanetCamera.prototype._checkCollision = function () {
         //getting from activeCamera
         var seg = this._insideSegment;
         if (seg._projection.id == og.proj.EPSG4326.id) {
-            this._earthPoint.earth = this.planet.hitRayEllipsoid(cam.eye, cam.eye.getNegate().normalize());
+            this._earthPoint.earth = this.planet.hitRayEllipsoid(this.eye, this.eye.getNegate().normalize());
             this._earthPoint.distance = this._altitude = this._lonLat.height;
         } else {
-            this._earthPoint = seg.getCameraEarthPoint(this);
+            this._earthPoint = seg.getCameraEarthPoint(this.eye, this._insideSegmentPosition);
             this._altitude = this._earthPoint.distance;
         }
         if (this._altitude < this.minAltitude) {
