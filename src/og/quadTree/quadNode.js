@@ -35,7 +35,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
-    this.objectInside = false;
+    this.cameraInside = false;
 
     this._planetSegmentPrototype = planetSegmentPrototype;
 
@@ -226,18 +226,18 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
-    this.objectInside = false;
-    if (this.parentNode && this.parentNode.objectInside) {
+    this.cameraInside = false;
+    if (this.parentNode && this.parentNode.cameraInside) {
         cam._insideSegmentPosition = seg.projectNative(cam._lonLat);
         if (seg.extent.isInside(cam._insideSegmentPosition)) {
             cam._insideSegment = seg;
-            this.objectInside = true;
+            this.cameraInside = true;
         }
     } else {
-        this.objectInside = true;
+        this.cameraInside = true;
     }
 
-    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.objectInside) {
+    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {
 
         if (seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam);
