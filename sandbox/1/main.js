@@ -62,6 +62,20 @@ function start() {
     //globus.planet.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.15))
     //globus.renderer.handler.backgroundColor = { r: 0.26, g: 0.26, b: 0.26 };
 
+    var ql = new og.GeoImage({
+        src: "ql.jpg",
+        corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
+        opacity: 0.8
+    });
+    ql.addTo(globus.planet);
+
+    ql4 = new og.GeoImage({
+        src: "bm.jpg",
+        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+        opacity: 1.0
+    });
+    ql4.addTo(globus.planet);
+
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
 };

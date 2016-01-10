@@ -385,6 +385,7 @@ og.node.Planet.prototype.redrawGeoImages = function () {
         return b.zIndex - a.zIndex;
     });
     var refresh = function (node) {
+        node.planetSegment.geoImageTexture = node.planetSegment.planet.transparentTexture;
         node.planetSegment.geoImageReady = false;
     }
     this._quadTree.traverseTree(refresh);
