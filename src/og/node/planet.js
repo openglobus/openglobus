@@ -65,7 +65,7 @@ og.node.Planet = function (name, ellipsoid) {
      * @public
      * @type {Array.<og.layer.Layer>}
      */
-    this.visibleLayers = [];
+    this.visibleTileLayers = [];
 
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
@@ -548,7 +548,7 @@ og.node.Planet.prototype.updateAttributionsList = function () {
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {
-    this.visibleLayers.length = 0;
+    this.visibleTileLayers.length = 0;
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
         var li = this.layers[i];
@@ -556,7 +556,11 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
             if (li._isBaseLayer) {
                 this.baseLayer = li;
             }
-            this.visibleLayers.push(li);
+            if (li instanceof og.layer.XYZ ||
+                li instanceof og.layer.WMS ||
+                li instanceof og.layer.CanvasTiles) {
+                this.visibleTileLayers.push(li);
+            }
             if (li._attribution.length) {
                 html += "<li>" + li._attribution + "</li>";
             }
@@ -577,7 +581,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 };
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
-    this.visibleLayers.sort(function (a, b) {
+    this.visibleTileLayers.sort(function (a, b) {
         return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
     })
 };
@@ -605,6 +609,7 @@ og.node.Planet.prototype.frame = function () {
     var cam = this.renderer.activeCamera;
 
     cam.prepareFrame();
+    cam.updateGeodeticPosition();
 
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
@@ -614,7 +619,7 @@ og.node.Planet.prototype.frame = function () {
     //print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
     if (!this._isCameraSunlight)
-        this.sunlight._position = cam._v.scaleTo(cam._altitude * 0.2).add(cam._u.scaleTo(cam._altitude * 0.4)).add(cam.eye);
+        this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);
     else
         this.sunlight._position = cam.eye;
 
@@ -658,7 +663,7 @@ og.node.Planet.prototype.renderNodesPASS = function () {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
 
-    if (this.visibleLayers.length > 1) {
+    if (this.visibleTileLayers.length > 1) {
 
         drawCallback = og.planetSegment.drawOverlays;
 
@@ -682,7 +687,7 @@ og.node.Planet.prototype.renderNodesPASS = function () {
             gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._pmvMatrix._m);
         }
 
-        var layers = this.visibleLayers;
+        var layers = this.visibleTileLayers;
         var i = layers.length;
         while (i--) {
             var ll = layers[i];

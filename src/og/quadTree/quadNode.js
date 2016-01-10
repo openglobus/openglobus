@@ -35,9 +35,13 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.sideSize = [0, 0, 0, 0];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
-    this.cameraInside = false;
 
     this._planetSegmentPrototype = planetSegmentPrototype;
+
+    /**
+     * @private
+     */
+    this._cameraInside = false;
 
     this.planetSegment = new planetSegmentPrototype();
     this.planetSegment.node = this;
@@ -47,6 +51,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
 
     this.createBounds();
+
     this.planet._createdNodesCount++;
 };
 
@@ -226,18 +231,29 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
-    this.cameraInside = false;
-    if (this.parentNode && this.parentNode.cameraInside) {
-        cam._insideSegmentPosition = seg.projectNative(cam._lonLat);
-        if (seg.extent.isInside(cam._insideSegmentPosition)) {
-            cam._insideSegment = seg;
-            this.cameraInside = true;
+    this._cameraInside = false;
+    if (this.parentNode && this.parentNode._cameraInside) {
+
+        var c = cam._lonLat;
+
+        //Because first wgs segments collected it cant be changed to lonLat.
+        if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
+            cam._lonLat.lat >= og.mercator.MIN_LAT &&
+            seg._projection.id == og.proj.EPSG3857.id) {
+            c = cam._mercatorLonLat;
         }
+
+        if (seg.extent.isInside(c)) {
+            cam._insideSegment = seg;
+            cam._insideSegmentPosition = c;
+            this._cameraInside = true;
+        }
+
     } else {
-        this.cameraInside = true;
+        this._cameraInside = true;
     }
 
-    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this.cameraInside) {
+    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this._cameraInside) {
 
         if (seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam);
@@ -287,7 +303,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
     this.createGeoImage();
 
-    var vl = this.planet.visibleLayers,
+    var vl = this.planet.visibleTileLayers,
         pm = seg.materials;
 
     for (var i = 0; i < vl.length; i++) {

@@ -236,8 +236,14 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
     return xyz.distance(res);
 };
 
-og.planetSegment.Segment.prototype.projectNative = function (coords) {
-    return coords.forwardMercator();
+/**
+ * Project wgs86 to segment native projection.
+ * @public
+ * @param {og.LonLat} lonlat - Coordinates to project.
+ * @returns {og.LonLat}
+ */
+og.planetSegment.Segment.prototype.projectNative = function (lonlat, readyNative) {
+    return lonlat.forwardMercator();
 };
 
 /**
@@ -888,7 +894,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
         var gl = segment.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
-        var layers = segment.planet.visibleLayers;
+        var layers = segment.planet.visibleTileLayers;
         if (layers.length) {
             var baseMat = segment.materials[layers[0]._id];
             gl.activeTexture(gl.TEXTURE0);
@@ -917,7 +923,7 @@ og.planetSegment.drawOverlays = function (sh, segment) {
         var gl = segment.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
-        var layers = segment.planet.visibleLayers;
+        var layers = segment.planet.visibleTileLayers;
 
         for (var l = 0; l < layers.length; l++) {
             var ll = layers[l];

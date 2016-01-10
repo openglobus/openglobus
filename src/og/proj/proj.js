@@ -48,4 +48,8 @@ og.proj.Projection = function (options) {
     this.id = og.proj.Projection._counter++;
 };
 
+og.proj.Projection.prototype.equal = function (proj) {
+    return proj.id == this.id;
+};
+
 og.proj.Projection._counter = 0;

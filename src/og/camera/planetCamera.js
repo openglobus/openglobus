@@ -32,11 +32,18 @@ og.PlanetCamera = function (planet, options) {
     this.minAltitude = options.minAltitude || 50;
 
     /**
-     * Current geographical position.
+     * Current geographical degree position.
      * @private
      * @type {og.LonLat}
      */
     this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
+
+    /**
+     * Current geographical mercator position.
+     * @private
+     * @type {og.LonLat}
+     */
+    this._mercatorLonLat = this._lonLat.forwardMercator();
 
     /**
      * Current altitude.
@@ -108,9 +115,15 @@ og.PlanetCamera.prototype.update = function () {
 
     this._nMatrix = this._mvMatrix.toInverseMatrix3().transpose();
 
-    this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
-
     this.events.dispatch(this.events.viewchange, this);
+};
+
+og.PlanetCamera.prototype.updateGeodeticPosition = function () {
+    this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
+    if (this._lonLat.lat <= og.mercator.MAX_LAT &&
+        this._lonLat.lat >= og.mercator.MIN_LAT) {
+        this._mercatorLonLat = this._lonLat.forwardMercator();
+    }
 };
 
 /**
