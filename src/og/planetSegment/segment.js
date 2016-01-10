@@ -172,12 +172,28 @@ og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
 };
 
 /**
+ * Returns entity terrain point.
+ * @public
+ * @param {og.Entity} entity - Entity.
+ * @returns {og.math.Vector3}
+ */
+og.planetSegment.Segment.prototype.getEntityTerrainPoint = function (entity) {
+    var c = this.projectNative(entity._lonLat);
+    if (this.extent.isInside(c)) {
+        var res = new og.math.Vector3();
+        this.getTerrainPoint(res, entity._position, c);
+        return res;
+    }
+    return null;
+};
+
+/**
  * Returns distance from object to terrain coordinates.
  * @public
- * @param {og.math.Vector3} res - - Result cartesian coordiantes on the terrain.
+ * @param {og.math.Vector3} res - Result cartesian coordiantes on the terrain.
  * @param {og.math.Vector3} xyz - Cartesian object position.
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
- * @returns {og.math.Vector3}
+ * @returns {number}
  */
 og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
     var ne = this.extent.northEast,
@@ -242,7 +258,7 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
  * @param {og.LonLat} lonlat - Coordinates to project.
  * @returns {og.LonLat}
  */
-og.planetSegment.Segment.prototype.projectNative = function (lonlat, readyNative) {
+og.planetSegment.Segment.prototype.projectNative = function (lonlat) {
     return lonlat.forwardMercator();
 };
 
@@ -903,7 +919,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.uniform1i(shu.uSampler._pName, 0);
 
             gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture);
+            gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
             gl.uniform1i(shu.uGeoImage._pName, 2);
             gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 

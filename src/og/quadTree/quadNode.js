@@ -234,18 +234,21 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     this._cameraInside = false;
     if (this.parentNode && this.parentNode._cameraInside) {
 
-        var c = cam._lonLat;
+        var inside;
 
         //Because first wgs segments collected it cant be changed to lonLat.
         if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
             cam._lonLat.lat >= og.mercator.MIN_LAT &&
             seg._projection.id == og.proj.EPSG3857.id) {
-            c = cam._mercatorLonLat;
+            inside = seg.extent.isInside(cam._mercatorLonLat);
+            cam._insideSegmentPosition = cam._mercatorLonLat;
+        } else if (seg._projection.id == og.proj.EPSG4326.id) {
+            inside = seg.extent.isInside(cam._lonLat);
+            cam._insideSegmentPosition = cam._lonLat;
         }
 
-        if (seg.extent.isInside(c)) {
+        if (inside) {
             cam._insideSegment = seg;
-            cam._insideSegmentPosition = c;
             this._cameraInside = true;
         }
 

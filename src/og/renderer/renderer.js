@@ -251,7 +251,7 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
     if (!this.renderNodes[renderNode.name]) {
         renderNode.assignRenderer(this);
         renderNode.initialization();
-        this._renderNodesArr.push(renderNode);
+        this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
         alert("Node name: " + renderNode.name + " allready exists.");

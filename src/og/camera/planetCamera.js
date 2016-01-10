@@ -115,6 +115,8 @@ og.PlanetCamera.prototype.update = function () {
 
     this._nMatrix = this._mvMatrix.toInverseMatrix3().transpose();
 
+    this.updateGeodeticPosition();
+
     this.events.dispatch(this.events.viewchange, this);
 };
 
@@ -135,6 +137,7 @@ og.PlanetCamera.prototype.setAltitude = function (alt) {
     var n = this.eye.normal();
     this.eye = this._terrainPoint.add(n.scale(alt));
     this._terrainAltitude = alt;
+    this.update();
 };
 
 /**
@@ -330,7 +333,7 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
 
     var lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
     var up_b = up || og.math.Vector3.UP;
-    var ground_b = this.planet.ellipsoid.LonLatToCarte(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
+    var ground_b = this.planet.ellipsoid.lonLatToCartesian(new og.LonLat(lonlat_b.lon, lonlat_b.lat, 0));
     var eye_b = cartesian;
     var n_b = og.math.Vector3.sub(eye_b, _look);
     var u_b = up_b.cross(n_b);

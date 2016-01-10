@@ -609,7 +609,6 @@ og.node.Planet.prototype.frame = function () {
     var cam = this.renderer.activeCamera;
 
     cam.prepareFrame();
-    cam.updateGeodeticPosition();
 
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
