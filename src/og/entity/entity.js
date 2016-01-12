@@ -13,8 +13,8 @@ goog.require('og.LonLat');
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {og.math.Vector3|Array.<number>} [options.position] - Spatial entities like billboard, lanel, sphere etc. position.
- * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. position.
+ * @param {og.math.Vector3|Array.<number>} [options.cartesian] - Spatial entities like billboard, lanel, sphere etc. cartesian position.
+ * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. cartesian position.
  * @param {boolean} [options.aground] - Geodetic type entity replaces over a relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {Object} [options.billboard] - Billboard options.
@@ -55,18 +55,18 @@ og.Entity = function (options, properties) {
     this.parent = null;
 
     /**
-     * Entity position
+     * Entity cartesian position
      * @private
      * @type {og.math.Vector3}
      */
-    this._position = og.utils.createVector3(options.position);
+    this._cartesian = og.utils.createVector3(options.cartesian);
 
     /**
      * Geodetic entity coordiantes.
      * @private
      * @type {og.LonLat}
      */
-    this._lonlat = og.utils.createLonLat(options.lonlat);
+    this._lonlat = options.lonlat || null;
 
     /**
      * Entity is stay on the Earth.
@@ -177,24 +177,24 @@ og.Entity.prototype.getVisibility = function () {
 };
 
 /**
- * Sets entity position.
+ * Sets entity cartesian position.
  * @public
- * @param {og.math.Vector3} position - Position in 3d space.
+ * @param {og.math.Vector3} position - Cartesian position in 3d space.
  */
-og.Entity.prototype.setPosition3v = function (position) {
-    this.setPosition(position.x, position.y, position.z);
+og.Entity.prototype.setCartesian3v = function (cartesian) {
+    this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
 };
 
 /**
- * Sets entity position.
+ * Sets entity cartesian position.
  * @public
  * @param {number} x - 3d space X - position.
  * @param {number} y - 3d space Y - position.
  * @param {number} z - 3d space Z - position.
  */
-og.Entity.prototype.setPosition = function (x, y, z) {
+og.Entity.prototype.setCartesian = function (x, y, z) {
 
-    var p = this._position;
+    var p = this._cartesian;
 
     p.x = x;
     p.y = y;
@@ -211,13 +211,40 @@ og.Entity.prototype.setPosition = function (x, y, z) {
     }
 };
 
+og.Entity.prototype.getLonLat = function () {
+    var ec = this._entityCollectio;
+    if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+        this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(lonlat);
+        return this._lonlat;
+    }
+};
+
 /**
- * Returns position.
+ * Sets geodetic coordinates of the entity point object.
+ * @public
+ * @param {og.LonLat} lonlat - WGS84 coordinates.
+ */
+og.Entity.prototype.setLonLat = function (lonlat) {
+    var l = this._lonlat;
+
+    l.lon = lonlat.lon;
+    l.this._lonlat.lat = lonlat.lat;
+    l.height = lonlat.height;
+
+    var ec = this._entityCollectio;
+    if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+        this._cartesian = ec.renderNode.ellipsoid.lonLatToCartesian(lonlat);
+        this.setPosition3v(this._cartesian);
+    }
+};
+
+/**
+ * Returns carteain position.
  * @public
  * @returns {og.math.Vector3}
  */
-og.Entity.prototype.getPosition = function () {
-    return this._position;
+og.Entity.prototype.getCartesian = function () {
+    return this._cartesian;
 };
 
 /**
@@ -231,7 +258,7 @@ og.Entity.prototype.setBillboard = function (billboard) {
     }
     this.billboard = billboard;
     this.billboard._entity = this;
-    this.billboard.setPosition3v(this._position);
+    this.billboard.setPosition3v(this._cartesian);
     this.billboard.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
     return billboard;
@@ -248,7 +275,7 @@ og.Entity.prototype.setLabel = function (label) {
     }
     this.label = label;
     this.label._entity = this;
-    this.label.setPosition3v(this._position);
+    this.label.setPosition3v(this._cartesian);
     this.label.setVisibility(this._visibility);
     this._entityCollection && this._entityCollection._labelHandler.add(label);
     return label;

@@ -378,6 +378,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 };
 
 /**
+ * Clear tree ouot the geo images textures.
  * @public
  */
 og.node.Planet.prototype.redrawGeoImages = function () {

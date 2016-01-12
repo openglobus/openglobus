@@ -292,7 +292,11 @@ og.EntityCollection.prototype.add = function (entity) {
         entity._entityCollection = this;
         entity._entityCollectionIndex = this.entities.length;
         this.entities.push(entity);
-        this.renderNode && this.renderNode.renderer && this.renderNode.renderer.assignPickingColor(entity);
+        var rn = this.renderNode;
+        if (rn) {
+            rn.renderer && rn.renderer.assignPickingColor(entity);
+            rn.ellipsoid && entity._lonlat && entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonlat));
+        }
         this._addRecursively(entity);
     }
     return this;
@@ -383,9 +387,23 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         this.renderNode = renderNode;
         renderNode.entityCollections.push(this);
         this.setRenderer(renderNode.renderer);
+        renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
         this.events.dispatch(this.events.add, this);
     }
     return this;
+};
+
+/**
+ * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
+ * @private
+ */
+og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) {
+    var e = this._entities;
+    var i = e.length;
+    while (i--) {
+        var ei = e[i];
+        ei._lonlat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonlat));
+    }
 };
 
 /**
