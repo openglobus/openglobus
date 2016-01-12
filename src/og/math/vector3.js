@@ -10,6 +10,10 @@ og.math.Vector3.prototype.toVector4 = function () {
     return new og.math.Vector4(this.x, this.y, this.z, 1.0);
 };
 
+og.math.Vector3.fromVec = function (arr) {
+    return new og.math.Vector3(arr[0], arr[1], arr[2]);
+};
+
 og.math.Vector3.UP = new og.math.Vector3(0, 1, 0);
 og.math.Vector3.DOWN = new og.math.Vector3(0, -1, 0);
 og.math.Vector3.RIGHT = new og.math.Vector3(1, 0, 0);

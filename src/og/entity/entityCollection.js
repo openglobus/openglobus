@@ -398,7 +398,7 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
  * @private
  */
 og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) {
-    var e = this._entities;
+    var e = this.entities;
     var i = e.length;
     while (i--) {
         var ei = e[i];

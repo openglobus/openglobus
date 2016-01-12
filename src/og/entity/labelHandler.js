@@ -200,7 +200,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
     gl.vertexAttribPointer(sha.a_bufferAA._pName, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1f(shu.uZ._pName, 0.0);
+    gl.uniform1f(shu.uZ._pName, 0.5);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
     //nobuffer
@@ -210,7 +210,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
     gl.vertexAttribPointer(sha.a_bufferAA._pName, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1f(shu.uZ._pName, -0.05);
+    gl.uniform1f(shu.uZ._pName, -0.5);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
 };

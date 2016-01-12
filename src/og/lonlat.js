@@ -9,8 +9,8 @@ og.LonLat = function (lon, lat, height) {
     this.height = height || 0;
 };
 
-og.lonLat = function (lon, lat) {
-    return new og.LonLat(lon, lat);
+og.lonLat = function (lon, lat, height) {
+    return new og.LonLat(lon, lat, height);
 };
 
 og.LonLat.prototype.set = function (lon, lat, height) {

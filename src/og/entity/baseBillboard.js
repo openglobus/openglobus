@@ -83,12 +83,14 @@ og.BaseBillboard.prototype.getPosition = function () {
 /**
  * Sets screen space offset.
  * @public
- * @param {number} x - X offset size.
- * @param {number} y - Y offset size.
+ * @param {number} x - X offset.
+ * @param {number} y - Y offset.
+ * @param {number} [z] - Z offset.
  */
-og.BaseBillboard.prototype.setOffset = function (x, y) {
+og.BaseBillboard.prototype.setOffset = function (x, y, z) {
     this._offset.x = x;
     this._offset.y = y;
+    (z != undefined) && (this._offset.z = z);
     this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
 };
 
@@ -97,16 +99,17 @@ og.BaseBillboard.prototype.setOffset = function (x, y) {
  * @public
  * @param {og.math.Vector2} offset - Offset size.
  */
-og.BaseBillboard.prototype.setOffset2v = function (offset) {
+og.BaseBillboard.prototype.setOffset3v = function (offset) {
     this._offset.x = offset.x;
     this._offset.y = offset.y;
+    (offset.z != undefined) && (this._offset.z = offset.z);
     this._handler && this._handler.setOffsetArr(this._handlerIndex, offset);
 };
 
 /**
  * Returns billboard screen space offset size.
  * @public
- * @returns {og.math.Vector2}
+ * @returns {og.math.Vector3}
  */
 og.BaseBillboard.prototype.getOffset = function () {
     return this._offset;
@@ -153,7 +156,7 @@ og.BaseBillboard.prototype.setColor = function (r, g, b, a) {
     this._color.x = r;
     this._color.y = g;
     this._color.z = b;
-    this._color.w = a;
+    (a != undefined) && (this._color.w = a);
     this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
 };
 
@@ -166,7 +169,7 @@ og.BaseBillboard.prototype.setColor4v = function (color) {
     this._color.x = color.x;
     this._color.y = color.y;
     this._color.z = color.z;
-    this._color.w = color.w;
+    (color.w != undefined) && (this._color.w = color.w);
     this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
 };
 

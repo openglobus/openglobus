@@ -106,7 +106,7 @@ og.utils.createVector3 = function (v, def) {
         if (v instanceof og.math.Vector3) {
             return v.clone();
         } else if (v instanceof Array) {
-            return og.math.Vector3.fromArr(v);
+            return og.math.Vector3.fromVec(v);
         }
     } else if (def) {
         return def.clone();
@@ -119,7 +119,7 @@ og.utils.createVector4 = function (v, def) {
         if (v instanceof og.math.Vector4) {
             return v.clone();
         } else if (v instanceof Array) {
-            return og.math.Vector4.fromArr(v);
+            return og.math.Vector4.fromVec(v);
         }
     } else if (def) {
         return def.clone();

@@ -16,6 +16,8 @@ goog.require('og.control.TouchNavigation');
 goog.require('og.ImageCanvas');
 goog.require('og.GeoImage');
 goog.require('og.LonLat');
+goog.require('og.EntityCollection');
+goog.require('og.Entity');
 
 function start() {
     //og.shaderProgram.SHADERS_URL = "./shaders/";
@@ -78,4 +80,28 @@ function start() {
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
+};
+
+function test() {
+    eee = new og.Entity({
+        lonlat: new og.LonLat(0, 0, 100000),
+        billboard: {
+            src: "ship.png",
+            width: 70,
+            height: 70,
+            offset: [255,10]
+        },
+        label: {
+            text: "Saint-Petersburg",
+            align: "center",
+            size: 70,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.47,
+            face: "verdana"
+        }
+    });
+    ec = new og.EntityCollection();
+    eee.addTo(ec);
+    ec.addTo(globus.planet)
 };

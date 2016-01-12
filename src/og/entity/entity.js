@@ -207,7 +207,7 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
     this.label && this.label.setPosition3v(p);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
-        this.childrenNodes[i].setPosition3v(p);
+        this.childrenNodes[i].setCartesian(x, y, z);
     }
 };
 
@@ -228,13 +228,13 @@ og.Entity.prototype.setLonLat = function (lonlat) {
     var l = this._lonlat;
 
     l.lon = lonlat.lon;
-    l.this._lonlat.lat = lonlat.lat;
+    l.lat = lonlat.lat;
     l.height = lonlat.height;
 
-    var ec = this._entityCollectio;
+    var ec = this._entityCollection;
     if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
         this._cartesian = ec.renderNode.ellipsoid.lonLatToCartesian(lonlat);
-        this.setPosition3v(this._cartesian);
+        this.setCartesian3v(this._cartesian);
     }
 };
 
