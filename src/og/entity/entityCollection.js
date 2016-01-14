@@ -8,6 +8,7 @@ goog.require('og.Events');
  * An observable collection of og.Entity instances where each entity has a unique id.
  * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
  * @constructor
+ * @fires og.Events#draw
  * @fires og.Events#add
  * @fires og.Events#remove
  * @fires og.Events#entityadd
@@ -97,6 +98,12 @@ og.EntityCollection = function () {
  * @const
  */
 og.EntityCollection.EVENT_NAMES = [
+        /**
+         * Triggered when collection entities begin draw.
+         * @event og.Events#add
+         */
+        "draw",
+
         /**
          * Triggered when added to the render node.
          * @event og.Events#add

@@ -97,6 +97,22 @@ og.node.RenderNode = function (name) {
 og.inheritance.extend(og.node.RenderNode, og.node.Node);
 
 /**
+ * Assign render node with renderer.
+ * @public
+ * @param {og.Renderer} renderer - Redner node's renderer.
+ */
+og.node.RenderNode.prototype.assignRenderer = function (renderer) {
+    this.renderer = renderer;
+    this.billboardsTextureAtlas.assignHandler(renderer.handler);
+    this.fontAtlas.assignHandler(renderer.handler);
+    renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+
+    for (var i = 0; i < this.entityCollections.length; i++) {
+        this.entityCollections[i].setRenderer(renderer);
+    }
+};
+
+/**
  * Adds entity collection.
  * @public
  * @param {og.EntityCollection} entityCollection - Entity collection.
@@ -147,32 +163,63 @@ og.node.RenderNode.prototype.removeLight = function (light) {
     light.remove();
 };
 
+/**
+ * Sets node scale matrix.
+ * @public
+ * @param {og.math.Vector3} xyz - Component scale vector.
+ * @returns {og.node.RenderNode}
+ */
 og.node.RenderNode.prototype.setScale = function (xyz) {
     this.scaleMatrix.scale(xyz);
     return this;
 };
 
+/**
+ * Sets node translation matrix.
+ * @public
+ * @param {og.math.Vector3} origin - New node's position.
+ * @returns {og.node.RenderNode}
+ */
 og.node.RenderNode.prototype.setOrigin = function (origin) {
     this.translationMatrix.translate(origin);
     return this;
 };
 
+/**
+ * Sets node rotation matrix.
+ * @public
+ * @param {number} ax - Euler axis X angle rotation.
+ * @param {number} ay - Euler axis Y angle rotation.
+ * @param {number} az - Euler axis Z angle rotation.
+ * @returns {og.node.RenderNode}
+ */
 og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
     this.rotationMatrix.eulerToMatrix(ax, ay, az);
     return this;
 };
 
+/**
+ * Updates render node's matrices
+ * @public
+ */
 og.node.RenderNode.prototype.updateMatrices = function () {
     this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
     this.itransformationMatrix = this.transformationMatrix.inverse();
 };
 
+/**
+ * Calls render frame node's callback. Used in renderer.
+ * @public
+ */
 og.node.RenderNode.prototype.drawNode = function () {
-    if (this._isActive) {
-        this.drawNodes();
-    }
+    this._isActive && this._drawNodes();
 };
 
+/**
+ * Gets render node activity.
+ * @public
+ * @returns {boolean}
+ */
 og.node.RenderNode.prototype.isActive = function () {
     return this._isActive;
 };
@@ -189,27 +236,13 @@ og.node.RenderNode.prototype.setActive = function (isActive) {
     }
 };
 
+/**
+ * @public
+ */
 og.node.RenderNode.prototype.setDrawMode = function (mode) {
     this.drawMode = mode;
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].setDrawMode(mode);
-    }
-};
-
-og.node.RenderNode.prototype.drawNodes = function () {
-    for (var i = 0; i < this.childNodes.length; i++) {
-        if (this.childNodes[i]._isActive)
-            this.childNodes[i].drawNodes();
-    }
-
-    if (this.show) {
-        this.drawEntities();
-        if (this.frame) {
-            //if (this.lightEnabled) {
-            //    this.transformLights();
-            //}
-            this.frame();
-        }
     }
 };
 
@@ -234,7 +267,28 @@ og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
     }
 };
 
-og.node.RenderNode.prototype.drawEntities = function () {
+/**
+ * @private
+ */
+og.node.RenderNode.prototype._drawNodes = function () {
+    for (var i = 0; i < this.childNodes.length; i++) {
+        if (this.childNodes[i]._isActive)
+            this.childNodes[i]._drawNodes();
+    }
+
+    if (this.show) {
+        if (this.frame) {
+            //this.lightEnabled && this.transformLights();
+            this.frame();
+        }
+        this._drawEntities();
+    }
+};
+
+/**
+ * @private
+ */
+og.node.RenderNode.prototype._drawEntities = function () {
 
     var ec = this.entityCollections;
 
@@ -246,15 +300,19 @@ og.node.RenderNode.prototype.drawEntities = function () {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.disable(gl.CULL_FACE);
 
-        var i = 0;
+        gl.disable(gl.DEPTH_TEST);
 
         //billboards pass
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
-        i = ec.length;
+        var i = ec.length;
         while (i--) {
-            ec[i].billboardHandler.draw();
+            var eci = ec[i];
+            if (eci._visibility) {
+                eci.events.dispatch(eci.events.draw, eci);
+                eci.billboardHandler.draw();
+            }
         }
 
         //labels path
@@ -266,29 +324,18 @@ og.node.RenderNode.prototype.drawEntities = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i].labelHandler.draw();
+            ec[i]._visibility && ec[i].labelHandler.draw();
         }
 
+        gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
     }
 };
 
 /**
- * Assign render node with renderer.
- * @public
- * @param {og.Renderer} renderer - Redner node's renderer.
+ * Picking entity frame callback
+ * @private
  */
-og.node.RenderNode.prototype.assignRenderer = function (renderer) {
-    this.renderer = renderer;
-    this.billboardsTextureAtlas.assignHandler(renderer.handler);
-    this.fontAtlas.assignHandler(renderer.handler);
-    renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
-
-    for (var i = 0; i < this.entityCollections.length; i++) {
-        this.entityCollections[i].setRenderer(renderer);
-    }
-};
-
 og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
     var ec = this.entityCollections;
 
@@ -297,16 +344,14 @@ og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
 
         gl.disable(gl.CULL_FACE);
 
-        var i = 0;
-
-        i = ec.length;
+        var i = ec.length;
         while (i--) {
-            ec[i].billboardHandler.drawPicking();
+            ec[i]._visibility && ec[i].billboardHandler.drawPicking();
         }
 
         i = ec.length;
         while (i--) {
-            ec[i].labelHandler.drawPicking();
+            ec[i]._visibility && ec[i].labelHandler.drawPicking();
         }
 
         gl.enable(gl.CULL_FACE);

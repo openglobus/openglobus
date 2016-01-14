@@ -55,6 +55,8 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.planet._createdNodesCount++;
 };
 
+og.quadTree.QuadNode.VISIBLE_DISTANCE = 3570;
+
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
 og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.length) - 1;
 
@@ -192,18 +194,14 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
-og.quadTree.QuadNode.VISIBLE_DISTANCE = 3570;
-
 og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
     if (cam._lonLat.height < 3000000.0) {
-        var distance = cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius;
-        var horizon = og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height);
-        if (distance < horizon) {
+        if (cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius <
+            og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) {
             this.renderNode();
         } else {
             this.state = og.quadTree.NOTRENDERING;
         }
-
     } else {
         this.renderNode();
     }
@@ -279,9 +277,7 @@ og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
     segment.gridSize = gridSize;
     this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     segment.createPlainVertices(gridSize);
-
     segment.terrainVertices = segment.plainVertices;
-
     segment.createCoordsBuffers(segment.plainVertices, gridSize);
     segment.ready = true;
 };

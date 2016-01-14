@@ -70,9 +70,9 @@ og.Entity = function (options, properties) {
 
     /**
      * Entity is stay on the Earth.
-     * @public
+     * @private
      */
-    this.aground = options.aground || false;
+    this._aground = options.aground || false;
 
     /**
      * Visibility.

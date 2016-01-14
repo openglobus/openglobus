@@ -273,14 +273,14 @@ og.BillboardHandler.prototype._pickingPASS = function () {
 };
 
 og.BillboardHandler.prototype.draw = function () {
-    if (this._entityCollection._visibility && this._billboards.length) {
+    if (this._billboards.length) {
         this.update();
         this._displayPASS();
     }
 };
 
 og.BillboardHandler.prototype.drawPicking = function () {
-    if (this._entityCollection._visibility && this._billboards.length && this.pickingEnabled) {
+    if (this._billboards.length && this.pickingEnabled) {
         this._pickingPASS();
     }
 };
