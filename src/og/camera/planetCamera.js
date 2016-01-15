@@ -135,7 +135,10 @@ og.PlanetCamera.prototype.updateGeodeticPosition = function () {
  */
 og.PlanetCamera.prototype.setAltitude = function (alt) {
     var n = this.eye.normal();
-    this.eye = this._terrainPoint.add(n.scale(alt));
+    var t = this._terrainPoint;
+    this.eye.x = n.x * alt + t.x;
+    this.eye.y = n.y * alt + t.y;
+    this.eye.z = n.z * alt + t.z;
     this._terrainAltitude = alt;
     this.update();
 };
