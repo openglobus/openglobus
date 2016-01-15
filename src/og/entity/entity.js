@@ -69,12 +69,6 @@ og.Entity = function (options, properties) {
     this._lonlat = options.lonlat || null;
 
     /**
-     * Entity is stay on the Earth.
-     * @private
-     */
-    this._aground = options.aground || false;
-
-    /**
      * Visibility.
      * @private
      * @type {boolean}

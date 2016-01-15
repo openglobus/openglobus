@@ -228,13 +228,14 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
 
         var v0 = new og.math.Vector3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
             v1 = new og.math.Vector3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
-            v2 = new og.math.Vector3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]),
-            v3 = new og.math.Vector3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
+            v2 = new og.math.Vector3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
         var d = ray.hitTriangle(v0, v1, v2, res);
         if (d == og.math.Ray.INSIDE) {
             return xyz.distance(res);
         }
+
+        var v3 = new og.math.Vector3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
         d = ray.hitTriangle(v1, v3, v2, res);
         if (d == og.math.Ray.INSIDE) {
