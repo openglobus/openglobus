@@ -168,6 +168,8 @@ og.LabelHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
+
     gl.uniform3fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
@@ -201,7 +203,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
     gl.vertexAttribPointer(sha.a_bufferAA._pName, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1f(shu.uZ._pName, 0.5);
+    gl.uniform1f(shu.uZ._pName, -2.0);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
     //nobuffer
@@ -211,7 +213,7 @@ og.LabelHandler.prototype._displayPASS = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
     gl.vertexAttribPointer(sha.a_bufferAA._pName, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.uniform1f(shu.uZ._pName, -2.5);
+    gl.uniform1f(shu.uZ._pName, -10.0);
     gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
 };
@@ -230,6 +232,8 @@ og.LabelHandler.prototype._pickingPASS = function () {
     gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
 
     gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 
@@ -317,7 +321,7 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {
 
     for (c = 0; c < text.length; c++) {
         var j = i + c * 24;
-        var n = fa.nodes[text[c]];
+        var n = fa.nodes[text[c]] || fa.nodes[" "];
         var tc = n.texCoords;
 
         a[j] = tc[0];

@@ -8,7 +8,7 @@ og.math.Z = 2;
 og.math.W = 3;
 
 og.math.LOG2 = Math.log(2);
-
+og.math.MAX32 = 2147483647;
 og.math.MAX = 549755748352;
 og.math.MIN = -og.math.MAX;
 

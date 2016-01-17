@@ -200,8 +200,8 @@ og.BillboardHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    //gl.uniform1f(shu.uViewAngle._pName, r.activeCamera._tanViewAngle_hrad);
-    //gl.uniform1f(shu.uXRatio._pName, r.handler._oneByHeight);
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
+
     gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
@@ -246,8 +246,8 @@ og.BillboardHandler.prototype._pickingPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    //gl.uniform1f(shu.uViewAngle._pName, r.activeCamera._tanViewAngle_hrad);
-    //gl.uniform1f(shu.uXRatio._pName, r.handler._oneByHeight);
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
+
     gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);

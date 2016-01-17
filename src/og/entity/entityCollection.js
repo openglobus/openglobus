@@ -84,6 +84,11 @@ og.EntityCollection = function () {
     this.entities = [];
 
     /**
+     * @private
+     */
+    this._scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
+
+    /**
      * Entity collection events handler.
      * @public
      * @type {og.Events}
@@ -259,6 +264,12 @@ og.EntityCollection.EVENT_NAMES = [
 og.EntityCollection.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
     this.events.dispatch(this.events.visibilitychange, this);
+};
+
+og.EntityCollection.prototype.setScaleByDistance = function (near, far, farInisible) {
+    this._scaleByDistance[0] = near;
+    this._scaleByDistance[1] = far;
+    this._scaleByDistance[2] = farInisible || og.math.MAX32;
 };
 
 /**

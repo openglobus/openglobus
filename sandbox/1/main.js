@@ -19,6 +19,32 @@ goog.require('og.LonLat');
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
 
+var countriesCollection;
+
+function loadCountries() {
+    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=proj1:TM_WORLD_BORDERS-0.3&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAME,LON,LAT&&service=WFS&outputFormat=json',
+        function (obj) {
+            var f = obj.features;
+            for (var i = 0; i < f.length; i++) {
+                var fi = f[i];
+                var e = new og.Entity({
+                    lonlat: new og.LonLat(parseFloat(fi.properties.LON), parseFloat(fi.properties.LAT), 1000),
+                    label: {
+                        text: fi.properties.NAME.length < 20 ? fi.properties.NAME : "",
+                        align: "center",
+                        size: 45,
+                        color: new og.math.Vector4(1, 1, 1, 1),
+                        outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                        outline: 0.53,
+                        weight: "bold",
+                        face: "verdana"
+                    }
+                });
+                e.addTo(countriesCollection);
+            }
+        });
+};
+
 function start() {
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
@@ -64,25 +90,30 @@ function start() {
     //globus.planet.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
     //globus.planet.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.15))
     //globus.renderer.handler.backgroundColor = { r: 0.26, g: 0.26, b: 0.26 };
-/*
-    var ql = new og.GeoImage({
-        src: "ql.jpg",
-        corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
-        opacity: 0.8
-    });
-    ql.addTo(globus.planet);
-
-    ql4 = new og.GeoImage({
-        src: "bm.jpg",
-        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-        opacity: 1.0
-    });
-    ql4.addTo(globus.planet);
-*/
+    /*
+        var ql = new og.GeoImage({
+            src: "ql.jpg",
+            corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
+            opacity: 0.8
+        });
+        ql.addTo(globus.planet);
+    
+        ql4 = new og.GeoImage({
+            src: "bm.jpg",
+            corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+            opacity: 1.0
+        });
+        ql4.addTo(globus.planet);
+    */
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
 
-    test();
+    countriesCollection = new og.EntityCollection();
+    countriesCollection.setScaleByDistance(100000, 5700000, 4000000);
+    countriesCollection.addTo(globus.planet);
+
+    loadCountries();
+    //test();
 };
 
 function test() {
@@ -92,7 +123,7 @@ function test() {
             src: "ship.png",
             width: 70,
             height: 70,
-            offset: [255,10]
+            offset: [255, 10]
         },
         label: {
             text: "Saint-Petersburg",
