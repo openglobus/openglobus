@@ -13,8 +13,7 @@ og.shaderProgram.label = function () {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uViewAngle: { type: og.shaderProgram.types.FLOAT },
-            uXRatio: { type: og.shaderProgram.types.FLOAT },
+            uFloatParams: { type: og.shaderProgram.types.VEC3 },
             uZ: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
@@ -28,7 +27,7 @@ og.shaderProgram.label = function () {
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_fontIndex: { type: og.shaderProgram.types.FLOAT, enableArray: true },
             a_bufferAA: { type: og.shaderProgram.types.VEC2, enableArray: true }
-    },
+        },
         vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "label_vs.txt"),
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "label_fs.txt")
     });
@@ -40,8 +39,7 @@ og.shaderProgram.labelPicking = function () {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uViewAngle: { type: og.shaderProgram.types.FLOAT },
-            uXRatio: { type: og.shaderProgram.types.FLOAT }
+            uFloatParams: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },

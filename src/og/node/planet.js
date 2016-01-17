@@ -54,6 +54,11 @@ og.node.Planet = function (name, ellipsoid) {
     this.ellipsoid = ellipsoid;
 
     /**
+     * @private
+     */
+    this._planetRadius2 = ellipsoid.getPolarSize() * ellipsoid.getPolarSize();
+
+    /**
      * All layers array.
      * @public
      * @type {Array.<og.layer.Layer>}

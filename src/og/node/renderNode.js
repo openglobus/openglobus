@@ -285,6 +285,8 @@ og.node.RenderNode.prototype._drawNodes = function () {
     }
 };
 
+pomin = 0;
+pomax = -637000;
 /**
  * @private
  */
@@ -300,7 +302,9 @@ og.node.RenderNode.prototype._drawEntities = function () {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.disable(gl.CULL_FACE);
 
-        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(pomin, pomax);
+        //gl.disable(gl.DEPTH_TEST);
 
         //billboards pass
         gl.activeTexture(gl.TEXTURE0);
@@ -327,7 +331,8 @@ og.node.RenderNode.prototype._drawEntities = function () {
             ec[i]._visibility && ec[i].labelHandler.draw();
         }
 
-        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
     }
 };

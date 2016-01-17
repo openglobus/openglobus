@@ -13,8 +13,7 @@ og.shaderProgram.billboard = function () {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uViewAngle: { type: og.shaderProgram.types.FLOAT },
-            uXRatio: { type: og.shaderProgram.types.FLOAT }
+            uFloatParams: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
@@ -37,8 +36,7 @@ og.shaderProgram.billboardPicking = function () {
             uPMatrix: { type: og.shaderProgram.types.MAT4 },
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uViewAngle: { type: og.shaderProgram.types.FLOAT },
-            uXRatio: { type: og.shaderProgram.types.FLOAT }
+            uFloatParams: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },

@@ -45,14 +45,15 @@ function start() {
         new og.control.ToggleWireframe({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true })
+    	new og.control.ZoomControl({ autoActivate: true }),
+    	new og.control.TouchNavigation({ autoActivate: true })
     ];
 
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": skybox,
+        //"skybox": skybox,
         "terrain": terrain,
         "layers": [sat, osm, hyb, states],
         "autoActivated": true
@@ -63,7 +64,7 @@ function start() {
     //globus.planet.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
     //globus.planet.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.15))
     //globus.renderer.handler.backgroundColor = { r: 0.26, g: 0.26, b: 0.26 };
-
+/*
     var ql = new og.GeoImage({
         src: "ql.jpg",
         corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
@@ -77,14 +78,16 @@ function start() {
         opacity: 1.0
     });
     ql4.addTo(globus.planet);
-
+*/
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
+
+    test();
 };
 
 function test() {
     eee = new og.Entity({
-        lonlat: new og.LonLat(0, 0, 100000),
+        lonlat: new og.LonLat(0, 0, 1000),
         billboard: {
             src: "ship.png",
             width: 70,
@@ -103,5 +106,65 @@ function test() {
     });
     ec = new og.EntityCollection();
     eee.addTo(ec);
-    ec.addTo(globus.planet)
+    ec.addTo(globus.planet);
+
+    eee1 = new og.Entity({
+        lonlat: new og.LonLat(0, 10, 1000),
+        label: {
+            text: "Hello world!",
+            align: "center",
+            size: 70,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.47,
+            face: "verdana"
+        }
+    });
+
+    ec.add(eee1);
+
+    eee2 = new og.Entity({
+        lonlat: new og.LonLat(45, 45, 692500),
+        label: {
+            text: "X",
+            align: "center",
+            size: 70,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.47,
+            face: "verdana"
+        }
+    });
+
+    ec.add(eee2);
+
+    eee3 = new og.Entity({
+        lonlat: new og.LonLat(0, 90, 500),
+        label: {
+            text: "North pole",
+            align: "center",
+            size: 70,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.47,
+            face: "verdana"
+        }
+    });
+
+    ec.add(eee3);
+
+    eee4 = new og.Entity({
+        lonlat: new og.LonLat(0, -90, 500),
+        label: {
+            text: "South pole",
+            align: "center",
+            size: 70,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.47,
+            face: "verdana"
+        }
+    });
+
+    ec.add(eee4);
 };
