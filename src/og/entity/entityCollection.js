@@ -84,9 +84,13 @@ og.EntityCollection = function () {
     this.entities = [];
 
     /**
-     * @private
+     * First index - near distance to the entity, after entity becomes full scale.
+     * Second index - far distance to the entity, when entity becomes zero scale.
+     * Third index - far distance to the entity, when entity becomes invisible.
+     * @public
+     * @type {Array.<number,number,number>}
      */
-    this._scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
+    this.scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
     /**
      * Entity collection events handler.
@@ -266,10 +270,17 @@ og.EntityCollection.prototype.setVisibility = function (visibility) {
     this.events.dispatch(this.events.visibilitychange, this);
 };
 
+/**
+ * Sets scale by distance parameters.
+ * @public
+ * @param {number} near - Full scale entity distance.
+ * @param {number} far - Zerol scale entity distance.
+ * @param {number} [farInvisible] - Entity visibility distance.
+ */
 og.EntityCollection.prototype.setScaleByDistance = function (near, far, farInisible) {
-    this._scaleByDistance[0] = near;
-    this._scaleByDistance[1] = far;
-    this._scaleByDistance[2] = farInisible || og.math.MAX32;
+    this.scaleByDistance[0] = near;
+    this.scaleByDistance[1] = far;
+    this.scaleByDistance[2] = farInisible || og.math.MAX32;
 };
 
 /**

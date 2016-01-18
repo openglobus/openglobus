@@ -200,7 +200,7 @@ og.BillboardHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
 
     gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 
@@ -246,7 +246,7 @@ og.BillboardHandler.prototype._pickingPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection._scaleByDistance);
+    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
 
     gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
 

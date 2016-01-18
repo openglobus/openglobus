@@ -109,7 +109,7 @@ function start() {
     globus.fadeIn(700);
 
     countriesCollection = new og.EntityCollection();
-    countriesCollection.setScaleByDistance(100000, 5700000, 4000000);
+    //countriesCollection.setScaleByDistance(100000, 5700000, 4000000);
     countriesCollection.addTo(globus.planet);
 
     loadCountries();
