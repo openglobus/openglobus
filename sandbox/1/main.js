@@ -110,6 +110,10 @@ function start() {
 
     countriesCollection = new og.EntityCollection();
     //countriesCollection.setScaleByDistance(100000, 5700000, 4000000);
+    countriesCollection.events.on("draw", countriesCollection, function () {
+        var maxDist = 3.57 * Math.sqrt(this.renderNode.camera._lonLat.height) * 1000;
+        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    });
     countriesCollection.addTo(globus.planet);
 
     loadCountries();
