@@ -93,6 +93,13 @@ og.EntityCollection = function () {
     this.scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
     /**
+     * Global opacity factor.
+     * @private
+     * @type {number}
+     */
+    this._opacity = 1.0;
+
+    /**
      * Entity collection events handler.
      * @public
      * @type {og.Events}
@@ -271,6 +278,33 @@ og.EntityCollection.prototype.setVisibility = function (visibility) {
 };
 
 /**
+ * Returns collection visibility.
+ * @public
+ * @returns {boolean}
+ */
+og.EntityCollection.prototype.getVisibility = function () {
+    return this._visibility;
+};
+
+/**
+ * Sets collection opacity.
+ * @public
+ * @param {number} opacity - Opacity.
+ */
+og.EntityCollection.prototype.setOpacity = function (opacity) {
+    this._opacity = opacity;
+};
+
+/**
+ * Gets collection opacity.
+ * @public
+ * @param {number} opacity - Opacity.
+ */
+og.EntityCollection.prototype.getOpacity = function () {
+    return this._opacity;
+};
+
+/**
  * Sets scale by distance parameters.
  * @public
  * @param {number} near - Full scale entity distance.
@@ -281,15 +315,6 @@ og.EntityCollection.prototype.setScaleByDistance = function (near, far, farInisi
     this.scaleByDistance[0] = near;
     this.scaleByDistance[1] = far;
     this.scaleByDistance[2] = farInisible || og.math.MAX32;
-};
-
-/**
- * Returns collection visibility.
- * @public
- * @returns {boolean}
- */
-og.EntityCollection.prototype.getVisibility = function () {
-    return this._visibility;
 };
 
 og.EntityCollection.prototype._addRecursively = function (entity) {

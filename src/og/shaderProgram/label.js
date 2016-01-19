@@ -15,7 +15,8 @@ og.shaderProgram.label = function () {
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC3 },
             uZ: { type: og.shaderProgram.types.FLOAT },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 }
+            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
+            uOpacity: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
@@ -41,7 +42,8 @@ og.shaderProgram.labelPicking = function () {
             uMVMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC3 },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 }
+            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
+            uOpacity: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },

@@ -15,6 +15,7 @@ uniform vec3 uCamPos;
 //0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio
 uniform vec3 uFloatParams;
 uniform vec3 uScaleByDistance;
+uniform float uOpacity;
 
 const vec3 ZERO3 = vec3(0.0);
 
@@ -24,6 +25,11 @@ const float logc = 2.0 / log( C * far + 1.0 );
 
 void main() {
 	
+	if( uOpacity == 0.0 ){
+		gl_Position = vec4(0.0);
+		return;
+	}
+
     if(a_texCoord.z == -1.0){
 	    gl_Position = vec4(0.0);
 		return;

@@ -13,6 +13,7 @@ uniform mat4 uPMatrix;
 uniform vec3 uCamPos;
 uniform vec3 uFloatParams;
 uniform vec3 uScaleByDistance;
+uniform float uOpacity;
 
 const vec3 ZERO3 = vec3(0.0);
 
@@ -23,6 +24,11 @@ float logc = 2.0 / log( C * far + 1.0 );
 void main() {
     vec3 look = a_positions - uCamPos;
 	float lookLength = length(look);
+	
+	if( uOpacity == 0.0 ) {
+		gl_Position = vec4(0.0);
+		return;
+	}
 
     v_color = vec4(a_pickingColor.rgb, 1.0) * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions,a_positions) - uFloatParams[0]));
     
