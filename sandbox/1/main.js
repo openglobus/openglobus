@@ -20,6 +20,7 @@ goog.require('og.EntityCollection');
 goog.require('og.Entity');
 
 var countriesCollection;
+var capitalsCollection;
 
 function loadCountries() {
     $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=proj1:TM_WORLD_BORDERS-0.3&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAME,LON,LAT&&service=WFS&outputFormat=json',
@@ -32,10 +33,10 @@ function loadCountries() {
                     label: {
                         text: fi.properties.NAME.length < 20 ? fi.properties.NAME : "",
                         align: "center",
-                        size: 45,
+                        size: 60,
                         color: new og.math.Vector4(1, 1, 1, 1),
                         outlineColor: new og.math.Vector4(0, 0, 0, 1),
-                        outline: 0.53,
+                        outline: 0.45,
                         weight: "bold",
                         face: "verdana"
                     }
@@ -43,6 +44,34 @@ function loadCountries() {
                 e.addTo(countriesCollection);
             }
         });
+};
+
+function loadCapitals() {
+    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
+    function (obj) {
+        var f = obj.features;
+        var j = 0;
+            for (var i = 0; i < f.length; i++) {
+                var fi = f[i];
+                if (fi.properties.ISO_A2 == "US" && j < 200) {
+                    j++;
+                    var e = new og.Entity({
+                    lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
+                    label: {
+                        text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
+                        //align: "center",
+                        size: 37,
+                        color: new og.math.Vector4(0, 0, 0, 1),
+                        //outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                        outline: 0.0,
+                        weight: "bold",
+                        face: "verdana"
+                    }
+                });
+                e.addTo(capitalsCollection);
+            }
+        }
+    });
 };
 
 function start() {
@@ -117,7 +146,26 @@ function start() {
     countriesCollection.addTo(globus.planet);
 
     loadCountries();
-    //test();
+
+
+    capitalsCollection = new og.EntityCollection();
+    ////capitalsCollection.setScaleByDistance(100000, 5700000, 4000000);
+    capitalsCollection.events.on("draw", capitalsCollection, function () {
+        var maxDist = 3.57 * Math.sqrt(this.renderNode.camera._lonLat.height) * 1000;
+        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+
+    });
+    capitalsCollection.addTo(globus.planet);
+
+    //globus.planet.events.on("draw", null, function () {
+    //    if (globus.planet.camera.getAltitude() < 1000000) {
+    //        capitalsCollection.setVisibility(true);
+    //    } else {
+    //        capitalsCollection.setVisibility(false);
+    //    }
+    //});
+
+    loadCapitals();
 };
 
 function test() {

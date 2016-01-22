@@ -313,7 +313,7 @@ og.node.RenderNode.prototype._drawEntities = function () {
         var i = ec.length;
         while (i--) {
             var eci = ec[i];
-            if (eci._visibility) {
+            if (eci._animatedOpacity) {
                 eci.events.dispatch(eci.events.draw, eci);
                 eci.billboardHandler.draw();
             }
@@ -328,7 +328,7 @@ og.node.RenderNode.prototype._drawEntities = function () {
 
         i = ec.length;
         while (i--) {
-            ec[i]._visibility && ec[i].labelHandler.draw();
+            ec[i]._animatedOpacity && ec[i].labelHandler.draw();
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);

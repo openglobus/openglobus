@@ -48,6 +48,7 @@ og.Camera = function (renderer, options) {
     this._n = new og.math.Vector3(0, 0, 1); //eye - look - FORWARD
 
     this._tanViewAngle_hrad = 0;
+    this._tanViewAngle_hradOneByHeight = 0;
 
     renderer && this.initialize(renderer, options);
 };
@@ -214,6 +215,7 @@ og.Camera.prototype.getNear = function () {
 og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this._viewAngle = angle;
     this._tanViewAngle_hrad = Math.tan(angle * og.math.RADIANS_HALF);
+    this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
     this._aspect = aspect;
     this._nearDist = near;
     this._farDist = far;

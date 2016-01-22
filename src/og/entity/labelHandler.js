@@ -170,9 +170,9 @@ og.LabelHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
 
-    gl.uniform1f(shu.uOpacity._pName, this._entityCollection._opacity);
+    gl.uniform1f(shu.uOpacity._pName, this._entityCollection._animatedOpacity);
 
-    gl.uniform3fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
+    gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
     gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -237,9 +237,9 @@ og.LabelHandler.prototype._pickingPASS = function () {
 
     gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
 
-    gl.uniform1f(shu.uOpacity._pName, this._entityCollection._opacity);
+    gl.uniform1f(shu.uOpacity._pName, this._entityCollection._animatedOpacity);
 
-    gl.uniform3fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hrad, r.handler._oneByHeight]);
+    gl.uniform2fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);

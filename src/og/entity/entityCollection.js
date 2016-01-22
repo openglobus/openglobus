@@ -93,11 +93,18 @@ og.EntityCollection = function () {
     this.scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
     /**
-     * Global opacity factor.
+     * Global opacity.
      * @private
      * @type {number}
      */
     this._opacity = 1.0;
+
+    /**
+     * Opacity state during the animated opacity.
+     * @private
+     * @type {number}
+     */
+    this._animatedOpacity = this._opacity;
 
     /**
      * Entity collection events handler.
@@ -274,6 +281,7 @@ og.EntityCollection.EVENT_NAMES = [
  */
 og.EntityCollection.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
+    this._animatedOpacity = this._opacity * (visibility ? 1 : 0);
     this.events.dispatch(this.events.visibilitychange, this);
 };
 

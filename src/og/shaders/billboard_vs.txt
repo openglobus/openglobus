@@ -13,7 +13,7 @@ varying vec4 v_rgba;
 uniform mat4 uMVMatrix;
 uniform mat4 uPMatrix;
 uniform vec3 uCamPos;
-uniform vec3 uFloatParams;
+uniform vec2 uFloatParams;
 uniform vec3 uScaleByDistance;
 uniform float uOpacity;
 
@@ -43,7 +43,7 @@ void main() {
 	}
 
 	float dist = dot(uCamPos - a_positions, vec3(uMVMatrix[0][2], uMVMatrix[1][2], uMVMatrix[2][2]));
-    float focalSize = 2.0 * dist * uFloatParams[1] * uFloatParams[2];
+    float focalSize = 2.0 * dist * uFloatParams[1];
     vec2 offset = a_offset.xy * focalSize;
     vec2 scale = a_size * focalSize * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) *(1.0 - step(uScaleByDistance[2], lookLength));
     float cosRot = cos(a_rotation);

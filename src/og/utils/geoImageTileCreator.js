@@ -11,7 +11,6 @@ og.utils.GeoImageTileCreator = function (width, height) {
     this._framebufferPASS_ONE = null;
     this._texCoordsBuffer = null;
     this._vertexBuffer = null;
-    this._framebufferPASS_ONE = null;
     this._init();
 };
 
