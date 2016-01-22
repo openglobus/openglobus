@@ -1,3 +1,5 @@
+precision lowp float;
+
 attribute vec2 a_vertices;
 attribute vec3 a_positions;
 attribute vec3 a_offset;

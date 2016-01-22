@@ -1,4 +1,4 @@
-precision highp float;
+precision lowp float;
 
 varying vec4 v_color;
 

@@ -1,3 +1,5 @@
+precision lowp float;
+
 attribute vec2 a_vertices;
 attribute vec4 a_texCoord;
 attribute vec3 a_positions;
@@ -21,7 +23,7 @@ const vec3 ZERO3 = vec3(0.0);
 
 const float C = 0.1;
 const float far = 149.6e+9;
-const float logc = 2.0 / log( C * far + 1.0 );
+float logc = 2.0 / log( C * far + 1.0 );
 
 void main() {
 	

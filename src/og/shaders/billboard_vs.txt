@@ -1,3 +1,5 @@
+precision highp float;
+
 attribute vec2 a_vertices;
 attribute vec2 a_texCoord;
 attribute vec3 a_positions;
