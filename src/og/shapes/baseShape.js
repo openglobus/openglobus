@@ -1,17 +1,19 @@
-goog.provide('og.shapes.BaseShape');
+goog.provide('og.shape.BaseShape');
 
 goog.require('og.math.Vector3');
 goog.require('og.math.Quaternion');
 goog.require('og.math.Matrix4');
 
-og.shapes.BaseShape = function (renderNode) {
+og.shape.BaseShape = function (options) {
 
-    this.renderNode = renderNode;
+    options = options || {};
 
-    this.position = new og.math.Vector3();
-    this.orientation = new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
-    this.scale = new og.math.Vector3(1.0, 1.0, 1.0);
-    this.color = [1.0, 1.0, 1.0, 1.0];
+    this.id = og.shape.BaseShape.__staticId++;
+
+    this.position = options.position || new og.math.Vector3();
+    this.orientation = options.orientation || new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
+    this.scale = options.scale || new og.math.Vector3(1.0, 1.0, 1.0);
+    this.color = options.color || [1.0, 1.0, 1.0, 1.0];
 
     this._positionBuffer = null;
     this._normalBuffer = null;
@@ -27,12 +29,29 @@ og.shapes.BaseShape = function (renderNode) {
     this._mxTranslation = new og.math.Matrix4().setIdentity();
     this._mxTRS = new og.math.Matrix4().setIdentity();
 
-    this.drawMode = renderNode.renderer.handler.gl.TRIANGLES;
-
     this.texture = null;
+
+    this._renderNode = null;
+
+    /**
+     * Entity instance that holds this shape.
+     * @private
+     * @type {og.Entity}
+     */
+    this._entity = null;
+
+    /**
+     * Handler that stores and renders this shape object.
+     * @private
+     * @type {og.BillboardHandler}
+     */
+    this._handler = null;
+    this._handlerIndex = -1;
 };
 
-og.shapes.BaseShape.prototype.clear = function () {
+og.shape.BaseShape.__staticId = 0;
+
+og.shape.BaseShape.prototype.clear = function () {
 
     this.position.set(0.0, 0.0, 0.0);
     this.orientation.set(0.0, 0.0, 0.0, 1.0);
@@ -46,61 +65,67 @@ og.shapes.BaseShape.prototype.clear = function () {
     this._mxTranslation.setIdentity();
     this._mxTRS.setIdentity();
 
-    this.deleteBuffers();
+    this._deleteBuffers();
 };
 
-og.shapes.BaseShape.prototype.deleteBuffers = function () {
-    var r = this.renderNode.renderer;
-    r.handler.gl.deleteBuffer(this._positionBuffer);
-    r.handler.gl.deleteBuffer(this._normalBuffer);
-    r.handler.gl.deleteBuffer(this._indexBuffer);
+og.shape.BaseShape.prototype._deleteBuffers = function () {
+    var r = this._renderNode.renderer,
+        gl = r.handler.gl;
+
+    gl.deleteBuffer(this._positionBuffer);
+    gl.deleteBuffer(this._normalBuffer);
+    gl.deleteBuffer(this._indexBuffer);
+
     this._positionBuffer = null;
     this._normalBuffer = null;
     this._indexBuffer = null;
 };
 
-og.shapes.BaseShape.prototype.setPosition = function (position) {
+og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
+    this._renderNode = renderNode;
+    this._createBuffers();
+};
+
+og.shape.BaseShape.prototype.setPosition3v = function (position) {
     this.position.copy(position);
     this._mxTranslation.translateToPosition(position);
 };
 
-og.shapes.BaseShape.prototype.translate = function (vec) {
+og.shape.BaseShape.prototype.translate3v = function (vec) {
     this.position.add(vec);
     this._mxTranslation.translate(vec);
 };
 
-og.shapes.BaseShape.prototype.setScale = function (scale) {
+og.shape.BaseShape.prototype.setScale3v = function (scale) {
     this.scale.copy(scale);
     this._mxScale.scale(scale);
 };
 
-og.shapes.BaseShape.prototype.createBuffers = function () {
-    var r = this.renderNode.renderer;
+og.shape.BaseShape.prototype.remove = function () {
+    this._entity = null;
+    this._handler && this._handler.remove(this);
+};
+
+og.shape.BaseShape.prototype.setPickingColor3v = function (color) {
+    this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
+};
+
+og.shape.BaseShape.prototype._createBuffers = function () {
+    this._deleteBuffers();
+    var r = this._renderNode.renderer;
     this._positionBuffer = r.handler.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
     this._normalBuffer = r.handler.createArrayBuffer(new Float32Array(this._normalData), 3, this._normalData.length / 3);
     this._indexBuffer = r.handler.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
     this._textureCoordBuffer = r.handler.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
 }
 
-og.shapes.BaseShape.prototype.setPositionData = function (positionData) {
-    this._positionData = [].concat(positionData);
-};
-
-og.shapes.BaseShape.prototype.setNormalData = function (normalData) {
-    this._normalData = [].concat(normalData);
-};
-
-og.shapes.BaseShape.prototype.setIndexData = function (indexData) {
-    this._indexData = [].concat(indexData);
-};
-
-og.shapes.BaseShape.prototype.refresh = function () {
+og.shape.BaseShape.prototype.refresh = function () {
     this._mxTRS = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
 };
 
-og.shapes.BaseShape.prototype.draw = function () {
+og.shape.BaseShape.prototype.draw = function () {
 
-    var rn = this.renderNode;
+    var rn = this._renderNode;
     var r = rn.renderer;
 
     var sh, p, gl;
@@ -151,5 +176,5 @@ og.shapes.BaseShape.prototype.draw = function () {
     gl.vertexAttribPointer(sha.aTextureCoord._pName, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-    gl.drawElements(this.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(this._renderNode.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 };

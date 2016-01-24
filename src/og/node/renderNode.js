@@ -304,7 +304,6 @@ og.node.RenderNode.prototype._drawEntities = function () {
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.polygonOffset(pomin, pomax);
-        //gl.disable(gl.DEPTH_TEST);
 
         //billboards pass
         gl.activeTexture(gl.TEXTURE0);
@@ -332,8 +331,13 @@ og.node.RenderNode.prototype._drawEntities = function () {
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
-        //gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
+
+        //shapes
+        i = ec.length;
+        while (i--) {
+            ec[i]._animatedOpacity && ec[i].shapeHandler.draw();
+        }
     }
 };
 

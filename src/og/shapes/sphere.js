@@ -1,23 +1,22 @@
-goog.provide('og.shapes.Sphere');
+goog.provide('og.shape.Sphere');
 
-goog.require('og.shapes.BaseShape');
+goog.require('og.shape.BaseShape');
 
 
-og.shapes.Sphere = function (renderer, radius, latBands, lonBands) {
+og.shape.Sphere = function (options) {
 
-    goog.base(this, renderer);
+    goog.base(this, options);
 
-    this._radius = radius;
-    this._latBands = latBands;
-    this._lonBands = lonBands;
+    this._radius = options.radius;
+    this._latBands = options.latBands;
+    this._lonBands = options.lonBands;
 
-    this.createData();
-    this.createBuffers();
+    this._createData();
 };
 
-goog.inherits(og.shapes.Sphere, og.shapes.BaseShape);
+goog.inherits(og.shape.Sphere, og.shape.BaseShape);
 
-og.shapes.Sphere.prototype.createData = function () {
+og.shape.Sphere.prototype._createData = function () {
 
     for (var latNumber = 0; latNumber <= this._latBands; latNumber++) {
         var theta = latNumber * Math.PI / this._latBands;

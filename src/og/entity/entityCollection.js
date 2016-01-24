@@ -2,6 +2,7 @@ goog.provide('og.EntityCollection');
 
 goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
+goog.require('og.ShapeHandler');
 goog.require('og.Events');
 
 /**
@@ -72,6 +73,13 @@ og.EntityCollection = function () {
      * @type {og.LabelHandler}
      */
     this.labelHandler = new og.LabelHandler(this);
+
+    /**
+     * Shape handler
+     * @public
+     * @type {og.ShapeHandler}
+     */
+    this.shapeHandler = new og.ShapeHandler(this);
 
     //this.lineStringHandler = new og.LineStringHandler(this);
     //...
@@ -333,6 +341,12 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     //label
     entity.label && this.labelHandler.add(entity.label);
 
+    //shape
+    entity.sphere && this.shapeHandler.add(entity.sphere);
+
+    //box
+    entity.box && this.shapeHandler.add(entity.box);
+
     this.events.dispatch(this.events.entityadd, entity);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
@@ -383,6 +397,12 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
 
     //label
     entity.label && this.labelHandler.remove(entity.label);
+
+    //sphere
+    entity.sphere && this.shapeHandler.remove(entity.sphere);
+
+    //box
+    entity.box && this.shapeHandler.remove(entity.box);
 
     this.events.dispatch(this.events.entityremove, entity);
 
@@ -450,6 +470,7 @@ og.EntityCollection.prototype.addTo = function (renderNode) {
         renderNode.entityCollections.push(this);
         this.setRenderer(renderNode.renderer);
         renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
+        this.shapeHandler.setRenderNode(renderNode);
         this.events.dispatch(this.events.add, this);
     }
     return this;

@@ -51,25 +51,25 @@ function loadCapitals() {
     function (obj) {
         var f = obj.features;
         var j = 0;
-            for (var i = 0; i < f.length; i++) {
-                var fi = f[i];
-                if (fi.properties.ISO_A2 == "US" && j < 200) {
-                    j++;
-                    var e = new og.Entity({
-                    lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
-                    label: {
-                        text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
-                        //align: "center",
-                        size: 37,
-                        color: new og.math.Vector4(0, 0, 0, 1),
-                        //outlineColor: new og.math.Vector4(0, 0, 0, 1),
-                        outline: 0.0,
-                        weight: "bold",
-                        face: "verdana"
-                    }
-                });
-                e.addTo(capitalsCollection);
-            }
+        for (var i = 0; i < f.length; i++) {
+            var fi = f[i];
+            //if (fi.properties.ISO_A2 == "US" && j < 200) {
+            j++;
+            var e = new og.Entity({
+                lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
+                label: {
+                    text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
+                    //align: "center",
+                    size: 37,
+                    color: new og.math.Vector4(0, 0, 0, 1),
+                    //outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                    outline: 0.0,
+                    weight: "bold",
+                    face: "verdana"
+                }
+            });
+            e.addTo(capitalsCollection);
+            //}
         }
     });
 };
