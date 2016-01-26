@@ -7,9 +7,9 @@ og.shape.Sphere = function (options) {
 
     goog.base(this, options);
 
-    this._radius = options.radius;
-    this._latBands = options.latBands;
-    this._lonBands = options.lonBands;
+    this._radius = options.radius || 100;
+    this._latBands = options.latBands || 16;
+    this._lonBands = options.lonBands || 16;
 
     this._createData();
 };

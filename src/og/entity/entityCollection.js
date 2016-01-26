@@ -342,10 +342,7 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     entity.label && this.labelHandler.add(entity.label);
 
     //shape
-    entity.sphere && this.shapeHandler.add(entity.sphere);
-
-    //box
-    entity.box && this.shapeHandler.add(entity.box);
+    entity.shape && this.shapeHandler.add(entity.shape);
 
     this.events.dispatch(this.events.entityadd, entity);
 
@@ -398,11 +395,8 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     //label
     entity.label && this.labelHandler.remove(entity.label);
 
-    //sphere
-    entity.sphere && this.shapeHandler.remove(entity.sphere);
-
-    //box
-    entity.box && this.shapeHandler.remove(entity.box);
+    //shape
+    entity.shape && this.shapeHandler.remove(entity.shape);
 
     this.events.dispatch(this.events.entityremove, entity);
 

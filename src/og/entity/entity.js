@@ -98,14 +98,13 @@ og.Entity = function (options, properties) {
     this._featureConstructorArray = {
         "billboard": [og.Billboard, this.setBillboard],
         "label": [og.Label, this.setLabel],
-        "sphere": [og.shape.Sphere, this.setSphere],
-        "box": [og.shape.Box, this.setBox],
+        "sphere": [og.shape.Sphere, this.setShape],
+        "box": [og.shape.Box, this.setShape]
     };
 
     this.billboard = this._createOptionFeature('billboard', options.billboard);
     this.label = this._createOptionFeature('label', options.label);
-    this.sphere = this._createOptionFeature('sphere', options.sphere);
-    this.box = this._createOptionFeature('sphere', options.box);
+    this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
     //this.model = null;
     //this.lineString = null;
     //this.linearRing = null;
@@ -159,11 +158,8 @@ og.Entity.prototype.setVisibility = function (visibility) {
     //labels
     this.label && this.label.setVisibility(visibility);
 
-    //sphere
-    this.sphere && this.sphere.setVisibility(visibility);
-
-    //box
-    this.box && this.box.setVisibility(visibility);
+    //shape
+    this.shape && this.shape.setVisibility(visibility);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setVisibility(visibility);
@@ -209,11 +205,8 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
     //labels
     this.label && this.label.setPosition3v(p);
 
-    //sphere
-    this.sphere && this.sphere.setPosition3v(p);
-
-    //box
-    this.box && this.box.setPosition3v(p);
+    //shape
+    this.shape && this.shape.setPosition3v(p);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setCartesian(x, y, z);
@@ -291,29 +284,20 @@ og.Entity.prototype.setLabel = function (label) {
 };
 
 /**
- * Sets entity sphere.
+ * Sets entity shape.
  * @public
- * @param {og.Sphere} sphere - Sphere shape.
+ * @param {og.BaseShape} shape - Shape object.
  */
-og.Entity.prototype.setSphere = function (sphere) {
-    if (this.sphere) {
-        this.sphere.remove();
+og.Entity.prototype.setShape = function (shape) {
+    if (this.shape) {
+        this.shape.remove();
     }
-    this.sphere = sphere;
-    this.sphere._entity = this;
-    this.sphere.setPosition3v(this._cartesian);
-    this.sphere.setVisibility(this._visibility);
-    this._entityCollection && this._entityCollection._shapeHandler.add(sphere);
-    return sphere;
-};
-
-/**
- * Sets entity box.
- * @public
- * @param {og.Box} box - Box shape.
- */
-og.Entity.prototype.setBox = function (box) {
-    //TODO
+    this.shape = shape;
+    this.shape._entity = this;
+    this.shape.setPosition3v(this._cartesian);
+    this.shape.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._shapeHandler.add(shape);
+    return shape;
 };
 
 /**
@@ -343,11 +327,8 @@ og.Entity.prototype.setPickingColor = function () {
     //label
     this.label && this.label.setPickingColor3v(c);
 
-    //sphere
-    this.sphere && this.sphere.setPickingColor3v(c);
-
-    //box
-    this.box && this.box.setPickingColor3v(c);
+    //shape
+    this.shape && this.shape.setPickingColor3v(c);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPickingColor3v(c);
