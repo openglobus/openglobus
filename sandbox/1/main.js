@@ -165,7 +165,29 @@ function start() {
     //    }
     //});
 
-    loadCapitals();
+    //loadCapitals();
+
+    ql = new og.GeoImage({
+        src: "ql.jpg",
+        corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
+        opacity: 1.0
+    });
+    ql.addTo(globus.planet);
+
+
+    ql3 = new og.GeoImage({
+        src: "ql3.jpg",
+        corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
+        opacity: 0.8
+    });
+    ql3.addTo(globus.planet);
+
+    //ql4 = new og.GeoImage({
+    //    src: "bm.jpg",
+    //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+    //    opacity: 1.0
+    //});
+    //ql4.addTo(globus.planet);
 };
 
 function test() {

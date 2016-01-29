@@ -33,7 +33,7 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                           v_texCoords = a_texCoord; \
                           gl_Position = vec4(-1.0 + (a_corner - u_extentParams.xy) * u_extentParams.zw, 0, 1); \
                       }',
-        fragmentShader: 'precision mediump float; \
+        fragmentShader: 'precision highp float; \
                         uniform sampler2D uSourceImage; \
                         uniform float u_opacity; \
                         varying vec2 v_texCoords; \
@@ -47,7 +47,8 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
     var geoImageMercProjShader = new og.shaderProgram.ShaderProgram("geoImageMercProj", {
         uniforms: {
             u_sampler: { type: og.shaderProgram.types.SAMPLER2D },
-            u_extent: { type: og.shaderProgram.types.VEC4 }
+            u_extent: { type: og.shaderProgram.types.VEC4 },
+            u_mercExtent: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
             a_vertex: { type: og.shaderProgram.types.VEC2, enableArray: true },
@@ -63,23 +64,18 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
         fragmentShader: 'precision highp float; \n\
                         uniform sampler2D u_sampler; \n\
                         uniform vec4 u_extent; \n\
+                        uniform vec4 u_mercExtent; \n\
                         varying vec2 v_texCoords; \n\
                         const float POLE=20037508.34; \n\
                         const float PI=3.141592653589793; \n\
                         \n\
-                        vec2 forward(vec2 lonLat){\n\
-                            return vec2(lonLat.x * POLE / 180.0, log(tan((90.0 + lonLat.y) * PI / 360.0)) / PI * POLE);\n\
-                        }\n\
                         vec2 inverse(vec2 lonLat){\n\
                             return vec2(180.0 * lonLat.x / POLE, 180.0 / PI * (2.0 * atan(exp((lonLat.y / POLE) * PI)) - PI / 2.0));\n\
                         }\n\
                         \n\
                         void main () {\n\
-                            vec2 minMerc = forward(u_extent.xy); \n\
-                            vec2 d = (inverse(minMerc + (forward(u_extent.zw) - minMerc) * \
-                            vec2(v_texCoords.x, 1.0 - v_texCoords.y)) - u_extent.xy) / \
-                            vec2(u_extent.z - u_extent.x, u_extent.w - u_extent.y);\n\
-                            gl_FragColor = texture2D(u_sampler, vec2(d.x, d.y));\n\
+                            vec2 d = (inverse(u_mercExtent.xy + u_mercExtent.zw * vec2(v_texCoords.x, 1.0 - v_texCoords.y)) - u_extent.xy) * u_extent.zw;\n\
+                            gl_FragColor = texture2D(u_sampler, d);\n\
             }'
     });
 
@@ -148,8 +144,15 @@ og.utils.GeoImageTileCreator.prototype.createMercatorSamplerPASS = function (geo
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._framebufferPASS_ONE.texture);
     gl.uniform1i(shu.u_sampler._pName, 0);
-    gl.uniform4fv(shu.u_extent._pName, [geoImage._wgs84MercExtent.southWest.lon, geoImage._wgs84MercExtent.southWest.lat,
-        geoImage._wgs84MercExtent.northEast.lon, geoImage._wgs84MercExtent.northEast.lat]);
+
+    gl.uniform4fv(shu.u_extent._pName,
+        [geoImage._wgs84MercExtent.southWest.lon, geoImage._wgs84MercExtent.southWest.lat,
+        1.0 / geoImage._wgs84MercExtent.getWidth(), 1.0 / geoImage._wgs84MercExtent.getHeight()]);
+
+    gl.uniform4fv(shu.u_mercExtent._pName,
+        [geoImage._mercExtent.southWest.lon, geoImage._mercExtent.southWest.lat,
+        geoImage._mercExtent.getWidth(), geoImage._mercExtent.getHeight()]);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     geoImage._mercFramebuffer.deactivate();
 

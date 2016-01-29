@@ -659,7 +659,7 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
 
         var tc = this.planet.geoImageTileCreator;
 
-        if (!geoImage._mercSamplerReady) {
+        if (geoImage.getCurvature() >= 0.005 && !geoImage._mercSamplerReady) {
             tc.createMercatorSamplerPASS(geoImage);
         }
 
@@ -672,13 +672,23 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
         h.shaderPrograms.geoImage.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
         gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
-        gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        if (geoImage.getCurvature() >= 0.005) {
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
+            gl.uniform1i(shu.u_sourceImage._pName, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercExtentCornersBuffer);
+            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercExtentCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        } else {
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
+            gl.uniform1i(shu.u_sourceImage._pName, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
+            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        }
+
         gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
         gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
-        gl.uniform1i(shu.u_sourceImage._pName, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         return true;
     }

@@ -8,16 +8,18 @@ og.GeoImage = function (options) {
     this.planet = options.planet || null;
     this._wgs84Corners = options.corners || [];
     this._wgs84CornersBuffer = null;
+    this._mercExtentCornersBuffer = null;
     this._mercCornersBuffer = null;
     this._wgs84Extent = new og.Extent();
-    this._mercCorners = []; //equal the _mercExtent
+    this._mercExtentCorners = []; //equal the _mercExtent
     this._mercExtent = new og.Extent();
     this._mercSamplerReady = false;
     this.image = null;
     this.src = options.src;
     this._wgs84SourceTexture = null;
-    this._mercFramebuffer = null;//stores merc projected texture
+    this._mercFramebuffer = null;//merc projected texture
     this.imageLoaded = false;
+    this._curvature = 0.0;
     this.zIndex = options.zIndex || 0;
     this.minZoom = options.minZoom || 0;
     this.maxZoom = options.minZoom || 0;
@@ -44,8 +46,9 @@ og.GeoImage.prototype.clear = function () {
     this.image = null;
     if (this.imageLoaded) {
         this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._wgs84CornersBuffer);
-        this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._mercCornersBuffer);
+        this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._mercExtentCornersBuffer);
         this.planet.geoImageTileCreator._handler.gl.deleteTexture(this._wgs84SourceTexture);
+        this.planet.geoImageTileCreator._handler.gl.deleteBuffer(this._mercCornersBuffer);
         this._mercFramebuffer.clear();
         this.imageLoaded = false;
         this._mercSamplerReady = false;
@@ -94,6 +97,18 @@ og.GeoImage.prototype.setZIndex = function (zIndex) {
     this.planet.redrawGeoImages();
 };
 
+og.GeoImage.prototype.getCurvature = function () {
+    return this._curvature;
+};
+
+og.GeoImage.prototype.calculateCurvature = function () {
+    var ex = this._wgs84MercExtent,
+        el = this.planet.ellipsoid;
+    var c = el.lonLatToCartesian(ex.northEast).normalize();
+    var p = el.lonLatToCartesian(ex.southWest).normalize();
+    return Math.acos(c.dot(p)) / Math.PI;
+};
+
 og.GeoImage.prototype.setCorners = function (corners) {
     this._mercSamplerReady = false;
 
@@ -107,17 +122,25 @@ og.GeoImage.prototype.setCorners = function (corners) {
         this._wgs84MercExtent.northEast.lat = og.mercator.MAX_LAT;
     }
 
-    this._mercExtent = this._wgs84MercExtent.forwardMercator();
-    this._mercCorners = [this._mercExtent.getNorthWest(), this._mercExtent.getNorthEast(), this._mercExtent.getSouthEast(), this._mercExtent.getSouthWest()];
+    if (this.planet) {
+        this._curvature = this.calculateCurvature();
 
-    var h = this.planet.geoImageTileCreator._handler;
-    h.gl.deleteBuffer(this._wgs84CornersBuffer);
-    this._wgs84CornersBuffer = h.createArrayBuffer(new Float32Array([this._wgs84Corners[3].lon, this._wgs84Corners[3].lat, this._wgs84Corners[2].lon, this._wgs84Corners[2].lat,
-        this._wgs84Corners[0].lon, this._wgs84Corners[0].lat, this._wgs84Corners[1].lon, this._wgs84Corners[1].lat]), 2, 4);
+        var h = this.planet.geoImageTileCreator._handler;
+        h.gl.deleteBuffer(this._wgs84CornersBuffer);
+        this._wgs84CornersBuffer = h.createArrayBuffer(new Float32Array([this._wgs84Corners[3].lon, this._wgs84Corners[3].lat, this._wgs84Corners[2].lon, this._wgs84Corners[2].lat,
+            this._wgs84Corners[0].lon, this._wgs84Corners[0].lat, this._wgs84Corners[1].lon, this._wgs84Corners[1].lat]), 2, 4);
 
-    h.gl.deleteBuffer(this._mercCornersBuffer);
-    this._mercCornersBuffer = h.createArrayBuffer(new Float32Array([this._mercCorners[3].lon, this._mercCorners[3].lat, this._mercCorners[2].lon, this._mercCorners[2].lat,
-        this._mercCorners[0].lon, this._mercCorners[0].lat, this._mercCorners[1].lon, this._mercCorners[1].lat]), 2, 4);
+        this._mercExtent = this._wgs84MercExtent.forwardMercator();
+        this._mercExtentCorners = [this._mercExtent.getNorthWest(), this._mercExtent.getNorthEast(), this._mercExtent.getSouthEast(), this._mercExtent.getSouthWest()];
+        h.gl.deleteBuffer(this._mercExtentCornersBuffer);
+        this._mercExtentCornersBuffer = h.createArrayBuffer(new Float32Array([this._mercExtentCorners[3].lon, this._mercExtentCorners[3].lat, this._mercExtentCorners[2].lon, this._mercExtentCorners[2].lat,
+            this._mercExtentCorners[0].lon, this._mercExtentCorners[0].lat, this._mercExtentCorners[1].lon, this._mercExtentCorners[1].lat]), 2, 4);
 
-    this.planet.redrawGeoImages();
+        h.gl.deleteBuffer(this._mercCornersBuffer);
+        this._mercCornersBuffer = h.createArrayBuffer(new Float32Array([og.mercator.forward_lon(this._wgs84Corners[3].lon), og.mercator.forward_lat(this._wgs84Corners[3].lat), og.mercator.forward_lon(this._wgs84Corners[2].lon), og.mercator.forward_lat(this._wgs84Corners[2].lat),
+            og.mercator.forward_lon(this._wgs84Corners[0].lon), og.mercator.forward_lat(this._wgs84Corners[0].lat), og.mercator.forward_lon(this._wgs84Corners[1].lon), og.mercator.forward_lat(this._wgs84Corners[1].lat)]), 2, 4);
+
+
+        this.planet.redrawGeoImages();
+    }
 };

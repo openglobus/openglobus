@@ -215,16 +215,16 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
         east += 360;
     }
 
-    var f = this.planet.ellipsoid.lonLatToCartesian;
+    var e = this.planet.ellipsoid;
 
     var cart = new og.LonLat(east, north);
-    var northEast = f(cart);
+    var northEast = e.lonLatToCartesian(cart);
     cart.lat = south;
-    var southEast = f(cart);
+    var southEast = e.lonLatToCartesian(cart);
     cart.lon = west;
-    var southWest = f(cart);
+    var southWest = e.lonLatToCartesian(cart);
     cart.lat = north;
-    var northWest = f(cart);
+    var northWest = e.lonLatToCartesian(cart);
 
     var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
 
@@ -232,7 +232,7 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
     if (mag < 0.000001) {
         cart.lon = (east + west) * 0.5;
         cart.lat = (north + south) * 0.5;
-        center = f(cart);
+        center = e.lonLatToCartesian(cart);
     }
 
     northWest.sub(center);
