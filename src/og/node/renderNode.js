@@ -116,10 +116,11 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
  * Adds entity collection.
  * @public
  * @param {og.EntityCollection} entityCollection - Entity collection.
+ * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
  * @returns {og.node.RenderNode}
  */
-og.node.RenderNode.prototype.addEntityCollection = function (entityCollection) {
-    entityCollection.addTo(this);
+og.node.RenderNode.prototype.addEntityCollection = function (entityCollection, isHidden) {
+    entityCollection.addTo(this, isHidden);
     return this;
 };
 
@@ -281,19 +282,14 @@ og.node.RenderNode.prototype._drawNodes = function () {
             //this.lightEnabled && this.transformLights();
             this.frame();
         }
-        this._drawEntities();
+        this.drawEntityCollections(this.entityCollections);
     }
 };
 
-pomin = 0;
-pomax = -637000;
 /**
- * @private
+ * @public
  */
-og.node.RenderNode.prototype._drawEntities = function () {
-
-    var ec = this.entityCollections;
-
+og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
     if (ec.length) {
         var gl = this.renderer.handler.gl;
 
@@ -302,8 +298,9 @@ og.node.RenderNode.prototype._drawEntities = function () {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.disable(gl.CULL_FACE);
 
+        //Z-buffer offset
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        gl.polygonOffset(pomin, pomax);
+        gl.polygonOffset(0, -637000);
 
         //billboards pass
         gl.activeTexture(gl.TEXTURE0);
@@ -318,7 +315,7 @@ og.node.RenderNode.prototype._drawEntities = function () {
             }
         }
 
-        //labels path
+        //labels pass
         var fa = this.fontAtlas.atlasesArr;
         for (i = 0; i < fa.length; i++) {
             gl.activeTexture(gl.TEXTURE0 + i);
@@ -333,7 +330,7 @@ og.node.RenderNode.prototype._drawEntities = function () {
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
 
-        //shapes
+        //shapes pass
         i = ec.length;
         while (i--) {
             ec[i]._animatedOpacity && ec[i].shapeHandler.draw();
@@ -342,27 +339,39 @@ og.node.RenderNode.prototype._drawEntities = function () {
 };
 
 /**
- * Picking entity frame callback
- * @private
+ * @public
  */
-og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
-    var ec = this.entityCollections;
-
+og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
     if (ec.length) {
         var gl = this.renderer.handler.gl;
 
         gl.disable(gl.CULL_FACE);
 
+        //Z-buffer offset
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(0, -637000);
+
+        //billoard pass
         var i = ec.length;
         while (i--) {
             ec[i]._visibility && ec[i].billboardHandler.drawPicking();
         }
 
+        //label pass
         i = ec.length;
         while (i--) {
             ec[i]._visibility && ec[i].labelHandler.drawPicking();
         }
 
+        gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
     }
+};
+
+/**
+ * Picking entity frame callback
+ * @private
+ */
+og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
+    this.drawPickingEntityCollections(this.entityCollections);
 };

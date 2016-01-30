@@ -9,6 +9,11 @@ goog.require('og.Events');
  * An observable collection of og.Entity instances where each entity has a unique id.
  * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
  * @constructor
+ * @params {Object} [options] - Entity options:
+ * @params {boolean} [options.visibility] - Entity visibility.
+ * @params {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
+ * @params {number} [options.opacity] - Entity global opacity.
+ *
  * @fires og.Events#draw
  * @fires og.Events#add
  * @fires og.Events#remove
@@ -37,7 +42,9 @@ goog.require('og.Events');
  * @fires og.Events#touchstart
  * @fires og.Events#touchend
  */
-og.EntityCollection = function () {
+og.EntityCollection = function (options) {
+
+    options = options || {};
 
     /**
      * Render node collections array index.
@@ -58,7 +65,7 @@ og.EntityCollection = function () {
      * @private
      * @type {boolean}
      */
-    this._visibility = true;
+    this._visibility = options.visibility == undefined ? true : options.visibility;
 
     /**
      * Billboards handler
@@ -98,14 +105,14 @@ og.EntityCollection = function () {
      * @public
      * @type {Array.<number,number,number>}
      */
-    this.scaleByDistance = [og.math.MAX32, og.math.MAX32, og.math.MAX32];
+    this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
     /**
      * Global opacity.
      * @private
      * @type {number}
      */
-    this._opacity = 1.0;
+    this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
 
     /**
      * Opacity state during the animated opacity.
@@ -452,16 +459,19 @@ og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
 };
 
 /**
- * Assign this collection to render node.
+ * Adds this collection to render node.
  * @public
  * @param {og.node.RenderNode} renderNode - Render node.
+ * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
  * @returns {og.EntityCollection}
  */
-og.EntityCollection.prototype.addTo = function (renderNode) {
+og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
     if (!this.renderNode) {
-        this._renderNodeIndex = renderNode.entityCollections.length;
         this.renderNode = renderNode;
-        renderNode.entityCollections.push(this);
+        if (!isHidden) {
+            this._renderNodeIndex = renderNode.entityCollections.length;
+            renderNode.entityCollections.push(this);
+        }
         this.setRenderer(renderNode.renderer);
         renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
         this.shapeHandler.setRenderNode(renderNode);
@@ -528,12 +538,15 @@ og.EntityCollection.prototype.updateLabelsFontAtlas = function () {
  */
 og.EntityCollection.prototype.remove = function () {
     if (this.renderNode) {
-        this.renderNode.billboardCollection.splice(this._renderNodeIndex, 1);
+        if (this._renderNodeIndex != -1) {
+            this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
+            //reindex in the renderNode
+            for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
+                this.renderNode.entityCollections._renderNodeIndex = i;
+            }
+        }
         this.renderNode = null;
         this._renderNodeIndex = -1;
-        for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
-            this.renderNode.entityCollections._renderNodeIndex = i;
-        }
         this.events.dispatch(this.events.remove, this);
     }
 };

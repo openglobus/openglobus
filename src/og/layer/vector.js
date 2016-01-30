@@ -16,3 +16,8 @@ og.layer.Vector = function (name, options) {
 };
 
 og.inheritance.extend(og.layer.Vector, og.layer.Layer);
+
+og.layer.Vector.prototype.addTo = function (planet) {
+    this.entityCollection.addTo(planet, true);
+    planet.addLayer(this);
+};

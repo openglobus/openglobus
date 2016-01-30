@@ -66,11 +66,18 @@ og.node.Planet = function (name, ellipsoid) {
     this.layers = [];
 
     /**
-     * Current visible layers array
+     * Current visible imagery tile layers array.
      * @public
      * @type {Array.<og.layer.Layer>}
      */
     this.visibleTileLayers = [];
+
+    /**
+     * Current visible vector layers array.
+     * @private
+     * @type {Array.<og.layer.Vector>}
+     */
+    this.visibleVectorLayers = [];
 
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
@@ -149,6 +156,7 @@ og.node.Planet = function (name, ellipsoid) {
     this._createdNodesCount = 0;
 
     /**
+     * Planet's segments collected for the rendering frame.
      * @private
      */
     this._renderedNodes = [];
@@ -207,7 +215,7 @@ og.node.Planet = function (name, ellipsoid) {
     this._quadTreeSouth = null;
 
     /**
-     * Sunlight position in camera eye.
+     * Sunlight position placed in the camera eye.
      * @private
      * @type {boolean}
      */
@@ -555,7 +563,12 @@ og.node.Planet.prototype.updateAttributionsList = function () {
 };
 
 og.node.Planet.prototype.updateVisibleLayers = function () {
+    this.visibleTileLayers = [];
     this.visibleTileLayers.length = 0;
+
+    this.visibleVectorLayers = [];
+    this.visibleVectorLayers.length = 0;
+
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
         var li = this.layers[i];
@@ -567,6 +580,8 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
                 li instanceof og.layer.WMS ||
                 li instanceof og.layer.CanvasTiles) {
                 this.visibleTileLayers.push(li);
+            } else if (li instanceof og.layer.Vector) {
+                this.visibleVectorLayers.push(li);
             }
             if (li._attribution.length) {
                 html += "<li>" + li._attribution + "</li>";
@@ -588,12 +603,17 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 };
 
 og.node.Planet.prototype.sortVisibleLayersByZIndex = function () {
+
     this.visibleTileLayers.sort(function (a, b) {
         return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
-    })
+    });
+
+    this.visibleVectorLayers.sort(function (a, b) {
+        return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
+    });
 };
 
-og.node.Planet.prototype.collectRenderNodes = function () {
+og.node.Planet.prototype._collectRenderNodes = function () {
 
     //clear first
     this._renderedNodes.length = 0;
@@ -620,7 +640,7 @@ og.node.Planet.prototype.frame = function () {
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
 
-    this.collectRenderNodes();
+    this._collectRenderNodes();
 
     //print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
 
@@ -633,8 +653,10 @@ og.node.Planet.prototype.frame = function () {
 
     this.transformLights();
 
-    this.renderNodesPASS();
-    this.renderHeightBackbufferPASS();
+    this._renderNodesPASS();
+    this._renderHeightBackbufferPASS();
+
+    this._renderVectorLayersPASS();
 
     //free memory
     var that = this;
@@ -659,7 +681,7 @@ og.node.Planet.prototype.memClear = function () {
 /**
  * @private
  */
-og.node.Planet.prototype.renderNodesPASS = function () {
+og.node.Planet.prototype._renderNodesPASS = function () {
     var sh, drawCallback;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -741,7 +763,7 @@ og.node.Planet.prototype.renderNodesPASS = function () {
 /**
  * @private
  */
-og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
+og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
     var b = this._heightBackbuffer,
         r = this.renderer;
     var h = r.handler;
@@ -756,6 +778,13 @@ og.node.Planet.prototype.renderHeightBackbufferPASS = function () {
         this._renderedNodes[i].planetSegment.drawHeightPicking();
     }
     b.deactivate();
+};
+
+og.node.Planet.prototype._renderVectorLayersPASS = function () {
+    var i = this.visibleVectorLayers.length;
+    while (i--) {
+        this.drawEntityCollections([this.visibleVectorLayers[i].entityCollection]);        
+    }
 };
 
 /**

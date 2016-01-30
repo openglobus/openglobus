@@ -659,6 +659,7 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
 
         var tc = this.planet.geoImageTileCreator;
 
+        //better replace to geoImage
         if (geoImage.getCurvature() >= 0.005 && !geoImage._mercSamplerReady) {
             tc.createMercatorSamplerPASS(geoImage);
         }
