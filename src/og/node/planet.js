@@ -373,7 +373,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
     for (var i = 0; i < this.layers.length; i++) {
         if (this.layers[i]._id == lid) {
             this.layers.splice(i, 1);
-            layer.setVisibility(false);
+            this.updateVisibleLayers();
             this._quadTree.traverseTree(function (node) {
                 var mats = node.planetSegment.materials;
                 if (mats[lid]) {
