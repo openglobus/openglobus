@@ -79,6 +79,8 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this.visibleVectorLayers = [];
 
+    this._frustumEntityCollections = [];
+
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
      * @public
@@ -331,15 +333,7 @@ og.node.Planet.prototype.addGeoImage = function (geoImage) {
  * @public
  */
 og.node.Planet.prototype.addLayer = function (layer) {
-    this.layers.push(layer);
-    layer._planet = this;
-    layer.events.on("visibilitychange", this, this._onLayerVisibilityChanged);
-    if (layer._isBaseLayer && layer._visibility) {
-        this.setBaseLayer(layer);
-    }
-    this.events.dispatch(this.events.layeradd, layer);
-    layer.events.dispatch(layer.events.add, this);
-    this.updateVisibleLayers();
+    layer.addTo(this);
 };
 
 /**
@@ -535,6 +529,8 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("keypress", this, function () {
         that._isCameraSunlight = true;
     }, og.input.KEY_V);
+
+    this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 };
 
 /**
@@ -655,7 +651,6 @@ og.node.Planet.prototype.frame = function () {
 
     this._renderNodesPASS();
     this._renderHeightBackbufferPASS();
-
     this._renderVectorLayersPASS();
 
     //free memory
@@ -780,11 +775,28 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
     b.deactivate();
 };
 
+/**
+ * Vector layer's visible entity collections rendering pass.
+ * @private
+ */
 og.node.Planet.prototype._renderVectorLayersPASS = function () {
+
+    this._frustumEntityCollections = [];
+
     var i = this.visibleVectorLayers.length;
     while (i--) {
-        this.drawEntityCollections([this.visibleVectorLayers[i].entityCollection]);        
+        this.visibleVectorLayers[i].collectVisibleCollections(this._frustumEntityCollections);
     }
+
+    this.drawEntityCollections(this._frustumEntityCollections);
+};
+
+/**
+ * Vector layers picking pass.
+ * @private
+ */
+og.node.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
+    this.drawPickingEntityCollections(this._frustumEntityCollections);
 };
 
 /**

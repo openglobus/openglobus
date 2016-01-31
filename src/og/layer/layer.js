@@ -19,6 +19,8 @@ og.layer.Layer = function (name, options) {
     this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
 
     this._planet = null;
+    this._minZoom = options.minZoom || 0;
+    this._maxZoom = options.maxZoom || 50;
     this._id = og.layer.__layersCounter++;
     this._attribution = options.attribution || "";
     this._zIndex = options.zIndex || 0;
@@ -42,7 +44,15 @@ og.layer.Layer.prototype.isEqual = function (layer) {
 };
 
 og.layer.Layer.prototype.addTo = function (planet) {
-    planet.addLayer(this);
+    planet.layers.push(this);
+    this._planet = planet;
+    this.events.on("visibilitychange", planet, planet._onLayerVisibilityChanged);
+    if (this._isBaseLayer && this._visibility) {
+        planet.setBaseLayer(this);
+    }
+    planet.events.dispatch(planet.events.layeradd, this);
+    this.events.dispatch(this.events.add, planet);
+    planet.updateVisibleLayers();
 };
 
 og.layer.Layer.prototype.remove = function () {
