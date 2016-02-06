@@ -25,7 +25,7 @@ og.layer.Layer = function (name, options) {
     this._attribution = options.attribution || "";
     this._zIndex = options.zIndex || 0;
     this._isBaseLayer = options.isBaseLayer || false;
-    this._visibility = options.visibility || false;
+    this._visibility = options.visibility != undefined ? options.visibility : true;
 };
 
 og.layer.Layer.EVENT_NAMES = [
@@ -43,7 +43,7 @@ og.layer.Layer.prototype.isEqual = function (layer) {
     return layer._id == this._id;
 };
 
-og.layer.Layer.prototype.addTo = function (planet) {
+og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.layers.push(this);
     this._planet = planet;
     this.events.on("visibilitychange", planet, planet._onLayerVisibilityChanged);
@@ -53,6 +53,10 @@ og.layer.Layer.prototype.addTo = function (planet) {
     planet.events.dispatch(planet.events.layeradd, this);
     this.events.dispatch(this.events.add, planet);
     planet.updateVisibleLayers();
+};
+
+og.layer.Layer.prototype.addTo = function (planet) {
+    this._assignPlanet(planet);
 };
 
 og.layer.Layer.prototype.remove = function () {

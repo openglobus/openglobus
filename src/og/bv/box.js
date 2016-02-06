@@ -3,7 +3,7 @@ goog.provide('og.bv.Box');
 goog.require('og.bv');
 goog.require('og.math.Vector3');
 
-og.bv.Box = function () {
+og.bv.Box = function (bounds) {
     this.vertices = [new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3()];
 };
 

@@ -785,7 +785,7 @@ og.node.Planet.prototype._renderVectorLayersPASS = function () {
 
     var i = this.visibleVectorLayers.length;
     while (i--) {
-        this.visibleVectorLayers[i].collectVisibleCollections(this._frustumEntityCollections);
+        this.visibleVectorLayers[i]._collectVisibleCollections(this._frustumEntityCollections);
     }
 
     this.drawEntityCollections(this._frustumEntityCollections);

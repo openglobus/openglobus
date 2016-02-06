@@ -25,29 +25,29 @@ var capitalsCollection;
 var v0;
 
 
-function loadCountries() {
-    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=proj1:TM_WORLD_BORDERS-0.3&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAME,LON,LAT&&service=WFS&outputFormat=json',
-        function (obj) {
-            var f = obj.features;
-            for (var i = 0; i < f.length; i++) {
-                var fi = f[i];
-                var e = new og.Entity({
-                    lonlat: new og.LonLat(parseFloat(fi.properties.LON), parseFloat(fi.properties.LAT), 1000),
-                    label: {
-                        text: fi.properties.NAME.length < 20 ? fi.properties.NAME : "",
-                        align: "center",
-                        size: 60,
-                        color: new og.math.Vector4(1, 1, 1, 1),
-                        outlineColor: new og.math.Vector4(0, 0, 0, 1),
-                        outline: 0.45,
-                        weight: "bold",
-                        face: "verdana"
-                    }
-                });
-                e.addTo(v0.entityCollection);
-            }
-        });
-};
+//function loadCountries() {
+//    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=proj1:TM_WORLD_BORDERS-0.3&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAME,LON,LAT&&service=WFS&outputFormat=json',
+//        function (obj) {
+//            var f = obj.features;
+//            for (var i = 0; i < f.length; i++) {
+//                var fi = f[i];
+//                var e = new og.Entity({
+//                    lonlat: new og.LonLat(parseFloat(fi.properties.LON), parseFloat(fi.properties.LAT), 1000),
+//                    label: {
+//                        text: fi.properties.NAME.length < 20 ? fi.properties.NAME : "",
+//                        align: "center",
+//                        size: 60,
+//                        color: new og.math.Vector4(1, 1, 1, 1),
+//                        outlineColor: new og.math.Vector4(0, 0, 0, 1),
+//                        outline: 0.45,
+//                        weight: "bold",
+//                        face: "verdana"
+//                    }
+//                });
+//                e.addTo(v0.entityCollection);
+//            }
+//        });
+//};
 
 //function loadCapitals() {
 //    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
@@ -84,7 +84,7 @@ function start() {
     var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
-    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
+    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false });
 
@@ -113,7 +113,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, osm, hyb, states],
+        "layers": [sat, osm, hyb, states, v0],
         "autoActivated": true
     });
 
@@ -148,7 +148,7 @@ function start() {
     //});
     //countriesCollection.addTo(globus.planet);
 
-    loadCountries();
+    //loadCountries();
 
     //capitalsCollection = new og.EntityCollection();
     ////capitalsCollection.setScaleByDistance(100000, 5700000, 4000000);

@@ -40,7 +40,7 @@ goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseH
 goog.addDependency('../../../og/src/og/input/touchHandler.js', ['og.input.TouchHandler'], [], false);
 goog.addDependency('../../../og/src/og/layer/canvasTiles.js', ['og.layer.CanvasTiles'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer'], false);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.QueueArray'], false);
-goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection'], false);
+goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.LonLat', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);
 goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/light/pointLight.js', ['og.light.PointLight'], ['og.math.Vector3'], false);
@@ -72,6 +72,7 @@ goog.addDependency('../../../og/src/og/planetSegment/segmentWGS84.js', ['og.plan
 goog.addDependency('../../../og/src/og/proj/epsg3857.js', ['og.proj.EPSG3857'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'og.proj.METERS_PER_UNIT', 'og.proj.Projection'], [], false);
+goog.addDependency('../../../og/src/og/quadTree/entityCollectionQuadNode.js', ['og.quadTree.EntityCollectionQuadNode'], ['og.EntityCollection', 'og.Extent', 'og.LonLat', 'og.bv.Box', 'og.bv.Sphere', 'og.quadTree'], false);
 goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.planetSegment.Material', 'og.proj.EPSG4326', 'og.quadTree'], false);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], [], false);
 goog.addDependency('../../../og/src/og/queueArray.js', ['og.QueueArray'], [], false);

@@ -138,7 +138,7 @@ og.EntityCollection = function (options) {
 og.EntityCollection.EVENT_NAMES = [
         /**
          * Triggered when collection entities begin draw.
-         * @event og.Events#add
+         * @event og.Events#draw
          */
         "draw",
 
@@ -378,6 +378,20 @@ og.EntityCollection.prototype.add = function (entity) {
             rn.ellipsoid && entity._lonlat && entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonlat));
         }
         this._addRecursively(entity);
+    }
+    return this;
+};
+
+/**
+ * Adds entities array to the collection and returns collection.
+ * @public
+ * @param {Array.<og.Entity>} entities - Entities array.
+ * @returns {og.EntityCollection}
+ */
+og.EntityCollection.prototype.addEntities = function (entities) {
+    var i = entities.length;
+    while (i--) {
+        this.add(entities[i]);
     }
     return this;
 };
