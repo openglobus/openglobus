@@ -14,5 +14,5 @@ og.bv.Sphere.prototype.setFromBounds = function (bounds) {
 };
 
 og.bv.Sphere.prototype.setFromExtent = function (ellipsoid, extent) {
-    this.setFromBounds(og.bv.getBoundsFromExtent(ellipsoid, extent));
+    this.setFromBounds(extent.getCartesianBounds(ellipsoid));
 };

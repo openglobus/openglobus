@@ -24,5 +24,5 @@ og.bv.Box.prototype.setFromBounds = function (bounds) {
 };
 
 og.bv.Box.prototype.setFromExtent = function (ellipsoid, extent) {
-    this.setFromBounds(og.bv.getBoundsFromExtent(ellipsoid, extent));
+    this.setFromBounds(extent.getCartesianBounds(ellipsoid));
 };
