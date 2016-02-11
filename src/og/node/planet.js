@@ -782,10 +782,11 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
 og.node.Planet.prototype._renderVectorLayersPASS = function () {
 
     this._frustumEntityCollections = [];
+    var cam = this.renderer.activeCamera;
 
     var i = this.visibleVectorLayers.length;
     while (i--) {
-        this.visibleVectorLayers[i]._collectVisibleCollections(this._frustumEntityCollections);
+        this.visibleVectorLayers[i].collectVisibleCollections(cam, this._frustumEntityCollections);
     }
 
     this.drawEntityCollections(this._frustumEntityCollections);

@@ -12,7 +12,7 @@ og.layer.Vector = function (name, options) {
 
     this.events.registerNames(og.layer.Vector.EVENT_NAMES);
 
-    this._maxCountPerCollection = 5;
+    this._maxCountPerCollection = 2;
 
     this._entities = [];
 
@@ -172,6 +172,10 @@ og.layer.Vector.prototype.addTo = function (planet) {
     this._buildEntityCollectionsTree();
 };
 
+og.layer.Vector.prototype.getEntities = function () {
+    return [].concat(this._entities);
+};
+
 /**
  * @public
  * @param {og.Entity} entity - Entity.
@@ -222,8 +226,8 @@ og.layer.Vector.prototype.setMaxEntitiesCountPerCollection = function (count) {
 og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     if (this._planet) {
         this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, 0,
-            null, 0, new og.Extent(new og.LonLat(-180.0, 90.0), new og.LonLat(180.0, 90.0)));
-        this.addEntities(this._entities);
+            null, 0, new og.Extent(new og.LonLat(-180.0, -90.0), new og.LonLat(180.0, 90.0)), this._planet);
+        this._entityCollectionsTree.buildTree(this._entities);
     }
 };
 
@@ -252,6 +256,9 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
 };
 
-og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
-    //outArr.push(this.entityCollection);
+og.layer.Vector.prototype.collectVisibleCollections = function (camera, outArr) {
+    var currArr = [];
+    this._entityCollectionsTree.collectRenderCollections(camera, currArr);
+    outArr.push.apply(outArr, currArr);
+    this.events.dispatch(this.events.draw, currArr);
 };

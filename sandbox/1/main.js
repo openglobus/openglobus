@@ -24,6 +24,24 @@ var countriesCollection;
 var capitalsCollection;
 var v0;
 
+var voi = 0;
+function addEntity(lon, lat) {
+    var e = new og.Entity({
+        lonlat: new og.LonLat(lon, lat, 0),
+        label: {
+            text: "Hello_" + voi,
+            align: "center",
+            size: 60,
+            color: new og.math.Vector4(1, 1, 1, 1),
+            outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            outline: 0.45,
+            weight: "bold",
+            face: "verdana"
+        }
+    });
+    v0.addEntity(e);
+    voi++;
+}
 
 //function loadCountries() {
 //    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=proj1:TM_WORLD_BORDERS-0.3&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAME,LON,LAT&&service=WFS&outputFormat=json',
@@ -103,8 +121,8 @@ function start() {
         new og.control.ToggleWireframe({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true }),
-    	new og.control.TouchNavigation({ autoActivate: true })
+        new og.control.ZoomControl({ autoActivate: true }),
+        new og.control.TouchNavigation({ autoActivate: true })
     ];
 
     globus = new og.Globus({
