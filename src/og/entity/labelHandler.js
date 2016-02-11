@@ -70,9 +70,6 @@ og.LabelHandler.prototype.assignFontAtlas = function (label) {
 
 og.LabelHandler.prototype.clear = function () {
 
-    this._billboards.length = 0;
-    this._billboards = [];
-
     this._texCoordArr.length = 0;
     this._vertexArr.length = 0;
     this._positionArr.length = 0;
@@ -82,7 +79,6 @@ og.LabelHandler.prototype.clear = function () {
     this._rotationArr.length = 0;
     this._alignedAxisArr.length = 0;
     this._fontIndexArr.length = 0;
-    this._letterOffsetArr.length = 0;
     this._noOutlineArr.length = 0;
     this._outlineArr.length = 0;
     this._outlineColorArr.length = 0;
@@ -96,12 +92,48 @@ og.LabelHandler.prototype.clear = function () {
     this._rotationArr = [];
     this._alignedAxisArr = [];
     this._fontIndexArr = [];
-    this._letterOffsetArr = [];
     this._noOutlineArr = [];
     this._outlineArr = [];
     this._outlineColorArr = [];
 
+    this._removeBillboards();
+    this._deleteBuffers();
     this.refresh();
+};
+
+og.LabelHandler.prototype._deleteBuffers = function () {
+    var gl = this._renderer.handler.gl;
+    gl.deleteBuffer(this._sizeBuffer);
+    gl.deleteBuffer(this._fontIndexBuffer);
+    gl.deleteBuffer(this._texCoordBuffer);
+    gl.deleteBuffer(this._outlineBuffer);
+    gl.deleteBuffer(this._noOutlineBuffer);
+    gl.deleteBuffer(this._outlineColorBuffer);
+    gl.deleteBuffer(this._positionBuffer);
+    gl.deleteBuffer(this._sizeBuffer);
+    gl.deleteBuffer(this._offsetBuffer);
+    gl.deleteBuffer(this._rgbaBuffer);
+    gl.deleteBuffer(this._rotationBuffer);
+    gl.deleteBuffer(this._vertexBuffer);
+    gl.deleteBuffer(this._texCoordBuffer);
+    gl.deleteBuffer(this._alignedAxisBuffer);
+    gl.deleteBuffer(this._pickingColorBuffer);
+
+    this._sizeBuffer = null;
+    this._fontIndexBuffer = null;
+    this._texCoordBuffer = null;
+    this._outlineBuffer = null;
+    this._outlineColorBuffer = null;
+    this._positionBuffer = null;
+    this._sizeBuffer = null;
+    this._offsetBuffer = null;
+    this._rgbaBuffer = null;
+    this._rotationBuffer = null;
+    this._vertexBuffer = null;
+    this._texCoordBuffer = null;
+    this._alignedAxisBuffer = null;
+    this._pickingColorBuffer = null;
+
 };
 
 og.LabelHandler.prototype._addBillboardToArrays = function (label) {
@@ -303,8 +335,8 @@ og.LabelHandler.prototype._removeBillboard = function (label) {
 
     label._handlerIndex = -1;
     label._handler = null;
-    label._fontIndex = 0;
-    label._fontAtlas = null;
+    //label._fontIndex = 0;
+    //label._fontAtlas = null;
 };
 
 og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {

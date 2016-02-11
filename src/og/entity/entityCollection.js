@@ -93,10 +93,10 @@ og.EntityCollection = function (options) {
 
     /**
      * Entities array.
-     * @public
+     * @private
      * type {Array.<og.Entity>}
      */
-    this.entities = [];
+    this._entities = [];
 
     /**
      * First index - near distance to the entity, after entity becomes full scale.
@@ -370,8 +370,8 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
 og.EntityCollection.prototype.add = function (entity) {
     if (!entity._entityCollection) {
         entity._entityCollection = this;
-        entity._entityCollectionIndex = this.entities.length;
-        this.entities.push(entity);
+        entity._entityCollectionIndex = this._entities.length;
+        this._entities.push(entity);
         var rn = this.renderNode;
         if (rn) {
             rn.renderer && rn.renderer.assignPickingColor(entity);
@@ -419,8 +419,6 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     //shape
     entity.shape && this.shapeHandler.remove(entity.shape);
 
-    this.events.dispatch(this.events.entityremove, entity);
-
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         this._removeRecursively(entity.childrenNodes[i]);
     }
@@ -432,7 +430,7 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
  * @param {og.Entity} entity - Entity to remove.
  */
 og.EntityCollection.prototype.removeEntity = function (entity) {
-    this.entities.splice(entity._entityCollectionIndex, 1);
+    this._entities.splice(entity._entityCollectionIndex, 1);
     this.reindexEntitiesArray(entity._entityCollectionIndex);
 
     //clear picking color
@@ -444,6 +442,8 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
     if (this.belongs(entity)) {
         this._removeRecursively(entity);
     }
+
+    this.events.dispatch(this.events.entityremove, entity);
 };
 
 /**
@@ -451,7 +451,7 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
  * @public
  */
 og.EntityCollection.prototype.createPickingColors = function () {
-    var e = this.entities;
+    var e = this._entities;
     for (var i = 0; i < e.length; i++) {
         if (!e[i].parent) {
             this.renderNode.renderer.assignPickingColor(e[i]);
@@ -466,7 +466,7 @@ og.EntityCollection.prototype.createPickingColors = function () {
  * @param {number} startIndex - Entities collection array index.
  */
 og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
-    var e = this.entities;
+    var e = this._entities;
     for (var i = startIndex; i < e.length; i++) {
         e[i]._entityCollectionIndex = i;
     }
@@ -499,7 +499,7 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
  * @private
  */
 og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) {
-    var e = this.entities;
+    var e = this._entities;
     var i = e.length;
     while (i--) {
         var ei = e[i];
@@ -566,11 +566,56 @@ og.EntityCollection.prototype.remove = function () {
 };
 
 /**
- * Removes all entities from colection.
+ * Gets entities.
+ * @public
+ * @returns {Array.<og.Entity>}
+ */
+og.EntityCollection.prototype.getEntities = function () {
+    return [].concat(this._entities);
+};
+
+/**
+ * Safety entities loop.
+ * @public
+ * @param {function} callback - Entity callback.
+ */
+og.EntityCollection.prototype.each = function (callback) {
+    var i = this._entities.length;
+    while (i--) {
+        var ei = this._entities[i];
+        ei && callback(ei);
+    }
+};
+
+/**
+ * Removes all entities from colection and clear handlers.
  * @public
  */
 og.EntityCollection.prototype.clear = function () {
-    for (var i = 0; i < this.entities.length; i++) {
-        this.entities[i].remove();
+
+    //TODO: Optimize by replace delete 
+    //code to the clearEntity function.
+    this.billboardHandler.clear();
+    this.labelHandler.clear();
+    this.shapeHandler.clear();
+
+    var i = this._entities.length;
+    while (i--) {
+        var ei = this._entities[i];
+        if (this.renderNode && this.renderNode.renderer) {
+            this.renderNode.renderer.clearPickingColor(ei);
+            ei._pickingColor.clear();
+        }
+        this._clearEntity(ei);
+    }
+    this._entities.length = 0;
+    this._entities = [];
+};
+
+og.EntityCollection.prototype._clearEntity = function (entity) {
+    entity._entityCollection = null;
+    entity._entityCollectionIndex = -1;
+    for (var i = 0; i < entity.childrenNodes.length; i++) {
+        this._clearEntity(entity.childrenNodes[i]);
     }
 };

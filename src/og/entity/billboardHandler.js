@@ -95,11 +95,18 @@ og.BillboardHandler.prototype.refresh = function () {
     }
 };
 
-og.BillboardHandler.prototype.clear = function () {
-
+og.BillboardHandler.prototype._removeBillboards = function () {
+    var i = this._billboards.length;
+    while (i--) {
+        var bi = this._billboards[i];
+        bi._handlerIndex = -1;
+        bi._handler = null;
+    }
     this._billboards.length = 0;
     this._billboards = [];
+};
 
+og.BillboardHandler.prototype.clear = function () {
     this._texCoordArr.length = 0;
     this._vertexArr.length = 0;
     this._positionArr.length = 0;
@@ -120,7 +127,32 @@ og.BillboardHandler.prototype.clear = function () {
     this._alignedAxisArr = [];
     this._pickingColorArr = [];
 
+    this._removeBillboards();
+    this._deleteBuffers();
     this.refresh();
+};
+
+og.BillboardHandler.prototype._deleteBuffers = function () {
+    var gl = this._renderer.handler.gl;
+    gl.deleteBuffer(this._positionBuffer);
+    gl.deleteBuffer(this._sizeBuffer);
+    gl.deleteBuffer(this._offsetBuffer);
+    gl.deleteBuffer(this._rgbaBuffer);
+    gl.deleteBuffer(this._rotationBuffer);
+    gl.deleteBuffer(this._vertexBuffer);
+    gl.deleteBuffer(this._texCoordBuffer);
+    gl.deleteBuffer(this._alignedAxisBuffer);
+    gl.deleteBuffer(this._pickingColorBuffer);
+
+    this._positionBuffer = null;
+    this._sizeBuffer = null;
+    this._offsetBuffer = null;
+    this._rgbaBuffer = null;
+    this._rotationBuffer = null;
+    this._vertexBuffer = null;
+    this._texCoordBuffer = null;
+    this._alignedAxisBuffer = null;
+    this._pickingColorBuffer = null;
 };
 
 og.BillboardHandler.prototype.update = function () {
