@@ -6,6 +6,7 @@ goog.provide('og.Events');
  * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  */
 og.Events = function (eventNames) {
+    this._eventNames = eventNames || [];
     eventNames && this.registerNames(eventNames);
     this._counter = 0;
     this._stopPropagation = false;
@@ -19,6 +20,7 @@ og.Events = function (eventNames) {
 og.Events.prototype.registerNames = function (eventNames) {
     for (var i = 0; i < eventNames.length; i++) {
         this[eventNames[i]] = { "active": true, "handlers": [] };
+        this._eventNames.push(eventNames[i]);
     }
 };
 
@@ -87,6 +89,25 @@ og.Events.prototype.dispatch = function (event, obj) {
     this._stopPropagation = false;
 };
 
+/**
+ * Brakes events propagation.
+ * @public
+ */
 og.Events.prototype.stopPropagation = function () {
     this._stopPropagation = true;
+};
+
+/**
+ * Removes all events.
+ * @public
+ */
+og.Events.prototype.clear = function () {
+    for (var i = 0; i < this._eventNames.length; i++) {
+        var e = this[this._eventNames[i]];
+        e.handlers.length = 0;
+        e.handlers = [];
+        delete e;
+    }
+    this._eventNames.length = 0;
+    this._eventNames = [];
 };
