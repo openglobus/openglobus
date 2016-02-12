@@ -191,7 +191,8 @@ og.LabelHandler.prototype._displayPASS = function () {
 
     var gl = h.gl;
 
-    var rn = this._entityCollection.renderNode;
+    var ec = this._entityCollection;
+    var rn = ec.renderNode;
 
     gl.uniform1iv(shu.u_fontTextureArr._pName, rn.fontAtlas.samplerArr);
 
@@ -200,9 +201,9 @@ og.LabelHandler.prototype._displayPASS = function () {
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-    gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
+    gl.uniform3fv(shu.uScaleByDistance._pName, ec.scaleByDistance);
 
-    gl.uniform1f(shu.uOpacity._pName, this._entityCollection._animatedOpacity);
+    gl.uniform1f(shu.uOpacity._pName, ec._animatedOpacity);
 
     gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 

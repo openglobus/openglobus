@@ -5,16 +5,27 @@ goog.require('og.Entity');
 goog.require('og.LonLat');
 goog.require('og.quadTree');
 goog.require('og.quadTree.EntityCollectionQuadNode');
+goog.require('og.math');
 
 og.layer.Vector = function (name, options) {
+    options = options || {};
 
     og.inheritance.base(this, name, options);
 
     this.events.registerNames(og.layer.Vector.EVENT_NAMES);
 
+    /**
+     * First index - near distance to the entity, after entity becomes full scale.
+     * Second index - far distance to the entity, when entity becomes zero scale.
+     * Third index - far distance to the entity, when entity becomes invisible.
+     * @public
+     * @type {Array.<number,number,number>}
+     */
+    this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
+
     this._maxCountPerCollection = 2;
 
-    this._entities = [];
+    this._entities = options.entities ? [].concat(options.entities) : [];
 
     this._entityCollectionsTree = null;
 
@@ -214,10 +225,30 @@ og.layer.Vector.prototype.removeEntities = function (entities) {
 };
 
 /**
+ * Sets scale by distance parameters.
+ * @public
+ * @param {number} near - Full scale entity distance.
+ * @param {number} far - Zerol scale entity distance.
+ * @param {number} [farInvisible] - Entity visibility distance.
+ */
+og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible) {
+    this.scaleByDistance[0] = near;
+    this.scaleByDistance[1] = far;
+    this.scaleByDistance[2] = farInisible || og.math.MAX32;
+};
+
+/**
  * @public
  */
 og.layer.Vector.prototype.setMaxEntitiesCountPerCollection = function (count) {
     this._maxCountPerCollection = count;
+};
+
+/**
+ * @public
+ */
+og.layer.Vector.prototype.clear = function () {
+    //TODO
 };
 
 /**
@@ -256,9 +287,7 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
 };
 
-og.layer.Vector.prototype.collectVisibleCollections = function (camera, outArr) {
-    var currArr = [];
-    this._entityCollectionsTree.collectRenderCollections(camera, currArr);
-    outArr.push.apply(outArr, currArr);
-    this.events.dispatch(this.events.draw, currArr);
+og.layer.Vector.prototype._collectVisibleCollections = function (camera, outArr) {
+    this.events.dispatch(this.events.draw, this);
+    this._entityCollectionsTree.collectRenderCollections(camera, outArr);
 };
