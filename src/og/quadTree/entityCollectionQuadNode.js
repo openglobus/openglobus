@@ -97,7 +97,12 @@ og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = functi
 };
 
 og.quadTree.EntityCollectionQuadNode.prototype._setExtentBounds = function () {
-    this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent.inverseMercator());
+    if (!this.nodeId) {
+        this.bsphere.radius = this.layer._planet.ellipsoid._a;
+        this.bsphere.center = new og.math.Vector3();
+    } else {
+        this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent.inverseMercator());
+    }
 };
 
 og.quadTree.EntityCollectionQuadNode.prototype._setLonLat = function (entity) {
