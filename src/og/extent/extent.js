@@ -153,6 +153,9 @@ og.Extent.prototype.forwardMercator = function () {
     return new og.Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
 };
 
+og.Extent.prototype.inverseMercator = function () {
+    return new og.Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
+};
 
 og.Extent.prototype.getCartesianBounds = function (ellipsoid) {
     var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX,

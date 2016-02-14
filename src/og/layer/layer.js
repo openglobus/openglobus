@@ -19,8 +19,8 @@ og.layer.Layer = function (name, options) {
     this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
 
     this._planet = null;
-    this._minZoom = options.minZoom || 0;
-    this._maxZoom = options.maxZoom || 50;
+    this.minZoom = options.minZoom || 0;
+    this.maxZoom = options.maxZoom || 50;
     this._id = og.layer.__layersCounter++;
     this._attribution = options.attribution || "";
     this._zIndex = options.zIndex || 0;

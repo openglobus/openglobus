@@ -6,6 +6,7 @@ goog.require('og.LonLat');
 goog.require('og.quadTree');
 goog.require('og.quadTree.EntityCollectionQuadNode');
 goog.require('og.math');
+goog.require('og.inheritance');
 
 og.layer.Vector = function (name, options) {
     options = options || {};
@@ -23,11 +24,13 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
-    this._maxCountPerCollection = 2;
+    this._maxCountPerCollection = 30;
 
     this._entities = options.entities ? [].concat(options.entities) : [];
 
     this._entityCollectionsTree = null;
+    this._entityCollectionsTreeNorth = null;
+    this._entityCollectionsTreeSouth = null;
 
     this._buildEntityCollectionsTree();
 };
@@ -224,6 +227,12 @@ og.layer.Vector.prototype.removeEntities = function (entities) {
     return this;
 };
 
+og.layer.Vector.prototype.setEntities = function (entities) {
+    this.clear();
+    this._entities = [].concat(entities);
+    this._buildEntityCollectionsTree();
+};
+
 /**
  * Sets scale by distance parameters.
  * @public
@@ -251,14 +260,31 @@ og.layer.Vector.prototype.clear = function () {
     //TODO
 };
 
+og.layer.Vector.prototype.each = function (callback) {
+    var e = this._entities;
+    var i = e.length;
+    while (i--) {
+        callback(e[i]);
+    }
+};
+
 /**
  * @private
  */
 og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     if (this._planet) {
-        this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, 0,
-            null, 0, new og.Extent(new og.LonLat(-180.0, -90.0), new og.LonLat(180.0, 90.0)), this._planet);
+        this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, og.quadTree.NW, null, 0,
+            og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet);
+
+        this._entityCollectionsTreeNorth = new og.quadTree.EntityCollectionQuadNodeWGS84(this, og.quadTree.NW, null, 0,
+            og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]), this._planet);
+
+        this._entityCollectionsTreeSouth = new og.quadTree.EntityCollectionQuadNodeWGS84(this, og.quadTree.NW, null, 0,
+            og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]), this._planet);
+
         this._entityCollectionsTree.buildTree(this._entities);
+        this._entityCollectionsTreeNorth.buildTree(this._entities);
+        this._entityCollectionsTreeSouth.buildTree(this._entities);
     }
 };
 
@@ -287,7 +313,8 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
 };
 
-og.layer.Vector.prototype._collectVisibleCollections = function (camera, outArr) {
-    this.events.dispatch(this.events.draw, this);
-    this._entityCollectionsTree.collectRenderCollections(camera, outArr);
+og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
+    if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
+        this._entityCollectionsTree.collectRenderCollections(outArr);
+    }
 };

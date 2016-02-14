@@ -31,7 +31,7 @@ og.LabelHandler = function (entityCollection) {
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-    this._maxLetters = 32;
+    this._maxLetters = 25;
 };
 
 og.inheritance.extend(og.LabelHandler, og.BillboardHandler);

@@ -615,6 +615,9 @@ og.node.Planet.prototype._collectRenderNodes = function () {
     this._renderedNodes.length = 0;
     this._renderedNodes = [];
 
+    this._frustumEntityCollections.length = 0;
+    this._frustumEntityCollections = [];
+
     this.minCurrZoom = og.math.MAX;
     this.maxCurrZoom = og.math.MIN;
 
@@ -781,12 +784,11 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
  */
 og.node.Planet.prototype._renderVectorLayersPASS = function () {
 
-    this._frustumEntityCollections = [];
-    var cam = this.renderer.activeCamera;
-
     var i = this.visibleVectorLayers.length;
     while (i--) {
-        this.visibleVectorLayers[i]._collectVisibleCollections(cam, this._frustumEntityCollections);
+        var vi = this.visibleVectorLayers[i];
+        vi._collectVisibleCollections(this._frustumEntityCollections);
+        vi.events.dispatch(vi.events.draw, vi);
     }
 
     this.drawEntityCollections(this._frustumEntityCollections);
