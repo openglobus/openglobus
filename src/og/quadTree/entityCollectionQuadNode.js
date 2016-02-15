@@ -9,7 +9,7 @@ goog.require('og.bv.Box');
 goog.require('og.bv.Sphere');
 goog.require('og.inheritance');
 
-og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, extent, planet) {
+og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, extent, planet, zoom) {
     this.layer = layer;
     this.parentNode = parent;
     this.childrenNodes = [];
@@ -19,7 +19,7 @@ og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, exte
     this.extent = extent;
     this.count = 0;
     this.entityCollection = null;
-    this.allNodes = [];
+    this.zoom = zoom;
 
     this.bsphere = new og.bv.Sphere();
 
@@ -171,40 +171,61 @@ og.quadTree.EntityCollectionQuadNode.prototype.createChildrenNodes = function ()
     var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.childrenNodes;
     var p = this.layer._planet;
+    var z = this.zoom + 1;
 
     nd[og.quadTree.NW] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.NW, this, id,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)), p);
+        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)), p, z);
 
     nd[og.quadTree.NE] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.NE, this, id,
-        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)), p);
+        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)), p, z);
 
     nd[og.quadTree.SW] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.SW, this, id,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat), c), p);
+        new og.Extent(new og.LonLat(sw.lon, sw.lat), c), p, z);
 
     nd[og.quadTree.SE] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.SE, this, id,
-        new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)), p);
+        new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)), p, z);
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype._isVisible = function () {
-    return this.layer._planet._visibleNodes[this.nodeId];
-};
+og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = function (visibleNodes, outArr) {
+    var p = this.layer._planet;
+    var cam = p.renderer.activeCamera;
+    var n = visibleNodes[this.nodeId];
 
-og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = function (outArr) {
-    var cam = this.layer._planet.renderer.activeCamera;
-
-    if (this._isVisible() || this.layer._planet.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0 &&
-            cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-                og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) {
+    if (n) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
             this.entityCollection._animatedOpacity = this.layer.opacity;
             this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
             outArr.push(this.entityCollection);
         } else if (cn.length) {
-            cn[og.quadTree.NW].collectRenderCollections(outArr);
-            cn[og.quadTree.NE].collectRenderCollections(outArr);
-            cn[og.quadTree.SW].collectRenderCollections(outArr);
-            cn[og.quadTree.SE].collectRenderCollections(outArr);
+            if (n.state === og.quadTree.RENDERING) {
+                this.layer._secondPASS.push(this);
+            } else {
+                cn[og.quadTree.NW].collectRenderCollections(visibleNodes, outArr);
+                cn[og.quadTree.NE].collectRenderCollections(visibleNodes, outArr);
+                cn[og.quadTree.SW].collectRenderCollections(visibleNodes, outArr);
+                cn[og.quadTree.SE].collectRenderCollections(visibleNodes, outArr);
+            }
+        }
+    }
+};
+
+og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = function (outArr) {
+    var p = this.layer._planet;
+    var cam = p.renderer.activeCamera;
+    if (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
+        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height) &&
+        p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
+        var cn = this.childrenNodes;
+        if (this.entityCollection) {
+            this.entityCollection._animatedOpacity = this.layer.opacity;
+            this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+            outArr.push(this.entityCollection);
+        } else if (cn.length) {
+            cn[og.quadTree.NW].collectRenderCollectionsPASS2(outArr);
+            cn[og.quadTree.NE].collectRenderCollectionsPASS2(outArr);
+            cn[og.quadTree.SW].collectRenderCollectionsPASS2(outArr);
+            cn[og.quadTree.SE].collectRenderCollectionsPASS2(outArr);
         }
     }
 };
@@ -212,8 +233,8 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = functi
 /**
  * @class
  */
-og.quadTree.EntityCollectionQuadNodeWGS84 = function (layer, partId, parent, id, extent, planet) {
-    og.inheritance.base(this, layer, partId, parent, id, extent, planet);
+og.quadTree.EntityCollectionQuadNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
+    og.inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
 };
 
 og.inheritance.extend(og.quadTree.EntityCollectionQuadNodeWGS84, og.quadTree.EntityCollectionQuadNode);
@@ -227,8 +248,4 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setLonLat = function (entit
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
     return entity._lonlat;
-};
-
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype._isVisible = function () {
-    return false;//this.layer._planet._visibleNodes[this.nodeId];
 };

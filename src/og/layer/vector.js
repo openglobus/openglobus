@@ -274,13 +274,13 @@ og.layer.Vector.prototype.each = function (callback) {
 og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     if (this._planet) {
         this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, og.quadTree.NW, null, 0,
-            og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet);
+            og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet, 0);
 
         this._entityCollectionsTreeNorth = new og.quadTree.EntityCollectionQuadNodeWGS84(this, og.quadTree.NW, null, 0,
-            og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]), this._planet);
+            og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]), this._planet, 0);
 
         this._entityCollectionsTreeSouth = new og.quadTree.EntityCollectionQuadNodeWGS84(this, og.quadTree.NW, null, 0,
-            og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]), this._planet);
+            og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]), this._planet, 0);
 
         this._entityCollectionsTree.buildTree(this._entities);
         this._entityCollectionsTreeNorth.buildTree(this._entities);
@@ -314,7 +314,12 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
 };
 
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
+    this._secondPASS = [];
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
-        this._entityCollectionsTree.collectRenderCollections(outArr);
+        this._entityCollectionsTree.collectRenderCollections(this._planet._visibleNodes, outArr);
+        var i = this._secondPASS.length;
+        while (i--) {
+            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+        }
     }
 };

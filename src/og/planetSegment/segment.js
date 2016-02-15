@@ -1033,5 +1033,5 @@ og.planetSegment.Segment.prototype.drawHeightPicking = function () {
 };
 
 og.planetSegment.Segment.prototype._collectRenderNodes = function () {
-    this.planet._visibleNodes[this.node.nodeId] = true;
+    this.planet._visibleNodes[this.node.nodeId] = this.node;
 };
