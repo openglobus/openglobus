@@ -194,10 +194,9 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
-og.quadTree.QuadNode.prototype.prepareForRendering = function (cam) {
-    if (cam._lonLat.height < 3000000.0) {
-        if (cam.eye.distance(this.planetSegment.bsphere.center) - this.planetSegment.bsphere.radius <
-            og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) {
+og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis) {
+    if (height < 3000000.0) {
+        if (altVis) {
             this.renderNode();
         } else {
             this.state = og.quadTree.NOTRENDERING;
@@ -254,21 +253,28 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         this._cameraInside = true;
     }
 
-    if (cam.frustum.containsSphere(seg.bsphere) > 0 || this._cameraInside) {
+    var inFrustum = cam.frustum.containsSphere(seg.bsphere) > 0,
+        altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
+            og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
 
+    if (inFrustum || this._cameraInside) {
         if (seg.acceptForRendering(cam)) {
-            this.prepareForRendering(cam);
+            this.prepareForRendering(cam._lonLat.height, altVis);
         }
         else {
             if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes();
             }
             else {
-                this.prepareForRendering(cam);
+                this.prepareForRendering(cam._lonLat.height, altVis);
             }
         }
     } else {
         this.state = og.quadTree.NOTRENDERING;
+    }
+
+    if (inFrustum && altVis) {
+        seg._collectRenderNodes();
     }
 };
 

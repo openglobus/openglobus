@@ -185,13 +185,16 @@ og.quadTree.EntityCollectionQuadNode.prototype.createChildrenNodes = function ()
         new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)), p);
 };
 
+og.quadTree.EntityCollectionQuadNode.prototype._isVisible = function () {
+    return this.layer._planet._visibleNodes[this.nodeId];
+};
+
 og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = function (outArr) {
     var cam = this.layer._planet.renderer.activeCamera;
 
-    var altVis = cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-                og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height);
-
-    if (this.layer._planet.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0 && altVis) {
+    if (this._isVisible() || this.layer._planet.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0 &&
+            cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
+                og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
             this.entityCollection._animatedOpacity = this.layer.opacity;
@@ -224,4 +227,8 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setLonLat = function (entit
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
     return entity._lonlat;
+};
+
+og.quadTree.EntityCollectionQuadNodeWGS84.prototype._isVisible = function () {
+    return false;//this.layer._planet._visibleNodes[this.nodeId];
 };

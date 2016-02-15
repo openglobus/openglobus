@@ -149,3 +149,7 @@ og.planetSegment.SegmentWGS84.prototype.drawGeoImage = function (geoImage) {
         return true;
     }
 };
+
+og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
+    //this.planet._visibleNodes[this.node.nodeId] = true;
+};

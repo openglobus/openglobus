@@ -163,6 +163,10 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this._renderedNodes = [];
 
+    this._visibleNodes = {};
+    this._visibleNodesNorth = {};
+    this._visibleNodesSouth = {};
+
     /**
      * @private
      */
@@ -614,6 +618,10 @@ og.node.Planet.prototype._collectRenderNodes = function () {
     //clear first
     this._renderedNodes.length = 0;
     this._renderedNodes = [];
+
+    this._visibleNodes = {};
+    this._visibleNodesNorth = {};
+    this._visibleNodesSouth = {};
 
     this._frustumEntityCollections.length = 0;
     this._frustumEntityCollections = [];
