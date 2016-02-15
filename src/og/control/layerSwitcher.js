@@ -51,6 +51,10 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
         obj.setVisibility(this.checked);
     };
 
+    obj.events.on("visibilitychange", null, function (e) {
+        inp.checked = e.getVisibility();
+    });
+
     var lbl = document.createElement('label');
     lbl.className = "ogLayerSwitcherLabel";
     lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
