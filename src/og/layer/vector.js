@@ -8,6 +8,60 @@ goog.require('og.quadTree.EntityCollectionQuadNode');
 goog.require('og.math');
 goog.require('og.inheritance');
 
+this.opacity = options.opacity || 1.0;
+this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
+
+this._zIndex = options.zIndex || 0;
+this._isBaseLayer = options.isBaseLayer || false;
+this._visibility = options.visibility != undefined ? options.visibility : true;
+
+/**
+ * Vector layer represents alternative entities store. Used for geospatial data rendering like 
+ * points, lines, polygons etc.
+ * @class
+ * @param {string} [name] - Layer name.
+ * @param {Object} [options] - Options:
+ * @param {number} [options.minZoom] - Minimal visible zoom. 0 is default
+ * @param {number} [options.maxZoom] - Maximal visible zoom. 50 is default.
+ * @param {string} [options.attribution] - Layer attribution.
+ * @param {string} [options.zIndex] - Layer Z-order index. 0 is default.
+ * @param {boolean} [options.visibility] - Layer visibility. True is default.
+ * @param {boolean} [options.isBaseLayer] - Layer base layer. False is default.
+ * @param {Array.<og.Entity>} [options.entities] - Entities array.
+ * @param {Array.<number,number,number>} [options.scaleByDistance] - Scale by distance parameters.
+ *      First index - near distance to the entity, after entity becomes full scale.
+ *      Second index - far distance to the entity, when entity becomes zero scale.
+ *      Third index - far distance to the entity, when entity becomes invisible.
+ * @param {number} [options.maxCountNode] - Rendering optimization parameter. 30 is default.
+ *
+ * @fires og.Events#draw
+ * @fires og.Events#add
+ * @fires og.Events#remove
+ * @fires og.Events#entityadd
+ * @fires og.Events#entityremove
+ * @fires og.Events#visibilitychange
+ * @fires og.Events#mousemove
+ * @fires og.Events#mouseenter
+ * @fires og.Events#mouseleave
+ * @fires og.Events#mouselbuttonclick
+ * @fires og.Events#mouserbuttonclick
+ * @fires og.Events#mousembuttonclick
+ * @fires og.Events#mouselbuttondoubleclick
+ * @fires og.Events#mouserbuttondoubleclick
+ * @fires og.Events#mousembuttondoubleclick
+ * @fires og.Events#mouselbuttonup
+ * @fires og.Events#mouserbuttonup
+ * @fires og.Events#mousembuttonup
+ * @fires og.Events#mouselbuttondown
+ * @fires og.Events#mouserbuttondown
+ * @fires og.Events#mousembuttondown
+ * @fires og.Events#mouselbuttonhold
+ * @fires og.Events#mouserbuttonhold
+ * @fires og.Events#mousembuttonhold
+ * @fires og.Events#mousewheel
+ * @fires og.Events#touchstart
+ * @fires og.Events#touchend
+ */
 og.layer.Vector = function (name, options) {
     options = options || {};
 
@@ -24,7 +78,7 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
-    this._maxCountPerCollection = 30;
+    this._maxCountPerCollection = options.maxCountNode || 30;
 
     this._entities = options.entities ? [].concat(options.entities) : [];
 
@@ -179,6 +233,7 @@ og.layer.Vector.EVENT_NAMES = [
         "touchend"];
 
 /**
+ * Adds layer to the planet.
  * @public
  */
 og.layer.Vector.prototype.addTo = function (planet) {
@@ -186,13 +241,20 @@ og.layer.Vector.prototype.addTo = function (planet) {
     this._buildEntityCollectionsTree();
 };
 
+/**
+ * Returns stored entities.
+ * @public
+ * @returns {Array.<og.Entity>}
+ */
 og.layer.Vector.prototype.getEntities = function () {
     return [].concat(this._entities);
 };
 
 /**
+ * Adds entity to the layer.
  * @public
  * @param {og.Entity} entity - Entity.
+ * @returns {og.layer.Vector} - Returns this layer.
  */
 og.layer.Vector.prototype.addEntity = function (entity) {
     this._entities.push(entity);
@@ -202,8 +264,10 @@ og.layer.Vector.prototype.addEntity = function (entity) {
 };
 
 /**
+ * Adds entity array to the layer.
  * @public
  * @param {Array.<og.Entity>} entities - Entities array.
+ * @returns {og.layer.Vector} - Returns this layer.
  */
 og.layer.Vector.prototype.addEntities = function (entities) {
     var i = entities.length;
@@ -219,6 +283,12 @@ og.layer.Vector.prototype.removeEntity = function (entity) {
     return this;
 };
 
+/**
+ * Removes entities from layer.
+ * @public
+ * @param {Array.<og.Entity>} entities - Entity array.
+ * @returns {og.layer.Vector} - Returns this layer.
+ */
 og.layer.Vector.prototype.removeEntities = function (entities) {
     var i = entities.length;
     while (i--) {
@@ -227,6 +297,11 @@ og.layer.Vector.prototype.removeEntities = function (entities) {
     return this;
 };
 
+/**
+ * Removes current entities from layer and adds new entities.
+ * @public
+ * @param {Array.<og.Entity>} entities - New entity array.
+ */
 og.layer.Vector.prototype.setEntities = function (entities) {
     this.clear();
     this._entities = [].concat(entities);
@@ -249,17 +324,15 @@ og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible)
 /**
  * @public
  */
-og.layer.Vector.prototype.setMaxEntitiesCountPerCollection = function (count) {
-    this._maxCountPerCollection = count;
-};
-
-/**
- * @public
- */
 og.layer.Vector.prototype.clear = function () {
     //TODO
 };
 
+/**
+ * Safety entities loop.
+ * @public
+ * @param {callback} callback - Entity callback.
+ */
 og.layer.Vector.prototype.each = function (callback) {
     var e = this._entities;
     var i = e.length;
@@ -288,6 +361,9 @@ og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     }
 };
 
+/**
+ * @private
+ */
 og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     var ve = this.events;
     entityCollection.events.on("mousemove", null, function (e) { ve.dispatch(ve.mousemove, e); });
@@ -313,6 +389,9 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
 };
 
+/**
+ * @private
+ */
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
     this._secondPASS = [];
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
