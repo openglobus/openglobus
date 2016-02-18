@@ -23,6 +23,8 @@ goog.require('og.Entity');
 var countriesCollection;
 var capitalsCollection;
 var v0;
+var ent = {};
+var vec = {};
 
 var voi = 0;
 function addEntity(lon, lat) {
@@ -95,9 +97,12 @@ function loadCapitals() {
     $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
     function (obj) {
         var f = obj.features;
-        var entities = [];
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
+            var name = fi.properties.ISO_A2;
+            if (!ent[name]) {
+                ent[name] = [];
+            }
             var e = new og.Entity({
                 lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
                 label: {
@@ -111,9 +116,19 @@ function loadCapitals() {
                     face: "verdana"
                 }
             });
-            entities.push(e);
+            ent[name].push(e);
         }
-        v0.setEntities(entities);
+
+        for (var i in ent) {
+            vec[i] = new og.layer.Vector(i, { visibility: true, isBaseLayer: false, minZoom: 0, entities: ent[i] });
+            vec[i].events.on("draw", vec[i], function () {
+                var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+                this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+            });
+            vec[i].addTo(globus.planet);
+
+        }
+
     });
 };
 

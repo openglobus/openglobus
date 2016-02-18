@@ -121,7 +121,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities) {
 
     this.count = entities.length;
 
-    if (entities.length > this.layer._maxCountPerCollection) {
+    if (entities.length > this.layer._maxCountPerCollection || this.zoom < this.layer.minZoom || this.zoom < 5) {
         var cn = this.childrenNodes;
         if (!cn.length) {
             this.createChildrenNodes();
