@@ -7,13 +7,7 @@ goog.require('og.quadTree');
 goog.require('og.quadTree.EntityCollectionQuadNode');
 goog.require('og.math');
 goog.require('og.inheritance');
-
-this.opacity = options.opacity || 1.0;
-this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
-
-this._zIndex = options.zIndex || 0;
-this._isBaseLayer = options.isBaseLayer || false;
-this._visibility = options.visibility != undefined ? options.visibility : true;
+goog.require('og.QueueArray');
 
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like 
@@ -67,6 +61,9 @@ og.layer.Vector = function (name, options) {
 
     og.inheritance.base(this, name, options);
 
+    /**
+     * @public
+     */
     this.events.registerNames(og.layer.Vector.EVENT_NAMES);
 
     /**
@@ -78,14 +75,32 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
+    /**
+     * Maximum entities quantity in the tree node.
+     * @private
+     */
     this._maxCountPerCollection = options.maxCountNode || 30;
 
+    /**
+     * Manimal tree node deep index.
+     * @private
+     */
+    this._minTreeZoom = 5;
+
+    /**
+     * Stored entities.
+     * @private
+     */
     this._entities = options.entities ? [].concat(options.entities) : [];
 
     this._entityCollectionsTree = null;
     this._entityCollectionsTreeNorth = null;
     this._entityCollectionsTreeSouth = null;
 
+    this._counter = 0;
+    this._deferredEntitiesPendingQueue = new og.QueueArray();
+
+    /** Creates collections tree*/
     this._buildEntityCollectionsTree();
 };
 
@@ -258,7 +273,18 @@ og.layer.Vector.prototype.getEntities = function () {
  */
 og.layer.Vector.prototype.addEntity = function (entity) {
     this._entities.push(entity);
-    this._entityCollectionsTree.insertEntity(entity);
+    if (this._planet) {
+        if (!entity._lonlat) {
+            entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+        }
+        if (entity._lonlat.lat > og.mercator.MAX_LAT) {
+            this._entityCollectionsTreeNorth.insertEntity(entity);
+        } else if (entity._lonlat.lat < og.mercator.MIN_LAT) {
+            this._entityCollectionsTreeSouth.insertEntity(entity);
+        } else {
+            this._entityCollectionsTree.insertEntity(entity);
+        }
+    }
     this.events.dispatch(this.events.entityadd, entity);
     return this;
 };
@@ -277,9 +303,22 @@ og.layer.Vector.prototype.addEntities = function (entities) {
     return this;
 };
 
+/**
+ * Remove entity from layer.
+ * @public
+ * @param {og.Entity} entity - Entity to remove.
+ * @returns {og.layer.Vector} - Returns this layer.
+ */
 og.layer.Vector.prototype.removeEntity = function (entity) {
-    //TODO:
-    this.events.dispatch(this.events.entityremove, entity);
+    var i = this._entities.length;
+    while (i--) {
+        if (this._entities[i].id === entity.id) {
+            this._entities.splice(i, 1);
+            entity.remove();
+            this.events.dispatch(this.events.entityremove, entity);
+            break;
+        }
+    }
     return this;
 };
 
@@ -322,6 +361,7 @@ og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible)
 };
 
 /**
+ * Clear the layer.
  * @public
  */
 og.layer.Vector.prototype.clear = function () {
@@ -393,12 +433,68 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
  * @private
  */
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
-    this._secondPASS = [];
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
+
+        this._secondPASS = [];
         this._entityCollectionsTree.collectRenderCollections(this._planet._visibleNodes, outArr);
         var i = this._secondPASS.length;
         while (i--) {
             this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
         }
+
+        this._secondPASS = [];
+        this._entityCollectionsTreeNorth.collectRenderCollections(this._planet._visibleNodesNorth, outArr);
+        i = this._secondPASS.length;
+        while (i--) {
+            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+        }
+
+        this._secondPASS = [];
+        this._entityCollectionsTreeSouth.collectRenderCollections(this._planet._visibleNodesSouth, outArr);
+        i = this._secondPASS.length;
+        while (i--) {
+            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+        }
     }
+};
+
+og.layer.Vector.prototype._queueDeferredNode = function (node) {
+    if (this._visibility) {
+        if (this._counter >= 1) {
+            this._deferredEntitiesPendingQueue.push(node);
+        } else {
+            this._execDeferredNode(node);
+        }
+    }
+};
+
+og.layer.Vector.prototype._execDeferredNode = function (node) {
+    this._counter++;
+    var that = this;
+    setTimeout(function () {
+        node.entityCollection.addEntities(node.deferredEntities);
+        node.deferredEntities.length = 0;
+        node.deferredEntities = [];
+        node._inTheQueue = false;
+        that._dequeueRequest();
+    }, 0);
+};
+
+og.layer.Vector.prototype._dequeueRequest = function () {
+    this._counter--;
+    if (this._deferredEntitiesPendingQueue.length && this._counter < 1) {
+        var node;
+        if (node = this._whilePendings())
+            this._execDeferredNode(node);
+    }
+};
+
+og.layer.Vector.prototype._whilePendings = function () {
+    while (this._deferredEntitiesPendingQueue.length) {
+        var node = this._deferredEntitiesPendingQueue.pop();
+        if (true) {
+            return node;
+        }
+    }
+    return null;
 };

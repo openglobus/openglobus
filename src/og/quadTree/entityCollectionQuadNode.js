@@ -18,8 +18,10 @@ og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, exte
     this.state = null;
     this.extent = extent;
     this.count = 0;
+    this.deferredEntities = [];
     this.entityCollection = null;
     this.zoom = zoom;
+    this._inTheQueue = false;
 
     this.bsphere = new og.bv.Sphere();
 
@@ -92,7 +94,7 @@ og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = functi
             });
         }
 
-        ec.addEntities(entities);
+        this.deferredEntities.push.apply(this.deferredEntities, entities);
     }
 };
 
@@ -121,7 +123,8 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities) {
 
     this.count = entities.length;
 
-    if (entities.length > this.layer._maxCountPerCollection || this.zoom < this.layer.minZoom || this.zoom < 5) {
+    if (entities.length > this.layer._maxCountPerCollection ||
+        this.zoom < this.layer.minZoom || this.zoom < this.layer._minTreeZoom) {
         var cn = this.childrenNodes;
         if (!cn.length) {
             this.createChildrenNodes();
@@ -132,17 +135,19 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities) {
         var i = entities.length;
         while (i--) {
             var ei = entities[i];
-
             var p = this._setLonLat(ei);
-
             if (p) {
                 if (cn[og.quadTree.NW].extent.isInside(p)) {
+                    ei._nodePtr = cn[og.quadTree.NW];
                     en_nw.push(ei);
                 } else if (cn[og.quadTree.NE].extent.isInside(p)) {
+                    ei._nodePtr = cn[og.quadTree.NE];
                     en_ne.push(ei);
                 } else if (cn[og.quadTree.SW].extent.isInside(p)) {
+                    ei._nodePtr = cn[og.quadTree.SW];
                     en_sw.push(ei);
                 } else if (cn[og.quadTree.SE].extent.isInside(p)) {
+                    ei._nodePtr = cn[og.quadTree.SE];
                     en_se.push(ei);
                 }
             }
@@ -154,7 +159,6 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities) {
         en_se.length && cn[og.quadTree.SE].buildTree(en_se);
 
     } else {
-
         this._addEntitiesToCollection(entities);
     }
 };
@@ -194,9 +198,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = functi
     if (n) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
-            this.entityCollection._animatedOpacity = this.layer.opacity;
-            this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
-            outArr.push(this.entityCollection);
+            this.renderCollection(outArr);
         } else if (cn.length) {
             if (n.state === og.quadTree.RENDERING) {
                 this.layer._secondPASS.push(this);
@@ -218,9 +220,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
-            this.entityCollection._animatedOpacity = this.layer.opacity;
-            this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
-            outArr.push(this.entityCollection);
+            this.renderCollection(outArr);
         } else if (cn.length) {
             cn[og.quadTree.NW].collectRenderCollectionsPASS2(outArr);
             cn[og.quadTree.NE].collectRenderCollectionsPASS2(outArr);
@@ -228,6 +228,18 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
             cn[og.quadTree.SE].collectRenderCollectionsPASS2(outArr);
         }
     }
+};
+
+og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr) {
+
+    if (this.deferredEntities.length && !this._inTheQueue) {
+        this._inTheQueue = true;
+        this.layer._queueDeferredNode(this);
+    }
+
+    this.entityCollection._animatedOpacity = this.layer.opacity;
+    this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+    outArr.push(this.entityCollection);
 };
 
 /**

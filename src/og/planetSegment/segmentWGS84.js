@@ -9,6 +9,8 @@ og.planetSegment.SegmentWGS84 = function () {
     og.inheritance.base(this);
 
     this._projection = og.proj.EPSG4326;
+
+    this._isNorth = false;
 };
 
 og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;
@@ -58,6 +60,7 @@ og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (tileZoom, 
     var lat = extent.northEast.lat;
     if (lat > 0) {
         //north pole
+        this._isNorth = true;
         this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
     } else {
         //south pole
@@ -151,5 +154,9 @@ og.planetSegment.SegmentWGS84.prototype.drawGeoImage = function (geoImage) {
 };
 
 og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
-    //this.planet._visibleNodes[this.node.nodeId] = true;
+    if (this._isNorth) {
+        this.planet._visibleNodesNorth[this.node.nodeId] = this.node;
+    } else {
+        this.planet._visibleNodesSouth[this.node.nodeId] = this.node;
+    }
 };

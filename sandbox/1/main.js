@@ -93,16 +93,53 @@ function createEntities() {
 //        });
 //};
 
+//function loadCapitals() {
+//    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
+//    function (obj) {
+//        var f = obj.features;
+//        for (var i = 0; i < f.length; i++) {
+//            var fi = f[i];
+//            var name = fi.properties.ISO_A2;
+//            if (!ent[name]) {
+//                ent[name] = [];
+//            }
+//            var e = new og.Entity({
+//                lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
+//                label: {
+//                    text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
+//                    align: "center",
+//                    size: 25,
+//                    color: new og.math.Vector4(0, 0, 0, 1),
+//                    //outlineColor: new og.math.Vector4(0, 0, 0, 1),
+//                    outline: 0.0,
+//                    weight: "normal",
+//                    face: "verdana"
+//                }
+//            });
+//            ent[name].push(e);
+//        }
+
+//        for (var i in ent) {
+//            vec[i] = new og.layer.Vector(i, { visibility: true, isBaseLayer: false, minZoom: 0, entities: ent[i] });
+//            vec[i].events.on("draw", vec[i], function () {
+//                var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+//                this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+//            });
+//            vec[i].addTo(globus.planet);
+
+//        }
+
+//    });
+//};
+
+
 function loadCapitals() {
     $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
     function (obj) {
         var f = obj.features;
+        var entities = [];
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
-            var name = fi.properties.ISO_A2;
-            if (!ent[name]) {
-                ent[name] = [];
-            }
             var e = new og.Entity({
                 lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
                 label: {
@@ -116,19 +153,9 @@ function loadCapitals() {
                     face: "verdana"
                 }
             });
-            ent[name].push(e);
+            entities.push(e);
         }
-
-        for (var i in ent) {
-            vec[i] = new og.layer.Vector(i, { visibility: true, isBaseLayer: false, minZoom: 0, entities: ent[i] });
-            vec[i].events.on("draw", vec[i], function () {
-                var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
-                this.setScaleByDistance(200000, maxDist + 200000, maxDist);
-            });
-            vec[i].addTo(globus.planet);
-
-        }
-
+        v0.setEntities(entities);
     });
 };
 
@@ -144,7 +171,7 @@ function start() {
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 6 });
+    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0 });
 
     v0.events.on("draw", v0, function () {
         var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
