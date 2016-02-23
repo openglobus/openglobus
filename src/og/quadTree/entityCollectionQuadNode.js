@@ -232,6 +232,8 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
 
 og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr) {
 
+    this.layer._renderingNodes[this.nodeId] = true;
+
     if (this.deferredEntities.length && !this._inTheQueue) {
         this._inTheQueue = true;
         this.layer._queueDeferredNode(this);
@@ -242,16 +244,27 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
     outArr.push(this.entityCollection);
 };
 
+og.quadTree.EntityCollectionQuadNode.prototype.isVisible = function () {
+    if (this.layer._renderingNodes[this.nodeId]) {
+        return true;
+    }
+    return false;
+};
+
 /**
  * @class
  */
 og.quadTree.EntityCollectionQuadNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
     og.inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
+    this.isNorth = false;
 };
 
 og.inheritance.extend(og.quadTree.EntityCollectionQuadNodeWGS84, og.quadTree.EntityCollectionQuadNode);
 
 og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setExtentBounds = function () {
+    if (this.extent.northEast.lat > 0) {
+        this.isNorth = true;
+    }
     this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent);
 };
 
@@ -260,4 +273,31 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setLonLat = function (entit
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
     return entity._lonlat;
+};
+
+og.quadTree.EntityCollectionQuadNodeWGS84.prototype.isVisible = function () {
+    if (this.isNorth && this.layer._renderingNodesNorth[this.nodeId]) {
+        return true;
+    } else if (this.layer._renderingNodesSouth[this.nodeId]) {
+        return true;
+    }
+    return false;
+};
+
+og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function (outArr) {
+
+    if (this.isNorth) {
+        this.layer._renderingNodesNorth[this.nodeId] = true;
+    } else {
+        this.layer._renderingNodesSouth[this.nodeId] = true;
+    }
+
+    if (this.deferredEntities.length && !this._inTheQueue) {
+        this._inTheQueue = true;
+        this.layer._queueDeferredNode(this);
+    }
+
+    this.entityCollection._animatedOpacity = this.layer.opacity;
+    this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+    outArr.push(this.entityCollection);
 };

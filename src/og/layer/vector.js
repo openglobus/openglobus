@@ -97,6 +97,10 @@ og.layer.Vector = function (name, options) {
     this._entityCollectionsTreeNorth = null;
     this._entityCollectionsTreeSouth = null;
 
+    this._renderingNodes = {};
+    this._renderingNodesNorth = {};
+    this._renderingNodesSouth = {};
+
     this._counter = 0;
     this._deferredEntitiesPendingQueue = new og.QueueArray();
 
@@ -435,6 +439,10 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
 
+        this._renderingNodes = {};
+        this._renderingNodesNorth = {};
+        this._renderingNodesSouth = {};
+
         this._secondPASS = [];
         this._entityCollectionsTree.collectRenderCollections(this._planet._visibleNodes, outArr);
         var i = this._secondPASS.length;
@@ -492,7 +500,7 @@ og.layer.Vector.prototype._dequeueRequest = function () {
 og.layer.Vector.prototype._whilePendings = function () {
     while (this._deferredEntitiesPendingQueue.length) {
         var node = this._deferredEntitiesPendingQueue.pop();
-        if (true) {
+        if (node.isVisible()) {
             return node;
         }
     }
