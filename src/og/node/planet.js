@@ -649,7 +649,7 @@ og.node.Planet.prototype.frame = function () {
 
     this._collectRenderNodes();
 
-    //print2d("lbTiles", "min = " + this.minCurrZoom + ", max = " + this.maxCurrZoom, 100, 100);
+    //print2d("lbTiles", cam._n.dot(cam.eye.normal()), 100, 100);
 
     if (!this._isCameraSunlight)
         this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);

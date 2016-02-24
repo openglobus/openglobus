@@ -88,7 +88,7 @@ og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = functi
                 e.remove();
                 var node = this;
                 while (node) {
-                    this.count--;
+                    node.count--;
                     node = node.parentNode;
                 }
             });

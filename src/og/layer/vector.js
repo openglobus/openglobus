@@ -318,7 +318,25 @@ og.layer.Vector.prototype.removeEntity = function (entity) {
     while (i--) {
         if (this._entities[i].id === entity.id) {
             this._entities.splice(i, 1);
-            entity.remove();
+            if (entity._entityCollection) {
+                entity.remove();
+            } else if (entity._nodePtr &&
+                entity._nodePtr._deferredEntities &&
+                entity._nodePtr._deferredEntities.length) {
+                var defEntities = entity._nodePtr._deferredEntities;
+                var j = defEntities.length;
+                while (j--) {
+                    if (defEntities[j].id === entity.id) {
+                        defEntities.splice(j, 1);
+                        var node = entity._nodePtr;
+                        while (node) {
+                            node.count--;
+                            node = node.parentNode;
+                        }
+                        break;
+                    }
+                }
+            }
             this.events.dispatch(this.events.entityremove, entity);
             break;
         }
