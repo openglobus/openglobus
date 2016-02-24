@@ -12,6 +12,7 @@ goog.require('og.math.Ray');
 og.control.MouseNavigation = function (options) {
     og.inheritance.base(this, options);
     this.grabbedPoint = new og.math.Vector3();
+    this._eye0 = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();
     this.earthUp = new og.math.Vector3();
     this.inertia = 0.007;
@@ -149,6 +150,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
     this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
     if (this.grabbedPoint) {
+        this._eye0.copy(this.renderer.activeCamera.eye);
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
         this.stopRotation();
     }
@@ -171,16 +173,26 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
     if (this.renderer.events.mouseState.moving) {
 
         var cam = this.renderer.activeCamera;
-        var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
 
-        if (targetPoint) {
-            this.scaleRot = 1;
-            this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
-            var rot = this.qRot;
-            cam.eye = rot.mulVec3(cam.eye);
-            cam._v = rot.mulVec3(cam._v);
-            cam._u = rot.mulVec3(cam._u);
-            cam._n = rot.mulVec3(cam._n);
+        if (cam._n.dot(cam.eye.normal()) > 0.15) {
+            var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
+            if (targetPoint) {
+                this.scaleRot = 1;
+                this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
+                var rot = this.qRot;
+                cam.eye = rot.mulVec3(cam.eye);
+                cam._v = rot.mulVec3(cam._v);
+                cam._u = rot.mulVec3(cam._u);
+                cam._n = rot.mulVec3(cam._n);
+                cam.update();
+            }
+        } else {
+            var p0 = this.grabbedPoint,
+                p1 = og.math.Vector3.add(p0, cam._u),
+                p2 = og.math.Vector3.add(p0, p0.normal());
+
+            var px = new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2);
+            cam.eye = this._eye0.add(px.sub(p0).negate());
             cam.update();
         }
     } else {

@@ -104,8 +104,26 @@ og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
 //    return new og.math.Vector3(u, v, t);
 //};
 
-og.math.Ray.prototype.hitPlane = function (point, normal) {
+og.math.Ray.prototype.hitPlane = function (v0, v1, v2) {
+    var u = og.math.Vector3.sub(v1, v0);
+    var v = og.math.Vector3.sub(v2, v0);
+    var n = u.cross(v);
 
+    var w0 = og.math.Vector3.sub(this.origin, v0);
+    var a = -n.dot(w0);
+    var b = n.dot(this.direction);
+
+    // ray is  parallel to the plane
+    if (Math.abs(b) < og.math.EPSILON10) {
+        if (a == 0) {
+            return this.origin;
+        }
+    }
+
+    var r = a / b;
+
+    // intersect point of ray and plane
+    return og.math.Vector3.add(this.origin, this.direction.scaleTo(r));
 };
 
 og.math.Ray.prototype.hitSphere = function (sphere) {
