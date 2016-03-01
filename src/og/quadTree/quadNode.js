@@ -228,27 +228,30 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         seg = this.planetSegment,
         planet = this.planet;
 
-    this._cameraInside = false;
-    if (this.parentNode && this.parentNode._cameraInside) {
+    if (this.parentNode) {
 
-        var inside;
+        this._cameraInside = false;
 
-        //Because first wgs segments collected it cant be changed to lonLat.
-        if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
-            cam._lonLat.lat >= og.mercator.MIN_LAT &&
-            seg._projection.id == og.proj.EPSG3857.id) {
-            inside = seg.extent.isInside(cam._mercatorLonLat);
-            cam._insideSegmentPosition = cam._mercatorLonLat;
-        } else if (seg._projection.id == og.proj.EPSG4326.id) {
-            inside = seg.extent.isInside(cam._lonLat);
-            cam._insideSegmentPosition = cam._lonLat;
+        if (this.parentNode._cameraInside) {
+
+            var inside;
+
+            //Because first wgs segments collected it cant be changed to lonLat.
+            if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
+                cam._lonLat.lat >= og.mercator.MIN_LAT &&
+                seg._projection.id == og.proj.EPSG3857.id) {
+                inside = seg.extent.isInside(cam._lonLatMerc);
+                cam._insideSegmentPosition = cam._lonLatMerc;
+            } else if (seg._projection.id == og.proj.EPSG4326.id) {
+                inside = seg.extent.isInside(cam._lonLat);
+                cam._insideSegmentPosition = cam._lonLat;
+            }
+
+            if (inside) {
+                cam._insideSegment = seg;
+                this._cameraInside = true;
+            }
         }
-
-        if (inside) {
-            cam._insideSegment = seg;
-            this._cameraInside = true;
-        }
-
     } else {
         this._cameraInside = true;
     }
