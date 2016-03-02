@@ -255,6 +255,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
             while (j--) {
                 if (n[j].planetSegment.isEntityInside(ei)) {                    
                     n[j].planetSegment.getEntityTerrainPoint(ei, pos);
+                    ei.setCartesian3v(pos);
                     break;
                 }
             }

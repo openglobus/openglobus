@@ -70,7 +70,7 @@ function eX(lon, lat, src) {
 };
 
 function createEntities() {
-    return [eX(0, 0), eX(10, 10, "ship.png"), eX(25, 0), eX(25, -25), eX(45, 45, "ship.png"), eX(1, 1), eX(30, -5)];
+    return [eX(0, 0), eX(10, 10, "ship.png"), eX(81.29341, 30.44327), eX(25, -25, "satellite.png"), eX(45, 45, "ship.png"), eX(1, 1), eX(30, -5)];
 };
 
 //function loadCountries() {
@@ -168,7 +168,7 @@ function loadCapitals() {
 function start() {
 
     //loadCountries();
-    //loadCapitals();
+    loadCapitals();
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
@@ -180,10 +180,10 @@ function start() {
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0, groundAlign: true });
 
-    //v0.events.on("draw", v0, function () {
-    //    var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
-    //    this.setScaleByDistance(200000, maxDist + 200000, maxDist);
-    //});
+    v0.events.on("draw", v0, function () {
+        var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    });
 
 
 
