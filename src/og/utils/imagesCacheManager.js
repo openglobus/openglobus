@@ -34,7 +34,7 @@ og.utils.ImagesCacheManager.prototype._exec = function (req) {
     img.crossOrigin = '';
     img.onload = function () {
         if (req.src.length < og.utils.ImagesCacheManager.MAX_SRC_LENGTH) {
-            that.imagesCache[req.src] = this;
+            that.imagesCache[req.src] = img;
         }
         this.__nodeIndex = that._imageIndexCounter++;
         req.success(this);

@@ -89,3 +89,20 @@ og.ImageCanvas.prototype.loadImage = function (url, callback) {
     }
     img.src = url;
 };
+
+og.ImageCanvas.prototype.openImage = function () {
+    var img = this.getImage();
+    var dataUrl = img.src;
+    var windowContent = '<!DOCTYPE html>';
+    windowContent += '<html>'
+    windowContent += '<head><title>Print</title></head>';
+    windowContent += '<body>'
+    windowContent += '<img src="' + dataUrl + '">';
+    windowContent += '</body>';
+    windowContent += '</html>';
+    var printWin = window.open('', '', 'width=' + img.width + 'px ,height=' + img.height + 'px');
+    printWin.document.open();
+    printWin.document.write(windowContent);
+    printWin.document.close();
+    printWin.focus();
+};

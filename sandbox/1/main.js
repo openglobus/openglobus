@@ -45,26 +45,32 @@ function addEntity(lon, lat) {
     voi++;
 }
 
-function eX(lon, lat) {
+function eX(lon, lat, src) {
     var e = new og.Entity({
         lonlat: new og.LonLat(lon, lat, 0),
-        label: {
-            text: "Hello_" + voi,
-            align: "center",
-            size: 60,
-            color: new og.math.Vector4(1, 1, 1, 1),
-            outlineColor: new og.math.Vector4(0, 0, 0, 1),
-            outline: 0.45,
-            weight: "bold",
-            face: "verdana"
+        billboard: {
+            src: src || "marker.png",
+            width: 64,
+            height: 64,
+            offset: [0, 32]
         }
+        //label: {
+        //    text: "Hello_" + voi,
+        //    align: "center",
+        //    size: 60,
+        //    color: new og.math.Vector4(1, 1, 1, 1),
+        //    outlineColor: new og.math.Vector4(0, 0, 0, 1),
+        //    outline: 0.45,
+        //    weight: "bold",
+        //    face: "verdana"
+        //}
     });
     voi++;
     return e;
 };
 
 function createEntities() {
-    return [eX(0, 0), eX(10, 10), eX(25, 0), eX(25, -25), eX(45, 45), eX(1, 1), eX(30, -5)];
+    return [eX(0, 0), eX(10, 10, "ship.png"), eX(25, 0), eX(25, -25), eX(45, 45, "ship.png"), eX(1, 1), eX(30, -5)];
 };
 
 //function loadCountries() {
@@ -162,7 +168,7 @@ function loadCapitals() {
 function start() {
 
     //loadCountries();
-    loadCapitals();
+    //loadCapitals();
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
@@ -172,12 +178,12 @@ function start() {
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0 });
+    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0, groundAlign: true });
 
-    v0.events.on("draw", v0, function () {
-        var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
-        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
-    });
+    //v0.events.on("draw", v0, function () {
+    //    var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+    //    this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    //});
 
 
 

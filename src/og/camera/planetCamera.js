@@ -43,7 +43,7 @@ og.PlanetCamera = function (planet, options) {
      * @private
      * @type {og.LonLat}
      */
-    this._mercatorLonLat = this._lonLat.forwardMercator();
+    this._lonLatMerc = this._lonLat.forwardMercator();
 
     /**
      * Current altitude.
@@ -64,7 +64,14 @@ og.PlanetCamera = function (planet, options) {
      * @private
      * @type {og.quadTree.QuadNode}
      */
-    this._insideSegment = null;//this.planet.quadTree;
+    this._insideSegment = null;
+
+    /**
+     * Coordinates that depends on what segment class we are fling over.
+     * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.QuadNode
+     * @private
+     * @type {og.LonLat} - actually it's a pointer to the _lonLat or _lonLatMerc
+     */
     this._insideSegmentPosition = null;
 
     /** Camera's flying frames */
@@ -124,7 +131,7 @@ og.PlanetCamera.prototype.updateGeodeticPosition = function () {
     this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
     if (this._lonLat.lat <= og.mercator.MAX_LAT &&
         this._lonLat.lat >= og.mercator.MIN_LAT) {
-        this._mercatorLonLat = this._lonLat.forwardMercator();
+        this._lonLatMerc = this._lonLat.forwardMercator();
     }
 };
 

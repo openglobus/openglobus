@@ -70,6 +70,13 @@ og.Entity = function (options, properties) {
     this._lonlat = options.lonlat || null;
 
     /**
+     * Altitude over a terrain. Available only if render node is a planet.
+     * @private
+     * @type {number}
+     */
+    this._altitude = 0.0;
+
+    /**
      * Visibility.
      * @private
      * @type {boolean}

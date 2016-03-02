@@ -1023,3 +1023,22 @@ og.node.Planet.prototype.flyLonLat = function (lonlat, look, up) {
 og.node.Planet.prototype.stopFlying = function () {
     this.renderer.activeCamera.stopFlying();
 };
+
+og.node.Planet.prototype.updateBillboardsTexCoords = function () {
+    for (var i = 0; i < this.entityCollections.length; i++) {
+        this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
+    }
+
+    var readyCollections = {};
+    for (var i = 0; i < this.layers.length; i++) {
+        var li = this.layers[i];
+        if (li instanceof og.layer.Vector) {
+            li.each(function (e) {
+                if (e._entityCollection && !readyCollections[e._entityCollection.id]) {
+                    e._entityCollection.billboardHandler.refreshTexCoordsArr();
+                    readyCollections[e._entityCollection.id] = true;
+                }
+            });
+        }
+    }
+};

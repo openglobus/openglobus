@@ -75,6 +75,8 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
+    this.groundAlign = options.groundAlign || false;
+
     /**
      * Maximum entities quantity in the tree node.
      * @private

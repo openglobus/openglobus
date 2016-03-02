@@ -239,9 +239,27 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
         this.layer._queueDeferredNode(this);
     }
 
-    this.entityCollection._animatedOpacity = this.layer.opacity;
-    this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+    var ec = this.entityCollection;
+    ec._animatedOpacity = this.layer.opacity;
+    ec.scaleByDistance = this.layer.scaleByDistance;
     outArr.push(this.entityCollection);
+
+    if (this.layer.groundAlign) {
+        var pos = new og.math.Vector3();
+        var e = ec._entities;
+        var i = e.length;
+        var n = this.layer._planet._renderedNodes;
+        while (i--) {
+            var ei = e[i];
+            var j = n.length;
+            while (j--) {
+                if (n[j].planetSegment.isEntityInside(ei)) {                    
+                    n[j].planetSegment.getEntityTerrainPoint(ei, pos);
+                    break;
+                }
+            }
+        }
+    }
 };
 
 og.quadTree.EntityCollectionQuadNode.prototype.isVisible = function () {

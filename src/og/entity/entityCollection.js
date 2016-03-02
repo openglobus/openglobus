@@ -47,6 +47,13 @@ og.EntityCollection = function (options) {
     options = options || {};
 
     /**
+     * Unic identifier.
+     * @public
+     * @readonly
+     */
+    this.id = og.EntityCollection.__staticCounter++;
+
+    /**
      * Render node collections array index.
      * @private
      * @type {number}
@@ -129,6 +136,8 @@ og.EntityCollection = function (options) {
     this.events = new og.Events();
     this.events.registerNames(og.EntityCollection.EVENT_NAMES);
 };
+
+og.EntityCollection.__staticCounter = 0;
 
 /**
  * Entity collection events names

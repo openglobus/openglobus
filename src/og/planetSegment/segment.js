@@ -177,18 +177,17 @@ og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
  * @param {og.Entity} entity - Entity.
  * @returns {og.math.Vector3}
  */
-og.planetSegment.Segment.prototype.getEntityTerrainPoint = function (entity) {
-    var c = this.projectNative(entity._lonLat);
-    if (this.extent.isInside(c)) {
-        var res = new og.math.Vector3();
-        this.getTerrainPoint(res, entity._position, c);
-        return res;
-    }
-    return null;
+og.planetSegment.Segment.prototype.getEntityTerrainPoint = function (entity, res) {
+    this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
+    return res;
+};
+
+og.planetSegment.Segment.prototype.isEntityInside = function (e) {
+    return this.extent.isInside(e._lonlatMerc);
 };
 
 /**
- * Returns distance from object to terrain coordinates.
+ * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
  * @param {og.math.Vector3} res - Result cartesian coordiantes on the terrain.
  * @param {og.math.Vector3} xyz - Cartesian object position.

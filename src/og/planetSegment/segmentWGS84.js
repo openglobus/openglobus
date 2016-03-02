@@ -160,3 +160,7 @@ og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
         this.planet._visibleNodesSouth[this.node.nodeId] = this.node;
     }
 };
+
+og.planetSegment.SegmentWGS84.prototype.isEntityInside = function (e) {
+    return this.extent.isInside(e._lonlat);
+};
