@@ -178,7 +178,7 @@ function start() {
     var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0, groundAlign: true });
+    v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0, groundAlign: false });
 
     v0.events.on("draw", v0, function () {
         var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;

@@ -235,7 +235,6 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
     this.layer._renderingNodes[this.nodeId] = true;
 
     if (this.deferredEntities.length && !this._inTheQueue) {
-        this._inTheQueue = true;
         this.layer._queueDeferredNode(this);
     }
 
@@ -251,12 +250,18 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
         var n = this.layer._planet._renderedNodes;
         while (i--) {
             var ei = e[i];
-            var j = n.length;
-            while (j--) {
-                if (n[j].planetSegment.isEntityInside(ei)) {                    
-                    n[j].planetSegment.getEntityTerrainPoint(ei, pos);
-                    ei.setCartesian3v(pos);
-                    break;
+            if (!ei._lonlat.heigth) {
+                var j = n.length;
+                while (j--) {
+                    if (n[j].planetSegment.isEntityInside(ei)) {
+                        n[j].planetSegment.getEntityTerrainPoint(ei, pos);
+                        if (ei._altitude) {
+                            ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
+                        } else {
+                            ei.setCartesian3v(pos);
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -312,7 +317,6 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function 
     }
 
     if (this.deferredEntities.length && !this._inTheQueue) {
-        this._inTheQueue = true;
         this.layer._queueDeferredNode(this);
     }
 

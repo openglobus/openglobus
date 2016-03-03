@@ -488,6 +488,7 @@ og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
 
 og.layer.Vector.prototype._queueDeferredNode = function (node) {
     if (this._visibility) {
+        node._inTheQueue = true;
         if (this._counter >= 1) {
             this._deferredEntitiesPendingQueue.push(node);
         } else {
@@ -520,6 +521,7 @@ og.layer.Vector.prototype._dequeueRequest = function () {
 og.layer.Vector.prototype._whilePendings = function () {
     while (this._deferredEntitiesPendingQueue.length) {
         var node = this._deferredEntitiesPendingQueue.pop();
+        node._inTheQueue = false;
         if (node.isVisible()) {
             return node;
         }
