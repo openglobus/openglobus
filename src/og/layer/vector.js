@@ -75,6 +75,8 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
+    this.async = options.async != undefined ? options.async : true;
+
     this.groundAlign = options.groundAlign || false;
 
     /**
@@ -501,10 +503,7 @@ og.layer.Vector.prototype._execDeferredNode = function (node) {
     this._counter++;
     var that = this;
     setTimeout(function () {
-        node.entityCollection.addEntities(node.deferredEntities);
-        node.deferredEntities.length = 0;
-        node.deferredEntities = [];
-        node._inTheQueue = false;
+        node.applyCollection();
         that._dequeueRequest();
     }, 0);
 };

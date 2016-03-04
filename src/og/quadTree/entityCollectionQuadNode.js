@@ -230,12 +230,23 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
     }
 };
 
+og.quadTree.EntityCollectionQuadNode.prototype.applyCollection = function () {
+    this.entityCollection.addEntities(this.deferredEntities);
+    this.deferredEntities.length = 0;
+    this.deferredEntities = [];
+    this._inTheQueue = false;
+};
+
 og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr) {
 
     this.layer._renderingNodes[this.nodeId] = true;
 
     if (this.deferredEntities.length && !this._inTheQueue) {
-        this.layer._queueDeferredNode(this);
+        if (this.layer.async) {
+            this.layer._queueDeferredNode(this);
+        } else {
+            this.applyCollection();
+        }
     }
 
     var ec = this.entityCollection;
@@ -317,7 +328,11 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function 
     }
 
     if (this.deferredEntities.length && !this._inTheQueue) {
-        this.layer._queueDeferredNode(this);
+        if (this.layer.async) {
+            this.layer._queueDeferredNode(this);
+        } else {
+            this.applyCollection();
+        }
     }
 
     this.entityCollection._animatedOpacity = this.layer.opacity;

@@ -242,6 +242,10 @@ og.Entity.prototype.setLonLat = function (lonlat) {
     }
 };
 
+og.Entity.prototype.setAltitude = function (altitude) {
+    this._altitude = altitude;
+};
+
 /**
  * Returns carteain position.
  * @public

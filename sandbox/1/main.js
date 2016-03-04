@@ -168,7 +168,7 @@ function loadCapitals() {
 function start() {
 
     //loadCountries();
-    loadCapitals();
+    //loadCapitals();
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
