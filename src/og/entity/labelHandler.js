@@ -146,8 +146,8 @@ og.LabelHandler.prototype._addBillboardToArrays = function (label) {
 
         og.BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
 
-        var x = label._position.x, y = label._position.y, z = label._position.z;
-        og.BillboardHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        var x = label._position.x, y = label._position.y, z = label._position.z, w = label._scale;
+        og.BillboardHandler.concArr(this._positionArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
         x = label._size;
         og.BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
@@ -311,11 +311,11 @@ og.LabelHandler.prototype._removeBillboard = function (label) {
     this._rgbaArr.splice(i, ml);
     this._outlineColorArr.splice(i, ml);
     this._texCoordArr.splice(i, ml);
+    this._positionArr.splice(i, ml);
 
     ml = 18 * this._maxLetters;
     i = li * ml;
     this._offsetArr.splice(i, ml);
-    this._positionArr.splice(i, ml);
     this._alignedAxisArr.splice(i, ml);
     this._pickingColorArr.splice(i, ml);
 
@@ -433,34 +433,51 @@ og.LabelHandler.prototype.setText = function (index, text, fontIndex, align) {
 };
 
 og.LabelHandler.prototype.setPositionArr = function (index, position) {
-    var i = index * 18 * this._maxLetters;
+    var i = index * 24 * this._maxLetters;
     var a = this._positionArr, x = position.x, y = position.y, z = position.z;
 
     for (var q = 0; q < this._maxLetters; q++) {
-        var j = i + q * 18;
+        var j = i + q * 24;
         a[j] = x;
         a[j + 1] = y;
         a[j + 2] = z;
 
-        a[j + 3] = x;
-        a[j + 4] = y;
-        a[j + 5] = z;
+        a[j + 4] = x;
+        a[j + 5] = y;
+        a[j + 6] = z;
 
-        a[j + 6] = x;
-        a[j + 7] = y;
-        a[j + 8] = z;
-
-        a[j + 9] = x;
-        a[j + 10] = y;
-        a[j + 11] = z;
+        a[j + 8] = x;
+        a[j + 9] = y;
+        a[j + 10] = z;
 
         a[j + 12] = x;
         a[j + 13] = y;
         a[j + 14] = z;
 
-        a[j + 15] = x;
-        a[j + 16] = y;
-        a[j + 17] = z;
+        a[j + 16] = x;
+        a[j + 17] = y;
+        a[j + 18] = z;
+
+        a[j + 20] = x;
+        a[j + 21] = y;
+        a[j + 22] = z;
+    }
+
+    this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
+};
+
+og.LabelHandler.prototype.setScaleArr = function (index, scale) {
+
+    var i = index * 24 * this._maxLetters;
+    var a = this._positionArr;
+    for (var q = 0; q < this._maxLetters; q++) {
+        var j = i + q * 24;
+        a[j + 3] = scale;
+        a[j + 7] = scale;
+        a[j + 11] = scale;
+        a[j + 15] = scale;
+        a[j + 19] = scale;
+        a[j + 23] = scale;
     }
 
     this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;

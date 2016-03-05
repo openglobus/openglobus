@@ -20,7 +20,7 @@ og.shaderProgram.billboard = function () {
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
             a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_rgba: { type: og.shaderProgram.types.VEC4, enableArray: true },
@@ -44,7 +44,7 @@ og.shaderProgram.billboardPicking = function () {
         },
         attributes: {
             a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
             a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
             a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
             a_pickingColor: { type: og.shaderProgram.types.VEC3, enableArray: true },

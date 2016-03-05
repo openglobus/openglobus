@@ -187,8 +187,8 @@ og.BillboardHandler.prototype._addBillboardToArrays = function (billboard) {
 
     og.BillboardHandler.concArr(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
-    var x = billboard._position.x, y = billboard._position.y, z = billboard._position.z;
-    og.BillboardHandler.concArr(this._positionArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+    var x = billboard._position.x, y = billboard._position.y, z = billboard._position.z, w = billboard._scale;
+    og.BillboardHandler.concArr(this._positionArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
     x = billboard._width; y = billboard._height;
     og.BillboardHandler.concArr(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
@@ -337,10 +337,10 @@ og.BillboardHandler.prototype._removeBillboard = function (billboard) {
 
     var i = bi * 24;
     this._rgbaArr.splice(i, 24);
+    this._positionArr.splice(i, 24);
 
     i = bi * 18;
     this._offsetArr.splice(i, 18);
-    this._positionArr.splice(i, 18);
     this._alignedAxisArr.splice(i, 18);
     this._pickingColorArr.splice(i, 18);
 
@@ -367,32 +367,47 @@ og.BillboardHandler.prototype.remove = function (billboard) {
 
 og.BillboardHandler.prototype.setPositionArr = function (index, position) {
 
-    var i = index * 18;
+    var i = index * 24;
     var a = this._positionArr, x = position.x, y = position.y, z = position.z;
 
     a[i] = x;
     a[i + 1] = y;
-    a[i + 2] = z;
+    a[i + 2] = z;   
 
-    a[i + 3] = x;
-    a[i + 4] = y;
-    a[i + 5] = z;
-
-    a[i + 6] = x;
-    a[i + 7] = y;
-    a[i + 8] = z;
-
-    a[i + 9] = x;
-    a[i + 10] = y;
-    a[i + 11] = z;
+    a[i + 4] = x;
+    a[i + 5] = y;
+    a[i + 6] = z;
+    
+    a[i + 8] = x;
+    a[i + 9] = y;
+    a[i + 10] = z;    
 
     a[i + 12] = x;
     a[i + 13] = y;
     a[i + 14] = z;
+    
+    a[i + 16] = x;
+    a[i + 17] = y;
+    a[i + 18] = z;    
 
-    a[i + 15] = x;
-    a[i + 16] = y;
-    a[i + 17] = z;
+    a[i + 20] = x;
+    a[i + 21] = y;
+    a[i + 22] = z;    
+
+    this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
+};
+
+og.BillboardHandler.prototype.setScaleArr = function (index, scale) {
+
+    var i = index * 24;
+    var a = this._positionArr;
+
+    a[i + 3] = scale;
+    a[i + 7] = scale;
+    a[i + 11] = scale;
+    a[i + 15] = scale;
+    a[i + 19] = scale;
+    a[i + 23] = scale;
 
     this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
 };
@@ -635,7 +650,7 @@ og.BillboardHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) 
 og.BillboardHandler.prototype.createPositionBuffer = function () {
     var h = this._renderer.handler;
     h.gl.deleteBuffer(this._positionBuffer);
-    this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionArr), 3, this._positionArr.length / 3);
+    this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionArr), 4, this._positionArr.length / 4);
 };
 
 og.BillboardHandler.prototype.createSizeBuffer = function () {

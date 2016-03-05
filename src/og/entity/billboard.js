@@ -31,7 +31,6 @@ og.Billboard = function (options) {
     this._image = options.image || null;
     this._width = options.width || (options.size ? options.size.x : 0);
     this._height = options.height || (options.size ? options.size.y : 0);
-    this._scale = options.scale || 1.0;
 };
 
 og.inheritance.extend(og.Billboard, og.BaseBillboard);
@@ -95,25 +94,6 @@ og.Billboard.prototype.getSize = function () {
         "width": this._width,
         "height": this._height
     };
-};
-
-/**
- * Sets billboard scale.
- * @public
- * @param {number} scale - Scale.
- */
-og.Billboard.prototype.setScale = function (scale) {
-    this._scale = scale;
-    this._handler && this._handler.setSizeArr(this._handlerIndex, this._width * scale, this._height * scale);
-};
-
-/**
- * Gets billboard scale.
- * @public
- * @returns {number}
- */
-og.Billboard.prototype.getScale = function () {
-    return this._scale;
 };
 
 /**

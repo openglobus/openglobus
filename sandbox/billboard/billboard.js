@@ -29,9 +29,10 @@ my.Billboard.prototype.initialization = function () {
     eee = new og.Entity({
         cartesian: new og.math.Vector3(500, 0, 0),
         billboard: {
-            src: "ship.png",
+            src: "marker.png",
             width: 80,
-            height: 80
+            height: 80,
+            offset: [0, 40]
         },
         label: {
             text: "Billboard",
@@ -47,9 +48,10 @@ my.Billboard.prototype.initialization = function () {
     eee1 = new og.Entity({
         cartesian: new og.math.Vector3(0, 500, 0),
         billboard: {
-            src: "ship.png",
+            src: "marker.png",
             width: 80,
-            height: 80
+            height: 80,
+            offset:[0,40]
         },
         label: {
             face: "arial black",
@@ -62,9 +64,10 @@ my.Billboard.prototype.initialization = function () {
     eee2 = new og.Entity({
         cartesian: new og.math.Vector3(0, 0, 500),
         billboard: {
-            src: "wall.jpg",
+            src: "marker.png",
             width: 80,
-            height: 80
+            height: 80,
+            offset: [0, 40]
         },
         label: {
             face: "monospace",
@@ -107,12 +110,14 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size1').oninput = function () {
         eee.label.setSize(this.value);
+        eee.billboard.setScale(this.value/25);
     };
     document.getElementById('buffer1').oninput = function () {
         eee.label.setOutline(this.value);
     };
     document.getElementById('rotation1').oninput = function () {
         eee.label.setRotation(this.value * Math.PI / 180.0);
+        eee.billboard.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text1').oninput = function () {
         eee.label.setText(this.value);
@@ -120,12 +125,14 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size2').oninput = function () {
         eee1.label.setSize(this.value);
+        eee1.billboard.setScale(this.value/25);
     };
     document.getElementById('buffer2').oninput = function () {
         eee1.label.setOutline(this.value);
     };
     document.getElementById('rotation2').oninput = function () {
         eee1.label.setRotation(this.value * Math.PI / 180.0);
+        eee1.billboard.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text2').oninput = function () {
         eee1.label.setText(this.value);
@@ -133,12 +140,14 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size3').oninput = function () {
         eee2.label.setSize(this.value);
+        eee2.billboard.setScale(this.value/25);
     };
     document.getElementById('buffer3').oninput = function () {
         eee2.label.setOutline(this.value);
     };
     document.getElementById('rotation3').oninput = function () {
         eee2.label.setRotation(this.value * Math.PI / 180.0);
+        eee2.billboard.setRotation(this.value * Math.PI / 180.0);
     };
     document.getElementById('text3').oninput = function () {
         eee2.label.setText(this.value);

@@ -26,6 +26,7 @@ og.BaseBillboard = function (options) {
     this._alignedAxis = og.utils.createVector3(options.algnedAxis);
     this._offset = og.utils.createVector3(options.offset)
     this._visibility = options.visibility != undefined ? options.visibility : true;
+    this._scale = options.scale || 1.0;
 
     /**
      * Entity instance that holds this billboard.
@@ -92,6 +93,25 @@ og.BaseBillboard.prototype.setOffset = function (x, y, z) {
     this._offset.y = y;
     (z != undefined) && (this._offset.z = z);
     this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
+};
+
+/**
+ * Sets billboard scale.
+ * @public
+ * @param {number} scale - Scale.
+ */
+og.BaseBillboard.prototype.setScale = function (scale) {
+    this._scale = scale;
+    this._handler && this._handler.setScaleArr(this._handlerIndex, scale);
+};
+
+/**
+ * Gets billboard scale.
+ * @public
+ * @returns {number}
+ */
+og.BaseBillboard.prototype.getScale = function () {
+    return this._scale;
 };
 
 /**
