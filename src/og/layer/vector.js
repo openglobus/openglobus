@@ -469,21 +469,21 @@ og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
         this._entityCollectionsTree.collectRenderCollections(this._planet._visibleNodes, outArr);
         var i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+            this._secondPASS[i].collectRenderCollectionsPASS2(this._planet._visibleNodes, outArr, this._secondPASS[i].nodeId);
         }
 
         this._secondPASS = [];
         this._entityCollectionsTreeNorth.collectRenderCollections(this._planet._visibleNodesNorth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+            this._secondPASS[i].collectRenderCollectionsPASS2(this._planet._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
         }
 
         this._secondPASS = [];
         this._entityCollectionsTreeSouth.collectRenderCollections(this._planet._visibleNodesSouth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(outArr);
+            this._secondPASS[i].collectRenderCollectionsPASS2(this._planet._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
         }
     }
 };

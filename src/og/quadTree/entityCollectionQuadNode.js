@@ -198,7 +198,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = functi
     if (n) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
-            this.renderCollection(outArr);
+            this.renderCollection(outArr, visibleNodes);
         } else if (cn.length) {
             if (n.state === og.quadTree.RENDERING) {
                 this.layer._secondPASS.push(this);
@@ -212,7 +212,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollections = functi
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = function (outArr) {
+og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = function (visibleNodes, outArr, renderingNodeId) {
     var p = this.layer._planet;
     var cam = p.renderer.activeCamera;
     if (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
@@ -220,12 +220,12 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
-            this.renderCollection(outArr);
+            this.renderCollection(outArr, visibleNodes, renderingNodeId);
         } else if (cn.length) {
-            cn[og.quadTree.NW].collectRenderCollectionsPASS2(outArr);
-            cn[og.quadTree.NE].collectRenderCollectionsPASS2(outArr);
-            cn[og.quadTree.SW].collectRenderCollectionsPASS2(outArr);
-            cn[og.quadTree.SE].collectRenderCollectionsPASS2(outArr);
+            cn[og.quadTree.NW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[og.quadTree.NE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[og.quadTree.SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[og.quadTree.SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
         }
     }
 };
@@ -237,7 +237,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.applyCollection = function () {
     this._inTheQueue = false;
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr) {
+og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr, visibleNodes, renderingNodeId) {
 
     this.layer._renderingNodes[this.nodeId] = true;
 
@@ -258,20 +258,47 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
         var pos = new og.math.Vector3();
         var e = ec._entities;
         var i = e.length;
-        var n = this.layer._planet._renderedNodes;
-        while (i--) {
-            var ei = e[i];
-            if (!ei._lonlat.heigth) {
-                var j = n.length;
-                while (j--) {
-                    if (n[j].planetSegment.isEntityInside(ei)) {
-                        n[j].planetSegment.getEntityTerrainPoint(ei, pos);
-                        if (ei._altitude) {
-                            ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
-                        } else {
-                            ei.setCartesian3v(pos);
+
+        if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === og.quadTree.RENDERING) {
+            while (i--) {
+                var ei = e[i];
+                if (!ei._lonlat.height) {
+                    visibleNodes[this.nodeId].planetSegment.getEntityTerrainPoint(ei, pos);
+                    if (ei._altitude) {
+                        ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
+                    } else {
+                        ei.setCartesian3v(pos);
+                    }
+                }
+            }
+        } else if (renderingNodeId) {
+            while (i--) {
+                var ei = e[i];
+                if (!ei._lonlat.height) {
+                    visibleNodes[renderingNodeId].planetSegment.getEntityTerrainPoint(ei, pos);
+                    if (ei._altitude) {
+                        ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
+                    } else {
+                        ei.setCartesian3v(pos);
+                    }
+                }
+            }
+        } else {
+            var n = this.layer._planet._renderedNodes;
+            while (i--) {
+                var ei = e[i];
+                if (!ei._lonlat.height) {
+                    var j = n.length;
+                    while (j--) {
+                        if (n[j].planetSegment.isEntityInside(ei)) {
+                            n[j].planetSegment.getEntityTerrainPoint(ei, pos);
+                            if (ei._altitude) {
+                                ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
+                            } else {
+                                ei.setCartesian3v(pos);
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -319,7 +346,7 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype.isVisible = function () {
     return false;
 };
 
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function (outArr) {
+og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function (outArr, visibleNodes, renderingNode) {
 
     if (this.isNorth) {
         this.layer._renderingNodesNorth[this.nodeId] = true;

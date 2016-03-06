@@ -178,8 +178,7 @@ og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
  * @returns {og.math.Vector3}
  */
 og.planetSegment.Segment.prototype.getEntityTerrainPoint = function (entity, res) {
-    this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
-    return res;
+    return this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
 };
 
 og.planetSegment.Segment.prototype.isEntityInside = function (e) {
