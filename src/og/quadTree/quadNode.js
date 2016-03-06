@@ -287,6 +287,7 @@ og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
     this.sideSize = [gridSize, gridSize, gridSize, gridSize];
     segment.createPlainVertices(gridSize);
     segment.terrainVertices = segment.plainVertices;
+    segment.tempVertices = segment.plainVertices;
     segment.createCoordsBuffers(segment.plainVertices, gridSize);
     segment.ready = true;
 };
