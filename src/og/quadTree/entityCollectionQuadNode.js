@@ -255,7 +255,6 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
     outArr.push(this.entityCollection);
 
     if (this.layer.groundAlign) {
-        var pos = new og.math.Vector3();
         var e = ec._entities;
         var i = e.length;
 
@@ -263,24 +262,14 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
             while (i--) {
                 var ei = e[i];
                 if (!ei._lonlat.height) {
-                    visibleNodes[this.nodeId].planetSegment.getEntityTerrainPoint(ei, pos);
-                    if (ei._altitude) {
-                        ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
-                    } else {
-                        ei.setCartesian3v(pos);
-                    }
+                    this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].planetSegment);
                 }
             }
         } else if (renderingNodeId) {
             while (i--) {
                 var ei = e[i];
                 if (!ei._lonlat.height) {
-                    visibleNodes[renderingNodeId].planetSegment.getEntityTerrainPoint(ei, pos);
-                    if (ei._altitude) {
-                        ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
-                    } else {
-                        ei.setCartesian3v(pos);
-                    }
+                    this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].planetSegment);
                 }
             }
         } else {
@@ -291,18 +280,22 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
                     var j = n.length;
                     while (j--) {
                         if (n[j].planetSegment.isEntityInside(ei)) {
-                            n[j].planetSegment.getEntityTerrainPoint(ei, pos);
-                            if (ei._altitude) {
-                                ei.setCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(pos, ei._altitude));
-                            } else {
-                                ei.setCartesian3v(pos);
-                            }
+                            this.alignEntityToTheGround(ei, n[j].planetSegment);
                             break;
                         }
                     }
                 }
             }
         }
+    }
+};
+
+og.quadTree.EntityCollectionQuadNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
+    planetSegment.getEntityTerrainPoint(entity, entity._cartesian);
+    if (entity._altitude) {
+        entity._setSilentCartesian3v(this.layer._planet.ellipsoid.getSurfaceHeight3v(entity._cartesian, entity._altitude));
+    } else {
+        entity._setSilentCartesian3v(entity._cartesian);
     }
 };
 

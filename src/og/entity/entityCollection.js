@@ -14,6 +14,7 @@ goog.require('og.Events');
  * @params {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
  * @params {number} [options.opacity] - Entity global opacity.
  *
+ * @fires og.Events#entitymove
  * @fires og.Events#draw
  * @fires og.Events#add
  * @fires og.Events#remove
@@ -145,6 +146,12 @@ og.EntityCollection.__staticCounter = 0;
  * @const
  */
 og.EntityCollection.EVENT_NAMES = [
+        /**
+         * Triggered when entity has moved.
+         * @event og.Events#draw
+         */
+        "entitymove",
+
         /**
          * Triggered when collection entities begin draw.
          * @event og.Events#draw

@@ -69,6 +69,18 @@ og.Entity = function (options, properties) {
      */
     this._lonlat = options.lonlat || null;
 
+    /**
+     * World Mercator entity coordinates.
+     * @private
+     * @type {og.LonLat}
+     */
+    this._lonlatMerc = null;
+
+    /**
+     * Entity visible terrain altitude.
+     * @private
+     * @type {number}
+     */
     this._altitude = options.altitude || 0.0;
 
     /**
@@ -213,6 +225,36 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setCartesian(x, y, z);
     }
+
+    var ec = this._entityCollection;
+    ec && ec.events.dispatch(ec.events.entitymove, this);
+};
+
+/**
+ * Sets entity cartesian position without moveentity event dispatch.
+ * @private
+ * @param {og.math.Vector3} position - Cartesian position in 3d space.
+ */
+og.Entity.prototype._setSilentCartesian3v = function (cartesian) {
+
+    var p = this._cartesian;
+
+    p.x = cartesian.x;
+    p.y = cartesian.y;
+    p.z = cartesian.z;
+
+    //billboards
+    this.billboard && this.billboard.setPosition3v(p);
+
+    //labels
+    this.label && this.label.setPosition3v(p);
+
+    //shape
+    this.shape && this.shape.setPosition3v(p);
+
+    for (var i = 0; i < this.childrenNodes.length; i++) {
+        this.childrenNodes[i].setCartesian(x, y, z);
+    }
 };
 
 og.Entity.prototype.getLonLat = function () {
@@ -237,6 +279,13 @@ og.Entity.prototype.setLonLat = function (lonlat) {
 
     var ec = this._entityCollection;
     if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+
+        if (lonlat.lat < og.mercator.MAX_LAT && lonlat.lat > og.mercator.MIN_LAT) {
+            this._lonlatMerc = lonlat.forwardMercator();
+        } else {
+            this._lonlatMerc = null;
+        }
+
         this._cartesian = ec.renderNode.ellipsoid.lonLatToCartesian(lonlat);
         this.setCartesian3v(this._cartesian);
     }

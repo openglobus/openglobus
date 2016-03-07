@@ -28,6 +28,7 @@ goog.require('og.QueueArray');
  *      Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.maxCountNode] - Rendering optimization parameter. 30 is default.
  *
+ * @fires og.Events#entitymove
  * @fires og.Events#draw
  * @fires og.Events#add
  * @fires og.Events#remove
@@ -120,6 +121,12 @@ og.inheritance.extend(og.layer.Vector, og.layer.Layer);
  * @const
  */
 og.layer.Vector.EVENT_NAMES = [
+        /**
+         * Triggered when entity has moved.
+         * @event og.Events#draw
+         */
+        "entitymove",
+
         /**
          * Triggered when layer begin draw.
          * @event og.Events#draw
@@ -432,6 +439,7 @@ og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
  */
 og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     var ve = this.events;
+    entityCollection.events.on("entitymove", null, function (e) { ve.dispatch(ve.entitymove, e); });
     entityCollection.events.on("mousemove", null, function (e) { ve.dispatch(ve.mousemove, e); });
     entityCollection.events.on("mouseenter", null, function (e) { ve.dispatch(ve.mouseenter, e); });
     entityCollection.events.on("mouseleave", null, function (e) { ve.dispatch(ve.mouseleave, e); });
