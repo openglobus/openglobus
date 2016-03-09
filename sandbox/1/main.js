@@ -147,7 +147,7 @@ function loadCapitals() {
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
             var e = new og.Entity({
-                lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 1000),
+                lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 0),
                 label: {
                     text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
                     align: "center",

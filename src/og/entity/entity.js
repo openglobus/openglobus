@@ -103,6 +103,10 @@ og.Entity = function (options, properties) {
      */
     this._entityCollectionIndex = -1;
 
+    this._vectorLayer = null;
+
+    this._vectorLayerIndex = -1;
+
     /**
      * Picking color.
      * @private
@@ -145,16 +149,17 @@ og.Entity.prototype._createOptionFeature = function (featureName, options) {
  * @public
  * @param {og.EntityCollection} entityCollection - Specified entity collection.
  */
-og.Entity.prototype.addTo = function (entityCollection) {
-    entityCollection.add(this);
+og.Entity.prototype.addTo = function (collection) {
+    collection.add(this);
     return this;
 };
 
 /**
- * Removes current entity from specifeid entity collection.
+ * Removes current entity from collection and layer.
  * @public
  */
 og.Entity.prototype.remove = function () {
+    this._vectorLayer && this._vectorLayer.removeEntity(this);
     this._entityCollection && this._entityCollection.removeEntity(this);
 };
 
@@ -231,11 +236,11 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
 };
 
 /**
- * Sets entity cartesian position without moveentity event dispatch.
+ * Sets entity cartesian position without moveentity event dispatching.
  * @private
  * @param {og.math.Vector3} position - Cartesian position in 3d space.
  */
-og.Entity.prototype._setSilentCartesian3v = function (cartesian) {
+og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
 
     var p = this._cartesian;
 

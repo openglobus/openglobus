@@ -463,6 +463,26 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
 };
 
 /**
+ * Removes entity from this collection without event dispatching.
+ * @public
+ * @param {og.Entity} entity - Entity to remove.
+ */
+og.EntityCollection.prototype._removeEntitySilent = function (entity) {
+    this._entities.splice(entity._entityCollectionIndex, 1);
+    this.reindexEntitiesArray(entity._entityCollectionIndex);
+
+    //clear picking color
+    if (this.renderNode && this.renderNode.renderer) {
+        this.renderNode.renderer.clearPickingColor(entity);
+        entity._pickingColor.clear();
+    }
+
+    if (this.belongs(entity)) {
+        this._removeRecursively(entity);
+    }
+};
+
+/**
  * Creates or refresh collected entities picking color.
  * @public
  */

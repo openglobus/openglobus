@@ -284,23 +284,28 @@ og.layer.Vector.prototype.getEntities = function () {
  * Adds entity to the layer.
  * @public
  * @param {og.Entity} entity - Entity.
+ * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.addEntity = function (entity) {
-    this._entities.push(entity);
-    if (this._planet) {
-        if (!entity._lonlat) {
-            entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+og.layer.Vector.prototype.add = function (entity, rightNow) {
+    if (!(entity._vectorLayer || entity._entityCollection)) {
+        entity._vectorLayer = this;
+        entity._vectorLayerIndex = this._entities.length;
+        this._entities.push(entity);
+        if (this._planet) {
+            if (!entity._lonlat) {
+                entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+            }
+            if (entity._lonlat.lat > og.mercator.MAX_LAT) {
+                this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
+            } else if (entity._lonlat.lat < og.mercator.MIN_LAT) {
+                this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
+            } else {
+                this._entityCollectionsTree.insertEntity(entity, rightNow);
+            }
         }
-        if (entity._lonlat.lat > og.mercator.MAX_LAT) {
-            this._entityCollectionsTreeNorth.insertEntity(entity);
-        } else if (entity._lonlat.lat < og.mercator.MIN_LAT) {
-            this._entityCollectionsTreeSouth.insertEntity(entity);
-        } else {
-            this._entityCollectionsTree.insertEntity(entity);
-        }
+        this.events.dispatch(this.events.entityadd, entity);
     }
-    this.events.dispatch(this.events.entityadd, entity);
     return this;
 };
 
@@ -308,12 +313,13 @@ og.layer.Vector.prototype.addEntity = function (entity) {
  * Adds entity array to the layer.
  * @public
  * @param {Array.<og.Entity>} entities - Entities array.
+ * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.addEntities = function (entities) {
+og.layer.Vector.prototype.addEntities = function (entities, rightNow) {
     var i = entities.length;
     while (i--) {
-        this.addEntity(entities[i]);
+        this.add(entities[i], rightNow);
     }
     return this;
 };
@@ -325,34 +331,58 @@ og.layer.Vector.prototype.addEntities = function (entities) {
  * @returns {og.layer.Vector} - Returns this layer.
  */
 og.layer.Vector.prototype.removeEntity = function (entity) {
-    var i = this._entities.length;
-    while (i--) {
-        if (this._entities[i].id === entity.id) {
-            this._entities.splice(i, 1);
-            if (entity._entityCollection) {
-                entity.remove();
-            } else if (entity._nodePtr &&
-                entity._nodePtr._deferredEntities &&
-                entity._nodePtr._deferredEntities.length) {
-                var defEntities = entity._nodePtr._deferredEntities;
-                var j = defEntities.length;
-                while (j--) {
-                    if (defEntities[j].id === entity.id) {
-                        defEntities.splice(j, 1);
-                        var node = entity._nodePtr;
-                        while (node) {
-                            node.count--;
-                            node = node.parentNode;
-                        }
-                        break;
+    if (entity._vectorLayer && this.isEqual(entity._vectorLayer)) {
+        this._entities.splice(entity._vectorLayerIndex, 1);
+        this._reindexEntitiesArray(entity._vectorLayerIndex);
+        entity._vectorLayer = null;
+        entity._vectorLayerIndex = -1;
+
+        if (entity._entityCollection) {
+            entity._entityCollection._removeEntitySilent(entity);
+            var node = entity._nodePtr;
+            while (node) {
+                node.count--;
+                node = node.parentNode;
+            }
+            if (entity._nodePtr && entity._nodePtr.count === 0 &&
+                entity._nodePtr.deferredEntities.length === 0) {
+                entity._nodePtr.entityCollection = null;
+                //
+                //...
+                //
+            }
+        } else if (entity._nodePtr &&
+            entity._nodePtr.deferredEntities.length) {
+            var defEntities = entity._nodePtr.deferredEntities;
+            var j = defEntities.length;
+            while (j--) {
+                if (defEntities[j].id === entity.id) {
+                    defEntities.splice(j, 1);
+                    var node = entity._nodePtr;
+                    while (node) {
+                        node.count--;
+                        node = node.parentNode;
                     }
+                    break;
                 }
             }
-            this.events.dispatch(this.events.entityremove, entity);
-            break;
         }
+        entity._nodePtr = null;
+        this.events.dispatch(this.events.entityremove, entity);
     }
     return this;
+};
+
+/**
+ * Refresh collected entities indexes from startIndex entitytes collection array position.
+ * @public
+ * @param {number} startIndex - Entity array index.
+ */
+og.layer.Vector.prototype._reindexEntitiesArray = function (startIndex) {
+    var e = this._entities;
+    for (var i = startIndex; i < e.length; i++) {
+        e[i]._vectorLayerIndex = i;
+    }
 };
 
 /**
@@ -377,6 +407,14 @@ og.layer.Vector.prototype.removeEntities = function (entities) {
 og.layer.Vector.prototype.setEntities = function (entities) {
     this.clear();
     this._entities = [].concat(entities);
+    var i = entities.length;
+    while (i--) {
+        var ei = entities[i];
+        if (!ei._vectorLayer) {
+            ei._vectorLayer = this;
+            ei._vectorLayerIndex = i;
+        }
+    }
     this._buildEntityCollectionsTree();
 };
 
