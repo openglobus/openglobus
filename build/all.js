@@ -8,6 +8,8 @@ goog.require('og.node.SkyBox');
 goog.require('og.layer');
 goog.require('og.layer.XYZ');
 goog.require('og.layer.WMS');
+goog.require('og.layer.Vector');
+goog.require('og.layer.CanvasTiles');
 goog.require('og.terrainProvider.TerrainProvider');
 goog.require('og.node.SkyBox');
 goog.require('og.node.Axes');

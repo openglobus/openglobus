@@ -1,15 +1,64 @@
+var v0 = null;
+var placesCollection = null;
+
+function loadCapitals() {
+    $.getJSON('http://www.openglobus.org/geoserver/wfs?typeNames=og:ne_10m_populated_places&VERSION=2.0.0&REQUEST=GetFeature&propertyName=NAMEASCII,LONGITUDE,LATITUDE,WORLDCITY,ISO_A2&&service=WFS&outputFormat=json',
+    function (obj) {
+        var f = obj.features;
+        var entities = [];
+        for (var i = 0; i < f.length; i++) {
+            var fi = f[i];
+            var e = new og.Entity({
+                lonlat: new og.LonLat(parseFloat(fi.properties.LONGITUDE), parseFloat(fi.properties.LATITUDE), 2000),
+                label: {
+                    text: fi.properties.NAMEASCII.length < 20 ? fi.properties.NAMEASCII : "",
+                    align: "center",
+                    size: 25,
+                    color: new og.math.Vector4(0, 0, 0, 1),
+                    //outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                    outline: 0.0,
+                    weight: "normal",
+                    face: "verdana"
+                }
+            });
+            entities.push(e);
+        }
+        v0.setEntities(entities);
+    });
+};
+
 function start() {
     og.shaderProgram.SHADERS_URL = "./shaders/";
     og.webgl.MAX_FRAME_DELAY = 28;
 
-    var osm = new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
-    var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
-    var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
-    var arcgis = new og.layer.XYZ("ArcGIS World Imagery", { isBaseLayer: true, url: "http://openglobus.org/arcgis/rest/services/World_Imagery/MapServer/tile/{zoom}/{tiley}/{tilex}" });
-    var quest = new og.layer.XYZ("MapQuest", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/map/{zoom}/{tilex}/{tiley}.jpg" });
-    var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
-    var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
-    var ne = new og.layer.WMS("Natural Earth", { isBaseLayer: true, url: "http://openglobus.org/geoserver/", layers: "NaturalEarth:NE2_HR_LC_SR_W_DR", opacity: 1, zIndex: 3 });
+    var osm = new og.layer.XYZ("OpenStreetMap", { visibility: true, isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
+    var sat = new og.layer.XYZ("MapQuest Satellite", { visibility: false, isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
+    var hyb = new og.layer.XYZ("MapQuest Hybrid", { visibility: false, isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
+    var arcgis = new og.layer.XYZ("ArcGIS World Imagery", { visibility: false, isBaseLayer: true, url: "http://openglobus.org/arcgis/rest/services/World_Imagery/MapServer/tile/{zoom}/{tiley}/{tilex}" });
+    var quest = new og.layer.XYZ("MapQuest", { visibility: false, isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/map/{zoom}/{tilex}/{tiley}.jpg" });
+    var kosmosnim = new og.layer.XYZ("Kosmosnimki", { visibility: false, isBaseLayer: true, url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={zoom}&x={tilex}&y={tiley}" });
+    var states = new og.layer.WMS("USA States", { visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
+    var ne = new og.layer.WMS("Natural Earth", { visibility: false, isBaseLayer: true, url: "http://openglobus.org/geoserver/", layers: "NaturalEarth:NE2_HR_LC_SR_W_DR", opacity: 1, zIndex: 3 });
+    v0 = new og.layer.Vector("Populated places", { isBaseLayer: false, minZoom: 6, groundAlign: false, attribution: "Populated places" });
+    placesCollection = new og.layer.Vector("My favorite places", { isBaseLayer: false, minZoom: 1, groundAlign: true });
+
+    sat.events.on("visibilitychange", null, function (e) {
+        if (e.getVisibility()) {
+            v0.each(function (e) {
+                e.label.setColor(1, 1, 0.2);
+            })
+        } else {
+            v0.each(function (e) {
+                e.label.setColor(0, 0, 0);
+            })
+        }
+    });
+    loadCapitals();
+
+    v0.events.on("draw", v0, function () {
+        var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
@@ -38,9 +87,11 @@ function start() {
         "controls": controls,
         "skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, osm, hyb, states, ne],
+        "layers": [sat, osm, hyb, states, ne, v0],
         "autoActivated": true
     });
+
+    globus.planet.setBaseLayer(osm);
 
     globus.planet.sunlight.setSpecular(new og.math.Vector3(0.05, 0.05, 0.05));
     globus.planet.sunlight.setShininess(50);
@@ -70,9 +121,9 @@ function start() {
         { name: "Home world", lat: 55.78131, lon: 77.02815, height: 8000, alt: 13132244.4, img: null }
     ];
 
-    placesCollection = new og.EntityCollection();
+    //placesCollection = new og.EntityCollection();
     placesCollection.events.on("draw", placesCollection, function () {
-        var maxDist = 3.57 * Math.sqrt(this.renderNode.camera._lonLat.height) * 1000;
+        var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
         this.setScaleByDistance(200000, maxDist + 200000, maxDist);
     });
 
@@ -87,6 +138,10 @@ function start() {
     });
 
     placesCollection.addTo(globus.planet);
+
+    placesCollection.events.on("mouselbuttonclick", null, function (e) {
+        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    });
 
     var cont = document.createElement("div");
     cont.id = "cont";
@@ -103,24 +158,25 @@ function start() {
 
 
             var e = new og.Entity({
-                lonlat: new og.LonLat(place.lon, place.lat, place.height),
-                label: {
-                    text: place.name,
-                    size: 40,
-                    color: new og.math.Vector4(1, 1, 1, 1),
-                    outlineColor: new og.math.Vector4(0, 0, 0, 1),
-                    outline: 0.45,
-                    weight: "bold",
-                    face: "verdana",
-                    offset: [10,-2]
-                },
+                lonlat: new og.LonLat(place.lon, place.lat, 0),
+                //label: {
+                //    text: place.name,
+                //    size: 40,
+                //    color: new og.math.Vector4(1, 1, 1, 1),
+                //    outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                //    outline: 0.45,
+                //    weight: "bold",
+                //    face: "verdana",
+                //    offset: [10,-2]
+                //},
                 billboard: {
-                    src: place.blb,
-                    width: 40,
-                    height: 40//,
-                    //offset: [-5, 5]
+                    src: "./resources/images/marker.png",
+                    width: 64,
+                    height: 64,
+                    offset: [0, 32]
                 }
             });
+            e.showAlt = place.alt;
             e.addTo(placesCollection);
 
         })(document.createElement("li"), places[i]);

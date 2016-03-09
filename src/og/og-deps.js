@@ -40,7 +40,7 @@ goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseH
 goog.addDependency('../../../og/src/og/input/touchHandler.js', ['og.input.TouchHandler'], [], false);
 goog.addDependency('../../../og/src/og/layer/canvasTiles.js', ['og.layer.CanvasTiles'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer'], false);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.QueueArray'], false);
-goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.LonLat', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
+goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.LonLat', 'og.QueueArray', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);
 goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inheritance', 'og.layer.Layer', 'og.proj.EPSG3857', 'og.quadTree', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/light/pointLight.js', ['og.light.PointLight'], ['og.math.Vector3'], false);
