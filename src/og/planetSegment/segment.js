@@ -915,25 +915,30 @@ og.planetSegment.drawSingle = function (sh, segment) {
         var sha = sh.attributes,
             shu = sh.uniforms;
         var layers = segment.planet.visibleTileLayers;
+
+        gl.activeTexture(gl.TEXTURE0);
         if (layers.length) {
             var baseMat = segment.materials[layers[0]._id];
-            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
             gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
-            gl.uniform1i(shu.uSampler._pName, 0);
-
-            gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-            gl.uniform1i(shu.uGeoImage._pName, 2);
-            gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
-
-            if (segment.planet.lightEnabled) {
-                gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE1);
-                gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
-                gl.uniform1i(shu.uNormalMap._pName, 1);
-            }
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, segment.planet.solidTexture);
+            gl.uniform3fv(shu.texBias._pName, [0, 0, 1]);
         }
+        gl.uniform1i(shu.uSampler._pName, 0);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
+        gl.uniform1i(shu.uGeoImage._pName, 2);
+        gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
+
+        if (segment.planet.lightEnabled) {
+            gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
+            gl.uniform1i(shu.uNormalMap._pName, 1);
+        }
+
         segment.draw(sh);
     }
 };
@@ -1011,7 +1016,7 @@ og.planetSegment.Segment.prototype.drawHeightPicking = function () {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        
+
         sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._getVertexIndexBuffer());
 
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
