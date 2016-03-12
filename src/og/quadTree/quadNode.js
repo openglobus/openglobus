@@ -10,7 +10,7 @@ goog.require('og.mercator');
 /**
  * Quad tree planet segment node.
  * @constructor
- * @param {og.planetSegment.Segment|og.planetSegment.SegmentWGS84} planetSegmentPrototype - Planet segment node constructor.
+ * @param {og.planetSegment.Segment|og.planetSegment.SegmentWGS84} segmentPrototype - Planet segment node constructor.
  * @param {og.node.RenderNode} planet - Planet render node.
  * @param {number} partId - NorthEast, SouthWest etc.
  * @param {og.quadTree.QuadNode} parent - Parent of this node.
@@ -18,40 +18,30 @@ goog.require('og.mercator');
  * @param {number} tileZoom - Deep index of the quad tree.
  * @param {og.Extent} extent - Planet segment extent. 
  */
-og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
-
+og.quadTree.QuadNode = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
     this.planet = planet;
-
     this.parentNode = parent;
     this.nodes = [];
     this.partId = partId;
     this.nodeId = partId + id;
-
     this.state = null;
-
     this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
-
     this.sideSize = [1, 1, 1, 1];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
-
-    this._planetSegmentPrototype = planetSegmentPrototype;
+    this.SegmentPrototype = segmentPrototype;
+    this.planetSegment = new segmentPrototype(this, planet, tileZoom, extent);
 
     /**
      * @private
      */
     this._cameraInside = false;
-
-    this.planetSegment = new planetSegmentPrototype(this, planet, tileZoom, extent);
-
     this.createBounds();
-
     this.planet._createdNodesCount++;
 };
 
 og.quadTree.QuadNode.VISIBLE_DISTANCE = 3570;
-
 og.quadTree.QuadNode._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
 og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.length) - 1;
 
@@ -67,16 +57,16 @@ og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
     var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.nodes;
 
-    nd[og.quadTree.NW] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.NW, this, id, z,
+    nd[og.quadTree.NW] = new og.quadTree.QuadNode(this.SegmentPrototype, p, og.quadTree.NW, this, id, z,
         new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)));
 
-    nd[og.quadTree.NE] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.NE, this, id, z,
+    nd[og.quadTree.NE] = new og.quadTree.QuadNode(this.SegmentPrototype, p, og.quadTree.NE, this, id, z,
         new og.Extent(c, new og.LonLat(ne.lon, ne.lat)));
 
-    nd[og.quadTree.SW] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.SW, this, id, z,
+    nd[og.quadTree.SW] = new og.quadTree.QuadNode(this.SegmentPrototype, p, og.quadTree.SW, this, id, z,
         new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
 
-    nd[og.quadTree.SE] = new og.quadTree.QuadNode(this._planetSegmentPrototype, p, og.quadTree.SE, this, id, z,
+    nd[og.quadTree.SE] = new og.quadTree.QuadNode(this.SegmentPrototype, p, og.quadTree.SE, this, id, z,
          new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
 };
 
@@ -213,7 +203,7 @@ og.quadTree.QuadNode.prototype.traverseNodes = function () {
 
 og.quadTree.QuadNode.prototype.isBrother = function (node) {
     return !(this.parentNode || node.parentNode) ||
-        this.parentNode.id == node.parentNode.id;
+        this.parentNode.id === node.parentNode.id;
 };
 
 og.quadTree.QuadNode.prototype.renderTree = function () {
@@ -234,10 +224,10 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             //Because first wgs segments collected it cant be changed to lonLat.
             if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
                 cam._lonLat.lat >= og.mercator.MIN_LAT &&
-                seg._projection.id == og.proj.EPSG3857.id) {
+                seg._projection.id === og.proj.EPSG3857.id) {
                 inside = seg.extent.isInside(cam._lonLatMerc);
                 cam._insideSegmentPosition = cam._lonLatMerc;
-            } else if (seg._projection.id == og.proj.EPSG4326.id) {
+            } else if (seg._projection.id === og.proj.EPSG4326.id) {
                 inside = seg.extent.isInside(cam._lonLat);
                 cam._insideSegmentPosition = cam._lonLat;
             }
@@ -276,16 +266,14 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     }
 };
 
-og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
-    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.tileZoom];
-    segment.gridSize = gridSize;
-    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
-    segment.createPlainVertices(gridSize);
-    segment.terrainVertices = segment.plainVertices;
-    segment.tempVertices = segment.plainVertices;
-    segment.createCoordsBuffers(segment.plainVertices, gridSize);
-    segment.ready = true;
-};
+//og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
+//    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.tileZoom];
+//    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
+//    segment.gridSize = gridSize;
+//    segment.createPlainVertices(gridSize);
+//    segment.createCoordsBuffers(segment.plainVertices, gridSize);
+//    segment.ready = true;
+//};
 
 og.quadTree.QuadNode.prototype.renderNode = function () {
 
@@ -293,7 +281,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     var seg = this.planetSegment;
 
     if (!seg.ready) {
-        this.createPlainSegment(seg);
+        seg.createPlainSegment();
     }
 
     if (!seg.terrainReady) {
@@ -411,27 +399,27 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     var POLE = og.mercator.POLE,
         MAX_LAT = og.mercator.MAX_LAT;
 
-    if (a_ne_lon == b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+    if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
         a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
         return og.quadTree.E;
-    } else if (a_sw_lon == b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+    } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
         a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
         return og.quadTree.W;
-    } else if (a_ne_lat == b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+    } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
         a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
         return og.quadTree.N;
-    } else if (a_sw_lat == b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+    } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
         a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
         return og.quadTree.S;
-    } else if (a_ne_lon == POLE && b_sw_lon == -POLE) {
+    } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
         return og.quadTree.E;
-    } else if (a_sw.lon == -POLE && b_ne.lon == POLE) {
+    } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
         return og.quadTree.W;
     }
         //Poles and mercator nodes common side.
-    else if (a_ne_lat == POLE && b_sw_lat == MAX_LAT) {
+    else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
         return og.quadTree.N;
-    } else if (a_sw_lat == -POLE && b_ne_lat == -MAX_LAT) {
+    } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
         return og.quadTree.S;
     }
 
@@ -465,7 +453,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
         seg.planet.normalMapCreator.shift(seg);
     } else if (seg.tileZoom > maxZ) {
-        if (pn.planetSegment.tileZoom == maxZ) {
+        if (pn.planetSegment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
         } else {
             pn = this;
@@ -474,7 +462,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
             }
             var pns = pn.planetSegment;
             if (!pns.ready) {
-                this.createPlainSegment(pns);
+                pns.createPlainSegment();
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
                 pns.planet.normalMapCreator.shift(pns);
@@ -633,7 +621,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 }
                 var pns = pn.planetSegment;
                 if (!pns.ready) {
-                    this.createPlainSegment(pns);
+                    pns.createPlainSegment();
                 }
                 pns.loadTerrain();
             }
@@ -710,10 +698,25 @@ og.quadTree.QuadNode.prototype.clearTree = function () {
     }
 };
 
+og.quadTree.QuadNode.prototype.destroy = function () {
+    this.state = og.quadTree.NOTRENDERING;
+    this.planetSegment.destroySegment();
+    var n = this.neighbors;
+    n[og.quadTree.N] && n[og.quadTree.N].neighbors && (n[og.quadTree.N].neighbors[og.quadTree.S] = null);
+    n[og.quadTree.E] && n[og.quadTree.E].neighbors && (n[og.quadTree.E].neighbors[og.quadTree.W] = null);
+    n[og.quadTree.S] && n[og.quadTree.S].neighbors && (n[og.quadTree.S].neighbors[og.quadTree.N] = null);
+    n[og.quadTree.W] && n[og.quadTree.W].neighbors && (n[og.quadTree.W].neighbors[og.quadTree.E] = null);
+    this.neighbors = null;
+    this.hasNeighbors = null;
+    this.parentNode = null;
+    this.sideSize = null;
+    this.planetSegment = null;
+};
+
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    if (this.planetSegment.tileZoom <= this.planetSegment.planet.terrainProvider.minZoom)
-        return;
+    //if (this.planetSegment.tileZoom <= this.planetSegment.planet.terrainProvider.minZoom)
+    //    return;
 
     if (cls) {
         this.planetSegment.clearSegment();
@@ -721,11 +724,11 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
     }
 
     for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].planetSegment.destroySegment();
-        this.appliedTerrainNodeId = -1;
         this.nodes[i].destroyBranches(false);
+        this.nodes[i].destroy();
     }
     this.nodes.length = 0;
+    this.nodes = [];
 };
 
 og.quadTree.QuadNode.prototype.traverseTree = function (callback) {

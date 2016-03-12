@@ -40,7 +40,7 @@ og.planetSegment.Material.prototype.abortLoading = function () {
 };
 
 og.planetSegment.Material.prototype.applyTexture = function (img) {
-    if (!this.imageReady) {
+    if (!this.imageReady && this.imageIsLoading) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
         this.texBias = [0, 0, 1];

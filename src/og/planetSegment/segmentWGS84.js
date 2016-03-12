@@ -101,6 +101,8 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
     this.normalMapVertices = verts;
     this.normalMapNormals = norms;
     this.normalMapTexture = this.planet.transparentTexture;
+    this.terrainVertices = verts;
+    this.tempVertices = verts;
 };
 
 og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {

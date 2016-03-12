@@ -124,7 +124,7 @@ og.layer.XYZ.prototype.dequeueRequest = function () {
 og.layer.XYZ.prototype.whilePendings = function () {
     while (this.pendingsQueue.length) {
         var pmat = this.pendingsQueue.pop();
-        if (pmat) {
+        if (pmat && pmat.segment.node) {
             if (pmat.segment.node.getState() != og.quadTree.NOTRENDERING) {
                 return pmat;
             } else {

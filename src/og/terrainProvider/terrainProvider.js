@@ -15,19 +15,15 @@ og.terrainProvider.defaultOptions = {
     responseType: "arraybuffer",
     minZoom: 3,
     maxZoom: 14,
-    //gridSizeByZoom: [64, 32, 32, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32],
-    //gridSizeByZoom: [32, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32],
-    //gridSizeByZoom: [64, 32, 16, 8, 4, 4, 4, 4, 4, 8, 16, 32, 16, 16, 32, 32, 32, 32, 32, 32, 32],
-    //gridSizeByZoom: [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64],
     fileGridSize: 32,
     MAX_LOADING_TILES: 4
 };
 
 og.terrainProvider.EmptyTerrainProvider = function () {
     this.name = "empty";
-    this.minZoom = 500;
-    this.maxZoom = 500;
+    this.minZoom = 50;
+    this.maxZoom = 50;
     this.gridSizeByZoom = [64, 32, 16, 16, 8, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
     this.fileGridSize = 32;
 };
@@ -149,7 +145,7 @@ og.terrainProvider.TerrainProvider.prototype.dequeueRequest = function () {
 og.terrainProvider.TerrainProvider.prototype.whilePendings = function () {
     while (this._pendingsQueue.length) {
         var pseg = this._pendingsQueue.pop();
-        if (pseg) {
+        if (pseg && pseg.node) {
             if (pseg.node.getState() != og.quadTree.NOTRENDERING) {
                 return pseg;
             } else {

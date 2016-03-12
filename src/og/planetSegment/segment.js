@@ -442,8 +442,6 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
         this.terrainVertices.length = 0;
         this.terrainVertices = terrainVertices;
 
-
-        this.deleteBuffers();
         this.terrainReady = true;
         this.terrainIsLoading = false;
 
@@ -471,8 +469,6 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
             this.node.appliedTerrainNodeId = this.node.nodeId;
             this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
 
-            this.deleteBuffers();
-
             if (this.planet.lightEnabled) {
                 this.planet.normalMapCreator.queue(this);
             }
@@ -487,8 +483,6 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
                 this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
                         v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
                         v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                this.createCoordsBuffers(this.terrainVertices, 2);
 
                 this.gridSize = 2;
             }
@@ -512,10 +506,10 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
 og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, vert) {
 
     var n = this.node.neighbors[side];
+    var ns = n && n.planetSegment;
 
-    if (n) {
+    if (n && ns) {
 
-        var ns = n.planetSegment;
 
         this._appliedNeighborsZoom[side] = ns.tileZoom;
 
@@ -604,7 +598,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
  */
 og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
 
-    if (this.tileZoom > this.planet.terrainProvider.maxZoom)
+    if (!this.planet || this.tileZoom > this.planet.terrainProvider.maxZoom)
         return;
 
     var nb = this.node.neighbors;
@@ -616,10 +610,10 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
             nbw = nb[og.quadTree.W];
 
         if (this.tileZoom > this.planet.terrainProvider.minZoom) {
-            if (nbn && nbn.planetSegment.terrainIsLoading ||
-                nbe && nbe.planetSegment.terrainIsLoading ||
-                nbs && nbs.planetSegment.terrainIsLoading ||
-                nbw && nbw.planetSegment.terrainIsLoading) {
+            if (nbn && nbn.planetSegment && nbn.planetSegment.terrainIsLoading ||
+                nbe && nbe.planetSegment && nbe.planetSegment.terrainIsLoading ||
+                nbs && nbs.planetSegment && nbs.planetSegment.terrainIsLoading ||
+                nbw && nbw.planetSegment && nbw.planetSegment.terrainIsLoading) {
                 if (!this._inTheQueue) {
                     this.planet.normalMapCreator.shift(this);
                 }
@@ -698,10 +692,12 @@ og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
  * Callback that calls in terrain provider to complete the terrain.
  */
 og.planetSegment.Segment.prototype.applyTerrain = function (elevations) {
-    if (elevations.length) {
-        this.elevationsExists(elevations);
-    } else {
-        this.elevationsNotExists();
+    if (this.ready) {
+        if (elevations.length) {
+            this.elevationsExists(elevations);
+        } else {
+            this.elevationsNotExists();
+        }
     }
 };
 
@@ -774,17 +770,43 @@ og.planetSegment.Segment.prototype.clearSegment = function () {
  * Clear and destroy all segment data.
  */
 og.planetSegment.Segment.prototype.destroySegment = function () {
-    this.node.state = og.quadTree.NOTRENDERING;
 
     this.clearSegment();
+
+    this.node = null;
+
+    this.planet = null;
+    this.handler = null;
+    this.bbox = null;
+    this.bsphere = null;
     this.extent = null;
 
-    this._appliedNeighborsZoom = null;
-    this.normalMapTextureBias = null;
+    this.materials = null;
 
-    this.node.neighbors = null;
-    this.node.hasNeighbors = null;
-    this.node.parentNode = null;
+    this.plainIndexes = null;
+    this.plainVertices = null;
+    this.plainNormals = null;
+    this.terrainVertices = null;
+    this.tempVertices = null;
+
+    this.normalMapTexture = null;
+    this.normalMapTextureBias = null;
+    this.normalMapVertices = null;
+    this.normalMapNormals = null;
+
+    this.vertexNormalBuffer = null;
+    this.vertexPositionBuffer = null;
+    this.vertexTextureCoordBuffer = null;
+
+    this.geoImageTexture = null;
+    this.geoImageTextureBias = null;
+
+    this._texBiasArr = null;
+    this._samplerArr = null;
+
+    this._extentParams = null;
+    this._projection = null;
+    this._appliedNeighborsZoom = null;
 };
 
 /**
@@ -816,10 +838,11 @@ og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
 
 og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
-    this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
-    this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
-    this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
-    this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
+    var h = this.handler;
+    h.gl.deleteBuffer(this.vertexPositionBuffer);
+    h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
+    this.vertexTextureCoordBuffer = h.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
+    this.vertexPositionBuffer = h.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
 };
 
 og.planetSegment.Segment.prototype._assignTileIndexes = function () {
@@ -828,6 +851,19 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+};
+
+og.planetSegment.Segment.prototype.createPlainSegment = function () {
+    var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+    var n = this.node;
+    n.sideSize[0] = gridSize;
+    n.sideSize[1] = gridSize;
+    n.sideSize[2] = gridSize;
+    n.sideSize[3] = gridSize;
+    this.gridSize = gridSize;
+    this.createPlainVertices(gridSize);
+    this.createCoordsBuffers(this.plainVertices, gridSize);
+    this.ready = true;
 };
 
 og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
@@ -877,6 +913,8 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     }
 
     this.normalMapTexture = this.planet.transparentTexture;
+    this.terrainVertices = verts;
+    this.tempVertices = verts;
 };
 
 /**
