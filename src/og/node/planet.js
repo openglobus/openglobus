@@ -461,11 +461,28 @@ og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
     og.PlanetSegmentHelper.initIndexesTables(6);
 
-    //Iniytialize indexes buffers array
+    //Iniytialize indexes buffers cache
     for (var i = 0; i <= 6; i++) {
-        var gridSize = Math.pow(2, i);
-        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gridSize, [gridSize, gridSize, gridSize, gridSize]);
-        this._indexesBuffers[gridSize] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
+        var c = Math.pow(2, i);
+        !this._indexesBuffers[c] && (this._indexesBuffers[c] = []);
+        for (var j = 0; j <= 6; j++) {
+            var w = Math.pow(2, j);
+            !this._indexesBuffers[c][w] && (this._indexesBuffers[c][w] = []);
+            for (var k = 0; k <= 6; k++) {
+                var n = Math.pow(2, k);
+                !this._indexesBuffers[c][w][n] && (this._indexesBuffers[c][w][n] = []);
+                for (var m = 0; m <= 6; m++) {
+                    var e = Math.pow(2, m);
+                    !this._indexesBuffers[c][w][n][e] && (this._indexesBuffers[c][w][n][e] = []);
+                    for (var q = 0; q <= 6; q++) {
+                        var s = Math.pow(2, q);
+                        !this._indexesBuffers[c][w][n][e][s] && (this._indexesBuffers[c][w][n][e][s] = []);
+                        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
+                        this._indexesBuffers[c][w][n][e][s] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
+                    }
+                }
+            }
+        }
     }
 
     //create empty textures

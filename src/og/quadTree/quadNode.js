@@ -32,7 +32,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
     this.appliedTerrainNodeId = -1;
     //this.appliedTextureNodeId = -1;
 
-    this.sideSize = [0, 0, 0, 0];
+    this.sideSize = [1, 1, 1, 1];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
 

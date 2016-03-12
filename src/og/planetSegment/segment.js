@@ -139,7 +139,7 @@ og.planetSegment.Segment = function () {
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
-    this.vertexIndexBuffer = null;
+    //this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
     this.geoImageTexture = null;
@@ -711,12 +711,12 @@ og.planetSegment.Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
     gl.deleteBuffer(this.vertexNormalBuffer);
     gl.deleteBuffer(this.vertexPositionBuffer);
-    gl.deleteBuffer(this.vertexIndexBuffer);
+    //gl.deleteBuffer(this.vertexIndexBuffer);
     gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
-    this.vertexIndexBuffer = null;
+    //this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 };
 
@@ -819,11 +819,6 @@ og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gri
     var gsgs = (gridSize + 1) * (gridSize + 1);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
-};
-
-og.planetSegment.Segment.prototype.createIndexesBuffer = function (sidesSizes, gridSize) {
-    var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gridSize, sidesSizes);
-    this.vertexIndexBuffer = this.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 };
 
 og.planetSegment.Segment.prototype.assignTileIndexes = function (tileZoom, extent) {
@@ -994,19 +989,14 @@ og.planetSegment.Segment.prototype.draw = function (sh) {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
     gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    this._setVIb();
-    sh.drawIndexBuffer(this.planet.drawMode, this._vib);
+    sh.drawIndexBuffer(this.planet.drawMode, this._getVertexIndexBuffer());
     this.node.hasNeighbor = [false, false, false, false];
 };
 
-og.planetSegment.Segment.prototype._setVIb = function () {
-    if (this.node.sideSize[og.quadTree.N] & this.node.sideSize[og.quadTree.W] &
-        this.node.sideSize[og.quadTree.S] & this.node.sideSize[og.quadTree.E]) {
-        this._vib = this.planet._indexesBuffers[this.gridSize];
-    } else {
-        this.createIndexesBuffer(this.node.sideSize, this.gridSize);
-        this._vib = this.vertexIndexBuffer;
-    }
+og.planetSegment.Segment.prototype._getVertexIndexBuffer = function () {
+    var s = this.node.sideSize;
+    return this.planet._indexesBuffers[this.gridSize]
+        [s[og.quadTree.N]][s[og.quadTree.E]][s[og.quadTree.S]][s[og.quadTree.W]];
 };
 
 og.planetSegment.Segment.prototype.drawHeightPicking = function () {
@@ -1021,10 +1011,8 @@ og.planetSegment.Segment.prototype.drawHeightPicking = function () {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        this._setVIb();
-
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._vib);
+        
+        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._getVertexIndexBuffer());
 
         this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
     }
