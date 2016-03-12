@@ -16,25 +16,25 @@ goog.require('og.proj.EPSG3857');
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
  */
-og.planetSegment.Segment = function () {
+og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 
     /**
      * Quad tree node of the segment.
      * @type {og.quadTree.QuadNode}
      */
-    this.node = null;
+    this.node = node;
 
     /**
      * Planet pointer.
      * @type {pg.node.RenderNode}
      */
-    this.planet = null;
+    this.planet = planet;
 
     /**
      * WebGl handler pointer.
      * @type {og.webgl.Handler}
      */
-    this.handler = null;
+    this.handler = planet.renderer.handler;
 
     /**
      * Segment bounding box.
@@ -52,13 +52,19 @@ og.planetSegment.Segment = function () {
      * Geographical extent.
      * @type {og.Extent}
      */
-    this.extent = null;
+    this.extent = extent;
 
     /**
      * Vertices grid size.
      * @type {number}
      */
-    this.gridSize = null;
+    this.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
+
+    /**
+     * Tile zoom index.
+     * @type {number}
+     */
+    this.tileZoom = tileZoom;
 
     /**
      * Horizontal tile index.
@@ -72,11 +78,7 @@ og.planetSegment.Segment = function () {
      */
     this.tileY = null;
 
-    /**
-     * Tile zoom index.
-     * @type {number}
-     */
-    this.tileZoom = null;
+    this._assignTileIndexes();
 
     /**
      * Texture materials array.
@@ -139,7 +141,6 @@ og.planetSegment.Segment = function () {
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
-    //this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
     this.geoImageTexture = null;
@@ -148,7 +149,7 @@ og.planetSegment.Segment = function () {
     this._texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
     this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
 
-    this._extentParams = [];
+    this._extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
     this._inTheGeoImageTileCreatorQueue = false;
@@ -711,12 +712,10 @@ og.planetSegment.Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
     gl.deleteBuffer(this.vertexNormalBuffer);
     gl.deleteBuffer(this.vertexPositionBuffer);
-    //gl.deleteBuffer(this.vertexIndexBuffer);
     gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
-    //this.vertexIndexBuffer = null;
     this.vertexTextureCoordBuffer = null;
 };
 
@@ -817,17 +816,18 @@ og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
 
 og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var gsgs = (gridSize + 1) * (gridSize + 1);
+    this.handler.gl.deleteBuffer(this.vertexTextureCoordBuffer);
+    this.handler.gl.deleteBuffer(this.vertexPositionBuffer);
     this.vertexTextureCoordBuffer = this.handler.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
     this.vertexPositionBuffer = this.handler.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
 };
 
-og.planetSegment.Segment.prototype.assignTileIndexes = function (tileZoom, extent) {
-    this.tileZoom = tileZoom;
-    this.extent = extent;
+og.planetSegment.Segment.prototype._assignTileIndexes = function () {
+    var tileZoom = this.tileZoom;
+    var extent = this.extent;
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
-    this._extentParams = [this.extent.southWest.lon, this.extent.southWest.lat, 2.0 / this.extent.getWidth(), 2.0 / this.extent.getHeight()];
 };
 
 og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {

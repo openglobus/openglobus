@@ -5,8 +5,10 @@ goog.require('og.inheritance');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG4326');
 
-og.planetSegment.SegmentWGS84 = function () {
-    og.inheritance.base(this);
+og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
+    og.inheritance.base(this, node, planet, tileZoom, extent);
+
+    this.wgs84extent = extent;
 
     this._projection = og.proj.EPSG4326;
 
@@ -50,10 +52,9 @@ og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
         this.tileZoom > maxPoleZoom;
 };
 
-og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (tileZoom, extent) {
-    this.tileZoom = tileZoom;
-    this.extent = extent;
-    this.wgs84extent = extent;
+og.planetSegment.SegmentWGS84.prototype._assignTileIndexes = function () {
+    var tileZoom = this.tileZoom;
+    var extent = this.extent;
 
     this.tileX = Math.round(Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
 
@@ -66,8 +67,6 @@ og.planetSegment.SegmentWGS84.prototype.assignTileIndexes = function (tileZoom, 
         //south pole
         this.tileY = Math.round((og.mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
     }
-
-    this.extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
 };
 
 og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize) {
@@ -143,7 +142,7 @@ og.planetSegment.SegmentWGS84.prototype.drawGeoImage = function (geoImage) {
         gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._wgs84CornersBuffer);
         gl.vertexAttribPointer(sha.a_corner._pName, geoImage._wgs84CornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.u_extentParams._pName, this.extentParams);
+        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
         gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);

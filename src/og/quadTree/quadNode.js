@@ -43,12 +43,7 @@ og.quadTree.QuadNode = function (planetSegmentPrototype, planet, partId, parent,
      */
     this._cameraInside = false;
 
-    this.planetSegment = new planetSegmentPrototype();
-    this.planetSegment.node = this;
-    this.planetSegment.planet = planet;
-    this.planetSegment.handler = planet.renderer.handler;
-    this.planetSegment.assignTileIndexes(tileZoom, extent);
-    this.planetSegment.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
+    this.planetSegment = new planetSegmentPrototype(this, planet, tileZoom, extent);
 
     this.createBounds();
 

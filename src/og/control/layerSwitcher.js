@@ -51,7 +51,7 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
         obj.setVisibility(this.checked);
     };
 
-    obj.events.on("visibilitychange", null, function (e) {
+    obj.events && obj.events.on("visibilitychange", null, function (e) {
         inp.checked = e.getVisibility();
     });
 
