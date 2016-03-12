@@ -715,8 +715,10 @@ og.quadTree.QuadNode.prototype.destroy = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    //if (this.planetSegment.tileZoom <= this.planetSegment.planet.terrainProvider.minZoom)
-    //    return;
+    var tp = this.planetSegment.planet.terrainProvider;
+    if (tp.minZoom === tp.maxZoom ||
+        this.planetSegment.tileZoom <= 5)
+        return;
 
     if (cls) {
         this.planetSegment.clearSegment();
