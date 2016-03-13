@@ -715,19 +715,15 @@ og.quadTree.QuadNode.prototype.destroy = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    var tp = this.planetSegment.planet.terrainProvider;
-    if (tp.minZoom === tp.maxZoom ||
-        this.planetSegment.tileZoom <= 5)
-        return;
-
     if (cls) {
         this.planetSegment.clearSegment();
         this.appliedTerrainNodeId = -1;
     }
 
     for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].destroyBranches(false);
         this.nodes[i].destroy();
+        this.nodes[i].destroyBranches(false);
+        this.nodes[i] = null;
     }
     this.nodes.length = 0;
     this.nodes = [];
