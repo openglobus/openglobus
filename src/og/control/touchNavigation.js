@@ -14,18 +14,34 @@ og.control.TouchNavigation = function (options) {
     og.inheritance.base(this, options);
 
     this.grabbedPoint = new og.math.Vector3();
-    this.pointOnEarth = new og.math.Vector3();
-    this.earthUp = new og.math.Vector3();
     this.inertia = 0.007;
     this.grabbedSpheroid = new og.bv.Sphere();
     this.planet = null;
     this.qRot = new og.math.Quaternion();
     this.scaleRot = 0;
+    this.rot = 1;
+    this._eye0 = new og.math.Vector3();
 
-    this.distDiff = 0.33;
+    this.distDiff = 0.57;
     this.stepsCount = 5;
     this.stepsForward = null;
     this.stepIndex = 0;
+
+    var Touch = function () {
+        this.x = 0;
+        this.y = 0;
+        this.prev_x = 0;
+        this.prev_y = 0;
+        this.grabbedPoint = new og.math.Vector3();
+        this.grabbedSpheroid = new og.bv.Sphere();
+        this.dX = function () { return this.x - this.prev_x; };
+        this.dY = function () { return this.y - this.prev_y; };
+    };
+
+    this.pointOnEarth = null;
+    this.earthUp = null;
+
+    this.touches = [new Touch(), new Touch()];
 };
 
 og.inheritance.extend(og.control.TouchNavigation, og.control.Control);
@@ -34,17 +50,64 @@ og.control.TouchNavigation.prototype.init = function () {
     this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("touchstart", this, this.onTouchStart);
     this.renderer.events.on("touchend", this, this.onTouchEnd);
+    this.renderer.events.on("doubletouch", this, this.onDoubleTouch);
     this.renderer.events.on("touchcancel", this, this.onTouchCancel);
     this.renderer.events.on("touchmove", this, this.onTouchMove);
     this.renderer.events.on("draw", this, this.onDraw);
 };
 
 og.control.TouchNavigation.prototype.onTouchStart = function (e) {
-    if (e.sys.touches.item(0)) {
-        var p = new og.math.Pixel(e.sys.touches.item(0).pageX, e.sys.touches.item(0).pageY);
-        this.grabbedPoint = this.planet.getCartesianFromPixelTerrain(p);
-        if (this.grabbedPoint) {
-            this.grabbedSpheroid.radius = this.grabbedPoint.length();
+
+    print2d("t1", "", 100, 100);
+
+    if (e.sys.touches.item(0) && e.sys.touches.item(1)) {
+
+        var t0 = this.touches[0],
+            t1 = this.touches[1];
+
+        t0.x = e.sys.touches.item(0).pageX;
+        t0.y = e.sys.touches.item(0).pageY;
+        t0.prev_x = e.sys.touches.item(0).pageX;
+        t0.prev_y = e.sys.touches.item(0).pageY;
+        t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0);
+
+        t1.x = e.sys.touches.item(1).pageX;
+        t1.y = e.sys.touches.item(1).pageY;
+        t1.prev_x = e.sys.touches.item(1).pageX;
+        t1.prev_y = e.sys.touches.item(1).pageY;
+        t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1);
+
+        var screenCenter = {
+            x: Math.round(this.renderer.handler.canvas.width * 0.5),
+            y: Math.round(this.renderer.handler.canvas.height * 0.5)
+        };
+        //this.planet._viewChanged = true;
+        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(screenCenter);
+
+        if (this.pointOnEarth) {
+            this.earthUp = this.pointOnEarth.normal();
+        }
+
+        if (t0.grabbedPoint && t1.grabbedPoint) {
+            t0.grabbedSpheroid.radius = t0.grabbedPoint.length();
+            t1.grabbedSpheroid.radius = t1.grabbedPoint.length();
+            this.stopRotation();
+        }
+
+    } else if (e.sys.touches.item(0)) {
+
+        var t = this.touches[0];
+
+        t.x = e.sys.touches.item(0).pageX;
+        t.y = e.sys.touches.item(0).pageY;
+        t.prev_x = e.sys.touches.item(0).pageX;
+        t.prev_y = e.sys.touches.item(0).pageY;
+
+        t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t);
+        this._eye0.copy(this.renderer.activeCamera.eye);
+
+        if (t.grabbedPoint) {
+            t.grabbedSpheroid.radius = t.grabbedPoint.length();
             this.stopRotation();
         }
     }
@@ -54,35 +117,124 @@ og.control.TouchNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
 };
 
+og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
+    if (this.stepIndex)
+        return;
+
+    this.planet.stopFlying();
+
+    this.stopRotation();
+
+    var dir = this.renderer.activeCamera.unproject(e.x, e.y);
+    this.stepIndex = this.stepsCount;
+    this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+        this.planet, this.stepsCount, this.distDiff, e, true, dir);
+};
+
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {
-    this.scaleRot = 1;
+    if (e.sys.touches.length === 0) {
+        if (Math.abs(this.touches[0].x - this.touches[0].prev_x) > 1 ||
+            Math.abs(this.touches[0].y - this.touches[0].prev_y) > 1)
+            this.scaleRot = 1 * this.rot;
+        else
+            this.scaleRot = 0;
+    }
+
+    this.rot = 1;
 };
 
 og.control.TouchNavigation.prototype.onTouchCancel = function (e) {
-
 };
 
 og.control.TouchNavigation.prototype.onTouchMove = function (e) {
-    if (e.sys.touches.item(0)) {
+    print2d("t1", "", 100, 100);
 
-        if (!this.grabbedPoint)
+    var cam = this.renderer.activeCamera;
+
+    if (e.sys.touches.item(0) && e.sys.touches.item(1)) {
+
+        var t0 = this.touches[0],
+            t1 = this.touches[1];
+
+        if (!t0.grabbedPoint || !t1.grabbedPoint)
             return;
 
         this.planet.stopFlying();
 
-        var cam = this.renderer.activeCamera;
-        var direction = cam.unproject(e.sys.touches.item(0).pageX, e.sys.touches.item(0).pageY);
-        var targetPoint = new og.math.Ray(cam.eye, direction).hitSphere(this.grabbedSpheroid);
+        t0.prev_x = t0.x;
+        t0.prev_y = t0.y;
+        t0.x = e.sys.touches.item(0).pageX;
+        t0.y = e.sys.touches.item(0).pageY;
+
+        t1.prev_x = t1.x;
+        t1.prev_y = t1.y;
+        t1.x = e.sys.touches.item(1).pageX;
+        t1.y = e.sys.touches.item(1).pageY;
+
+        //var center_x = Math.round(t0.x + (t1.x - t0.x) * 0.5);
+        //var center_y = Math.round(t0.y + (t1.y - t0.y) * 0.5);
+
+        //var dirC = cam.unproject(center_x, center_y);
+        //var targetPointC = this.planet.getCartesianFromPixelTerrain(new og.math.Pixel(center_x, center_y));
+
+        //var dir0 = cam.unproject(t0.x, t0.y);
+        //var targetPoint0 = new og.math.Ray(cam.eye, dir0).hitSphere(t0.grabbedSpheroid);
+
+        //var dir1 = cam.unproject(t1.x, t1.y);
+        //var targetPoint1 = new og.math.Ray(cam.eye, dir1).hitSphere(t1.grabbedSpheroid);
+
+        //print2d("t1", center_x + "," + center_y, 100, 100);
+        //print2d("t2", targetPointC.x + "," + targetPointC.y + "," + targetPointC.z, 100, 120);
+
+        if (t0.dY() > 0 && t1.dY() > 0 || t0.dY() < 0 && t1.dY() < 0 ||
+            t0.dX() > 0 && t1.dX() > 0 || t0.dX() < 0 && t1.dX() < 0) {
+            var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * og.math.RADIANS;
+            if (l > 0.007) l = 0.007;
+            cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
+            cam.rotateVertical(l * t0.dY(), this.pointOnEarth);
+            cam.update();
+        }
+
+        this.scaleRot = 0;
+
+        this.rot = 0;
+
+    } else if (e.sys.touches.item(0)) {
+
+        var t = this.touches[0];
+
+        t.prev_x = t.x;
+        t.prev_y = t.y;
+        t.x = e.sys.touches.item(0).pageX;
+        t.y = e.sys.touches.item(0).pageY;
+
+        if (!t.grabbedPoint)
+            return;
+
+        this.planet.stopFlying();
+
+        var direction = cam.unproject(t.x, t.y);
+        var targetPoint = new og.math.Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
         if (targetPoint) {
-            this.scaleRot = 1;
-            this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
-            var rot = this.qRot;
-            cam.eye = rot.mulVec3(cam.eye);
-            cam._v = rot.mulVec3(cam._v);
-            cam._u = rot.mulVec3(cam._u);
-            cam._n = rot.mulVec3(cam._n);
-            cam.update();
+            if (cam._n.dot(cam.eye.normal()) > 0.15) {
+                this.scaleRot = 1;
+                this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
+                var rot = this.qRot;
+                cam.eye = rot.mulVec3(cam.eye);
+                cam._v = rot.mulVec3(cam._v);
+                cam._u = rot.mulVec3(cam._u);
+                cam._n = rot.mulVec3(cam._n);
+                cam.update();
+            } else {
+                var p0 = t.grabbedPoint,
+                    p1 = og.math.Vector3.add(p0, cam._u),
+                    p2 = og.math.Vector3.add(p0, p0.normal());
+                var dir = cam.unproject(t.x, t.y);
+                var px = new og.math.Ray(cam.eye, dir).hitPlane(p0, p1, p2);
+                cam.eye = this._eye0.add(px.sub(p0).negate());
+                cam.update();
+            }
         }
 
         this.scaleRot = 0;

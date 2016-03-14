@@ -234,6 +234,14 @@ og.node.Planet = function (name, ellipsoid) {
 og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 
 /**
+ * Maximum created nodes count. The more nodes count the more memory usage.
+ * 200 - is a good value for iPad and low memory devices.
+ * @static
+ * @type {number}
+ */
+og.node.Planet.MAX_NODES = 250;
+
+/**
  * Planet node events names
  * @type {Array.<string>}
  * @const
@@ -683,7 +691,7 @@ og.node.Planet.prototype.frame = function () {
 
     //free memory
     var that = this;
-    if (this._createdNodesCount > 1370) {
+    if (this._createdNodesCount > og.node.Planet.MAX_NODES) {
         setTimeout(function () {
             that.memClear();
         }, 0);

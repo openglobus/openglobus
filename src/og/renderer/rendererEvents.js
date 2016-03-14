@@ -6,6 +6,7 @@ goog.require('og.input.KeyboardHandler');
 goog.require('og.input.TouchHandler');
 goog.require('og.Events');
 goog.require('og.inheritance');
+goog.require('og.math.Pixel');
 
 /*
  * Renderer events here
@@ -86,10 +87,16 @@ og.RendererEvents = function (renderer) {
         touchEnd: false,
         touchStart: false,
         touchCancel: false,
+        doubleTouch: false,
+        doubleTouchDelay: 550,
+        doubleTouchRadius: 10,
         sys: null,
         pickingObject: null
     };
 
+    this._dblTchCoords = new og.math.Pixel();
+    this._oneTouchStart = false;
+    this._dblTchBegins = 0;
     this._mousestopThread = null;
     this._ldblClkBegins = 0;
     this._rdblClkBegins = 0;
@@ -233,7 +240,8 @@ og.RendererEvents.EVENT_NAMES = [
         "touchstart",
         "touchend",
         "touchcancel",
-        "touchmove"
+        "touchmove",
+        "doubletouch"
 ];
 
 /**
@@ -397,15 +405,36 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
 og.RendererEvents.prototype.onTouchStart = function (event) {
     var ts = this.touchState;
     ts.sys = event;
-    ts.x = event.clientX;
-    ts.y = event.clientY;
+    ts.x = event.touches.item(0).pageX;
+    ts.y = event.touches.item(0).pageY;
     ts.touchStart = true;
+
+    if (event.touches.length === 1) {
+        this._dblTchCoords.x = event.touches.item(0).pageX;
+        this._dblTchCoords.y = event.touches.item(0).pageY;
+        this._oneTouchStart = true;
+    } else {
+        this._oneTouchStart = false;
+    }
 };
 
 og.RendererEvents.prototype.onTouchEnd = function (event) {
     var ts = this.touchState;
     ts.sys = event;
     ts.touchEnd = true;
+
+    if (event.touches.length === 0 &&
+        this._oneTouchStart) {
+        if (this._dblTchBegins) {
+            var deltatime = new Date().getTime() - this._dblTchBegins;
+            if (deltatime <= ts.doubleTouchDelay) {
+                ts.doubleTouch = true;
+            }
+            this._dblTchBegins = 0;
+        }
+        this._dblTchBegins = new Date().getTime();
+        this._oneTouchStart = false;
+    }
 };
 
 og.RendererEvents.prototype.onTouchCancel = function (event) {
@@ -418,6 +447,8 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
     var ts = this.touchState;
     ts.sys = event;
     ts.moving = true;
+    this._dblTchBegins = 0;
+    this._oneTouchStart = false;
 };
 
 og.RendererEvents.prototype.entityPickingEvents = function () {
@@ -587,6 +618,11 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
     if (ts.touchCancel) {
         ts.touchCancel = false;
         ce(this.touchcancel, ts);
+    }
+
+    if (ts.doubleTouch) {
+        ts.doubleTouch = false;
+        ce(this.doubletouch, ts);
     }
 
     if (ts.touchStart) {
