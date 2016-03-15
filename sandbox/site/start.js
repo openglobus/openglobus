@@ -63,12 +63,12 @@ function start() {
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
     var skybox = new og.node.SkyBox({
-        "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
-        "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
-        "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
-        "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
-        "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
-        "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
+        "nx": "resources/images/skyboxes/gal/_nx.jpg",
+        "px": "resources/images/skyboxes/gal/_px.jpg",
+        "py": "resources/images/skyboxes/gal/_py.jpg",
+        "ny": "resources/images/skyboxes/gal/_ny.jpg",
+        "pz": "resources/images/skyboxes/gal/_pz.jpg",
+        "nz": "resources/images/skyboxes/gal/_nz.jpg"
     });
 
     var controls = [
@@ -76,6 +76,7 @@ function start() {
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
+	new og.control.TouchNavigation({ autoActivate: true }),
         new og.control.MousePosition({ autoActivate: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ZoomControl({ autoActivate: true })

@@ -58,9 +58,9 @@ og.control.TouchNavigation.prototype.init = function () {
 
 og.control.TouchNavigation.prototype.onTouchStart = function (e) {
 
-    print2d("t1", "", 100, 100);
+    this._touching = true;
 
-    if (e.sys.touches.item(0) && e.sys.touches.item(1)) {
+    if (e.sys.touches.length === 2) {
 
         var t0 = this.touches[0],
             t1 = this.touches[1];
@@ -94,22 +94,25 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
             this.stopRotation();
         }
 
-    } else if (e.sys.touches.item(0)) {
+    } else if (e.sys.touches.length === 1) {
+        this._startTouchOne(e);
+    }
+};
 
-        var t = this.touches[0];
+og.control.TouchNavigation.prototype._startTouchOne = function (e) {
+    var t = this.touches[0];
 
-        t.x = e.sys.touches.item(0).pageX;
-        t.y = e.sys.touches.item(0).pageY;
-        t.prev_x = e.sys.touches.item(0).pageX;
-        t.prev_y = e.sys.touches.item(0).pageY;
+    t.x = e.sys.touches.item(0).pageX;
+    t.y = e.sys.touches.item(0).pageY;
+    t.prev_x = e.sys.touches.item(0).pageX;
+    t.prev_y = e.sys.touches.item(0).pageY;
 
-        t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t);
-        this._eye0.copy(this.renderer.activeCamera.eye);
+    t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t);
+    this._eye0.copy(this.renderer.activeCamera.eye);
 
-        if (t.grabbedPoint) {
-            t.grabbedSpheroid.radius = t.grabbedPoint.length();
-            this.stopRotation();
-        }
+    if (t.grabbedPoint) {
+        t.grabbedSpheroid.radius = t.grabbedPoint.length();
+        this.stopRotation();
     }
 };
 
@@ -132,26 +135,27 @@ og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
 };
 
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {
-    if (e.sys.touches.length === 0) {
-        if (Math.abs(this.touches[0].x - this.touches[0].prev_x) > 1 ||
-            Math.abs(this.touches[0].y - this.touches[0].prev_y) > 1)
-            this.scaleRot = 1 * this.rot;
-        else
-            this.scaleRot = 0;
+
+    if (e.sys.touches.length === 0)
+        this._touching = false;
+
+    if (e.sys.touches.length === 1) {
+        this._startTouchOne(e);
     }
 
-    this.rot = 1;
+    if (Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3 &&
+        Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3)
+        this.scaleRot = 0;
 };
 
 og.control.TouchNavigation.prototype.onTouchCancel = function (e) {
 };
 
 og.control.TouchNavigation.prototype.onTouchMove = function (e) {
-    print2d("t1", "", 100, 100);
 
     var cam = this.renderer.activeCamera;
 
-    if (e.sys.touches.item(0) && e.sys.touches.item(1)) {
+    if (e.sys.touches.length === 2) {
 
         var t0 = this.touches[0],
             t1 = this.touches[1];
@@ -197,9 +201,7 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         this.scaleRot = 0;
 
-        this.rot = 0;
-
-    } else if (e.sys.touches.item(0)) {
+    } else if (e.sys.touches.length === 1) {
 
         var t = this.touches[0];
 
@@ -218,7 +220,6 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         if (targetPoint) {
             if (cam._n.dot(cam.eye.normal()) > 0.15) {
-                this.scaleRot = 1;
                 this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
                 var rot = this.qRot;
                 cam.eye = rot.mulVec3(cam.eye);
@@ -226,6 +227,7 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
                 cam._u = rot.mulVec3(cam._u);
                 cam._n = rot.mulVec3(cam._n);
                 cam.update();
+                this.scaleRot = 1;
             } else {
                 var p0 = t.grabbedPoint,
                     p1 = og.math.Vector3.add(p0, cam._u),
@@ -234,14 +236,17 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
                 var px = new og.math.Ray(cam.eye, dir).hitPlane(p0, p1, p2);
                 cam.eye = this._eye0.add(px.sub(p0).negate());
                 cam.update();
+                this.scaleRot = 0;
             }
         }
-
-        this.scaleRot = 0;
     }
 };
 
 og.control.TouchNavigation.prototype.onDraw = function (e) {
+
+    if (this._touching)
+        return;
+
     if (this.stepIndex) {
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
