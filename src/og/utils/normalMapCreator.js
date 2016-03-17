@@ -119,13 +119,13 @@ og.utils.NormalMapCreator.prototype._init = function () {
 
     //create 2d screen square buffer
 
-    var positions = [
+    var positions = new Float32Array([
         -1.0, -1.0,
          1.0, -1.0,
         -1.0, 1.0,
-         1.0, 1.0];
+         1.0, 1.0]);
 
-    this._positionBuffer = this._handler.createArrayBuffer(new Float32Array(positions), 2, positions.length / 2);
+    this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
 };
 
 og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
@@ -133,7 +133,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     var size = normals.length / 3;
     var gridSize = Math.sqrt(size) - 1;
 
-    var _normalsBuffer = this._handler.createArrayBuffer(new Float32Array(normals), 3, size);
+    var _normalsBuffer = this._handler.createArrayBuffer(normals, 3, size);
 
     var f = this._framebuffer;
     var p = this._handler.shaderPrograms.normalMap;

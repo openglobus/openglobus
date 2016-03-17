@@ -195,6 +195,9 @@ og.quadTree.QuadNode.prototype.traverseNodes = function () {
     if (!this.nodes.length) {
         this.createChildrenNodes();
     }
+    if (!this.nodes[og.quadTree.NW]) {
+        console.log(this);
+    }
     this.nodes[og.quadTree.NW].renderTree();
     this.nodes[og.quadTree.NE].renderTree();
     this.nodes[og.quadTree.SW].renderTree();
@@ -720,13 +723,21 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
         this.appliedTerrainNodeId = -1;
     }
 
+    var nodesToRemove = [];
     for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].destroy();
-        this.nodes[i].destroyBranches(false);
-        this.nodes[i] = null;
+        nodesToRemove[i] = this.nodes[i];
     }
+
     this.nodes.length = 0;
     this.nodes = [];
+
+    for (var i = 0; i < nodesToRemove.length; i++) {
+        nodesToRemove[i].destroyBranches(false);
+        nodesToRemove[i].destroy();
+        nodesToRemove[i] = null;
+    }
+    nodesToRemove.length = 0;
+    nodesToRemove = null;
 };
 
 og.quadTree.QuadNode.prototype.traverseTree = function (callback) {

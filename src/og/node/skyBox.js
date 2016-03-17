@@ -44,7 +44,7 @@ og.node.SkyBox.prototype.frame = function () {
 
 og.node.SkyBox.prototype.createBuffers = function () {
 
-    var vertices = [
+    var vertices = new Float32Array([
         - 10000.0 ,   10000.0 , - 10000.0 ,
         - 10000.0 , - 10000.0 , - 10000.0 ,
           10000.0 , - 10000.0 , - 10000.0 ,
@@ -86,7 +86,7 @@ og.node.SkyBox.prototype.createBuffers = function () {
           10000.0 , - 10000.0 , - 10000.0 ,
         - 10000.0 , - 10000.0 ,   10000.0 ,
           10000.0 , - 10000.0 ,   10000.0 
-    ];
+    ]);
 
-    this.vertexPositionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
+    this.vertexPositionBuffer = this.renderer.handler.createArrayBuffer(vertices, 3, vertices.length / 3);
 };

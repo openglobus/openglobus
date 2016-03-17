@@ -29,7 +29,6 @@ function loadCapitals() {
 
 function start() {
     og.shaderProgram.SHADERS_URL = "./shaders/";
-    og.webgl.MAX_FRAME_DELAY = 28;
 
     var osm = new og.layer.XYZ("OpenStreetMap", { visibility: true, isBaseLayer: true, url: "http://a.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
     var sat = new og.layer.XYZ("MapQuest Satellite", { visibility: false, isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
@@ -53,7 +52,7 @@ function start() {
             })
         }
     });
-    loadCapitals();
+    //loadCapitals();
 
     v0.events.on("draw", v0, function () {
         var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
@@ -86,7 +85,7 @@ function start() {
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": skybox,
+        //"skybox": skybox,
         "terrain": terrain,
         "layers": [sat, osm, hyb, states, ne, v0],
         "autoActivated": true
@@ -141,6 +140,10 @@ function start() {
     placesCollection.addTo(globus.planet);
 
     placesCollection.events.on("mouselbuttonclick", null, function (e) {
+        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    });
+
+    placesCollection.events.on("touchend", null, function (e) {
         globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 

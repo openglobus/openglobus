@@ -204,5 +204,5 @@ og.PlanetSegmentHelper.createTextureCoords = function (size) {
             texCoords.push(j / size, i / size);
         }
     }
-    return texCoords;
+    return new Float32Array(texCoords);
 };

@@ -70,8 +70,6 @@ og.planetSegment.SegmentWGS84.prototype._assignTileIndexes = function () {
 };
 
 og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize) {
-    var verts = this.plainVertices;
-    var norms = this.plainNormals;
     var ind = 0;
     var e = this.extent;
     var lonSize = e.getWidth();
@@ -82,6 +80,11 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
         ene_lat = e.northEast.lat;
 
     var r2 = this.planet.ellipsoid._invRadii2;
+
+    this.plainNormals = new Float32Array((gridSize + 1) * (gridSize + 1) * 3);
+
+    var norms = this.plainNormals;
+    var verts = this.plainVertices;
 
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {

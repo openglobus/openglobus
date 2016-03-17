@@ -130,14 +130,14 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 
     this.plainIndexes = [];
     this.plainVertices = [];
-    this.plainNormals = [];
+    this.plainNormals = null;
     this.terrainVertices = [];
     this.tempVertices = [];
 
     this.normalMapTexture = null;
     this.normalMapTextureBias = [0, 0, 1];
     this.normalMapVertices = [];
-    this.normalMapNormals = [];
+    this.normalMapNormals = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -299,7 +299,7 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
         var vInd = 0;
         var dg = 32 / tgs;
 
-        var normalMapNormals = new Float64Array(fileGridSize_one * fileGridSize_one * 3);
+        var normalMapNormals = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
 
         var nv = this.normalMapVertices,
             nn = this.normalMapNormals;
@@ -528,6 +528,9 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
             var seg_a = this.normalMapNormals,
                 seg_b = ns.normalMapNormals;
 
+            if (!seg_a || !seg_b)
+                return;
+
             //there is no cases when zoom indexes different between neighbor more than 2
 
             if (this.tileZoom == ns.tileZoom) {
@@ -737,11 +740,11 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.normalMapVertices.length = 0;
-    this.normalMapNormals.length = 0;
+    this.normalMapNormals = null;
     this.tempVertices.length = 0;
     this.terrainVertices.length = 0;
     this.plainVertices.length = 0;
-    this.plainNormals.length = 0;
+    this.plainNormals = null;
     if (this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
@@ -841,8 +844,10 @@ og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gri
     var h = this.handler;
     h.gl.deleteBuffer(this.vertexPositionBuffer);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
-    this.vertexTextureCoordBuffer = h.createArrayBuffer(new Float32Array(og.PlanetSegmentHelper.textureCoordsTable[gridSize]), 2, gsgs);
-    this.vertexPositionBuffer = h.createArrayBuffer(new Float32Array(vertices), 3, gsgs);
+    this.vertexTextureCoordBuffer = h.createArrayBuffer(og.PlanetSegmentHelper.textureCoordsTable[gridSize], 2, gsgs);
+    var a = new Float32Array(vertices);
+    this.vertexPositionBuffer = h.createArrayBuffer(a, 3, gsgs);
+    a = null;
 };
 
 og.planetSegment.Segment.prototype._assignTileIndexes = function () {
@@ -867,10 +872,6 @@ og.planetSegment.Segment.prototype.createPlainSegment = function () {
 };
 
 og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
-    var verts = this.plainVertices,
-        norms = this.plainNormals,
-        nmVerts = this.normalMapVertices,
-        nmNorms = this.normalMapNormals;
 
     var e = this.extent,
         fgs = this.planet.terrainProvider.fileGridSize;
@@ -883,6 +884,16 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     var r2 = this.planet.ellipsoid._invRadii2;
     var ind = 0,
         nmInd = 0;
+
+    var gs3 = gs * gs * 3;
+    this.plainNormals = new Float32Array(gs3);
+    this.normalMapNormals = new Float32Array(gs3);
+
+    var verts = this.plainVertices,
+        norms = this.plainNormals,
+        nmVerts = this.normalMapVertices,
+        nmNorms = this.normalMapNormals;
+
     for (var i = 0; i < gs; i++) {
         for (var j = 0; j < gs; j++) {
             var v = this.planet.ellipsoid.lonLatToCartesian(og.LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));

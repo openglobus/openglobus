@@ -56,7 +56,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.insertEntity = function (entity, 
                 this.entityCollection.events.clear();
                 this.entityCollection.clear();
                 this.entityCollection = null;
-                this._freeCollection();
+                //this._freeCollection();
 
                 /** Build sub tree with new inserted entity */
                 this.buildTree(entities, rightNow);
@@ -288,7 +288,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
 
 og.quadTree.EntityCollectionQuadNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
     planetSegment.getEntityTerrainPoint(entity, entity._cartesian);
-    entity._setCartesian3vSilent(entity._cartesian.add(entity._cartesian.normal().scale(entity._altitude)));
+    entity._setCartesian3vSilent(entity._cartesian.add(entity._cartesian.normal().scale(entity._altitude || 0.1)));
 };
 
 og.quadTree.EntityCollectionQuadNode.prototype.isVisible = function () {
