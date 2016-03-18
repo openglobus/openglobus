@@ -40,8 +40,10 @@ goog.require('og.Events');
  * @fires og.Events#mouserbuttonhold
  * @fires og.Events#mousembuttonhold
  * @fires og.Events#mousewheel
+ * @fires og.Events#touchmove
  * @fires og.Events#touchstart
  * @fires og.Events#touchend
+ * @fires og.Events#doubletouch
  */
 og.EntityCollection = function (options) {
 
@@ -302,8 +304,12 @@ og.EntityCollection.EVENT_NAMES = [
          */
         "mousewheel",
 
+        "touchmove",
         "touchstart",
-        "touchend"];
+        "touchend",
+        "doubletouch",
+        "touchleave",
+        "touchenter"];
 
 /**
  * Sets collection visibility.

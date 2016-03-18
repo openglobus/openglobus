@@ -306,7 +306,7 @@ og.Renderer.prototype._drawPickingBuffer = function () {
 
     var h = this.handler;
     var gl = h.gl;
-    gl.clearColor(0, 0.0, 0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.disable(h.gl.BLEND);
 
@@ -319,15 +319,18 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     this._pickingFramebuffer.deactivate();
 
     var ms = this.events.mouseState;
-    var x = ms.x,
-        y = ms.y;
+    var ts = this.events.touchState;
 
     if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
         this._prevPickingColor[0] = this._currPickingColor[0];
         this._prevPickingColor[1] = this._currPickingColor[1];
         this._prevPickingColor[2] = this._currPickingColor[2];
 
-        this._currPickingColor = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+        if (ts.x || ts.y) {
+            this._currPickingColor = this._pickingFramebuffer.readPixel(ts.x, this._pickingFramebuffer.height - ts.y);
+        } else {
+            this._currPickingColor = this._pickingFramebuffer.readPixel(ms.x, this._pickingFramebuffer.height - ms.y);
+        }
     }
 };
 

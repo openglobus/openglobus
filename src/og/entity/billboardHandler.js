@@ -372,27 +372,27 @@ og.BillboardHandler.prototype.setPositionArr = function (index, position) {
 
     a[i] = x;
     a[i + 1] = y;
-    a[i + 2] = z;   
+    a[i + 2] = z;
 
     a[i + 4] = x;
     a[i + 5] = y;
     a[i + 6] = z;
-    
+
     a[i + 8] = x;
     a[i + 9] = y;
-    a[i + 10] = z;    
+    a[i + 10] = z;
 
     a[i + 12] = x;
     a[i + 13] = y;
     a[i + 14] = z;
-    
+
     a[i + 16] = x;
     a[i + 17] = y;
-    a[i + 18] = z;    
+    a[i + 18] = z;
 
     a[i + 20] = x;
     a[i + 21] = y;
-    a[i + 22] = z;    
+    a[i + 22] = z;
 
     this._changedBuffers[og.BillboardHandler.POSITION_BUFFER] = true;
 };

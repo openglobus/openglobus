@@ -90,6 +90,10 @@ og.RendererEvents = function (renderer) {
         doubleTouch: false,
         doubleTouchDelay: 550,
         doubleTouchRadius: 10,
+        x: 0,
+        y: 0,
+        prev_x: 0,
+        prev_y: 0,
         sys: null,
         pickingObject: null
     };
@@ -241,7 +245,9 @@ og.RendererEvents.EVENT_NAMES = [
         "touchend",
         "touchcancel",
         "touchmove",
-        "doubletouch"
+        "doubletouch",
+        "touchleave",
+        "touchenter"
 ];
 
 /**
@@ -252,7 +258,8 @@ og.RendererEvents.prototype.handleEvents = function () {
     this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
     this.entityPickingEvents();
     this._keyboardHandler.handleEvents();
-    this.handleMouseAndTouchEvents();
+    this.handleMouseEvents();
+    this.handleTouchEvents();
 };
 
 /**
@@ -407,11 +414,13 @@ og.RendererEvents.prototype.onTouchStart = function (event) {
     ts.sys = event;
     ts.x = event.touches.item(0).pageX;
     ts.y = event.touches.item(0).pageY;
+    ts.prev_x = ts.x;
+    ts.prev_y = ts.y;
     ts.touchStart = true;
 
     if (event.touches.length === 1) {
-        this._dblTchCoords.x = event.touches.item(0).pageX;
-        this._dblTchCoords.y = event.touches.item(0).pageY;
+        this._dblTchCoords.x = ts.x;
+        this._dblTchCoords.y = ts.y;
         this._oneTouchStart = true;
     } else {
         this._oneTouchStart = false;
@@ -423,17 +432,23 @@ og.RendererEvents.prototype.onTouchEnd = function (event) {
     ts.sys = event;
     ts.touchEnd = true;
 
-    if (event.touches.length === 0 &&
-        this._oneTouchStart) {
-        if (this._dblTchBegins) {
-            var deltatime = new Date().getTime() - this._dblTchBegins;
-            if (deltatime <= ts.doubleTouchDelay) {
-                ts.doubleTouch = true;
+    if (event.touches.length === 0) {
+
+        ts.prev_x = ts.x;
+        ts.prev_y = ts.y;
+
+        if (this._oneTouchStart) {
+
+            if (this._dblTchBegins) {
+                var deltatime = new Date().getTime() - this._dblTchBegins;
+                if (deltatime <= ts.doubleTouchDelay) {
+                    ts.doubleTouch = true;
+                }
+                this._dblTchBegins = 0;
             }
-            this._dblTchBegins = 0;
+            this._dblTchBegins = new Date().getTime();
+            this._oneTouchStart = false;
         }
-        this._dblTchBegins = new Date().getTime();
-        this._oneTouchStart = false;
     }
 };
 
@@ -445,6 +460,8 @@ og.RendererEvents.prototype.onTouchCancel = function (event) {
 
 og.RendererEvents.prototype.onTouchMove = function (event) {
     var ts = this.touchState;
+    ts.x = event.touches.item(0).pageX;
+    ts.y = event.touches.item(0).pageY;
     ts.sys = event;
     ts.moving = true;
     this._dblTchBegins = 0;
@@ -480,6 +497,8 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 var pe = po._entityCollection.events;
                 ms.pickingObject = po;
                 pe.dispatch(pe.mouseleave, ms);
+                ts.pickingObject = po;
+                pe.dispatch(pe.touchleave, ts);
             } else {
                 //current not black
 
@@ -489,21 +508,24 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                     var pe = po._entityCollection.events;
                     ms.pickingObject = po;
                     pe.dispatch(pe.mouseleave, ms);
+                    ts.pickingObject = po;
+                    pe.dispatch(pe.touchleave, ts);
                 }
 
                 var ce = co._entityCollection.events;
                 ms.pickingObject = co;
                 ce.dispatch(ce.mouseenter, ms);
+                ts.pickingObject = co;
+                ce.dispatch(ce.touchenter, ts);
             }
         }
     }
 };
 
-og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
+og.RendererEvents.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
-        ts = this.touchState,
         ce = this.dispatch;
-    var po = ms.pickingObject || ts.pickingObject;
+    var po = ms.pickingObject;
 
     if (ms.leftButtonClick) {
         po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonclick, ms);
@@ -610,32 +632,53 @@ og.RendererEvents.prototype.handleMouseAndTouchEvents = function () {
         this._rdblClkBegins = 0;
     }
 
-    if (ts.touchEnd) {
-        ts.touchEnd = false;
-        ce(this.touchend, ts);
-    }
-
-    if (ts.touchCancel) {
-        ts.touchCancel = false;
-        ce(this.touchcancel, ts);
-    }
-
-    if (ts.doubleTouch) {
-        ts.doubleTouch = false;
-        ce(this.doubletouch, ts);
-    }
-
-    if (ts.touchStart) {
-        ts.touchStart = false;
-        ce(this.touchstart, ts);
-    }
-
-    if (ts.moving) {
-        ce(this.touchmove, ts);
-    }
-
     if (ms.justStopped) {
         ce(this.mousestop, ms);
         ms.justStopped = false;
+    }
+};
+
+og.RendererEvents.prototype.handleTouchEvents = function () {
+    var ts = this.touchState,
+        ce = this.dispatch;
+
+    var tpo = ts.pickingObject;
+
+    if (ts.touchCancel) {
+        ce(this.touchcancel, ts);
+        ts.touchCancel = false;
+    }
+
+    if (ts.touchStart) {
+        var r = this.renderer;
+        r._currPickingColor = r._pickingFramebuffer.readPixel(ts.x, r._pickingFramebuffer.height - ts.y);
+        var o = r.colorObjects;
+        var c = r._currPickingColor;
+        var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+        tpo = ts.pickingObject = co;
+        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchstart, ts);
+        ce(this.touchstart, ts);
+        ts.touchStart = false;
+    }
+
+    if (ts.doubleTouch) {
+        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.doubletouch, ts);
+        ce(this.doubletouch, ts);
+        ts.doubleTouch = false;
+    }
+
+    if (ts.touchEnd) {
+        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchend, ts);
+        ce(this.touchend, ts);
+        ts.x = 0;
+        ts.y = 0;
+        ts.touchEnd = false;
+    }
+
+    if (ts.moving) {
+        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchmove, ts);
+        ce(this.touchmove, ts);
+        ts.prev_x = ts.x;
+        ts.prev_y = ts.y;
     }
 };

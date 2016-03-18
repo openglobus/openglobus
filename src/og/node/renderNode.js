@@ -343,6 +343,7 @@ og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
  */
 og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
     if (ec.length) {
+
         var gl = this.renderer.handler.gl;
 
         gl.disable(gl.CULL_FACE);

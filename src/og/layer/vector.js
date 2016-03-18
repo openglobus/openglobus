@@ -54,8 +54,10 @@ goog.require('og.QueueArray');
  * @fires og.Events#mouserbuttonhold
  * @fires og.Events#mousembuttonhold
  * @fires og.Events#mousewheel
+ * @fires og.Events#touchmove
  * @fires og.Events#touchstart
  * @fires og.Events#touchend
+ * @fires og.Events#doubletouch
  */
 og.layer.Vector = function (name, options) {
     options = options || {};
@@ -259,8 +261,12 @@ og.layer.Vector.EVENT_NAMES = [
          */
         "mousewheel",
 
+        "touchmove",
         "touchstart",
-        "touchend"];
+        "touchend",
+        "doubletouch",
+        "touchleave",
+        "touchenter"];
 
 /**
  * Adds layer to the planet.
@@ -497,8 +503,12 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("mouserbuttonhold", null, function (e) { ve.dispatch(ve.mouserbuttonhold, e); });
     entityCollection.events.on("mousembuttonhold", null, function (e) { ve.dispatch(ve.mousembuttonhold, e); });
     entityCollection.events.on("mousewheel", null, function (e) { ve.dispatch(ve.mousewheel, e); });
+    entityCollection.events.on("touchmove", null, function (e) { ve.dispatch(ve.touchmove, e); });
     entityCollection.events.on("touchstart", null, function (e) { ve.dispatch(ve.touchstart, e); });
     entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
+    entityCollection.events.on("doubletouch", null, function (e) { ve.dispatch(ve.doubletouch, e); });
+    entityCollection.events.on("touchleave", null, function (e) { ve.dispatch(ve.touchleave, e); });
+    entityCollection.events.on("touchenter", null, function (e) { ve.dispatch(ve.touchenter, e); });
 };
 
 /**
