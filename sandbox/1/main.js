@@ -179,6 +179,7 @@ function start() {
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     v0 = new og.layer.Vector("Countries vector", { isBaseLayer: false, minZoom: 0, groundAlign: false });
+    placesCollection = new og.layer.Vector("My favorite places", { isBaseLayer: false, minZoom: 1, groundAlign: true });
 
     v0.events.on("draw", v0, function () {
         var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
@@ -238,6 +239,63 @@ function start() {
     */
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
+
+
+    var places = [
+    { name: "Everest", lat: 27.96248, lon: 86.93361, height: 8510, alt: 16002, img: null, blb: "./resources/images/peak.png" },
+    { name: "Father mountain", lat: 44.35373, lon: 146.25119, height: 1750, alt: 10594, img: null, blb: "./resources/images/peak.png" },
+    { name: "Kudach", lat: 51.80633, lon: 157.53396, height: 1000, alt: 10594, img: null, blb: "./resources/images/peak.png" },
+    { name: "Курильское озеро", lat: 51.45526, lon: 157.10338, height: 150, alt: 27286, img: null },
+    { name: "Island", lat: 64.96372, lon: -17.87612, height: 720, alt: 515284, img: null },
+    { name: "Cilaos", lat: -21.14163, lon: 55.45201, height: 3000, alt: 14033, img: null, blb: "./resources/images/island.png" },
+    { name: "Ecuador", lat: -0.40913, lon: -90.95670, height: 1000, alt: 112508, img: null, blb: "./resources/images/island.png" },
+    { name: "Istambul and Bosporus", lat: 41.11113, height: 500, lon: 29.06953, alt: 49235, img: null },
+    { name: "Crimea", lat: 45.24066, lon: 33.96877, height: 2000, alt: 219529, img: null, blb: "./resources/images/island.png" },
+    { name: "Mount Elbrus", lat: 43.351167, lon: 42.43864, height: 5660, alt: 12751.8, img: null, blb: "./resources/images/peak.png" },
+    { name: "Mount Rainier", lat: 46.85320, lon: -121.75754, height: 4390, alt: 22738, img: null, blb: "./resources/images/peak.png" },
+    { name: "Mount Adams", lat: 46.20357, lon: -121.49044, height: 3780, alt: 17828.7, img: null, blb: "./resources/images/peak.png" },
+    { name: "Mount Saint Helen", lat: 46.19022, lon: -122.18546, height: 2540, alt: 9475.2, img: null, blb: "./resources/images/peak.png" },
+    { name: "Home world", lat: 55.78131, lon: 77.02815, height: 8000, alt: 13132244.4, img: null }
+    ];
+
+    //placesCollection.events.on("draw", placesCollection, function () {
+    //    var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+    //    this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    //});
+
+
+    placesCollection.events.on("touchend", null, function (e) {
+        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    });
+
+    for (var i = 0; i < places.length; i++) {
+        (function (li, place) {
+            var e = new og.Entity({
+                lonlat: new og.LonLat(place.lon, place.lat, 0),
+                label: {
+                    text: place.name,
+                    size: 40,
+                    color: new og.math.Vector4(1, 1, 1, 1),
+                    outlineColor: new og.math.Vector4(0, 0, 0, 1),
+                    outline: 0.45,
+                    weight: "bold",
+                    face: "verdana",
+                    offset: [10,-2]
+                },
+                billboard: {
+                    src: "marker.png",
+                    width: 64,
+                    height: 64,
+                    offset: [0, 32]
+                }
+            });
+            e.showAlt = place.alt;
+            e.addTo(placesCollection);
+
+        })(null, places[i]);
+    }
+
+    placesCollection.addTo(globus.planet);
 
     //countriesCollection = new og.EntityCollection();
     //countriesCollection.setScaleByDistance(100000, 5700000, 4000000);

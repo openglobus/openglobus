@@ -143,8 +143,8 @@ function start() {
         globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 
-    placesCollection.events.on("touchend", null, function (e) {
-        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    placesCollection.events.on("touchstart", null, function (e) {
+       globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 
     var cont = document.createElement("div");

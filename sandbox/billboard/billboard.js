@@ -51,10 +51,11 @@ my.Billboard.prototype.initialization = function () {
             src: "marker.png",
             width: 80,
             height: 80,
-            offset:[0,40]
+            offset: [0, 40]
         },
         label: {
-            face: "arial black",
+            face: "monospace",
+            //weight: "bold",
             text: "Billboard 1"
         }
     });
@@ -72,13 +73,29 @@ my.Billboard.prototype.initialization = function () {
         label: {
             face: "monospace",
             text: "Billboard 2",
-            weight: "bold"
+            //weight: "bold"
         }
     }).addTo(ec);
 
     //eee2.addTo(ec);
 
     ec.addTo(this);
+
+    ec.events.on("touchstart", null, function (e) {
+        print2d("t1", "start-" + e.pickingObject.label.getText(), 100, 100);
+    });
+
+    ec.events.on("touchend", null, function (e) {
+        print2d("t1", "end-" + e.pickingObject.label.getText(), 100, 100);
+    });
+
+    //ec.events.on("touchenter", null, function (e) {
+    //    print2d("t1", "enter-" + e.pickingObject.label.getText(), 100, 100);
+    //});
+
+    //ec.events.on("touchleave", null, function (e) {
+    //    print2d("t1", "leave-" + e.pickingObject.label.getText(), 100, 100);
+    //});
 
     //for (var i = 0; i < 50; i++) {
     //    for (var j = 0; j < 50; j++) {
@@ -110,7 +127,7 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size1').oninput = function () {
         eee.label.setSize(this.value);
-        eee.billboard.setScale(this.value/25);
+        eee.billboard.setScale(this.value / 25);
     };
     document.getElementById('buffer1').oninput = function () {
         eee.label.setOutline(this.value);
@@ -125,7 +142,7 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size2').oninput = function () {
         eee1.label.setSize(this.value);
-        eee1.billboard.setScale(this.value/25);
+        eee1.billboard.setScale(this.value / 25);
     };
     document.getElementById('buffer2').oninput = function () {
         eee1.label.setOutline(this.value);
@@ -140,7 +157,7 @@ my.Billboard.prototype.initialization = function () {
 
     document.getElementById('size3').oninput = function () {
         eee2.label.setSize(this.value);
-        eee2.billboard.setScale(this.value/25);
+        eee2.billboard.setScale(this.value / 25);
     };
     document.getElementById('buffer3').oninput = function () {
         eee2.label.setOutline(this.value);
