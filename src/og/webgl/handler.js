@@ -4,6 +4,7 @@ goog.require('og.webgl');
 goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
+goog.require('og.math.Pixel');
 
 /** 
  * A WebGL handler for accessing low-level WebGL capabilities. 
@@ -484,6 +485,16 @@ og.webgl.Handler.prototype.setSize = function (w, h) {
  */
 og.webgl.Handler.prototype.getClientAspect = function () {
     return this.canvas.clientWidth / this.canvas.clientHeight;
+};
+
+/**
+ * Returns screen center coordinates.
+ * @public
+ * @returns {number}
+ */
+og.webgl.Handler.prototype.getCenter = function () {
+    var c = this.canvas;
+    return new og.math.Pixel(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
 };
 
 /**

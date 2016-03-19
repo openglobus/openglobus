@@ -19,7 +19,7 @@ goog.require('og.control.KeyboardNavigation');
 goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ToggleWireframe');
 goog.require('og.control.LoadingSpinner');
-goog.require('og.control.MousePosition');
+goog.require('og.control.EarthCoordinates');
 goog.require('og.control.ShowFps');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.Globus');

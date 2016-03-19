@@ -69,20 +69,16 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
         t0.y = e.sys.touches.item(0).pageY;
         t0.prev_x = e.sys.touches.item(0).pageX;
         t0.prev_y = e.sys.touches.item(0).pageY;
-        t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0);
+        t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0, true);
 
         t1.x = e.sys.touches.item(1).pageX;
         t1.y = e.sys.touches.item(1).pageY;
         t1.prev_x = e.sys.touches.item(1).pageX;
         t1.prev_y = e.sys.touches.item(1).pageY;
-        t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1);
+        t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
-        var screenCenter = {
-            x: Math.round(this.renderer.handler.canvas.width * 0.5),
-            y: Math.round(this.renderer.handler.canvas.height * 0.5)
-        };
         //this.planet._viewChanged = true;
-        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(screenCenter);
+        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter(), true);
 
         if (this.pointOnEarth) {
             this.earthUp = this.pointOnEarth.normal();
@@ -156,6 +152,8 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
     var cam = this.renderer.activeCamera;
 
     if (e.sys.touches.length === 2) {
+
+        this.renderer.controlsBag.scaleRot = 1;
 
         var t0 = this.touches[0],
             t1 = this.touches[1];
@@ -244,10 +242,15 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
 og.control.TouchNavigation.prototype.onDraw = function (e) {
 
+    this.renderer.controlsBag.scaleRot = this.scaleRot;
+
     if (this._touching)
         return;
 
+    var r = this.renderer;
+
     if (this.stepIndex) {
+        r.controlsBag.scaleRot = 1;
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
@@ -257,8 +260,6 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
         cam.update();
     }
 
-    var r = this.renderer;
-    r.controlsBag.scaleRot = this.scaleRot;
     if (r.events.mouseState.leftButtonDown || !this.scaleRot)
         return;
 
@@ -266,6 +267,7 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
     if (this.scaleRot <= 0)
         this.scaleRot = 0;
     else {
+        r.controlsBag.scaleRot = this.scaleRot;
         var cam = r.activeCamera;
         var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
         if (!(rot.x || rot.y || rot.z)) {

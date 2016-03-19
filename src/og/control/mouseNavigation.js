@@ -39,7 +39,7 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
         u = cam._u.clone(),
         v = cam._v.clone();
 
-    var a = planet.getCartesianFromPixelTerrain(point);
+    var a = planet.getCartesianFromPixelTerrain(point, true);
 
     if (!dir) {
         dir = og.math.Vector3.sub(a, cam.eye).normalize();
@@ -148,7 +148,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
-    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
+    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
     if (this.grabbedPoint) {
         this._eye0.copy(this.renderer.activeCamera.eye);
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
@@ -203,7 +203,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
 og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
     this.stopRotation();
     this.planet.stopFlying();
-    this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y });
+    this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y }, true);
     if (this.pointOnEarth) {
         this.earthUp = this.pointOnEarth.normal();
     }
@@ -212,6 +212,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.mouseState.moving) {
+        this.renderer.controlsBag.scaleRot = 1;
         var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * og.math.RADIANS;
         if (l > 0.007) l = 0.007;
         cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
@@ -222,7 +223,10 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
 
 og.control.MouseNavigation.prototype.onDraw = function (e) {
 
+    var r = this.renderer;
+
     if (this.stepIndex) {
+        r.controlsBag.scaleRot = 1;
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
         var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
@@ -232,8 +236,6 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.update();
     }
 
-    var r = this.renderer;
-    r.controlsBag.scaleRot = this.scaleRot;
     if (r.events.mouseState.leftButtonDown || !this.scaleRot)
         return;
 
@@ -241,6 +243,7 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
     if (this.scaleRot <= 0)
         this.scaleRot = 0;
     else {
+        r.controlsBag.scaleRot = this.scaleRot;
         var cam = r.activeCamera;
         var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
         if (!(rot.x || rot.y || rot.z)) {

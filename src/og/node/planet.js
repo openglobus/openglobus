@@ -524,15 +524,16 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("resize", this._heightBackbuffer, function (e) {
         this.setSize(e.width, e.height);
     });
-    this.renderer.activeCamera.events.on("viewchange", this, function (e) {
-        this._viewChanged = true;
-    });
-    this.renderer.events.on("mousemove", this, function (e) {
-        this._viewChanged = true;
-    });
-    this.renderer.events.on("touchmove", this, function (e) {
-        this._viewChanged = true;
-    });
+
+    //this.renderer.activeCamera.events.on("viewchange", this, function (e) {
+    //    this._viewChanged = true;
+    //});
+    //this.renderer.events.on("mousemove", this, function (e) {
+    //    this._viewChanged = true;
+    //});
+    //this.renderer.events.on("touchmove", this, function (e) {
+    //    this._viewChanged = true;
+    //});
 
     //sunlight initialization
     this.sunlight = new og.light.PointLight();
@@ -894,9 +895,9 @@ og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
  * @public
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.getCartesianFromMouseTerrain = function () {
+og.node.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
     var ms = this.renderer.events.mouseState;
-    var distance = this.getDistanceFromPixel(ms);
+    var distance = this.getDistanceFromPixel(ms, force);
     if (distance) {
         return ms.direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
     }
@@ -910,8 +911,8 @@ og.node.Planet.prototype.getCartesianFromMouseTerrain = function () {
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
-    var distance = this.getDistanceFromPixel(px);
+og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
+    var distance = this.getDistanceFromPixel(px, force);
     if (distance) {
         var direction = this.renderer.activeCamera.unproject(px.x, px.y);
         return direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
@@ -926,8 +927,8 @@ og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px) {
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
  * @returns {og.LonLat}
  */
-og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px) {
-    var coords = this.getCartesianFromPixelTerrain(px);
+og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
+    var coords = this.getCartesianFromPixelTerrain(px, force);
     if (coords) {
         return this.ellipsoid.cartesianToLonLat(coords);
     }
@@ -978,12 +979,12 @@ og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
  * @param {og.math.Vector2} px
  * @returns {number}
  */
-og.node.Planet.prototype.getDistanceFromPixel = function (px) {
-    if (this._viewChanged) {
+og.node.Planet.prototype.getDistanceFromPixel = function (px, force) {
+    if (this._viewChanged || force) {
         this._viewChanged = false;
         var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x, this._heightBackbuffer.height - px.y));
         if (!(color.x | color.y | color.z | color.w)) {
-            return this.getDistanceFromPixelEllipsoid(px);
+            return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
         }
         return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
     }
