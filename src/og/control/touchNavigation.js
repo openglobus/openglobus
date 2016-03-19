@@ -103,7 +103,7 @@ og.control.TouchNavigation.prototype._startTouchOne = function (e) {
     t.prev_x = e.sys.touches.item(0).pageX;
     t.prev_y = e.sys.touches.item(0).pageY;
 
-    t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t);
+    t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t, true);
     this._eye0.copy(this.renderer.activeCamera.eye);
 
     if (t.grabbedPoint) {

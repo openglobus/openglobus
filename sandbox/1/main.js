@@ -201,7 +201,7 @@ function start() {
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
-        new og.control.EarthCoordinates({ autoActivate: true, center: false }),
+        new og.control.EarthCoordinates({ autoActivate: true, center: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
         new og.control.ZoomControl({ autoActivate: true }),
         new og.control.TouchNavigation({ autoActivate: true })

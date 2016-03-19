@@ -525,15 +525,15 @@ og.node.Planet.prototype.initialization = function () {
         this.setSize(e.width, e.height);
     });
 
-    //this.renderer.activeCamera.events.on("viewchange", this, function (e) {
-    //    this._viewChanged = true;
-    //});
-    //this.renderer.events.on("mousemove", this, function (e) {
-    //    this._viewChanged = true;
-    //});
-    //this.renderer.events.on("touchmove", this, function (e) {
-    //    this._viewChanged = true;
-    //});
+    this.renderer.activeCamera.events.on("viewchange", this, function (e) {
+        this._viewChanged = true;
+    });
+    this.renderer.events.on("mousemove", this, function (e) {
+        this._viewChanged = true;
+    });
+    this.renderer.events.on("touchmove", this, function (e) {
+        this._viewChanged = true;
+    });
 
     //sunlight initialization
     this.sunlight = new og.light.PointLight();
