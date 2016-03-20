@@ -1,4 +1,16 @@
-﻿.defaultText {
+﻿.ogCenterIcon {
+    height: 12px;
+    width: 12px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    margin-right: 3px;
+    bottom: 50%;
+    right: 50%;
+    position: absolute;
+}
+
+
+.defaultText {
     position: absolute;
     font: 16px;
     font-family: Consolas, monaco, monospace;
@@ -14,10 +26,6 @@
 
 .ogGrabbingPoiner {
     cursor: url(data:text/plain;base64,AAACAAEAICACAAcABQAwAQAAFgAAACgAAAAgAAAAQAAAAAEAAQAAAAAAAAEAAAAAAAAAAAAAAgAAAAAAAAAAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8AAAA/AAAAfwAAAP+AAAH/gAAB/8AAAH/AAAB/wAAA/0AAANsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//////////////////////////////////////////////////////////////////////////////////////gH///4B///8Af//+AD///AA///wAH//+AB///wAf//4AH//+AD///yT/////////////////////////////8=), default;
-}
-
-.ogHandPoiner {
-    cursor: pointer;
 }
 
 .ogViewport {
@@ -165,7 +173,7 @@
     font-size: 0.8em;
 }
 
-.ogMousePositionControl {
+.ogEarthCoordinatesControl {
     color: white;
     cursor: pointer;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;

@@ -14,6 +14,7 @@ goog.addDependency('../../../og/src/og/control/loadingSpinner.js', ['og.control.
 goog.addDependency('../../../og/src/og/control/mouseNavigation.js', ['og.control.MouseNavigation'], ['og.bv.Sphere', 'og.control.Control', 'og.inheritance', 'og.math', 'og.math.Matrix4', 'og.math.Quaternion', 'og.math.Ray', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/control/showFps.js', ['og.control.ShowFps'], ['og.control.Control', 'og.inheritance'], false);
 goog.addDependency('../../../og/src/og/control/simpleNavigation.js', ['og.control.SimpleNavigation'], ['og.control.Control', 'og.inheritance', 'og.input'], false);
+goog.addDependency('../../../og/src/og/control/sun.js', ['og.control.Sun'], ['og.control.Control', 'og.inheritance', 'og.light.PointLight'], false);
 goog.addDependency('../../../og/src/og/control/toggleWireframe.js', ['og.control.ToggleWireframe'], ['og.inheritance', 'og.input', 'og.webgl'], false);
 goog.addDependency('../../../og/src/og/control/touchNavigation.js', ['og.control.TouchNavigation'], ['og.bv.Sphere', 'og.control.Control', 'og.inheritance', 'og.math', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Quaternion', 'og.math.Ray', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/control/zoomControl.js', ['og.control.ZoomControl'], ['og.control.Control', 'og.control.MouseNavigation', 'og.inheritance'], false);

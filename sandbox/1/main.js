@@ -9,6 +9,7 @@ goog.require('og.control.MouseNavigation');
 goog.require('og.control.KeyboardNavigation');
 goog.require('og.control.ToggleWireframe');
 /*goog.require('og.control.LoadingSpinner');*/
+goog.require('og.control.Sun');
 goog.require('og.control.EarthCoordinates');
 goog.require('og.control.LayerSwitcher');
 goog.require('og.control.ShowFps');
@@ -204,7 +205,8 @@ function start() {
         new og.control.EarthCoordinates({ autoActivate: true, center: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
         new og.control.ZoomControl({ autoActivate: true }),
-        new og.control.TouchNavigation({ autoActivate: true })
+        new og.control.TouchNavigation({ autoActivate: true }),
+        new og.control.Sun({ autoActivate: true })
     ];
 
     globus = new og.Globus({

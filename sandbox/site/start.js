@@ -52,7 +52,7 @@ function start() {
             })
         }
     });
-    //loadCapitals();
+    loadCapitals();
 
     v0.events.on("draw", v0, function () {
         var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
@@ -75,8 +75,8 @@ function start() {
         new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
         /*new og.control.LoadingSpinner({ autoActivate: true }),*/
-	new og.control.TouchNavigation({ autoActivate: true }),
-        new og.control.MousePosition({ autoActivate: true }),
+	    new og.control.TouchNavigation({ autoActivate: true }),
+        new og.control.EarthCoordinates({ autoActivate: true, center: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
     	new og.control.ZoomControl({ autoActivate: true })
     ];
@@ -85,7 +85,7 @@ function start() {
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        //"skybox": skybox,
+        "skybox": skybox,
         "terrain": terrain,
         "layers": [sat, osm, hyb, states, ne, v0],
         "autoActivated": true
@@ -144,7 +144,7 @@ function start() {
     });
 
     placesCollection.events.on("touchstart", null, function (e) {
-       globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 
     var cont = document.createElement("div");

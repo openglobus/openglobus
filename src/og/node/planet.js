@@ -88,6 +88,9 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this.baseLayer = null;
 
+
+    this.lightEnabled = false;
+
     /**
      * Terrain provider.
      * @public
@@ -110,13 +113,6 @@ og.node.Planet = function (name, ellipsoid) {
     this.emptyTexture = null;
     this.transparentTexture = null;
     this.defaultTexture = null;
-
-    /**
-     * Point light source.
-     * @public
-     * @type {og.light.PointLight}
-     */
-    this.sunlight = null;
 
     /**
      * Object async creates normal map segment textures.
@@ -220,13 +216,6 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this._quadTreeSouth = null;
 
-    /**
-     * Sunlight position placed in the camera eye.
-     * @private
-     * @type {boolean}
-     */
-    this._isCameraSunlight = false;
-
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
 };
@@ -282,13 +271,6 @@ og.node.Planet.EVENT_NAMES = [
          * @event og.Events#geoimageadd
          */
         "geoimageadd"];
-
-/**
- * Distance from center of scene to the Sun
- * @type {number}
- * @const
- */
-og.node.Planet.SUN_DISTANCE = 149600000000;
 
 /**
  * Default planet empty color
@@ -535,17 +517,6 @@ og.node.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     });
 
-    //sunlight initialization
-    this.sunlight = new og.light.PointLight();
-    this.sunlight._position.z = og.node.Planet.SUN_DISTANCE;
-    this.sunlight.setAmbient(new og.math.Vector3(0.18, 0.13, 0.25));
-    this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
-    this.sunlight.setSpecular(new og.math.Vector3(0.008, 0.008, 0.005));
-    this.sunlight.setShininess(4);
-    this.sunlight.addTo(this);
-
-    this.lightEnabled = true;
-
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
 
@@ -555,10 +526,6 @@ og.node.Planet.prototype.initialization = function () {
     //temporary initializations
     var that = this;
     this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
-    this.renderer.events.on("charkeypress", this, function () { that.lightEnabled = !that.lightEnabled; }, og.input.KEY_L);
-    this.renderer.events.on("keypress", this, function () {
-        that._isCameraSunlight = true;
-    }, og.input.KEY_V);
 
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 };
@@ -676,14 +643,6 @@ og.node.Planet.prototype.frame = function () {
     this._collectRenderNodes();
 
     //print2d("lbTiles", cam._n.dot(cam.eye.normal()), 100, 100);
-
-    if (!this._isCameraSunlight)
-        this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);
-    else
-        this.sunlight._position = cam.eye;
-
-    this._isCameraSunlight = false;
-
     this.transformLights();
 
     this._renderNodesPASS();
