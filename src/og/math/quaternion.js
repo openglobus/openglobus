@@ -4,13 +4,28 @@ goog.require('og.math');
 goog.require('og.math.Matrix4');
 
 og.math.Quaternion = function (x, y, z, w) {
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
-    this.w = w || 0;
+    this.x = x || 0.0;
+    this.y = y || 0.0;
+    this.z = z || 0.0;
+    this.w = w || 0.0;
 };
 
-og.math.Quaternion.IDENTITY = new og.math.Quaternion(0, 0, 0, 1);
+og.math.Quaternion.IDENTITY = new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
+
+og.math.Quaternion.xRotation = function (a) {
+    a *= 0.5;
+    return new og.math.Quaternion(Math.sin(a), 0.0, 0.0, Math.cos(a));
+};
+
+og.math.Quaternion.yRotation = function (a) {
+    a *= 0.5;
+    return new og.math.Quaternion(0.0, Math.sin(a), 0.0, Math.cos(a));
+};
+
+og.math.Quaternion.zRotation = function (a) {
+    a *= 0.5;
+    return new og.math.Quaternion(0.0, 0.0, Math.sin(a), Math.cos(a));
+};
 
 og.math.Quaternion.prototype.clear = function () {
     this.x = this.y = this.z = this.w = 0;
@@ -132,9 +147,9 @@ og.math.Quaternion.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex, ey, ez;
     var cr, cp, cy, sr, sp, sy, cpcy, spsy;
 
-    ex = x * og.Math.RADIANS / 2.0;
-    ey = y * og.Math.RADIANS / 2.0;
-    ez = z * og.Math.RADIANS / 2.0;
+    ex = pitch * og.math.RADIANS / 2.0;
+    ey = yaw * og.math.RADIANS / 2.0;
+    ez = roll * og.math.RADIANS / 2.0;
 
     cr = Math.cos(ex);
     cp = Math.cos(ey);

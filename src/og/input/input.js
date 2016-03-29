@@ -10,6 +10,7 @@ og.input.KEY_A = 65;
 og.input.KEY_C = 67;
 og.input.KEY_D = 68;
 og.input.KEY_E = 69;
+og.input.KEY_F = 70;
 og.input.KEY_H = 72;
 og.input.KEY_L = 76;
 og.input.KEY_Q = 81;

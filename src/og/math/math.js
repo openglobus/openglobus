@@ -1,6 +1,7 @@
 goog.provide('og.math');
 
-og.math.GLArray = typeof Float32Array != "undefined" ? Float32Array : typeof WebGLFloatArray != "undefined" ? WebGLFloatArray : Array;
+og.math.TWO_PI = 2.0 * Math.PI;
+og.math.PI_TWO = Math.PI / 2.0;
 
 og.math.X = 0;
 og.math.Y = 1;
@@ -12,16 +13,19 @@ og.math.MAX32 = 2147483647;
 og.math.MAX = 549755748352;
 og.math.MIN = -og.math.MAX;
 
-og.math.RADIANS = Math.PI / 180;
-og.math.DEGREES = 180 / Math.PI;
+og.math.RADIANS = Math.PI / 180.0;
+og.math.DEGREES = 180.0 / Math.PI;
 
 og.math.DEGREES_DOUBLE = 2.0 * og.math.DEGREES;
 og.math.RADIANS_HALF = 0.5 * og.math.RADIANS;
 
-og.math.SQRT_HALF = Math.sqrt(0.5);
+og.math.ARCSECONDS_TO_RADIANS = 0.00000484813681109536;
+og.math.RADIANS_TO_HOURS = 3.8197186342054880584532103209403;
+og.math.HOURS_TO_RADIANS = 0.26179938779914943653855361527329;
+og.math.HOURS_TO_DEGREES = 15.0;
+og.math.DEGREES_TO_HOURS = 1.0 / 15.0;
 
-//Float round-off PI
-Math.PI = 3.1415927410125732;
+og.math.SQRT_HALF = Math.sqrt(0.5);
 
 og.math.EPSILON1 = 0.1;
 og.math.EPSILON2 = 0.01;
@@ -121,4 +125,73 @@ og.math.randomi = function (min, max) {
 
 og.math.random = function (min, max) {
     return Math.random() * (max - min) + min;
+};
+
+og.math.degToDec = function (d, m, s, p) {
+    if (p)
+        return d + m / 60.0 + s / 3600.0;
+    else
+        return -d - m / 60.0 - s / 3600.0;
+};
+
+/**
+ * The modulo operation that also works for negative dividends.
+ * @param {Number} m The dividend.
+ * @param {Number} n The divisor.
+ * @returns {Number} The remainder.
+ */
+og.math.mod = function (m, n) {
+    return ((m % n) + n) % n;
+};
+
+/**
+ * Returns an angle in the range 0 <= angle <= 2Pi which is equivalent to the provided angle.
+ * @param {Number} angle in radians
+ * @returns {Number}
+ */
+og.math.zeroTwoPI = function (a) {
+    var mod = og.math.mod(a, og.math.TWO_PI);
+    if (Math.abs(mod) < og.math.EPSILON14 && Math.abs(a) > og.math.EPSILON14) {
+        return og.math.TWO_PI;
+    }
+    return mod;
+};
+
+/**
+ * Returns an angle in the range -Pi <= angle <= Pi which is equivalent to the provided angle.
+ * @param {Number} angle in radians
+ * @returns {Number}
+ */
+og.math.negativePItoPI = function (a) {
+    return og.math.zeroTwoPI(a + Math.PI) - Math.PI;
+};
+
+/**
+ * Solve using iteration method and a fixed number of steps.
+ */
+og.math.solve_iteration_fixed = function (f, x0, maxIter) {
+    var x = 0;
+    var x2 = x0;
+    for (var i = 0; i < maxIter; i++) {
+        x = x2;
+        x2 = f(x);
+    }
+    return x2;
+};
+
+/**
+ * Solve using iteration; terminate when error is below err or the maximum
+ * number of iterations is reached.
+ */
+og.math.solve_iteration = function (f, x0, err, maxIter) {
+    maxIter = maxIter || 50;
+    var x = 0;
+    var x2 = x0;
+    for (var i = 0; i < maxIter; i++) {
+        x = x2;
+        x2 = f(x);
+        if (Math.abs(x2 - x) < err)
+            return x2;
+    }
+    return x2;
 };

@@ -154,3 +154,37 @@ og.utils.createLonLat = function (l, def) {
     }
     return og.LonLat();
 };
+
+
+/**
+ * Finds an item in a sorted array.
+ * @param {Array} ar The sorted array to search.
+ * @param {Object} el The item to find in the array.
+ * @param {og.utils.binarySearch~compare_fn} comparator The function to use to compare the item to
+ *        elements in the array.
+ * @returns {Number} a negative number  if a is less than b; 0 if a is equal to b;a positive number of a is greater than b.
+ *
+ * @example
+ * // Create a comparator function to search through an array of numbers.
+ * function comparator(a, b) {
+ *     return a - b;
+ * };
+ * var numbers = [0, 2, 4, 6, 8];
+ * var index = og.utils.binarySearch(numbers, 6, comparator); // 3
+ */
+og.utils.binarySearch = function (ar, el, compare_fn) {
+    var m = 0;
+    var n = ar.length - 1;
+    while (m <= n) {
+        var k = (n + m) >> 1;
+        var cmp = compare_fn(el, ar[k]);
+        if (cmp > 0) {
+            m = k + 1;
+        } else if (cmp < 0) {
+            n = k - 1;
+        } else {
+            return k;
+        }
+    }
+    return -m - 1;
+};
