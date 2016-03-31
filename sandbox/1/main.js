@@ -20,6 +20,7 @@ goog.require('og.GeoImage');
 goog.require('og.LonLat');
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
+goog.require('og.astro.earth');
 
 var countriesCollection;
 var capitalsCollection;

@@ -104,10 +104,6 @@ og.math.lerp = function (t, h1, h0) {
     return h0 + t * (h1 - h0);
 };
 
-og.math.norm_lon = function (lon) {
-    return Math.asin(Math.sin(lon * og.math.RADIANS_HALF)) * og.math.DEGREES_DOUBLE;
-};
-
 og.math.bezier = function (t, p0, p1, p2, p3) {
     var u = 1 - t;
     var tt = t * t;
@@ -155,6 +151,14 @@ og.math.zeroTwoPI = function (a) {
         return og.math.TWO_PI;
     }
     return mod;
+};
+
+og.math.rev = function (x) {
+    return x - Math.floor(x / 360.0) * 360.0;
+};
+
+og.math.norm_lon = function (lon) {
+    return Math.asin(Math.sin(lon * og.math.RADIANS_HALF)) * og.math.DEGREES_DOUBLE;
 };
 
 /**

@@ -60,8 +60,8 @@ og.orbit.SolveKeplerLaguerreConway = function (ecc, M) {
 
 og.orbit.SolveKeplerLaguerreConwayHyp = function (ecc, M) {
     return function (x) {
-        var s = ecc * sinh(x);
-        var c = ecc * cosh(x);
+        var s = ecc * Math.sinh(x);
+        var c = ecc * Math.cosh(x);
         var f = s - x - M;
         var f1 = c - 1;
         var f2 = s;

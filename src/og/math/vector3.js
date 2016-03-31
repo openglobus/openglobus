@@ -6,6 +6,10 @@ og.math.Vector3 = function (x, y, z) {
     this.z = z || 0.0;
 }
 
+og.math.vector3 = function (x, y, z) {
+    return new og.math.Vector3(x, y, z);
+};
+
 og.math.Vector3.prototype.toVector4 = function () {
     return new og.math.Vector4(this.x, this.y, this.z, 1.0);
 };

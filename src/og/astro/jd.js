@@ -202,8 +202,22 @@ og.jd.getSeconds = function (jd) {
 };
 
 og.jd.getHours = function (jd) {
-    var s = jd - (jd | 0);
-    return s * og.jd.HOURS_PER_DAY | 0;
+    var julianDayNumber = jd | 0;
+    var secondsOfDay = (jd - julianDayNumber) * og.jd.SECONDS_PER_DAY;
+
+    var hour = secondsOfDay * og.jd.ONE_BY_SECONDS_PER_HOUR | 0;
+    var remainingSeconds = secondsOfDay - hour * og.jd.SECONDS_PER_HOUR;
+    var minute = remainingSeconds * og.jd.ONE_BY_SECONDS_PER_MINUTE | 0;
+    remainingSeconds = remainingSeconds - minute * og.jd.SECONDS_PER_MINUTE;
+    var second = remainingSeconds | 0;
+    var millisecond = (remainingSeconds - second) * og.jd.MILLISECONDS_PER_SECOND | 0;
+
+    hour += 12 + minute / 60 + second / 3600 + millisecond / 1000;
+    if (hour > 23) {
+        hour -= 24;
+    }
+
+    return hour;
 };
 
 og.jd.getMinutes = function (jd) {

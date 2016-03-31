@@ -14,6 +14,7 @@ goog.require('og.terrainProvider.TerrainProvider');
 goog.require('og.node.SkyBox');
 goog.require('og.node.Axes');
 goog.require('og.control.MouseNavigation');
+goog.require('og.control.Sun');
 goog.require('og.control.SimpleNavigation');
 goog.require('og.control.KeyboardNavigation');
 goog.require('og.control.LayerSwitcher');

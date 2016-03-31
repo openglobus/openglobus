@@ -3,6 +3,7 @@ goog.provide('og.control.Sun');
 goog.require('og.inheritance');
 goog.require('og.control.Control');
 goog.require('og.light.PointLight');
+goog.require('og.math.Quaternion');
 
 og.control.Sun = function (options) {
     og.inheritance.base(this, options);
@@ -14,7 +15,7 @@ og.control.Sun = function (options) {
      * @private
      * @type {boolean}
      */
-    this._isCameraSunlight = false;
+    //this._isCameraSunlight = false;
 
     /**
      * Point light source.
@@ -49,9 +50,16 @@ og.control.Sun.prototype.init = function () {
 
     var that = this;
     this.renderer.events.on("draw", this, this.draw);
+    //this.renderer.events.on("keypress", this, function () {
+    //    var rx = og.math.Quaternion.xRotation(2 * og.math.RADIANS);
+    //    that.sunlight._position = rx.mulVec3(that.sunlight._position);
+    //}, og.input.KEY_V);
+
     this.renderer.events.on("keypress", this, function () {
-        that._isCameraSunlight = true;
-    }, og.input.KEY_V);
+        var ry = og.math.Quaternion.yRotation(2 * og.math.RADIANS);
+        that.sunlight._position = ry.mulVec3(that.sunlight._position);
+    }, og.input.KEY_F);
+
     this.renderer.events.on("charkeypress", this, function () {
         that.planet.lightEnabled = !that.planet.lightEnabled;
     }, og.input.KEY_L);
@@ -62,10 +70,10 @@ og.control.Sun.prototype.draw = function () {
 
     var cam = this.renderer.activeCamera;
 
-    if (!this._isCameraSunlight)
-        this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);
-    else
-        this.sunlight._position = cam.eye;
+    //if (!this._isCameraSunlight)
+    //    this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);
+    //else
+    //    this.sunlight._position = cam.eye;
 
     this._isCameraSunlight = false;
 };
