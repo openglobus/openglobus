@@ -3,6 +3,7 @@ goog.provide('og.control.Sun');
 goog.require('og.inheritance');
 goog.require('og.control.Control');
 goog.require('og.light.PointLight');
+goog.require('og.astro.earth');
 goog.require('og.math.Quaternion');
 
 og.control.Sun = function (options) {
@@ -23,12 +24,6 @@ og.control.Sun = function (options) {
      * @type {og.light.PointLight}
      */
     this.sunlight = null;
-
-    /**
-     * Distance from center of scene to the Sun
-     * @type {number}
-     */
-    this.sunDistance = 149600000000;
 };
 
 og.inheritance.extend(og.control.Sun, og.control.Control);
@@ -41,11 +36,11 @@ og.control.Sun.prototype.init = function () {
 
     //sunlight initialization
     this.sunlight = new og.light.PointLight();
-    this.sunlight._position.z = this.sunDistance;
-    this.sunlight.setAmbient(new og.math.Vector3(0.18, 0.13, 0.25));
+    this.sunlight.setPosition(og.astro.earth.getSunPosition(og.jd.DateToUTC(new Date())));
+    this.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.25));
     this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
-    this.sunlight.setSpecular(new og.math.Vector3(0.008, 0.008, 0.005));
-    this.sunlight.setShininess(4);
+    this.sunlight.setSpecular(new og.math.Vector3(0.1, 0.1, 0.06));
+    this.sunlight.setShininess(110);
     this.sunlight.addTo(this.planet);
 
     var that = this;
