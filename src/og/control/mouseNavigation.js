@@ -282,4 +282,5 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         this.planet.normalMapCreator.active = true;
         this.planet.geoImageTileCreator.active = true;
     }
+
 };
