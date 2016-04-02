@@ -383,6 +383,7 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
         var u = up_i.cross(n);
         n.normalize();
         u.normalize();
+
         var v = n.cross(u);
         this._framesArr[i] = {
             "eye": eye_i,
@@ -417,6 +418,7 @@ og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up, completeCallba
 og.PlanetCamera.prototype.stopFlying = function () {
     this.planet.normalMapCreator.active = true;
     this.planet.terrainProvider.active = true;
+    this.planet.layersActivity = true;
     this._flying = false;
     this._framesArr.length = 0;
     this._framesArr = [];
@@ -488,9 +490,11 @@ og.PlanetCamera.prototype._flyFrame = function () {
         var c = this._numFrames - this._framesCounter;
         this.planet.normalMapCreator.active = false;
         if (c % 20) {
-            this.planet.terrainProvider.active = false;
+            //this.planet.terrainProvider.active = false;
+            this.planet.layersActivity = false;
         } else {
-            this.planet.terrainProvider.active = true;
+            //this.planet.terrainProvider.active = true;
+            this.planet.layersActivity = true;
         }
         this.eye = this._framesArr[c].eye;
         this._u = this._framesArr[c].u;

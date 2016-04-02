@@ -254,5 +254,8 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam._u = rot.mulVec3(cam._u);
         cam._n = rot.mulVec3(cam._n);
         cam.update();
+
+        print2d("t1", this.scaleRot, 100, 150);
+        print2d("t2", cam._terrainAltitude, 100, 180);
     }
 };
