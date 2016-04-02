@@ -30,7 +30,6 @@ og.layer.XYZ.prototype.abortLoading = function () {
             this.abortMaterialLoading(q._array[i]);
         }
     }
-    this._counter = 0;
     this._pendingsQueue = [];
     //this._pendingsQueue.clear();
 };
