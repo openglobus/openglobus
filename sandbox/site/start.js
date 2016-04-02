@@ -78,8 +78,9 @@ function start() {
 	    new og.control.TouchNavigation({ autoActivate: true }),
         new og.control.EarthCoordinates({ autoActivate: true, center: true }),
         new og.control.LayerSwitcher({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true })
-    ];
+    	new og.control.ZoomControl({ autoActivate: true }),
+    	new og.control.Sun({ autoActivate: true })
+];
 
     globus = new og.Globus({
         "target": "globus",
@@ -93,11 +94,11 @@ function start() {
 
     globus.planet.setBaseLayer(osm);
 
-    globus.planet.sunlight.setSpecular(new og.math.Vector3(0.05, 0.05, 0.05));
-    globus.planet.sunlight.setShininess(50);
-    globus.planet.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
-    globus.planet.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.15))
-    globus.renderer.handler.backgroundColor = { r: 0.26, g: 0.26, b: 0.26 };
+    //globus.planet.sunlight.setSpecular(new og.math.Vector3(0.05, 0.05, 0.05));
+    //globus.planet.sunlight.setShininess(50);
+    //globus.planet.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
+    //globus.planet.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.15))
+    //globus.renderer.handler.backgroundColor = { r: 0.26, g: 0.26, b: 0.26 };
 
 
 
