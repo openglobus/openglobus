@@ -601,7 +601,7 @@ og.planetSegment.Segment.prototype.normalMapEdgeEqualize = function (side, i_a, 
  */
 og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
 
-    if (!this.planet || this.tileZoom > this.planet.terrainProvider.maxZoom)
+    if (!this.planet || this.tileZoom > this.planet.terrainProvider.maxZoom || !this.normalMapNormals)
         return;
 
     var nb = this.node.neighbors;
@@ -736,7 +736,7 @@ og.planetSegment.Segment.prototype.deleteMaterials = function () {
  * Delete elevation data.
  */
 og.planetSegment.Segment.prototype.deleteElevations = function () {
-    this._inTheQueue = false;
+    this.terrainExists = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
     this.normalMapVertices.length = 0;
@@ -757,6 +757,7 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapTextureBias = [0, 0, 1];
+    this._inTheQueue = false;
 };
 
 /**

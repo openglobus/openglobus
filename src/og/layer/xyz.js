@@ -13,8 +13,8 @@ og.layer.XYZ = function (name, options) {
 
     this.url = options.url || "";
 
-    this.counter = 0;
-    this.pendingsQueue = new og.QueueArray();
+    this._counter = 0;
+    this._pendingsQueue = [];//new og.QueueArray();
 };
 
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
@@ -24,13 +24,15 @@ og.layer.XYZ.EVENT_NAMES = [
     "loadend"];
 
 og.layer.XYZ.prototype.abortLoading = function () {
-    var q = this.pendingsQueue;
+    var q = this._pendingsQueue;
     for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
         if (q._array[i]) {
-            q._array[i].abortLoading();
+            this.abortMaterialLoading(q._array[i]);
         }
     }
-    this.pendingsQueue.clear();
+    this._counter = 0;
+    this._pendingsQueue = [];
+    //this._pendingsQueue.clear();
 };
 
 og.layer.XYZ.prototype.setVisibility = function (visibility) {
@@ -51,15 +53,17 @@ og.layer.XYZ.prototype.setUrl = function (url) {
 };
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
-    if (material.segment._projection.id == og.proj.EPSG3857.id) {
-        if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
-            this.pendingsQueue.push(material);
+    if (this._planet.layersActivity) {
+        if (material.segment._projection.id === og.proj.EPSG3857.id) {
+            if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
+                this._pendingsQueue.push(material);
+            } else {
+                this._exec(material);
+            }
         } else {
-            this.loadSegmentTileImage(material);
+            material.textureNotExists();
         }
-    } else {
-        material.textureNotExists();
-    };
+    }
 };
 
 og.layer.XYZ.__requestsCounter = 0;
@@ -73,63 +77,71 @@ og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
     });
 };
 
-og.layer.XYZ.prototype.loadSegmentTileImage = function (material) {
-    var that = this;
-    this.counter++;
+og.layer.XYZ.prototype._exec = function (material) {
     og.layer.XYZ.__requestsCounter++;
-    var img = new Image();
-    img.crossOrigin = '';
-    img.onload = function () {
+    this._counter++;
+
+    var that = this;
+    material.image = new Image();
+    material.image.crossOrigin = '';
+
+    material.image.onload = function () {
+        that._counter--;
+        og.layer.XYZ.__requestsCounter--;
+
         var e = that.events.load;
         if (e.length) {
-            that.events.dispatch(e, {
-                "image": this,
-                "material": material
-            });
+            that.events.dispatch(e, material);
         }
         material.applyTexture.call(material, this);
         that.dequeueRequest();
     };
 
-    img.onerror = function () {
-        if (material) {
+    material.image.onerror = function () {
+        if (material.imageIsLoading && material.image) {
+            that._counter--;
+            og.layer.XYZ.__requestsCounter--;
             material.textureNotExists.call(material);
         }
         that.dequeueRequest();
     };
 
-    if (material.segment.materials.length) {
-        img.src = this.GetHTTPRequestString(material.segment);
-        material.image = img;
-    } else {
-        //Have to be that segment was clearified
+    //if (material.segment.materials.length) {
+    material.image.src = this.GetHTTPRequestString(material.segment);
+    //material.image = img;
+    //} else {
+    //    this.dequeueRequest();
+    //}
+};
+
+og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
+    if (material.imageIsLoading && material.image) {
+        this._counter--;
+        og.layer.XYZ.__requestsCounter--;
         this.dequeueRequest();
     }
 };
 
 og.layer.XYZ.prototype.dequeueRequest = function () {
-    this.counter--;
-    og.layer.XYZ.__requestsCounter--;
-    if (this.pendingsQueue.length) {
+    if (this._pendingsQueue.length) {
         if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
             var pmat;
             if (pmat = this.whilePendings())
-                this.loadSegmentTileImage.call(this, pmat);
+                this._exec.call(this, pmat);
         }
-    } else if (this.counter == 0) {
+    } else if (this._counter === 0) {
         this.events.dispatch(this.events.loadend);
     }
 };
 
 og.layer.XYZ.prototype.whilePendings = function () {
-    while (this.pendingsQueue.length) {
-        var pmat = this.pendingsQueue.pop();
-        if (pmat && pmat.segment.node) {
-            if (pmat.segment.node.getState() != og.quadTree.NOTRENDERING) {
+    while (this._pendingsQueue.length) {
+        var pmat = this._pendingsQueue.pop();
+        if (pmat.segment.node) {
+            if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
                 return pmat;
-            } else {
-                pmat.imageIsLoading = false;
             }
+            pmat.imageIsLoading = false;
         }
     }
     return null;

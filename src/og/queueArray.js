@@ -1,17 +1,17 @@
 goog.provide('og.QueueArray');
 
 og.QueueArray = function () {
-    this._array = new Array(512);
-    this._popIndex = 256;
-    this._shiftIndex = 256;
+    this._array = new Array(2048);
+    this._popIndex = 1024;
+    this._shiftIndex = 1024;
     this.length = 0;
 };
 
 og.QueueArray.prototype.clear = function () {
     this._array.length = 0;
-    this._array = new Array(512);
-    this._popIndex = 256;
-    this._shiftIndex = 256;
+    this._array = new Array(2048);
+    this._popIndex = 1024;
+    this._shiftIndex = 1024;
     this.length = 0;
 }
 og.QueueArray.prototype.push = function (data) {
@@ -26,5 +26,8 @@ og.QueueArray.prototype.unshift = function (data) {
 
 og.QueueArray.prototype.pop = function () {
     this.length--;
-    return this._array[this._popIndex--];
+    var res = this._array[this._popIndex]
+    this._array[this._popIndex] = null;
+    this._popIndex--;
+    return res;
 };

@@ -1,5 +1,7 @@
 goog.provide('og.Ajax');
 
+goog.provide('og.Ajax.Xhr');
+
 og.Ajax = {
     ReadyState:
     {
@@ -26,6 +28,13 @@ og.Ajax = {
     Synchronous: false
 };
 
+og.Ajax.Xhr = function (xhr) {
+    var _xhr = xhr;
+    this.abort = function () {
+        _xhr.aborted = true;
+        _xhr.abort();
+    }
+};
 
 og.Ajax.defaultParams = { type: og.Ajax.Method.Get, async: og.Ajax.Asynchronous, data: null, sender: null, responseType: "text" };
 
@@ -76,13 +85,17 @@ og.Ajax.request = function (url, params) {
             if (xhr.status === og.Ajax.Status.OK) {
                 if (params.success)
                     params.success.call(params.sender ? params.sender : this, xhr.response);
+            } else if (xhr.aborted) {
+                params.abort && params.abort.call(params.sender ? params.sender : this, xhr.response, xhr.status);
             } else {
-                if (params.error)
-                    params.error.call(params.sender ? params.sender : this, xhr.response, xhr.status);
+                params.error && params.error.call(params.sender ? params.sender : this, xhr.response, xhr.status);
             }
         } else {
             //still loading
         }
     };
+
     xhr.send(params.data ? params.data : og.Ajax.defaultParams.data);
+
+    return new og.Ajax.Xhr(xhr);
 };

@@ -31,12 +31,7 @@ og.planetSegment.Material.prototype.loadTileImage = function () {
 };
 
 og.planetSegment.Material.prototype.abortLoading = function () {
-    if (this.image) {
-        this.image.src = "";
-        this.image = null;
-    }
-    this.imageIsLoading = false;
-    this.imageReady = false;
+    this.layer.abortMaterialLoading(this);
 };
 
 og.planetSegment.Material.prototype.applyTexture = function (img) {
@@ -44,7 +39,7 @@ og.planetSegment.Material.prototype.applyTexture = function (img) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
         this.texBias = [0, 0, 1];
-        this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
+        //this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
         this.imageReady = true;
         this.textureExists = true;
         this.imageIsLoading = false;
@@ -59,16 +54,26 @@ og.planetSegment.Material.prototype.textureNotExists = function () {
 };
 
 og.planetSegment.Material.prototype.clear = function () {
-    this.imageIsLoading = false;
+
     if (this.imageReady) {
         this.imageReady = false;
+
         if (!this.texture.default)
             this.segment.handler.gl.deleteTexture(this.texture);
         this.texture = null;
-        this.image && (this.image.src = "");
-        this.image = null;
-        this.segment = null;
-        this.layer = null;
+
+        //this.segment = null;
+        //this.layer = null;
         this.texBias = [0, 0, 1];
+    }
+
+    this.layer.abortMaterialLoading(this);
+
+    this.imageIsLoading = false;
+    this.textureExists = false;
+
+    if (this.image) {
+        this.image.src = '';
+        this.image = null;
     }
 };

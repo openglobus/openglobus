@@ -10,13 +10,13 @@ og.planetSegment.NormalMapCreatorQueue = function (width, height) {
     this.active = true;
 
     this._counter = 0;
-    this._pendingsQueue = new og.QueueArray();
+    this._pendingsQueue = [];//new og.QueueArray();
 };
 
 og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMapCreator);
 
 og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
-    if (this.active) {
+    if (this.active || segment.tileZoom <= 2) {
         segment._inTheQueue = true;
         if (this._counter >= 1) {
             this._pendingsQueue.unshift(segment);
@@ -59,7 +59,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype._dequeueRequest = function () {
 og.planetSegment.NormalMapCreatorQueue.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         var seg = this._pendingsQueue.pop();
-        if (seg.terrainReady && seg.node.getState() != og.quadTree.NOTRENDERING && seg._inTheQueue) {
+        if (seg.terrainReady && seg._inTheQueue && seg.node.getState() !== og.quadTree.NOTRENDERING) {
             return seg;
         }
         seg._inTheQueue = false;

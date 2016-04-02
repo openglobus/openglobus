@@ -55,7 +55,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
 
     this.active = true;
     this._counter = 0;
-    this._pendingsQueue = new og.QueueArray();
+    this._pendingsQueue = [];//new og.QueueArray();
 };
 
 og.inheritance.extend(og.terrainProvider.TerrainProvider, og.terrainProvider.EmptyTerrainProvider);
@@ -78,7 +78,7 @@ og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (se
             if (this._counter >= this.MAX_LOADING_TILES) {
                 this._pendingsQueue.push(segment);
             } else {
-                this.loadSegmentTerrainData(segment);
+                this._exec(segment);
             }
         } else {
             //TODO: poles elevation
@@ -100,9 +100,9 @@ og.terrainProvider.TerrainProvider.prototype.getElevations = function (data) {
     return new Float32Array(data);
 };
 
-og.terrainProvider.TerrainProvider.prototype.loadSegmentTerrainData = function (segment) {
+og.terrainProvider.TerrainProvider.prototype._exec = function (segment) {
     this._counter++;
-    og.Ajax.request(this.getServerUrl(segment), {
+    var xhr = og.Ajax.request(this.getServerUrl(segment), {
         responseType: this.responseType,
         sender: this,
         success: function (data) {
@@ -110,6 +110,9 @@ og.terrainProvider.TerrainProvider.prototype.loadSegmentTerrainData = function (
         },
         error: function () {
             this._applyElevationsData(segment, []);
+        },
+        abort: function () {
+            segment.terrainIsLoading = false;
         }
     });
 };
@@ -135,9 +138,9 @@ og.terrainProvider.TerrainProvider.prototype.dequeueRequest = function () {
         if (this._counter < this.MAX_LOADING_TILES) {
             var pseg;
             if (pseg = this.whilePendings())
-                this.loadSegmentTerrainData.call(this, pseg);
+                this._exec.call(this, pseg);
         }
-    } else if (this._counter == 0) {
+    } else if (this._counter === 0) {
         this.events.dispatch(this.events.loadend);
     }
 };
@@ -145,12 +148,11 @@ og.terrainProvider.TerrainProvider.prototype.dequeueRequest = function () {
 og.terrainProvider.TerrainProvider.prototype.whilePendings = function () {
     while (this._pendingsQueue.length) {
         var pseg = this._pendingsQueue.pop();
-        if (pseg && pseg.node) {
-            if (pseg.node.getState() != og.quadTree.NOTRENDERING) {
+        if (pseg.node) {
+            if (pseg.ready && pseg.node.getState() !== og.quadTree.NOTRENDERING) {
                 return pseg;
-            } else {
-                pseg.terrainIsLoading = false;
             }
+            pseg.terrainIsLoading = false;
         }
     }
     return null;
