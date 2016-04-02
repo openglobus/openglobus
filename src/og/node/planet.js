@@ -645,7 +645,7 @@ og.node.Planet.prototype.frame = function () {
     this._collectRenderNodes();
 
     //print2d("lbTiles", cam._n.dot(cam.eye.normal()), 100, 100);
-    print2d("lbTiles", this.layers[1]._counter + ", " + this.layers[1]._pendingsQueue.length, 100, 100);
+    print2d("lbTiles", og.layer.XYZ.__requestsCounter + ", " + this.layers[0]._pendingsQueue.length + ", " + this.layers[2]._pendingsQueue.length, 100, 100);
     print2d("t2", this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 300, 100);
 
 

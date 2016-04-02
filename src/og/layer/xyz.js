@@ -53,6 +53,8 @@ og.layer.XYZ.prototype.setUrl = function (url) {
 
 og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     if (this._planet.layersActivity) {
+        material.imageReady = false;
+        material.imageIsLoading = true;
         if (material.segment._projection.id === og.proj.EPSG3857.id) {
             if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
                 this._pendingsQueue.push(material);

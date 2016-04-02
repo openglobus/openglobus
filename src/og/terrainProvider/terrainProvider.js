@@ -74,6 +74,8 @@ og.terrainProvider.TerrainProvider.prototype.setName = function (name) {
 
 og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (segment) {
     if (this.active) {
+        segment.terrainReady = false;
+        segment.terrainIsLoading = true;
         if (segment._projection.id == og.proj.EPSG3857.id) {
             if (this._counter >= this.MAX_LOADING_TILES) {
                 this._pendingsQueue.push(segment);

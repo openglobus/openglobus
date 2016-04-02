@@ -268,8 +268,6 @@ og.planetSegment.Segment.prototype.projectNative = function (lonlat) {
 og.planetSegment.Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrainProvider.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
-            this.terrainReady = false;
-            this.terrainIsLoading = true;
             this.planet.terrainProvider.handleSegmentTerrain(this);
         }
     } else {

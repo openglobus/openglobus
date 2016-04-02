@@ -116,6 +116,13 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     this.stopRotation();
 
+    this._deactivate = true;
+
+    this.planet.layersActivity = false;
+    this.planet.terrainProvider.active = false;
+    this.planet.normalMapCreator.active = false;
+    this.planet.geoImageTileCreator.active = false;
+
     var ms = this.renderer.events.mouseState;
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -224,27 +231,35 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
 og.control.MouseNavigation.prototype.onDraw = function (e) {
 
     var r = this.renderer;
+    var cam = r.activeCamera;
+    var prevEye = cam.eye.clone();
 
     if (this.stepIndex) {
         r.controlsBag.scaleRot = 1;
         var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-        var cam = this.renderer.activeCamera;
         cam.eye = sf.eye;
         cam._v = sf.v;
         cam._u = sf.u;
         cam._n = sf.n;
         cam.update();
+    } else {
+        if (this._deactivate) {
+            this._deactivate = false;
+            this.planet.layersActivity = true;
+            this.planet.terrainProvider.active = true;
+            this.planet.normalMapCreator.active = true;
+            this.planet.geoImageTileCreator.active = true;
+        }
     }
 
     if (r.events.mouseState.leftButtonDown || !this.scaleRot)
         return;
 
     this.scaleRot -= this.inertia;
-    if (this.scaleRot <= 0)
+    if (this.scaleRot <= 0) {
         this.scaleRot = 0;
-    else {
+    } else {
         r.controlsBag.scaleRot = this.scaleRot;
-        var cam = r.activeCamera;
         var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
         if (!(rot.x || rot.y || rot.z)) {
             this.scaleRot = 0;
@@ -254,8 +269,17 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam._u = rot.mulVec3(cam._u);
         cam._n = rot.mulVec3(cam._n);
         cam.update();
+    }
 
-        print2d("t1", this.scaleRot, 100, 150);
-        print2d("t2", cam._terrainAltitude, 100, 180);
+    if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
+        this.planet.layersActivity = false;
+        this.planet.terrainProvider.active = false;
+        this.planet.normalMapCreator.active = false;
+        this.planet.geoImageTileCreator.active = false;
+    } else {
+        this.planet.layersActivity = true;
+        this.planet.terrainProvider.active = true;
+        this.planet.normalMapCreator.active = true;
+        this.planet.geoImageTileCreator.active = true;
     }
 };

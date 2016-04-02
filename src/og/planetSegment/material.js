@@ -24,8 +24,6 @@ og.planetSegment.Material.prototype.loadTileImage = function () {
     }
 
     if (!this.imageIsLoading) {
-        this.imageReady = false;
-        this.imageIsLoading = true;
         this.layer.handleSegmentTile(this);
     }
 };
