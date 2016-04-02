@@ -171,7 +171,7 @@ og.jd.TAItoUTC = function (tai) {
 };
 
 og.jd.addMilliseconds = function (jd, milliseconds) {
-    jd + milliseconds * og.jd.ONE_BY_MILLISECONDS_PER_DAY;
+    return jd + milliseconds * og.jd.ONE_BY_MILLISECONDS_PER_DAY;
 };
 
 og.jd.addSeconds = function (jd, seconds) {
