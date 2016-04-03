@@ -11,6 +11,7 @@ goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.L
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/camera/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/camera/planetCamera.js', ['og.PlanetCamera'], ['og.Camera', 'og.inheritance', 'og.math.Vector3'], false);
+goog.addDependency('../../../og/src/og/clock.js', ['og.Clock'], ['og.jd'], false);
 goog.addDependency('../../../og/src/og/control/control.js', ['og.control.Control'], [], false);
 goog.addDependency('../../../og/src/og/control/earthCoordinates.js', ['og.control.EarthCoordinates'], ['og.control.Control', 'og.inheritance', 'og.mercator', 'og.planetSegment'], false);
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og.control.Control', 'og.inheritance', 'og.input'], false);
@@ -108,6 +109,6 @@ goog.addDependency('../../../og/src/og/utils/sdfCreator.js', ['og.utils.SDFCreat
 goog.addDependency('../../../og/src/og/utils/textureAtlas.js', ['og.utils.TextureAtlas', 'og.utils.TextureAtlasNode'], ['og.ImageCanvas', 'og.Rectangle', 'og.utils.ImagesCacheManager'], false);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Ajax', 'og.LonLat', 'og.math.Vector3', 'og.math.Vector4'], false);
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl'], false);
-goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.ImageCanvas', 'og.math', 'og.math.Pixel', 'og.webgl', 'og.webgl.ShaderController'], false);
+goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.Clock', 'og.ImageCanvas', 'og.math', 'og.math.Pixel', 'og.webgl', 'og.webgl.ShaderController'], false);
 goog.addDependency('../../../og/src/og/webgl/shaderController.js', ['og.webgl.ShaderController'], [], false);
 goog.addDependency('../../../og/src/og/webgl/webgl.js', ['og.webgl'], [], false);

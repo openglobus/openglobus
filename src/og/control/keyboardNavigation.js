@@ -55,7 +55,7 @@ og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
 og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.pitch(50 * this.renderer.handler.delta);
+        cam.pitch(5);
     } else {
         cam.rotateVertical(cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
@@ -65,7 +65,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
 og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.pitch(-50 * this.renderer.handler.delta);
+        cam.pitch(-5);
     } else {
         cam.rotateVertical(-cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
@@ -75,7 +75,7 @@ og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
 og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.yaw(50 * this.renderer.handler.delta);
+        cam.yaw(5);
     } else {
         cam.rotateHorizontal(cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
@@ -85,7 +85,7 @@ og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
 og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
     var cam = this.renderer.activeCamera;
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.yaw(-50 * this.renderer.handler.delta);
+        cam.yaw(-5);
     } else {
         cam.rotateHorizontal(-cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
     }
@@ -93,11 +93,11 @@ og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
 };
 
 og.control.KeyboardNavigation.prototype.onCameraRollLeft = function (event) {
-    this.renderer.activeCamera.roll(-50 * this.renderer.handler.delta);
+    this.renderer.activeCamera.roll(-5);
     this.renderer.activeCamera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraRollRight = function (event) {
-    this.renderer.activeCamera.roll(50 * this.renderer.handler.delta);
+    this.renderer.activeCamera.roll(5);
     this.renderer.activeCamera.update();
 };

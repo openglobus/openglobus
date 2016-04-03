@@ -5,6 +5,7 @@ goog.require('og.math');
 goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 goog.require('og.math.Pixel');
+goog.require('og.Clock');
 
 /** 
  * A WebGL handler for accessing low-level WebGL capabilities. 
@@ -31,27 +32,17 @@ og.webgl.Handler = function (id, params) {
     this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
 
     /**
-     * Calculated frame per second value.
+     * @type {og.Clock}
+     */
+    this.clock = new og.Clock();
+
+    /**
+     * Draw frame time in milliseconds.
      * @public
      * @readonly
      * @type {number}
      */
-    this.fps = 0;
-
-    /**
-     * Calculated time synchronization value uses for the different fps time synchonization.
-     * @public
-     * @readonly
-     * @type {number}
-     */
-    this.delta = 0;
-
-    /**
-     * Animation speed. 1.0 - by deafault. x1.0 means normal time speed.
-     * @public
-     * @type {number}
-     */
-    this.animationSpeed = 1.0;
+    this.deltaTime = 0;
 
     /**
      * WebGL rendering canvas element.
@@ -504,19 +495,19 @@ og.webgl.Handler.prototype.getCenter = function () {
  */
 og.webgl.Handler.prototype.drawFrame = function () {
 
+    /** Calculate FPS */
     var now = new Date().getTime();
+    this.deltaTime = now - this._lastAnimationFrameTime;
+    this._lastAnimationFrameTime = now;
+
+    this.clock._tick(this.deltaTime);
 
     /** Canvas resize checking */
     var canvas = this.canvas;
-    if (canvas.clientWidth != canvas.width ||
-        canvas.clientHeight != canvas.height) {
+    if (canvas.clientWidth !== canvas.width ||
+        canvas.clientHeight !== canvas.height) {
         this.setSize(canvas.clientWidth, canvas.clientHeight);
     }
-
-    /** Calculate FPS */
-    this.fps = 1000.0 / (now - this._lastAnimationFrameTime);
-    this._lastAnimationFrameTime = now;
-    this.delta = this.animationSpeed / this.fps;
 
     /** Draw frame */
     this._frameCallback();
@@ -538,6 +529,9 @@ og.webgl.Handler.prototype.clearFrame = function () {
  * @public
  */
 og.webgl.Handler.prototype.start = function () {
+    var d = new Date();
+    this._lastAnimationFrameTime = d.getTime();
+    this.clock.setDate(d);
     this._animationFrameCallback();
 };
 

@@ -24,6 +24,9 @@ og.control.Sun = function (options) {
      * @type {og.light.PointLight}
      */
     this.sunlight = null;
+
+    this._currDate = 0;
+    this._prevDate = 0;
 };
 
 og.inheritance.extend(og.control.Sun, og.control.Control);
@@ -36,7 +39,6 @@ og.control.Sun.prototype.init = function () {
 
     //sunlight initialization
     this.sunlight = new og.light.PointLight();
-    this.sunlight.setPosition(og.astro.earth.getSunPosition(og.jd.DateToUTC(new Date())));
     this.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.25));
     this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
     this.sunlight.setSpecular(new og.math.Vector3(0.1, 0.1, 0.06));
@@ -45,10 +47,6 @@ og.control.Sun.prototype.init = function () {
 
     var that = this;
     this.renderer.events.on("draw", this, this.draw);
-    //this.renderer.events.on("keypress", this, function () {
-    //    var rx = og.math.Quaternion.xRotation(2 * og.math.RADIANS);
-    //    that.sunlight._position = rx.mulVec3(that.sunlight._position);
-    //}, og.input.KEY_V);
 
     this.renderer.events.on("keypress", this, function () {
         var ry = og.math.Quaternion.yRotation(2 * og.math.RADIANS);
@@ -63,13 +61,12 @@ og.control.Sun.prototype.init = function () {
 
 og.control.Sun.prototype.draw = function () {
 
-    var cam = this.renderer.activeCamera;
+    var c = this.renderer.handler.clock;
+    this._currDate = c.currentDate;
 
-    //if (!this._isCameraSunlight)
-    //    this.sunlight._position = cam._v.scaleTo(cam._terrainAltitude * 0.2).add(cam._u.scaleTo(cam._terrainAltitude * 0.4)).add(cam.eye);
-    //else
-    //    this.sunlight._position = cam.eye;
-
-    this._isCameraSunlight = false;
+    if (Math.abs(this._currDate - this._prevDate) > 0.00034 ) {
+        this._prevDate = this._currDate;
+        this.sunlight.setPosition(og.astro.earth.getSunPosition(this._currDate));
+    }
 };
 
