@@ -53,7 +53,7 @@ og.math.Vector4.prototype.set = function (x, y, z, w) {
     return this;
 };
 
-og.math.Vector4.prototype.add = function (v) {
+og.math.Vector4.prototype.addA = function (v) {
     this.x += v.x;
     this.y += v.y;
     this.z += v.z;
@@ -61,7 +61,7 @@ og.math.Vector4.prototype.add = function (v) {
     return this;
 };
 
-og.math.Vector4.prototype.sub = function (v) {
+og.math.Vector4.prototype.subA = function (v) {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;

@@ -60,7 +60,7 @@ og.math.Quaternion.prototype.sub = function (q) {
     return new og.math.Quaternion(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
 };
 
-og.math.Quaternion.prototype.mulScal = function (scale) {
+og.math.Quaternion.prototype.scaleTo = function (scale) {
     return new og.math.Quaternion(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
 };
 
@@ -380,7 +380,7 @@ og.math.Quaternion.getLookAtTargetUp = function (target, up) {
 };
 
 og.math.Quaternion.getLookAtSourceDest = function (sourcePoint, destPoint) {
-    var forwardVector = destPoint.sub(sourcePoint).normalize();
+    var forwardVector = destPoint.subA(sourcePoint).normalize();
     var dot = og.math.Vector3.FORWARD.dot(forwardVector);
     if (Math.abs(dot - (-1.0)) < 0.000001) {
         return og.math.Quaternion.axisAngleToQuat(og.math.Vector3.UP, Math.PI);

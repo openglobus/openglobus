@@ -64,7 +64,7 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
 
         var breaked = false;
         for (var i = 0; i < stepsCount; i++) {
-            eye.add(scaled_n);
+            eye.addA(scaled_n);
             var b = new og.math.Ray(eye, dir).hitSphere(grabbedSpheroid);
             eyeArr[i] = eye.clone();
             if (b) {
@@ -88,7 +88,7 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
             eye = cam.eye.clone();
             for (var i = 0; i < stepsCount; i++) {
                 steps[i] = {};
-                steps[i].eye = eye.add(scaled_n).clone();
+                steps[i].eye = eye.addA(scaled_n).clone();
                 steps[i].v = v;
                 steps[i].u = u;
                 steps[i].n = n;
@@ -97,7 +97,7 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
     } else {
         for (var i = 0; i < stepsCount; i++) {
             steps[i] = {};
-            steps[i].eye = eye.add(dir.scaleTo(-d)).clone();
+            steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
             steps[i].v = v;
             steps[i].u = u;
             steps[i].n = n;
@@ -199,7 +199,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
                 p2 = og.math.Vector3.add(p0, p0.normal());
 
             var px = new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2);
-            cam.eye = this._eye0.add(px.sub(p0).negate());
+            cam.eye = this._eye0.addA(px.subA(p0).negate());
             cam.update();
         }
     } else {

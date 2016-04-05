@@ -111,8 +111,8 @@ og.math.bezier = function (t, p0, p1, p2, p3) {
     var uuu = uu * u;
     var ttt = tt * t;
 
-    return p0.scaleTo(uuu).add(p1.scaleTo(3 * uu * t))
-        .add(p2.scaleTo(3 * u * tt)).add(p3.scaleTo(ttt));
+    return p0.scaleTo(uuu).addA(p1.scaleTo(3 * uu * t))
+        .addA(p2.scaleTo(3 * u * tt)).addA(p3.scaleTo(ttt));
 };
 
 og.math.randomi = function (min, max) {

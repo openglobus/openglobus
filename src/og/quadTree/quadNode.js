@@ -130,22 +130,22 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
                 var coords_lt, coords_rb;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_lt = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                    coords_lt = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_lt = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                    coords_lt = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
                 vi_y = t_i0 + 1,
                 vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_rb = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).add(v_lt);
+                    coords_rb = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_rb = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).add(v_rb);
+                    coords_rb = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
                 seg.bsphere.radius = coords_lt.distance(coords_rb) * 0.5;
-                seg.bsphere.center = coords_lt.add(coords_rb.sub(coords_lt).scale(0.5));
+                seg.bsphere.center = coords_lt.addA(coords_rb.subA(coords_lt).scale(0.5));
             }
         } else {
             seg.createBoundsByExtent();
@@ -570,9 +570,9 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                             vi_y_is = vi_y / insideSize;
 
                         if (vi_y + vi_x < insideSize) {
-                            coords = og.math.Vector3.add(vn.scaleTo(vi_x_is), vw.scaleTo(vi_y_is)).add(v_lt);
+                            coords = og.math.Vector3.add(vn.scaleTo(vi_x_is), vw.scaleTo(vi_y_is)).addA(v_lt);
                         } else {
-                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x_is), ve.scaleTo(1 - vi_y_is)).add(v_rb);
+                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x_is), ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                         }
 
                         var i3 = i * 3;

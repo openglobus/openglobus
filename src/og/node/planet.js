@@ -865,7 +865,7 @@ og.node.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
     var ms = this.renderer.events.mouseState;
     var distance = this.getDistanceFromPixel(ms, force);
     if (distance) {
-        return ms.direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+        return ms.direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
     }
     return null;
 };
@@ -881,7 +881,7 @@ og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
     var distance = this.getDistanceFromPixel(px, force);
     if (distance) {
         var direction = this.renderer.activeCamera.unproject(px.x, px.y);
-        return direction.scaleTo(distance).add(this.renderer.activeCamera.eye);
+        return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
     }
     return null;
 };

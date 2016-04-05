@@ -4,6 +4,10 @@ goog.require('og.jd');
 
 og.Clock = function (currentDate) {
 
+    this.startDate = 0
+
+    this.endDate = 0;
+
     /**
      * @public
      */

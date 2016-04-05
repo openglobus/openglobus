@@ -232,7 +232,7 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
                     p2 = og.math.Vector3.add(p0, p0.normal());
                 var dir = cam.unproject(t.x, t.y);
                 var px = new og.math.Ray(cam.eye, dir).hitPlane(p0, p1, p2);
-                cam.eye = this._eye0.add(px.sub(p0).negate());
+                cam.eye = this._eye0.addA(px.subA(p0).negate());
                 cam.update();
                 this.scaleRot = 0;
             }

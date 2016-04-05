@@ -272,6 +272,8 @@ og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
     mat[10] = a * c;
     mat[3] = mat[7] = mat[11] = mat[12] = mat[13] = mat[14] = 0;
     mat[15] = 1;
+
+    return this;
 };
 
 og.math.Matrix4.prototype.getEulerAngles = function () {

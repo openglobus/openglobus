@@ -151,7 +151,7 @@ og.math.Ray.prototype.hitSphere = function (sphere) {
         } else {
             var dist = Math.sqrt(r * r - cpcl * cpcl);
             var di1;
-            pc.sub(o);
+            pc.subA(o);
             if (vpc.length() > r) {
                 di1 = pc.length() - dist;
             } else {

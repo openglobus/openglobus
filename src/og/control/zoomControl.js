@@ -54,7 +54,7 @@ og.control.ZoomControl.prototype.zoomIn = function () {
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.getNegate());
+        this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.negateTo());
 };
 
 og.control.ZoomControl.prototype.zoomOut = function () {
@@ -68,7 +68,7 @@ og.control.ZoomControl.prototype.zoomOut = function () {
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.getNegate());
+        this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.negateTo());
 };
 
 og.control.ZoomControl.prototype.onDraw = function (e) {

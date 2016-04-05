@@ -342,7 +342,7 @@ og.Camera.prototype.unproject = function (x, y) {
     var world1 = this._ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
         world2 = this._ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();
 
-    return world2.sub(world1).toVector3().normalize();
+    return world2.subA(world1).toVector3().normalize();
 };
 
 /**
@@ -372,7 +372,7 @@ og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
 
     var rot = new og.math.Matrix4().rotate(isArc ? this._v : up, angle);
     var tr = new og.math.Matrix4().setIdentity().translate(center);
-    var ntr = new og.math.Matrix4().setIdentity().translate(center.getNegate());
+    var ntr = new og.math.Matrix4().setIdentity().translate(center.negateTo());
 
     var trm = tr.mul(rot).mul(ntr);
 

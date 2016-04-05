@@ -101,7 +101,7 @@ og.shape.BaseShape.prototype.setPosition3v = function (position) {
 };
 
 og.shape.BaseShape.prototype.translate3v = function (vec) {
-    this.position.add(vec);
+    this.position.addA(vec);
     this._mxTranslation.translate(vec);
 };
 

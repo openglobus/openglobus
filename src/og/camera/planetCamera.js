@@ -233,7 +233,7 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
     cart.lat = north;
     var northWest = e.lonLatToCartesian(cart);
 
-    var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).add(southWest);
+    var center = og.math.Vector3.sub(northEast, southWest).scale(0.5).addA(southWest);
 
     var mag = center.length();
     if (mag < 0.000001) {
@@ -242,10 +242,10 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
         center = e.lonLatToCartesian(cart);
     }
 
-    northWest.sub(center);
-    southEast.sub(center);
-    northEast.sub(center);
-    southWest.sub(center);
+    northWest.subA(center);
+    southEast.subA(center);
+    northEast.subA(center);
+    southWest.subA(center);
 
     var direction = center.normal();//ellipsoid.getSurfaceNormal(center).negate().normalize();
     var right = direction.cross(og.math.Vector3.UP).normalize();
@@ -309,7 +309,7 @@ og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, st
     var c = geoImage.getCorners();
     var el = this.planet.ellipsoid;
     this.flyExtent(geoImage.getExtent(),
-        el.lonLatToCartesian(c[0]).sub(el.lonLatToCartesian(c[3])).add(el.lonLatToCartesian(c[1]).sub(el.lonLatToCartesian(c[2]))).normalize(),
+        el.lonLatToCartesian(c[0]).subA(el.lonLatToCartesian(c[3])).addA(el.lonLatToCartesian(c[1]).subA(el.lonLatToCartesian(c[2]))).normalize(),
         completeCallback, startCallback);
 };
 
@@ -375,9 +375,9 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
         var t = 1 - d;
         var height_i = this._lonLat.height * d * d * d + max_h * 3 * d * d * t + max_h * 3 * d * t * t + lonlat_b.height * t * t * t;
 
-        var eye_i = ground_i.add(g_i.scale(height_i));
+        var eye_i = ground_i.addA(g_i.scale(height_i));
         var up_i = v_a.smerp(v_b, d);
-        var look_i = og.math.Vector3.add(eye_i, n_a.smerp(n_b, d).getNegate());
+        var look_i = og.math.Vector3.add(eye_i, n_a.smerp(n_b, d).negateTo());
 
         var n = new og.math.Vector3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
         var u = up_i.cross(n);

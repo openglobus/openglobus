@@ -40,13 +40,13 @@ og.math.Vector3.prototype.isZero = function () {
 
 og.math.Vector3.add = function (a, b) {
     var res = new og.math.Vector3(a.x, a.y, a.z);
-    res.add(b);
+    res.addA(b);
     return res;
 };
 
 og.math.Vector3.sub = function (a, b) {
     var res = new og.math.Vector3(a.x, a.y, a.z);
-    res.sub(b);
+    res.subA(b);
     return res;
 };
 
@@ -58,13 +58,13 @@ og.math.Vector3.scale = function (a, scale) {
 
 og.math.Vector3.mull = function (a, b) {
     var res = new og.math.Vector3(a.x, a.y, a.z);
-    res.mull(b);
+    res.mullA(b);
     return res;
 };
 
 og.math.Vector3.div = function (a, b) {
     var res = new og.math.Vector3(a.x, a.y, a.z);
-    res.div(b);
+    res.divA(b);
     return res;
 };
 
@@ -91,14 +91,14 @@ og.math.Vector3.prototype.length2 = function () {
     return this.x * this.x + this.y * this.y + this.z * this.z;
 };
 
-og.math.Vector3.prototype.add = function (point3) {
+og.math.Vector3.prototype.addA = function (point3) {
     this.x += point3.x;
     this.y += point3.y;
     this.z += point3.z;
     return this;
 };
 
-og.math.Vector3.prototype.sub = function (point3) {
+og.math.Vector3.prototype.subA = function (point3) {
     this.x -= point3.x;
     this.y -= point3.y;
     this.z -= point3.z;
@@ -116,14 +116,14 @@ og.math.Vector3.prototype.scaleTo = function (scale) {
     return new og.math.Vector3(this.x * scale, this.y * scale, this.z * scale);
 };
 
-og.math.Vector3.prototype.mull = function (vec) {
+og.math.Vector3.prototype.mullA = function (vec) {
     this.x *= vec.x;
     this.y *= vec.y;
     this.z *= vec.z;
     return this;
 };
 
-og.math.Vector3.prototype.div = function (vec) {
+og.math.Vector3.prototype.divA = function (vec) {
     this.x /= vec.x;
     this.y /= vec.y;
     this.z /= vec.z;
@@ -204,7 +204,7 @@ og.math.Vector3.prototype.negate = function () {
     return this;
 };
 
-og.math.Vector3.prototype.getNegate = function () {
+og.math.Vector3.prototype.negateTo = function () {
     return new og.math.Vector3(-this.x, -this.y, -this.z);
 };
 
@@ -214,7 +214,7 @@ og.math.Vector3.proj_b_to_a = function (b, a) {
 
 og.math.Vector3.prototype.projToRay = function (pos, direction) {
     var v = og.math.Vector3.proj_b_to_a(og.math.Vector3.sub(this, pos), direction);
-    v.add(pos);
+    v.addA(pos);
     return v;
 };
 
@@ -271,5 +271,5 @@ og.math.Vector3.prototype.slerp = function (v2, t) {
 og.math.Vector3.orthoNormalize = function (normal, tangent) {
     normal = normal.normal();
     normal.scale(tangent.dot(normal));
-    return tangent.sub(normal).normalize();
+    return tangent.subA(normal).normalize();
 };

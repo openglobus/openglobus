@@ -23,13 +23,13 @@ og.math.Vector2.prototype.clone = function () {
 
 og.math.Vector2.add = function (a, b) {
     var res = new og.math.Vector2(a.x, a.y);
-    res.add(b);
+    res.addA(b);
     return res;
 };
 
 og.math.Vector2.sub = function (a, b) {
     var res = new og.math.Vector2(a.x, a.y);
-    res.sub(b);
+    res.subA(b);
     return res;
 };
 
@@ -41,13 +41,13 @@ og.math.Vector2.scale = function (a, scale) {
 
 og.math.Vector2.mull = function (a, b) {
     var res = new og.math.Vector2(a.x, a.y);
-    res.mull(b);
+    res.mullA(b);
     return res;
 };
 
 og.math.Vector2.div = function (a, b) {
     var res = new og.math.Vector2(a.x, a.y);
-    res.div(b);
+    res.divA(b);
     return res;
 };
 
@@ -69,13 +69,13 @@ og.math.Vector2.prototype.length2 = function () {
     return this.x * this.x + this.y * this.y;
 };
 
-og.math.Vector2.prototype.add = function (v) {
+og.math.Vector2.prototype.addA = function (v) {
     this.x += v.x;
     this.y += v.y;
     return this;
 };
 
-og.math.Vector2.prototype.sub = function (v) {
+og.math.Vector2.prototype.subA = function (v) {
     this.x -= v.x;
     this.y -= v.y;
     return this;
@@ -91,13 +91,13 @@ og.math.Vector2.prototype.scaleTo = function (scale) {
     return new og.math.Vector2(this.x * scale, this.y * scale);
 };
 
-og.math.Vector2.prototype.mull = function (vec) {
+og.math.Vector2.prototype.mullA = function (vec) {
     this.x *= vec.x;
     this.y *= vec.y;
     return this;
 };
 
-og.math.Vector2.prototype.div = function (vec) {
+og.math.Vector2.prototype.divA = function (vec) {
     this.x /= vec.x;
     this.y /= vec.y;
     return this;
@@ -165,7 +165,7 @@ og.math.Vector2.prototype.negate = function () {
     return this;
 };
 
-og.math.Vector2.prototype.getNegate = function () {
+og.math.Vector2.prototype.negateTo = function () {
     return new og.math.Vector2(-this.x, -this.y);
 };
 
@@ -229,7 +229,7 @@ og.math.Vector2.prototype.slerp = function (v1, v2, t) {
 };
 
 og.math.Vector2.orthoNormalize = function (normal, tangent) {
-    normal = normal.normal();
+    normal = normal.norm();
     normal.scale(tangent.dot(normal));
     return tangent.sub(normal).normalize();
 };
