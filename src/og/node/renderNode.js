@@ -205,7 +205,7 @@ og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
  */
 og.node.RenderNode.prototype.updateMatrices = function () {
     this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
-    this.itransformationMatrix = this.transformationMatrix.inverse();
+    this.itransformationMatrix = this.transformationMatrix.inverseTo();
 };
 
 /**

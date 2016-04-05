@@ -121,8 +121,8 @@ og.Camera.prototype.update = function () {
 
     this._pmvMatrix = this._pMatrix.mul(this._mvMatrix);
     this.frustum.setFrustum(this._pmvMatrix._m);
-    this._ipmvMatrix = this._pmvMatrix.inverse();
-    this._nMatrix = this._mvMatrix.toInverseMatrix3().transpose();
+    this._ipmvMatrix = this._pmvMatrix.inverseTo();
+    this._nMatrix = this._mvMatrix.toInverseMatrix3().transposeTo();
 
     this.events.dispatch(this.events.viewchange, this);
 };

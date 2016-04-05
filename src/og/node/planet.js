@@ -811,7 +811,7 @@ og.node.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
  * @returns {og.math.Vector3}
  */
 og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
-    var mxTr = this.transformationMatrix.transpose();
+    var mxTr = this.transformationMatrix.transposeTo();
     var sx = new og.math.Ray(mxTr.mulVec3(origin),
         mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
     if (sx) {

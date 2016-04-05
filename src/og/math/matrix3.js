@@ -30,7 +30,7 @@ og.math.Matrix3.prototype.copy = function (a) {
     this.set(a._m);
 };
 
-og.math.Matrix3.prototype.transpose = function () {
+og.math.Matrix3.prototype.transposeTo = function () {
     var res = new og.math.Matrix3();
     var m = this._m;
     res._m[0] = m[0]; res._m[1] = m[3]; res._m[2] = m[6];

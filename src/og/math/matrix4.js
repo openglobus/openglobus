@@ -85,7 +85,7 @@ og.math.Matrix4.prototype.toInverseMatrix3 = function () {
     return res;
 };
 
-og.math.Matrix4.prototype.inverse = function () {
+og.math.Matrix4.prototype.inverseTo = function () {
     var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
         f = this._m[4], h = this._m[5], i = this._m[6], j = this._m[7],
         k = this._m[8], l = this._m[9], o = this._m[10], m = this._m[11],
@@ -112,7 +112,7 @@ og.math.Matrix4.prototype.inverse = function () {
     return res;
 };
 
-og.math.Matrix4.prototype.transpose = function () {
+og.math.Matrix4.prototype.transposeTo = function () {
     var res = new og.math.Matrix4();
     res._m[0] = this._m[0]; res._m[1] = this._m[4]; res._m[2] = this._m[8]; res._m[3] = this._m[12];
     res._m[4] = this._m[1]; res._m[5] = this._m[5]; res._m[6] = this._m[9]; res._m[7] = this._m[13];

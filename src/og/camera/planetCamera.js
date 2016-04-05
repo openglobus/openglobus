@@ -118,9 +118,9 @@ og.PlanetCamera.prototype.update = function () {
     this.frustum.setFrustum(this._pmvMatrix._m);
 
     var pmvMatrixPrecise = this._pMatrixPrecise.mul(this._mvMatrix);
-    this._ipmvMatrix = pmvMatrixPrecise.inverse();
+    this._ipmvMatrix = pmvMatrixPrecise.inverseTo();
 
-    this._nMatrix = this._mvMatrix.toInverseMatrix3().transpose();
+    this._nMatrix = this._mvMatrix.toInverseMatrix3().transposeTo();
 
     this.updateGeodeticPosition();
 
