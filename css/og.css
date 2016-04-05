@@ -9,6 +9,9 @@
     position: absolute;
 }
 
+.ogHandPoiner {
+    cursor: pointer;
+}
 
 .defaultText {
     position: absolute;

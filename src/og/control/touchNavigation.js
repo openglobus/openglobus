@@ -65,16 +65,16 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
         var t0 = this.touches[0],
             t1 = this.touches[1];
 
-        t0.x = e.sys.touches.item(0).pageX;
-        t0.y = e.sys.touches.item(0).pageY;
-        t0.prev_x = e.sys.touches.item(0).pageX;
-        t0.prev_y = e.sys.touches.item(0).pageY;
+        t0.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+        t0.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+        t0.prev_x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+        t0.prev_y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
         t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0, true);
 
-        t1.x = e.sys.touches.item(1).pageX;
-        t1.y = e.sys.touches.item(1).pageY;
-        t1.prev_x = e.sys.touches.item(1).pageX;
-        t1.prev_y = e.sys.touches.item(1).pageY;
+        t1.x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
+        t1.y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
+        t1.prev_x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
+        t1.prev_y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
         t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
         //this.planet._viewChanged = true;
@@ -98,10 +98,10 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
 og.control.TouchNavigation.prototype._startTouchOne = function (e) {
     var t = this.touches[0];
 
-    t.x = e.sys.touches.item(0).pageX;
-    t.y = e.sys.touches.item(0).pageY;
-    t.prev_x = e.sys.touches.item(0).pageX;
-    t.prev_y = e.sys.touches.item(0).pageY;
+    t.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+    t.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+    t.prev_x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+    t.prev_y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
 
     t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t, true);
     this._eye0.copy(this.renderer.activeCamera.eye);
@@ -165,13 +165,13 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         t0.prev_x = t0.x;
         t0.prev_y = t0.y;
-        t0.x = e.sys.touches.item(0).pageX;
-        t0.y = e.sys.touches.item(0).pageY;
+        t0.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+        t0.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
 
         t1.prev_x = t1.x;
         t1.prev_y = t1.y;
-        t1.x = e.sys.touches.item(1).pageX;
-        t1.y = e.sys.touches.item(1).pageY;
+        t1.x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
+        t1.y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
 
         //var center_x = Math.round(t0.x + (t1.x - t0.x) * 0.5);
         //var center_y = Math.round(t0.y + (t1.y - t0.y) * 0.5);
@@ -205,8 +205,8 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         t.prev_x = t.x;
         t.prev_y = t.y;
-        t.x = e.sys.touches.item(0).pageX;
-        t.y = e.sys.touches.item(0).pageY;
+        t.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
+        t.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
 
         if (!t.grabbedPoint)
             return;

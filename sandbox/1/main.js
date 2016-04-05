@@ -266,6 +266,21 @@ function start() {
     //    this.setScaleByDistance(200000, maxDist + 200000, maxDist);
     //});
 
+    placesCollection.addTo(globus.planet);
+
+    placesCollection.events.on("mouseenter", null, function (e) {
+        //e.pickingObject.label.setColor(1,1,0);
+        globus.planet.renderer.handler.gl.canvas.classList.add("ogHandPoiner");
+    });
+
+    placesCollection.events.on("mouseleave", null, function (e) {
+        //e.pickingObject.label.setColor(1,1,1);
+        globus.planet.renderer.handler.gl.canvas.classList.remove("ogHandPoiner");
+    });
+
+    placesCollection.events.on("mouselbuttonclick", null, function (e) {
+        globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    });
 
     placesCollection.events.on("touchend", null, function (e) {
         globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
@@ -297,8 +312,6 @@ function start() {
 
         })(null, places[i]);
     }
-
-    placesCollection.addTo(globus.planet);
 
     //countriesCollection = new og.EntityCollection();
     //countriesCollection.setScaleByDistance(100000, 5700000, 4000000);

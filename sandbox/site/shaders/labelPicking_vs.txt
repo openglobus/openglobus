@@ -1,4 +1,4 @@
-precision lowp float;
+precision highp float;
 
 attribute vec2 a_vertices;
 attribute vec4 a_texCoord;

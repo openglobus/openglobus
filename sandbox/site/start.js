@@ -52,12 +52,12 @@ function start() {
             })
         }
     });
-    loadCapitals();
+    //loadCapitals();
 
-    v0.events.on("draw", v0, function () {
-        var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
-        this.setScaleByDistance(200000, maxDist + 200000, maxDist);
-    });
+    //v0.events.on("draw", v0, function () {
+    //    var maxDist = 3.57 * Math.sqrt(globus.planet.camera._lonLat.height) * 1000;
+    //    this.setScaleByDistance(200000, maxDist + 200000, maxDist);
+    //});
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
@@ -144,7 +144,11 @@ function start() {
         globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 
-    placesCollection.events.on("touchstart", null, function (e) {
+    //placesCollection.events.on("touchstart", null, function (e) {
+    //    globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
+    //});
+
+    placesCollection.events.on("touchend", null, function (e) {
         globus.planet.flyLonLat(new og.LonLat(e.pickingObject._lonlat.lon, e.pickingObject._lonlat.lat, e.pickingObject.showAlt));
     });
 

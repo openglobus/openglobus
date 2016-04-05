@@ -9,6 +9,9 @@ og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
         case "touchcancel": {
             this._htmlObject.ontouchcancel = function (event) {
                 event.preventDefault();
+                var rect = this.getBoundingClientRect();
+                event.offsetLeft = rect.left;
+                event.offsetTop = rect.top;
                 callback.call(sender, event);
             };
         }
@@ -16,12 +19,18 @@ og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
         case "touchstart": {
             this._htmlObject.ontouchstart = function (event) {
                 event.preventDefault();
+                var rect = this.getBoundingClientRect();
+                event.offsetLeft = rect.left;
+                event.offsetTop = rect.top;
                 callback.call(sender, event);
             };
         } break;
         case "touchend": {
             this._htmlObject.ontouchend = function (event) {
                 event.preventDefault();
+                var rect = this.getBoundingClientRect();
+                event.offsetLeft = rect.left;
+                event.offsetTop = rect.top;
                 callback.call(sender, event);
             };
         } break;
@@ -29,7 +38,9 @@ og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
             this._htmlObject.ontouchmove = function (event) {
                 event.preventDefault();
                 var rect = this.getBoundingClientRect();
-                callback.call(sender, event/*{ clientX: event.clientX - rect.left, clientY: event.clientY - rect.top }*/);
+                event.offsetLeft = rect.left;
+                event.offsetTop = rect.top;
+                callback.call(sender, event);
             };
         } break;
     }
