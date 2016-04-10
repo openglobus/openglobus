@@ -19,6 +19,6 @@ og.control.ShowFps.prototype.init = function () {
 
 
 og.control.ShowFps.prototype.draw = function () {
-    print2d("ogShowFpsControl", this.renderer.handler.fps.toFixed(1), this.renderer.handler.gl.canvas.clientWidth - 60, 0);
+    print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.gl.canvas.clientWidth - 60, 0);
 };
 

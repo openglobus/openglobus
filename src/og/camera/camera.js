@@ -233,16 +233,6 @@ og.Camera.prototype.setViewAngle = function (angle) {
     this.refresh();
 };
 
-///**
-// * Sets camera eye position.
-// * @public
-// * @param {og.math.Vector3} p - Position.
-// */
-//og.Camera.prototype.setEye = function (p) {
-//    this.eye.copy(p);
-//    this.refresh();
-//};
-
 /**
  * Sets camera to eye position.
  * @public
@@ -252,6 +242,8 @@ og.Camera.prototype.setViewAngle = function (angle) {
  */
 og.Camera.prototype.set = function (eye, look, up) {
     this.eye.copy(eye);
+    look = look || this._n;
+    up = up || this._v;
     this._n.set(eye.x - look.x, eye.y - look.y, eye.z - look.z);
     this._u.copy(up.cross(this._n));
     this._n.normalize();
@@ -267,7 +259,7 @@ og.Camera.prototype.set = function (eye, look, up) {
  */
 og.Camera.prototype.look = function (look, up) {
     this._n.set(this.eye.x - look.x, this.eye.y - look.y, this.eye.z - look.z);
-    this._u.copy((up ? up : this._v).cross(this._n));
+    this._u.copy((up || this._v).cross(this._n));
     this._n.normalize();
     this._u.normalize();
     this._v.copy(this._n.cross(this._u));

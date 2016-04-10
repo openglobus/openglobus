@@ -495,7 +495,7 @@ og.webgl.Handler.prototype.getCenter = function () {
  */
 og.webgl.Handler.prototype.drawFrame = function () {
 
-    /** Calculate FPS */
+    /** Calculate frame time */
     var now = new Date().getTime();
     this.deltaTime = now - this._lastAnimationFrameTime;
     this._lastAnimationFrameTime = now;
