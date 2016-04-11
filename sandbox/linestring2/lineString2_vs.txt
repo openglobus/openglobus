@@ -1,6 +1,7 @@
 attribute vec3 prev;
-attribute vec4 current;
-attribute vec4 next;
+attribute vec3 current;
+attribute vec3 next;
+attribute vec2 order;
 
 uniform mat4 proj,
 		     view;
@@ -40,9 +41,9 @@ float curvatureCorrection(vec2 a, vec2 b){
 
 void main(){
 
-    vec2 sPrev = project(transform(prev.xyz));
-    vec2 sNext = project(transform(next.xyz));
-    vec4 dCurrent = transform(current.xyz);
+    vec2 sPrev = project(transform(prev));
+    vec2 sNext = project(transform(next));
+    vec4 dCurrent = transform(current);
     vec2 sCurrent = project(dCurrent);
     
 	vec2 dirNext = normalize(sNext - sCurrent);
@@ -53,23 +54,20 @@ void main(){
 
 	vec2 dir;
 
-	if( next.w == 0.0 ) {
-	    dir = sNormalPrev;
-	}else{
-	   dir = sNormalNext- sNormalPrev;
-	   float sinA = dirPrev.x * dir.y - dirPrev.y * dir.x;
-	   if(abs(sinA) < 0.2){
-			if(next.w == 1.0){
-		        dir = sNormalPrev;   
-			} else {
-		        dir = sNormalNext;   
-			}
-		}else{
-			dir *= next.w / sinA;
+	dir = sNormalNext- sNormalPrev;
+	float sinA = dirPrev.x * dir.y - dirPrev.y * dir.x;
+
+	if( abs(sinA) < 0.2 ) {
+		if(order.x == 1.0){
+		    dir = sNormalPrev;   
+		} else {
+		    dir = sNormalNext;   
 		}
+	} else {
+		dir *= order.x / sinA;
 	}
 
-	vec2 pos = sCurrent + dir * thickness * current.w;
+	vec2 pos = sCurrent + dir * thickness * order.y;
 
     gl_Position = unproject(pos, dCurrent.z, dCurrent.w);
 }

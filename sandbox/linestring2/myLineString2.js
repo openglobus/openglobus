@@ -33,8 +33,9 @@ my.LineString2.prototype.initialization = function () {
         },
         attributes: {
             prev: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            current: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            next: { type: og.shaderProgram.types.VEC4, enableArray: true }
+            current: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            next: { type: og.shaderProgram.types.VEC3, enableArray: true },
+            order: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: og.utils.readTextFile("lineString2_vs.txt"),
         fragmentShader: og.utils.readTextFile("lineString2_fs.txt")
@@ -61,57 +62,72 @@ my.LineString2.prototype.toogleWireframe = function (e) {
 my.LineString2.prototype.createBuffers = function () {
     var h = this.renderer.handler;
 
-    var path = [[-100, -100, 0], [0, 100, 0], [100, -100, 0], [200, -100, 0]];
-
     var prev = [
-              0,  100, 0,
-              0,  100, 0,
+              (0 - (-100)) * 5, (100 - (-100)) * 5, 0,
+              (0 - (-100)) * 5, (100 - (-100)) * 5, 0,
            -100, -100, 0,
            -100, -100, 0,
 
            -100, -100, 0,
            -100, -100, 0,
-              0,  100, 0,
-              0,  100, 0,
+              0, 100, 0,
+              0, 100, 0,
 
-             0,  100, 0,
-             0,  100, 0,
+             0, 100, 0,
+             0, 100, 0,
            100, -100, 0,
            100, -100, 0
     ];
 
-    var next = [
-                 0,  100, 0, 0,
-                 0,  100, 0, 0,
-               100, -100, 0, 1,
-               100, -100, 0, 1,
+    var current = [
+    -100, -100, 0,
+    -100, -100, 0,
+       0, 100, 0,
+       0, 100, 0,
 
-                100, -100, 0, -1,
-                100, -100, 0, -1,
-                200, -100, 0, 1,
-                200, -100, 0, 1,
+    0, 100, 0,
+    0, 100, 0,
+    100, -100, 0,
+    100, -100, 0,
 
-                200, -100, 0, -1,
-                200, -100, 0, -1,
-                100, -100, 0, 0,
-                100, -100, 0, 0,
+    100, -100, 0,
+    100, -100, 0,
+    200, -100, 0,
+    200, -100, 0
     ];
 
-    var current = [
-        -100, -100, 0, 1,
-        -100, -100, 0, -1,
-           0,  100, 0, -1,
-           0,  100, 0, 1,
+    var next = [
+                 0, 100, 0,
+                 0, 100, 0,
+               100, -100, 0,
+               100, -100, 0,
 
-        0,    100, 0, 1,
-        0,    100, 0, -1,
-        100, -100, 0, -1,
-        100, -100, 0, 1,
+                100, -100, 0,
+                100, -100, 0,
+                200, -100, 0,
+                200, -100, 0,
 
-        100, -100, 0, 1,
-        100, -100, 0, -1,
-        200, -100, 0, -1,
-        200, -100, 0, 1
+                200, -100, 0,
+                200, -100, 0,
+                (200 - 100) * 5, (-100 - (-100)) * 5, 0,
+                (200 - 100) * 5, (-100 - (-100)) * 5, 0
+    ];
+
+    var order = [
+        -1, 1,
+        -1, -1,
+         1, -1,
+         1, 1,
+
+        -1, 1,
+        -1, -1,
+         1, -1,
+         1, 1,
+
+        -1, 1,
+        -1, -1,
+         1, -1,
+         1, 1
     ];
 
     var vertIndeces = [
@@ -122,12 +138,14 @@ my.LineString2.prototype.createBuffers = function () {
         8, 9, 10, 11];
 
     this.prevBuffer = h.createArrayBuffer(new Float32Array(prev), 3, prev.length / 3);
-    this.currentBuffer = h.createArrayBuffer(new Float32Array(current), 4, current.length / 4);
-    this.nextBuffer = h.createArrayBuffer(new Float32Array(next), 4, next.length / 4);
+    this.currentBuffer = h.createArrayBuffer(new Float32Array(current), 3, current.length / 3);
+    this.nextBuffer = h.createArrayBuffer(new Float32Array(next), 3, next.length / 3);
+    this.orderBuffer = h.createArrayBuffer(new Float32Array(order), 2, order.length / 2);
 
     this.indexBuffer = h.createElementArrayBuffer(new Uint16Array(vertIndeces), 1, vertIndeces.length)
 };
 
+thickness = 10;
 
 my.LineString2.prototype.frame = function () {
     var r = this.renderer;
@@ -148,7 +166,7 @@ my.LineString2.prototype.frame = function () {
 
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
 
-    gl.uniform1f(shu.thickness._pName, 10);
+    gl.uniform1f(shu.thickness._pName, thickness);
 
     //vertices positions
     gl.bindBuffer(gl.ARRAY_BUFFER, this.prevBuffer);
@@ -159,6 +177,9 @@ my.LineString2.prototype.frame = function () {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.nextBuffer);
     gl.vertexAttribPointer(sha.next._pName, this.nextBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.orderBuffer);
+    gl.vertexAttribPointer(sha.order._pName, this.orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.disable(gl.CULL_FACE);
 
