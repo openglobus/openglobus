@@ -14,6 +14,7 @@ my.LineString2 = function (name) {
     this.indexBuffer = null;
     this.thicknessBuffer = null;
     this.drawMode = null;
+    this.thickness = 10;
 };
 
 og.inheritance.extend(my.LineString2, og.node.RenderNode);
@@ -22,7 +23,6 @@ og.inheritance.extend(my.LineString2, og.node.RenderNode);
 my.LineString2.prototype.initialization = function () {
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
-
 
     var lineStringShader = new og.shaderProgram.ShaderProgram("LineString", {
         uniforms: {
@@ -43,7 +43,9 @@ my.LineString2.prototype.initialization = function () {
 
     this.renderer.handler.addShaderProgram(lineStringShader);
 
-    this.createBuffers();
+    var path = [[-100, -100, 100], [0, 100, 0], [100, -100, 0], [200, -100, 0], [100, 100, -500], [0, 0, 10000000000]];
+
+    this.createBuffers(path);
 
     var that = this;
     this.renderer.events.on("charkeypress", this, function () {
@@ -59,16 +61,14 @@ my.LineString2.prototype.toogleWireframe = function (e) {
     }
 };
 
-my.LineString2.prototype.createBuffers = function () {
+my.LineString2.prototype.createBuffers = function (path) {
     var h = this.renderer.handler;
 
-    var path = [[-100, -100, 100], [0, 100, 0], [100, -100, 0], [200, -100, 0], [100, 100, -500],[0, 0, 10000000000]];
+    var len = path.length - 1;
 
     var buff = [],
         order = [],
         vertIndeces = [];
-
-    var l = path.length - 1;
 
     var p0 = path[0],
         p1 = path[1];
@@ -77,7 +77,7 @@ my.LineString2.prototype.createBuffers = function () {
         prevY = p0[1] + p0[1] - p1[1],
         prevZ = p0[2] + p0[2] - p1[2];
 
-    for (var i = 0, j = 0; i < l; i++) {
+    for (var i = 0, j = 0; i < len; i++) {
 
         p0 = path[i];
         p1 = path[i + 1];
@@ -118,8 +118,6 @@ my.LineString2.prototype.createBuffers = function () {
     this.indexBuffer = h.createElementArrayBuffer(new Uint16Array(vertIndeces), 1, vertIndeces.length);
 };
 
-thickness = 10;
-
 my.LineString2.prototype.frame = function () {
     var r = this.renderer;
 
@@ -139,7 +137,7 @@ my.LineString2.prototype.frame = function () {
 
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
 
-    gl.uniform1f(shu.thickness._pName, thickness);
+    gl.uniform1f(shu.thickness._pName, this.thickness);
 
     var FLOATSIZE = 4;
 

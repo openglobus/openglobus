@@ -3,6 +3,7 @@ goog.provide('og.EntityCollection');
 goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
 goog.require('og.ShapeHandler');
+goog.require('og.LineStringHandler');
 goog.require('og.Events');
 
 /**
@@ -98,7 +99,14 @@ og.EntityCollection = function (options) {
      */
     this.shapeHandler = new og.ShapeHandler(this);
 
-    //this.lineStringHandler = new og.LineStringHandler(this);
+    /**
+     * LineString handler
+     * @public
+     * @type {og.LineStringHandler}
+     */
+    this.lineStringHandler = new og.LineStringHandler(this);
+
+    //
     //...
 
     /**
@@ -373,6 +381,9 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     //shape
     entity.shape && this.shapeHandler.add(entity.shape);
 
+    //shape
+    entity.lineString && this.lineStringHandler.add(entity.lineString);
+
     this.events.dispatch(this.events.entityadd, entity);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
@@ -440,6 +451,9 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
 
     //shape
     entity.shape && this.shapeHandler.remove(entity.shape);
+
+    //lineString
+    entity.lineString && this.lineStringHandler.remove(entity.lineString);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         this._removeRecursively(entity.childrenNodes[i]);
@@ -531,6 +545,7 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
         this.setRenderer(renderNode.renderer);
         renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
         this.shapeHandler.setRenderNode(renderNode);
+        this.lineStringHandler.setRenderNode(renderNode);
         this.events.dispatch(this.events.add, this);
     }
     return this;
@@ -640,6 +655,7 @@ og.EntityCollection.prototype.clear = function () {
     this.billboardHandler.clear();
     this.labelHandler.clear();
     this.shapeHandler.clear();
+    this.lineStringHandler.clear();
 
     var i = this._entities.length;
     while (i--) {

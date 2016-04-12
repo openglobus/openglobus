@@ -335,6 +335,12 @@ og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
         while (i--) {
             ec[i]._animatedOpacity && ec[i].shapeHandler.draw();
         }
+
+        //lineStrings pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._animatedOpacity && ec[i].lineStringHandler.draw();
+        }
     }
 };
 
@@ -366,6 +372,18 @@ og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
+
+        //shapes pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].shapeHandler.drawPicking();
+        }
+
+        //lineStrings pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].lineStringHandler.drawPicking();
+        }
     }
 };
 

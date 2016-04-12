@@ -117,15 +117,15 @@ og.Entity = function (options, properties) {
         "billboard": [og.Billboard, this.setBillboard],
         "label": [og.Label, this.setLabel],
         "sphere": [og.shape.Sphere, this.setShape],
-        "box": [og.shape.Box, this.setShape]
+        "box": [og.shape.Box, this.setShape],
+        "lineString": [og.LineString, this.setLineString]
     };
 
     this.billboard = this._createOptionFeature('billboard', options.billboard);
     this.label = this._createOptionFeature('label', options.label);
     this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
+    this.lineString = this._createOptionFeature('lineString', options.lineString);
     //this.model = null;
-    //this.lineString = null;
-    //this.linearRing = null;
     //this.polygon = null;
     //this.multiPolygon = null;
     //...
@@ -179,6 +179,9 @@ og.Entity.prototype.setVisibility = function (visibility) {
 
     //shape
     this.shape && this.shape.setVisibility(visibility);
+
+    //lineString
+    this.lineString && this.lineString.setVisibility(visibility);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setVisibility(visibility);
@@ -361,6 +364,22 @@ og.Entity.prototype.setShape = function (shape) {
 };
 
 /**
+ * Sets entity lineString.
+ * @public
+ * @param {og.LineString} lineString - lineString object.
+ */
+og.Entity.prototype.setLineString = function (lineString) {
+    if (this.lineString) {
+        this.lineString.remove();
+    }
+    this.lineString = lineString;
+    this.lineString._entity = this;
+    this.lineString.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._lineStringHandler.add(lineString);
+    return lineString;
+};
+
+/**
  * Append child entity.
  * @public
  * @param {og.Entity} entity - Entity child.
@@ -389,6 +408,9 @@ og.Entity.prototype.setPickingColor = function () {
 
     //shape
     this.shape && this.shape.setPickingColor3v(c);
+
+    //lineString
+    this.lineString && this.lineString.setPickingColor3v(c);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPickingColor3v(c);

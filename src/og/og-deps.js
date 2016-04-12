@@ -30,9 +30,11 @@ goog.addDependency('../../../og/src/og/entity/baseBillboard.js', ['og.BaseBillbo
 goog.addDependency('../../../og/src/og/entity/billboard.js', ['og.Billboard'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector2'], false);
 goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.BillboardHandler'], ['og.shaderProgram.billboard', 'og.shaderProgram.billboardPicking'], false);
 goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity', 'og.entity'], ['og.Billboard', 'og.Label', 'og.LonLat', 'og.math.Vector3', 'og.shape.Sphere'], false);
-goog.addDependency('../../../og/src/og/entity/entityCollection.js', ['og.EntityCollection'], ['og.BillboardHandler', 'og.Events', 'og.LabelHandler', 'og.ShapeHandler'], false);
+goog.addDependency('../../../og/src/og/entity/entityCollection.js', ['og.EntityCollection'], ['og.BillboardHandler', 'og.Events', 'og.LabelHandler', 'og.LineStringHandler', 'og.ShapeHandler'], false);
 goog.addDependency('../../../og/src/og/entity/label.js', ['og.Label'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector4', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/entity/labelHandler.js', ['og.LabelHandler'], ['og.BillboardHandler', 'og.Label', 'og.inheritance', 'og.shaderProgram.label', 'og.shaderProgram.labelPicking'], false);
+goog.addDependency('../../../og/src/og/entity/lineString.js', ['og.LineString'], [], false);
+goog.addDependency('../../../og/src/og/entity/lineStringHandler.js', ['og.LineStringHandler'], ['og.shaderProgram.lineString', 'og.shaderProgram.lineStringPicking'], false);
 goog.addDependency('../../../og/src/og/entity/shapeHandler.js', ['og.ShapeHandler'], ['og.shaderProgram.shape_nl', 'og.shaderProgram.shape_wl', 'og.shape.BaseShape', 'og.shape.Sphere'], false);
 goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], [], false);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent', 'og.extent'], ['og.LonLat', 'og.math'], false);
@@ -90,6 +92,7 @@ goog.addDependency('../../../og/src/og/shaderProgram/billboard.js', ['og.shaderP
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/heightPicking.js', ['og.shaderProgram.heightPicking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/label.js', ['og.shaderProgram.label', 'og.shaderProgram.labelPicking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
+goog.addDependency('../../../og/src/og/shaderProgram/lineString.js', ['og.shaderProgram.lineString', 'og.shaderProgram.lineStringPicking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/overlays.js', ['og.shaderProgram.overlays_nl', 'og.shaderProgram.overlays_wl'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram', 'og.shaderProgram.ShaderProgram'], ['og.shaderProgram.callbacks'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/shape.js', ['og.shaderProgram.shape_nl', 'og.shaderProgram.shape_wl'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
