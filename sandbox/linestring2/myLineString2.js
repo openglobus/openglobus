@@ -62,87 +62,60 @@ my.LineString2.prototype.toogleWireframe = function (e) {
 my.LineString2.prototype.createBuffers = function () {
     var h = this.renderer.handler;
 
-    var prev = [
-              (0 - (-100)) * 5, (100 - (-100)) * 5, 0,
-              (0 - (-100)) * 5, (100 - (-100)) * 5, 0,
-           -100, -100, 0,
-           -100, -100, 0,
+    var path = [[-100, -100, 100], [0, 100, 0], [100, -100, 0], [200, -100, 0], [100, 100, -500],[0, 0, 10000000000]];
 
-           -100, -100, 0,
-           -100, -100, 0,
-              0, 100, 0,
-              0, 100, 0,
+    var buff = [],
+        order = [],
+        vertIndeces = [];
 
-             0, 100, 0,
-             0, 100, 0,
-           100, -100, 0,
-           100, -100, 0
-    ];
+    var l = path.length - 1;
 
-    var current = [
-    -100, -100, 0,
-    -100, -100, 0,
-       0, 100, 0,
-       0, 100, 0,
+    var p0 = path[0],
+        p1 = path[1];
 
-    0, 100, 0,
-    0, 100, 0,
-    100, -100, 0,
-    100, -100, 0,
+    var prevX = p0[0] + p0[0] - p1[0],
+        prevY = p0[1] + p0[1] - p1[1],
+        prevZ = p0[2] + p0[2] - p1[2];
 
-    100, -100, 0,
-    100, -100, 0,
-    200, -100, 0,
-    200, -100, 0
-    ];
+    for (var i = 0, j = 0; i < l; i++) {
 
-    var next = [
-                 0, 100, 0,
-                 0, 100, 0,
-               100, -100, 0,
-               100, -100, 0,
+        p0 = path[i];
+        p1 = path[i + 1];
 
-                100, -100, 0,
-                100, -100, 0,
-                200, -100, 0,
-                200, -100, 0,
+        buff.push(p0[0], p0[1], p0[2], prevX, prevY, prevZ, p1[0], p1[1], p1[2]);
+        buff.push(p0[0], p0[1], p0[2], prevX, prevY, prevZ, p1[0], p1[1], p1[2]);
 
-                200, -100, 0,
-                200, -100, 0,
-                (200 - 100) * 5, (-100 - (-100)) * 5, 0,
-                (200 - 100) * 5, (-100 - (-100)) * 5, 0
-    ];
+        prevX = p0[0];
+        prevY = p0[1];
+        prevZ = p0[2];
 
-    var order = [
-        -1, 1,
-        -1, -1,
-         1, -1,
-         1, 1,
+        var p2 = path[i + 2];
+        var nextX, nextY, nextZ;
 
-        -1, 1,
-        -1, -1,
-         1, -1,
-         1, 1,
+        if (p2) {
+            nextX = p2[0];
+            nextY = p2[1];
+            nextZ = p2[2];
+            vertIndeces.push(j, ++j, ++j, ++j, j, j, ++j);
+        } else {
+            nextX = p1[0] + p1[0] - p0[0];
+            nextY = p1[1] + p1[1] - p0[1];
+            nextZ = p1[2] + p1[2] - p0[2];
+            vertIndeces.push(j, ++j, ++j, ++j);
+        }
 
-        -1, 1,
-        -1, -1,
-         1, -1,
-         1, 1
-    ];
+        buff.push(p1[0], p1[1], p1[2], p0[0], p0[1], p0[2], nextX, nextY, nextZ);
+        buff.push(p1[0], p1[1], p1[2], p0[0], p0[1], p0[2], nextX, nextY, nextZ);
 
-    var vertIndeces = [
-        0, 1, 2, 3,
-        3, 3, 4,
-        4, 5, 6, 7,
-        7, 7, 8,
-        8, 9, 10, 11];
+        order.push(-1, 1, -1, -1, 1, -1, 1, 1);
+    }
 
-    this.prevBuffer = h.createArrayBuffer(new Float32Array(prev), 3, prev.length / 3);
-    this.currentBuffer = h.createArrayBuffer(new Float32Array(current), 3, current.length / 3);
-    this.nextBuffer = h.createArrayBuffer(new Float32Array(next), 3, next.length / 3);
+    this.components = 9;
+    var size = (buff.length / this.components);
+
+    this.mainBuffer = h.createArrayBuffer(new Float32Array(buff), 3, size);
     this.orderBuffer = h.createArrayBuffer(new Float32Array(order), 2, order.length / 2);
-
-    this.indexBuffer = h.createElementArrayBuffer(new Uint16Array(vertIndeces), 1, vertIndeces.length)
+    this.indexBuffer = h.createElementArrayBuffer(new Uint16Array(vertIndeces), 1, vertIndeces.length);
 };
 
 thickness = 10;
@@ -168,15 +141,19 @@ my.LineString2.prototype.frame = function () {
 
     gl.uniform1f(shu.thickness._pName, thickness);
 
-    //vertices positions
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.prevBuffer);
-    gl.vertexAttribPointer(sha.prev._pName, this.prevBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    var FLOATSIZE = 4;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.currentBuffer);
-    gl.vertexAttribPointer(sha.current._pName, this.currentBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.mainBuffer);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.nextBuffer);
-    gl.vertexAttribPointer(sha.next._pName, this.nextBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(sha.current._pName, this.mainBuffer.itemSize, gl.FLOAT, false,
+    this.components * FLOATSIZE, 0 * FLOATSIZE);
+
+    gl.vertexAttribPointer(sha.prev._pName, this.mainBuffer.itemSize, gl.FLOAT, false,
+        this.components * FLOATSIZE, 3 * FLOATSIZE);
+
+    gl.vertexAttribPointer(sha.next._pName, this.mainBuffer.itemSize, gl.FLOAT, false,
+        this.components * FLOATSIZE, 6 * FLOATSIZE);
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this.orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
