@@ -39,7 +39,16 @@ og.LineString = function (options) {
      */
     this._handler = null;
     this._handlerIndex = -1;
+
+    this._buffersUpdateCallbacks = [];
+    this._buffersUpdateCallbacks[og.LineString.MAIN_BUFFER] = this._createMainBuffer;
+    this._buffersUpdateCallbacks[og.LineString.INDEX_BUFFER] = this._createIndexBuffer;
+
+    this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 };
+
+og.LineString.MAIN_BUFFER = 0;
+og.LineString.INDEX_BUFFER = 1;
 
 og.LineString.__staticId = 0;
 
@@ -56,6 +65,18 @@ og.LineString.prototype.clear = function () {
     this._indexData = null;
 
     this._deleteBuffers();
+};
+
+og.LineString.prototype._update = function () {
+    if (this._renderNode) {
+        var i = this._changedBuffers.length;
+        while (i--) {
+            if (this._changedBuffers[i]) {
+                this._buffersUpdateCallbacks[i].call(this);
+                this._changedBuffers[i] = false;
+            }
+        }
+    }
 };
 
 og.LineString.prototype._deleteBuffers = function () {
@@ -121,7 +142,7 @@ og.LineString.prototype.getPickingDistance = function () {
 
 og.LineString.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
-    this._createBuffers();
+    this._createData();
 };
 
 og.LineString.prototype.remove = function () {
@@ -137,6 +158,24 @@ og.LineString.prototype.setPickingColor3v = function (color) {
     this._pickingColor[1] = color.y / 255.0;
     this._pickingColor[2] = color.z / 255.0;
     this._pickingColor[3] = 1.0;
+};
+
+og.LineString.prototype._createMainBuffer = function () {
+    var h = this._renderNode.renderer.handler;
+    h.gl.deleteBuffer(this._mainBuffer);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, this._mainData.length / 9);
+};
+
+og.LineString.prototype._createIndexBuffer = function () {
+    var h = this._renderNode.renderer.handler;
+    h.gl.deleteBuffer(this._orderBuffer);
+    h.gl.deleteBuffer(this._indexBuffer);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, this._orderData.length / 2);
+    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+};
+
+og.LineString.prototype.getPath = function () {
+    return [].concat(this._path);
 };
 
 og.LineString.prototype.setPath = function (path) {
@@ -215,35 +254,37 @@ og.LineString.prototype.setPath = function (path) {
                 md[j + 35] = nextZ;
             }
 
-            var h = this._renderNode.renderer.handler;
-            h.gl.deleteBuffer(this._mainBuffer);
-            this._mainBuffer = null;
-            this._mainBuffer = h.createArrayBuffer(new Float32Array(md), 3, md.length / 9);
+            this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
+
         } else {
             this._path = [].concat(path);
-            this._createBuffers();
+            this._createData();
         }
     } else {
         this._path = [].concat(path);
     }
 };
 
-og.LineString.prototype.setPoint = function (index, point) {
+og.LineString.prototype.setPoint3v = function (index, point) {
     if (index >= 0 && index < this._path.length) {
         var p = this._path[index];
         p[0] = point[0];
         p[1] = point[1];
         p[2] = point[2];
 
-        //
-        //...
-        //
-
         if (this._renderNode) {
-            var h = this._renderNode.renderer.handler;
-            h.gl.deleteBuffer(this._mainBuffer);
-            this._mainBuffer = null;
-            this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, this._mainData.length / 9);
+
+            var x = point.x, y = point.y, z = point.z;
+            var md = this._mainData;
+
+            var prev = index - 1,
+                next = index + 1;
+
+            //
+            //...
+            //
+
+            this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
         }
     }
 };
@@ -260,7 +301,7 @@ og.LineString.prototype.insertPoint = function (index, point) {
 
 };
 
-og.LineString.prototype._createBuffers = function () {
+og.LineString.prototype._createData = function () {
 
     var path = this._path;
     var len = path.length - 1;
@@ -309,19 +350,17 @@ og.LineString.prototype._createBuffers = function () {
         this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
     }
 
-    this._deleteBuffers();
-    var r = this._renderNode.renderer;
-    var h = r.handler;
-
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, this._mainData.length / 9);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, this._orderData.length / 2);
-    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+    this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
+    this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
 }
 
 //FLOATSIZE = 4;
 //components = 9;
 og.LineString.prototype.draw = function () {
     if (this.visibility && this._path.length) {
+
+        this._update();
+
         var rn = this._renderNode;
         var r = rn.renderer;
         var sh = r.handler.shaderPrograms.LineString;
