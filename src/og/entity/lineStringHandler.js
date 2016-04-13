@@ -73,5 +73,12 @@ og.LineStringHandler.prototype.drawPicking = function () {
 };
 
 og.LineStringHandler.prototype.clear = function () {
-
+    var i = this._lineStrings.length;
+    while (i--) {
+        this._lineStrings[i]._deleteBuffers();
+        this._lineStrings[i]._handler = null;
+        this._lineStrings[i]._handlerIndex = -1;
+    }
+    this._lineStrings.length = 0;
+    this._lineStrings = [];
 };

@@ -9,7 +9,7 @@ og.LineString = function (options) {
     this.thickness = options.thickness || 1.5;
     this.color = options.color || [1.0, 1.0, 1.0, 1.0];
     this.visibility = (options.visibility != undefined ? options.visibility : true);
-    this.pickingDistance = options.pickingDistance || 0.0;
+    this.pickingDistance = options.pickingDistance || 2.0;
 
     this._path = options.path ? [].concat(options.path) : [];
 
@@ -21,7 +21,7 @@ og.LineString = function (options) {
     this._orderBuffer = null;
     this._indexBuffer = null;
 
-    this._pickingColor = [0, 0, 0];
+    this._pickingColor = [0, 0, 0, 0];
 
     this._renderNode = null;
 
@@ -130,23 +130,126 @@ og.LineString.prototype.remove = function () {
 };
 
 og.LineString.prototype.setPickingColor3v = function (color) {
-    if (this._handler && this._renderNode) {
-        this._pickingColor = color.toArr();
-    };
+    //...
+    //TODO: check the renderer before
+    //...
+    this._pickingColor[0] = color.x / 255.0;
+    this._pickingColor[1] = color.y / 255.0;
+    this._pickingColor[2] = color.z / 255.0;
+    this._pickingColor[3] = 1.0;
 };
 
 og.LineString.prototype.setPath = function (path) {
-    this._path = [].concat(path);
+    if (this._renderNode) {
+        if (path.length === this._path.length) {
+            this._path = [].concat(path);
 
+            var p0 = path[0],
+                p1 = path[1];
 
+            var prevX = p0[0] + p0[0] - p1[0],
+                prevY = p0[1] + p0[1] - p1[1],
+                prevZ = p0[2] + p0[2] - p1[2];
+
+            var len = path.length - 1;
+            var md = this._mainData;
+
+            for (var i = 0, j = 0; i < len; i++, j += 36) {
+
+                p0 = path[i];
+                p1 = path[i + 1];
+
+                md[j] = p0[0];
+                md[j + 1] = p0[1];
+                md[j + 2] = p0[2];
+                md[j + 3] = prevX;
+                md[j + 4] = prevY;
+                md[j + 5] = prevZ;
+                md[j + 6] = p1[0];
+                md[j + 7] = p1[1];
+                md[j + 8] = p1[2];
+                md[j + 9] = p0[0];
+                md[j + 10] = p0[1];
+                md[j + 11] = p0[2];
+                md[j + 12] = prevX;
+                md[j + 13] = prevY;
+                md[j + 14] = prevZ;
+                md[j + 15] = p1[0];
+                md[j + 16] = p1[1];
+                md[j + 17] = p1[2];
+
+                prevX = p0[0];
+                prevY = p0[1];
+                prevZ = p0[2];
+
+                var p2 = path[i + 2];
+                var nextX, nextY, nextZ;
+
+                if (p2) {
+                    nextX = p2[0];
+                    nextY = p2[1];
+                    nextZ = p2[2];
+                } else {
+                    nextX = p1[0] + p1[0] - p0[0];
+                    nextY = p1[1] + p1[1] - p0[1];
+                    nextZ = p1[2] + p1[2] - p0[2];
+                }
+
+                md[j + 18] = p1[0];
+                md[j + 19] = p1[1];
+                md[j + 20] = p1[2];
+                md[j + 21] = p0[0];
+                md[j + 22] = p0[1];
+                md[j + 23] = p0[2];
+                md[j + 24] = nextX;
+                md[j + 25] = nextY;
+                md[j + 26] = nextZ;
+                md[j + 27] = p1[0];
+                md[j + 28] = p1[1];
+                md[j + 29] = p1[2];
+                md[j + 30] = p0[0];
+                md[j + 31] = p0[1];
+                md[j + 32] = p0[2];
+                md[j + 33] = nextX;
+                md[j + 34] = nextY;
+                md[j + 35] = nextZ;
+            }
+
+            var h = this._renderNode.renderer.handler;
+            h.gl.deleteBuffer(this._mainBuffer);
+            this._mainBuffer = null;
+            this._mainBuffer = h.createArrayBuffer(new Float32Array(md), 3, md.length / 9);
+        } else {
+            this._path = [].concat(path);
+            this._createBuffers();
+        }
+    } else {
+        this._path = [].concat(path);
+    }
 };
 
 og.LineString.prototype.setPoint = function (index, point) {
+    if (index >= 0 && index < this._path.length) {
+        var p = this._path[index];
+        p[0] = point[0];
+        p[1] = point[1];
+        p[2] = point[2];
 
+        //
+        //...
+        //
+
+        if (this._renderNode) {
+            var h = this._renderNode.renderer.handler;
+            h.gl.deleteBuffer(this._mainBuffer);
+            this._mainBuffer = null;
+            this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, this._mainData.length / 9);
+        }
+    }
 };
 
 og.LineString.prototype.getPoint = function (index) {
-
+    return this._path[index];
 };
 
 og.LineString.prototype.removePoint = function (index) {
@@ -221,12 +324,9 @@ og.LineString.prototype.draw = function () {
     if (this.visibility && this._path.length) {
         var rn = this._renderNode;
         var r = rn.renderer;
-
-        var sh, p, gl;
-
-        sh = r.handler.shaderPrograms.LineString;
-        p = sh._program;
-        gl = r.handler.gl,
+        var sh = r.handler.shaderPrograms.LineString;
+        var p = sh._program;
+        var gl = r.handler.gl,
             sha = p.attributes,
             shu = p.uniforms;
 
@@ -258,12 +358,9 @@ og.LineString.prototype.drawPicking = function () {
     if (this.visibility && this._path.length) {
         var rn = this._renderNode;
         var r = rn.renderer;
-
-        var sh, p, gl;
-
-        sh = r.handler.shaderPrograms.LineString;
-        p = sh._program;
-        gl = r.handler.gl,
+        var sh = r.handler.shaderPrograms.LineString;
+        var p = sh._program;
+        var gl = r.handler.gl,
             sha = p.attributes,
             shu = p.uniforms;
 
