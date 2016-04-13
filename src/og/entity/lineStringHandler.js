@@ -65,6 +65,10 @@ og.LineStringHandler.prototype.draw = function () {
 
 og.LineStringHandler.prototype.drawPicking = function () {
     if (this.pickingEnabled) {
+        var i = this._lineStrings.length;
+        while (i--) {
+            this._lineStrings[i].drawPicking();
+        }
     }
 };
 

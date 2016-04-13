@@ -6,13 +6,15 @@ goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
+//Picking the same
 og.shaderProgram.lineString = function () {
     return new og.shaderProgram.ShaderProgram("LineString", {
         uniforms: {
             view: { type: og.shaderProgram.types.MAT4 },
             proj: { type: og.shaderProgram.types.MAT4 },
             viewport: { type: og.shaderProgram.types.VEC2 },
-            thickness: { type: og.shaderProgram.types.FLOAT }
+            thickness: { type: og.shaderProgram.types.FLOAT },
+            color: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
             prev: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -22,11 +24,5 @@ og.shaderProgram.lineString = function () {
         },
         vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "lineString_vs.txt"),
         fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "lineString_fs.txt")
-    });
-};
-
-og.shaderProgram.lineStringPicking = function () {
-    return new og.shaderProgram.ShaderProgram("LineStringPicking", {
-        //...
     });
 };
