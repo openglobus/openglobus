@@ -53,7 +53,21 @@ og.LineStringHandler.prototype.add = function (lineString) {
 };
 
 og.LineStringHandler.prototype.remove = function (lineString) {
+    var index = lineString._handlerIndex;
+    if (index !== -1) {
+        lineString._deleteBuffers();
+        lineString._handlerIndex = -1;
+        lineString._handler = null;
+        this._lineStrings.splice(index, 1);
+        this.reindexLineStringArray(index);
+    }
+};
 
+og.LineStringHandler.prototype.reindexLineStringArray = function (startIndex) {
+    var ls = this._lineStrings;
+    for (var i = startIndex; i < ls.length; i++) {
+        ls[i]._handlerIndex = i;
+    }
 };
 
 og.LineStringHandler.prototype.draw = function () {

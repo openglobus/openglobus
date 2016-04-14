@@ -163,14 +163,14 @@ og.LineString.prototype.setPickingColor3v = function (color) {
 og.LineString.prototype._createMainBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._mainBuffer);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, this._mainData.length / 9);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length - 54) / 9);
 };
 
 og.LineString.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._orderBuffer);
     h.gl.deleteBuffer(this._indexBuffer);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, this._orderData.length / 2);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length - 12) / 2);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
 
@@ -193,12 +193,12 @@ og.LineString.prototype.setPath = function (path) {
             var len = path.length - 1;
             var md = this._mainData;
 
-            for (var i = 0, j = 0; i < len; i++, j += 36) {
+            for (var i = 0, j = 54; i < len; i++, j += 36) {
 
                 p0 = path[i];
                 p1 = path[i + 1];
 
-                md[j] = p0[0];
+                md[j]     = p0[0];
                 md[j + 1] = p0[1];
                 md[j + 2] = p0[2];
                 md[j + 3] = prevX;
@@ -207,7 +207,8 @@ og.LineString.prototype.setPath = function (path) {
                 md[j + 6] = p1[0];
                 md[j + 7] = p1[1];
                 md[j + 8] = p1[2];
-                md[j + 9] = p0[0];
+
+                md[j + 9]  = p0[0];
                 md[j + 10] = p0[1];
                 md[j + 11] = p0[2];
                 md[j + 12] = prevX;
@@ -243,6 +244,7 @@ og.LineString.prototype.setPath = function (path) {
                 md[j + 24] = nextX;
                 md[j + 25] = nextY;
                 md[j + 26] = nextZ;
+
                 md[j + 27] = p1[0];
                 md[j + 28] = p1[1];
                 md[j + 29] = p1[2];
@@ -317,7 +319,18 @@ og.LineString.prototype._createData = function () {
         prevY = p0[1] + p0[1] - p1[1],
         prevZ = p0[2] + p0[2] - p1[2];
 
-    for (var i = 0, j = 0; i < len; i++) {
+    //fake data
+    this._mainData.push(
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    for (var i = 0, j = 6; i < len; i++) {
 
         p0 = path[i];
         p1 = path[i + 1];
@@ -349,6 +362,18 @@ og.LineString.prototype._createData = function () {
 
         this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
     }
+
+    //fake data
+    this._mainData.push(
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 
     this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
     this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
