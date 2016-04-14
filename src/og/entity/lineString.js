@@ -198,7 +198,7 @@ og.LineString.prototype.setPath = function (path) {
                 p0 = path[i];
                 p1 = path[i + 1];
 
-                md[j]     = p0[0];
+                md[j] = p0[0];
                 md[j + 1] = p0[1];
                 md[j + 2] = p0[2];
                 md[j + 3] = prevX;
@@ -208,7 +208,7 @@ og.LineString.prototype.setPath = function (path) {
                 md[j + 7] = p1[1];
                 md[j + 8] = p1[2];
 
-                md[j + 9]  = p0[0];
+                md[j + 9] = p0[0];
                 md[j + 10] = p0[1];
                 md[j + 11] = p0[2];
                 md[j + 12] = prevX;
@@ -282,9 +282,55 @@ og.LineString.prototype.setPoint3v = function (index, point) {
             var prev = index - 1,
                 next = index + 1;
 
-            //
-            //...
-            //
+            var s = 36 * index;
+
+            md[s + 6] = x;
+            md[s + 7] = y;
+            md[s + 8] = z;
+
+            md[s + 15] = x;
+            md[s + 16] = y;
+            md[s + 17] = z;
+
+            md[s + 24] = x;
+            md[s + 15] = y;
+            md[s + 26] = z;
+
+            md[s + 33] = x;
+            md[s + 34] = y;
+            md[s + 35] = z;
+
+            md[s + 36] = x;
+            md[s + 37] = y;
+            md[s + 38] = z;
+
+            md[s + 45] = x;
+            md[s + 46] = y;
+            md[s + 47] = z;
+
+            md[s + 54] = x;
+            md[s + 55] = y;
+            md[s + 56] = z;
+
+            md[s + 63] = x;
+            md[s + 64] = y;
+            md[s + 65] = z;
+
+            md[s + 75] = x;
+            md[s + 76] = y;
+            md[s + 77] = z;
+
+            md[s + 84] = x;
+            md[s + 85] = y;
+            md[s + 86] = z;
+
+            md[s + 93] = x;
+            md[s + 94] = y;
+            md[s + 95] = z;
+
+            md[s + 102] = x;
+            md[s + 103] = y;
+            md[s + 104] = z;
 
             this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
         }
