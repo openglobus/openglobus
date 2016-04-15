@@ -163,14 +163,14 @@ og.LineString.prototype.setPickingColor3v = function (color) {
 og.LineString.prototype._createMainBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._mainBuffer);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length - 54) / 9);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length/* - 54*/) / 9);
 };
 
 og.LineString.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._orderBuffer);
     h.gl.deleteBuffer(this._indexBuffer);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length - 12) / 2);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length/* - 12*/) / 2);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
 
@@ -193,7 +193,7 @@ og.LineString.prototype.setPath = function (path) {
             var len = path.length - 1;
             var md = this._mainData;
 
-            for (var i = 0, j = 54; i < len; i++, j += 36) {
+            for (var i = 0, j = /*54*/0; i < len; i++, j += 36) {
 
                 p0 = path[i];
                 p1 = path[i + 1];
@@ -268,69 +268,114 @@ og.LineString.prototype.setPath = function (path) {
 };
 
 og.LineString.prototype.setPoint3v = function (index, point) {
-    if (index >= 0 && index < this._path.length) {
-        var p = this._path[index];
-        p[0] = point[0];
-        p[1] = point[1];
-        p[2] = point[2];
+    var len = this._path.length;
+    if (index >= 0 && index < len) {
 
         if (this._renderNode) {
+
+            var p0, p1,
+                prevX, prevY, prevZ,
+                nextX, nextY, nextZ;
 
             var x = point.x, y = point.y, z = point.z;
             var md = this._mainData;
 
-            var prev = index - 1,
-                next = index + 1;
+            var p = this._path[index];
+            p[0] = x;
+            p[1] = y;
+            p[2] = z;
 
-            var s = 36 * index;
+            var s = index * 36;
 
-            md[s + 6] = x;
-            md[s + 7] = y;
-            md[s + 8] = z;
+            if (index === 0 || index === 1) {
+                var p0 = this._path[0],
+                    p1 = this._path[1];
+                prevX = p0[0] + p0[0] - p1[0];
+                prevY = p0[1] + p0[1] - p1[1];
+                prevZ = p0[2] + p0[2] - p1[2];
+                md[3] = prevX;
+                md[4] = prevY;
+                md[5] = prevZ;
+                md[12] = prevX;
+                md[13] = prevY;
+                md[14] = prevZ;
+            }
 
-            md[s + 15] = x;
-            md[s + 16] = y;
-            md[s + 17] = z;
+            if (index == len - 2) {
+                var p0 = this._path[len - 2],
+                    p1 = this._path[len - 1];
+                nextX = p1[0] + p1[0] - p0[0];
+                nextY = p1[1] + p1[1] - p0[1];
+                nextZ = p1[2] + p1[2] - p0[2];
+                if (len === 2) {
+                    md[24] = nextX;
+                    md[25] = nextY;
+                    md[26] = nextZ;
+                    md[33] = nextX;
+                    md[34] = nextY;
+                    md[35] = nextZ;
+                } else {
+                    md[s + 24] = nextX;
+                    md[s + 25] = nextY;
+                    md[s + 26] = nextZ;
+                    md[s + 33] = nextX;
+                    md[s + 34] = nextY;
+                    md[s + 35] = nextZ;
+                }
+            } else if (index === len - 1) {
+                var p0 = this._path[len - 2],
+                    p1 = this._path[len - 1];
+                nextX = p1[0] + p1[0] - p0[0];
+                nextY = p1[1] + p1[1] - p0[1];
+                nextZ = p1[2] + p1[2] - p0[2];
+                if (len === 2) {
+                    md[24] = nextX;
+                    md[25] = nextY;
+                    md[26] = nextZ;
+                    md[33] = nextX;
+                    md[34] = nextY;
+                    md[35] = nextZ;
+                } else {
+                    md[s - 12] = nextX;
+                    md[s - 11] = nextY;
+                    md[s - 10] = nextZ;
+                    md[s - 3] = nextX;
+                    md[s - 2] = nextY;
+                    md[s - 1] = nextZ;
+                }
+            }
 
-            md[s + 24] = x;
-            md[s + 15] = y;
-            md[s + 26] = z;
+            //forward
+            var d = [0, 21, 39];
+            for (var i = 0; i < 3; i++) {
+                var si = s + d[i];
+                if (md[si] !== undefined) {
+                    md[si] = x;
+                    md[si + 1] = y;
+                    md[si + 2] = z;
+                    md[si + 9] = x;
+                    md[si + 10] = y;
+                    md[si + 11] = z;
+                } else {
+                    break;
+                }
+            }
 
-            md[s + 33] = x;
-            md[s + 34] = y;
-            md[s + 35] = z;
-
-            md[s + 36] = x;
-            md[s + 37] = y;
-            md[s + 38] = z;
-
-            md[s + 45] = x;
-            md[s + 46] = y;
-            md[s + 47] = z;
-
-            md[s + 54] = x;
-            md[s + 55] = y;
-            md[s + 56] = z;
-
-            md[s + 63] = x;
-            md[s + 64] = y;
-            md[s + 65] = z;
-
-            md[s + 75] = x;
-            md[s + 76] = y;
-            md[s + 77] = z;
-
-            md[s + 84] = x;
-            md[s + 85] = y;
-            md[s + 86] = z;
-
-            md[s + 93] = x;
-            md[s + 94] = y;
-            md[s + 95] = z;
-
-            md[s + 102] = x;
-            md[s + 103] = y;
-            md[s + 104] = z;
+            //backward
+            var d = [0, 12, 30];
+            for (var i = 0; i < 3; i++) {
+                var si = s - 18 - d[i];
+                if (md[si] !== undefined) {
+                    md[si] = x;
+                    md[si + 1] = y;
+                    md[si + 2] = z;
+                    md[si + 9] = x;
+                    md[si + 10] = y;
+                    md[si + 11] = z;
+                } else {
+                    break;
+                }
+            }
 
             this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
         }
@@ -366,17 +411,17 @@ og.LineString.prototype._createData = function () {
         prevZ = p0[2] + p0[2] - p1[2];
 
     //fake data
-    this._mainData.push(
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //this._mainData.push(
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    for (var i = 0, j = 6; i < len; i++) {
+    for (var i = 0, j = /*6*/0; i < len; i++) {
 
         p0 = path[i];
         p1 = path[i + 1];
@@ -410,15 +455,15 @@ og.LineString.prototype._createData = function () {
     }
 
     //fake data
-    this._mainData.push(
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //this._mainData.push(
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
+    //    0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 
     this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
