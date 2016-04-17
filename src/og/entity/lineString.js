@@ -11,7 +11,9 @@ og.LineString = function (options) {
     this.visibility = (options.visibility != undefined ? options.visibility : true);
     this.pickingDistance = options.pickingDistance || 2.0;
 
-    this._path = options.path ? [].concat(options.path) : [];
+    this._path = [];
+    this._pathLonLat = [];
+    this._pathLonLatMerc = [];
 
     this._mainData = null;
     this._orderData = null;
@@ -45,6 +47,13 @@ og.LineString = function (options) {
     this._buffersUpdateCallbacks[og.LineString.INDEX_BUFFER] = this._createIndexBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+    //create path
+    if (options.pathLonLat) {
+        this.setPathLonLat(options.pathLonLat);
+    } else if (options.path) {
+        this.setPath(options.path);
+    }
 };
 
 og.LineString.MAIN_BUFFER = 0;
@@ -142,7 +151,7 @@ og.LineString.prototype.getPickingDistance = function () {
 
 og.LineString.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
-    this._createData();
+    this._createData(this._path);
 };
 
 og.LineString.prototype.remove = function () {
@@ -175,13 +184,13 @@ og.LineString.prototype._createIndexBuffer = function () {
 };
 
 og.LineString.prototype.getPath = function () {
-    return [].concat(this._path);
+    return this._path;
 };
 
 og.LineString.prototype.setPath = function (path) {
     if (this._renderNode) {
-        if (path.length === this._path.length) {
-            this._path = [].concat(path);
+        var thisPath = this._path;
+        if (path.length === thisPath.length) {
 
             var p0 = path[0],
                 p1 = path[1];
@@ -193,7 +202,7 @@ og.LineString.prototype.setPath = function (path) {
             var len = path.length - 1;
             var md = this._mainData;
 
-            for (var i = 0, j = /*54*/0; i < len; i++, j += 36) {
+            for (var i = 0, j = 0; i < len; i++, j += 36) {
 
                 p0 = path[i];
                 p1 = path[i + 1];
@@ -221,6 +230,10 @@ og.LineString.prototype.setPath = function (path) {
                 prevX = p0[0];
                 prevY = p0[1];
                 prevZ = p0[2];
+
+                thisPath[i][0] = path[i][0];
+                thisPath[i][1] = path[i][1];
+                thisPath[i][2] = path[i][2];
 
                 var p2 = path[i + 2];
                 var nextX, nextY, nextZ;
@@ -259,126 +272,104 @@ og.LineString.prototype.setPath = function (path) {
             this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
 
         } else {
-            this._path = [].concat(path);
-            this._createData();
+            this._createData(path);
         }
     } else {
-        this._path = [].concat(path);
+        this._path = path;
     }
 };
 
 og.LineString.prototype.setPoint3v = function (index, point) {
     var len = this._path.length;
-    if (index >= 0 && index < len) {
+    if (index >= 0 && index < len &&
+        this._renderNode) {
 
-        if (this._renderNode) {
+        var p0, p1,
+            prevX, prevY, prevZ,
+            nextX, nextY, nextZ;
+        var x = point.x, y = point.y, z = point.z;
+        var md = this._mainData;
 
-            var p0, p1,
-                prevX, prevY, prevZ,
-                nextX, nextY, nextZ;
+        var p = this._path[index];
+        p[0] = x;
+        p[1] = y;
+        p[2] = z;
 
-            var x = point.x, y = point.y, z = point.z;
-            var md = this._mainData;
+        var s = index * 36;
 
-            var p = this._path[index];
-            p[0] = x;
-            p[1] = y;
-            p[2] = z;
-
-            var s = index * 36;
-
-            if (index === 0 || index === 1) {
-                var p0 = this._path[0],
-                    p1 = this._path[1];
-                prevX = p0[0] + p0[0] - p1[0];
-                prevY = p0[1] + p0[1] - p1[1];
-                prevZ = p0[2] + p0[2] - p1[2];
-                md[3] = prevX;
-                md[4] = prevY;
-                md[5] = prevZ;
-                md[12] = prevX;
-                md[13] = prevY;
-                md[14] = prevZ;
-            }
-
-            if (index == len - 2) {
-                var p0 = this._path[len - 2],
-                    p1 = this._path[len - 1];
-                nextX = p1[0] + p1[0] - p0[0];
-                nextY = p1[1] + p1[1] - p0[1];
-                nextZ = p1[2] + p1[2] - p0[2];
-                if (len === 2) {
-                    md[24] = nextX;
-                    md[25] = nextY;
-                    md[26] = nextZ;
-                    md[33] = nextX;
-                    md[34] = nextY;
-                    md[35] = nextZ;
-                } else {
-                    md[s + 24] = nextX;
-                    md[s + 25] = nextY;
-                    md[s + 26] = nextZ;
-                    md[s + 33] = nextX;
-                    md[s + 34] = nextY;
-                    md[s + 35] = nextZ;
-                }
-            } else if (index === len - 1) {
-                var p0 = this._path[len - 2],
-                    p1 = this._path[len - 1];
-                nextX = p1[0] + p1[0] - p0[0];
-                nextY = p1[1] + p1[1] - p0[1];
-                nextZ = p1[2] + p1[2] - p0[2];
-                if (len === 2) {
-                    md[24] = nextX;
-                    md[25] = nextY;
-                    md[26] = nextZ;
-                    md[33] = nextX;
-                    md[34] = nextY;
-                    md[35] = nextZ;
-                } else {
-                    md[s - 12] = nextX;
-                    md[s - 11] = nextY;
-                    md[s - 10] = nextZ;
-                    md[s - 3] = nextX;
-                    md[s - 2] = nextY;
-                    md[s - 1] = nextZ;
-                }
-            }
-
-            //forward
-            var d = [0, 21, 39];
-            for (var i = 0; i < 3; i++) {
-                var si = s + d[i];
-                if (md[si] !== undefined) {
-                    md[si] = x;
-                    md[si + 1] = y;
-                    md[si + 2] = z;
-                    md[si + 9] = x;
-                    md[si + 10] = y;
-                    md[si + 11] = z;
-                } else {
-                    break;
-                }
-            }
-
-            //backward
-            var d = [0, 12, 30];
-            for (var i = 0; i < 3; i++) {
-                var si = s - 18 - d[i];
-                if (md[si] !== undefined) {
-                    md[si] = x;
-                    md[si + 1] = y;
-                    md[si + 2] = z;
-                    md[si + 9] = x;
-                    md[si + 10] = y;
-                    md[si + 11] = z;
-                } else {
-                    break;
-                }
-            }
-
-            this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
+        if (index === 0 || index === 1) {
+            var p0 = this._path[0],
+                p1 = this._path[1];
+            prevX = p0[0] + p0[0] - p1[0];
+            prevY = p0[1] + p0[1] - p1[1];
+            prevZ = p0[2] + p0[2] - p1[2];
+            md[3] = prevX;
+            md[4] = prevY;
+            md[5] = prevZ;
+            md[12] = prevX;
+            md[13] = prevY;
+            md[14] = prevZ;
         }
+
+        if (index == len - 2) {
+            var p0 = this._path[len - 2],
+                p1 = this._path[len - 1];
+            nextX = p1[0] + p1[0] - p0[0];
+            nextY = p1[1] + p1[1] - p0[1];
+            nextZ = p1[2] + p1[2] - p0[2];
+            md[s + 24] = nextX;
+            md[s + 25] = nextY;
+            md[s + 26] = nextZ;
+            md[s + 33] = nextX;
+            md[s + 34] = nextY;
+            md[s + 35] = nextZ;
+        } else if (index === len - 1) {
+            var p0 = this._path[len - 2],
+                p1 = this._path[len - 1];
+            nextX = p1[0] + p1[0] - p0[0];
+            nextY = p1[1] + p1[1] - p0[1];
+            nextZ = p1[2] + p1[2] - p0[2];
+            md[s - 12] = nextX;
+            md[s - 11] = nextY;
+            md[s - 10] = nextZ;
+            md[s - 3] = nextX;
+            md[s - 2] = nextY;
+            md[s - 1] = nextZ;
+        }
+
+        //forward
+        var f = [0, 21, 39];
+        for (var i = 0; i < 3; i++) {
+            var si = s + f[i];
+            if (si < md.length) {
+                md[si] = x;
+                md[si + 1] = y;
+                md[si + 2] = z;
+                md[si + 9] = x;
+                md[si + 10] = y;
+                md[si + 11] = z;
+            } else {
+                break;
+            }
+        }
+
+        //backward
+        var b = [-18, -30, -48];
+        for (var i = 0; i < 3; i++) {
+            var si = s + b[i];
+            if (si >= 0) {
+                md[si] = x;
+                md[si + 1] = y;
+                md[si + 2] = z;
+                md[si + 9] = x;
+                md[si + 10] = y;
+                md[si + 11] = z;
+            } else {
+                break;
+            }
+        }
+
+        this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
     }
 };
 
@@ -394,10 +385,12 @@ og.LineString.prototype.insertPoint = function (index, point) {
 
 };
 
-og.LineString.prototype._createData = function () {
+og.LineString.prototype._createData = function (path) {
 
-    var path = this._path;
     var len = path.length - 1;
+
+    this._path = null;
+    this._path = path;
 
     this._mainData = [];
     this._orderData = [];
@@ -410,18 +403,7 @@ og.LineString.prototype._createData = function () {
         prevY = p0[1] + p0[1] - p1[1],
         prevZ = p0[2] + p0[2] - p1[2];
 
-    //fake data
-    //this._mainData.push(
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-    //this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-    for (var i = 0, j = /*6*/0; i < len; i++) {
+    for (var i = 0, j = 0; i < len; i++) {
 
         p0 = path[i];
         p1 = path[i + 1];
@@ -454,17 +436,12 @@ og.LineString.prototype._createData = function () {
         this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
     }
 
-    //fake data
-    //this._mainData.push(
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //    0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-    //this._orderData.push(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
+    //this._indexData = [
+    //    0, 1, 2, 3,
+    //    3, 3, 8,
+    //    //4, 5, 6, 7,
+    //    //7, 7, 8,
+    //    8, 9, 10, 11];
 
     this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
     this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
@@ -487,10 +464,9 @@ og.LineString.prototype.draw = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
-        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+        gl.uniformMatrix4fv(shu.projview._pName, false, r.activeCamera._pmvMatrix._m);
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-        gl.uniform1f(shu.thickness._pName, this.thickness);
+        gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
         gl.uniform4fv(shu.color._pName, this.color);
 
         var mb = this._mainBuffer;
@@ -521,8 +497,7 @@ og.LineString.prototype.drawPicking = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
-        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+        gl.uniformMatrix4fv(shu.projview._pName, false, r.activeCamera._pmvMatrix._m);
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness + this.pickingDistance);
         gl.uniform4fv(shu.color._pName, this._pickingColor);

@@ -10,8 +10,7 @@ goog.require('og.utils');
 og.shaderProgram.lineString = function () {
     return new og.shaderProgram.ShaderProgram("LineString", {
         uniforms: {
-            view: { type: og.shaderProgram.types.MAT4 },
-            proj: { type: og.shaderProgram.types.MAT4 },
+            projview: { type: og.shaderProgram.types.MAT4 },
             viewport: { type: og.shaderProgram.types.VEC2 },
             thickness: { type: og.shaderProgram.types.FLOAT },
             color: { type: og.shaderProgram.types.VEC4 }

@@ -3,57 +3,26 @@ attribute vec3 current;
 attribute vec3 next;
 attribute vec2 order;
 
-uniform mat4 proj, view;
+uniform mat4 projview;
 uniform vec2 viewport;
 uniform float thickness;
     
-float pi = 3.141592653589793;
-
-vec4 transform(vec3 coord){
-    return proj * view * vec4(coord, 1.0);
-}
-
 vec2 project(vec4 device){
-    vec3 device_normal = device.xyz/device.w;
-    vec2 clip_pos = (device_normal*0.5+0.5).xy;
-    return clip_pos * viewport;
-}
-
-vec4 unproject(vec2 screen, float z, float w){
-    vec2 clip_pos = screen/viewport;
-    vec2 device_normal = clip_pos * 2.0 - 1.0;
-    return vec4(device_normal * w, z, w);
-}
-
-float estimateScale(vec3 position, vec2 sPosition){
-    vec4 view_pos = view * vec4(position, 1.0);
-    vec4 scale_pos = view_pos - vec4(normalize(view_pos.xy)*thickness, 0.0, 0.0);
-    vec2 screen_scale_pos = project(proj * scale_pos);
-    return distance(sPosition, screen_scale_pos);
-}
-
-float curvatureCorrection(vec2 a, vec2 b){
-    float p = a.x*b.y - a.y*b.x;
-    float c = atan(p, dot(a,b))/pi;
-    return clamp(c, -1.0, 1.0);
+    return (0.5 * device.xyz / device.w + 0.5).xy * viewport;
 }
 
 void main(){
 
-    vec2 sPrev = project(transform(prev));
-    vec2 sNext = project(transform(next));
-    vec4 dCurrent = transform(current);
+    vec4 dCurrent = projview * vec4(current, 1.0);
     vec2 sCurrent = project(dCurrent);
     
-	vec2 dirNext = normalize(sNext - sCurrent);
+	vec2 dirNext = project(projview * vec4(next, 1.0)) - sCurrent;
 	vec2 sNormalNext = normalize(vec2(-dirNext.y, dirNext.x));
 
-	vec2 dirPrev = normalize(sPrev - sCurrent);
+	vec2 dirPrev = normalize(project(projview * vec4(prev, 1.0)) - sCurrent);
 	vec2 sNormalPrev = normalize(vec2(-dirPrev.y, dirPrev.x));
 
-	vec2 dir;
-
-	dir = sNormalNext- sNormalPrev;
+	vec2 dir = sNormalNext - sNormalPrev;
 	float sinA = dirPrev.x * dir.y - dirPrev.y * dir.x;
 
 	if( abs(sinA) < 0.2 ) {
@@ -65,8 +34,6 @@ void main(){
 	} else {
 		dir *= order.x / sinA;
 	}
-
-	vec2 pos = sCurrent + dir * thickness * 0.5 * order.y;
-
-    gl_Position = unproject(pos, dCurrent.z, dCurrent.w);
+	
+    gl_Position = vec4((2.0 * (sCurrent + dir * thickness * order.y) / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
 }
