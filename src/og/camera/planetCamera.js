@@ -129,8 +129,7 @@ og.PlanetCamera.prototype.update = function () {
 
 og.PlanetCamera.prototype.updateGeodeticPosition = function () {
     this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
-    if (this._lonLat.lat <= og.mercator.MAX_LAT &&
-        this._lonLat.lat >= og.mercator.MIN_LAT) {
+    if (Math.abs(this._lonLat.lat) <= og.mercator.MAX_LAT) {
         this._lonLatMerc = this._lonLat.forwardMercator();
     }
 };

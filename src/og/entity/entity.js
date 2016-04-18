@@ -288,7 +288,7 @@ og.Entity.prototype.setLonLat = function (lonlat) {
     var ec = this._entityCollection;
     if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
 
-        if (lonlat.lat < og.mercator.MAX_LAT && lonlat.lat > og.mercator.MIN_LAT) {
+        if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
             this._lonlatMerc = lonlat.forwardMercator();
         } else {
             this._lonlatMerc = null;

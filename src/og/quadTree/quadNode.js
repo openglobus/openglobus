@@ -225,8 +225,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             var inside;
 
             //Because first wgs segments collected it cant be changed to lonLat.
-            if (cam._lonLat.lat <= og.mercator.MAX_LAT &&
-                cam._lonLat.lat >= og.mercator.MIN_LAT &&
+            if (Math.abs(cam._lonLat.lat) <= og.mercator.MAX_LAT &&
                 seg._projection.id === og.proj.EPSG3857.id) {
                 inside = seg.extent.isInside(cam._lonLatMerc);
                 cam._insideSegmentPosition = cam._lonLatMerc;

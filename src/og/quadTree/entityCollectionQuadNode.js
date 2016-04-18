@@ -106,7 +106,7 @@ og.quadTree.EntityCollectionQuadNode.prototype._setLonLat = function (entity) {
     if (!entity._lonlat) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
-    if (entity._lonlat.lat < og.mercator.MAX_LAT && entity._lonlat.lat > og.mercator.MIN_LAT) {
+    if (Math.abs(entity._lonlat.lat) < og.mercator.MAX_LAT) {
         entity._lonlatMerc = entity._lonlat.forwardMercator();
     } else {
         entity._lonlatMerc = null;
