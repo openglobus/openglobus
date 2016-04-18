@@ -1,5 +1,8 @@
 goog.provide('og.LineString');
 
+goog.require('og.mercator');
+goog.require('og.math.Vector3');
+
 og.LineString = function (options) {
 
     options = options || {};
@@ -151,7 +154,7 @@ og.LineString.prototype.getPickingDistance = function () {
 
 og.LineString.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
-    this._createData(this._path);
+    this._createData3v();
 };
 
 og.LineString.prototype.remove = function () {
@@ -231,9 +234,7 @@ og.LineString.prototype.setPath = function (path) {
                 prevY = p0[1];
                 prevZ = p0[2];
 
-                thisPath[i][0] = path[i][0];
-                thisPath[i][1] = path[i][1];
-                thisPath[i][2] = path[i][2];
+                thisPath[i].set(prevX, prevY, prevZ);
 
                 var p2 = path[i + 2];
                 var nextX, nextY, nextZ;
@@ -269,13 +270,18 @@ og.LineString.prototype.setPath = function (path) {
                 md[j + 35] = nextZ;
             }
 
+            this._path[len].set(path[len][0], path[len][1], path[len][2]);
+
             this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
 
         } else {
-            this._createData(path);
+            this._createDataArr(path);
         }
     } else {
-        this._path = path;
+        for (var i = 0; i < path.length; i++) {
+            var pi = path[i];
+            this._path[i] = new og.math.Vector3(pi[0], pi[1], pi[2]);
+        }
     }
 };
 
@@ -291,18 +297,27 @@ og.LineString.prototype.setPoint3v = function (index, point) {
         var md = this._mainData;
 
         var p = this._path[index];
-        p[0] = x;
-        p[1] = y;
-        p[2] = z;
+        p.x = x;
+        p.y = y;
+        p.z = z;
+
+        var ell = this._renderNode.ellipsoid;
+        if (ell) {
+            var lonlat = ell.cartesianToLonLat(p);
+            this._pathLonLat[i] = lonlat;
+            if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
+                this._pathLonLatMerc[i] = lonlat.forwardMercator();
+            }
+        }
 
         var s = index * 36;
 
         if (index === 0 || index === 1) {
             var p0 = this._path[0],
                 p1 = this._path[1];
-            prevX = p0[0] + p0[0] - p1[0];
-            prevY = p0[1] + p0[1] - p1[1];
-            prevZ = p0[2] + p0[2] - p1[2];
+            prevX = p0.x + p0.x - p1.x;
+            prevY = p0.y + p0.y - p1.y;
+            prevZ = p0.z + p0.z - p1.z;
             md[3] = prevX;
             md[4] = prevY;
             md[5] = prevZ;
@@ -314,9 +329,9 @@ og.LineString.prototype.setPoint3v = function (index, point) {
         if (index == len - 2) {
             var p0 = this._path[len - 2],
                 p1 = this._path[len - 1];
-            nextX = p1[0] + p1[0] - p0[0];
-            nextY = p1[1] + p1[1] - p0[1];
-            nextZ = p1[2] + p1[2] - p0[2];
+            nextX = p1.x + p1.x - p0.x;
+            nextY = p1.y + p1.y - p0.y;
+            nextZ = p1.z + p1.z - p0.z;
             md[s + 24] = nextX;
             md[s + 25] = nextY;
             md[s + 26] = nextZ;
@@ -326,9 +341,9 @@ og.LineString.prototype.setPoint3v = function (index, point) {
         } else if (index === len - 1) {
             var p0 = this._path[len - 2],
                 p1 = this._path[len - 1];
-            nextX = p1[0] + p1[0] - p0[0];
-            nextY = p1[1] + p1[1] - p0[1];
-            nextZ = p1[2] + p1[2] - p0[2];
+            nextX = p1.x + p1.x - p0.x;
+            nextY = p1.y + p1.y - p0.y;
+            nextZ = p1.z + p1.z - p0.z;
             md[s - 12] = nextX;
             md[s - 11] = nextY;
             md[s - 10] = nextZ;
@@ -385,12 +400,13 @@ og.LineString.prototype.insertPoint = function (index, point) {
 
 };
 
-og.LineString.prototype._createData = function (path) {
+og.LineString.prototype._createDataArr = function (path) {
 
+    var ell = this._renderNode.ellipsoid;
     var len = path.length - 1;
 
     this._path = null;
-    this._path = path;
+    this._path = [];
 
     this._mainData = [];
     this._orderData = [];
@@ -415,6 +431,16 @@ og.LineString.prototype._createData = function (path) {
         prevY = p0[1];
         prevZ = p0[2];
 
+        this._path[i] = new og.math.Vector3(prevX, prevY, prevZ);
+
+        if (ell) {
+            var lonlat = ell.cartesianToLonLat(this._path[i]);
+            this._pathLonLat[i] = lonlat;
+            if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
+                this._pathLonLatMerc[i] = lonlat.forwardMercator();
+            }
+        }
+
         var p2 = path[i + 2];
         var nextX, nextY, nextZ;
 
@@ -436,16 +462,74 @@ og.LineString.prototype._createData = function (path) {
         this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
     }
 
-    //this._indexData = [
-    //    0, 1, 2, 3,
-    //    3, 3, 8,
-    //    //4, 5, 6, 7,
-    //    //7, 7, 8,
-    //    8, 9, 10, 11];
+    this._path[len] = og.math.Vector3.fromVec(path[len]);
 
     this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
     this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
-}
+};
+
+og.LineString.prototype._createData3v = function () {
+
+    var path = this._path;
+
+    var ell = this._renderNode.ellipsoid;
+    var len = path.length - 1;
+
+    this._mainData = [];
+    this._orderData = [];
+    this._indexData = [];
+
+    var p0 = path[0],
+        p1 = path[1];
+
+    var prevX = p0.x + p0.x - p1.x,
+        prevY = p0.y + p0.y - p1.y,
+        prevZ = p0.z + p0.z - p1.z;
+
+    for (var i = 0, j = 0; i < len; i++) {
+
+        p0 = path[i];
+        p1 = path[i + 1];
+
+        this._mainData.push(p0.x, p0.y, p0.z, prevX, prevY, prevZ, p1.x, p1.y, p1.z);
+        this._mainData.push(p0.x, p0.y, p0.z, prevX, prevY, prevZ, p1.x, p1.y, p1.z);
+
+        prevX = p0.x;
+        prevY = p0.y;
+        prevZ = p0.z;
+
+        if (ell) {
+            var lonlat = ell.cartesianToLonLat(this._path[i]);
+            this._pathLonLat[i] = lonlat;
+            if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
+                this._pathLonLatMerc[i] = lonlat.forwardMercator();
+            }
+        }
+
+        var p2 = path[i + 2];
+        var nextX, nextY, nextZ;
+
+        if (p2) {
+            nextX = p2.x;
+            nextY = p2.y;
+            nextZ = p2.z;
+            this._indexData.push(j, ++j, ++j, ++j, j, j, ++j);
+        } else {
+            nextX = p1.x + p1.x - p0.x;
+            nextY = p1.y + p1.y - p0.y;
+            nextZ = p1.z + p1.z - p0.z;
+            this._indexData.push(j, ++j, ++j, ++j);
+        }
+
+        this._mainData.push(p1.x, p1.y, p1.z, p0.x, p0.y, p0.z, nextX, nextY, nextZ);
+        this._mainData.push(p1.x, p1.y, p1.z, p0.x, p0.y, p0.z, nextX, nextY, nextZ);
+
+        this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
+    }
+
+    this._changedBuffers[og.LineString.MAIN_BUFFER] = true;
+    this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
+};
 
 //FLOATSIZE = 4;
 //components = 9;
