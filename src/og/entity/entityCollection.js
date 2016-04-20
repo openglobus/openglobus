@@ -17,6 +17,7 @@ goog.require('og.Events');
  *
  * @fires og.Events#entitymove
  * @fires og.Events#draw
+ * @fires og.Events#drawend
  * @fires og.Events#add
  * @fires og.Events#remove
  * @fires og.Events#entityadd
@@ -167,6 +168,12 @@ og.EntityCollection.EVENT_NAMES = [
          * @event og.Events#draw
          */
         "draw",
+
+        /**
+         * Triggered when collection entities begin draw.
+         * @event og.Events#draw
+         */
+        "drawend",
 
         /**
          * Triggered when added to the render node.
@@ -346,6 +353,16 @@ og.EntityCollection.prototype.getVisibility = function () {
  */
 og.EntityCollection.prototype.setOpacity = function (opacity) {
     this._opacity = opacity;
+};
+
+/**
+ * @public
+ */
+og.EntityCollection.prototype.setPickingEnabled = function (enable) {
+    this.billboardHandler.pickingEnabled = enable;
+    this.labelHandler.pickingEnabled = enable;
+    this.lineStringHandler.pickingEnabled = enable;
+    this.shapeHandler.pickingEnabled = enable;
 };
 
 /**
@@ -542,8 +559,8 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
             this._renderNodeIndex = renderNode.entityCollections.length;
             renderNode.entityCollections.push(this);
         }
-        this.setRenderer(renderNode.renderer);
         renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
+        this.setRenderer(renderNode.renderer);
         this.shapeHandler.setRenderNode(renderNode);
         this.lineStringHandler.setRenderNode(renderNode);
         this.events.dispatch(this.events.add, this);

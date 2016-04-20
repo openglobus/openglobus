@@ -6,6 +6,7 @@ goog.require('og.Billboard');
 goog.require('og.Label');
 goog.require('og.LonLat');
 goog.require('og.shape.Sphere');
+goog.require('og.LineString');
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.

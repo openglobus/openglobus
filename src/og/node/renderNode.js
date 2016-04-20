@@ -310,6 +310,7 @@ og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
         while (i--) {
             var eci = ec[i];
             if (eci._animatedOpacity) {
+                //first begin draw event
                 eci.events.dispatch(eci.events.draw, eci);
                 eci.billboardHandler.draw();
             }
@@ -327,20 +328,29 @@ og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
             ec[i]._animatedOpacity && ec[i].labelHandler.draw();
         }
 
-        gl.disable(gl.POLYGON_OFFSET_FILL);
-        gl.enable(gl.CULL_FACE);
-
-        //shapes pass
-        i = ec.length;
-        while (i--) {
-            ec[i]._animatedOpacity && ec[i].shapeHandler.draw();
-        }
+        //Z-buffer offset
+        gl.polygonOffset(0, 0);
 
         //lineStrings pass
         i = ec.length;
         while (i--) {
             ec[i]._animatedOpacity && ec[i].lineStringHandler.draw();
         }
+
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.CULL_FACE);
+
+        //shapes pass
+        i = ec.length;
+        while (i--) {
+            var eci = ec[i];
+            if (eci._animatedOpacity) {
+                eci.shapeHandler.draw();
+                //post draw event
+                eci.events.dispatch(eci.events.drawend, eci);
+            }
+        }
+
     }
 };
 
@@ -373,16 +383,16 @@ og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
 
-        //shapes pass
-        i = ec.length;
-        while (i--) {
-            ec[i]._visibility && ec[i].shapeHandler.drawPicking();
-        }
-
         //lineStrings pass
         i = ec.length;
         while (i--) {
             ec[i]._visibility && ec[i].lineStringHandler.drawPicking();
+        }
+
+        //shapes pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].shapeHandler.drawPicking();
         }
     }
 };
