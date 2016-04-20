@@ -31,8 +31,11 @@ void main() {
     vec3 look = a_positions.xyz - uCamPos;
 	float lookLength = length(look);
 
-    v_rgba = a_rgba;	
-	v_rgba.a *= uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]));
+    v_rgba = a_rgba;
+	//v_rgba.a *= uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]));
+	if(uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0])) == 0.0){
+		return;
+	}
     
 	vec3 right, up;
 	if(a_alignedAxis == ZERO3){
