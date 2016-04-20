@@ -32,13 +32,19 @@ void main(){
 	//Clip near plane
 	if(vCurrent.z > NEAR) {
 	    if(vPrev.z < NEAR){
+			//to the begining path view
 	        vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
 	    }else if(vNext.z < NEAR){
+			//to the end path view
 			vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
             vCurrent = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
 		}
 	} else if( vPrev.z > NEAR){
+		//to the end path view
         vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
+	}else if( vNext.z > NEAR){
+		//to the begining path view
+        vNext = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
 	}
 	
     vec4 dCurrent = proj * vCurrent;
