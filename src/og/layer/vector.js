@@ -99,6 +99,8 @@ og.layer.Vector = function (name, options) {
      * @private
      */
     this._entities = options.entities ? [].concat(options.entities) : [];
+    this._entityCollectionAlways = new og.EntityCollection();
+    this._bindEventsDefault(this._entityCollectionAlways);
 
     this._entityCollectionsTree = null;
     this._entityCollectionsTreeNorth = null;
@@ -274,7 +276,15 @@ og.layer.Vector.EVENT_NAMES = [
  */
 og.layer.Vector.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
+    this._entityCollectionAlways.addTo(planet, true);
     this._buildEntityCollectionsTree();
+};
+
+og.layer.Vector.prototype.remove = function () {
+    this._planet && this._planet.removeLayer(this);
+    //
+    //...
+    //
 };
 
 /**
@@ -298,7 +308,10 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
         entity._vectorLayer = this;
         entity._vectorLayerIndex = this._entities.length;
         this._entities.push(entity);
-        if (this._planet) {
+
+        if (entity.lineString) {
+            this._entityCollectionAlways.add(entity);
+        }else if (this._planet) {
             if (!entity._lonlat) {
                 entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
             }
@@ -310,6 +323,7 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
                 this._entityCollectionsTree.insertEntity(entity, rightNow);
             }
         }
+
         this.events.dispatch(this.events.entityadd, entity);
     }
     return this;
@@ -373,10 +387,28 @@ og.layer.Vector.prototype.removeEntity = function (entity) {
                 }
             }
         }
-        entity._nodePtr = null;
+        entity._nodePtr && (entity._nodePtr = null);
         this.events.dispatch(this.events.entityremove, entity);
     }
     return this;
+};
+
+/**
+ * Set layer picking events active.
+ * @public
+ * @param {number} enable
+ */
+og.layer.Vector.prototype.setPickingEnabled = function (enable) {
+    this._entityCollectionAlways.setPickingEnabled(enable);
+    this._entityCollectionsTree.traverseTree(function (ec) {
+        ec.setPickingEnabled(enable);
+    });
+    this._entityCollectionsTreeNorth.traverseTree(function (ec) {
+        ec.setPickingEnabled(enable);
+    });
+    this._entityCollectionsTreeSouth.traverseTree(function (ec) {
+        ec.setPickingEnabled(enable);
+    });
 };
 
 /**
@@ -472,9 +504,18 @@ og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
         this._entityCollectionsTreeSouth = new og.quadTree.EntityCollectionQuadNodeWGS84(this, og.quadTree.NW, null, 0,
             og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]), this._planet, 0);
 
-        this._entityCollectionsTree.buildTree(this._entities);
-        this._entityCollectionsTreeNorth.buildTree(this._entities);
-        this._entityCollectionsTreeSouth.buildTree(this._entities);
+        var entities = [];
+        for (var i = 0; i < this._entities.length; i++) {
+            var ei = this._entities[i];
+            if (ei.lineString) {
+                this._entityCollectionAlways.add(ei);
+            } else {
+                entities.push(ei);
+            }
+        }
+        this._entityCollectionsTree.buildTree(entities);
+        this._entityCollectionsTreeNorth.buildTree(entities);
+        this._entityCollectionsTreeSouth.buildTree(entities);
     }
 };
 
@@ -520,6 +561,8 @@ og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
         this._renderingNodes = {};
         this._renderingNodesNorth = {};
         this._renderingNodesSouth = {};
+
+        outArr.push(this._entityCollectionAlways);
 
         this._secondPASS = [];
         this._entityCollectionsTree.collectRenderCollections(this._planet._visibleNodes, outArr);

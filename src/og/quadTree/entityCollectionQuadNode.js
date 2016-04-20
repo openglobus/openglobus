@@ -233,6 +233,20 @@ og.quadTree.EntityCollectionQuadNode.prototype.applyCollection = function () {
     this._inTheQueue = false;
 };
 
+og.quadTree.EntityCollectionQuadNode.prototype.traverseTree = function (callback) {
+
+    var cn = this.childrenNodes;
+
+    if (this.entityCollection) {
+        callback(this);
+    } else if (cn.length) {
+        cn[og.quadTree.NW].traverseTree(callback);
+        cn[og.quadTree.NE].traverseTree(callback);
+        cn[og.quadTree.SW].traverseTree(callback);
+        cn[og.quadTree.SE].traverseTree(callback);
+    }
+};
+
 og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr, visibleNodes, renderingNodeId) {
 
     this.layer._renderingNodes[this.nodeId] = true;
