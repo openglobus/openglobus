@@ -21,7 +21,7 @@ og.LineStringHandler = function (entityCollection) {
     this.__staticId = og.LineStringHandler.staticCounter++;
 };
 
-og.LineStringHandler.staticCounte = 0;
+og.LineStringHandler.staticCounter = 0;
 
 og.LineStringHandler.prototype._initShaderProgram = function () {
     if (this._renderer.handler) {

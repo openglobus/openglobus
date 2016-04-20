@@ -8,12 +8,15 @@ goog.require('og.utils');
 
 //Picking the same
 og.shaderProgram.lineString = function () {
-    return new og.shaderProgram.ShaderProgram("LineString", {
+    return new og.shaderProgram.ShaderProgram("lineString", {
         uniforms: {
-            projview: { type: og.shaderProgram.types.MAT4 },
+            proj: { type: og.shaderProgram.types.MAT4 },
+            view: { type: og.shaderProgram.types.MAT4 },
             viewport: { type: og.shaderProgram.types.VEC2 },
             thickness: { type: og.shaderProgram.types.FLOAT },
-            color: { type: og.shaderProgram.types.VEC4 }
+            color: { type: og.shaderProgram.types.VEC4 },
+            uCamPos: { type: og.shaderProgram.types.VEC3 },
+            uFloatParams: { type: og.shaderProgram.types.VEC2 }
         },
         attributes: {
             prev: { type: og.shaderProgram.types.VEC3, enableArray: true },

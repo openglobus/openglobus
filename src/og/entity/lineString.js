@@ -175,14 +175,14 @@ og.LineString.prototype.setPickingColor3v = function (color) {
 og.LineString.prototype._createMainBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._mainBuffer);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length/* - 54*/) / 9);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length) / 9);
 };
 
 og.LineString.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._orderBuffer);
     h.gl.deleteBuffer(this._indexBuffer);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length/* - 12*/) / 2);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
 
@@ -540,7 +540,7 @@ og.LineString.prototype.draw = function () {
 
         var rn = this._renderNode;
         var r = rn.renderer;
-        var sh = r.handler.shaderPrograms.LineString;
+        var sh = r.handler.shaderPrograms.lineString;
         var p = sh._program;
         var gl = r.handler.gl,
             sha = p.attributes,
@@ -548,10 +548,15 @@ og.LineString.prototype.draw = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.projview._pName, false, r.activeCamera._pmvMatrix._m);
+        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
+        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
         gl.uniform4fv(shu.color._pName, this.color);
+
+        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
         var mb = this._mainBuffer;
         gl.bindBuffer(gl.ARRAY_BUFFER, mb);
@@ -573,7 +578,7 @@ og.LineString.prototype.drawPicking = function () {
     if (this.visibility && this._path.length) {
         var rn = this._renderNode;
         var r = rn.renderer;
-        var sh = r.handler.shaderPrograms.LineString;
+        var sh = r.handler.shaderPrograms.lineString;
         var p = sh._program;
         var gl = r.handler.gl,
             sha = p.attributes,
@@ -581,10 +586,15 @@ og.LineString.prototype.drawPicking = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.projview._pName, false, r.activeCamera._pmvMatrix._m);
+        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
+        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness + this.pickingDistance);
         gl.uniform4fv(shu.color._pName, this._pickingColor);
+
+        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
         var mb = this._mainBuffer;
         gl.bindBuffer(gl.ARRAY_BUFFER, mb);
