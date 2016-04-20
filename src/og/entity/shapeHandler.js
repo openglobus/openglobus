@@ -24,7 +24,7 @@ og.ShapeHandler = function (entityCollection) {
     this.__staticId = og.ShapeHandler.staticCounter++;
 };
 
-og.ShapeHandler.staticCounte = 0;
+og.ShapeHandler.staticCounter = 0;
 
 og.ShapeHandler.prototype._initShaderProgram = function () {
     if (this._renderer.handler) {
