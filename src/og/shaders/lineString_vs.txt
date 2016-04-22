@@ -3,7 +3,6 @@ attribute vec3 current;
 attribute vec3 next;
 attribute vec2 order;
 
-//uniform mat4 projview;
 uniform mat4 proj;
 uniform mat4 view;
 uniform vec2 viewport;
@@ -39,10 +38,10 @@ void main(){
 			vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
             vCurrent = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
 		}
-	} else if( vPrev.z > NEAR){
+	} else if( vPrev.z > NEAR) {
 		//to the end path view
         vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
-	}else if( vNext.z > NEAR){
+	} else if( vNext.z > NEAR) {
 		//to the begining path view
         vNext = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
 	}

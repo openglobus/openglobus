@@ -69,6 +69,35 @@ og.planetSegment.SegmentWGS84.prototype._assignTileIndexes = function () {
     }
 };
 
+og.planetSegment.SegmentWGS84.prototype._addViewExtent = function () {
+
+    var ext = this.extent;
+    if (!this.planet._viewExtentWGS84) {
+        this.planet._viewExtentWGS84 = new og.Extent(
+            new og.LonLat(ext.southWest.lon, ext.southWest.lat),
+            new og.LonLat(ext.northEast.lon, ext.northEast.lat));
+        return;
+    }
+
+    var viewExt = this.planet._viewExtentWGS84;
+
+    if (ext.southWest.lon < viewExt.southWest.lon) {
+        viewExt.southWest.lon = ext.southWest.lon;
+    }
+
+    if (ext.northEast.lon > viewExt.northEast.lon) {
+        viewExt.northEast.lon = ext.northEast.lon;
+    }
+
+    if (ext.southWest.lat < viewExt.southWest.lat) {
+        viewExt.southWest.lat = ext.southWest.lat;
+    }
+
+    if (ext.northEast.lat > viewExt.northEast.lat) {
+        viewExt.northEast.lat = ext.northEast.lat;
+    }
+};
+
 og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize) {
     var ind = 0;
     var e = this.extent;

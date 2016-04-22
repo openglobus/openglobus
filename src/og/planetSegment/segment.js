@@ -849,6 +849,35 @@ og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gri
     a = null;
 };
 
+og.planetSegment.Segment.prototype._addViewExtent = function () {
+
+    var ext = this.extent;
+    if (!this.planet._viewExtentMerc) {
+        this.planet._viewExtentMerc = new og.Extent(
+            new og.LonLat(ext.southWest.lon, ext.southWest.lat),
+            new og.LonLat(ext.northEast.lon, ext.northEast.lat));
+        return;
+    }
+
+    var viewExt = this.planet._viewExtentMerc;
+
+    if (ext.southWest.lon < viewExt.southWest.lon) {
+        viewExt.southWest.lon = ext.southWest.lon;
+    }
+
+    if (ext.northEast.lon > viewExt.northEast.lon) {
+        viewExt.northEast.lon = ext.northEast.lon;
+    }
+
+    if (ext.southWest.lat < viewExt.southWest.lat) {
+        viewExt.southWest.lat = ext.southWest.lat;
+    }
+
+    if (ext.northEast.lat > viewExt.northEast.lat) {
+        viewExt.northEast.lat = ext.northEast.lat;
+    }
+};
+
 og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
     var extent = this.extent;

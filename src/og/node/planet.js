@@ -21,6 +21,8 @@ goog.require('og.planetSegment');
 goog.require('og.planetSegment.Segment');
 goog.require('og.planetSegment.SegmentWGS84');
 goog.require('og.PlanetSegmentHelper');
+goog.require('og.mercator');
+goog.require('og.LonLat');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
 goog.require('og.webgl.Framebuffer');
@@ -147,6 +149,9 @@ og.node.Planet = function (name, ellipsoid) {
      * @type {number}
      */
     this.maxCurrZoom = og.math.MIN;
+
+    this._viewExtentWGS84 = null;
+    this._viewExtentMerc = null;
 
     /**
      * @private
@@ -614,6 +619,9 @@ og.node.Planet.prototype._collectRenderNodes = function () {
     this._renderedNodes.length = 0;
     this._renderedNodes = [];
 
+    this._viewExtentWGS84 = null;
+    this._viewExtentMerc = null;
+
     this._visibleNodes = {};
     this._visibleNodesNorth = {};
     this._visibleNodesSouth = {};
@@ -645,9 +653,9 @@ og.node.Planet.prototype.frame = function () {
     this._collectRenderNodes();
 
     //print2d("lbTiles", cam._n.dot(cam.eye.normal()), 100, 100);
-//    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-//    print2d("t2", "tp: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-//    print2d("t1", "nmc: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
+    //    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
+    //    print2d("t2", "tp: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
+    //    print2d("t1", "nmc: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
 
 
     this.transformLights();
@@ -964,6 +972,36 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px, force) {
  */
 og.node.Planet.prototype.viewExtent = function (extent) {
     this.renderer.activeCamera.viewExtent(extent);
+};
+
+/**
+ * Gets current viewing geographical extent.
+ * @public
+ * @returns {og.Extent}
+ */
+og.node.Planet.prototype.getViewExtent = function () {
+    if (this._viewExtentMerc) {
+        var ne = this._viewExtentMerc.northEast.inverseMercator(),
+            sw = this._viewExtentMerc.southWest.inverseMercator();
+        if (this._viewExtentWGS84) {
+            var e = this._viewExtentWGS84;
+            if (e.northEast.lon > ne.lon) {
+                ne.lon = e.northEast.lon;
+            }
+            if (e.northEast.lat > ne.lat) {
+                ne.lat = e.northEast.lat;
+            }
+            if (e.southWest.lon < sw.lon) {
+                sw.lon = e.southWest.lon;
+            }
+            if (e.southWest.lat < sw.lat) {
+                sw.lat = e.southWest.lat;
+            }
+        }
+        return new og.Extent(sw, ne);
+    } else if (this._viewExtentWGS84) {
+        return this._viewExtentWGS84;
+    }
 };
 
 /**

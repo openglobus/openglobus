@@ -325,6 +325,8 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.planet.minCurrZoom = seg.tileZoom;
     }
 
+    seg._addViewExtent();
+
     this.addToRender(this);
 };
 
