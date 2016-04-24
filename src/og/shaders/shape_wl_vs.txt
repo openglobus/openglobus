@@ -11,9 +11,15 @@ varying vec2 vTextureCoord;
 varying vec3 vTransformedNormal;
 varying vec4 vPosition;
 
+const float C = 0.1;
+const float far = 149.6e+9;
+float logc = 2.0 / log( C * far + 1.0 );
+
 void main(void) {
         vPosition = uMVMatrix * uTRSMatrix * vec4(aVertexPosition, 1.0);
         gl_Position = uPMatrix * vPosition;
-        vTransformedNormal = uNMatrix * aVertexNormal;
+	    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+		vec4 n = uTRSMatrix * vec4(aVertexNormal, 1.0);
+        vTransformedNormal = uNMatrix * n.xyz;
         vTextureCoord = aTextureCoord;
 }

@@ -15,6 +15,7 @@ og.shape.BaseShape = function (options) {
     this.scale = options.scale || new og.math.Vector3(1.0, 1.0, 1.0);
     this.color = options.color || [1.0, 1.0, 1.0, 1.0];
     this.visibility = (options.visibility != undefined ? options.visibility : true);
+    this._src = options.src || null;
 
     this._positionBuffer = null;
     this._normalBuffer = null;
@@ -33,6 +34,8 @@ og.shape.BaseShape = function (options) {
     this.texture = null;
 
     this._renderNode = null;
+
+    this._pickingColor = [0.0, 0.0, 0.0, 0.0];
 
     /**
      * Entity instance that holds this shape.
@@ -66,7 +69,28 @@ og.shape.BaseShape.prototype.clear = function () {
     this._mxTranslation.setIdentity();
     this._mxTRS.setIdentity();
 
+    this._renderNode.handler.gl.deleteTexture(this.texture);
+    this.texture = null;
+
     this._deleteBuffers();
+};
+
+og.shape.BaseShape.prototype.setColor = function (color) {
+    this.color[0] = color[0];
+    this.color[1] = color[1];
+    this.color[2] = color[2];
+    this.color[3] = color[3];
+};
+
+og.shape.BaseShape.prototype.setColor4v = function (color) {
+    this.color[0] = color.x;
+    this.color[1] = color.y;
+    this.color[2] = color.z;
+    this.color[3] = color.w;
+};
+
+og.shape.BaseShape.prototype.setOpacity = function (opacity) {
+    this.color[3] = opacity;
 };
 
 og.shape.BaseShape.prototype._deleteBuffers = function () {
@@ -93,6 +117,14 @@ og.shape.BaseShape.prototype.getVisibility = function () {
 og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     this._createBuffers();
+    if (this._src) {
+        var img = new Image();
+        var that = this;
+        img.onload = function () {
+            that.texture = renderNode.renderer.handler.createTexture_af(this);
+        };
+        img.src = this._src;
+    }
 };
 
 og.shape.BaseShape.prototype.setPosition3v = function (position) {
@@ -116,7 +148,13 @@ og.shape.BaseShape.prototype.remove = function () {
 };
 
 og.shape.BaseShape.prototype.setPickingColor3v = function (color) {
-    this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
+    //...
+    //TODO: check the renderer before
+    //...
+    this._pickingColor[0] = color.x / 255.0;
+    this._pickingColor[1] = color.y / 255.0;
+    this._pickingColor[2] = color.z / 255.0;
+    this._pickingColor[3] = 1.0;
 };
 
 og.shape.BaseShape.prototype._createBuffers = function () {
@@ -148,7 +186,6 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniform4fv(shu.uColor._pName, this.color);
             gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
             gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
@@ -166,9 +203,10 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniform4fv(shu.uColor._pName, this.color);
             gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._pmvMatrix._m);
         }
+
+        gl.uniform4fv(shu.uColor._pName, this.color);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);

@@ -72,5 +72,7 @@ void main(void) {
 	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	lightWeighting += pointLightsParamsv[12] + pointLightsParamsv[13] * diffuseLightWeighting + pointLightsParamsv[14] * specularLightWeighting ;
 */
-    gl_FragColor = vec4(lightWeighting, uColor.a) * texture2D( uSampler, vTextureCoord.st ) * uColor;
+    vec4 cc = texture2D( uSampler, vTextureCoord.st );
+	cc.a = 0.5 + length(cc.rgb);
+    gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
 }
