@@ -31,6 +31,7 @@ goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.light.PointLight');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
+goog.require('og.GeoImage');
 goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 
 /**
@@ -222,6 +223,9 @@ og.node.Planet = function (name, ellipsoid) {
      * @private
      */
     this._quadTreeSouth = null;
+
+    this._nightTexture = null;
+    this._nightTextureWGS84 = null;
 
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
@@ -535,6 +539,19 @@ og.node.Planet.prototype.initialization = function () {
     this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
 
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
+
+    var nightImage = new og.GeoImage({
+        src: "night.jpg",
+        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+        opacity: 1.0
+    });
+    nightImage.initialize(this);
+    nightImage.events.on("loadend", null, function (e) {
+        that.geoImageTileCreator.createMercatorSamplerPASS(e);
+        that._nightTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
+        that._nightTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
+        //e.clear();
+    });
 };
 
 /**

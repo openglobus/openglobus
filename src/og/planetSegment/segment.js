@@ -150,6 +150,7 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
 
     this._extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
+    this._globalTextureCoordinates = [0, 0, 0, 0];
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
     this._inTheGeoImageTileCreatorQueue = false;
@@ -954,6 +955,11 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     this.normalMapTexture = this.planet.transparentTexture;
     this.terrainVertices = verts;
     this.tempVertices = verts;
+
+    this._globalTextureCoordinates[0] = (e.southWest.lon - (-og.mercator.POLE)) / (2 * og.mercator.POLE);
+    this._globalTextureCoordinates[1] = (og.mercator.POLE - e.northEast.lat) / (2 * og.mercator.POLE);
+    this._globalTextureCoordinates[2] = (e.northEast.lon - (-og.mercator.POLE)) / (2 * og.mercator.POLE);
+    this._globalTextureCoordinates[3] = (og.mercator.POLE - e.southWest.lat) / (2 * og.mercator.POLE);
 };
 
 /**
@@ -969,6 +975,13 @@ og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
             return m[i];
         }
     }
+};
+
+og.planetSegment.Segment.prototype._bindNightMaterial = function (gl, shu) {
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, this.planet._nightTexture || this.planet.transparentTexture);
+    gl.uniform1i(shu.uNightImage._pName, 3);
+    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
 };
 
 /**
@@ -993,6 +1006,7 @@ og.planetSegment.drawSingle = function (sh, segment) {
             shu = sh.uniforms;
         var layers = segment.planet.visibleTileLayers;
 
+        //bind layer texture
         gl.activeTexture(gl.TEXTURE0);
         if (layers.length) {
             var baseMat = segment.materials[layers[0]._id];
@@ -1004,17 +1018,21 @@ og.planetSegment.drawSingle = function (sh, segment) {
         }
         gl.uniform1i(shu.uSampler._pName, 0);
 
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-        gl.uniform1i(shu.uGeoImage._pName, 2);
-        gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
-
+        //bind normalmap texture
         if (segment.planet.lightEnabled) {
             gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
             gl.uniform1i(shu.uNormalMap._pName, 1);
+
+            segment._bindNightMaterial(gl, shu);
         }
+
+        //bind geoimages texture
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
+        gl.uniform1i(shu.uGeoImage._pName, 2);
+        gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
         segment.draw(sh);
     }

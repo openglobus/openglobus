@@ -35,6 +35,8 @@ og.shaderProgram.single_wl = function () {
             uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
             uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
             geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
+            uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
 
             pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },

@@ -3,6 +3,7 @@ goog.provide('og.GeoImage');
 goog.require('og.LonLat');
 goog.require('og.Extent');
 goog.require('og.mercator');
+goog.require('og.Events');
 
 og.GeoImage = function (options) {
     this.planet = options.planet || null;
@@ -25,10 +26,13 @@ og.GeoImage = function (options) {
     this.maxZoom = options.minZoom || 0;
     this.visibility = (options.visibility != undefined ? options.visibility : true);
     this.opacity = options.opacity || 1.0;
+    this.events = new og.Events();
+    this.events.registerNames(["loadend"]);
 };
 
-og.GeoImage.prototype.initialize = function () {
-    this._mercFramebuffer = new og.webgl.Framebuffer(this.planet.geoImageTileCreator._handler);
+og.GeoImage.prototype.initialize = function (planet) {
+    this.planet = planet;
+    this._mercFramebuffer = new og.webgl.Framebuffer(planet.geoImageTileCreator._handler);
     this.loadImage(this.src);
     this.setCorners(this._wgs84Corners);
 };
@@ -63,6 +67,7 @@ og.GeoImage.prototype.loadImage = function (src) {
     this.image.onload = function () {
         that._wgs84SourceTexture = that.planet.geoImageTileCreator._handler.createTexture_n(this);
         that.imageLoaded = true;
+        that.events.dispatch(that.events.loadend, that);
         if (that.visibility) {
             that.planet.redrawGeoImages();
         }
@@ -85,8 +90,7 @@ og.GeoImage.prototype.getVisibility = function () {
 };
 
 og.GeoImage.prototype.addTo = function (planet) {
-    this.planet = planet;
-    this.initialize();
+    this.initialize(planet);
     planet.geoImagesArray.unshift(this);
     planet.events.dispatch(planet.events.geoimageadd, this);
     planet.redrawGeoImages();

@@ -39,7 +39,7 @@ function start() {
         new og.control.MouseNavigation({ autoActivate: true }),
         //new og.control.KeyboardNavigation({ autoActivate: true }),
         new og.control.ToggleWireframe({ autoActivate: true }),
-        //new og.control.EarthCoordinates({ autoActivate: true, center: false }),
+        new og.control.EarthCoordinates({ autoActivate: true, center: false }),
         //new og.control.LayerSwitcher({ autoActivate: true }),
         //new og.control.ZoomControl({ autoActivate: true }),
         new og.control.TouchNavigation({ autoActivate: true }),
@@ -57,9 +57,10 @@ function start() {
     });
 
     f = sun;
-    f.sunlight.setAmbient(new og.math.Vector3(0.2, 0.2, 0.5))
-    f.sunlight.setSpecular(new og.math.Vector3(1.0, 0.8, 0.9))
-    f.sunlight.setShininess(4);
+    f.sunlight.setDiffuse(new og.math.Vector3(1.6, 1.9, 2.0));
+    f.sunlight.setAmbient(new og.math.Vector3(0.1, 0.1, 0.4));
+    f.sunlight.setSpecular(new og.math.Vector3(0.3, 0.1, 0.1));
+    f.sunlight.setShininess(2);
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);

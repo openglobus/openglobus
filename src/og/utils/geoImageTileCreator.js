@@ -68,9 +68,11 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                         varying vec2 v_texCoords; \n\
                         const float POLE=20037508.34; \n\
                         const float PI=3.141592653589793; \n\
+                        const float RAD2DEG = 180.0 / PI;\n\
+                        const float PI_BY_2 = PI / 2.0;\n\
                         \n\
                         vec2 inverse(vec2 lonLat){\n\
-                            return vec2(180.0 * lonLat.x / POLE, 180.0 / PI * (2.0 * atan(exp((lonLat.y / POLE) * PI)) - PI / 2.0));\n\
+                            return vec2(180.0 * lonLat.x / POLE, RAD2DEG * (2.0 * atan(exp(PI * lonLat.y / POLE)) - PI_BY_2));\n\
                         }\n\
                         \n\
                         void main () {\n\
@@ -172,7 +174,6 @@ og.utils.GeoImageTileCreator.prototype.draw = function (planetSegment) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendEquation(gl.FUNC_ADD);
-    //gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
     var geoImagesArray = planetSegment.planet.geoImagesArray;
