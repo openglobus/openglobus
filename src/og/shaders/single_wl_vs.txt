@@ -15,7 +15,7 @@ uniform vec4 uGlobalTextureCoord;
 varying vec4 vTextureCoord;
 varying vec4 vPosition;
 varying vec2 vTextureCoordGeoImage;
-varying vec2 vTextureCoordNightImage;
+varying vec2 vGlobalTextureCoord;
 
 void main(void) {
     vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
@@ -24,5 +24,5 @@ void main(void) {
     vTextureCoord.xy = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
     vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
 	vTextureCoordGeoImage = geoImageTexBias.z * ( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
-	vTextureCoordNightImage = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
+	vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
 }

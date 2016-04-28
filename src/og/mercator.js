@@ -1,6 +1,8 @@
 goog.provide('og.mercator');
 
 og.mercator.POLE = 20037508.34;
+og.mercator.POLE_DOUBLE = 2.0 * og.mercator.POLE;
+og.mercator.ONE_BY_POLE_DOUBLE = 1.0 / og.mercator.POLE_DOUBLE;
 
 og.mercator.forward_lon = function (lon) {
     return lon * og.mercator.POLE / 180;

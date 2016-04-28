@@ -956,10 +956,10 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     this.terrainVertices = verts;
     this.tempVertices = verts;
 
-    this._globalTextureCoordinates[0] = (e.southWest.lon - (-og.mercator.POLE)) / (2 * og.mercator.POLE);
-    this._globalTextureCoordinates[1] = (og.mercator.POLE - e.northEast.lat) / (2 * og.mercator.POLE);
-    this._globalTextureCoordinates[2] = (e.northEast.lon - (-og.mercator.POLE)) / (2 * og.mercator.POLE);
-    this._globalTextureCoordinates[3] = (og.mercator.POLE - e.southWest.lat) / (2 * og.mercator.POLE);
+    this._globalTextureCoordinates[0] = (e.southWest.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[1] = (og.mercator.POLE - e.northEast.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[2] = (e.northEast.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[3] = (og.mercator.POLE - e.southWest.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
 };
 
 /**

@@ -136,10 +136,10 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
     this.terrainVertices = verts;
     this.tempVertices = verts;
 
-    this._globalTextureCoordinates[0] = (e.southWest.lon - (-180)) / (2 * 180);
-    this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / (2 * 90);
-    this._globalTextureCoordinates[2] = (e.northEast.lon - (-180)) / (2 * 180);
-    this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / (2 * 90);
+    this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360;
+    this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180;
+    this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360;
+    this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180;
 };
 
 og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
