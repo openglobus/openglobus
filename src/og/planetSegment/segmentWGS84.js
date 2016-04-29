@@ -203,9 +203,14 @@ og.planetSegment.SegmentWGS84.prototype.isEntityInside = function (e) {
     return this.extent.isInside(e._lonlat);
 };
 
-og.planetSegment.SegmentWGS84.prototype._bindNightMaterial = function (gl, shu) {
+og.planetSegment.SegmentWGS84.prototype._bindGlobalMaterial = function (gl, shu) {
+    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, this.planet._nightTextureWGS84 || this.planet.transparentTexture);
     gl.uniform1i(shu.uNightImage._pName, 3);
-    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, this.planet._specularTextureWGS84 || this.planet.transparentTexture);
+    gl.uniform1i(shu.uSpecularImage._pName, 4);
 };

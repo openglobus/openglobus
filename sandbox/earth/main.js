@@ -57,10 +57,10 @@ function start() {
     });
 
     f = sun;
-    f.sunlight.setDiffuse(new og.math.Vector3(1.6, 1.9, 2.0));
+    f.sunlight.setDiffuse(new og.math.Vector3(1.2, 1.25, 1.41));
     f.sunlight.setAmbient(new og.math.Vector3(0.1, 0.1, 0.4));
-    f.sunlight.setSpecular(new og.math.Vector3(0.3, 0.1, 0.1));
-    f.sunlight.setShininess(2);
+    f.sunlight.setSpecular(new og.math.Vector3(0.0026, 0.0021, 0.002));
+    f.sunlight.setShininess(12);
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
@@ -82,6 +82,6 @@ function start() {
     globus.planet.renderer.events.on("draw", null, function () {
         collection._entities[0].shape.orientation = new og.math.Quaternion.yRotation(rot * og.math.RADIANS);
         collection._entities[0].shape.refresh();
-        rot+=step;
+        rot-=step;
     });
 };

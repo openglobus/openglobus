@@ -227,6 +227,9 @@ og.node.Planet = function (name, ellipsoid) {
     this._nightTexture = null;
     this._nightTextureWGS84 = null;
 
+    this._specularTexture = null;
+    this._specularTextureWGS84 = null;
+
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
 };
@@ -550,6 +553,19 @@ og.node.Planet.prototype.initialization = function () {
         that.geoImageTileCreator.createMercatorSamplerPASS(e);
         that._nightTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
         that._nightTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
+        //e.clear();
+    });
+
+    var specularImage = new og.GeoImage({
+        src: "spec2.jpg",
+        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+        opacity: 1.0
+    });
+    specularImage.initialize(this);
+    specularImage.events.on("loadend", null, function (e) {
+        that.geoImageTileCreator.createMercatorSamplerPASS(e);
+        that._specularTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
+        that._specularTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
         //e.clear();
     });
 };
