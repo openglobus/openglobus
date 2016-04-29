@@ -34,11 +34,11 @@ og.utils.GeoImageTileCreator.prototype._init = function () {
                           gl_Position = vec4(-1.0 + (a_corner - u_extentParams.xy) * u_extentParams.zw, 0, 1); \
                       }',
         fragmentShader: 'precision highp float; \
-                        uniform sampler2D uSourceImage; \
+                        uniform sampler2D u_sourceImage; \
                         uniform float u_opacity; \
                         varying vec2 v_texCoords; \
                         void main () {  \
-                            vec4 color = texture2D(uSourceImage, v_texCoords); \
+                            vec4 color = texture2D(u_sourceImage, v_texCoords); \
                             if(color.a == 0.0) discard; \
                             gl_FragColor = vec4(color.rgb, u_opacity * color.a); \
                         }'
