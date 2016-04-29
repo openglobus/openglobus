@@ -62,6 +62,7 @@ function start() {
     f.sunlight.setSpecular(new og.math.Vector3(0.0026, 0.0021, 0.002));
     f.sunlight.setShininess(12);
 
+   // globus.renderer.handler.clock.multiplier = 10000;
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
 

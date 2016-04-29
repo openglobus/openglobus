@@ -225,10 +225,8 @@ og.node.Planet = function (name, ellipsoid) {
     this._quadTreeSouth = null;
 
     this._nightTexture = null;
-    this._nightTextureWGS84 = null;
 
     this._specularTexture = null;
-    this._specularTextureWGS84 = null;
 
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
@@ -543,31 +541,43 @@ og.node.Planet.prototype.initialization = function () {
 
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
-    var nightImage = new og.GeoImage({
-        src: "night.jpg",
-        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-        opacity: 1.0
-    });
-    nightImage.initialize(this);
-    nightImage.events.on("loadend", null, function (e) {
-        that.geoImageTileCreator.createMercatorSamplerPASS(e);
-        that._nightTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
-        that._nightTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
-        //e.clear();
-    });
+    var img = new Image();
+    img.onload = function () {
+        that._nightTexture = that.renderer.handler.createTexture_af(this);
+    };
+    img.src = "mnight.jpg";
 
-    var specularImage = new og.GeoImage({
-        src: "spec2.jpg",
-        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-        opacity: 1.0
-    });
-    specularImage.initialize(this);
-    specularImage.events.on("loadend", null, function (e) {
-        that.geoImageTileCreator.createMercatorSamplerPASS(e);
-        that._specularTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
-        that._specularTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
-        //e.clear();
-    });
+    var img2 = new Image();
+    img2.onload = function () {
+        that._specularTexture = that.renderer.handler.createTexture_af(this);
+    };
+    img2.src = "mspec.jpg";
+
+    //var nightImage = new og.GeoImage({
+    //    src: "night.jpg",
+    //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+    //    opacity: 1.0
+    //});
+    //nightImage.initialize(this);
+    //nightImage.events.on("loadend", null, function (e) {
+    //    that.geoImageTileCreator.createMercatorSamplerPASS(e);
+    //    that._nightTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
+    //    //that._nightTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
+
+
+    //    var specularImage = new og.GeoImage({
+    //        src: "spec2.jpg",
+    //        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
+    //        opacity: 1.0
+    //    });
+    //    specularImage.initialize(that);
+    //    specularImage.events.on("loadend", null, function (e) {
+    //        that.geoImageTileCreator.createMercatorSamplerPASS(e);
+    //        that._specularTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
+    //        //that._specularTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
+    //        e.clear();
+    //    });
+    //});
 };
 
 /**
@@ -783,6 +793,16 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
             gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
+
+            //bind night and specular materials
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.uniform1i(shu.uNightImage._pName, 3);
+
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.uniform1i(shu.uSpecularImage._pName, 4);
+
         } else {
             h.shaderPrograms.single_nl.activate();
             sh = h.shaderPrograms.single_nl._program;

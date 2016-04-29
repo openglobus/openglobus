@@ -977,18 +977,6 @@ og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
     }
 };
 
-og.planetSegment.Segment.prototype._bindGlobalMaterial = function (gl, shu) {
-    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
-
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, this.planet._nightTexture || this.planet.transparentTexture);
-    gl.uniform1i(shu.uNightImage._pName, 3);
-
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, this.planet._specularTexture || this.planet.transparentTexture);
-    gl.uniform1i(shu.uSpecularImage._pName, 4);
-};
-
 /**
  * Gets material by layer name.
  * @public
@@ -1030,7 +1018,8 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
             gl.uniform1i(shu.uNormalMap._pName, 1);
 
-            segment._bindGlobalMaterial(gl, shu);
+            //bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
         }
 
         //bind geoimages texture
