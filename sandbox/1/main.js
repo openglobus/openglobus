@@ -41,6 +41,7 @@ function start() {
         "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
     });
 
+    sun = new og.control.Sun({ autoActivate: true });
     var controls = [
         new og.control.MouseNavigation({ autoActivate: true }),
         new og.control.KeyboardNavigation({ autoActivate: true }),
@@ -49,7 +50,7 @@ function start() {
         new og.control.LayerSwitcher({ autoActivate: true }),
         new og.control.ZoomControl({ autoActivate: true }),
         new og.control.TouchNavigation({ autoActivate: true }),
-        new og.control.Sun({ autoActivate: true })
+        sun
     ];
 
     globus = new og.Globus({
@@ -62,33 +63,28 @@ function start() {
         "autoActivated": true
     });
 
-    f = globus.renderer.controls[7];
-    f.sunlight.setAmbient(new og.math.Vector3(0.23, 0.2, 0.3))
-    f.sunlight.setSpecular(new og.math.Vector3(1.0, 0.8, 0.9))
-    f.sunlight.setShininess(4);
+    f = sun;
+    f.sunlight.setDiffuse(new og.math.Vector3(1.0, 1.0, 1.0));
+    f.sunlight.setAmbient(new og.math.Vector3(0.1, .1, 0.21))
+    f.sunlight.setSpecular(new og.math.Vector3(0.00025, 0.00015, 0.0001))
+    f.sunlight.setShininess(100);
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
 
-    collection = new og.EntityCollection();
+    //collection = new og.EntityCollection();
 
-    collection.add(new og.Entity({
-        sphere: {
-            radius: 6378137.00+30000,
-            color: [1.0, 1.0, 1.0, 0.7],
-            src: "clouds5.jpg",
-            latBands: 64,
-            lonBands: 64
-        }
-    })).addTo(globus.planet);
+    //collection.add(new og.Entity({
+    //    sphere: {
+    //        radius: 6378137.00+30000,
+    //        color: [1.0, 1.0, 1.0, 0.7],
+    //        src: "clouds5.jpg",
+    //        latBands: 64,
+    //        lonBands: 64
+    //    }
+    //})).addTo(globus.planet);
 
-    var rot = 0;
-    step = 0.005;
-    globus.planet.renderer.events.on("draw", null, function () {
-        collection._entities[0].shape.orientation = new og.math.Quaternion.yRotation(rot * og.math.RADIANS);
-        collection._entities[0].shape.refresh();
-        rot+=step;
-    });
+
 
 
     //ql = new og.GeoImage({

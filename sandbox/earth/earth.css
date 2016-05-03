@@ -1,0 +1,11 @@
+.earth-point {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 5px;
+}
+
+    .earth-point:hover {
+        cursor: pointer;
+    }

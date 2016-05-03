@@ -345,7 +345,7 @@ og.Camera.prototype.unproject = function (x, y) {
  */
 og.Camera.prototype.project = function (v) {
     var r = this._pmvMatrix.mulVec4(v.toVector4()),
-        c = this.gl.canvas;
+        c = this.renderer.handler.gl.canvas;
     return new og.math.Vector2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
 };
 
