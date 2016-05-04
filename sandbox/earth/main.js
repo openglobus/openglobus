@@ -57,14 +57,20 @@ function start() {
         "autoActivated": true
     });
 
+    globus.planet.createDefaultTextures({ color: "#071836" }, { color: "#F4F5F7" });
+
     sun.sunlight.setDiffuse(new og.math.Vector3(1.2, 1.25, 1.41));
     sun.sunlight.setAmbient(new og.math.Vector3(.2, .2, .6));
     sun.sunlight.setSpecular(new og.math.Vector3(0.0026, 0.0021, 0.002));
     sun.sunlight.setShininess(12);
 
-    // globus.renderer.handler.clock.multiplier = 10000;
-    globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
+    globus.planet.camera.setViewAngle(38.0);
+    globus.renderer.handler.clock.multiplier = 1800;
+    globus.planet.camera.flyLonLat(new og.LonLat(65.96558602541404, 13.316888985461492, 17119745.303455353), null, null, function () {
+        globus.planet.camera._numFrames = 30;
+    });
     globus.fadeIn(700);
+
 
     var collection = new og.EntityCollection();
 
