@@ -6,13 +6,12 @@ goog.require('og.LonLat');
 goog.require('og.proj.EPSG4326');
 
 og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
+    this._isNorth = false;
+
     og.inheritance.base(this, node, planet, tileZoom, extent);
 
     this.wgs84extent = extent;
-
     this._projection = og.proj.EPSG4326;
-
-    this._isNorth = false;
 };
 
 og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;

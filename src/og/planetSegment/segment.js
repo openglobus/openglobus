@@ -1005,10 +1005,11 @@ og.planetSegment.drawSingle = function (sh, segment) {
             var baseMat = segment.materials[layers[0]._id];
             gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
             gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
-        } else {
-            gl.bindTexture(gl.TEXTURE_2D, segment.planet.solidTexture);
-            gl.uniform3fv(shu.texBias._pName, [0, 0, 1]);
         }
+        /*else {
+            gl.bindTexture(gl.TEXTURE_2D, segment._isNorth ? segment.planet.solidTextureOne : segment.planet.solidTextureTwo);
+            gl.uniform3fv(shu.texBias._pName, [0, 0, 1]);
+        }*/
         gl.uniform1i(shu.uSampler._pName, 0);
 
         //bind normalmap texture

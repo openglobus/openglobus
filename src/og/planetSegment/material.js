@@ -18,7 +18,7 @@ og.planetSegment.Material.prototype.assignLayer = function (layer) {
 og.planetSegment.Material.prototype.loadTileImage = function () {
 
     if (this.layer._isBaseLayer) {
-        this.texture = this.segment.planet.solidTexture;
+        this.texture = this.segment._isNorth ? this.segment.planet.solidTextureOne : this.segment.planet.solidTextureTwo;
     } else {
         this.texture = this.segment.planet.transparentTexture;
     }

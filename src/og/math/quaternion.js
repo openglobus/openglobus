@@ -48,6 +48,14 @@ og.math.Quaternion.prototype.copy = function (q) {
     return this;
 };
 
+og.math.Quaternion.prototype.setIdentity = function () {
+    this.x = 0.0;
+    this.y = 0.0;
+    this.z = 0.0;
+    this.w = 1.0;
+    return this;
+};
+
 og.math.Quaternion.prototype.clone = function () {
     return new og.math.Quaternion(this.x, this.y, this.z, this.w);
 };

@@ -488,7 +488,8 @@ og.node.Planet.prototype.initialization = function () {
     }
 
     //create empty textures
-    this.solidTexture = this.createDefaultTexture({ color: "rgba(197,197,197,1.0)" });
+    this.solidTextureOne = this.createDefaultTexture();
+    this.solidTextureTwo = this.createDefaultTexture();
     this.transparentTexture = this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" });
 
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
@@ -578,6 +579,11 @@ og.node.Planet.prototype.initialization = function () {
     //        e.clear();
     //    });
     //});
+};
+
+og.node.Planet.prototype.createDefaultTextures = function (param0, param1) {
+    this.solidTextureOne = this.createDefaultTexture(param0);
+    this.solidTextureTwo = this.createDefaultTexture(param1);
 };
 
 /**

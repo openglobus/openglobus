@@ -352,7 +352,8 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
 
     var an = ground_a.normal();
     var bn = ground_b.normal();
-    var hM_a = og.math.SQRT_HALF * Math.sqrt(1 - an.dot(bn));
+    var anbn = 1.0 - an.dot(bn);
+    var hM_a = og.math.SQRT_HALF * Math.sqrt((anbn) > 0.0 ? anbn : 0.0);
 
     var maxHeight = 6639613;
     var currMaxHeight = Math.max(this._lonLat.height, lonlat_b.height);
@@ -370,7 +371,6 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
 
         var g_i = ground_a.smerp(ground_b, d).normalize();
         var ground_i = this.planet.getRayIntersectionEllipsoid(new og.math.Ray(zero, g_i));
-
         var t = 1 - d;
         var height_i = this._lonLat.height * d * d * d + max_h * 3 * d * d * t + max_h * 3 * d * t * t + lonlat_b.height * t * t * t;
 
