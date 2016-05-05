@@ -9,3 +9,92 @@
     .earth-point:hover {
         cursor: pointer;
     }
+
+
+            .icon {
+            width: 80px;
+            height: 80px;
+            /*margin: 3px 3px 3px 3px;*/
+            color: white;
+            font-family: monospace;
+            display: table-cell;
+        }
+
+        .list {
+            display: block;
+            list-style-type: disc;
+            -webkit-margin-before: 0em;
+            -webkit-margin-after: 0em;
+            -webkit-margin-start: 0px;
+            -webkit-margin-end: 0px;
+            -webkit-padding-start: 0px;
+        }
+
+        .earth-plus-minus {
+            user-select: none;
+            background-color: #d20911;
+            color: #fff;
+            display: block;
+            height: 55px;
+            position: absolute;
+            width: 55px;
+            bottom: 50px;
+            right: 50px;
+            cursor: pointer;
+            opacity: 1;
+        }
+
+            .earth-plus-minus div {
+                display: block;
+                position: absolute;
+                background-color: #fff;
+                top: 50%;
+                left: 50%;
+                margin-top: -1px;
+                margin-left: -8px;
+                height: 2px;
+                width: 14px;
+            }
+
+        .line-h {
+            -webkit-transform: rotate(0);
+            -moz-transform: rotate(0);
+            -ms-transform: rotate(0);
+            transform: rotate(0);
+            -moz-transition: -moz-transform .5s linear 0s;
+            transition: -webkit-transform .5s linear 0s;
+            transition: transform .5s linear 0s;
+            -moz-transition-timing-function: linear;
+            transition-timing-function: linear;
+        }
+
+            .line-h.active {
+                -webkit-transform: rotate(180deg);
+                -moz-transform: rotate(180deg);
+                -ms-transform: rotate(180deg);
+                transform: rotate(180deg);
+            }
+
+        .line-v {
+            -moz-transition: -moz-transform .25s linear 0s;
+            transition: -webkit-transform .25s linear 0s;
+            transition: transform .25s linear 0s;
+            -moz-transition-timing-function: linear;
+            transition-timing-function: linear;
+            -webkit-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            transform: rotate(90deg);
+        }
+
+            .line-v.active {
+                -moz-transition: -moz-transform .25s linear .25s;
+                transition: -webkit-transform .25s linear .25s;
+                transition: transform .25s linear .25s;
+                -moz-transition-timing-function: linear;
+                transition-timing-function: linear;
+                -webkit-transform: rotate(180deg);
+                -moz-transform: rotate(180deg);
+                -ms-transform: rotate(180deg);
+                transform: rotate(180deg);
+            }

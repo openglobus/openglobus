@@ -11,32 +11,16 @@
     <script src="./jquery/jquery-1.10.2.min.js"></script>
     <link rel="stylesheet" href="./jquery/jquery-ui-1.7.2.custom.css">
     <script src="./jquery/jquery-ui-1.10.4.min.js"></script>
-
+    
     <script src="../../../closure-library/closure/goog/base.js"></script>
     <script src="../../src/og/og-deps.js"></script>
     <script src="my-deps.js"></script>
+	
+    <!-- <script src="build/og-earth.js"></!--script> -->
     <script src="main.js"></script>
 
-    <!--    <script src="og-compiled.js"></script> -->
     <style>
-        .icon {
-            width: 80px;
-            height: 80px;
-            /*margin: 3px 3px 3px 3px;*/            
-            color: white;
-            font-family: monospace;
-            display: table-cell;
-        }
 
-.list{
-	display: block;
-	list-style-type: disc;
-	-webkit-margin-before: 0em;
-	-webkit-margin-after: 0em;
-	-webkit-margin-start: 0px;
-	-webkit-margin-end: 0px;
-	-webkit-padding-start: 0px;
-}
     </style>
 
 </head>
@@ -49,6 +33,11 @@
     <div id="l4" class="defaultText"></div>
     <div id="l5" class="defaultText"></div>
     <div id="l6" class="defaultText"></div>
+    <div class="earth-plus-minus" onclick="plusMinusClick()">
+        <div class="line-h"></div>
+        <div class="line-v"></div>
+
+    </div>
 </body>
 
 </html>
