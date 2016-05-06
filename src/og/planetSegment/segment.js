@@ -1064,6 +1064,9 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             gl.activeTexture(gl.TEXTURE0 + layers.length);
             gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
             gl.uniform1i(shu.uNormalMap._pName, layers.length);
+
+            //bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
         }
 
         gl.activeTexture(gl.TEXTURE0 + layers.length + 1);

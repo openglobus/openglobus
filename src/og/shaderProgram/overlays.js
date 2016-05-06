@@ -42,7 +42,10 @@ og.shaderProgram.overlays_wl = function () {
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
             uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
+            geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
+            uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
+            uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

@@ -63,29 +63,13 @@ function start() {
         "autoActivated": true
     });
 
-    f = sun;
-    f.sunlight.setDiffuse(new og.math.Vector3(1.0, 1.0, 1.0));
-    f.sunlight.setAmbient(new og.math.Vector3(0.1, .1, 0.21))
-    f.sunlight.setSpecular(new og.math.Vector3(0.00025, 0.00015, 0.0001))
-    f.sunlight.setShininess(100);
+    sun.sunlight.setDiffuse(new og.math.Vector3(1.0, 1.0, 1.0));
+    sun.sunlight.setAmbient(new og.math.Vector3(0.1, .1, 0.21))
+    sun.sunlight.setSpecular(new og.math.Vector3(0.00025, 0.00015, 0.0001))
+    sun.sunlight.setShininess(100);
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
-
-    //collection = new og.EntityCollection();
-
-    //collection.add(new og.Entity({
-    //    sphere: {
-    //        radius: 6378137.00+30000,
-    //        color: [1.0, 1.0, 1.0, 0.7],
-    //        src: "clouds5.jpg",
-    //        latBands: 64,
-    //        lonBands: 64
-    //    }
-    //})).addTo(globus.planet);
-
-
-
 
     //ql = new og.GeoImage({
     //    src: "ql.jpg",

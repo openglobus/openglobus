@@ -163,7 +163,7 @@ og.Globus = function (options) {
         }, delta);
 
     };
-
+    
     //Run!
     if (isUndefined(options.autoActivate) || options.autoActivate)
         this.renderer.start();

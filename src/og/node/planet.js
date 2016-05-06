@@ -25,6 +25,7 @@ goog.require('og.mercator');
 goog.require('og.LonLat');
 goog.require('og.Extent');
 goog.require('og.math.Ray');
+goog.require('og.webgl');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
@@ -225,8 +226,10 @@ og.node.Planet = function (name, ellipsoid) {
     this._quadTreeSouth = null;
 
     this._nightTexture = null;
-
     this._specularTexture = null;
+
+    this._useNightTexture = true;
+    this._useSpecularTexture = true;
 
     //events initialization
     this.events.registerNames(og.node.Planet.EVENT_NAMES);
@@ -542,46 +545,26 @@ og.node.Planet.prototype.initialization = function () {
 
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
-    var img = new Image();
-    img.onload = function () {
-        that._nightTexture = that.renderer.handler.createTexture_af(this);
-    };
-    img.src = "mnight.jpg";
+    if (this._useNightTexture) {
+        var img = new Image();
+        img.onload = function () {
+            that._nightTexture = that.renderer.handler.createTexture_af(this);
+        };
+        img.src = og.webgl.RESOURCES_URL + "images/planet/earth/mnight.jpg";
+    }
 
-    var img2 = new Image();
-    img2.onload = function () {
-        that._specularTexture = that.renderer.handler.createTexture_af(this);
-    };
-    img2.src = "mspec.jpg";
-
-    //var nightImage = new og.GeoImage({
-    //    src: "night.jpg",
-    //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-    //    opacity: 1.0
-    //});
-    //nightImage.initialize(this);
-    //nightImage.events.on("loadend", null, function (e) {
-    //    that.geoImageTileCreator.createMercatorSamplerPASS(e);
-    //    that._nightTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
-    //    //that._nightTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
-
-
-    //    var specularImage = new og.GeoImage({
-    //        src: "spec2.jpg",
-    //        corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-    //        opacity: 1.0
-    //    });
-    //    specularImage.initialize(that);
-    //    specularImage.events.on("loadend", null, function (e) {
-    //        that.geoImageTileCreator.createMercatorSamplerPASS(e);
-    //        that._specularTexture = that.renderer.handler.createTexture_af(e._mercFramebuffer.getImage());
-    //        //that._specularTextureWGS84 = that.renderer.handler.createTexture_af(e.image);
-    //        e.clear();
-    //    });
-    //});
+    if (this._useSpecularTexture) {
+        var img2 = new Image();
+        img2.onload = function () {
+            that._specularTexture = that.renderer.handler.createTexture_af(this);
+        };
+        img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.jpg";
+    }
 };
 
 og.node.Planet.prototype.createDefaultTextures = function (param0, param1) {
+    this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
+    this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
     this.solidTextureOne = this.createDefaultTexture(param0);
     this.solidTextureTwo = this.createDefaultTexture(param1);
 };
@@ -763,6 +746,15 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
             gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
             //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
+
+            //bind night and specular materials
+            gl.activeTexture(gl.TEXTURE0 + this.visibleTileLayers.length + 2);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.uniform1i(shu.uNightImage._pName, this.visibleTileLayers.length + 2);
+
+            gl.activeTexture(gl.TEXTURE0 + this.visibleTileLayers.length + 3);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.uniform1i(shu.uSpecularImage._pName, this.visibleTileLayers.length + 3);
 
         } else {
             h.shaderPrograms.overlays_nl.activate();
