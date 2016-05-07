@@ -103,8 +103,8 @@ og.utils.GeoImageTileCreator.prototype.createMercatorSamplerPASS = function (geo
 
     this._handler.setSize(geoImage.image.width, geoImage.image.height);
 
-    this._framebufferPASS_ONE.setSize(geoImage.image.width, geoImage.image.height);
-    geoImage._mercFramebuffer.setSize(geoImage.image.width, geoImage.image.height);
+    this._framebufferPASS_ONE.setSize(this._handler.canvas.width, this._handler.canvas.height);
+    geoImage._mercFramebuffer.setSize(this._handler.canvas.width, this._handler.canvas.height);
 
     var h = this._handler;
     var gl = h.gl;

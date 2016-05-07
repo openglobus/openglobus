@@ -550,7 +550,7 @@ og.node.Planet.prototype.initialization = function () {
         img.onload = function () {
             that._nightTexture = that.renderer.handler.createTexture_af(this);
         };
-        img.src = og.webgl.RESOURCES_URL + "images/planet/earth/mnight.jpg";
+        img.src = og.webgl.RESOURCES_URL + "images/planet/earth/mnight.png";
     }
 
     if (this._useSpecularTexture) {
@@ -558,7 +558,7 @@ og.node.Planet.prototype.initialization = function () {
         img2.onload = function () {
             that._specularTexture = that.renderer.handler.createTexture_af(this);
         };
-        img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.jpg";
+        img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.png";
     }
 };
 

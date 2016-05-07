@@ -78,8 +78,17 @@ og.webgl.Handler = function (id, params) {
      */
     this._params = params || {};
     this._params.anisotropy = this._params.anisotropy || 8;
-    this._params.width = this._params.width || 256;
-    this._params.height = this._params.height || 256;
+    var w = this._params.width;
+    if (w > og.webgl.Handler.MAX_SIZE) {
+        w = og.webgl.Handler.MAX_SIZE;
+    }
+    this._params.width = w || 256;
+
+    var h = this._params.height;
+    if (h > og.webgl.Handler.MAX_SIZE) {
+        h = og.webgl.Handler.MAX_SIZE;
+    }
+    this._params.height = h || 256;
     this._params.context = this._params.context || {};
     this._params.extensions = this._params.extensions || [];
     this._oneByHeight = 1 / this._params.height;
@@ -101,6 +110,8 @@ og.webgl.Handler = function (id, params) {
      */
     this._frameCallback = function () { };
 };
+
+og.webgl.Handler.MAX_SIZE = 4096;
 
 /**
  * Sets animation frame function.
@@ -458,6 +469,14 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
  * @param {number} height - Canvas height.
  */
 og.webgl.Handler.prototype.setSize = function (w, h) {
+
+    if (w > og.webgl.Handler.MAX_SIZE) {
+        w = og.webgl.Handler.MAX_SIZE;
+    }
+
+    if (h > og.webgl.Handler.MAX_SIZE) {
+        h = og.webgl.Handler.MAX_SIZE;
+    }
 
     this._params.width = w;
     this._params.height = h;
