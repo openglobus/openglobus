@@ -43,7 +43,7 @@ void main(void)
 	vec3 spec = pointLightsParamsv[2] * specularLightWeighting * shininess;
     vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + spec;
 
-	vec3 night = nightImageColor.rgb * (1.0 - lightWeighting);
+	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;	
 
     lowp vec4 res = texture2D(uSamplerArr[0], texBiasArr[0].z * (vTextureCoord.xy + vec2(texBiasArr[0].x, texBiasArr[0].y)));
 

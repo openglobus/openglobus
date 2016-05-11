@@ -39,11 +39,10 @@ void main(void) {
     float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	vec3 spec = pointLightsParamsv[2] * specularLightWeighting * shininess;
     vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + spec;
-
-	vec3 night = vec3(5.8,4.8,2.5) * nightImageColor.rgb * (0.3 - vec3(1.0) * diffuseLightWeighting);	
-	night = night * step(0.0, night);
+	
+	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;	
 
     vec4 res = mix(uColor, geoImageColor, geoImageColor.a);
 
-	gl_FragColor = vec4(res.rgb * lightWeighting + night + spec, res.a);
+	gl_FragColor = vec4(res.rgb * lightWeighting + night * step(0.0, night) + spec, res.a);
 }

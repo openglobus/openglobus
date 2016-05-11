@@ -24,8 +24,8 @@ og.terrainProvider.EmptyTerrainProvider = function () {
     this.name = "empty";
     this.minZoom = 50;
     this.maxZoom = 50;
-    this.gridSizeByZoom = [64, 32, 16, 16, 8, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
-    this.fileGridSize = 32;
+    this.gridSizeByZoom = [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+    this.fileGridSize = 2;
 };
 
 og.terrainProvider.EmptyTerrainProvider.prototype.handleSegmentTerrain = function (segment) {
