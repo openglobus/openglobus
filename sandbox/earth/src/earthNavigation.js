@@ -8,6 +8,7 @@ goog.require('og.math.Matrix4');
 goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
+goog.require('og.Events');
 
 EarthNavigation = function (options) {
     og.inheritance.base(this, options);
@@ -35,6 +36,9 @@ EarthNavigation = function (options) {
         this.dY = function () { return this.y - this.prev_y; };
     };
 
+    this.events = new og.Events();
+    this.events.registerNames(["zoomin", "zoomout"]);
+
     this.touches = [new Touch(), new Touch()];
 };
 
@@ -46,11 +50,13 @@ EarthNavigation.prototype.switchZoomState = function (wheelDelta) {
 
     if (!wheelDelta) {
         if (this.currState === 0) {
+            this.events.dispatch(this.events.zoomin, this);
             this.planet.stopFlying();
             this.currState = 1;
             var ll = globus.planet.camera._lonLat;
             globus.planet.flyLonLat(new og.LonLat(ll.lon, ll.lat, this.positionState[1].h));
         } else {
+            this.events.dispatch(this.events.zoomout, this);
             this.planet.stopFlying();
             this.currState = 0;
             var ll = this.renderer.activeCamera._lonLat;
@@ -58,6 +64,7 @@ EarthNavigation.prototype.switchZoomState = function (wheelDelta) {
         }
     } else if (wheelDelta > 0) {
         if (this.currState === 0) {
+            this.events.dispatch(this.events.zoomin, this);
             this.planet.stopFlying();
             this.currState = 1;
             var ll = globus.planet.camera._lonLat;
@@ -65,6 +72,7 @@ EarthNavigation.prototype.switchZoomState = function (wheelDelta) {
         }
     } else {
         if (this.currState === 1) {
+            this.events.dispatch(this.events.zoomout, this);
             this.planet.stopFlying();
             this.currState = 0;
             var ll = this.renderer.activeCamera._lonLat;

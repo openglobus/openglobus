@@ -323,6 +323,11 @@ og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, st
  */
 og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, completeCallback, startCallback) {
 
+    //???????
+    if (this.eye.distance(cartesian) < 23000) {
+        return;
+    }
+
     this.stopFlying();
 
     this._completeCallback = completeCallback;

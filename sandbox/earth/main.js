@@ -11,27 +11,19 @@ goog.require('og.Entity');
 goog.require('EarthNavigation');
 goog.require('HtmlPointCollection');
 goog.require('HtmlPoint');
+goog.require('og.GeoImage');
 
 
 var sun, nav;
 var pointCollection;
 
 function plusMinusClick() {
-    if ($(".line-v.active").length) {
-        $(".line-v").removeClass("active");
-        $(".line-h").removeClass("active");
-    } else {
-        $(".line-v").addClass("active");
-        $(".line-h").addClass("active");
-    }
-
-    globus.planet.camera._numFrames = 30;
     nav.switchZoomState();
 };
 
 function start() {
 
-    og.shaderProgram.SHADERS_URL = "./shaders/";
+    //og.shaderProgram.SHADERS_URL = "./shaders/";
 
     var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
 
@@ -46,6 +38,21 @@ function start() {
 
     sun = new og.control.Sun({ autoActivate: true });
     nav = new EarthNavigation({ autoActivate: true });
+
+    nav.events.on("zoomin", null, function () {
+        $(".line-v").addClass("active");
+        $(".line-h").addClass("active");
+    });
+
+    nav.events.on("zoomout", null, function () {
+        $(".line-v").removeClass("active");
+        $(".line-h").removeClass("active");
+        if (pointCollection.selectedPoint) {
+            pointCollection.selectedPoint.selected = false;
+            pointCollection.hideClickAnimation(pointCollection.selectedPoint);
+            pointCollection.selectedPoint = null;
+        }
+    });
 
     globus = new og.Globus({
         "target": "globus",
@@ -63,14 +70,18 @@ function start() {
     sun.sunlight.setSpecular(new og.math.Vector3(0.0026, 0.0021, 0.002));
     sun.sunlight.setShininess(12);
 
+    createClouds();
+    loadPoints();
+
     globus.planet.camera.setViewAngle(38.0);
     globus.renderer.handler.clock.multiplier = 1800;
     globus.planet.camera.flyLonLat(new og.LonLat(65.96558602541404, 13.316888985461492, 17119745.303455353), null, null, function () {
-        globus.planet.camera._numFrames = 30;
+        globus.planet.camera._numFrames = 60;
     });
     globus.fadeIn(700);
+};
 
-
+function createClouds() {
     var collection = new og.EntityCollection();
 
     collection.add(new og.Entity({
@@ -78,8 +89,8 @@ function start() {
             radius: 6378137.00 + 30000,
             color: [1.0, 1.0, 1.0, 0.7],
             src: "clouds5.jpg",
-            latBands: 64,
-            lonBands: 64
+            latBands: 38,
+            lonBands: 38
         }
     })).addTo(globus.planet);
 
@@ -90,18 +101,27 @@ function start() {
         collection._entities[0].shape.refresh();
         rot -= step;
     });
+};
+
+function loadPoints() {
 
     pointCollection = new HtmlPointCollection();
     globus.renderer.addRenderNode(pointCollection);
 
-    for (var i = 0; i < 40; i++) {
-        (function () {
-            var coord = [i, i];
-            var point = new HtmlPoint({ lonlat: coord });
-            point.div.onclick = function () {
-                globus.planet.flyLonLat(og.lonLat(coord[0], coord[1]));
-            };
-            pointCollection.add(point);
-        }());
+    for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 5; j++) {
+            (function () {
+                var coord = [i * 10, j * 10];
+                var point = new HtmlPoint({ lonlat: coord, color: "blue" });
+                point.events.on("click", null, function () {
+                    nav.stopRotation();
+                    nav.currState = 1;
+                    $(".line-v").addClass("active");
+                    $(".line-h").addClass("active");
+                    globus.planet.flyLonLat(og.lonLat(coord[0], coord[1], nav.positionState[1].h));
+                });
+                pointCollection.add(point);
+            }());
+        }
     }
 };
