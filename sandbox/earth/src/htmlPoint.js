@@ -26,6 +26,7 @@ HtmlPoint = function (options) {
     this.background = options.background || null;
     this.video = options.video || null;
     this.picture = options.picture || null;
+    this.name = options.name || "";
 
     this.title;
     this.circle;
@@ -35,6 +36,7 @@ HtmlPoint = function (options) {
     this.mark;
     this.htmlPoint;
 
+    this.titleFrameCounter = 0;
     this.frameCounter = 0;
     this.anim = null;
 
@@ -49,11 +51,11 @@ HtmlPoint._staticCounter = 0;
 
 HtmlPoint.frames = [
     {
-        mark: { opacity: "0" },
+        mark: { opacity: "0" }
     }, {
-        mark: { opacity: "0.2" },
+        mark: { opacity: "0.2" }
     }, {
-        mark: { opacity: "0.5" },
+        mark: { opacity: "0.5" }
     }, {
         circle: { marginLeft: "0px", height: "0px", width: "0px", display: "none" },
         line: { height: "0px" },
@@ -95,15 +97,17 @@ HtmlPoint.frames = [
         point: { width: "7px", height: "7px", backgroundColor: "white" }
     }];
 
+HtmlPoint.titleOpacities = ["0", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"];
+
 HtmlPoint.clickFrames = [
     {
-        point: { width: "7px", height: "7px", opacity: "1.0", backgroundColor: "white" },
+        point: { width: "7px", height: "7px", opacity: "1.0", backgroundColor: "white" }
     }, {
-        point: { width: "7px", height: "7px", opacity: "0.7", backgroundColor: "white" },
+        point: { width: "7px", height: "7px", opacity: "0.7", backgroundColor: "white" }
     }, {
-        point: { width: "7px", height: "7px", opacity: "0.3", backgroundColor: "white" },
+        point: { width: "7px", height: "7px", opacity: "0.3", backgroundColor: "white" }
     }, {
-        point: { width: "7px", height: "7px", opacity: "0.0", backgroundColor: "white" },
+        point: { width: "7px", height: "7px", opacity: "0.0", backgroundColor: "white" }
     }, {
         circle: { marginLeft: "-12px", height: "24px", width: "24px" },
         point: { width: "7px", height: "7px", opacity: "0.0" },
@@ -139,23 +143,24 @@ HtmlPoint.prototype._create = function () {
 
     this.title = document.createElement("p");
     this.title.classList.add("title");
-    this.title.style.opacity = 0;
-    this.title.style.visibility = "hidden";
+    this.title.style.opacity = "0";
+    this.title.style.visibility = "visible";
+    this.title.innerHTML = this.name;
 
     this.circle = document.createElement("div");
     this.circle.classList.add("circle");
     this.circle.style.bottom = "0px";
     this.circle.style.marginLeft = "-12px";
-    this.circle.style.height = "24px";
-    this.circle.style.width = "24px";
+    this.circle.style.height = "0px";
+    this.circle.style.width = "0px";
     this.circle.style.backgroundColor = this.color;
 
     this.image = document.createElement("div");
     this.image.classList.add("image");
     this.image.style.display = "none";
     this.image.style.opacity = "0";
-    this.image.style.height = "22px";
-    this.image.style.width = "22px";
+    //this.image.style.height = "22px";
+    //this.image.style.width = "22px";
     this.image.style.backgroundImage = "url(" + this.background + ")";
     this.circle.appendChild(this.image);
 
@@ -169,14 +174,14 @@ HtmlPoint.prototype._create = function () {
 
     this.point = document.createElement("div");
     this.point.classList.add("point");
-    this.point.style.height = "6px";
-    this.point.style.width = "6px";
+    this.point.style.height = "0px";
+    this.point.style.width = "0px";
     this.point.style.backgroundColor = "rgb(255, 255, 255);";
     this.circle.appendChild(this.point);
 
     this.line = document.createElement("div");
     this.line.classList.add("line");
-    this.line.style.height = "13px";
+    this.line.style.height = "0px";
     this.line.style.backgroundColor = this.color;
 
 
@@ -203,8 +208,24 @@ HtmlPoint.prototype._create = function () {
 };
 
 HtmlPoint.prototype.showAnimate = function () {
-    if (this.selected) {
 
+    if (nav.currState == 1) {
+        if (this.titleFrameCounter <= HtmlPoint.titleOpacities.length - 1) {
+            this.title.style.opacity = HtmlPoint.titleOpacities[this.titleFrameCounter++];
+        }
+    } else {
+        if (this.titleFrameCounter >= 0) {
+            this.title.style.opacity = HtmlPoint.titleOpacities[this.titleFrameCounter];
+            if (this.titleFrameCounter <= 0) {
+                this.titleFrameCounter = 0;
+            } else {
+                this.titleFrameCounter--;
+            }
+        }
+    }
+
+    if (this.selected) {
+        //...
     } else if (this.frameCounter <= HtmlPoint.frames.length - 1) {
         this.htmlPoint.style.display = "block";
         this._appendFrame(HtmlPoint.frames[this.frameCounter++]);
@@ -217,7 +238,8 @@ HtmlPoint.prototype.showAnimate = function () {
 
 HtmlPoint.prototype.hideAnimate = function () {
     if (this.selected) {
-
+        this._collection.hideClickAnimation(this._collection.selectedPoint);
+        this._collection.selectedPoint = null;
     } else if (this.frameCounter >= 0) {
         this._appendFrame(HtmlPoint.frames[this.frameCounter]);
         if (this.frameCounter <= 0) {
@@ -236,7 +258,7 @@ HtmlPoint.prototype._appendFrame = function (f) {
         this.mark.style.opacity = f.mark.opacity;
     }
 
-    if (f.title) {
+    if (f.title && nav.currState == 1 && this.titleFrameCounter >= HtmlPoint.titleOpacities.length - 1) {
         this.title.style.opacity = f.title.opacity;
     }
 

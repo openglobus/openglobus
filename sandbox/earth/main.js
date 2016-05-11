@@ -21,7 +21,7 @@ function plusMinusClick() {
     nav.switchZoomState();
 };
 
-function start() {
+function init() {
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
@@ -60,7 +60,7 @@ function start() {
         "controls": [nav, sun],
         "skybox": skybox,
         "layers": [sat],
-        "autoActivated": true
+        "autoActivate": false
     });
 
     globus.planet.createDefaultTextures({ color: "#071836" }, { color: "#F4F5F7" });
@@ -78,7 +78,6 @@ function start() {
     globus.planet.camera.flyLonLat(new og.LonLat(65.96558602541404, 13.316888985461492, 17119745.303455353), null, null, function () {
         globus.planet.camera._numFrames = 60;
     });
-    globus.fadeIn(700);
 };
 
 function createClouds() {
@@ -103,25 +102,45 @@ function createClouds() {
     });
 };
 
+function start() {
+    globus.renderer.start();
+    globus.fadeIn(700);
+};
+
 function loadPoints() {
 
-    pointCollection = new HtmlPointCollection();
-    globus.renderer.addRenderNode(pointCollection);
+    $.getJSON('destinations.txt',
+    function (res) {
+        pointCollection = new HtmlPointCollection();
+        globus.renderer.addRenderNode(pointCollection);
+        var d = res.destinations;
+        for (var i = 0; i < d.length; i++) {
+            var di = d[i];
+            var point = new HtmlPoint({
+                lonlat: [di.location.lon, di.location.lat],
+                background: di.thumbnail_url,
+                color: di.color,
+                video: di.video_link,
+                picture: di.video_placeholder_url,
+                name: di.name
+            });
 
-    for (var i = 0; i < 5; i++) {
-        for (var j = 0; j < 5; j++) {
-            (function () {
-                var coord = [i * 10, j * 10];
-                var point = new HtmlPoint({ lonlat: coord, color: "blue" });
-                point.events.on("click", null, function () {
-                    nav.stopRotation();
-                    nav.currState = 1;
-                    $(".line-v").addClass("active");
-                    $(".line-h").addClass("active");
-                    globus.planet.flyLonLat(og.lonLat(coord[0], coord[1], nav.positionState[1].h));
-                });
-                pointCollection.add(point);
-            }());
+            point.events.on("click", point, function () {
+                nav.stopRotation();
+                nav.currState = 1;
+                $(".line-v").addClass("active");
+                $(".line-h").addClass("active");
+                globus.planet.flyLonLat(og.lonLat(this._lonlat.lon, this._lonlat.lat, nav.positionState[1].h));
+            });
+
+            pointCollection.add(point);
         }
-    }
+
+        setTimeout(function () {
+            document.getElementById("loadingScreen").style.display = "none";
+            document.getElementById("earthControls").style.display = "block";
+            globus.div.style.display = "block";
+            start();
+        }, 500);
+    });
 };

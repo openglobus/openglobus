@@ -11,33 +11,47 @@
     <script src="./jquery/jquery-1.10.2.min.js"></script>
     <link rel="stylesheet" href="./jquery/jquery-ui-1.7.2.custom.css">
     <script src="./jquery/jquery-ui-1.10.4.min.js"></script>
-    
+
     <script src="../../../closure-library/closure/goog/base.js"></script>
     <script src="../../src/og/og-deps.js"></script>
     <script src="my-deps.js"></script>
-	
+
     <!-- <script src="build/og-earth.js"></!--script> -->
     <script src="main.js"></script>
 
     <style>
-
+        #centerDiv {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -50px;
+            margin-left: -50px;
+            width: 200px;
+            height: 100px;
+            z-index: 100000;
+        }
     </style>
 
 </head>
 
-<body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="start();">
-    <div id="globus" style="width:100%;height:100%;float:left"></div>
-    <div id="l1" class="defaultText"></div>
-    <div id="l2" class="defaultText"></div>
-    <div id="l3" class="defaultText"></div>
-    <div id="l4" class="defaultText"></div>
-    <div id="l5" class="defaultText"></div>
-    <div id="l6" class="defaultText"></div>
-    <div class="earth-plus-minus" onclick="plusMinusClick()">
-        <div class="line-h"></div>
-        <div class="line-v"></div>
+<body style="width: 100%; height: 100%; padding: 0; margin: 0;" onload="init();">
 
+    <div id="loadingScreen" style="position:absolute; width:100%; height:100%; background-color:black">
+        <div id='centerDiv'>
+            <div align="center" style="color:white; font-size:42px; font-family:Tahoma; width: 100px; height: 100px; /*background-image:url(ajax-loader.gif)*/">Loading...</div>
+        </div>
     </div>
+
+    <div id="globus" style="width:100%;height:100%;float:left; display:none">
+    </div>
+
+    <div id="earthControls" style="display:none">
+        <div class="earth-plus-minus" onclick="plusMinusClick()">
+            <div class="line-h"></div>
+            <div class="line-v"></div>
+        </div>
+    </div>
+
 </body>
 
 </html>
