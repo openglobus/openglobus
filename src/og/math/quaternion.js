@@ -116,7 +116,6 @@ og.math.Quaternion.prototype.toSphericalCoords = function () {
     return { lat: lat, lon: lon };
 };
 
-
 og.math.Quaternion.axisAngleToQuat = function (axis, angle) {
     var res = new og.math.Quaternion();
     var v = axis.normal();
@@ -401,59 +400,28 @@ og.math.Quaternion.getLookAtSourceDest = function (sourcePoint, destPoint) {
     return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
 };
 
-
-//SEEMS NOT TO BE WORKABLE
-//og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
-//    var k_cos_theta = u.dot(v);
-//    var k = Math.sqrt(u.length2() * v.length2());
-//    if (k_cos_theta / k == -1) {
-//        // 180 degree rotation around any orthogonal vector
-//        var other = u.dot(og.math.Vector3.RIGHT) < 1.0 ? new og.math.Vector3(1, 0, 0) : new og.math.Vector3(0, 1, 0);
-//        return og.math.Quaternion.axisAngleToQuat(u.cross(other).normalize(), Math.PI);
-//    }
-//    return og.math.Quaternion.axisAngleToQuat(u.cross(v).normalize(), k_cos_theta + k).normalize();
-//};
-
-//og.math.Quaternion.getRotationBetweenVectors2 = function (start, dest) {
-//    var cosTheta = start.dot(dest);
-//    var rotationAxis;
-//    if (cosTheta < -1 + 0.001) {
-//        // special case when vectors in opposite directions:
-//        // there is no "ideal" rotation axis
-//        // So guess one; any will do as long as it's perpendicular to start
-//        rotationAxis = og.math.Vector3.BACKWARD.cross(start);
-//        if (rotationAxis.length2() < 0.01)// bad luck, they were parallel, try again!
-//            rotationAxis = og.math.Vector3.RIGHT.cross(start);
-//        return og.math.Quaternion.axisAngleToQuat(rotationAxis.normalize(), Math.PI);
-//    }
-//    rotationAxis = start.cross(dest);
-//    var s = Math.sqrt((1 + cosTheta) * 2);
-//    var invs = 1 / s;
-//    return new og.math.Quaternion(rotationAxis.x * invs, rotationAxis.y * invs, rotationAxis.z * invs, s * 0.5);
-//};
-
 og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
     var w = u.cross(v);
     var q = new og.math.Quaternion(w.x, w.y, w.z, 1.0 + u.dot(v));
     return q.normalize();
 };
 
-//og.math.Quaternion.getRotationBetweenVectorsUp = function (source, dest, up) {
-//    var dot = source.dot(dest);
-//    if (Math.abs(dot - (-1.0)) < 0.000001) {
-//        // vector a and b point exactly in the opposite direction, 
-//        // so it is a 180 degrees turn around the up-axis
-//        return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
-//    }
-//    if (Math.abs(dot - (1.0)) < 0.000001) {
-//        // vector a and b point exactly in the same direction
-//        // so we return the identity quaternion
-//        return new og.math.Quaternion(0, 0, 0, 1);
-//    }
-//    var rotAngle = Math.acos(dot);
-//    var rotAxis = source.cross(dest).normalize();
-//    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
-//};
+og.math.Quaternion.getRotationBetweenVectorsUp = function (source, dest, up) {
+    var dot = source.dot(dest);
+    if (Math.abs(dot - (-1.0)) < 0.000001) {
+        // vector a and b point exactly in the opposite direction, 
+        // so it is a 180 degrees turn around the up-axis
+        return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
+    }
+    if (Math.abs(dot - (1.0)) < 0.000001) {
+        // vector a and b point exactly in the same direction
+        // so we return the identity quaternion
+        return new og.math.Quaternion(0, 0, 0, 1);
+    }
+    var rotAngle = Math.acos(dot);
+    var rotAxis = source.cross(dest).normalize();
+    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
+};
 
 og.math.Quaternion.prototype.getRoll = function (reprojectAxis) {
     var x = this.x, y = this.y, z = this.z, w = this.w;

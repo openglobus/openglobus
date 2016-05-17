@@ -16,15 +16,18 @@ og.planetSegment.Material.prototype.assignLayer = function (layer) {
 };
 
 og.planetSegment.Material.prototype.loadTileImage = function () {
+    var seg = this.segment;
+    if (seg.tileZoom >= this.layer.minZoom &&
+        seg.tileZoom <= this.layer.maxZoom) {
+        if (this.layer._isBaseLayer) {
+            this.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+        } else {
+            this.texture = seg.planet.transparentTexture;
+        }
 
-    if (this.layer._isBaseLayer) {
-        this.texture = this.segment._isNorth ? this.segment.planet.solidTextureOne : this.segment.planet.solidTextureTwo;
-    } else {
-        this.texture = this.segment.planet.transparentTexture;
-    }
-
-    if (!this.imageIsLoading) {
-        this.layer.handleSegmentTile(this);
+        if (!this.imageIsLoading) {
+            this.layer.handleSegmentTile(this);
+        }
     }
 };
 
