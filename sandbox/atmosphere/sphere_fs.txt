@@ -1,18 +1,24 @@
 precision highp float;
 
-varying vec2 vTextureCoord;
-varying vec3 vTransformedNormal;
-varying vec4 vPosition;
+#define MAX_POINT_LIGHTS 1
 	
-uniform vec4 uColor;
 uniform sampler2D uSampler;
  
-#define MAX_POINT_LIGHTS 1
-
 uniform int pointLightsQuantity;
 uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
+
+//uniform float fNightScale;
+//uniform vec3 v3LightPosition;
+//uniform sampler2D tDiffuse;
+//uniform sampler2D tDiffuseNight;
+
+varying vec3 vTransformedNormal;
+varying vec4 vPosition;
+varying vec3 c0;
+varying vec3 c1;
+varying vec2 vUv;
 
 void main(void) {
 
@@ -36,7 +42,16 @@ void main(void) {
     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
     lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
-    vec4 cc = texture2D( uSampler, vTextureCoord.st );
+    //vec4 cc = texture2D( uSampler, vTextureCoord.st );
 	//cc.a = 0.5 + length(cc.rgb);
-    gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
+    //gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
+
+
+	vec3 diffuseTex = texture2D( uSampler, vUv ).xyz;
+	//vec3 diffuseNightTex = texture2D( tDiffuseNight, vUv ).xyz;
+
+	vec3 day = diffuseTex * c0;
+	vec3 night = vec3(0.0);//fNightScale * diffuseNightTex * diffuseNightTex * diffuseNightTex * (1.0 - c0);
+
+	gl_FragColor = vec4(c1, 1.0) + vec4(day + night, 1.0);
 }

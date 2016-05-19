@@ -12,14 +12,25 @@ goog.require('og.shaderProgram.atmosphereSpace');
 Atmosphere = function () {
     og.inheritance.base(this);
 
-    this._radius = 100;
-    this._latBands = 64;
-    this._lonBands = 64;
+    this.atmosphere = {
+        Kr: 0.001,
+        Km: 0.0015,
+        ESun: 15.0,
+        g: -0.6,
+        innerRadius: 100.0,
+        outerRadius: 105.0,
+        wavelength: [0.650, 0.570, 0.475],
+        scaleDepth: 0.25
+    };
+
+    this._latBands = 100;
+    this._lonBands = 100;
 
     this._indexData = [];
     this._textureCoordData = [];
     this._normalData = [];
-    this._positionData = [];
+    this._outerPositionData = [];
+    this._innerPositionData = [];
 
     this.texture = null;
 
@@ -42,6 +53,24 @@ Atmosphere.prototype._createData = function () {
             var x = cosPhi * sinTheta;
             var y = cosTheta;
             var z = sinPhi * sinTheta;
+            this._outerPositionData.push(this.atmosphere.outerRadius * x);
+            this._outerPositionData.push(this.atmosphere.outerRadius * y);
+            this._outerPositionData.push(this.atmosphere.outerRadius * z);
+        }
+    }
+
+    for (var latNumber = 0; latNumber <= this._latBands; latNumber++) {
+        var theta = latNumber * Math.PI / this._latBands;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        for (var longNumber = 0; longNumber <= this._lonBands; longNumber++) {
+            var phi = longNumber * 2 * Math.PI / this._lonBands;
+            var sinPhi = Math.sin(phi);
+            var cosPhi = Math.cos(phi);
+            var x = cosPhi * sinTheta;
+            var y = cosTheta;
+            var z = sinPhi * sinTheta;
             var u = 1 - (longNumber / this._lonBands);
             var v = latNumber / this._latBands;
             this._normalData.push(x);
@@ -49,9 +78,9 @@ Atmosphere.prototype._createData = function () {
             this._normalData.push(z);
             this._textureCoordData.push(u);
             this._textureCoordData.push(v);
-            this._positionData.push(this._radius * x);
-            this._positionData.push(this._radius * y);
-            this._positionData.push(this._radius * z);
+            this._innerPositionData.push(this.atmosphere.innerRadius * x);
+            this._innerPositionData.push(this.atmosphere.innerRadius * y);
+            this._innerPositionData.push(this.atmosphere.innerRadius * z);
         }
     }
 
@@ -73,7 +102,8 @@ Atmosphere.prototype._createData = function () {
 
 Atmosphere.prototype._createBuffers = function () {
     var r = this.renderer;
-    this._positionBuffer = r.handler.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
+    this._innerPositionBuffer = r.handler.createArrayBuffer(new Float32Array(this._innerPositionData), 3, this._innerPositionData.length / 3);
+    this._outerPositionBuffer = r.handler.createArrayBuffer(new Float32Array(this._outerPositionData), 3, this._outerPositionData.length / 3);
     this._normalBuffer = r.handler.createArrayBuffer(new Float32Array(this._normalData), 3, this._normalData.length / 3);
     this._indexBuffer = r.handler.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
     this._textureCoordBuffer = r.handler.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
@@ -85,7 +115,7 @@ Atmosphere.prototype.initialization = function () {
 
     l1 = new og.light.PointLight();
     l1._diffuse.set(1.0, 1.0, 1.0);
-    l1._ambient.set(0.3, 0.3, 0.4);
+    l1._ambient.set(0.0, 0.0, 0.0);
     l1._position.z = 5000;
     l1.addTo(this);
 
@@ -100,62 +130,17 @@ Atmosphere.prototype.initialization = function () {
     img.src = "bm.png";
 
     this._createBuffers();
-
-    //================================================
-    var vertices = [
-      -1.0, -1.0,
-       1.0, -1.0,
-      -1.0, 1.0,
-      -1.0, 1.0,
-       1.0, -1.0,
-       1.0, 1.0];
-
-    this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+};
+Atmosphere.prototype.frame = function () {
+    this.drawSky();
+    this.drawGround();
 };
 
-Atmosphere.prototype.frame = function () {
-    //var rn = this;
-    //var r = rn.renderer;
-
-    //var sh, p,
-    //    gl = r.handler.gl;
-
-    //sh = r.handler.shaderPrograms.sphere;
-    //p = sh._program;
-    //sha = p.attributes,
-    //shu = p.uniforms;
-
-    //sh.activate();
-
-    //this.transformLights();
-
-    //gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
-    //gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
-    //gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
-    //gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
-    //gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera._mvMatrix._m);
-    //gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera._nMatrix._m);
-
-    //gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-    //gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    //gl.uniform4fv(shu.uColor._pName, this.color);
-
-    //gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-    //gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    //gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    //gl.uniform1i(shu.uSampler._pName, 0);
-
-    //gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
-    //gl.vertexAttribPointer(sha.aTextureCoord._pName, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-    //gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
+Atmosphere.prototype.drawSky = function () {
     var rn = this;
     var r = rn.renderer;
+
+    var eye = r.activeCamera.eye;
 
     var sh, p,
         gl = r.handler.gl;
@@ -167,10 +152,101 @@ Atmosphere.prototype.frame = function () {
 
     sh.activate();
 
-    gl.uniform3fv(shu.iResolution._pName, [r.handler.canvas.width, r.handler.canvas.height, 0]);
+    gl.cullFace(gl.FRONT);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBuffer);
-    gl.vertexAttribPointer(sha.a_position._pName, this._verticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.enable(gl.BLEND);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    gl.drawArrays(gl.TRIANGLES, 0, this._verticesBuffer.numItems);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._pMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
+
+    var eye = r.activeCamera.eye;
+    gl.uniform3fv(shu.cameraPosition._pName, eye.toVec());
+    gl.uniform3fv(shu.v3LightPosition._pName, l1._position.normal().toVec());
+    gl.uniform3fv(shu.v3LightPos._pName, l1._position.normal().toVec());
+    gl.uniform3fv(shu.v3InvWavelength._pName, og.math.vector3(1 / Math.pow(this.atmosphere.wavelength[0], 4), 1 / Math.pow(this.atmosphere.wavelength[1], 4), 1 / Math.pow(this.atmosphere.wavelength[2], 4)).toVec());
+    gl.uniform1f(shu.g._pName, this.atmosphere.g);
+    gl.uniform1f(shu.g2._pName, this.atmosphere.g * this.atmosphere.g);
+    gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
+    gl.uniform1f(shu.fInnerRadius._pName, this.atmosphere.innerRadius);
+    gl.uniform1f(shu.fOuterRadius._pName, this.atmosphere.outerRadius);
+    gl.uniform1f(shu.fOuterRadius2._pName, this.atmosphere.outerRadius * this.atmosphere.outerRadius);
+    gl.uniform1f(shu.fKrESun._pName, this.atmosphere.Kr * this.atmosphere.ESun);
+    gl.uniform1f(shu.fKmESun._pName, this.atmosphere.Km * this.atmosphere.ESun);
+    gl.uniform1f(shu.fKr4PI._pName, this.atmosphere.Kr * 4.0 * Math.PI);
+    gl.uniform1f(shu.fKm4PI._pName, this.atmosphere.Km * 4.0 * Math.PI);
+    gl.uniform1f(shu.fScale._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius));
+    gl.uniform1f(shu.fScaleDepth._pName, this.atmosphere.scaleDepth);
+    gl.uniform1f(shu.fScaleOverScaleDepth._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius) / this.atmosphere.scaleDepth);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._outerPositionBuffer);
+    gl.vertexAttribPointer(sha.position._pName, this._outerPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+    gl.cullFace(gl.BACK);
+    gl.disable(gl.BLEND);
+};
+
+
+Atmosphere.prototype.drawGround = function () {
+    var rn = this;
+    var r = rn.renderer;
+
+    var sh, p,
+        gl = r.handler.gl;
+
+    sh = r.handler.shaderPrograms.sphere;
+    p = sh._program;
+    sha = p.attributes,
+    shu = p.uniforms;
+
+    sh.activate();
+
+    this.transformLights();
+
+
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._pMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
+    gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera._nMatrix._m);
+
+    var eye = r.activeCamera.eye;
+    gl.uniform3fv(shu.cameraPosition._pName, eye.toVec());
+    gl.uniform3fv(shu.v3LightPosition._pName, l1._position.normal().toVec());
+    //gl.uniform3fv(shu.v3LightPos._pName, l1._position.normal().toVec());
+    gl.uniform3fv(shu.v3InvWavelength._pName, og.math.vector3(1 / Math.pow(this.atmosphere.wavelength[0], 4), 1 / Math.pow(this.atmosphere.wavelength[1], 4), 1 / Math.pow(this.atmosphere.wavelength[2], 4)).toVec());
+    //gl.uniform1f(shu.g._pName, this.atmosphere.g);
+    //gl.uniform1f(shu.g2._pName, this.atmosphere.g * this.atmosphere.g);
+    gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
+    gl.uniform1f(shu.fInnerRadius._pName, this.atmosphere.innerRadius);
+    gl.uniform1f(shu.fOuterRadius._pName, this.atmosphere.outerRadius);
+    gl.uniform1f(shu.fOuterRadius2._pName, this.atmosphere.outerRadius * this.atmosphere.outerRadius);
+    gl.uniform1f(shu.fKrESun._pName, this.atmosphere.Kr * this.atmosphere.ESun);
+    gl.uniform1f(shu.fKmESun._pName, this.atmosphere.Km * this.atmosphere.ESun);
+    gl.uniform1f(shu.fKr4PI._pName, this.atmosphere.Kr * 4.0 * Math.PI);
+    gl.uniform1f(shu.fKm4PI._pName, this.atmosphere.Km * 4.0 * Math.PI);
+    gl.uniform1f(shu.fScale._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius));
+    gl.uniform1f(shu.fScaleDepth._pName, this.atmosphere.scaleDepth);
+    gl.uniform1f(shu.fScaleOverScaleDepth._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius) / this.atmosphere.scaleDepth);
+
+    gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
+    gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
+    gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
+    gl.vertexAttribPointer(sha.normal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._innerPositionBuffer);
+    gl.vertexAttribPointer(sha.position._pName, this._innerPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.uniform1i(shu.uSampler._pName, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
+    gl.vertexAttribPointer(sha.uv._pName, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 };

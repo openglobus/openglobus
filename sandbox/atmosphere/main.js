@@ -34,8 +34,8 @@ function start() {
     var axes = new og.node.Axes(10000);
 
     atmosphere = new Atmosphere();
-    renderer.addRenderNode(atmosphere);
     renderer.addRenderNode(axes);
+    renderer.addRenderNode(atmosphere);
 
     renderer.addControls([
         new og.control.SimpleNavigation({ autoActivate: true }),
