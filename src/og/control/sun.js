@@ -34,6 +34,7 @@ og.inheritance.extend(og.control.Sun, og.control.Control);
 og.control.Sun.prototype.init = function () {
 
     this.planet = this.renderer.renderNodes.Earth;
+    this.planet._sunControl = this;
 
     this.planet.lightEnabled = true;
 

@@ -15,17 +15,16 @@ uniform sampler2D uSpecularImage;
 
 varying vec4 vTextureCoord;
 varying vec4 vPosition;
-varying mat3 v_NMatrix;
 varying vec2 vTextureCoordGeoImage;
 varying vec2 vGlobalTextureCoord;
+varying vec3 c0;
+varying vec3 c1;
 
 void main(void) {
     
     vec3 normal = normalize(uNMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
 
     vec3 lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
-    //float distance = length(dir);
-    //float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
     vec3 eyeDirection = normalize(-vPosition.xyz);
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     
@@ -44,5 +43,11 @@ void main(void) {
 
     vec4 res = mix(uColor, geoImageColor, geoImageColor.a);
 
-	gl_FragColor = vec4(res.rgb * lightWeighting + night * step(0.0, night) + spec, res.a);
+	//vec3 day = res.rgb * c0;
+	//night = lightWeighting * res.rgb * night * step(0.0, night) * (1.0 - c0);
+	
+	//gl_FragColor = vec4(c1, 1.0) + vec4(day + night + spec, 1.0);
+
+	gl_FragColor = vec4(c1, 1.0) + vec4(res.rgb * c0 + night * step(0.0, night) * (1.0 - c0) + spec, res.a);
+
 }
