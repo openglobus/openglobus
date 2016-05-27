@@ -24,30 +24,27 @@ void main(void) {
     
     vec3 normal = normalize(uNMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
 
-    vec3 lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
+    vec3 lightDirection = normalize(pointLightsPositions[0]/* - vPosition.xyz*/);
     vec3 eyeDirection = normalize(-vPosition.xyz);
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     
-	vec4 uColor = texture2D( uSampler, vTextureCoord.xy );
+	vec4 diffuseSampler = texture2D( uSampler, vTextureCoord.xy ) * vec4(vec3(0.5),1.0);
     vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordGeoImage.st );
     vec4 nightImageColor = texture2D( uNightImage, vGlobalTextureCoord.st );
-
     float shininess = texture2D( uSpecularImage, vGlobalTextureCoord.st ).r * 255.0;
 
     float specularLightWeighting = pow( max( dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
     float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	vec3 spec = pointLightsParamsv[2] * specularLightWeighting * shininess;
-    vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + spec;
+    vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting*c0 + c1 + spec;
 	
-	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;	
+	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.31 - length(c0)) * nightImageColor.rgb;	
 
-    vec4 res = mix(uColor, geoImageColor, geoImageColor.a);
-
-	//vec3 day = res.rgb * c0;
-	//night = lightWeighting * res.rgb * night * step(0.0, night) * (1.0 - c0);
+    vec4 res = mix(diffuseSampler, geoImageColor, geoImageColor.a);
 	
-	//gl_FragColor = vec4(c1, 1.0) + vec4(day + night + spec, 1.0);
+		//gl_FragColor = vec4(c1, 1.0) + vec4(res.rgb * c0 + res.rgb*lightWeighting*(1.0-c0) + night * step(0.0, night) + spec, res.a);
+	//gl_FragColor = vec4(c1*lightWeighting + res.rgb * c0 *lightWeighting + res.rgb * lightWeighting * (1.0 - c0) + night * step(0.0, night) + spec , res.a);
 
-	gl_FragColor = vec4(c1, 1.0) + vec4(res.rgb * c0 + night * step(0.0, night) * (1.0 - c0) + spec, res.a);
+	gl_FragColor = vec4(res.rgb*lightWeighting + night * step(0.0, night) + spec, res.a);
 
 }

@@ -49,15 +49,9 @@ og.control.Sun.prototype.init = function () {
     var that = this;
     this.renderer.events.on("draw", this, this.draw);
 
-    this.renderer.events.on("keypress", this, function () {
-        var ry = og.math.Quaternion.yRotation(2 * og.math.RADIANS);
-        that.sunlight._position = ry.mulVec3(that.sunlight._position);
-    }, og.input.KEY_F);
-
     this.renderer.events.on("charkeypress", this, function () {
         that.planet.lightEnabled = !that.planet.lightEnabled;
     }, og.input.KEY_L);
-
 };
 
 og.control.Sun.prototype.draw = function () {

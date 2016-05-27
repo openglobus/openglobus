@@ -7,12 +7,8 @@ goog.require('og.shaderProgram.shape_nl');
 goog.require('og.node.Axes');
 goog.require('my.Sphere');
 goog.require('og.math.Vector3');
-goog.require('og.node.SkyBox');
-goog.require('og.node.SkySphere');
 
 function start() {
-
-    og.webgl.MAX_FRAME_DELAY = 15;
 
     var axesShader = new og.shaderProgram.ShaderProgram("flat", {
         uniforms: {
@@ -37,17 +33,7 @@ function start() {
 
     var axes = new og.node.Axes(10000);
 
-    var skybox = new og.node.SkyBox({
-        "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
-        "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
-        "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",
-        "ny": "http://127.0.0.1/og/resources/images/skyboxes/gal/_ny.jpg",
-        "pz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_pz.jpg",
-        "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
-    });
-
     mySphere = new my.Sphere();
-    renderer.addRenderNode(skybox);
     renderer.addRenderNode(mySphere);
     renderer.addRenderNode(axes);
 
@@ -55,7 +41,7 @@ function start() {
         new og.control.SimpleNavigation({ autoActivate: true }),
     ]);
 
-    renderer.activeCamera.eye.set(1277.0050415860476, 2307.7441933678265, 4553.429889299481);
+    renderer.activeCamera.eye.set(50.0050415860476, 100.7441933678265, 200.429889299481);
     renderer.activeCamera.refresh();
 
     renderer.start();

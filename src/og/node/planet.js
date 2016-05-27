@@ -233,16 +233,76 @@ og.node.Planet = function (name, ellipsoid) {
     this._useNightTexture = true;
     this._useSpecularTexture = true;
 
-    this.atmosphere = {
-        Kr: 0.001,
-        Km: 0.0015,
-        ESun: 15.0,
-        g: -0.6,
-        innerRadius: this.ellipsoid._a,
-        outerRadius: this.ellipsoid._a * 1.05,
-        wavelength: [0.650, 0.570, 0.475],
-        scaleDepth: 0.25
+    this.atmosphereSpaceParams = {
+        Kr: 0.0025,
+        Km: 0.00025,
+        ESun: 4.0,
+        g: -0.75,
+        innerRadius: this.ellipsoid._a - 30000,
+        outerRadius: this.ellipsoid._a + 118000,
+        wavelength: [0.65, 0.57, 0.475],
+        scaleDepth: 0.29,
+        v3InvWavelength: 0,
+        g2: 0,
+        fOuterRadius2: 0,
+        fKrESun: 0,
+        fKmESun: 0,
+        fKr4PI: 0,
+        fKm4PI: 0,
+        fScale: 0,
+        fScaleDepth: 0,
+        fScaleOverScaleDepth: 0
     };
+
+    this.atmosphereGroundParams = {
+        Kr: 0.0025,
+        Km: 0.00025,
+        ESun: 17.0,
+        g: -0.75,
+        innerRadius: this.ellipsoid._a,
+        outerRadius: this.ellipsoid._a + 118000,
+        wavelength: [0.65, 0.57, 0.475],
+        scaleDepth: 0.29,
+        v3InvWavelength: 0,
+        g2: 0,
+        fOuterRadius2: 0,
+        fKrESun: 0,
+        fKmESun: 0,
+        fKr4PI: 0,
+        fKm4PI: 0,
+        fScale: 0,
+        fScaleDepth: 0,
+        fScaleOverScaleDepth: 0
+    };
+
+    var that = this;
+    this.updateAtmosphereParams = function () {
+        var a = that.atmosphereSpaceParams;
+        a.v3InvWavelength = [1 / Math.pow(a.wavelength[0], 4), 1 / Math.pow(a.wavelength[1], 4), 1 / Math.pow(a.wavelength[2], 4)];
+        a.fOuterRadius2 = a.outerRadius * a.outerRadius;
+        a.fKrESun = a.Kr * a.ESun;
+        a.fKmESun = a.Km * a.ESun;
+        a.fKr4PI = a.Kr * 4.0 * Math.PI;
+        a.fKm4PI = a.Km * 4.0 * Math.PI;
+        a.fScale = 1 / (a.outerRadius - a.innerRadius);
+        a.fScaleDepth = a.scaleDepth;
+        a.fScaleOverScaleDepth = 1 / (a.outerRadius - a.innerRadius) / a.scaleDepth;
+        a.g2 = a.g * a.g;
+
+        a = that.atmosphereGroundParams;
+        a.v3InvWavelength = [1 / Math.pow(a.wavelength[0], 4), 1 / Math.pow(a.wavelength[1], 4), 1 / Math.pow(a.wavelength[2], 4)];
+        a.fOuterRadius2 = a.outerRadius * a.outerRadius;
+        a.fKrESun = a.Kr * a.ESun;
+        a.fKmESun = a.Km * a.ESun;
+        a.fKr4PI = a.Kr * 4.0 * Math.PI;
+        a.fKm4PI = a.Km * 4.0 * Math.PI;
+        a.fScale = 1 / (a.outerRadius - a.innerRadius);
+        a.fScaleDepth = a.scaleDepth;
+        a.fScaleOverScaleDepth = 1 / (a.outerRadius - a.innerRadius) / a.scaleDepth;
+        a.g2 = a.g * a.g;
+    };
+
+    this.updateAtmosphereParams();
 
     this._atmospherePositionBuffer = null;
     this._atmosphereIndexBuffer = null;
@@ -578,7 +638,7 @@ og.node.Planet.prototype.initialization = function () {
         img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.png";
     }
 
-    var icosphere = new og.shape.Icosphere({ level: 5, size: this.atmosphere.outerRadius });
+    var icosphere = new og.shape.Icosphere({ level: 5, size: this.atmosphereSpaceParams.outerRadius });
     this._atmospherePositionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(icosphere._positionData), 3, icosphere._positionData.length / 3);
     this._atmosphereIndexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(icosphere._indexData), 1, icosphere._indexData.length);
 };
@@ -716,7 +776,7 @@ og.node.Planet.prototype.frame = function () {
     this._renderNodesPASS();
     this._renderHeightBackbufferPASS();
     this._renderVectorLayersPASS();
-    this._renderAtmosphere();
+    //this._renderAtmosphere();
 
     //free memory
     var that = this;
@@ -767,7 +827,6 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._nMatrix._m);
             gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
             gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
-            //h.gl.uniformMatrix4fv(sh.uniforms.uTRSMatrix._pName, false, this.transformationMatrix._m);
 
             //bind night and specular materials
             gl.activeTexture(gl.TEXTURE0 + this.visibleTileLayers.length + 2);
@@ -814,20 +873,22 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._pMatrix._m);
 
             //bind ground atmosphere
-            gl.uniform3fv(shu.cameraPosition._pName, renderer.activeCamera.eye.toVec());
+            var a = this.atmosphereGroundParams;
+            var eye = renderer.activeCamera.eye;
+            gl.uniform3fv(shu.cameraPosition._pName, [eye.x, eye.y, eye.z]);
+            gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
             gl.uniform3fv(shu.v3LightPosition._pName, this._sunControl.sunlight._position.normal().toVec());
-            gl.uniform3fv(shu.v3InvWavelength._pName, og.math.vector3(1 / Math.pow(this.atmosphere.wavelength[0], 4), 1 / Math.pow(this.atmosphere.wavelength[1], 4), 1 / Math.pow(this.atmosphere.wavelength[2], 4)).toVec());
-            gl.uniform1f(shu.fCameraHeight2._pName, renderer.activeCamera.eye.length2());
-            gl.uniform1f(shu.fInnerRadius._pName, this.atmosphere.innerRadius);
-            gl.uniform1f(shu.fOuterRadius._pName, this.atmosphere.outerRadius);
-            gl.uniform1f(shu.fOuterRadius2._pName, this.atmosphere.outerRadius * this.atmosphere.outerRadius);
-            gl.uniform1f(shu.fKrESun._pName, this.atmosphere.Kr * this.atmosphere.ESun);
-            gl.uniform1f(shu.fKmESun._pName, this.atmosphere.Km * this.atmosphere.ESun);
-            gl.uniform1f(shu.fKr4PI._pName, this.atmosphere.Kr * 4.0 * Math.PI);
-            gl.uniform1f(shu.fKm4PI._pName, this.atmosphere.Km * 4.0 * Math.PI);
-            gl.uniform1f(shu.fScale._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius));
-            gl.uniform1f(shu.fScaleDepth._pName, this.atmosphere.scaleDepth);
-            gl.uniform1f(shu.fScaleOverScaleDepth._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius) / this.atmosphere.scaleDepth);
+            gl.uniform3fv(shu.v3InvWavelength._pName, a.v3InvWavelength);
+            gl.uniform1f(shu.fInnerRadius._pName, a.innerRadius);
+            gl.uniform1f(shu.fOuterRadius._pName, a.outerRadius);
+            gl.uniform1f(shu.fOuterRadius2._pName, a.fOuterRadius2);
+            gl.uniform1f(shu.fKrESun._pName, a.fKrESun);
+            gl.uniform1f(shu.fKmESun._pName, a.fKmESun);
+            gl.uniform1f(shu.fKr4PI._pName, a.fKr4PI);
+            gl.uniform1f(shu.fKm4PI._pName, a.fKm4PI);
+            gl.uniform1f(shu.fScale._pName, a.fScale);
+            gl.uniform1f(shu.fScaleDepth._pName, a.fScaleDepth);
+            gl.uniform1f(shu.fScaleOverScaleDepth._pName, a.fScaleOverScaleDepth);
 
             //bind night and specular materials
             gl.activeTexture(gl.TEXTURE3);
@@ -916,23 +977,25 @@ og.node.Planet.prototype._renderAtmosphere = function () {
     gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
 
     var eye = r.activeCamera.eye;
-    gl.uniform3fv(shu.cameraPosition._pName, eye.toVec());
-    gl.uniform3fv(shu.v3LightPosition._pName, this._sunControl.sunlight._position.normal().toVec());
-    gl.uniform3fv(shu.v3LightPos._pName, this._sunControl.sunlight._position.normal().toVec());
-    gl.uniform3fv(shu.v3InvWavelength._pName, og.math.vector3(1 / Math.pow(this.atmosphere.wavelength[0], 4), 1 / Math.pow(this.atmosphere.wavelength[1], 4), 1 / Math.pow(this.atmosphere.wavelength[2], 4)).toVec());
-    gl.uniform1f(shu.g._pName, this.atmosphere.g);
-    gl.uniform1f(shu.g2._pName, this.atmosphere.g * this.atmosphere.g);
+    var a = this.atmosphereSpaceParams;
+    var n = this._sunControl.sunlight._position.normal().toVec();
+    gl.uniform3fv(shu.cameraPosition._pName, [eye.x, eye.y, eye.z]);
     gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
-    gl.uniform1f(shu.fInnerRadius._pName, this.atmosphere.innerRadius);
-    gl.uniform1f(shu.fOuterRadius._pName, this.atmosphere.outerRadius);
-    gl.uniform1f(shu.fOuterRadius2._pName, this.atmosphere.outerRadius * this.atmosphere.outerRadius);
-    gl.uniform1f(shu.fKrESun._pName, this.atmosphere.Kr * this.atmosphere.ESun);
-    gl.uniform1f(shu.fKmESun._pName, this.atmosphere.Km * this.atmosphere.ESun);
-    gl.uniform1f(shu.fKr4PI._pName, this.atmosphere.Kr * 4.0 * Math.PI);
-    gl.uniform1f(shu.fKm4PI._pName, this.atmosphere.Km * 4.0 * Math.PI);
-    gl.uniform1f(shu.fScale._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius));
-    gl.uniform1f(shu.fScaleDepth._pName, this.atmosphere.scaleDepth);
-    gl.uniform1f(shu.fScaleOverScaleDepth._pName, 1 / (this.atmosphere.outerRadius - this.atmosphere.innerRadius) / this.atmosphere.scaleDepth);
+    gl.uniform3fv(shu.v3LightPosition._pName, n);
+    gl.uniform3fv(shu.v3LightPos._pName, n);
+    gl.uniform3fv(shu.v3InvWavelength._pName, a.v3InvWavelength);
+    gl.uniform1f(shu.g._pName, a.g);
+    gl.uniform1f(shu.g2._pName, a.g2);
+    gl.uniform1f(shu.fInnerRadius._pName, a.innerRadius);
+    gl.uniform1f(shu.fOuterRadius._pName, a.outerRadius);
+    gl.uniform1f(shu.fOuterRadius2._pName, a.fOuterRadius2);
+    gl.uniform1f(shu.fKrESun._pName, a.fKrESun);
+    gl.uniform1f(shu.fKmESun._pName, a.fKmESun);
+    gl.uniform1f(shu.fKr4PI._pName, a.fKr4PI);
+    gl.uniform1f(shu.fKm4PI._pName, a.fKm4PI);
+    gl.uniform1f(shu.fScale._pName, a.fScale);
+    gl.uniform1f(shu.fScaleDepth._pName, a.scaleDepth);
+    gl.uniform1f(shu.fScaleOverScaleDepth._pName, a.fScaleOverScaleDepth);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._atmospherePositionBuffer);
     gl.vertexAttribPointer(sha.position._pName, this._atmospherePositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

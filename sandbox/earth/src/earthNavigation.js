@@ -132,6 +132,7 @@ EarthNavigation.prototype.onTouchEnd = function (e) {
 
 EarthNavigation.prototype.onTouchMove = function (e) {
 
+    this.scaleRot = 0;
     if (e.sys.touches.length == 1) {
         var cam = this.renderer.activeCamera;
 
@@ -195,6 +196,8 @@ EarthNavigation.prototype.onMouseLeftButtonUp = function (e) {
 };
 
 EarthNavigation.prototype.onMouseLeftButtonDown = function (e) {
+    this.scaleRot = 0;
+
     var cam = this.renderer.activeCamera;
 
     if (!this.grabbedPoint || cam.isFlying())
@@ -219,8 +222,6 @@ EarthNavigation.prototype.onMouseLeftButtonDown = function (e) {
             cam.set(rot.mulVec3(cam.eye), og.math.Vector3.ZERO, og.math.Vector3.UP);
             cam.update();
         }
-    } else {
-        this.scaleRot = 0;
     }
 };
 

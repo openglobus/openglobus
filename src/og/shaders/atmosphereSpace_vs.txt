@@ -24,13 +24,12 @@ uniform float fScale;				// 1 / (fOuterRadius - fInnerRadius)
 uniform float fScaleDepth;			// The scale depth (i.e. the altitude at which the atmosphere's average density is found)
 uniform float fScaleOverScaleDepth;	// fScale / fScaleDepth
 
-const int nSamples = 13;
-const float fSamples = 13.0;
+const int nSamples = 5;
+const float fSamples = 5.0;
 
 varying vec3 v3Direction;
 varying vec3 c0;
 varying vec3 c1;
-
 
 float scale(float fCos)
 {
@@ -66,7 +65,7 @@ void main(void)
 
 	// Now loop through the sample rays
 	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
-	for(int i=0; i<nSamples; i++)
+	for(int i = 0; i < nSamples; i++)
 	{
 		float fHeight = length(v3SamplePoint);
 		float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));

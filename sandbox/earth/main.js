@@ -24,8 +24,8 @@ function plusMinusClick() {
 function init() {
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
-
-    var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
+    //http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg
+    var sat = new og.layer.XYZ("sat", { isBaseLayer: true, maxZoom:4, url: "http://127.0.0.1/og/sandbox/earth/sat/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '<div style="color:white">Powered by <a target="_blank" style="color:blue" href="http://www.openglobus.org">OpenGlobus</a></div>' });
 
     var skybox = new og.node.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",

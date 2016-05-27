@@ -58,12 +58,17 @@ void main(void) {
 	float fDet = max(0.0, B*B - 4.0 * C);
 	float fNear = 0.5 * (-B - sqrt(fDet));
 
+	
+		if (length(cameraPosition) < length(aVertexPosition)) {
+			v3Ray*=-1.0;
+		}
+
 	// Calculate the ray's starting position, then calculate its scattering offset
 	vec3 v3Start = cameraPosition + v3Ray * fNear;
 	fFar -= fNear;
 	float fDepth = exp((fInnerRadius - fOuterRadius) / fScaleDepth);
-	float fCameraAngle = dot(-v3Ray, aVertexPosition) / length(aVertexPosition);
-	float fLightAngle = dot(v3LightPosition, aVertexPosition) / length(aVertexPosition);
+	float fCameraAngle = dot(-v3Ray, normalize(aVertexPosition));
+	float fLightAngle = dot(normalize(v3LightPosition), normalize(aVertexPosition));
 	float fCameraScale = scale(fCameraAngle);
 	float fLightScale = scale(fLightAngle);
 	float fCameraOffset = fDepth*fCameraScale;
@@ -78,7 +83,7 @@ void main(void) {
 	// Now loop through the sample rays
 	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
 	vec3 v3Attenuate;
-	for(int i=0; i<nSamples; i++)
+	for(int i = 0; i < nSamples; i++)
 	{
 		float fHeight = length(v3SamplePoint);
 		float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));

@@ -6,6 +6,7 @@ goog.require('og.EntityCollection');
 goog.require('og.Billboard');
 goog.require('og.Label');
 goog.require('og.Entity');
+goog.require('og.GeoImage');
 
 goog.require('og.math.Vector2');
 goog.require('og.math.Vector3');
@@ -170,6 +171,8 @@ my.Billboard.prototype.initialization = function () {
         eee2.label.setText(this.value);
     };
     //lbl2.setAlign("center");
+
+
 };
 
 my.Billboard.prototype.toogleWireframe = function (e) {
