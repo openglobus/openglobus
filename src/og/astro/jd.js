@@ -133,7 +133,7 @@ og.jd.TAItoDate = function (tai) {
     var utc = og.jd.TAItoUTC(tai);
     if (!utc) {
         utc = og.jd.TAItoUTC(og.jd.addSeconds(tai, -1));
-        alert("cant conv utc")
+        og.console.logWrn("og.jd.TAItoDate:136 - can't conv utc.");
     }
 
     return og.jd.UTCtoDate(utc);

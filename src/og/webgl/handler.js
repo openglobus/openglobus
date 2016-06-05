@@ -6,6 +6,7 @@ goog.require('og.webgl.ShaderController');
 goog.require('og.ImageCanvas');
 goog.require('og.math.Pixel');
 goog.require('og.Clock');
+goog.require('og.Console');
 
 /** 
  * A WebGL handler for accessing low-level WebGL capabilities. 
@@ -280,7 +281,7 @@ og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
         if (notActivate)
             sc._activated = false;
     } else {
-        alert(program.name + " is allready exists.");
+        og.console.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
     }
 };
 
@@ -347,6 +348,8 @@ og.webgl.Handler.prototype.init = function () {
         this.canvas.width = this._params.width;
         this.canvas.height = this._params.height;
     }
+
+    og.console = og.Console.getInstance();
 
     this.gl = og.webgl.initWebGLContext(this.canvas, this._params.context);
     this._initialized = true;

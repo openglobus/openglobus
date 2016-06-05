@@ -123,6 +123,8 @@ og.Renderer = function (handler) {
      */
     this._currPickingColor = [0, 0, 0];
     this._prevPickingColor = [0, 0, 0];
+
+    this.console = null;
 };
 
 /**
@@ -254,7 +256,7 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
-        alert("Node name: " + renderNode.name + " allready exists.");
+        og.console.logWrn("og.Renderer 259 - node name: " + renderNode.name + " allready exists.");
     }
 };
 

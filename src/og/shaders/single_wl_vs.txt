@@ -58,11 +58,6 @@ void main(void) {
 	float fDet = max(0.0, B*B - 4.0 * C);
 	float fNear = 0.5 * (-B - sqrt(fDet));
 
-	
-		if (length(cameraPosition) < length(aVertexPosition)) {
-			v3Ray*=-1.0;
-		}
-
 	// Calculate the ray's starting position, then calculate its scattering offset
 	vec3 v3Start = cameraPosition + v3Ray * fNear;
 	fFar -= fNear;

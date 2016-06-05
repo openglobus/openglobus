@@ -26,10 +26,10 @@ og.webgl.initWebGLContext = function (canvas, params) {
         ctx.canvas = canvas;
     }
     catch (ex) {
-        alert("Exception during the GL context initialization");
+        og.console.logErr("exception during the GL context initialization");
     }
     if (!ctx) {
-        alert("Could not initialise WebGL");
+        og.console.logErr("could not initialise WebGL");
     }
     return ctx;
 };

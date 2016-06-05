@@ -56,7 +56,7 @@ og.shaderProgram.ShaderProgram.prototype.getShaderCompileStatus = function (shad
     this.gl.shaderSource(shader, src);
     this.gl.compileShader(shader);
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(shader));
+        og.console.logErr("og.shaderProgram.ShaderProgram:59 - " + this.gl.getShaderInfoLog(shader));
         return false;
     }
     return true;
@@ -105,7 +105,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     gl.linkProgram(this._p);
 
     if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
-        alert("Could not initialise shaders." + gl.getProgramInfoLog(this._p));
+        og.console.logErr("og.shaderProgram.ShaderProgram:108 - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p));
         gl.deleteProgram(this._p);
         return;
     }
@@ -124,7 +124,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this._p[a] = gl.getAttribLocation(this._p, a);
 
         if (this._p[a] == undefined) {
-            alert("error in " + this.name + ": Shader program: attribute " + a + " is not exists.");
+            og.console.logErr("og.shaderProgram.ShaderProgram:127 - " + this.name + ": shader program; attribute " + a + " is not exists.");
             gl.deleteProgram(this._p);
             return;
         }
@@ -144,7 +144,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this._p[u] = gl.getUniformLocation(this._p, u);
 
         if (this._p[u] == undefined) {
-            alert("error in " + this.name + ": Shader program: uniform " + u + " is not exists.");
+            og.console.logErr("og.shaderProgram.ShaderProgram:147 - " + this.name + ": shader program; uniform " + u + " is not exists.");
             gl.deleteProgram(this._p);
             return;
         }
