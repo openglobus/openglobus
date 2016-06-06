@@ -22,6 +22,18 @@ og.webgl.ShaderController.prototype.activate = function () {
     }
 };
 
+og.webgl.ShaderController.prototype.remove = function () {
+    var p = this._handler.shaderPrograms;
+    if (p[this._program.name]) {
+        if (this._activated) {
+            this.deactivate();
+        }
+        this._program.delete();
+        p[this._program.name] = null;
+        delete p[this._program.name];
+    }
+};
+
 og.webgl.ShaderController.prototype.deactivate = function () {
     this._program.disableAttribArrays();
     this._activated = false;

@@ -285,6 +285,10 @@ og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     }
 };
 
+og.webgl.Handler.prototype.removeShaderProgram = function (program) {
+    program.remove();
+};
+
 /**
  * Adds shader programs to the handler.
  * @public

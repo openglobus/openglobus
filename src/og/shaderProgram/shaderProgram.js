@@ -96,12 +96,18 @@ og.shaderProgram.ShaderProgram.prototype.enableAttribArrays = function () {
     }
 };
 
+og.shaderProgram.ShaderProgram.prototype.delete = function () {
+    this.gl.deleteProgram(this._p);
+};
+
 og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     this.gl = gl;
     this._p = this.gl.createProgram();
 
-    gl.attachShader(this._p, this.createFragmentShader(this.fragmentShader));
-    gl.attachShader(this._p, this.createVertexShader(this.vertexShader));
+    var fs = this.createFragmentShader(this.fragmentShader);
+    var vs = this.createVertexShader(this.vertexShader);
+    gl.attachShader(this._p, fs);
+    gl.attachShader(this._p, vs);
     gl.linkProgram(this._p);
 
     if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
@@ -111,6 +117,9 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     }
 
     this.use();
+
+    gl.detachShader(this._p, fs);
+    gl.detachShader(this._p, vs);
 
     for (var a in this.attributes) {
         this.attributes[a]._name = a;
