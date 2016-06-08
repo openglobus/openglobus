@@ -254,8 +254,15 @@ og.node.RenderNode.prototype.setDrawMode = function (mode) {
 og.node.RenderNode.prototype.transformLights = function () {
     var r = this.renderer;
     for (var i = 0; i < this._pointLights.length; i++) {
-        var ii = i * 3;
-        var tp = r.activeCamera._mvMatrix.mulVec3(this._pointLights[i]._position);
+        var ii = i * 4;
+        var tp;
+        if (this._pointLights[i].directional) {
+            tp = r.activeCamera._nMatrix.mulVec(this._pointLights[i]._position);
+            this._pointLightsTransformedPositions[ii + 3] = 0;
+        } else {
+            tp = r.activeCamera._mvMatrix.mulVec3(this._pointLights[i]._position);
+            this._pointLightsTransformedPositions[ii + 3] = 1;
+        }
         this._pointLightsTransformedPositions[ii] = tp.x;
         this._pointLightsTransformedPositions[ii + 1] = tp.y;
         this._pointLightsTransformedPositions[ii + 2] = tp.z;

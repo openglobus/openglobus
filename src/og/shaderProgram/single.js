@@ -54,7 +54,7 @@ og.shaderProgram.single_wl = function () {
             fScaleDepth: { type: og.shaderProgram.types.FLOAT },
             fScaleOverScaleDepth: { type: og.shaderProgram.types.FLOAT },
 
-            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
+            pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
         },

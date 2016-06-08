@@ -820,7 +820,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             sh = h.shaderPrograms.overlays_wl._program,
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+            gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
@@ -864,7 +864,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             sh = h.shaderPrograms.single_wl._program,
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+            gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 

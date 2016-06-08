@@ -5,7 +5,7 @@ uniform sampler2D uNormalMap;
 
 #define MAX_POINT_LIGHTS 1
 
-uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
+uniform vec4 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 uniform mat3 uNMatrix;
@@ -24,7 +24,8 @@ void main(void) {
     
     vec3 normal = normalize(uNMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
 
-    vec3 lightDirection = normalize(pointLightsPositions[0]/* - vPosition.xyz*/);
+    vec3 lightDirection = normalize(pointLightsPositions[0].xyz - vPosition.xyz * pointLightsPositions[0].w);
+
     vec3 eyeDirection = normalize(-vPosition.xyz);
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     
@@ -36,7 +37,7 @@ void main(void) {
     float specularLightWeighting = pow( max( dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
     float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	vec3 spec = pointLightsParamsv[2] * specularLightWeighting * shininess;
-    vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting*c0 + c1 + spec;
+    vec3 lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting * c0 + c1 + spec;
 	
 	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.31 - length(c0)) * nightImageColor.rgb;	
 
@@ -44,7 +45,8 @@ void main(void) {
 	
 	//gl_FragColor = vec4(c1, 1.0) + vec4(res.rgb * c0 + res.rgb*lightWeighting*(1.0-c0) + night * step(0.0, night) + spec, res.a);
 	//gl_FragColor = vec4(c1*lightWeighting + res.rgb * c0 *lightWeighting + res.rgb * lightWeighting * (1.0 - c0) + night * step(0.0, night) + spec , res.a);
+	//gl_FragColor = vec4(res.rgb*lightWeighting + night * step(0.0, night) + spec, res.a);
 
-	gl_FragColor = vec4(res.rgb*lightWeighting + night * step(0.0, night) + spec, res.a);
+	gl_FragColor = vec4(res.rgb * lightWeighting + night * step(0.0, night) + spec, res.a);
 
 }

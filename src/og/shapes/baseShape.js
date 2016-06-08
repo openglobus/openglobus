@@ -186,7 +186,7 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniform3fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
+            gl.uniform4fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
             gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
             gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);

@@ -14,7 +14,7 @@ og.shaderProgram.shape_wl = function () {
             uTRSMatrix: { type: og.shaderProgram.types.MAT4 },
             uNMatrix: { type: og.shaderProgram.types.MAT4 },
 
-            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
+            pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
 

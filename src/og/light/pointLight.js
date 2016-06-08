@@ -2,11 +2,13 @@ goog.provide('og.light.PointLight');
 
 goog.require('og.math.Vector3');
 
-og.light.PointLight = function (name, position, ambient, diffuse, specular, shininess) {
+og.light.PointLight = function (name, position, ambient, diffuse, specular, shininess, directional) {
     this._name = name || ("p" + og.light.PointLight._counter++);
     this._renderNode = null;
 
     this._position = position || new og.math.Vector3();
+
+    this.directional = true;// = directional || false;
 
     this._ambient = ambient || new og.math.Vector3();
     this._diffuse = diffuse || new og.math.Vector3(0.8, 0.8, 0.8);
@@ -65,7 +67,9 @@ og.light.PointLight.prototype.isActive = function () {
 
 
 og.light.PointLight.prototype.setPosition = function (position) {
-    this._position = position;
+    this._position.x = position.x;
+    this._position.y = position.y;
+    this._position.z = position.z;
     return this;
 };
 
