@@ -40,6 +40,22 @@ og.math.Matrix4.prototype.copy = function (a) {
     this.set(a._m);
 };
 
+og.math.Matrix4.prototype.toMatrix3 = function () {
+    var res = new og.math.Matrix3();
+    var a = this._m,
+        b = res._m;
+    b[0] = a[0];
+    b[1] = a[1];
+    b[2] = a[2];
+    b[3] = a[4];
+    b[4] = a[5];
+    b[5] = a[6];
+    b[6] = a[8];
+    b[7] = a[9];
+    b[8] = a[10];
+    return res;
+};
+
 og.math.Matrix4.prototype.mulVec3 = function (p) {
     var d = p.x, e = p.y, g = p.z;
     return new og.math.Vector3(

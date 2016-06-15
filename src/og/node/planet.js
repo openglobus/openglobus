@@ -824,9 +824,9 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._nMatrix._m);
-            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
-            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, renderer.activeCamera._pMatrix._m);
+            gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, renderer.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind night and specular materials
             gl.activeTexture(gl.TEXTURE0 + this.visibleTileLayers.length + 2);
@@ -868,9 +868,9 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
-            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._nMatrix._m);
-            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, renderer.activeCamera._mvMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._pMatrix._m);
+            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, renderer.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind ground atmosphere
             var a = this.atmosphereGroundParams;
@@ -903,7 +903,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             h.shaderPrograms.single_nl.activate();
             sh = h.shaderPrograms.single_nl._program;
 
-            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._pmvMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._projectionModeViewMatrix._m);
         }
     }
 
@@ -928,6 +928,8 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
     b.clear();
     pp.activate();
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
+    h.gl.uniformMatrix4fv(pp._program.uniforms.uPMVMatrix._pName, false, r.activeCamera._projectionModelViewMatrix._m);
+
     var i = this._renderedNodes.length;
     while (i--) {
         this._renderedNodes[i].planetSegment.drawHeightPicking();
@@ -973,8 +975,8 @@ og.node.Planet.prototype._renderAtmosphere = function () {
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._pMatrix._m);
-    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
 
     var eye = r.activeCamera.eye;
     var a = this.atmosphereSpaceParams;

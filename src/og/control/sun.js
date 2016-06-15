@@ -59,7 +59,7 @@ og.control.Sun.prototype.draw = function () {
     var c = this.renderer.handler.clock;
     this._currDate = c.currentDate;
 
-    if (Math.abs(this._currDate - this._prevDate) > 0.00034 ) {
+    if (Math.abs(this._currDate - this._prevDate) > 0.00034 && this.activated) {
         this._prevDate = this._currDate;
         this.sunlight.setPosition(og.astro.earth.getSunPosition(this._currDate));
     }

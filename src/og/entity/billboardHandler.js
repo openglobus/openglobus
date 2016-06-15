@@ -227,8 +227,8 @@ og.BillboardHandler.prototype._displayPASS = function () {
 
     gl.uniform1i(shu.u_texture._pName, 0);
 
-    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera._mvMatrix._m);
-    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
@@ -275,8 +275,8 @@ og.BillboardHandler.prototype._pickingPASS = function () {
 
     var gl = h.gl;
 
-    gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera._mvMatrix._m);
-    gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
 
     gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 

@@ -130,6 +130,7 @@ og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
 og.shape.BaseShape.prototype.setPosition3v = function (position) {
     this.position.copy(position);
     this._mxTranslation.translateToPosition(position);
+    this.refresh();
 };
 
 og.shape.BaseShape.prototype.translate3v = function (vec) {
@@ -189,9 +190,9 @@ og.shape.BaseShape.prototype.draw = function () {
             gl.uniform4fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
             gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
-            gl.uniformMatrix4fv(shu.uPMatrix._pName, false, r.activeCamera._pMatrix._m);
-            gl.uniformMatrix4fv(shu.uMVMatrix._pName, false, r.activeCamera._mvMatrix._m);
-            gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera._nMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix3fv(shu.normalMatrix._pName, false, r.activeCamera._normalMatrix._m);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
             gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -203,7 +204,7 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._pmvMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._projectionModelViewMatrix._m);
         }
 
         gl.uniform4fv(shu.uColor._pName, this.color);

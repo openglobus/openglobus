@@ -184,8 +184,8 @@ Atmosphere.prototype.drawSky = function () {
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._pMatrix._m);
-    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
 
     var eye = r.activeCamera.eye;
     gl.uniform3fv(shu.cameraPosition._pName, eye.toVec());
@@ -234,9 +234,9 @@ Atmosphere.prototype.drawGround = function () {
     this.transformLights();
 
 
-    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._pMatrix._m);
-    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._mvMatrix._m);
-    gl.uniformMatrix3fv(shu.uNMatrix._pName, false, r.activeCamera._nMatrix._m);
+    gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+    gl.uniformMatrix3fv(shu.normalMatrix._pName, false, r.activeCamera._normalMatrix._m);
 
     var eye = r.activeCamera.eye;
     gl.uniform3fv(shu.cameraPosition._pName, eye.toVec());

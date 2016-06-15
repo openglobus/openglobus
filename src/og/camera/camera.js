@@ -36,12 +36,12 @@ og.Camera = function (renderer, options) {
     this._farDist = 0;
     this._viewAngle = 0;
 
-    this._nMatrix = new og.math.Matrix3();
-    this._pMatrix = new og.math.Matrix4();
-    this._mvMatrix = new og.math.Matrix4();
-    this._pmvMatrix = new og.math.Matrix4();
-    this._ipmvMatrix = new og.math.Matrix4();
-    this._pMatrixPrecise = new og.math.Matrix4();
+    this._normalMatrix = new og.math.Matrix3();
+    this._projectionMatrix = new og.math.Matrix4();
+    this._modelViewMatrix = new og.math.Matrix4();
+    this._projectionModelViewMatrix = new og.math.Matrix4();
+    this._inverseProjectionModelViewMatrix = new og.math.Matrix4();
+    this._projectionMatrixPrecise = new og.math.Matrix4();
 
     this._u = new og.math.Vector3(0, 1, 0); //up x n
     this._v = new og.math.Vector3(1, 0, 0); //n x u - UP
@@ -103,11 +103,11 @@ og.Camera.prototype.clone = function () {
     newcam._v.copy(cam._v);
     newcam._n.copy(cam._n);
     newcam.renderer = cam.renderer;
-    newcam._pMatrix.copy(cam._pMatrix);
-    newcam._mvMatrix.copy(cam._mvMatrix);
-    newcam._pmvMatrix.copy(cam._pmvMatrix);
-    newcam._ipmvMatrix.copy(cam._ipmvMatrix);
-    newcam.frustum.setFrustum(newcam._pmvMatrix);
+    newcam._projectionMatrix.copy(cam._projectionMatrix);
+    newcam._modelViewMatrix.copy(cam._modelViewMatrix);
+    newcam._projectionModelViewMatrix.copy(cam._projectionModelViewMatrix);
+    newcam._inverseProjectionModelViewMatrix.copy(cam._inverseProjectionModelViewMatrix);
+    newcam.frustum.setFrustum(newcam._projectionModelViewMatrix);
     return newcam;
 };
 
@@ -119,10 +119,10 @@ og.Camera.prototype.update = function () {
 
     this._setModelViewMatrix();
 
-    this._pmvMatrix = this._pMatrix.mul(this._mvMatrix);
-    this.frustum.setFrustum(this._pmvMatrix._m);
-    this._ipmvMatrix = this._pmvMatrix.inverseTo();
-    this._nMatrix = this._mvMatrix.toInverseMatrix3().transposeTo();
+    this._projectionModelViewMatrix = this._projectionMatrix.mul(this._modelViewMatrix);
+    this.frustum.setFrustum(this._projectionModelViewMatrix._m);
+    this._inverseProjectionModelViewMatrix = this._projectionModelViewMatrix.inverseTo();
+    this._normalMatrix = this._modelViewMatrix.toMatrix3();//this._modelViewMatrix.toInverseMatrix3().transposeTo();
 
     this.events.dispatch(this.events.viewchange, this);
 };
@@ -133,7 +133,7 @@ og.Camera.prototype.update = function () {
  */
 og.Camera.prototype._setModelViewMatrix = function () {
     var u = this._u, v = this._v, n = this._n, eye = this.eye;
-    this._mvMatrix.set([u.x, v.x, n.x, 0,
+    this._modelViewMatrix.set([u.x, v.x, n.x, 0,
                         u.y, v.y, n.y, 0,
                         u.z, v.z, n.z, 0,
                        -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
@@ -219,8 +219,8 @@ og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this._aspect = aspect;
     this._nearDist = near;
     this._farDist = far;
-    this._pMatrix.setPerspective(angle, aspect, near, far);
-    this._pMatrixPrecise.setPerspective(angle, aspect, 0.1, 10);
+    this._projectionMatrix.setPerspective(angle, aspect, near, far);
+    this._projectionMatrixPrecise.setPerspective(angle, aspect, 0.1, 10);
 };
 
 /**
@@ -331,8 +331,8 @@ og.Camera.prototype.unproject = function (x, y) {
     var px = (x - w) / w,
         py = -(y - h) / h;
 
-    var world1 = this._ipmvMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
-        world2 = this._ipmvMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();
+    var world1 = this._inverseProjectionModelViewMatrix.mulVec4(new og.math.Vector4(px, py, -1, 1)).affinity(),
+        world2 = this._inverseProjectionModelViewMatrix.mulVec4(new og.math.Vector4(px, py, 0, 1)).affinity();
 
     return world2.subA(world1).toVector3().normalize();
 };
@@ -344,7 +344,7 @@ og.Camera.prototype.unproject = function (x, y) {
  * @returns {og.math.Vector2}
  */
 og.Camera.prototype.project = function (v) {
-    var r = this._pmvMatrix.mulVec4(v.toVector4()),
+    var r = this._projectionModelViewMatrix.mulVec4(v.toVector4()),
         c = this.renderer.handler.gl.canvas;
     return new og.math.Vector2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
 };
@@ -412,7 +412,7 @@ og.Camera.prototype.projectedSize = function (p) {
  * @type {og.math.Matrix3}
  */
 og.Camera.prototype.getNormalMatrix = function () {
-    return this._nMatrix;
+    return this._normalMatrix;
 };
 
 /**
@@ -421,7 +421,7 @@ og.Camera.prototype.getNormalMatrix = function () {
  * @type {og.math.Matrix4}
  */
 og.Camera.prototype.getProjectionMatrix = function () {
-    return this._pMatrix;
+    return this._projectionMatrix;
 };
 
 /**
@@ -430,7 +430,7 @@ og.Camera.prototype.getProjectionMatrix = function () {
  * @type {og.math.Matrix4}
  */
 og.Camera.prototype.getModelviewMatrix = function () {
-    return this._mvMatrix;
+    return this._modelViewMatrix;
 };
 
 /**
@@ -439,7 +439,7 @@ og.Camera.prototype.getModelviewMatrix = function () {
  * @type {og.math.Matrix4}
  */
 og.Camera.prototype.getProjectionModelviewMatrix = function () {
-    return this._pmvMatrix;
+    return this._projectionModelViewMatrix;
 };
 
 /**
@@ -448,5 +448,5 @@ og.Camera.prototype.getProjectionModelviewMatrix = function () {
  * @type {og.math.Matrix4}
  */
 og.Camera.prototype.getInverseProjecttionModelviewMatrix = function () {
-    return this._ipmvMatrix;
+    return this._inverseProjectionModelViewMatrix;
 };

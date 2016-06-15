@@ -2,13 +2,13 @@ attribute vec3 aVertexNormal;
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
 
-uniform mat4 uPMatrix;
-uniform mat4 uMVMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
 uniform mat4 uTRSMatrix;
-uniform mat3 uNMatrix;
+uniform mat3 normalMatrix;
 
 varying vec2 vTextureCoord;
-varying vec3 vTransformedNormal;
+varying vec3 vNormal;
 varying vec4 vPosition;
 
 const float C = 0.1;
@@ -17,9 +17,8 @@ float logc = 2.0 / log( C * far + 1.0 );
 
 void main(void) {
         vTextureCoord = aTextureCoord;
-
-        vTransformedNormal = uNMatrix * (uTRSMatrix * vec4(aVertexNormal, 1.0)).xyz;
-        vPosition = uMVMatrix * uTRSMatrix * vec4(aVertexPosition, 1.0);
-        gl_Position = uPMatrix * vPosition;
+        vNormal = normalMatrix * aVertexNormal;
+        vPosition = modelViewMatrix * uTRSMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = projectionMatrix * vPosition;
 	    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 }

@@ -1,7 +1,7 @@
 precision highp float;
 
 varying vec2 vTextureCoord;
-varying vec3 vTransformedNormal;
+varying vec3 vNormal;
 varying vec4 vPosition;
 	
 uniform vec4 uColor;
@@ -10,7 +10,7 @@ uniform sampler2D uSampler;
 #define MAX_POINT_LIGHTS 1
 
 uniform int pointLightsQuantity;
-uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
+uniform vec4 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 
@@ -26,53 +26,17 @@ void main(void) {
 
 
 	//i=0
-    lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
+    lightDirection = normalize(pointLightsPositions[0].xyz - vPosition.xyz * pointLightsPositions[0].w);
 	//float distance = length(dir);
 	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
-    normal = normalize(vTransformedNormal);
+    normal = normalize(vNormal);
     eyeDirection = normalize(-vPosition.xyz);
     reflectionDirection = reflect(-lightDirection, normal);	
 	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
     lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
 
-	//i=1
-/*	lightDirection = normalize(pointLightsPositions[1] - vPosition.xyz);
-	normal = normalize(vTransformedNormal);
-	eyeDirection = normalize(-vPosition.xyz);
-	reflectionDirection = reflect(-lightDirection, normal);
-	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[1]);
-	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-	lightWeighting += pointLightsParamsv[3] + pointLightsParamsv[4] * diffuseLightWeighting + pointLightsParamsv[5] * specularLightWeighting ;
-
-	//i=2
-	lightDirection = normalize(pointLightsPositions[2] - vPosition.xyz);
-	normal = normalize(vTransformedNormal);
-	eyeDirection = normalize(-vPosition.xyz);
-	reflectionDirection = reflect(-lightDirection, normal);
-	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[2]);
-	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-	lightWeighting += pointLightsParamsv[6] + pointLightsParamsv[7] * diffuseLightWeighting + pointLightsParamsv[8] * specularLightWeighting ;
-
-	//i=3
-	lightDirection = normalize(pointLightsPositions[3] - vPosition.xyz);
-	normal = normalize(vTransformedNormal);
-	eyeDirection = normalize(-vPosition.xyz);
-	reflectionDirection = reflect(-lightDirection, normal);
-	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[3]);
-	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-	lightWeighting += pointLightsParamsv[9] + pointLightsParamsv[10] * diffuseLightWeighting + pointLightsParamsv[11] * specularLightWeighting ;
-
-	//i=4
-	lightDirection = normalize(pointLightsPositions[4] - vPosition.xyz);
-	normal = normalize(vTransformedNormal);
-	eyeDirection = normalize(-vPosition.xyz);
-	reflectionDirection = reflect(-lightDirection, normal);
-	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[4]);
-	diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-	lightWeighting += pointLightsParamsv[12] + pointLightsParamsv[13] * diffuseLightWeighting + pointLightsParamsv[14] * specularLightWeighting ;
-*/
     vec4 cc = texture2D( uSampler, vTextureCoord.st );
-	cc.a = 0.5 + length(cc.rgb);
+	//cc.a = 0.5 + length(cc.rgb);
     gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
 }

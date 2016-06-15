@@ -1,1 +1,0 @@
-"e:\my projects\closure-library\closure\bin\build\depswriter.py" --root_with_prefix="./ ../../../og/sandbox/geoImage/" > "e:\my projects\openglobus\sandbox\geoImage\my-deps.js"

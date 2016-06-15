@@ -548,8 +548,8 @@ og.LineString.prototype.draw = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
-        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._modelViewMatrix._m);
 
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
@@ -586,8 +586,8 @@ og.LineString.prototype.drawPicking = function () {
 
         sh.activate();
 
-        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._pMatrix._m);
-        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._mvMatrix._m);
+        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._modelViewMatrix._m);
 
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness + this.pickingDistance);

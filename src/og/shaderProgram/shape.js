@@ -9,10 +9,10 @@ goog.require('og.utils');
 og.shaderProgram.shape_wl = function () {
     return new og.shaderProgram.ShaderProgram("shape_wl", {
         uniforms: {
-            uMVMatrix: { type: og.shaderProgram.types.MAT4 },
-            uPMatrix: { type: og.shaderProgram.types.MAT4 },
+            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
             uTRSMatrix: { type: og.shaderProgram.types.MAT4 },
-            uNMatrix: { type: og.shaderProgram.types.MAT4 },
+            normalMatrix: { type: og.shaderProgram.types.MAT4 },
 
             pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
@@ -34,7 +34,7 @@ og.shaderProgram.shape_wl = function () {
 og.shaderProgram.shape_nl = function () {
     return new og.shaderProgram.ShaderProgram("shape_nl", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionModelViewMatrix: { type: og.shaderProgram.types.MAT4 },
             uTRSMatrix: { type: og.shaderProgram.types.MAT4 },
             uColor: { type: og.shaderProgram.types.VEC4 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D }
