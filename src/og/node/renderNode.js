@@ -260,7 +260,7 @@ og.node.RenderNode.prototype.transformLights = function () {
             tp = r.activeCamera._normalMatrix.mulVec(this._pointLights[i]._position);
             this._pointLightsTransformedPositions[ii + 3] = 0;
         } else {
-            tp = r.activeCamera._modelViewMatrix.mulVec3(this._pointLights[i]._position);
+            tp = r.activeCamera._viewMatrix.mulVec3(this._pointLights[i]._position);
             this._pointLightsTransformedPositions[ii + 3] = 1;
         }
         this._pointLightsTransformedPositions[ii] = tp.x;

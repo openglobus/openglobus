@@ -11,7 +11,7 @@ og.shaderProgram.billboard = function () {
         uniforms: {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC2 },
             uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
@@ -36,7 +36,7 @@ og.shaderProgram.billboardPicking = function () {
     return new og.shaderProgram.ShaderProgram("billboardPicking", {
         uniforms: {
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC2 },
             uScaleByDistance: { type: og.shaderProgram.types.VEC3 },

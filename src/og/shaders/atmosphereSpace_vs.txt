@@ -8,7 +8,7 @@ float logc = 2.0 / log( fC * far + 1.0 );
 
 attribute vec3 position;
 uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
+uniform mat4 viewMatrix;
 uniform vec3 cameraPosition;
 uniform vec3 v3LightPosition;		// The direction vector to the light source
 uniform vec3 v3InvWavelength;		// 1 / pow(wavelength, 4) for the red, green, and blue channels
@@ -81,7 +81,7 @@ void main(void)
 	c0 = v3FrontColor * (v3InvWavelength * fKrESun);
 	c1 = v3FrontColor * fKmESun;
 	v3Direction = cameraPosition - position;
-	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+	gl_Position = projectionMatrix * viewMatrix * vec4( position, 1.0 );
 	gl_Position.z = ( log( fC * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 
 }

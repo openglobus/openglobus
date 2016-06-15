@@ -9,7 +9,7 @@ og.shaderProgram.atmosphereSpace = function () {
     return new og.shaderProgram.ShaderProgram("atmosphereSpace", {
         uniforms: {
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             cameraPosition: { type: og.shaderProgram.types.VEC3 },
             v3LightPosition: { type: og.shaderProgram.types.VEC3 },
             v3InvWavelength: { type: og.shaderProgram.types.VEC3 },

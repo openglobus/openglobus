@@ -825,7 +825,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
             gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, renderer.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
             gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind night and specular materials
@@ -869,7 +869,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
 
             gl.uniformMatrix3fv(shu.uNMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, renderer.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
             gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind ground atmosphere
@@ -928,7 +928,7 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
     b.clear();
     pp.activate();
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    h.gl.uniformMatrix4fv(pp._program.uniforms.uPMVMatrix._pName, false, r.activeCamera._projectionModelViewMatrix._m);
+    h.gl.uniformMatrix4fv(pp._program.uniforms.uPMVMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
     var i = this._renderedNodes.length;
     while (i--) {
@@ -976,7 +976,7 @@ og.node.Planet.prototype._renderAtmosphere = function () {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
-    gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+    gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
 
     var eye = r.activeCamera.eye;
     var a = this.atmosphereSpaceParams;

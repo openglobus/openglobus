@@ -11,7 +11,7 @@ og.shaderProgram.label = function () {
         uniforms: {
             u_fontTextureArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC2 },
             uZ: { type: og.shaderProgram.types.FLOAT },
@@ -39,7 +39,7 @@ og.shaderProgram.labelPicking = function () {
     return new og.shaderProgram.ShaderProgram("labelPicking", {
         uniforms: {
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
             uFloatParams: { type: og.shaderProgram.types.VEC2 },
             uScaleByDistance: { type: og.shaderProgram.types.VEC3 },

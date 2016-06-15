@@ -27,7 +27,7 @@ og.shaderProgram.single_wl = function () {
     return new og.shaderProgram.ShaderProgram("single_wl", {
         uniforms: {
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             uNMatrix: { type: og.shaderProgram.types.MAT3 },
             texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },

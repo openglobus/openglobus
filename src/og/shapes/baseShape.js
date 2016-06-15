@@ -29,7 +29,7 @@ og.shape.BaseShape = function (options) {
 
     this._mxScale = new og.math.Matrix4().setIdentity();
     this._mxTranslation = new og.math.Matrix4().setIdentity();
-    this._mxTRS = new og.math.Matrix4().setIdentity();
+    this._mxModel = new og.math.Matrix4().setIdentity();
 
     this.texture = null;
 
@@ -67,7 +67,7 @@ og.shape.BaseShape.prototype.clear = function () {
 
     this._mxScale.setIdentity();
     this._mxTranslation.setIdentity();
-    this._mxTRS.setIdentity();
+    this._mxModel.setIdentity();
 
     this._renderNode.handler.gl.deleteTexture(this.texture);
     this.texture = null;
@@ -168,7 +168,7 @@ og.shape.BaseShape.prototype._createBuffers = function () {
 }
 
 og.shape.BaseShape.prototype.refresh = function () {
-    this._mxTRS = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
+    this._mxModel = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
 };
 
 og.shape.BaseShape.prototype.draw = function () {
@@ -191,7 +191,7 @@ og.shape.BaseShape.prototype.draw = function () {
             gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
             gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
             gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
-            gl.uniformMatrix4fv(shu.modelViewMatrix._pName, false, r.activeCamera._modelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
             gl.uniformMatrix3fv(shu.normalMatrix._pName, false, r.activeCamera._normalMatrix._m);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
@@ -204,14 +204,14 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._projectionModelViewMatrix._m);
+            gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
         }
 
         gl.uniform4fv(shu.uColor._pName, this.color);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniformMatrix4fv(shu.uTRSMatrix._pName, false, this._mxTRS._m);
+        gl.uniformMatrix4fv(shu.modelMatrix._pName, false, this._mxModel._m);
 
         //if (this.texture) {
         gl.activeTexture(gl.TEXTURE0);

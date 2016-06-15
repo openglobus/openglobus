@@ -14,7 +14,7 @@ varying vec4 v_rgba;
 varying float v_fontIndex;
 varying vec3 v_bufferAA;
 
-uniform mat4 modelViewMatrix;
+uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform vec3 uCamPos;
 //0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio
@@ -51,8 +51,8 @@ void main() {
     
 	vec3 right, up;
 	if(a_alignedAxis == ZERO3){
-    	up = vec3( modelViewMatrix[0][1], modelViewMatrix[1][1], modelViewMatrix[2][1] );
-	    right = vec3( modelViewMatrix[0][0], modelViewMatrix[1][0], modelViewMatrix[2][0] );
+    	up = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
+	    right = vec3( viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0] );
 	}else{
 	    up = normalize(a_alignedAxis);
     	right = normalize(cross(look,up));
@@ -61,7 +61,7 @@ void main() {
 
 	v_bufferAA = vec3(a_bufferAA, 8.0 * a_bufferAA.y / a_size);
 
-	float dist = dot(uCamPos - a_positions.xyz, vec3(modelViewMatrix[0][2], modelViewMatrix[1][2], modelViewMatrix[2][2]));
+	float dist = dot(uCamPos - a_positions.xyz, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
     float focalSize = 2.0 * dist * uFloatParams[1];    
     vec2 offset = a_offset.xy * focalSize;
 	float scd = a_positions.w * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookDist)) * (1.0 - step(uScaleByDistance[2], lookDist));
@@ -70,7 +70,7 @@ void main() {
     float sinRot = sin(a_rotation);
     vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions.xyz;
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(rr, 1);
+    gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 	gl_Position.z += a_offset.z + uZ;
 }

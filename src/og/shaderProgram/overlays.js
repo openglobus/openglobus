@@ -9,7 +9,7 @@ goog.require('og.utils');
 og.shaderProgram.overlays_nl = function () {
     return new og.shaderProgram.ShaderProgram("overlays_nl", {
         uniforms: {
-            projectionModelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
@@ -30,7 +30,7 @@ og.shaderProgram.overlays_wl = function () {
     return new og.shaderProgram.ShaderProgram("overlays_wl", {
         uniforms: {
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             normalMatrix: { type: og.shaderProgram.types.MAT3 },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMapBias:{ type: og.shaderProgram.types.VEC3 },

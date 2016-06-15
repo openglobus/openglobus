@@ -8,7 +8,7 @@ goog.require('og.utils');
 og.shaderProgram.sphere = function () {
     return new og.shaderProgram.ShaderProgram("sphere", {
         uniforms: {
-            modelViewMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: og.shaderProgram.types.MAT4 },
             projectionMatrix: { type: og.shaderProgram.types.MAT4 },
             uNMatrix: { type: og.shaderProgram.types.MAT4 },
 

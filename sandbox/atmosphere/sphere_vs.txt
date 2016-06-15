@@ -3,7 +3,7 @@ attribute vec3 position;
 attribute vec2 uv;
 
 uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
+uniform mat4 viewMatrix;
 uniform mat3 uNMatrix;
 
 uniform vec3 cameraPosition;
@@ -91,7 +91,7 @@ void main(void) {
 
 	vUv = uv;
 	vTransformedNormal = uNMatrix * normal;
-	vPosition = modelViewMatrix * vec4(position, 1.0);
+	vPosition = viewMatrix * vec4(position, 1.0);
 
 	gl_Position = projectionMatrix * vPosition;
 }

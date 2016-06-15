@@ -6,7 +6,7 @@ attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
 
 uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
+uniform mat4 viewMatrix;
 uniform vec3 texBias;
 uniform vec3 uNormalMapBias;
 uniform vec3 geoImageTexBias;
@@ -92,7 +92,7 @@ void main(void) {
 	c0 = v3Attenuate;
 	c1 = v3FrontColor * (v3InvWavelength * fKrESun + fKmESun);
 
-    vPosition = modelViewMatrix * vec4(aVertexPosition, 1.0);
+    vPosition = viewMatrix * vec4(aVertexPosition, 1.0);
     gl_Position = projectionMatrix * vPosition;
     gl_Position.z = ( log( fC * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
     vTextureCoord.xy = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );

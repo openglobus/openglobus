@@ -97,10 +97,10 @@ og.PlanetCamera.prototype.clone = function () {
     newcam._n.copy(cam._n);
     newcam.renderer = cam.renderer;
     newcam._projectionMatrix.copy(cam._projectionMatrix);
-    newcam._modelViewMatrix.copy(cam._modelViewMatrix);
-    newcam._projectionModelViewMatrix.copy(cam._projectionModelViewMatrix);
-    newcam._inverseProjectionModelViewMatrix.copy(cam._inverseProjectionModelViewMatrix);
-    newcam.frustum.setFrustum(newcam._projectionModelViewMatrix);
+    newcam._viewMatrix.copy(cam._viewMatrix);
+    newcam._projectionViewMatrix.copy(cam._projectionViewMatrix);
+    newcam._inverseProjectionViewMatrix.copy(cam._inverseProjectionViewMatrix);
+    newcam.frustum.setFrustum(newcam._projectionViewMatrix);
     newcam.planet = cam.planet;
     newcam._lonLat = cam._lonLat.clone();
     return newcam;
@@ -112,15 +112,15 @@ og.PlanetCamera.prototype.clone = function () {
  */
 og.PlanetCamera.prototype.update = function () {
 
-    this._setModelViewMatrix();
+    this._setViewMatrix();
 
-    this._projectionModelViewMatrix = this._projectionMatrix.mul(this._modelViewMatrix);
-    this.frustum.setFrustum(this._projectionModelViewMatrix._m);
+    this._projectionViewMatrix = this._projectionMatrix.mul(this._viewMatrix);
+    this.frustum.setFrustum(this._projectionViewMatrix._m);
 
-    this._inverseProjectionModelViewMatrix = this._projectionMatrixPrecise.mul(this._modelViewMatrix).inverseTo();
+    this._inverseProjectionViewMatrix = this._projectionMatrixPrecise.mul(this._viewMatrix).inverseTo();
 
-    //this._normalMatrix = this._modelViewMatrix.toInverseMatrix3().transposeTo();
-    this._normalMatrix = this._modelViewMatrix.toMatrix3();
+    //this._normalMatrix = this._viewMatrix.toInverseMatrix3().transposeTo();
+    this._normalMatrix = this._viewMatrix.toMatrix3();
 
     this.updateGeodeticPosition();
 
