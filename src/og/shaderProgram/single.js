@@ -8,7 +8,7 @@ goog.require('og.shaderProgram.types');
 og.shaderProgram.single_nl = function () {
     return new og.shaderProgram.ShaderProgram("single_nl", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
             texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
             uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },

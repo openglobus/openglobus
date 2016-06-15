@@ -1,12 +1,12 @@
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
 
-uniform mat4 uPMVMatrix;
+uniform mat4 projectionViewMatrix;
 uniform vec3 eye;
 
 varying vec2 vTextureCoord;
 
 void main(void) {
-    gl_Position = uPMVMatrix * vec4(aVertexPosition + eye, 1.0);
+    gl_Position = projectionViewMatrix * vec4(aVertexPosition + eye, 1.0);
     vTextureCoord = aTextureCoord;
 }

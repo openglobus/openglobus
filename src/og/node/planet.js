@@ -840,7 +840,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
         } else {
             h.shaderPrograms.overlays_nl.activate();
             sh = h.shaderPrograms.overlays_nl._program;
-            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._pmvMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
         var layers = this.visibleTileLayers;
@@ -903,7 +903,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
             h.shaderPrograms.single_nl.activate();
             sh = h.shaderPrograms.single_nl._program;
 
-            gl.uniformMatrix4fv(sh.uniforms.uPMVMatrix._pName, false, renderer.activeCamera._projectionModeViewMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
         }
     }
 
@@ -928,7 +928,7 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
     b.clear();
     pp.activate();
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    h.gl.uniformMatrix4fv(pp._program.uniforms.uPMVMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+    h.gl.uniformMatrix4fv(pp._program.uniforms.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
     var i = this._renderedNodes.length;
     while (i--) {

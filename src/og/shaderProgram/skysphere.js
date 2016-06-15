@@ -9,7 +9,7 @@ goog.require('og.utils');
 og.shaderProgram.skysphere = function () {
     return new og.shaderProgram.ShaderProgram("skysphere", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
             eye: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D }
         },

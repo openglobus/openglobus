@@ -8,7 +8,7 @@ goog.require('og.utils');
 og.shaderProgram.skybox = function () {
     return new og.shaderProgram.ShaderProgram("skybox", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 },
+            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
             uSampler: { type: og.shaderProgram.types.SAMPLERCUBE },
             pos: { type: og.shaderProgram.types.VEC3 }
         },

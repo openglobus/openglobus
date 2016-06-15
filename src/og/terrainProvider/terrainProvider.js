@@ -15,7 +15,8 @@ og.terrainProvider.defaultOptions = {
     responseType: "arraybuffer",
     minZoom: 3,
     maxZoom: 14,
-    gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32],
+    //gridSizeByZoom: [64, 32, 16, 8, 8, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32],
+    gridSizeByZoom: [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32],
     fileGridSize: 32,
     MAX_LOADING_TILES: 4
 };

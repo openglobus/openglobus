@@ -204,7 +204,7 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.uPMVMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
         }
 
         gl.uniform4fv(shu.uColor._pName, this.color);

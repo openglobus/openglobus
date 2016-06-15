@@ -3,7 +3,7 @@ precision highp float;
 attribute vec3 aVertexPosition;
 attribute vec2 aTextureCoord;
 
-uniform mat4 uPMVMatrix;
+uniform mat4 projectionViewMatrix;
 uniform vec3 texBias;
 uniform vec3 geoImageTexBias;
 
@@ -16,7 +16,7 @@ const float far = 149.6e+9;
 float logc = 2.0 / log( C * far + 1.0 );
 
 void main(void) {
-    gl_Position = uPMVMatrix * vec4(aVertexPosition, 1.0);		
+    gl_Position = projectionViewMatrix * vec4(aVertexPosition, 1.0);		
     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 	vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
     vTextureCoord = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
