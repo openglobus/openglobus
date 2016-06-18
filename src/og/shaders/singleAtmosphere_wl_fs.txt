@@ -8,7 +8,7 @@ uniform sampler2D uNormalMap;
 uniform vec4 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
-uniform mat3 uNMatrix;
+uniform mat3 normalMatrix;
 uniform sampler2D uGeoImage;
 uniform sampler2D uNightImage;
 uniform sampler2D uSpecularImage;
@@ -22,7 +22,7 @@ varying vec3 c1;
 
 void main(void) {
     
-    vec3 normal = normalize(uNMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
+    vec3 normal = normalize(normalMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
 
     vec3 lightDirection = normalize(pointLightsPositions[0].xyz - vPosition.xyz * pointLightsPositions[0].w);
 

@@ -1,5 +1,6 @@
 goog.provide('og.shaderProgram.overlays_nl');
 goog.provide('og.shaderProgram.overlays_wl');
+goog.provide('og.shaderProgram.overlaysAtmosphere_wl');
 
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');

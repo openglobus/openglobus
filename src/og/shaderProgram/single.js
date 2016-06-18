@@ -39,7 +39,6 @@ og.shaderProgram.single_wl = function () {
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D },
-            //cameraPosition: { type: og.shaderProgram.types.VEC3 },
             pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
             pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
             pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
@@ -69,7 +68,7 @@ og.shaderProgram.singleAtmosphere_wl = function () {
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D },
 
-            //cameraPosition: { type: og.shaderProgram.types.VEC3 },
+            cameraPosition: { type: og.shaderProgram.types.VEC3 },
             v3LightPosition: { type: og.shaderProgram.types.VEC3 },
             v3InvWavelength: { type: og.shaderProgram.types.VEC3 },
             fCameraHeight2: { type: og.shaderProgram.types.FLOAT },

@@ -54,6 +54,7 @@ function start() {
     ];
 
     globus = new og.Globus({
+        "atmosphere": true,
         "target": "globus",
         "name": "Earth",
         "controls": controls,

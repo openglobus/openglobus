@@ -252,7 +252,6 @@ og.Renderer.prototype.init = function () {
 og.Renderer.prototype.addRenderNode = function (renderNode) {
     if (!this.renderNodes[renderNode.name]) {
         renderNode.assignRenderer(this);
-        renderNode.initialization();
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {

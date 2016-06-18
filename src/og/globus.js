@@ -3,6 +3,7 @@ goog.provide('og.Globus');
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
 goog.require('og.node.Planet');
+goog.require('og.node.PlanetAtmosphere');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.terrainProvider.EmptyTerrainProvider');
 
@@ -86,7 +87,11 @@ og.Globus = function (options) {
      * @public
      * @type {og.node.RenderNode}
      */
-    this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
+    if (options.atmosphere) {
+        this.planet = new og.node.PlanetAtmosphere(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
+    } else {
+        this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
+    }
 
     //Attach terrain provider
     if (options.terrain) {
@@ -163,7 +168,7 @@ og.Globus = function (options) {
         }, delta);
 
     };
-    
+
     //Run!
     if (isUndefined(options.autoActivate) || options.autoActivate)
         this.renderer.start();

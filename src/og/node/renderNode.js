@@ -110,6 +110,8 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i].setRenderer(renderer);
     }
+
+    this.initialization && this.initialization();
 };
 
 /**

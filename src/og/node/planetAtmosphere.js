@@ -2,9 +2,9 @@ goog.provide('og.node.PlanetAtmosphere');
 
 goog.require('og.shape.Icosphere');
 goog.require('og.shaderProgram.atmosphereSpace');
+goog.require('og.shaderProgram.overlays_nl');
 goog.require('og.shaderProgram.overlaysAtmosphere_wl');
-goog.require('og.shaderProgram.overlaysAtmosphere_nl');
-goog.require('og.shaderProgram.singleAtmosphere_nl');
+goog.require('og.shaderProgram.single_nl');
 goog.require('og.shaderProgram.singleAtmosphere_wl');
 goog.require('og.inheritance');
 
@@ -84,24 +84,27 @@ og.node.PlanetAtmosphere = function(name, ellipsoid){
 
     this._atmospherePositionBuffer = null;
     this._atmosphereIndexBuffer = null;
-
-    //creates atmosphere around the earth geometry
-    var icosphere = new og.shape.Icosphere({ level: 5, size: this.atmosphereSpaceParams.outerRadius });
-    this._atmospherePositionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(icosphere._positionData), 3, icosphere._positionData.length / 3);
-    this._atmosphereIndexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(icosphere._indexData), 1, icosphere._indexData.length);
-
 };
 
 og.inheritance.extend(og.node.PlanetAtmosphere, og.node.Planet);
-
 
 og.node.PlanetAtmosphere.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.singleAtmosphere_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlaysAtmosphere_wl(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.overlaysAtmosphere_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.atmosphereSpace(), true);
+};
+
+og.node.PlanetAtmosphere.prototype.initialization = function () {
+
+    this.constructor.superclass.initialization.call(this);
+
+    //creates atmosphere around the earth geometry
+    var icosphere = new og.shape.Icosphere({ level: 5, size: this.atmosphereSpaceParams.outerRadius });
+    this._atmospherePositionBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(icosphere._positionData), 3, icosphere._positionData.length / 3);
+    this._atmosphereIndexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(icosphere._indexData), 1, icosphere._indexData.length);
 };
 
 
@@ -116,24 +119,158 @@ og.node.PlanetAtmosphere.prototype._rendering = function () {
     this._renderAtmosphere();
 };
 
+/**
+ * @protected
+ * @virtual
+ */
+og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
+    var sh;
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    var gl = h.gl;
 
-////bind ground atmosphere
-//var a = this.atmosphereGroundParams;
-//var eye = renderer.activeCamera.eye;
-//gl.uniform3fv(shu.cameraPosition._pName, [eye.x, eye.y, eye.z]);
-//gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
-//gl.uniform3fv(shu.v3LightPosition._pName, this._sunControl.sunlight._position.normal().toVec());
-//gl.uniform3fv(shu.v3InvWavelength._pName, a.v3InvWavelength);
-//gl.uniform1f(shu.fInnerRadius._pName, a.innerRadius);
-//gl.uniform1f(shu.fOuterRadius._pName, a.outerRadius);
-//gl.uniform1f(shu.fOuterRadius2._pName, a.fOuterRadius2);
-//gl.uniform1f(shu.fKrESun._pName, a.fKrESun);
-//gl.uniform1f(shu.fKmESun._pName, a.fKmESun);
-//gl.uniform1f(shu.fKr4PI._pName, a.fKr4PI);
-//gl.uniform1f(shu.fKm4PI._pName, a.fKm4PI);
-//gl.uniform1f(shu.fScale._pName, a.fScale);
-//gl.uniform1f(shu.fScaleDepth._pName, a.fScaleDepth);
-//gl.uniform1f(shu.fScaleOverScaleDepth._pName, a.fScaleOverScaleDepth);
+    var layers = this.visibleTileLayers;
+
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    if (this.lightEnabled) {
+        h.shaderPrograms.overlaysAtmosphere_wl.activate();
+        sh = h.shaderPrograms.overlaysAtmosphere_wl._program,
+        shu = sh.uniforms;
+
+        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
+        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+
+        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+
+        //bind ground atmosphere
+        var a = this.atmosphereGroundParams;
+        var eye = renderer.activeCamera.eye;
+        gl.uniform3fv(shu.cameraPosition._pName, [eye.x, eye.y, eye.z]);
+        gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
+        gl.uniform3fv(shu.v3LightPosition._pName, this._sunControl.sunlight._position.normal().toVec());
+        gl.uniform3fv(shu.v3InvWavelength._pName, a.v3InvWavelength);
+        gl.uniform1f(shu.fInnerRadius._pName, a.innerRadius);
+        gl.uniform1f(shu.fOuterRadius._pName, a.outerRadius);
+        gl.uniform1f(shu.fOuterRadius2._pName, a.fOuterRadius2);
+        gl.uniform1f(shu.fKrESun._pName, a.fKrESun);
+        gl.uniform1f(shu.fKmESun._pName, a.fKmESun);
+        gl.uniform1f(shu.fKr4PI._pName, a.fKr4PI);
+        gl.uniform1f(shu.fKm4PI._pName, a.fKm4PI);
+        gl.uniform1f(shu.fScale._pName, a.fScale);
+        gl.uniform1f(shu.fScaleDepth._pName, a.fScaleDepth);
+        gl.uniform1f(shu.fScaleOverScaleDepth._pName, a.fScaleOverScaleDepth);
+
+        //bind night glowing material
+        gl.activeTexture(gl.TEXTURE0 + layers.length + 2);
+        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+        gl.uniform1i(shu.uNightImage._pName, layers.length + 2);
+
+        //bind specular material
+        gl.activeTexture(gl.TEXTURE0 + layers.length + 3);
+        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+        gl.uniform1i(shu.uSpecularImage._pName, layers.length + 3);
+
+    } else {
+        h.shaderPrograms.overlays_nl.activate();
+        sh = h.shaderPrograms.overlays_nl._program;
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+    }
+
+    var i = layers.length;
+    while (i--) {
+        var ll = layers[i];
+        var nt4 = i * 4;
+        this._tcolorArr[nt4] = ll.transparentColor[0];
+        this._tcolorArr[nt4 + 1] = ll.transparentColor[1];
+        this._tcolorArr[nt4 + 2] = ll.transparentColor[2];
+        this._tcolorArr[nt4 + 3] = ll.opacity;
+    }
+
+    gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
+    gl.uniform4fv(sh.uniforms.tcolorArr._pName, this._tcolorArr);
+
+    //draw planet's nodes
+    var i = this._renderedNodes.length;
+    while (i--) {
+        og.planetSegment.drawOverlays(sh, this._renderedNodes[i].planetSegment);
+    }
+
+    gl.disable(gl.BLEND);
+};
+
+/**
+ * @protected
+ * @virtual
+ */
+og.node.PlanetAtmosphere.prototype._drawSingle = function () {
+    var sh;
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    var gl = h.gl;
+
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    if (this.lightEnabled) {
+        h.shaderPrograms.singleAtmosphere_wl.activate();
+        sh = h.shaderPrograms.singleAtmosphere_wl._program,
+        shu = sh.uniforms;
+
+        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
+        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
+        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+
+        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+
+        //bind ground atmosphere
+        var a = this.atmosphereGroundParams;
+        var eye = renderer.activeCamera.eye;
+        gl.uniform3fv(shu.cameraPosition._pName, [eye.x, eye.y, eye.z]);
+        gl.uniform1f(shu.fCameraHeight2._pName, eye.length2());
+        gl.uniform3fv(shu.v3LightPosition._pName, this._sunControl.sunlight._position.normal().toVec());
+        gl.uniform3fv(shu.v3InvWavelength._pName, a.v3InvWavelength);
+        gl.uniform1f(shu.fInnerRadius._pName, a.innerRadius);
+        gl.uniform1f(shu.fOuterRadius._pName, a.outerRadius);
+        gl.uniform1f(shu.fOuterRadius2._pName, a.fOuterRadius2);
+        gl.uniform1f(shu.fKrESun._pName, a.fKrESun);
+        gl.uniform1f(shu.fKmESun._pName, a.fKmESun);
+        gl.uniform1f(shu.fKr4PI._pName, a.fKr4PI);
+        gl.uniform1f(shu.fKm4PI._pName, a.fKm4PI);
+        gl.uniform1f(shu.fScale._pName, a.fScale);
+        gl.uniform1f(shu.fScaleDepth._pName, a.fScaleDepth);
+        gl.uniform1f(shu.fScaleOverScaleDepth._pName, a.fScaleOverScaleDepth);
+
+        //bind night and specular materials
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+        gl.uniform1i(shu.uNightImage._pName, 3);
+
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+        gl.uniform1i(shu.uSpecularImage._pName, 4);
+    } else {
+        h.shaderPrograms.single_nl.activate();
+        sh = h.shaderPrograms.single_nl._program;
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+    }
+
+    //draw planet's nodes
+    var i = this._renderedNodes.length;
+    while (i--) {
+        og.planetSegment.drawSingle(sh, this._renderedNodes[i].planetSegment);
+    }
+
+    gl.disable(gl.BLEND);
+};
 
 og.node.PlanetAtmosphere.prototype._renderAtmosphere = function () {
     var rn = this;
