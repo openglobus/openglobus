@@ -2,7 +2,7 @@ precision highp float;
 
 #define MAX_POINT_LIGHTS 1
 
-uniform vec4 pointLightsPositions[MAX_POINT_LIGHTS];
+uniform vec3 pointLightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
 
@@ -29,7 +29,7 @@ void main(void)
     vec4 nm = texture2D(uNormalMap, vTextureCoord.zw);
     vec3 normal = normalize(v_NMatrix * ((nm.xyz - 0.5) * 2.0));
 
-    vec3 lightDirection = normalize(pointLightsPositions[0].xyz - vPosition.xyz * pointLightsPositions[0].w);
+    vec3 lightDirection = normalize(pointLightsPositions[0] - vPosition.xyz);
     //float distance = length(dir);
     //float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
     vec3 eyeDirection = normalize(-vPosition.xyz);
