@@ -109,8 +109,7 @@ og.node.PlanetAtmosphere.prototype.initialization = function () {
 
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.PlanetAtmosphere.prototype._rendering = function () {
     this._renderNodesPASS();
@@ -120,8 +119,7 @@ og.node.PlanetAtmosphere.prototype._rendering = function () {
 };
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
     var sh;
@@ -205,8 +203,7 @@ og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
 };
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.PlanetAtmosphere.prototype._drawSingle = function () {
     var sh;

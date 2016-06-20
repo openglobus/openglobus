@@ -467,8 +467,7 @@ og.node.Planet.prototype.setTerrainProvider = function (terrain) {
 };
 
 /**
- * @protected
- * @virtual
+ * @absract
  */
 og.node.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
@@ -478,6 +477,9 @@ og.node.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
 };
 
+/**
+ * @abstract
+ */
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
     og.PlanetSegmentHelper.initIndexesTables(6);
@@ -577,6 +579,12 @@ og.node.Planet.prototype.initialization = function () {
     }
 };
 
+/**
+ * Creates default textures first for nirth pole and whole globe and second for south pole.
+ * @public
+ * @param{object} param0
+ * @param{object} param1
+ */
 og.node.Planet.prototype.createDefaultTextures = function (param0, param1) {
     this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
     this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
@@ -730,8 +738,7 @@ og.node.Planet.prototype.frame = function () {
 };
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.Planet.prototype._rendering = function () {
     this._renderNodesPASS();
@@ -740,8 +747,7 @@ og.node.Planet.prototype._rendering = function () {
 };
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.Planet.prototype._drawOverlays = function () {
     var sh;
@@ -807,8 +813,7 @@ og.node.Planet.prototype._drawOverlays = function () {
 };
 
 /**
- * @protected
- * @virtual
+ * @abstract
  */
 og.node.Planet.prototype._drawSingle = function () {
     var sh;
