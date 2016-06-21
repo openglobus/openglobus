@@ -1,5 +1,10 @@
 goog.provide('og.node.Node');
 
+/**
+ * Node base class.
+ * @class
+ * @param {string} name - Node name.
+ */
 og.node.Node = function (name) {
     this.name = name;
     this.topNode = this;

@@ -37,7 +37,7 @@ goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 
 /**
  * Main class for rendering planet
- *
+ * @class
  * @extends {og.node.RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
@@ -83,6 +83,9 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this.visibleVectorLayers = [];
 
+    /**
+     * @protected
+     */
     this._frustumEntityCollections = [];
 
     /**
@@ -92,7 +95,9 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this.baseLayer = null;
 
-
+    /**
+     * @public
+     */
     this.lightEnabled = false;
 
     /**
@@ -152,7 +157,14 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this.maxCurrZoom = og.math.MIN;
 
+    /**
+     * @protected
+     */
     this._viewExtentWGS84 = null;
+
+    /**
+     * @protected
+     */
     this._viewExtentMerc = null;
 
     /**
@@ -166,10 +178,24 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this._renderedNodes = [];
 
+    /**
+     * @protected
+     */
     this._visibleNodes = {};
+
+    /**
+     * @protected
+     */
     this._visibleNodesNorth = {};
+
+    /**
+     * @protected
+     */
     this._visibleNodesSouth = {};
 
+    /**
+     * @public
+     */
     this.layersActivity = true;
 
     /**
@@ -225,10 +251,24 @@ og.node.Planet = function (name, ellipsoid) {
      */
     this._quadTreeSouth = null;
 
+    /**
+     * @protected
+     */
     this._nightTexture = null;
+
+    /**
+     * @protected
+     */
     this._specularTexture = null;
 
+    /**
+     * @protected
+     */
     this._useNightTexture = true;
+
+    /**
+     * @protected
+     */
     this._useSpecularTexture = true;
 
     //events initialization
@@ -240,16 +280,11 @@ og.inheritance.extend(og.node.Planet, og.node.RenderNode);
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
  * 200 - is a good value for iPad and low memory devices.
- * @static
+ * @const
  * @type {number}
  */
 og.node.Planet.MAX_NODES = 250;
 
-/**
- * Planet node events names
- * @type {Array.<string>}
- * @const
- */
 og.node.Planet.EVENT_NAMES = [
         /**
          * Triggered before globe frame begins to render.

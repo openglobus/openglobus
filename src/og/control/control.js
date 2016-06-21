@@ -1,11 +1,10 @@
 goog.provide('og.control.Control');
 
 /*
- * og.control.Control is a base class for implementing renderer controls.
+ * Base control class for implementing renderer controls.
  * All other controls extend from this class.
- *
  * @class
- * @params {*} options - Control activation options.
+ * @params{Object} options - Control activation options:
  */
 og.control.Control = function (options) {
     this.renderer = null;

@@ -112,13 +112,15 @@ og.webgl.Handler = function (id, params) {
     this._frameCallback = function () { };
 };
 
+/**
+ * @const
+ */
 og.webgl.Handler.MAX_SIZE = 4096;
 
 /**
  * Sets animation frame function.
  * @public
- * @callback frameCallback - Frame callback function.
- * @param {frameCallback}
+ * @param {callback} - Frame callback.
  */
 og.webgl.Handler.prototype.setFrameCallback = function (callback) {
     callback && (this._frameCallback = callback);

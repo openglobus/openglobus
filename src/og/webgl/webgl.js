@@ -8,6 +8,11 @@ if (COMPILED) {
     og.webgl.RESOURCES_URL = "../../resources/";
 }
 
+/**
+ * Returns WebGL extension
+ * @param {Object} gl - gl pointer.
+ * @param {String} name - Extension name.
+ */
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
     for (i in og.webgl.vendorPrefixes) {
@@ -19,6 +24,12 @@ og.webgl.getExtension = function (gl, name) {
     return null;
 };
 
+/**
+ * Returns WebGL context.
+ * @param {Object} canvas - HTML canvas object.
+ * @params {Object} params:
+ * @returns {Object}
+ */
 og.webgl.initWebGLContext = function (canvas, params) {
     var ctx;
     try {

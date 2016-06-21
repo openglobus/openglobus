@@ -6,11 +6,6 @@ goog.require('og.math.Vector4');
 goog.require('og.LonLat');
 
 /**
- * Openglobus utility namespace.
- * @namespace og.utils
- */
-
-/**
  * Synchronous text file loading. Returns file text.
  * @param {string} fileUrl - File name path.
  * @returns {string}

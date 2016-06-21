@@ -6,9 +6,26 @@ goog.provide('og.Events');
  * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  */
 og.Events = function (eventNames) {
+    /**
+     * Registered event names.
+     * @protected
+     * @type {Array.<String>}
+     */
     this._eventNames = eventNames || [];
     eventNames && this.registerNames(eventNames);
+
+    /**
+     * Event identifier.
+     * @protected
+     * @type {Number}
+     */
     this._counter = 0;
+
+    /**
+     * Stop propagation flag
+     * @protected
+     * @type {Boolean}
+     */
     this._stopPropagation = false;
 };
 
@@ -24,6 +41,9 @@ og.Events.prototype.registerNames = function (eventNames) {
     }
 };
 
+/**
+ * protected
+ */
 og.Events.prototype._stamp = function (obj) {
     if (!obj._openglobus_id) {
         obj._openglobus_id = ++this._counter;
@@ -106,7 +126,6 @@ og.Events.prototype.clear = function () {
         var e = this[this._eventNames[i]];
         e.handlers.length = 0;
         e.handlers = [];
-        delete e;
     }
     this._eventNames.length = 0;
     this._eventNames = [];

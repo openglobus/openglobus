@@ -6,6 +6,13 @@ goog.require('og.quadTree');
 goog.require('og.proj.EPSG3857');
 goog.require('og.utils');
 
+/**
+ * Tile
+ * @class
+ * @extends {og.layer.Layer}
+ * @param {String} name - Layer name.
+ * @param {Object} options:
+ */
 og.layer.XYZ = function (name, options) {
     og.inheritance.base(this, name, options);
 
@@ -18,6 +25,9 @@ og.layer.XYZ = function (name, options) {
 };
 
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
+
+og.layer.XYZ.__requestsCounter = 0;
+og.layer.XYZ.MAX_REQUESTS = 7;
 
 og.layer.XYZ.EVENT_NAMES = [
     "load",
@@ -67,9 +77,10 @@ og.layer.XYZ.prototype.handleSegmentTile = function (material) {
     }
 };
 
-og.layer.XYZ.__requestsCounter = 0;
-og.layer.XYZ.MAX_REQUESTS = 7;
-
+/**
+ * @public
+ * @abstract
+ */
 og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
     return og.utils.stringTemplate(this.url, {
         "tilex": segment.tileX.toString(),
@@ -78,6 +89,9 @@ og.layer.XYZ.prototype.GetHTTPRequestString = function (segment) {
     });
 };
 
+/**
+ * @protected
+ */
 og.layer.XYZ.prototype._exec = function (material) {
     og.layer.XYZ.__requestsCounter++;
     this._counter++;

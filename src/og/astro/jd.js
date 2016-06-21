@@ -2,32 +2,121 @@ goog.provide('og.jd');
 
 goog.require('og.utils');
 
+/**
+ * @const
+ */
 og.jd.SECONDS_PER_MILLISECOND = 0.001;
+
+/**
+ * @const
+ */
 og.jd.MILLISECONDS_PER_SECOND = 1000.0;
+
+/**
+ * @const
+ */
 og.jd.SECONDS_PER_MINUTE = 60.0;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_SECONDS_PER_MINUTE = 1.0 / og.jd.SECONDS_PER_MINUTE;
+
+/**
+ * @const
+ */
 og.jd.MINUTES_PER_HOUR = 60.0;
+
+/**
+ * @const
+ */
 og.jd.HOURS_PER_DAY = 24.0;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_HOURS_PER_DAY = 1.0 / og.jd.HOURS_PER_DAY;
+
+/**
+ * @const
+ */
 og.jd.SECONDS_PER_HOUR = 3600.0;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_SECONDS_PER_HOUR = 1.0 / og.jd.SECONDS_PER_HOUR;
+
+/**
+ * @const
+ */
 og.jd.SECONDS_PER_12_HOURS = 12.0 * og.jd.SECONDS_PER_HOUR;
+
+/**
+ * @const
+ */
 og.jd.MINUTES_PER_DAY = 1440.0;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_MINUTES_PER_DAY = 1.0 / og.jd.MINUTES_PER_DAY;
+
+/**
+ * @const
+ */
 og.jd.SECONDS_PER_DAY = 86400.0;
+
+/**
+ * @const
+ */
 og.jd.MILLISECONDS_PER_DAY = 86400000.0;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_MILLISECONDS_PER_DAY = 1.0 / og.jd.MILLISECONDS_PER_DAY;
+
+/**
+ * @const
+ */
 og.jd.ONE_BY_SECONDS_PER_DAY = 1.0 / og.jd.SECONDS_PER_DAY;
+
+/**
+ * @const
+ */
 og.jd.DAYS_PER_JULIAN_CENTURY = 36525.0;
+
+/**
+ * @const
+ */
 og.jd.DAYS_PER_JULIAN_YEAR = 365.25;
+
+/**
+ * @const
+ */
 og.jd.PICOSECOND = 0.000000001;
+
+/**
+ * @const
+ */
 og.jd.MODIFIED_JULIAN_DATE_DIFFERENCE = 2400000.5;
+
+/**
+ * @const
+ */
 og.jd.J2000 = 2451545.0;
 
+/**
+ * @function
+ */
 og.jd.T = function (jd) {
     return (jd - og.jd.J2000) / og.jd.DAYS_PER_JULIAN_CENTURY;
 };
 
+/**
+ * @function
+ */
 og.jd.getDayNumber = function (year, month, day) {
     var a = ((month - 14) / 12) | 0;
     var b = year + 4800 + a;
@@ -35,6 +124,9 @@ og.jd.getDayNumber = function (year, month, day) {
         (((3 * (((b + 100) / 100) | 0)) / 4) | 0) + day - 32075;
 };
 
+/**
+ * @function
+ */
 og.jd.DateToUTC = function (date) {
     var dayNumber = og.jd.getDayNumber(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
 
@@ -64,6 +156,9 @@ og.jd.DateToUTC = function (date) {
     return dayNumber + secondsOfDay * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.UTCtoTAI = function (jd) {
     var leapSeconds = og.jd.leapSecondsTable;
 
@@ -90,10 +185,16 @@ og.jd.UTCtoTAI = function (jd) {
     return jd + offset * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.DateToTAI = function (date) {
     return og.jd.UTCtoTAI(og.jd.DateToUTC(date));
 };
 
+/**
+ * @function
+ */
 og.jd.UTCtoDate = function (utc) {
     var julianDayNumber = utc | 0;
     var secondsOfDay = (utc - julianDayNumber) * og.jd.SECONDS_PER_DAY;
@@ -128,6 +229,9 @@ og.jd.UTCtoDate = function (utc) {
     return new Date(Date.UTC(year, month - 1, day, hour, minute, second, millisecond));
 };
 
+/**
+ * @function
+ */
 og.jd.TAItoDate = function (tai) {
 
     var utc = og.jd.TAItoUTC(tai);
@@ -139,6 +243,9 @@ og.jd.TAItoDate = function (tai) {
     return og.jd.UTCtoDate(utc);
 };
 
+/**
+ * @function
+ */
 og.jd.TAItoUTC = function (tai) {
     var leapSeconds = og.jd.leapSecondsTable;
     var index = og.utils.binarySearch(leapSeconds, tai, function (a, b) {
@@ -170,37 +277,61 @@ og.jd.TAItoUTC = function (tai) {
     return tai - leapSeconds[index - 1].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.addMilliseconds = function (jd, milliseconds) {
     return jd + milliseconds * og.jd.ONE_BY_MILLISECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.addSeconds = function (jd, seconds) {
     return jd + seconds * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.addHours = function (jd, hours) {
     return jd + hours * og.jd.ONE_BY_HOURS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.addMinutes = function (jd, minutes) {
     return jd + minutes * og.jd.MINUTES_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.addDays = function (jd, days) {
     return jd + days;
 };
 
+/**
+ * @function
+ */
 og.jd.getMilliseconds = function (jd) {
     var s = jd - (jd | 0);
     s *= og.jd.SECONDS_PER_DAY;
     return (s - (s | 0)) * og.jd.MILLISECONDS_PER_SECOND | 0;
 };
 
+/**
+ * @function
+ */
 og.jd.getSeconds = function (jd) {
     var s = jd - (jd | 0);
     return s * og.jd.SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.getHours = function (jd) {
     var julianDayNumber = jd | 0;
     var secondsOfDay = (jd - julianDayNumber) * og.jd.SECONDS_PER_DAY;
@@ -220,19 +351,31 @@ og.jd.getHours = function (jd) {
     return hour;
 };
 
+/**
+ * @function
+ */
 og.jd.getMinutes = function (jd) {
     var s = jd - (jd | 0);
     return s * og.jd.MINUTES_PER_DAY | 0;
 };
 
+/**
+ * @function
+ */
 og.jd.getDays = function (jd) {
     return jd | 0;
 };
 
+/**
+ * @function
+ */
 og.jd.secondsToDays = function (s) {
     return s * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
+/**
+ * @function
+ */
 og.jd.daysToSeconds = function (d) {
     return d * og.jd.SECONDS_PER_DAY;
 };

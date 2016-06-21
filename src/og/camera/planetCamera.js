@@ -7,6 +7,7 @@ goog.require('og.math.Vector3');
 /**
  * Planet camera.
  * @class
+ * @extends {og.Camera}
  * @param {og.RenderNode} planet - Planet render node.
  * @param {Object} [options] - Planet camera options:
  * @param {Object} [options.name] - Camera name.
@@ -20,6 +21,9 @@ goog.require('og.math.Vector3');
  */
 og.PlanetCamera = function (planet, options) {
 
+    /**
+     * @public
+     */
     this.planet = planet;
 
     og.inheritance.base(this, planet.renderer, options);
@@ -74,7 +78,7 @@ og.PlanetCamera = function (planet, options) {
      */
     this._insideSegmentPosition = null;
 
-    /** Camera's flying frames */
+    //Camera's flying frames
     this._framesArr = [];
     this._framesCounter = 0;
     this._numFrames = 150;

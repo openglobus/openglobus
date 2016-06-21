@@ -4,8 +4,17 @@ goog.provide('og.layer.Layer');
 goog.require('og.Events');
 goog.require('og.QueueArray');
 
+/**
+ * @const
+ */
 og.layer.MAXIMUM_OVERLAYS = 8;
 
+/**
+ * Base layer class
+ * @class
+ * @param {String} name - Layer name.
+ * @param {Object} options:
+ */
 og.layer.Layer = function (name, options) {
 
     this.name = name || "noname";

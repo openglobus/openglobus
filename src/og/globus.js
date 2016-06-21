@@ -11,7 +11,7 @@ goog.require('og.terrainProvider.EmptyTerrainProvider');
  * Creates a WebGL context with globe.
  * @class
  *
- * Example:
+ * @example <caption>Basic initialization</caption>
  * 
  * var globe = new og.Globus({
  *   viewExtent: new og.Extent(new og.LonLat(-180,-90), new og.LonLat(180,90)),
