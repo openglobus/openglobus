@@ -10,7 +10,7 @@ og.control.LoadingSpinner = function (options) {
 
 og.inheritance.extend(og.control.LoadingSpinner, og.control.Control);
 
-og.control.LoadingSpinner.prototype.init = function () {
+og.control.LoadingSpinner.prototype.initialize = function () {
     this.spinnerElement = document.createElement('div');
     this.spinnerElement.id = 'circleG';
 

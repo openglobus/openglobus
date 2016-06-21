@@ -22,7 +22,9 @@ goog.require('og.math.Vector3');
 og.PlanetCamera = function (planet, options) {
 
     /**
+     * Assigned camera's planet.
      * @public
+     * @type {og.node.Planet}
      */
     this.planet = planet;
 
@@ -91,6 +93,7 @@ og.inheritance.extend(og.PlanetCamera, og.Camera);
 /**
  * Clone planet camera instance to another one.
  * @public
+ * @abstract
  * @returns {og.PlanetCamera}
  */
 og.PlanetCamera.prototype.clone = function () {
@@ -113,6 +116,7 @@ og.PlanetCamera.prototype.clone = function () {
 /**
  * Updates camera view space.
  * @public
+ * @abstract
  */
 og.PlanetCamera.prototype.update = function () {
 
@@ -493,6 +497,10 @@ og.PlanetCamera.prototype.prepareFrame = function () {
     this._checkCollision();
 };
 
+/**
+ * Sets camera parameters with ready frames.
+ * @private
+ */
 og.PlanetCamera.prototype._flyFrame = function () {
     if (this._flying) {
         var c = this._numFrames - this._framesCounter;
@@ -521,6 +529,10 @@ og.PlanetCamera.prototype._flyFrame = function () {
     }
 };
 
+/**
+ * Check camera collision.
+ * @private
+ */
 og.PlanetCamera.prototype._checkCollision = function () {
     this._terrainAltitude = this._lonLat.height;
     if (this._lonLat.height < 1000000) {

@@ -19,32 +19,129 @@ goog.require('og.Events');
  * @param {og.math.Vector3} [options.eye] - Camera eye position. Default (0,0,0)
  * @param {og.math.Vector3} [options.look] - Camera look position. Default (0,0,0)
  * @param {og.math.Vector3} [options.up] - Camera eye position. Default (0,1,0)
+ *
+ * @fires og.Camera#viewchange
  */
 og.Camera = function (renderer, options) {
 
+    /**
+     * Assigned renderer.
+     * @public
+     * @type {og.Renderer}
+     */
     this.renderer = null;
 
+    /**
+     * Camera events handler.
+     * @public
+     * @type {og.Events}
+     */
     this.events = new og.Events();
     this.events.registerNames(og.Camera.EVENT_NAMES);
 
+    /**
+     * Camera position.
+     * @public
+     * @type {og.math.Vector3}
+     */
     this.eye = new og.math.Vector3();
 
+    /**
+     * Camera frustum. 
+     * @public
+     * @type {og.Frustum}
+     */
     this.frustum = new og.Frustum();
 
+    /**
+     * Aspect ratio.
+     * @protected
+     * @type {Number}
+     */
     this._aspect = 0;
+
+    /**
+     * Camera near distance.
+     * @protected
+     * @type {Number}
+     */
     this._nearDist = 0;
+
+    /**
+     * Camera far distance.
+     * @protected
+     * @type {Number}
+     */
     this._farDist = 0;
+
+    /**
+     * Camera view angle in degrees.
+     * @protected
+     * @type {Number}
+     */
     this._viewAngle = 0;
 
+    /**
+     * Camera normal matrix.
+     * @protected
+     * @type {og.math.Matrix3}
+     */
     this._normalMatrix = new og.math.Matrix3();
+
+    /**
+     * Camera projection matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._projectionMatrix = new og.math.Matrix4();
+
+    /**
+     * Camera view matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._viewMatrix = new og.math.Matrix4();
+
+    /**
+     * Product of projection and view matrices.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._projectionViewMatrix = new og.math.Matrix4();
+
+    /**
+     * Inverse projectionView Matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._inverseProjectionViewMatrix = new og.math.Matrix4();
+
+    /**
+     * Camera projection matrix for small near and far distances.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._projectionMatrixPrecise = new og.math.Matrix4();
 
+    /**
+     * Camera right vector.
+     * @protected
+     * @type {og.math.Vector3}
+     */
     this._u = new og.math.Vector3(0, 1, 0); //up x n
+
+    /**
+     * Camera up vector.
+     * @protected
+     * @type {og.math.Vector3}
+     */
     this._v = new og.math.Vector3(1, 0, 0); //n x u - UP
+
+    /**
+     * Camera forward vector.
+     * @protected
+     * @type {og.math.Vector3}
+     */
     this._n = new og.math.Vector3(0, 0, 1); //eye - look - FORWARD
 
     this._tanViewAngle_hrad = 0;
@@ -53,7 +150,13 @@ og.Camera = function (renderer, options) {
     renderer && this.initialize(renderer, options);
 };
 
-og.Camera.EVENT_NAMES = ["viewchange"];
+og.Camera.EVENT_NAMES = [
+    /**
+     * Every camera updates event.
+     * @event og.Camera#viewchange
+     */
+    "viewchange"
+];
 
 og.Camera.defaultOptions = {
     viewAngle: 35,
@@ -62,6 +165,18 @@ og.Camera.defaultOptions = {
     eye: new og.math.Vector3(0, 0, 0),
     look: new og.math.Vector3(0, 0, 0),
     up: new og.math.Vector3(0, 1, 0)
+};
+
+/**
+ * Updates model view matrix.
+ * @protected
+ */
+og.Camera.prototype._setViewMatrix = function () {
+    var u = this._u, v = this._v, n = this._n, eye = this.eye;
+    this._viewMatrix.set([u.x, v.x, n.x, 0,
+                        u.y, v.y, n.y, 0,
+                        u.z, v.z, n.z, 0,
+                       -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
 };
 
 /**
@@ -94,6 +209,7 @@ og.Camera.prototype.initialize = function (renderer, options) {
 /**
  * Clone camera instance to another one.
  * @public
+ * @abstract
  * @returns {og.Camera}
  */
 og.Camera.prototype.clone = function () {
@@ -114,6 +230,7 @@ og.Camera.prototype.clone = function () {
 /**
  * Updates camera view space.
  * @public
+ * @abstract
  */
 og.Camera.prototype.update = function () {
 
@@ -128,18 +245,6 @@ og.Camera.prototype.update = function () {
 };
 
 /**
- * Updates model view matrix.
- * @private
- */
-og.Camera.prototype._setViewMatrix = function () {
-    var u = this._u, v = this._v, n = this._n, eye = this.eye;
-    this._viewMatrix.set([u.x, v.x, n.x, 0,
-                        u.y, v.y, n.y, 0,
-                        u.z, v.z, n.z, 0,
-                       -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
-};
-
-/**
  * Refresh camera matrices.
  * @public
  */
@@ -151,6 +256,7 @@ og.Camera.prototype.refresh = function () {
 /**
  * Sets aspect ratio.
  * @public
+ * @param {Number} aspect - Camera aspect ratio.
  */
 og.Camera.prototype.setAspectRatio = function (aspect) {
     this._aspect = aspect;

@@ -46,7 +46,7 @@ og.control.TouchNavigation = function (options) {
 
 og.inheritance.extend(og.control.TouchNavigation, og.control.Control);
 
-og.control.TouchNavigation.prototype.init = function () {
+og.control.TouchNavigation.prototype.initialize = function () {
     this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("touchstart", this, this.onTouchStart);
     this.renderer.events.on("touchend", this, this.onTouchEnd);

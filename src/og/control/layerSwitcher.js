@@ -15,7 +15,7 @@ og.control.LayerSwitcher.numSwitches = 0;
 
 og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
 
-og.control.LayerSwitcher.prototype.init = function () {
+og.control.LayerSwitcher.prototype.initialize = function () {
     this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);
     this.renderer.renderNodes.Earth.events.on("geoimageadd", this, this.onGeoImageAdded);

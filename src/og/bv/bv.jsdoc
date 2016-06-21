@@ -1,3 +1,4 @@
 /**
+ * Bounding volumes collection.
  * @namespace og.bv
  */

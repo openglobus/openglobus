@@ -31,7 +31,7 @@ og.control.Sun = function (options) {
 
 og.inheritance.extend(og.control.Sun, og.control.Control);
 
-og.control.Sun.prototype.init = function () {
+og.control.Sun.prototype.initialize = function () {
 
     this.planet = this.renderer.renderNodes.Earth;
     this.planet._sunControl = this;
@@ -59,7 +59,7 @@ og.control.Sun.prototype.draw = function () {
     var c = this.renderer.handler.clock;
     this._currDate = c.currentDate;
 
-    if (Math.abs(this._currDate - this._prevDate) > 0.00034 && this.activated) {
+    if (Math.abs(this._currDate - this._prevDate) > 0.00034 && this.active) {
         this._prevDate = this._currDate;
         this.sunlight.setPosition(og.astro.earth.getSunPosition(this._currDate));
     }

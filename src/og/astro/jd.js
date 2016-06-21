@@ -3,119 +3,146 @@ goog.provide('og.jd');
 goog.require('og.utils');
 
 /**
+ * Seconds in millisecond.
  * @const
  */
 og.jd.SECONDS_PER_MILLISECOND = 0.001;
 
 /**
+ * Milliseconds in second.
  * @const
  */
 og.jd.MILLISECONDS_PER_SECOND = 1000.0;
 
 /**
+ * Seconds in minute.
  * @const
  */
 og.jd.SECONDS_PER_MINUTE = 60.0;
 
 /**
+ * One by seconds in minute.
  * @const
  */
 og.jd.ONE_BY_SECONDS_PER_MINUTE = 1.0 / og.jd.SECONDS_PER_MINUTE;
 
 /**
+ * Minutes in hour.
  * @const
  */
 og.jd.MINUTES_PER_HOUR = 60.0;
 
 /**
+ * Hours in day.
  * @const
  */
 og.jd.HOURS_PER_DAY = 24.0;
 
 /**
+ * One by hours in day.
  * @const
  */
 og.jd.ONE_BY_HOURS_PER_DAY = 1.0 / og.jd.HOURS_PER_DAY;
 
 /**
+ * Seconds in hour.
  * @const
  */
 og.jd.SECONDS_PER_HOUR = 3600.0;
 
 /**
+ * One by seconds in hour.
  * @const
  */
 og.jd.ONE_BY_SECONDS_PER_HOUR = 1.0 / og.jd.SECONDS_PER_HOUR;
 
 /**
+ * Seconds in 12 hours.
  * @const
  */
 og.jd.SECONDS_PER_12_HOURS = 12.0 * og.jd.SECONDS_PER_HOUR;
 
 /**
+ * Minutes in day.
  * @const
  */
 og.jd.MINUTES_PER_DAY = 1440.0;
 
 /**
+ * One by minutes in day.
  * @const
  */
 og.jd.ONE_BY_MINUTES_PER_DAY = 1.0 / og.jd.MINUTES_PER_DAY;
 
 /**
+ * Seconds in day.
  * @const
  */
 og.jd.SECONDS_PER_DAY = 86400.0;
 
 /**
+ * Milliseconds in day.
  * @const
  */
 og.jd.MILLISECONDS_PER_DAY = 86400000.0;
 
 /**
+ * One by milliseconds in day.
  * @const
  */
 og.jd.ONE_BY_MILLISECONDS_PER_DAY = 1.0 / og.jd.MILLISECONDS_PER_DAY;
 
 /**
+ * One by seconds in day.
  * @const
  */
 og.jd.ONE_BY_SECONDS_PER_DAY = 1.0 / og.jd.SECONDS_PER_DAY;
 
 /**
+ * Days in julian century.
  * @const
  */
 og.jd.DAYS_PER_JULIAN_CENTURY = 36525.0;
 
 /**
+ * Days in julian year.
  * @const
  */
 og.jd.DAYS_PER_JULIAN_YEAR = 365.25;
 
 /**
+ * Seconds in picosecond.
  * @const
  */
 og.jd.PICOSECOND = 0.000000001;
 
 /**
+ * Modified julian date difference.
  * @const
  */
 og.jd.MODIFIED_JULIAN_DATE_DIFFERENCE = 2400000.5;
 
 /**
+ * Julian date of 2000 year. Epoch.
  * @const
  */
 og.jd.J2000 = 2451545.0;
 
 /**
- * @function
+ * Returns julian days from Epoch.
+ * @param {Number} jd - Julian date.
+ * @returns {Number}
  */
 og.jd.T = function (jd) {
     return (jd - og.jd.J2000) / og.jd.DAYS_PER_JULIAN_CENTURY;
 };
 
 /**
- * @function
+ * Gets the date julian day.
+ * @param {Number} year - Year.
+ * @param {Number} month - Month.
+ * @param {Number} day - Day.
+ * @returns {Number}
  */
 og.jd.getDayNumber = function (year, month, day) {
     var a = ((month - 14) / 12) | 0;
@@ -125,7 +152,9 @@ og.jd.getDayNumber = function (year, month, day) {
 };
 
 /**
- * @function
+ * Converts javascript date to the universal(UTC) julian date.
+ * @param {Date} date - Date.
+ * @returns {Number}
  */
 og.jd.DateToUTC = function (date) {
     var dayNumber = og.jd.getDayNumber(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
@@ -157,7 +186,18 @@ og.jd.DateToUTC = function (date) {
 };
 
 /**
- * @function
+ * Converts javascript date to the atomic(TAI) julian date.
+ * @param {Date} date - Date.
+ * @returns {Number}
+ */
+og.jd.DateToTAI = function (date) {
+    return og.jd.UTCtoTAI(og.jd.DateToUTC(date));
+};
+
+/**
+ * Converts coordinated universal(UTC) julian date to atomic(TAI) julian date.
+ * @param {Number} jd - UTC julian date.
+ * @returns {Number}
  */
 og.jd.UTCtoTAI = function (jd) {
     var leapSeconds = og.jd.leapSecondsTable;
@@ -186,14 +226,45 @@ og.jd.UTCtoTAI = function (jd) {
 };
 
 /**
- * @function
+ * Converts atomic julian date(TAI) to the coordinated universal(UTC) julian date.
+ * @param {Number} tai - TAI julian date.
+ * @returns {Number}
  */
-og.jd.DateToTAI = function (date) {
-    return og.jd.UTCtoTAI(og.jd.DateToUTC(date));
+og.jd.TAItoUTC = function (tai) {
+    var leapSeconds = og.jd.leapSecondsTable;
+    var index = og.utils.binarySearch(leapSeconds, tai, function (a, b) {
+        return a - b.jd;
+    });
+
+    if (index < 0) {
+        index = ~index;
+    }
+
+    if (index >= leapSeconds.length) {
+        return tai - leapSeconds[index - 1].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
+    }
+
+    if (index === 0) {
+        return tai - leapSeconds[0].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
+    }
+
+    var diff = (leapSeconds[index].jd - tai) * og.jd.SECONDS_PER_DAY;
+
+    if (diff === 0) {
+        return tai - leapSeconds[index].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
+    }
+
+    if (diff <= 1.0) {
+        return null;
+    }
+
+    return tai - leapSeconds[index - 1].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
 /**
- * @function
+ * Converts UTC julian date to the javascript date object.
+ * @param {Number} utc - UTC julian date.
+ * @returns {Date}
  */
 og.jd.UTCtoDate = function (utc) {
     var julianDayNumber = utc | 0;
@@ -230,7 +301,9 @@ og.jd.UTCtoDate = function (utc) {
 };
 
 /**
- * @function
+ * Converts TAI julian date to the javascript date object.
+ * @param {Number} tai - TAI julian date.
+ * @returns {Date}
  */
 og.jd.TAItoDate = function (tai) {
 
@@ -244,76 +317,59 @@ og.jd.TAItoDate = function (tai) {
 };
 
 /**
- * @function
- */
-og.jd.TAItoUTC = function (tai) {
-    var leapSeconds = og.jd.leapSecondsTable;
-    var index = og.utils.binarySearch(leapSeconds, tai, function (a, b) {
-        return a - b.jd;
-    });
-
-    if (index < 0) {
-        index = ~index;
-    }
-
-    if (index >= leapSeconds.length) {
-        return tai - leapSeconds[index - 1].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
-    }
-
-    if (index === 0) {
-        return tai - leapSeconds[0].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
-    }
-
-    var diff = (leapSeconds[index].jd - tai) * og.jd.SECONDS_PER_DAY;
-
-    if (diff === 0) {
-        return tai - leapSeconds[index].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
-    }
-
-    if (diff <= 1.0) {
-        return null;
-    }
-
-    return tai - leapSeconds[index - 1].leapSeconds * og.jd.ONE_BY_SECONDS_PER_DAY;
-};
-
-/**
- * @function
+ * Adds milliseconds to the julian date.
+ * @param {Number} jd - Julian date.
+ * @param {Number} milliseconds - Milliseconds to add.
+ * @returns {Number}
  */
 og.jd.addMilliseconds = function (jd, milliseconds) {
     return jd + milliseconds * og.jd.ONE_BY_MILLISECONDS_PER_DAY;
 };
 
 /**
- * @function
+ * Adds seconds to the julian date.
+ * @param {Number} jd - Julian date.
+ * @param {Number} seconds - Seconds to add.
+ * @returns {Number}
  */
 og.jd.addSeconds = function (jd, seconds) {
     return jd + seconds * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
 /**
- * @function
+ * Adds hours to the julian date.
+ * @param {Number} jd - Julian date.
+ * @param {Number} hours - Hours to add.
+ * @returns {Number}
  */
 og.jd.addHours = function (jd, hours) {
     return jd + hours * og.jd.ONE_BY_HOURS_PER_DAY;
 };
 
 /**
- * @function
+ * Adds minutes to the julian date.
+ * @param {Number} jd - Julian date.
+ * @param {Number} minutes - Minutes to add.
+ * @returns {Number}
  */
 og.jd.addMinutes = function (jd, minutes) {
     return jd + minutes * og.jd.MINUTES_PER_DAY;
 };
 
 /**
- * @function
+ * Adds days to the julian date.
+ * @param {Number} jd - Julian date.
+ * @param {Number} days - Days to add.
+ * @returns {Number}
  */
 og.jd.addDays = function (jd, days) {
     return jd + days;
 };
 
 /**
- * @function
+ * Gets milliseconds of a julian date.
+ * @param {Number} js - julian date.
+ * @returns {Number}
  */
 og.jd.getMilliseconds = function (jd) {
     var s = jd - (jd | 0);
@@ -322,7 +378,9 @@ og.jd.getMilliseconds = function (jd) {
 };
 
 /**
- * @function
+ * Gets seconds of a julian date.
+ * @param {Number} js - julian date.
+ * @returns {Number}
  */
 og.jd.getSeconds = function (jd) {
     var s = jd - (jd | 0);
@@ -330,7 +388,9 @@ og.jd.getSeconds = function (jd) {
 };
 
 /**
- * @function
+ * Gets hours of a julian date.
+ * @param {Number} js - julian date.
+ * @returns {Number}
  */
 og.jd.getHours = function (jd) {
     var julianDayNumber = jd | 0;
@@ -352,7 +412,9 @@ og.jd.getHours = function (jd) {
 };
 
 /**
- * @function
+ * Gets minutes of a julian date.
+ * @param {Number} js - julian date.
+ * @returns {Number}
  */
 og.jd.getMinutes = function (jd) {
     var s = jd - (jd | 0);
@@ -360,21 +422,27 @@ og.jd.getMinutes = function (jd) {
 };
 
 /**
- * @function
+ * Gets days of a julian date.
+ * @param {Number} js - julian date.
+ * @returns {Number}
  */
 og.jd.getDays = function (jd) {
     return jd | 0;
 };
 
 /**
- * @function
+ * Returns days in seconds.
+ * @param {Number} s - Seconds.
+ * @returns {Number}
  */
 og.jd.secondsToDays = function (s) {
     return s * og.jd.ONE_BY_SECONDS_PER_DAY;
 };
 
 /**
- * @function
+ * Returns seconds in days.
+ * @param {Number} d - Days.
+ * @returns {Number}
  */
 og.jd.daysToSeconds = function (d) {
     return d * og.jd.SECONDS_PER_DAY;

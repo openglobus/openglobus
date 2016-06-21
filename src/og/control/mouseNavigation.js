@@ -129,7 +129,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
 };
 
-og.control.MouseNavigation.prototype.init = function () {
+og.control.MouseNavigation.prototype.initialize = function () {
     this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("mousewheel", this, this.onMouseWheel);
     this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);

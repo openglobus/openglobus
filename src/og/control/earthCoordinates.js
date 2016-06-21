@@ -55,7 +55,7 @@ og.control.EarthCoordinates.numToFixedString = function (num, fixed) {
     return white + num.toString();
 };
 
-og.control.EarthCoordinates.prototype.init = function () {
+og.control.EarthCoordinates.prototype.initialize = function () {
     this.display = document.createElement('div');
     this.display.className = 'ogEarthCoordinatesControl';
     var that = this;

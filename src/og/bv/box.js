@@ -3,10 +3,23 @@ goog.provide('og.bv.Box');
 goog.require('og.bv');
 goog.require('og.math.Vector3');
 
-og.bv.Box = function (bounds) {
+/**
+ * Bounding box class.
+ * @class
+ */
+og.bv.Box = function () {
+    /**
+     * Vertices array.
+     * @public
+     * @type{Array.<og.math.Vector3>}
+     */
     this.vertices = [new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3(), new og.math.Vector3()];
 };
 
+/**
+ * Sets bounding box coordinates by the bounds array.
+ * @param {Array.<number>} bounds - Bounds is an array where [minX, maxX, minY, maxY, minZ, maxZ]
+ */
 og.bv.Box.prototype.setFromBounds = function (bounds) {
     var xmin = bounds[0], xmax = bounds[1],
         ymin = bounds[2], ymax = bounds[3],
@@ -20,9 +33,13 @@ og.bv.Box.prototype.setFromBounds = function (bounds) {
     this.vertices[5].set(xmax, ymax, zmin);
     this.vertices[6].set(xmax, ymax, zmax);
     this.vertices[7].set(xmin, ymax, zmax);
-
 };
 
+/**
+ * Sets bounding box coordiantes by ellipsoid geodetic extend.
+ * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
+ * @param {og.Extent} extent - Geodetic extent.
+ */
 og.bv.Box.prototype.setFromExtent = function (ellipsoid, extent) {
     this.setFromBounds(extent.getCartesianBounds(ellipsoid));
 };

@@ -312,9 +312,6 @@ og.quadTree.EntityCollectionQuadNode.prototype.isVisible = function () {
     return false;
 };
 
-/**
- * @class
- */
 og.quadTree.EntityCollectionQuadNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
     og.inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
     this.isNorth = false;

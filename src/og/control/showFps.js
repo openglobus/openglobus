@@ -9,7 +9,7 @@ og.control.ShowFps = function (options) {
 
 og.inheritance.extend(og.control.ShowFps, og.control.Control);
 
-og.control.ShowFps.prototype.init = function () {
+og.control.ShowFps.prototype.initialize = function () {
     var d = document.createElement('div');
     d.className = 'defaultText ';
     d.id = "ogShowFpsControl";
