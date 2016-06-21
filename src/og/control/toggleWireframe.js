@@ -8,7 +8,7 @@ og.control.ToggleWireframe = function (options) {
     og.inheritance.base(this, options);
 };
 
-og.inheritance.extend(og.control.ToggleWireframe, og.control.Control);
+og.inheritance.extend(og.control.ToggleWireframe, og.control.BaseControl);
 
 og.control.ToggleWireframe.prototype.initialize = function () {
     this.renderer.events.on("charkeypress", this, this.toogleWireframe, og.input.KEY_X);

@@ -1,7 +1,7 @@
 goog.provide('og.control.Sun');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.light.PointLight');
 goog.require('og.astro.earth');
 goog.require('og.math.Quaternion');
@@ -29,7 +29,7 @@ og.control.Sun = function (options) {
     this._prevDate = 0;
 };
 
-og.inheritance.extend(og.control.Sun, og.control.Control);
+og.inheritance.extend(og.control.Sun, og.control.BaseControl);
 
 og.control.Sun.prototype.initialize = function () {
 

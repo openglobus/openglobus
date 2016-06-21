@@ -1,14 +1,14 @@
-goog.provide('og.control.Control');
+goog.provide('og.control.BaseControl');
 
-/*
+/**
  * Base control class for implementing renderer controls.
  * All other controls extend from this class.
  * @class
- * @params {Object} [options] - Control activation options:
+ * @param {Object} [options] - Control activation options:
  * @param {Boolean} [options.autoActivated] - If true - calls initialize function after the renderer assigning.
  * @param {Boolean} [options.active] - Control activity.
  */
-og.control.Control = function (options) {
+og.control.BaseControl = function (options) {
     options = options || {};
 
     /**
@@ -45,14 +45,14 @@ og.control.Control = function (options) {
  * @public
  * @abstract
  */
-og.control.Control.prototype.initialize = function () { }
+og.control.BaseControl.prototype.initialize = function () { }
 
 /**
  * Assign renderer to the control.
  * @public
  * @type {og.Renderer}
  */
-og.control.Control.prototype.setRenderer = function (renderer) {
+og.control.BaseControl.prototype.setRenderer = function (renderer) {
     this.renderer = renderer;
     if (this.autoActivate) {
         this.initialize && this.initialize();
@@ -65,7 +65,7 @@ og.control.Control.prototype.setRenderer = function (renderer) {
  * Activate control.
  * @public
  */
-og.control.Control.prototype.activate = function () {
+og.control.BaseControl.prototype.activate = function () {
     this.active = true;
 };
 
@@ -73,6 +73,6 @@ og.control.Control.prototype.activate = function () {
  * Deactivate control.
  * @public
  */
-og.control.Control.prototype.deactivate = function () {
+og.control.BaseControl.prototype.deactivate = function () {
     this.active = false;
 };

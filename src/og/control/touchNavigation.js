@@ -1,7 +1,7 @@
 goog.provide('og.control.TouchNavigation');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
@@ -44,7 +44,7 @@ og.control.TouchNavigation = function (options) {
     this.touches = [new Touch(), new Touch()];
 };
 
-og.inheritance.extend(og.control.TouchNavigation, og.control.Control);
+og.inheritance.extend(og.control.TouchNavigation, og.control.BaseControl);
 
 og.control.TouchNavigation.prototype.initialize = function () {
     this.planet = this.renderer.renderNodes.Earth;

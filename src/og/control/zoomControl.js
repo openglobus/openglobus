@@ -1,7 +1,7 @@
 goog.provide('og.control.ZoomControl');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.control.MouseNavigation');
 
 og.control.ZoomControl = function (options) {
@@ -15,7 +15,7 @@ og.control.ZoomControl = function (options) {
     this.planet = null;
 };
 
-og.inheritance.extend(og.control.ZoomControl, og.control.Control);
+og.inheritance.extend(og.control.ZoomControl, og.control.BaseControl);
 
 og.control.ZoomControl.prototype.initialize = function () {
     var zoomDiv = document.createElement('div'),

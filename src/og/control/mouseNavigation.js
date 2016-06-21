@@ -1,7 +1,7 @@
 goog.provide('og.control.MouseNavigation');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.math');
 goog.require('og.math.Vector3');
 goog.require('og.math.Matrix4');
@@ -27,7 +27,7 @@ og.control.MouseNavigation = function (options) {
     this.stepIndex = 0;
 };
 
-og.inheritance.extend(og.control.MouseNavigation, og.control.Control);
+og.inheritance.extend(og.control.MouseNavigation, og.control.BaseControl);
 
 
 og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet, stepsCount, delta, point, forward, dir) {

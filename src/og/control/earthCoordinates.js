@@ -1,7 +1,7 @@
 goog.provide('og.control.EarthCoordinates');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.planetSegment');
 goog.require('og.mercator');
 
@@ -15,7 +15,7 @@ og.control.EarthCoordinates = function (options) {
     this._center = options.center || false;
 };
 
-og.inheritance.extend(og.control.EarthCoordinates, og.control.Control);
+og.inheritance.extend(og.control.EarthCoordinates, og.control.BaseControl);
 
 og.control.EarthCoordinates.toDecimal = function (ll) {
     var str = ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);

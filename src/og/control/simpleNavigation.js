@@ -1,14 +1,14 @@
 goog.provide('og.control.SimpleNavigation');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.input');
 
 og.control.SimpleNavigation = function (options) {
     og.inheritance.base(this, options);
 };
 
-og.inheritance.extend(og.control.SimpleNavigation, og.control.Control);
+og.inheritance.extend(og.control.SimpleNavigation, og.control.BaseControl);
 
 og.control.SimpleNavigation.prototype.initialize = function () {
     this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);

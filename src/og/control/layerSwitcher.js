@@ -13,7 +13,7 @@ og.control.LayerSwitcher = function (options) {
 
 og.control.LayerSwitcher.numSwitches = 0;
 
-og.inheritance.extend(og.control.LayerSwitcher, og.control.Control);
+og.inheritance.extend(og.control.LayerSwitcher, og.control.BaseControl);
 
 og.control.LayerSwitcher.prototype.initialize = function () {
     this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);

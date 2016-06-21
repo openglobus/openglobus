@@ -1,14 +1,14 @@
 goog.provide('og.control.LoadingSpinner');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 
 og.control.LoadingSpinner = function (options) {
     og.inheritance.base(this, options);
     this.spinnerElement = null;
 };
 
-og.inheritance.extend(og.control.LoadingSpinner, og.control.Control);
+og.inheritance.extend(og.control.LoadingSpinner, og.control.BaseControl);
 
 og.control.LoadingSpinner.prototype.initialize = function () {
     this.spinnerElement = document.createElement('div');

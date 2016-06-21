@@ -1,14 +1,14 @@
 goog.provide('og.control.KeyboardNavigation');
 
 goog.require('og.inheritance');
-goog.require('og.control.Control');
+goog.require('og.control.BaseControl');
 goog.require('og.input');
 
 og.control.KeyboardNavigation = function (options) {
     og.inheritance.base(this, options);
 };
 
-og.inheritance.extend(og.control.KeyboardNavigation, og.control.Control);
+og.inheritance.extend(og.control.KeyboardNavigation, og.control.BaseControl);
 
 og.control.KeyboardNavigation.prototype.initialize = function () {
     this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);
