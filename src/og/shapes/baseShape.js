@@ -187,9 +187,9 @@ og.shape.BaseShape.prototype.draw = function () {
 
             sh.activate();
 
-            gl.uniform4fv(shu.pointLightsPositions._pName, rn._pointLightsTransformedPositions);
-            gl.uniform3fv(shu.pointLightsParamsv._pName, rn._pointLightsParamsv);
-            gl.uniform1fv(shu.pointLightsParamsf._pName, rn._pointLightsParamsf);
+            gl.uniform4fv(shu.lightsPositions._pName, rn._lightsTransformedPositions);
+            gl.uniform3fv(shu.lightsParamsv._pName, rn._lightsParamsv);
+            gl.uniform1fv(shu.lightsParamsf._pName, rn._lightsParamsf);
             gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
             gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
             gl.uniformMatrix3fv(shu.normalMatrix._pName, false, r.activeCamera._normalMatrix._m);

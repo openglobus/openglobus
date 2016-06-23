@@ -138,9 +138,9 @@ og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
         sh = h.shaderPrograms.overlaysAtmosphere_wl._program,
         shu = sh.uniforms;
 
-        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
-        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
-        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
@@ -220,9 +220,9 @@ og.node.PlanetAtmosphere.prototype._drawSingle = function () {
         sh = h.shaderPrograms.singleAtmosphere_wl._program,
         shu = sh.uniforms;
 
-        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
-        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
-        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);

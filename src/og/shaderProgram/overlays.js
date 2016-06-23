@@ -39,9 +39,9 @@ og.shaderProgram.overlays_wl = function () {
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
             numTex: { type: og.shaderProgram.types.INT },
-            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            lightsPositions: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsf: { type: og.shaderProgram.types.FLOAT },
             uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
             geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
@@ -69,9 +69,9 @@ og.shaderProgram.overlaysAtmosphere_wl = function () {
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
             numTex: { type: og.shaderProgram.types.INT },
-            pointLightsPositions: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            lightsPositions: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsf: { type: og.shaderProgram.types.FLOAT },
             uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
             geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
@@ -93,9 +93,9 @@ og.shaderProgram.overlaysAtmosphere_wl = function () {
             fScaleDepth: { type: og.shaderProgram.types.FLOAT },
             fScaleOverScaleDepth: { type: og.shaderProgram.types.FLOAT },
 
-            pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
-            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT }
+            lightsPositions: { type: og.shaderProgram.types.VEC4 },
+            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsf: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

@@ -14,9 +14,9 @@ og.shaderProgram.shape_wl = function () {
             modelMatrix: { type: og.shaderProgram.types.MAT4 },
             normalMatrix: { type: og.shaderProgram.types.MAT4 },
 
-            pointLightsPositions: { type: og.shaderProgram.types.VEC4 },
-            pointLightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            pointLightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            lightsPositions: { type: og.shaderProgram.types.VEC4 },
+            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            lightsParamsf: { type: og.shaderProgram.types.FLOAT },
 
             uColor: { type: og.shaderProgram.types.VEC4 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D }

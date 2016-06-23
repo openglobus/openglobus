@@ -57,13 +57,13 @@ og.node.RenderNode = function (name) {
     /**
      * Point light array.
      * @private
-     * @type {Array.<og.light.PointLight>}
+     * @type {Array.<og.light.LightSource>}
      */
-    this._pointLights = [];
-    this._pointLightsTransformedPositions = [];
-    this._pointLightsParamsv = [];
-    this._pointLightsParamsf = [];
-    this._pointLightsNames = [];
+    this._lights = [];
+    this._lightsTransformedPositions = [];
+    this._lightsParamsv = [];
+    this._lightsParamsf = [];
+    this._lightsNames = [];
 
     /**
      * Entity collection array.
@@ -138,7 +138,7 @@ og.node.RenderNode.prototype.removeEntityCollection = function (entityCollection
 /**
  * Adds point light source.
  * @public
- * @param {og.light.PointLight} light - Point light source.
+ * @param {og.light.LightSource} light - Light source.
  * @returns {og.node.RenderNode}
  */
 og.node.RenderNode.prototype.addLight = function (light) {
@@ -150,17 +150,17 @@ og.node.RenderNode.prototype.addLight = function (light) {
  * Gets light object by its name.
  * @public
  * @param {string} name - Point light name.
- * @returns {og.light.PointLight}
+ * @returns {og.light.LightSource}
  */
 og.node.RenderNode.prototype.getLightByName = function (name) {
-    var li = this._pointLightsNames.indexOf(name);
-    return this._pointLights[li];
+    var li = this._lightsNames.indexOf(name);
+    return this._lights[li];
 };
 
 /**
  * Removes light source.
  * @public
- * @param {og.light.PointLight} light - Point light object.
+ * @param {og.light.LightSource} light - Light source object.
  */
 og.node.RenderNode.prototype.removeLight = function (light) {
     light.remove();
@@ -255,19 +255,19 @@ og.node.RenderNode.prototype.setDrawMode = function (mode) {
  */
 og.node.RenderNode.prototype.transformLights = function () {
     var r = this.renderer;
-    for (var i = 0; i < this._pointLights.length; i++) {
+    for (var i = 0; i < this._lights.length; i++) {
         var ii = i * 4;
         var tp;
-        if (this._pointLights[i].directional) {
-            tp = r.activeCamera._normalMatrix.mulVec(this._pointLights[i]._position);
-            this._pointLightsTransformedPositions[ii + 3] = 0;
+        if (this._lights[i].directional) {
+            tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
+            this._lightsTransformedPositions[ii + 3] = 0;
         } else {
-            tp = r.activeCamera._viewMatrix.mulVec3(this._pointLights[i]._position);
-            this._pointLightsTransformedPositions[ii + 3] = 1;
+            tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
+            this._lightsTransformedPositions[ii + 3] = 1;
         }
-        this._pointLightsTransformedPositions[ii] = tp.x;
-        this._pointLightsTransformedPositions[ii + 1] = tp.y;
-        this._pointLightsTransformedPositions[ii + 2] = tp.z;
+        this._lightsTransformedPositions[ii] = tp.x;
+        this._lightsTransformedPositions[ii + 1] = tp.y;
+        this._lightsTransformedPositions[ii + 2] = tp.z;
     }
 };
 

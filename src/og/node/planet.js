@@ -30,7 +30,7 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
-goog.require('og.light.PointLight');
+goog.require('og.light.LightSource');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.GeoImage');
 goog.require('og.planetSegment.GeoImageTileCreatorQueue');
@@ -801,9 +801,9 @@ og.node.Planet.prototype._drawOverlays = function () {
         sh = h.shaderPrograms.overlays_wl._program,
         shu = sh.uniforms;
 
-        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
-        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
-        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
@@ -865,9 +865,9 @@ og.node.Planet.prototype._drawSingle = function () {
         sh = h.shaderPrograms.single_wl._program,
         shu = sh.uniforms;
 
-        gl.uniform4fv(shu.pointLightsPositions._pName, this._pointLightsTransformedPositions);
-        gl.uniform3fv(shu.pointLightsParamsv._pName, this._pointLightsParamsv);
-        gl.uniform1fv(shu.pointLightsParamsf._pName, this._pointLightsParamsf);
+        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);

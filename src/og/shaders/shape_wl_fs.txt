@@ -9,10 +9,10 @@ uniform sampler2D uSampler;
  
 #define MAX_POINT_LIGHTS 1
 
-uniform int pointLightsQuantity;
-uniform vec4 pointLightsPositions[MAX_POINT_LIGHTS];
-uniform vec3 pointLightsParamsv[MAX_POINT_LIGHTS * 3];
-uniform float pointLightsParamsf[MAX_POINT_LIGHTS];
+uniform int lightsQuantity;
+uniform vec4 lightsPositions[MAX_POINT_LIGHTS];
+uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
+uniform float lightsParamsf[MAX_POINT_LIGHTS];
 
 void main(void) {
 
@@ -26,15 +26,15 @@ void main(void) {
 
 
 	//i=0
-    lightDirection = normalize(pointLightsPositions[0].xyz - vPosition.xyz * pointLightsPositions[0].w);
+    lightDirection = normalize(lightsPositions[0].xyz - vPosition.xyz * lightsPositions[0].w);
 	//float distance = length(dir);
 	//float attenuation = 1.0/(1.0+0.1*distance+0.01*distance*distance);
     normal = normalize(vNormal);
     eyeDirection = normalize(-vPosition.xyz);
     reflectionDirection = reflect(-lightDirection, normal);	
-	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), pointLightsParamsf[0]);
+	specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), lightsParamsf[0]);
     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-    lightWeighting = pointLightsParamsv[0] + pointLightsParamsv[1] * diffuseLightWeighting + pointLightsParamsv[2] * specularLightWeighting;
+    lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
 
     vec4 cc = texture2D( uSampler, vTextureCoord.st );
 	//cc.a = 0.5 + length(cc.rgb);
