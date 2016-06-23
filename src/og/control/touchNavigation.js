@@ -10,6 +10,12 @@ goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
 goog.require('og.math.Pixel');
 
+/**
+ * Touch pad planet camera dragging control.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Control options.
+ */
 og.control.TouchNavigation = function (options) {
     og.inheritance.base(this, options);
 
@@ -46,7 +52,7 @@ og.control.TouchNavigation = function (options) {
 
 og.inheritance.extend(og.control.TouchNavigation, og.control.BaseControl);
 
-og.control.TouchNavigation.prototype.initialize = function () {
+og.control.TouchNavigation.prototype.oninit = function () {
     this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("touchstart", this, this.onTouchStart);
     this.renderer.events.on("touchend", this, this.onTouchEnd);

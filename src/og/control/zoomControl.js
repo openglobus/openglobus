@@ -4,6 +4,12 @@ goog.require('og.inheritance');
 goog.require('og.control.BaseControl');
 goog.require('og.control.MouseNavigation');
 
+/**
+ * Planet zoom buttons control.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @params {Object} [options] - Control options.
+ */
 og.control.ZoomControl = function (options) {
     og.inheritance.base(this, options);
 
@@ -17,7 +23,7 @@ og.control.ZoomControl = function (options) {
 
 og.inheritance.extend(og.control.ZoomControl, og.control.BaseControl);
 
-og.control.ZoomControl.prototype.initialize = function () {
+og.control.ZoomControl.prototype.oninit = function () {
     var zoomDiv = document.createElement('div'),
         btnZoomIn = document.createElement('button'),
         btnZoomOut = document.createElement('button');
@@ -41,9 +47,13 @@ og.control.ZoomControl.prototype.initialize = function () {
     };
 
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("draw", this, this.onDraw);
+    this.renderer.events.on("draw", this, this._draw);
 };
 
+/** 
+ * Planet zoom in.
+ * @public
+ */
 og.control.ZoomControl.prototype.zoomIn = function () {
 
     this._deactivate = true;
@@ -57,6 +67,10 @@ og.control.ZoomControl.prototype.zoomIn = function () {
         this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.negateTo());
 };
 
+/** 
+ * Planet zoom out.
+ * @public
+ */
 og.control.ZoomControl.prototype.zoomOut = function () {
 
     this._deactivate = true;
@@ -71,7 +85,7 @@ og.control.ZoomControl.prototype.zoomOut = function () {
         this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.negateTo());
 };
 
-og.control.ZoomControl.prototype.onDraw = function (e) {
+og.control.ZoomControl.prototype._draw = function (e) {
 
     var cam = this.renderer.activeCamera;
 

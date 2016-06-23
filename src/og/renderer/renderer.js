@@ -193,8 +193,7 @@ og.Renderer.prototype.getCenter = function () {
  * @param {og.control.Control} control Control.
  */
 og.Renderer.prototype.addControl = function (control) {
-    control.setRenderer(this);
-    this.controls.push(control);
+    control.addTo(this);
 };
 
 /**
@@ -203,8 +202,7 @@ og.Renderer.prototype.addControl = function (control) {
  */
 og.Renderer.prototype.addControls = function (cArr) {
     for (var i = 0; i < cArr.length; i++) {
-        cArr[i].setRenderer(this);
-        this.controls.push(cArr[i]);
+        cArr[i].addTo(this);
     }
 };
 

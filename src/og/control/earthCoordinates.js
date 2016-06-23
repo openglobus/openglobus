@@ -5,35 +5,73 @@ goog.require('og.control.BaseControl');
 goog.require('og.planetSegment');
 goog.require('og.mercator');
 
+/**
+ * Control displays mouse or screen center Earth coordinates.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Options:
+ * @param {Boolean} [options.center] - Earth coordiantes by screen center otherwise mouse pointer. False is default.
+ * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
+ */
 og.control.EarthCoordinates = function (options) {
     og.inheritance.base(this, options);
-    this.displayType = 0;
-    this.converter = og.control.EarthCoordinates.DisplayTypesConverters[0];
-    this.display = null;
-    this.position = null;
 
+    /**
+     * Display type.
+     * @private
+     * @type {Boolean}
+     */
+    this._displayType = options.type || 0;
+
+    /**
+     * Current coordinates type converter.
+     * @private
+     * @function
+     */
+    this._converter = og.control.EarthCoordinates.DisplayTypesConverters[0];
+
+    /**
+     * Display dom element.
+     * @private
+     * @type {Object}
+     */
+    this._display = null;
+
+    /**
+     * Screen center or mouse pointer coordinates show flag.
+     * @private
+     * @type {Boolean}
+     */
     this._center = options.center || false;
+
+    /**
+     * Current position.
+     * @public
+     * @type {og.math.Vector3}
+     */
+    this.position = null;
 };
 
 og.inheritance.extend(og.control.EarthCoordinates, og.control.BaseControl);
 
 og.control.EarthCoordinates.toDecimal = function (ll) {
-    var str = ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);
-    return str;
+    return ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);
 };
 
 og.control.EarthCoordinates.toDegrees = function (ll) {
-    var str = og.control.EarthCoordinates.dec2deg(ll.lat) + ", " + og.control.EarthCoordinates.dec2deg(ll.lon);
-    return str;
+    return og.control.EarthCoordinates.dec2deg(ll.lat) + ", " + og.control.EarthCoordinates.dec2deg(ll.lon);
 };
 
 og.control.EarthCoordinates.toMercator = function (ll) {
     var m = ll.forwardMercator();
-    var str = m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
-    return str;
+    return m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
 };
 
-og.control.EarthCoordinates.DisplayTypesConverters = [og.control.EarthCoordinates.toDecimal, og.control.EarthCoordinates.toDegrees, og.control.EarthCoordinates.toMercator];
+og.control.EarthCoordinates.DisplayTypesConverters = [
+    og.control.EarthCoordinates.toDecimal,
+    og.control.EarthCoordinates.toDegrees,
+    og.control.EarthCoordinates.toMercator
+];
 
 og.control.EarthCoordinates.dec2deg = function (base) {
     var t, t2;
@@ -55,18 +93,18 @@ og.control.EarthCoordinates.numToFixedString = function (num, fixed) {
     return white + num.toString();
 };
 
-og.control.EarthCoordinates.prototype.initialize = function () {
-    this.display = document.createElement('div');
-    this.display.className = 'ogEarthCoordinatesControl';
+og.control.EarthCoordinates.prototype.oninit = function () {
+    this._display = document.createElement('div');
+    this._display.className = 'ogEarthCoordinatesControl';
     var that = this;
-    this.display.onclick = function (e) {
-        that.displayType += 1;
-        if (that.displayType >= og.control.EarthCoordinates.DisplayTypesConverters.length)
-            that.displayType = 0;
-        that.converter = og.control.EarthCoordinates.DisplayTypesConverters[that.displayType];
+    this._display.onclick = function (e) {
+        that._displayType += 1;
+        if (that._displayType >= og.control.EarthCoordinates.DisplayTypesConverters.length)
+            that._displayType = 0;
+        that._converter = og.control.EarthCoordinates.DisplayTypesConverters[that._displayType];
         that.showPosition();
     };
-    this.renderer.div.appendChild(this.display);
+    this.renderer.div.appendChild(this._display);
 
     centerDiv = document.createElement('div');
     centerDiv.className = 'ogCenterIcon';
@@ -74,55 +112,60 @@ og.control.EarthCoordinates.prototype.initialize = function () {
     this.renderer.div.appendChild(centerDiv);
 
     if (this._center) {
-        this.renderer.events.on("draw", this, this.onDraw);
+        this.renderer.events.on("draw", this, this._draw);
         centerDiv.style.display = "block";
     } else {
-        this.renderer.events.on("mousemove", this, this.onMouseMove);
+        this.renderer.events.on("mousemove", this, this._onMouseMove);
         centerDiv.style.display = "none";
     }
 };
 
+/**
+ * Sets coordinates capturing type.
+ * @public
+ * @param {Boolean} center - True - capture screen center, false - mouse pointer.
+ */
 og.control.EarthCoordinates.prototype.setCenter = function (center) {
     if (center != this._center) {
         this._center = center;
         if (center) {
-            this.renderer.events.off("mousemove", this.onMouseMove);
-            this.renderer.events.on("draw", this, this.onDraw);
+            this.renderer.events.off("mousemove", this._onMouseMove);
+            this.renderer.events.on("draw", this, this._draw);
             centerDiv.style.display = "block";
         } else {
-            this.renderer.events.off("draw", this.onDraw);
-            this.renderer.events.on("mousemove", this, this.onMouseMove);
+            this.renderer.events.off("draw", this._draw);
+            this.renderer.events.on("mousemove", this, this._onMouseMove);
             centerDiv.style.display = "none";
         }
     }
 };
 
-og.control.EarthCoordinates.prototype.showPosition = function () {
+og.control.EarthCoordinates.prototype._showPosition = function () {
     if (this.position) {
-        this.display.innerHTML = "Lat/Lon: " + this.converter(this.position) + " Height(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
+        this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " Height(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
     } else {
-        this.display.innerHTML = "Lat/Lon: " + "_____________________";
+        this._display.innerHTML = "Lat/Lon: " + "_____________________";
     }
 };
 
-og.control.EarthCoordinates.prototype.onDraw = function () {
+og.control.EarthCoordinates.prototype._draw = function () {
     var r = this.renderer;
     var ts = r.events.touchState;
     if (r.controlsBag.scaleRot <= 0 &&
         !r.activeCamera._flying ||
         ts.moving && ts.sys.touches.length === 1) {
         this.position = r.renderNodes.Earth.getLonLatFromPixelTerrain(r.handler.getCenter());
-        this.showPosition();
+        this._showPosition();
     }
 };
 
-og.control.EarthCoordinates.prototype.onMouseMove = function () {
+og.control.EarthCoordinates.prototype._onMouseMove = function () {
     var r = this.renderer;
     var ms = r.events.mouseState;
     if (!(ms.leftButtonDown || ms.rightButtonDown) &&
         r.controlsBag.scaleRot <= 0 &&
         !r.activeCamera._flying) {
         this.position = r.renderNodes.Earth.getLonLatFromPixelTerrain(ms, true);
-        this.showPosition();
+        this._showPosition();
     }
 };

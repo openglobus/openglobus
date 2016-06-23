@@ -2,6 +2,12 @@ goog.provide('og.control.LayerSwitcher');
 
 goog.require('og.inheritance');
 
+/**
+ * Simple(OpenLayers like)layer switcher, includes base layers, overlays, geo images etc. groups.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Control options.
+ */
 og.control.LayerSwitcher = function (options) {
     og.inheritance.base(this, options);
     this.dialog = null;
@@ -15,7 +21,7 @@ og.control.LayerSwitcher.numSwitches = 0;
 
 og.inheritance.extend(og.control.LayerSwitcher, og.control.BaseControl);
 
-og.control.LayerSwitcher.prototype.initialize = function () {
+og.control.LayerSwitcher.prototype.oninit = function () {
     this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);
     this.renderer.renderNodes.Earth.events.on("geoimageadd", this, this.onGeoImageAdded);

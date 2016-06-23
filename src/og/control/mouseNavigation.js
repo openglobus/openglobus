@@ -9,8 +9,15 @@ goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
 
+/**
+ * Mouse planet camera dragging control.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Control options.
+ */
 og.control.MouseNavigation = function (options) {
     og.inheritance.base(this, options);
+
     this.grabbedPoint = new og.math.Vector3();
     this._eye0 = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();
@@ -28,7 +35,6 @@ og.control.MouseNavigation = function (options) {
 };
 
 og.inheritance.extend(og.control.MouseNavigation, og.control.BaseControl);
-
 
 og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet, stepsCount, delta, point, forward, dir) {
 
@@ -129,7 +135,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
         this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
 };
 
-og.control.MouseNavigation.prototype.initialize = function () {
+og.control.MouseNavigation.prototype.oninit = function () {
     this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("mousewheel", this, this.onMouseWheel);
     this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);

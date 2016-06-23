@@ -41,24 +41,65 @@ og.control.BaseControl = function (options) {
 };
 
 /**
- * Control Initialization function have to be overriden.
+ * Control initialization function have to be overriden.
  * @public
  * @abstract
  */
-og.control.BaseControl.prototype.initialize = function () { }
+og.control.BaseControl.prototype.oninit = function () { }
+
+/**
+ * Control renderer assigning function have to be overriden.
+ * @public
+ * @abstract
+ */
+og.control.BaseControl.prototype.onadd = function () { }
+
+/**
+ * Control remove function have to be overriden.
+ * @public
+ * @abstract
+ */
+og.control.BaseControl.prototype.onremove = function () { }
+
+/**
+ * Control activation function have to be overriden.
+ * @public
+ * @abstract
+ */
+og.control.BaseControl.prototype.onactivate = function () { }
+
+/**
+ * Control deactivation function have to be overriden.
+ * @public
+ * @abstract
+ */
+og.control.BaseControl.prototype.ondeactivate = function () { }
 
 /**
  * Assign renderer to the control.
  * @public
  * @type {og.Renderer}
  */
-og.control.BaseControl.prototype.setRenderer = function (renderer) {
+og.control.BaseControl.prototype.addTo = function (renderer) {
     this.renderer = renderer;
+    renderer.controls.push(this);
+    this.onadd && this.onadd();
     if (this.autoActivate) {
-        this.initialize && this.initialize();
+        this.oninit && this.oninit();
         this._initialized = true;
         this.active = true;
     }
+};
+
+/**
+ * Assign renderer to the control.
+ * @public
+ */
+og.control.BaseControl.prototype.remove = function () {
+    this.onremove && this.onremove();
+    this.renderer = null;
+    this.active = false;
+    this._initialized = false;
 };
 
 /**
@@ -67,6 +108,7 @@ og.control.BaseControl.prototype.setRenderer = function (renderer) {
  */
 og.control.BaseControl.prototype.activate = function () {
     this.active = true;
+    this.onactivate && this.onactivate();
 };
 
 /**
@@ -75,4 +117,5 @@ og.control.BaseControl.prototype.activate = function () {
  */
 og.control.BaseControl.prototype.deactivate = function () {
     this.active = false;
+    this.ondeactivate && this.ondeactivate();
 };

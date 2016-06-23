@@ -4,6 +4,12 @@ goog.require('og.inheritance');
 goog.require('og.control.BaseControl');
 goog.require('og.input');
 
+/**
+ * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Control options.
+ */
 og.control.SimpleNavigation = function (options) {
     og.inheritance.base(this, options);
 };

@@ -4,13 +4,19 @@ goog.require('og.inheritance');
 goog.require('og.control.BaseControl');
 goog.require('og.input');
 
+/**
+ * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
+ * @class
+ * @extends {og.control.BaseControl}
+ * @param {Object} [options] - Control options.
+ */
 og.control.KeyboardNavigation = function (options) {
     og.inheritance.base(this, options);
 };
 
 og.inheritance.extend(og.control.KeyboardNavigation, og.control.BaseControl);
 
-og.control.KeyboardNavigation.prototype.initialize = function () {
+og.control.KeyboardNavigation.prototype.oninit = function () {
     this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);
     this.renderer.events.on("keypress", this, this.onCameraMoveBackward, og.input.KEY_S);
     this.renderer.events.on("keypress", this, this.onCameraStrifeLeft, og.input.KEY_A);
