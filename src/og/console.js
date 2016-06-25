@@ -1,5 +1,9 @@
 goog.provide('og.Console');
 
+/**
+ * Console logging singleton object.
+ * @class
+ */
 og.Console = (function () {
 
     var Console = function () {
@@ -8,14 +12,27 @@ og.Console = (function () {
         container.style.display = "none";
         document.body.appendChild(container);
 
+        /**
+         * Show console panel.
+         * @public
+         */
         this.show = function () {
             container.style.display = "block";
         };
 
+        /**
+         * Hide console panel.
+         * @public
+         */
         this.hide = function () {
             container.style.display = "none";
         };
 
+        /**
+         * Adds error text in the console.
+         * @public
+         * @param {string} str - Error text.
+         */
         this.logErr = function (str) {
             var d = document.createElement("div");
             d.classList.add("ogConsole-text");
@@ -25,6 +42,11 @@ og.Console = (function () {
             this.show();
         };
 
+        /**
+         * Adds warning text in the console.
+         * @public
+         * @param {string} str - Warning text.
+         */
         this.logWrn = function (str) {
             var d = document.createElement("div");
             d.classList.add("ogConsole-text");
@@ -34,6 +56,12 @@ og.Console = (function () {
             this.show();
         };
 
+        /**
+         * Adds log text in the console.
+         * @public
+         * @param {string} str - Log text.
+         * @param {Object} [style] - HTML style.
+         */
         this.log = function (str, style) {
             var d = document.createElement("div");
             d.classList.add("ogConsole-text");
