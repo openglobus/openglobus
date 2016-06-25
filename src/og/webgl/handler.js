@@ -11,14 +11,14 @@ goog.require('og.Console');
 /** 
  * A WebGL handler for accessing low-level WebGL capabilities. 
  * @class
- * @param {string} id - Canvas element id that WebGL handler assings with. If it's null or undefined creates 
- * hidden canvas and handler bacomes hidden.
- * @param {Object} [param] - Handler options:
- * @param {number} [param.anisotropy] - Anisitropy filter degree. 8 is default.
- * @param {number} [param.width] - Hidden handler width. 256 is default.
- * @param {number} [param.height] - Hidden handler height. 256 is default.
- * @param {Object} [param.context] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
- * @param {Array.<string>} [param.extensions] - Additional WebGL extension list. Available by default: OES_standard_derivatives, EXT_texture_filter_anisotropic.
+ * @param {string} id - Canvas element id that WebGL handler assing with. If it's null 
+ * or undefined creates hidden canvas and handler bacomes hidden.
+ * @param {Object} [params] - Handler options:
+ * @param {number} [params.anisotropy] - Anisitropy filter degree. 8 is default.
+ * @param {number} [params.width] - Hidden handler width. 256 is default.
+ * @param {number} [params.height] - Hidden handler height. 256 is default.
+ * @param {Object} [param.scontext] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
+ * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: OES_standard_derivatives, EXT_texture_filter_anisotropic.
  */
 og.webgl.Handler = function (id, params) {
 
@@ -33,6 +33,8 @@ og.webgl.Handler = function (id, params) {
     this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
 
     /**
+     * Application timer.
+     * @public
      * @type {og.Clock}
      */
     this.clock = new og.Clock();
@@ -74,6 +76,7 @@ og.webgl.Handler = function (id, params) {
     this.activeShaderProgram = null;
 
     /**
+     * Handler parameters.
      * @private
      * @type {Object}
      */
@@ -95,13 +98,21 @@ og.webgl.Handler = function (id, params) {
     this._oneByHeight = 1 / this._params.height;
 
     /**
+     * Current WebGL extensions. Becomes here after context initialization.
      * @private
      * @type {Object}
      */
     this._pExtensions = {};
 
+    /**
+     * HTML Canvas object id.
+     * @private
+     * @type {Object}
+     */
     this._id = id;
+
     this._lastAnimationFrameTime = 0;
+
     this._initialized = false;
 
     /**

@@ -9,9 +9,10 @@ if (COMPILED) {
 }
 
 /**
- * Returns WebGL extension
- * @param {Object} gl - gl pointer.
+ * The return value is null if the extension is not supported, or an extension object otherwise.
+ * @param {Object} gl - WebGl context pointer.
  * @param {String} name - Extension name.
+ * @returns {Object}
  */
 og.webgl.getExtension = function (gl, name) {
     var i, ext;
@@ -25,15 +26,15 @@ og.webgl.getExtension = function (gl, name) {
 };
 
 /**
- * Returns WebGL context.
+ * Returns a drawing context on the canvas, or null if the context identifier is not supported.
  * @param {Object} canvas - HTML canvas object.
- * @params {Object} params:
+ * @params {Object} [contextAttributes] - See canvas.getContext contextAttributes.
  * @returns {Object}
  */
-og.webgl.initWebGLContext = function (canvas, params) {
+og.webgl.initWebGLContext = function (canvas, contextAttributes) {
     var ctx;
     try {
-        ctx = canvas.getContext("experimental-webgl", params);
+        ctx = canvas.getContext("experimental-webgl", contextAttributes);
         ctx.canvas = canvas;
     }
     catch (ex) {

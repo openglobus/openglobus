@@ -18,7 +18,9 @@ og.RendererEvents = function (renderer) {
     og.inheritance.base(this);
 
     /**
+     * Assigned renderer.
      * @public
+     * @type {og.Renderer}
      */
     this.renderer = renderer;
 
@@ -44,57 +46,96 @@ og.RendererEvents = function (renderer) {
     this._keyboardHandler = new og.input.KeyboardHandler();
 
     /**
-     * Store mouse per frame state.
+     * Current mouse state.
      * @public
-     * @enum {*}
+     * @enum {Object}
      */
     this.mouseState = {
+        /** Current mouse X position. */
         x: 0,
+        /** Current mouse Y position. */
         y: 0,
+        /** Previous mouse X position. */
         prev_x: 0,
+        /** Previous mouse Y position. */
         prev_y: 0,
+        /** Screen mouse position world direction. */
         direction: new og.math.Vector3(),
+        /** Left mouse button has stopped pushing down right now.*/
         leftButtonUp: false,
+        /** Right mouse button has stopped pushing down right now.*/
         rightButtonUp: false,
+        /** Middle mouse button has stopped pushing down right now.*/
         middleButtonUp: false,
+        /** Left mouse button has pushed now.*/
         leftButtonDown: false,
+        /** Right mouse button has pushed now.*/
         rightButtonDown: false,
+        /** Middle mouse button has pushed now.*/
         middleButtonDown: false,
+        /** Left mouse button is pushing.*/
         leftButtonHold: false,
+        /** Right mouse button is pushing.*/
         rightButtonHold: false,
+        /** Middle mouse button is pushing.*/
         middleButtonHold: false,
+        /** Left mouse button has clicked twice now.*/
         leftButtonDoubleClick: false,
+        /** Right mouse button has clicked twice now.*/
         rightButtonDoubleClick: false,
+        /** Middle mouse button has clicked twice now.*/
         middleButtonDoubleClick: false,
+        /** Left mouse button has clicked now. */
         leftButtonClick: false,
+        /** Right mouse button has clicked now. */
         rightButtonClick: false,
+        /** Middle mouse button has clicked now. */
         middleButtonClick: false,
+        /** Mouse is moving now. */
         moving: false,
+        /** Mouse has just stopped now. */
         justStopped: false,
+        /** Mose double click delay response.*/
         doubleClickDelay: 300,
+        /** Mouse wheel. */
         wheelDelta: 0,
+        /** JavaScript mouse system event message. */
         sys: null,
+        /** Current picking object. */
         pickingObject: null
     };
 
     /**
-     * Stores touch state.
+     * Current touch state.
      * @public
-     * @enum {*}
+     * @enum {Object}
      */
     this.touchState = {
+        /** Touching is moving now. */
         moving: false,
+        /** Touch has ended right now.*/
         touchEnd: false,
+        /** Touch has started right now.*/
         touchStart: false,
+        /** Touch canceled.*/
         touchCancel: false,
+        /** Touched twice.*/
         doubleTouch: false,
+        /** Double touching responce delay.*/
         doubleTouchDelay: 550,
+        /** Double touching responce radius in screen pixels.*/
         doubleTouchRadius: 10,
+        /** Current touch X - coordinate. */
         x: 0,
+        /** Current touch Y - coordinate. */
         y: 0,
+        /** Previous touch X coordinate. */
         prev_x: 0,
+        /** Previous touch Y coordinate. */
         prev_y: 0,
+        /** JavaScript touching system event message. */
         sys: null,
+        /** Current touched(picking) object. */
         pickingObject: null
     };
 
@@ -115,11 +156,6 @@ og.RendererEvents = function (renderer) {
 
 og.inheritance.extend(og.RendererEvents, og.Events);
 
-/**
- * Renderer events names
- * @type {Array.<string>}
- * @const
- */
 og.RendererEvents.EVENT_NAMES = [
         /**
          * Triggered before scene frame is rendered(before render nodes).
@@ -241,12 +277,46 @@ og.RendererEvents.EVENT_NAMES = [
          */
         "mousewheel",
 
+        /**
+         * Triggered when touching starts.
+         * @event og.RendererEvents#touchstart
+         */
         "touchstart",
+
+        /**
+         * Triggered when touching ends.
+         * @event og.RendererEvents#touchend
+         */
         "touchend",
+
+        /**
+         * Triggered when touching cancel.
+         * @event og.RendererEvents#touchcancel
+         */
         "touchcancel",
-        "touchmove",
+
+        /**
+         * Triggered when touch is move.
+         * @event og.RendererEvents#touchmove
+         */
+         "touchmove",
+
+        /**
+         * Triggered when double touch.
+         * @event og.RendererEvents#touchmove
+         */
         "doubletouch",
+
+        /**
+         * Triggered when touch leaves picked object.
+         * @event og.RendererEvents#touchmove
+         */
         "touchleave",
+
+        /**
+         * Triggered when touch enter picking object.
+         * @event og.RendererEvents#touchmove
+         */
         "touchenter"
 ];
 
@@ -289,6 +359,10 @@ og.RendererEvents.prototype.isKeyPressed = function (keyCode) {
     return this._keyboardHandler.isKeyPressed(keyCode);
 };
 
+/**
+ * Renderer events initialization.
+ * @public
+ */
 og.RendererEvents.prototype.initialize = function () {
 
     this.registerNames(og.RendererEvents.EVENT_NAMES);
@@ -304,10 +378,16 @@ og.RendererEvents.prototype.initialize = function () {
     this._touchHandler.setEvent("touchmove", this, this.onTouchMove);
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onMouseWheel = function (event) {
     this.mouseState.wheelDelta = event.wheelDelta;
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
     ms.sys = event;
@@ -329,6 +409,9 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
     }, 100);
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onMouseDown = function (event) {
     if (event.button === og.input.MB_LEFT) {
         this._lclickX = event.clientX;
@@ -348,6 +431,9 @@ og.RendererEvents.prototype.onMouseDown = function (event) {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onMouseUp = function (event) {
     var ms = this.mouseState;
     ms.sys = event;
@@ -409,6 +495,9 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onTouchStart = function (event) {
     var ts = this.touchState;
     ts.sys = event;
@@ -427,6 +516,9 @@ og.RendererEvents.prototype.onTouchStart = function (event) {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onTouchEnd = function (event) {
     var ts = this.touchState;
     ts.sys = event;
@@ -452,12 +544,18 @@ og.RendererEvents.prototype.onTouchEnd = function (event) {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onTouchCancel = function (event) {
     var ts = this.touchState;
     ts.sys = event;
     ts.touchCancel = true;
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.onTouchMove = function (event) {
     var ts = this.touchState;
     ts.x = event.touches.item(0).pageX - event.offsetLeft;
@@ -468,6 +566,9 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
     this._oneTouchStart = false;
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.entityPickingEvents = function () {
     var ts = this.touchState,
         ms = this.mouseState;
@@ -522,6 +623,9 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
         ce = this.dispatch;
@@ -638,6 +742,9 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     }
 };
 
+/**
+ * @private
+ */
 og.RendererEvents.prototype.handleTouchEvents = function () {
     var ts = this.touchState,
         ce = this.dispatch;

@@ -3,20 +3,66 @@ goog.provide('og.webgl.Framebuffer');
 goog.require('og.webgl');
 goog.require('og.ImageCanvas');
 
+/**
+ * Class represents framebuffer.
+ * @class
+ * @param {og.webgl.Handler} handler - WebGL handler.
+ * @param {number} [width] - Framebuffer width. Default is handler canvas width.
+ * @param {number} [height] - Framebuffer height. Default is handler canvas height.
+ */
 og.webgl.Framebuffer = function (handler, width, height) {
+
+    /**
+     * WebGL handler.
+     * @public
+     * @type {og.webgl.Handler}
+     */
     this.handler = handler;
+
+    /**
+     * Framebuffer object.
+     * @public
+     * @type {Object}
+     */
     this.fbo = null;
+
+    /**
+     * Framebuffer width.
+     * @public
+     * @type {number}
+     */
     this.width = width || handler.canvas.width;
+
+    /**
+     * Framebuffer width.
+     * @public
+     * @type {number}
+     */
     this.height = height || handler.canvas.height;
+
+    /**
+     * Framebuffer texture.
+     * @public
+     * @type {number}
+     */
     this.texture = null;
+
     this._initialize();
 };
 
+/**
+ * Framebuffer initialization.
+ * @private
+ */
 og.webgl.Framebuffer.prototype._initialize = function () {
     this.fbo = this.handler.gl.createFramebuffer();
     this._createTexture();
 };
 
+/**
+ * Creates framebuffer texture.
+ * @private
+ */
 og.webgl.Framebuffer.prototype._createTexture = function () {
     var gl = this.handler.gl;
     gl.deleteTexture(this.texture);
@@ -44,6 +90,12 @@ og.webgl.Framebuffer.prototype._createTexture = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
+/**
+ * Sets framebuffer size.
+ * @public
+ * @param {number} width - Framebuffer width.
+ * @param {number} height - Framebuffer height.
+ */
 og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this.width = width;
     this.height = height;
@@ -51,6 +103,11 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this._initialize();
 };
 
+/**
+ * Returns framebuffer completed.
+ * @public
+ * @returns {boolean}
+ */
 og.webgl.Framebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
     var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -59,6 +116,11 @@ og.webgl.Framebuffer.prototype.isComplete = function () {
     return false;
 };
 
+/**
+ * Reads all pixels(RGBA colors) from framebuffer.
+ * @public
+ * @returns {Array.<number>}
+ */
 og.webgl.Framebuffer.prototype.readAllPixels = function () {
     var res;
     var gl = this.handler.gl;
@@ -72,6 +134,13 @@ og.webgl.Framebuffer.prototype.readAllPixels = function () {
     return res;
 };
 
+/**
+ * Gets pixel RBGA color from framebuffer by coordinates.
+ * @public
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {Array.<number,number,number,number>}
+ */
 og.webgl.Framebuffer.prototype.readPixel = function (x, y) {
     var res;
     var gl = this.handler.gl;
@@ -85,22 +154,39 @@ og.webgl.Framebuffer.prototype.readPixel = function (x, y) {
     return res;
 };
 
+/**
+ * Activate framebuffer frame to draw.
+ * @public
+ */
 og.webgl.Framebuffer.prototype.activate = function () {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
 };
 
+/**
+ * Clear framebuffer frame.
+ * @public
+ */
 og.webgl.Framebuffer.prototype.clear = function () {
     var gl = this.handler.gl;
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
+/**
+ * Deactivate framebuffer frame.
+ * @public
+ */
 og.webgl.Framebuffer.prototype.deactivate = function () {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
+/**
+ * Gets JavaScript image object that framebuffer has drawn.
+ * @public
+ * @returns {Object}
+ */
 og.webgl.Framebuffer.prototype.getImage = function () {
     var data = this.readAllPixels();
     var imageCanvas = new og.ImageCanvas(this.width, this.height);
@@ -108,6 +194,10 @@ og.webgl.Framebuffer.prototype.getImage = function () {
     return imageCanvas.getImage();
 };
 
+/**
+ * Open dialog window with framebuffer image.
+ * @public
+ */
 og.webgl.Framebuffer.prototype.openImage = function () {
     var img = this.getImage();
     var dataUrl = img.src;

@@ -8,7 +8,6 @@ goog.require('og.utils');
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler works real time.
- *
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler context.
  * @fires og.RendererEvents#draw
@@ -35,6 +34,9 @@ goog.require('og.utils');
  * @fires og.RendererEvents#touchend
  * @fires og.RendererEvents#touchcancel
  * @fires og.RendererEvents#touchmove
+ * @fires og.RendererEvents#doubletouch
+ * @fires og.RendererEvents#touchleave
+ * @fires og.RendererEvents#touchenter
  */
 og.Renderer = function (handler) {
 
@@ -97,40 +99,49 @@ og.Renderer = function (handler) {
     /**
      * Provide exchange between controls.
      * @public
-     * @type {Object.<*>}
+     * @type {Object}
      */
     this.controlsBag = {};
 
     /**
      * Hash table for drawing objects.
      * @public
-     * @type {Object.<*>}
+     * @type {Object}
      */
     this.colorObjects = {};
 
     /**
      * Color picking objects rendering queue.
-     * @private
-     * @callback colorPickingCallback
-     * @type {Array.<colorPickingCallback>}
+     * @type {Array.<og.Renderer~pickingCallback>}
      */
     this._pickingCallbacks = [];
 
+    /**
+     * Picking objects framebuffer.
+     * @private
+     * @type {og.webgl.Framebuffer}
+     */
     this._pickingFramebuffer = null;
 
     /**
-     * Stores current picking color by mouse position
+     * Stores current picking rgb color.
+     * @private
+     * @type {Array.<number,number,number>}
      */
     this._currPickingColor = [0, 0, 0];
-    this._prevPickingColor = [0, 0, 0];
 
-    this.console = null;
+    /**
+     * Stores previous picked rgb color.
+     * @private
+     * @type {Array.<number,number,number>}
+     */
+    this._prevPickingColor = [0, 0, 0];
 };
 
 /**
  * Adds picking rendering callback function.
  * @param {object} sender - Callback context.
- * @param {colorPickingCallback} callback - Rendering callback.
+ * @param {og.Renderer~pickingCallback} callback - Rendering callback.
  */
 og.Renderer.prototype.addPickingCallback = function (sender, callback) {
     this._pickingCallbacks.push({ "callback": callback, "sender": sender });
@@ -138,6 +149,7 @@ og.Renderer.prototype.addPickingCallback = function (sender, callback) {
 
 /**
  * Assign picking color to the object.
+ * @public
  * @param {Object} obj - Object that pressuming to be picked.
  */
 og.Renderer.prototype.assignPickingColor = function (obj) {
@@ -158,6 +170,11 @@ og.Renderer.prototype.assignPickingColor = function (obj) {
     this.colorObjects[str] = obj;
 };
 
+/**
+ * Removes picking color from object.
+ * @public
+ * @param {Object} obj - Object to remove picking color from.
+ */
 og.Renderer.prototype.clearPickingColor = function (obj) {
     var c = obj._pickingColor;
     if (!c.isZero()) {
@@ -167,14 +184,18 @@ og.Renderer.prototype.clearPickingColor = function (obj) {
 };
 
 /**
- * Get the client width
+ * Get the client width.
+ * @public
+ * @returns {number}
  */
 og.Renderer.prototype.getWidth = function () {
     return this.handler.gl.canvas.width;
 };
 
 /**
- * Get the client height
+ * Get the client height.
+ * @public
+ * @returns {number}
  */
 og.Renderer.prototype.getHeight = function () {
     return this.handler.gl.canvas.height;
@@ -182,6 +203,8 @@ og.Renderer.prototype.getHeight = function () {
 
 /**
  * Get center of the screen
+ * @public
+ * @returns {og.math.Pixel}
  */
 og.Renderer.prototype.getCenter = function () {
     var cnv = this.handler.gl.canvas;
@@ -190,7 +213,7 @@ og.Renderer.prototype.getCenter = function () {
 
 /**
  * Add the given control to the renderer.
- * @param {og.control.Control} control Control.
+ * @param {og.control.BaseControl} control - Control.
  */
 og.Renderer.prototype.addControl = function (control) {
     control.addTo(this);
@@ -198,7 +221,7 @@ og.Renderer.prototype.addControl = function (control) {
 
 /**
  * Add the given controls array to the planet node.
- * @param {og.control.Control} control Control.
+ * @param {Array.<og.control.BaseControl>} cArr - Control array.
  */
 og.Renderer.prototype.addControls = function (cArr) {
     for (var i = 0; i < cArr.length; i++) {
@@ -208,20 +231,24 @@ og.Renderer.prototype.addControls = function (cArr) {
 
 /**
  * Remove the given control from the renderer.
- * @param {og.control.Control} control Control.
- * @return {og.control.Control|undefined} The removed control of undefined if the control was not found.
+ * @param {og.control.BaseControl} control  - Control.
+ * @return {og.control.BaseControl|undefined}
  */
 og.Renderer.prototype.removeControl = function (control) {
     for (var i = 0; i < this.controls.length; i++) {
         if (this.controls[i] == control) {
             this.controls.splice(i, 1);
-            control.deactivate();
+            control.remove();
             return control;
         }
     }
     return undefined;
 };
 
+/**
+ * Renderer initialization.
+ * @public
+ */
 og.Renderer.prototype.init = function () {
     var that = this;
 
@@ -268,6 +295,10 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
     }
 };
 
+/**
+ * Draw nodes.
+ * @public
+ */
 og.Renderer.prototype.draw = function () {
 
     this.handler.clearFrame();
@@ -300,6 +331,10 @@ og.Renderer.prototype.getPickingObject = function (x, y) {
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
+/**
+ * Draw picking objects framebuffer.
+ * @private
+ */
 og.Renderer.prototype._drawPickingBuffer = function () {
     this._pickingFramebuffer.activate();
 
@@ -312,6 +347,10 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     var dp = this._pickingCallbacks;
     var i = dp.length;
     while (i--) {
+        /**
+         * This callback renders picking frame.
+         * @callback og.Renderer~pickingCallback
+         */
         dp[i].callback.call(dp[i].sender);
     }
 
@@ -334,7 +373,8 @@ og.Renderer.prototype._drawPickingBuffer = function () {
 };
 
 /**
- * Function starts rendering
+ * Function starts rendering.
+ * @public
  */
 og.Renderer.prototype.start = function () {
     this.handler.start();

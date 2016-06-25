@@ -1,5 +1,9 @@
 goog.provide('og.FontDetector');
 
+/**
+ * Font detector class.
+ * @class
+ */
 og.FontDetector = function () {
     var baseFonts = ['monospace', 'sans-serif', 'serif'];
     var testString = "mmmmmmmmmmlli";
@@ -18,7 +22,13 @@ og.FontDetector = function () {
         h.removeChild(s);
     }
 
-    function detect(font) {
+    /**
+     * Returns true if font is known.
+     * @public
+     * @param {string} font - Font name.
+     * @returns {boolean}
+     */
+    this.detect = function (font) {
         var detected = false;
         for (var index in baseFonts) {
             s.style.fontFamily = font + ',' + baseFonts[index];
@@ -29,6 +39,4 @@ og.FontDetector = function () {
         }
         return detected;
     }
-
-    this.detect = detect;
 };

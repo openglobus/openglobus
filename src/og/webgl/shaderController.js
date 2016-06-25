@@ -3,19 +3,37 @@ goog.provide('og.webgl.ShaderController');
 /**
  * This is shader program controller that used by hadler object to access the shader 
  * program capabilities, like switching program during the rendering.
- * Get access to the program from ..handler.shaderPrograms.<program name> etc.
+ * Get access to the program from ...handler.shaderPrograms.<program name> etc.
  * @class
- * @param {og.webgl.Handler}
- * @param {og.shaderProgram.ShaderProgram}
+ * @param {og.webgl.Handler} handler - Handler.
+ * @param {og.shaderProgram.ShaderProgram} shaderProgram - Shader program.
  */
 og.webgl.ShaderController = function (handler, shaderProgram) {
+
+    /**
+     * Shader program.
+     * @private
+     * @type {og.shaderProgram.ShaderProgram}
+     */
     this._program = shaderProgram;
+
+    /**
+     * Handler.
+     * @private
+     * @type {og.webgl.Handler}
+     */
     this._handler = handler;
+
+    /**
+     * Program current frame activation flag.
+     * @private
+     * @type {boolean}
+     */
     this._activated = false;
 };
 
 /**
- * Lazy create program callee.
+ * Lazy create program call.
  * @public
  */
 og.webgl.ShaderController.prototype.initialize = function () {
@@ -74,7 +92,7 @@ og.webgl.ShaderController.prototype.deactivate = function () {
 /**
  * Returns program activity.
  * @public
- * @return {Boolean}
+ * @return {boolean}
  */
 og.webgl.ShaderController.prototype.isActive = function () {
     return this._activated;

@@ -51,9 +51,9 @@ og.utils.TextureAtlas = function (width, height) {
 og.utils.TextureAtlas.BORDER_SIZE = 4;
 
 /**
- * Returns atlas image object.
+ * Returns atlas javascript image object.
  * @public
- * @returns {Image}
+ * @returns {Object}
  */
 og.utils.TextureAtlas.prototype.getImage = function () {
     return this.canvas.getImage();
@@ -62,7 +62,7 @@ og.utils.TextureAtlas.prototype.getImage = function () {
 /**
  * Returns canvas object.
  * @public
- * @retuns {Canvas}
+ * @retuns {Object}
  */
 og.utils.TextureAtlas.prototype.getCanvas = function () {
     return this.canvas._canvas;
@@ -88,7 +88,7 @@ og.utils.TextureAtlas.prototype.assignHandler = function (handler) {
 
 /**
  * Returns image diagonal size.
- * @param {Image} image - Image.
+ * @param {Object} image - JavaSript image object.
  * @returns {number}
  */
 og.utils.TextureAtlas.getDiagonal = function (image) {
@@ -100,7 +100,7 @@ og.utils.TextureAtlas.getDiagonal = function (image) {
 /**
  * Adds image to the atlas and returns creted node with texture coordinates of the stored image.
  * @public
- * @param {Image} image - Input image.
+ * @param {Object} image - Input javascript image object.
  * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
  * and store image in the curent atlas sheme.
  * @returns {og.utils.TextureAtlasNode}
