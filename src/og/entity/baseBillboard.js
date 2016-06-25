@@ -18,29 +18,82 @@ goog.require('og.utils');
 og.BaseBillboard = function (options) {
     options = options || {};
 
+    /**
+     * Object unic identifier.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     this.id = og.BaseBillboard.__staticId++;
 
+    /**
+     * Billboard center cartesian position.
+     * @protected
+     * @type {og.math.Vector3}
+     */
     this._position = og.utils.createVector3(options.position);
+
+    /**
+     * Screen space rotation angle.
+     * @protected
+     * @type {number}
+     */
     this._rotation = options.rotation || 0;
+
+    /**
+     * RGBA color.
+     * @protected
+     * @type {og.math.Vector4}
+     */
     this._color = og.utils.createColor(options.color);
+
+    /**
+     * Cartesian aligned axis vector.
+     * @protected
+     * @type {og.math.Vector3}
+     */
     this._alignedAxis = og.utils.createVector3(options.algnedAxis);
-    this._offset = og.utils.createVector3(options.offset)
+
+    /**
+     * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
+     * @protected
+     * @type {og.math.Vecto3}
+     */
+    this._offset = og.utils.createVector3(options.offset);
+
+    /**
+     * Billboard visibility.
+     * @protected
+     * @type {boolean}
+     */
     this._visibility = options.visibility != undefined ? options.visibility : true;
+
+    /**
+     * Billboard scale.
+     * @protected
+     * @type {number}
+     */
     this._scale = options.scale || 1.0;
 
     /**
      * Entity instance that holds this billboard.
-     * @private
+     * @protected
      * @type {og.Entity}
      */
     this._entity = null;
 
     /**
      * Handler that stores and renders this billboard object.
-     * @private
+     * @protected
      * @type {og.BillboardHandler}
      */
     this._handler = null;
+
+    /**
+     * Billboard handler array index.
+     * @protected
+     * @type {number}
+     */
     this._handlerIndex = -1;
 };
 

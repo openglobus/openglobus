@@ -15,37 +15,39 @@ goog.require('og.Events');
  * @params {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
  * @params {number} [options.opacity] - Entity global opacity.
  *
- * @fires og.Events#entitymove
- * @fires og.Events#draw
- * @fires og.Events#drawend
- * @fires og.Events#add
- * @fires og.Events#remove
- * @fires og.Events#entityadd
- * @fires og.Events#entityremove
- * @fires og.Events#visibilitychange
- * @fires og.Events#mousemove
- * @fires og.Events#mouseenter
- * @fires og.Events#mouseleave
- * @fires og.Events#mouselbuttonclick
- * @fires og.Events#mouserbuttonclick
- * @fires og.Events#mousembuttonclick
- * @fires og.Events#mouselbuttondoubleclick
- * @fires og.Events#mouserbuttondoubleclick
- * @fires og.Events#mousembuttondoubleclick
- * @fires og.Events#mouselbuttonup
- * @fires og.Events#mouserbuttonup
- * @fires og.Events#mousembuttonup
- * @fires og.Events#mouselbuttondown
- * @fires og.Events#mouserbuttondown
- * @fires og.Events#mousembuttondown
- * @fires og.Events#mouselbuttonhold
- * @fires og.Events#mouserbuttonhold
- * @fires og.Events#mousembuttonhold
- * @fires og.Events#mousewheel
- * @fires og.Events#touchmove
- * @fires og.Events#touchstart
- * @fires og.Events#touchend
- * @fires og.Events#doubletouch
+ * @fires og.EntityCollection#entitymove
+ * @fires og.EntityCollection#draw
+ * @fires og.EntityCollection#drawend
+ * @fires og.EntityCollection#add
+ * @fires og.EntityCollection#remove
+ * @fires og.EntityCollection#entityadd
+ * @fires og.EntityCollection#entityremove
+ * @fires og.EntityCollection#visibilitychange
+ * @fires og.EntityCollection#mousemove
+ * @fires og.EntityCollection#mouseenter
+ * @fires og.EntityCollection#mouseleave
+ * @fires og.EntityCollection#mouselbuttonclick
+ * @fires og.EntityCollection#mouserbuttonclick
+ * @fires og.EntityCollection#mousembuttonclick
+ * @fires og.EntityCollection#mouselbuttondoubleclick
+ * @fires og.EntityCollection#mouserbuttondoubleclick
+ * @fires og.EntityCollection#mousembuttondoubleclick
+ * @fires og.EntityCollection#mouselbuttonup
+ * @fires og.EntityCollection#mouserbuttonup
+ * @fires og.EntityCollection#mousembuttonup
+ * @fires og.EntityCollection#mouselbuttondown
+ * @fires og.EntityCollection#mouserbuttondown
+ * @fires og.EntityCollection#mousembuttondown
+ * @fires og.EntityCollection#mouselbuttonhold
+ * @fires og.EntityCollection#mouserbuttonhold
+ * @fires og.EntityCollection#mousembuttonhold
+ * @fires og.EntityCollection#mousewheel
+ * @fires og.EntityCollection#touchmove
+ * @fires og.EntityCollection#touchstart
+ * @fires og.EntityCollection#touchend
+ * @fires og.EntityCollection#doubletouch
+ * @fires og.EntityCollection#touchleave
+ * @fires og.EntityCollection#touchenter
  */
 og.EntityCollection = function (options) {
 
@@ -151,180 +153,205 @@ og.EntityCollection = function (options) {
 
 og.EntityCollection.__staticCounter = 0;
 
-/**
- * Entity collection events names
- * @type {Array.<string>}
- * @const
- */
 og.EntityCollection.EVENT_NAMES = [
         /**
          * Triggered when entity has moved.
-         * @event og.Events#draw
+         * @event og.EntityCollection#entitymove
          */
         "entitymove",
 
         /**
          * Triggered when collection entities begin draw.
-         * @event og.Events#draw
+         * @event og.EntityCollection#draw
          */
         "draw",
 
         /**
-         * Triggered when collection entities begin draw.
-         * @event og.Events#draw
+         * Triggered after collection has drawn.
+         * @event og.EntityCollection#drawend
          */
         "drawend",
 
         /**
          * Triggered when added to the render node.
-         * @event og.Events#add
+         * @event og.EntityCollection#add
          */
         "add",
 
         /**
          * Triggered when removed from the render node.
-         * @event og.Events#remove
+         * @event og.EntityCollection#remove
          */
         "remove",
 
         /**
          * Triggered when new entity added to the collection.
-         * @event og.Events#entityadd
+         * @event og.EntityCollection#entityadd
          */
         "entityadd",
 
         /**
          * Triggered when entity removes from the collection.
-         * @event og.Events#entityremove
+         * @event og.EntityCollection#entityremove
          */
         "entityremove",
 
         /**
          * Triggered when visibility changes.
-         * @event og.Events#visibilitychange
+         * @event og.EntityCollection#visibilitychange
          */
         "visibilitychange",
 
         /**
          * Triggered when mouse moves over the entity.
-         * @event og.Events#mousemove
+         * @event og.EntityCollection#mousemove
          */
         "mousemove",
 
         /**
          * Triggered when mouse has entered over the entity.
-         * @event og.Events#mouseenter
+         * @event og.EntityCollection#mouseenter
          */
         "mouseenter",
 
         /**
          * Triggered when mouse leaves the entity.
-         * @event og.Events#mouseenter
+         * @event og.EntityCollection#mouseenter
          */
         "mouseleave",
 
         /**
          * Mouse left button clicked.
-         * @event og.Events#mouselbuttonclick
+         * @event og.EntityCollection#mouselbuttonclick
          */
         "mouselbuttonclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.Events#mouserbuttonclick
+         * @event og.EntityCollection#mouserbuttonclick
          */
         "mouserbuttonclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.Events#mousembuttonclick
+         * @event og.EntityCollection#mousembuttonclick
          */
         "mousembuttonclick",
 
         /**
          * Mouse left button double click.
-         * @event og.Events#mouselbuttondoubleclick
+         * @event og.EntityCollection#mouselbuttondoubleclick
          */
         "mouselbuttondoubleclick",
 
         /**
          * Mouse right button double click.
-         * @event og.Events#mouserbuttondoubleclick
+         * @event og.EntityCollection#mouserbuttondoubleclick
          */
         "mouserbuttondoubleclick",
 
         /**
          * Mouse middle button double click.
-         * @event og.Events#mousembuttondoubleclick
+         * @event og.EntityCollection#mousembuttondoubleclick
          */
         "mousembuttondoubleclick",
 
         /**
          * Mouse left button up(stop pressing).
-         * @event og.Events#mouselbuttonup
+         * @event og.EntityCollection#mouselbuttonup
          */
         "mouselbuttonup",
 
         /**
          * Mouse right button up(stop pressing).
-         * @event og.Events#mouserbuttonup
+         * @event og.EntityCollection#mouserbuttonup
          */
         "mouserbuttonup",
 
         /**
          * Mouse middle button up(stop pressing).
-         * @event og.Events#mouserbuttonup
+         * @event og.EntityCollection#mousembuttonup
          */
         "mousembuttonup",
 
         /**
          * Mouse left button is just pressed down(start pressing).
-         * @event og.Events#mouselbuttondown
+         * @event og.EntityCollection#mouselbuttondown
          */
         "mouselbuttondown",
 
         /**
          * Mouse right button is just pressed down(start pressing).
-         * @event og.Events#mouserbuttondown
+         * @event og.EntityCollection#mouserbuttondown
          */
         "mouserbuttondown",
 
         /**
          * Mouse middle button is just pressed down(start pressing).
-         * @event og.Events#mousembuttondown
+         * @event og.EntityCollection#mousembuttondown
          */
         "mousembuttondown",
 
         /**
          * Mouse left button is pressing.
-         * @event og.Events#mouselbuttonhold
+         * @event og.EntityCollection#mouselbuttonhold
          */
         "mouselbuttonhold",
 
         /**
          * Mouse right button is pressing.
-         * @event og.Events#mouserbuttonhold
+         * @event og.EntityCollection#mouserbuttonhold
          */
         "mouserbuttonhold",
 
         /**
          * Mouse middle button is pressing.
-         * @event og.Events#mousembuttonhold
+         * @event og.EntityCollection#mousembuttonhold
          */
         "mousembuttonhold",
 
         /**
          * Mouse wheel is rotated.
-         * @event og.Events#mousewheel
+         * @event og.EntityCollection#mousewheel
          */
         "mousewheel",
 
-        "touchmove",
+        /**
+         * Triggered when touch moves over the entity.
+         * @event og.EntityCollection#touchmove
+         */
+         "touchmove",
+
+        /**
+         * Triggered when entity begins to touch.
+         * @event og.EntityCollection#touchstart
+         */
         "touchstart",
+
+        /**
+         * Triggered when entity ends touching.
+         * @event og.EntityCollection#touchend
+         */
         "touchend",
+
+        /**
+         * Triggered entity double touch.
+         * @event og.EntityCollection#doubletouch
+         */
         "doubletouch",
+
+        /**
+         * Triggered when touching leaves entity.
+         * @event og.EntityCollection#touchleave
+         */
         "touchleave",
-        "touchenter"];
+
+        /**
+         * Triggered when touch enters over the entity.
+         * @event og.EntityCollection#touchenter
+         */
+        "touchenter"
+];
 
 /**
  * Sets collection visibility.
@@ -356,7 +383,9 @@ og.EntityCollection.prototype.setOpacity = function (opacity) {
 };
 
 /**
+ * Sets collection picking ability.
  * @public
+ * @param {boolean} enable - Picking enable flag.
  */
 og.EntityCollection.prototype.setPickingEnabled = function (enable) {
     this.billboardHandler.pickingEnabled = enable;
@@ -499,11 +528,6 @@ og.EntityCollection.prototype.removeEntity = function (entity) {
     this.events.dispatch(this.events.entityremove, entity);
 };
 
-/**
- * Removes entity from this collection without event dispatching.
- * @public
- * @param {og.Entity} entity - Entity to remove.
- */
 og.EntityCollection.prototype._removeEntitySilent = function (entity) {
     this._entities.splice(entity._entityCollectionIndex, 1);
     this.reindexEntitiesArray(entity._entityCollectionIndex);
@@ -570,7 +594,6 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
 
 /**
  * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
- * @private
  */
 og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) {
     var e = this._entities;

@@ -1,0 +1,4 @@
+/**
+ * Mercator projection functions and parameters.
+ * @namespace og.mercator
+ */

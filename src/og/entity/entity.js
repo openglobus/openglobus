@@ -21,7 +21,7 @@ goog.require('og.LineString');
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {Object} [options.billboard] - Billboard options.
  * @param {Object} [options.label] - Label options.
- * @param {Object} [properties] - Entity properties.
+ * @param {Object} [properties] - Entity custom properties.
  */
 og.Entity = function (options, properties) {
 
@@ -40,12 +40,18 @@ og.Entity = function (options, properties) {
      * @type {Object}
      */
     this.properties = properties || {};
+
+    /**
+     * Entity name.
+     * @public
+     * @type {string}
+     */
     this.properties.name = this.properties.name || "noname";
 
     /**
      * Children entities.
      * @public
-     * @type {og.Entity}
+     * @type {Array.<og.Entity>}
      */
     this.childrenNodes = [];
 
@@ -57,60 +63,72 @@ og.Entity = function (options, properties) {
     this.parent = null;
 
     /**
-     * Entity cartesian position
-     * @private
+     * Entity cartesian position.
+     * @protected
      * @type {og.math.Vector3}
      */
     this._cartesian = og.utils.createVector3(options.cartesian);
 
     /**
      * Geodetic entity coordiantes.
-     * @private
+     * @protected
      * @type {og.LonLat}
      */
     this._lonlat = options.lonlat || null;
 
     /**
      * World Mercator entity coordinates.
-     * @private
+     * @protected
      * @type {og.LonLat}
      */
     this._lonlatMerc = null;
 
     /**
      * Entity visible terrain altitude.
-     * @private
+     * @protected
      * @type {number}
      */
     this._altitude = options.altitude || 0.0;
 
     /**
-     * Visibility.
-     * @private
+     * Visibility flag.
+     * @protected
      * @type {boolean}
      */
     this._visibility = options.visibility != undefined ? options.visibility : true;
 
     /**
      * Entity collection that this entity belongs to.
-     * @private
+     * @protected
      * @type {og.EntityCollection}
      */
     this._entityCollection = null;
 
     /**
      * Entity collection array store index.
-     * @private
+     * @protected
+     * @type {number}
      */
     this._entityCollectionIndex = -1;
 
+    /**
+     * Assigned vector layer pointer.
+     * @protected
+     * @type {og.layer.Vector}
+     */
     this._vectorLayer = null;
 
+    /**
+     * Assigned vector layer entity array index.
+     * @protected
+     * @type {number}
+     */
     this._vectorLayerIndex = -1;
 
     /**
      * Picking color.
-     * @private
+     * @protected
+     * @type {og.math.Vector3}
      */
     this._pickingColor = new og.math.Vector3(0, 0, 0);
 
@@ -122,16 +140,53 @@ og.Entity = function (options, properties) {
         "lineString": [og.LineString, this.setLineString]
     };
 
+    /**
+     * Billboard entity.
+     * @public
+     * @type {og.Billboard}
+     */
     this.billboard = this._createOptionFeature('billboard', options.billboard);
+
+    /**
+     * Text label entity.
+     * @public
+     * @type {og.Label}
+     */
     this.label = this._createOptionFeature('label', options.label);
+
+    /**
+     * Shape entity.
+     * @public
+     * @type {og.shape.BaseShape}
+     */
     this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
+
+    /**
+     * Linestring entity.
+     * @public
+     * @type {og.LineString}
+     */
     this.lineString = this._createOptionFeature('lineString', options.lineString);
+
     //this.model = null;
     //this.polygon = null;
     //this.multiPolygon = null;
     //...
 };
 
+/**
+ * Instantiates an og.Entity object.
+ * @function
+ * @param {Object} [options] - Entity options:
+ * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
+ * @param {og.math.Vector3|Array.<number>} [options.cartesian] - Spatial entities like billboard, lanel, sphere etc. cartesian position.
+ * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. cartesian position.
+ * @param {boolean} [options.aground] - Geodetic type entity replaces over a relief.
+ * @param {boolean} [options.visibility] - Entity visibility.
+ * @param {Object} [options.billboard] - Billboard options.
+ * @param {Object} [options.label] - Label options.
+ * @param {Object} [properties] - Entity custom properties.
+ */
 og.entity = function (options, properties) {
     return new og.Entity(options, properties);
 };
@@ -241,7 +296,7 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
 
 /**
  * Sets entity cartesian position without moveentity event dispatching.
- * @private
+ * @protected
  * @param {og.math.Vector3} position - Cartesian position in 3d space.
  */
 og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
@@ -266,6 +321,11 @@ og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
     }
 };
 
+/**
+ * Gets entity geodetic coordinates.
+ * @public
+ * @returns {og.LonLat}
+ */
 og.Entity.prototype.getLonLat = function () {
     var ec = this._entityCollectio;
     if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
@@ -300,6 +360,11 @@ og.Entity.prototype.setLonLat = function (lonlat) {
     }
 };
 
+/**
+ * Sets entity altitude over the planet.
+ * @public
+ * @param {number} altitude - Altitude.
+ */
 og.Entity.prototype.setAltitude = function (altitude) {
     this._altitude = altitude;
 };
@@ -383,7 +448,7 @@ og.Entity.prototype.setLineString = function (lineString) {
 /**
  * Append child entity.
  * @public
- * @param {og.Entity} entity - Entity child.
+ * @param {og.Entity} entity - Child entity.
  */
 og.Entity.prototype.appendChild = function (entity) {
     entity._entityCollection = this._entityCollection;

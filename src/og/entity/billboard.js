@@ -27,9 +27,32 @@ og.Billboard = function (options) {
 
     og.inheritance.base(this, options);
 
+    /**
+     * Image src.
+     * @protected
+     * @type {string}
+     */
     this._src = options.src || null;
+
+    /**
+     * Image object.
+     * @protected
+     * @type {Object}
+     */
     this._image = options.image || null;
+
+    /**
+     * Billboard screen width.
+     * @protected
+     * @type {number}
+     */
     this._width = options.width || (options.size ? options.size.x : 0);
+
+    /**
+     * Billboard screen height.
+     * @protected
+     * @type {number}
+     */
     this._height = options.height || (options.size ? options.size.y : 0);
 };
 
@@ -64,9 +87,9 @@ og.Billboard.prototype.setSrc = function (src) {
 };
 
 /**
- * Sets image.
+ * Sets image object.
  * @public
- * @param {Image} image - JavaScript image object.
+ * @param {Object} image - JavaScript image object.
  */
 og.Billboard.prototype.setImage = function (image) {
     this.setSrc(image.src);
@@ -97,7 +120,7 @@ og.Billboard.prototype.getSize = function () {
 };
 
 /**
- * Sets billboard width.
+ * Sets billboard screen width.
  * @public
  * @param {number} width - Width.
  */
@@ -106,7 +129,7 @@ og.Billboard.prototype.setWidth = function (width) {
 };
 
 /**
- * Gets billboard width.
+ * Gets billboard screen width.
  * @public
  * @returns {number}
  */
@@ -115,7 +138,7 @@ og.Billboard.prototype.getWidth = function () {
 };
 
 /**
- * Sets billboard heigh.
+ * Sets billboard screen heigh.
  * @public
  * @param {number} height - Height.
  */
@@ -124,7 +147,7 @@ og.Billboard.prototype.setHeight = function (height) {
 };
 
 /**
- * Gets billboard height.
+ * Gets billboard screen height.
  * @public
  * @returns {number}
  */

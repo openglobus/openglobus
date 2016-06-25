@@ -3,19 +3,76 @@ goog.provide('og.LineString');
 goog.require('og.mercator');
 goog.require('og.math.Vector3');
 
+/**
+ * LineString object.
+ * @class
+ * @param {Object} [options] - Linestring options:
+ * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
+ * @param {og.math.Vector4} [options.color] - RGBA color.
+ * @param {boolean} [options.visibility] - LineString visibility. True default.
+ * @param {number} [pickingDistance] - LineString border size in screen pixels for picking.
+ * @param {Array.<og.LonLat>} [options.pathLonLat] - LineString geodetic coordinates array.
+ * @param {Array.<Array.<number,number,number>>} [options.path] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
+ */
 og.LineString = function (options) {
 
     options = options || {};
 
+    /**
+     * Object unic identifier.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     this.id = og.LineString.__staticId++;
 
+    /**
+     * LineString thickness in screen pixels.
+     * @public
+     * @type {number}
+     */
     this.thickness = options.thickness || 1.5;
+
+    /**
+     * LineString RGBA color.
+     * @public
+     * @type {og.math.Vector4}
+     */
     this.color = options.color || [1.0, 1.0, 1.0, 1.0];
+
+    /**
+     * LineString visibility.
+     * @public
+     * @type {boolean}
+     */
     this.visibility = (options.visibility != undefined ? options.visibility : true);
+
+    /**
+     * Picking border size.
+     * @public
+     * @type {number}
+     */
     this.pickingDistance = options.pickingDistance || 2.0;
 
+    /**
+     * LineString cartesian coordinates.
+     * @private
+     * @type {Array.<Array.<number,number,number>>}
+     */
     this._path = [];
+
+    /**
+     * LineString geodetic degrees coordiantes.
+     * @private
+     * @type {Array.<og.LonLat>}
+     */
     this._pathLonLat = [];
+
+    /**
+     * LineString geodetic mercator coordinates.
+     * @private
+     * @type {Array.<og.LonLat>}
+     */
     this._pathLonLatMerc = [];
 
     this._mainData = null;
@@ -31,14 +88,14 @@ og.LineString = function (options) {
     this._renderNode = null;
 
     /**
-     * Entity instance that holds this shape.
+     * Entity instance that holds this linestring.
      * @private
      * @type {og.Entity}
      */
     this._entity = null;
 
     /**
-     * Handler that stores and renders this shape object.
+     * Handler that stores and renders this linestring object.
      * @private
      * @type {og.BillboardHandler}
      */

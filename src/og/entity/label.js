@@ -9,7 +9,7 @@ goog.require('og.utils');
  * Billboard text label.
  * @class
  * @extends {og.BaseBillboard}
- * @param {Object} [options] - Options:
+ * @param {Object} [options] - Label options:
  * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
  * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
@@ -17,10 +17,10 @@ goog.require('og.utils');
  * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.text] - Text string.
- * @param {string} [options.face] - Font face.
- * @param {number} [options.size] - Font size.
- * @param {string} [options.style] - Font HTML5 style.
- * @param {string} [options.weight] - Font HTML5 weight.
+ * @param {string} [options.face] - HTML5 font face.
+ * @param {number} [options.size] - Font size in pixels.
+ * @param {string} [options.style] - HTML5 font style. Example 'normal', 'italic'.
+ * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
  * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
  * @param {og.math.Vector4|string|Array.<number>} [options.outlineColor] - Outline color.
  * @param {og.Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
@@ -30,16 +30,74 @@ og.Label = function (options) {
 
     og.inheritance.base(this, options);
 
+    /**
+     * Label text string.
+     * @private
+     * @type {string}
+     */
     this._text = options.text;
+
+    /**
+     * HTML5 font face.
+     * @private
+     * @type {string}
+     */
     this._face = og.utils.defaultString(options.face, null);
+
+    /**
+     * Font size in pixels.
+     * @private
+     * @type {number}
+     */
     this._size = options.size || 32;
+
+    /**
+     * HTML5 font style. Example 'normal', 'italic'.
+     * @private
+     * @type {string}
+     */
     this._style = og.utils.defaultString(options.style, null);
+
+    /**
+     * HTML5 font weight style. Example 'normal', 'bold'.
+     * @private
+     * @type {string}
+     */
     this._weight = og.utils.defaultString(options.weight, null);
+
+    /**
+     * Label outline.
+     * @private
+     * @type {number}
+     */
     this._outline = options.outline != undefined ? options.outline : 0.58;
+
+    /**
+     * Label outline color.
+     * @private
+     * @type {og.math.Vector4}
+     */
     this._outlineColor = og.utils.createColor(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
+
+    /**
+     * Text horizontal align: "left", "right" and "center".
+     * @private
+     * @type {og.Label.ALIGN}
+     */
     this._align = options.align ? og.Label.ALIGN[options.align.trim().toLowerCase()] || og.Label.RIGHT : og.Label.RIGHT;
 
+    /**
+     * Label font atlas index.
+     * @private
+     * @type {number}
+     */
     this._fontIndex = 0;
+
+    /**
+     * Font atlas pointer.
+     * @private
+     * @type {og.utils.FontAtlas}
+     */
     this._fontAtlas = null;
 };
 
@@ -276,7 +334,7 @@ og.Label.prototype.getOutlineOpacity = function () {
 };
 
 /**
- * Function updates label.
+ * Updates label parameters.
  * @public
  */
 og.Label.prototype.update = function () {
@@ -290,6 +348,14 @@ og.Label.prototype.update = function () {
     }
 };
 
+og.Label.prototype._applyFontIndex = function (fontIndex) {
+    this._fontIndex = fontIndex;
+    if (this._handler) {
+        this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
+        this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
+    }
+};
+
 /**
  * Assigns font atlas and update.
  * @public
@@ -298,17 +364,4 @@ og.Label.prototype.update = function () {
 og.Label.prototype.assignFontAtlas = function (fontAtlas) {
     !this._fontAtlas && (this._fontAtlas = fontAtlas);
     this.update();
-};
-
-/**
- * Used in update function.
- * @private
- * @param {number} fontIndex - Font array index in the assigned font atlas.
- */
-og.Label.prototype._applyFontIndex = function (fontIndex) {
-    this._fontIndex = fontIndex;
-    if (this._handler) {
-        this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-        this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
-    }
 };
