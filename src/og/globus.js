@@ -28,7 +28,16 @@ goog.require('og.terrainProvider.EmptyTerrainProvider');
  *   name: "Earth",
  *   target: 'globus'
  *
- * @param {object} options - Options.
+ * @param {object} options - Options:
+ * @param {string} options.target - HTML element id where planet canvas have to be created.
+ * @param {boolean} [options.skybox] - Render skybox. null - default.
+ * @param {boolean} [options.atmosphere] - Render planet with atmosphere. False - default.
+ * @param {string} [options.name] - Planet name. Default is unic identifier.
+ * @param {og.terrainProvider.TerrainProvider} [options.terrain] - Terrain provider. Default no terrain - og.terrainProvider.EmptyTerrainProvider.
+ * @param {Array.<og.control.BaseControl>} [options.controls] - Renderer controls array.
+ * @param {Array.<og.layer.Layer>} [options.layers] - Planet layers.
+ * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
+ * @param {boolean} [options.autoActivate] - Globus rendering auto activation flag. True is default.
  */
 og.Globus = function (options) {
 
@@ -82,12 +91,12 @@ og.Globus = function (options) {
      */
     this._planetName = options.name ? options.name : og.Globus.PLANET_NAME_PREFIX + og.Globus.__id;
 
-    /**
-     * Render node renders a planet
-     * @public
-     * @type {og.node.RenderNode}
-     */
     if (options.atmosphere) {
+        /**
+         * Render node renders a planet.
+         * @public
+         * @type {og.node.Planet|og.node.PlanetAtmosphere}
+         */
         this.planet = new og.node.PlanetAtmosphere(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
     } else {
         this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
@@ -123,9 +132,9 @@ og.Globus = function (options) {
     var stopHandler = null;
 
     /**
-     * Starts light fading in effect with duration time
+     * Starts screen brightness fading in effect by the duration time.
      * @public
-     * @param {number} - fadein duration time
+     * @param {number} - fadein duration time.
      */
     this.fadeIn = function (duration) {
         clearInterval(stopHandler);
@@ -146,9 +155,9 @@ og.Globus = function (options) {
     };
 
     /**
-     * Starts light fading out effect with duration time
+     * Starts screen brightness fading out effect by the duration time.
      * @public
-     * @param {number} - fadeout duration time
+     * @param {number} - Fadeout duration time.
      */
     this.fadeOut = function (duration) {
         clearInterval(stopHandler);
@@ -170,17 +179,24 @@ og.Globus = function (options) {
     };
 
     //Run!
-    if (isUndefined(options.autoActivate) || options.autoActivate)
+    if (isUndefined(options.autoActivate) || options.autoActivate) {
         this.renderer.start();
+    }
 };
 
-/** @const {number} */
 og.Globus.__id = 1;
+
 /** @const {string} */
 og.Globus.CANVAS_ID_PREFIX = "globus_viewport_";
 /** @const {string} */
 og.Globus.PLANET_NAME_PREFIX = "globus_planet_";
 
+/**
+ * Returns true if the object pointer is undefined.
+ * @function
+ * @param {Object} obj - Object pointer.
+ * @returns {boolean}
+ */
 function isUndefined(obj) {
     return obj === void 0;
 };
