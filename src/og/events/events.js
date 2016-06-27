@@ -42,7 +42,10 @@ og.Events.prototype.registerNames = function (eventNames) {
 };
 
 /**
- * protected
+ * Returns true if event callback has stamped.
+ * @protected
+ * @param {Object} obj - Function.
+ * @returns {boolean}
  */
 og.Events.prototype._stamp = function (obj) {
     if (!obj._openglobus_id) {

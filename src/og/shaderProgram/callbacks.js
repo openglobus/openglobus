@@ -2,21 +2,22 @@ goog.provide('og.shaderProgram.callbacks');
 
 goog.require('og.shaderProgram.types');
 
+/**
+ * Bind program buffer.
+ * @function
+ * @param {og.shaderProgram.ShaderProgram} program - Used program.
+ * @param {Object} variable - Variable represents buffer data.
+ */
 og.shaderProgram.bindBuffer = function (program, variable) {
     var gl = program.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
     gl.vertexAttribPointer(variable._pName, variable.value.itemSize, gl.FLOAT, false, 0, 0);
 };
 
+/*=========================
+   Uniforms callbacks
+ =========================*/
 og.shaderProgram.callbacks.u = [];
-og.shaderProgram.callbacks.a = [];
-
-/*
- * Uniforms callbacks
- *
- *
- *
- */
 
 og.shaderProgram.callbacks.u[og.shaderProgram.types.MAT4] = function (program, variable) {
     program.gl.uniformMatrix4fv(variable._pName, false, variable.value);
@@ -82,10 +83,10 @@ og.shaderProgram.callbacks.u[og.shaderProgram.types.FLOATXX] = function (program
     program.gl.uniform1fv(variable._pName, variable.value);
 };
 
-/*
- * Attributes callbacks
- *
- */
+/*========================
+   Attributes callbacks
+ ========================*/
+og.shaderProgram.callbacks.a = [];
 
 og.shaderProgram.callbacks.a[og.shaderProgram.types.FLOAT] = function (program, variable) {
     program.gl.vertexAttrib1f(variable._pName, variable.value);

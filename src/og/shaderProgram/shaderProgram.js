@@ -5,28 +5,111 @@ goog.require('og.shaderProgram.callbacks');
 
 if (COMPILED) {
     //og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
+    /**
+     * External shader programs folder url.
+     * @const
+     * @type {string}
+     */
     og.shaderProgram.SHADERS_URL = "/shaders/";
 } else {
     og.shaderProgram.SHADERS_URL = "../../src/og/shaders/";
 }
 
+/**
+ * Represents more comfortable using WebGL shader program.
+ * @class
+ * @param {string} name - Shader program name identificator.
+ * @param {object} material - Object stores uniforms, attributes and program codes:
+ * @param {object} material.uniforms - Uniforms definition section.
+ * @param {object} material.attributes - Attributes definition section.
+ * @param {string} material.vertexShader - Vertex glsl code.
+ * @param {string} material.fragmentShader - Fragment glsl code.
+ */
 og.shaderProgram.ShaderProgram = function (name, material) {
+    /**
+     * Shader progarm name.
+     * @public
+     * @type {string}
+     */
     this.name = name;
+
+    /**
+     * Attributes.
+     * @public
+     * @type {Object}
+     */
     this.attributes = material.attributes;
+
+    /**
+     * Uniforms.
+     * @public
+     * @type {Object}
+     */
     this.uniforms = material.uniforms;
-    this._variables = {};
+
+    /**
+     * Vertex shader.
+     * @public
+     * @type {string}
+     */
     this.vertexShader = material.vertexShader;
+
+    /**
+     * Fragment shader.
+     * @public
+     * @type {string}
+     */
     this.fragmentShader = material.fragmentShader;
+
+    /**
+     * Webgl context.
+     * @public
+     * @type {Object}
+     */
     this.gl = null;
+
+    /**
+     * All program variables.
+     * @private
+     * @type {Object}
+     */
+    this._variables = {};
+
+    /**
+     * Program pointer.
+     * @private
+     * @type {Object}
+     */
     this._p = null;
+
+    /**
+     * Texture counter.
+     * @prvate
+     * @type {number}
+     */
     this._textureID = 0;
+
+    /**
+     * Program attributes array.
+     * @private
+     * @type {Array.<Object>}
+     */
     this._attribArrays = [];
 };
 
+/**
+ * Sets the current program frame.
+ * @public
+ */
 og.shaderProgram.ShaderProgram.prototype.use = function () {
     this.gl.useProgram(this._p);
 };
 
+/**
+ * Sets program variables.
+ * @public
+ * @param {Object} material - Variables and values object.
+ */
 og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     this._textureID = 0;
     for (var i in material) {
@@ -35,6 +118,10 @@ og.shaderProgram.ShaderProgram.prototype.set = function (material) {
     }
 };
 
+/**
+ * Apply current variables.
+ * @public
+ */
 og.shaderProgram.ShaderProgram.prototype.apply = function () {
     this._textureID = 0;
     var v = this._variables;
@@ -43,16 +130,35 @@ og.shaderProgram.ShaderProgram.prototype.apply = function () {
     }
 };
 
+/**
+ * Calls drawElements index buffer function.
+ * @public
+ * @param {number} mode - Draw mode(GL_TRIANGLES, GL_LINESTRING etc.).
+ * @param {Object} buffer - Index buffer.
+ */
 og.shaderProgram.ShaderProgram.prototype.drawIndexBuffer = function (mode, buffer) {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.drawElements(mode, buffer.numItems, this.gl.UNSIGNED_SHORT, 0);
 };
 
+/**
+ * Calls drawArrays function.
+ * @public
+ * @param {number} mode - Draw mode(GL_TRIANGLES, GL_LINESTRING etc.).
+ * @param {number} numItems - Curent binded buffer drawing items count.
+ */
 og.shaderProgram.ShaderProgram.prototype.drawArray = function (mode, numItems) {
     this.gl.drawArrays(mode, 0, numItems);
 };
 
-og.shaderProgram.ShaderProgram.prototype.getShaderCompileStatus = function (shader, src) {
+/**
+ * Check and log for an shader compile errors and warnings. Returns True - if no errors otherwise returns False.
+ * @private
+ * @param {Object} shader - WebGl shader program.
+ * @param {string} src - Shader program source.
+ * @returns {boolean}
+ */
+og.shaderProgram.ShaderProgram.prototype._getShaderCompileStatus = function (shader, src) {
     this.gl.shaderSource(shader, src);
     this.gl.compileShader(shader);
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
@@ -62,22 +168,38 @@ og.shaderProgram.ShaderProgram.prototype.getShaderCompileStatus = function (shad
     return true;
 }
 
-og.shaderProgram.ShaderProgram.prototype.createVertexShader = function (src) {
+/**
+ * Returns compiled vertex shader program pointer.
+ * @private
+ * @param {string} src - Vertex shader source code.
+ * @returns {Object}
+ */
+og.shaderProgram.ShaderProgram.prototype._createVertexShader = function (src) {
     var shader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    if (!this.getShaderCompileStatus(shader, src)) {
+    if (!this._getShaderCompileStatus(shader, src)) {
         return null;
     }
     return shader;
 };
 
-og.shaderProgram.ShaderProgram.prototype.createFragmentShader = function (src) {
+/**
+ * Returns compiled fragment shader program pointer.
+ * @private
+ * @param {string} src - Vertex shader source code.
+ * @returns {Object}
+ */
+og.shaderProgram.ShaderProgram.prototype._createFragmentShader = function (src) {
     var shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-    if (!this.getShaderCompileStatus(shader, src)) {
+    if (!this._getShaderCompileStatus(shader, src)) {
         return null;
     }
     return shader;
 };
 
+/**
+ * Disable current program vertexAttribArrays.
+ * @public
+ */
 og.shaderProgram.ShaderProgram.prototype.disableAttribArrays = function () {
     var gl = this.gl;
     var a = this._attribArrays;
@@ -87,6 +209,10 @@ og.shaderProgram.ShaderProgram.prototype.disableAttribArrays = function () {
     }
 };
 
+/**
+ * Enable current program vertexAttribArrays.
+ * @public
+ */
 og.shaderProgram.ShaderProgram.prototype.enableAttribArrays = function () {
     var gl = this.gl;
     var a = this._attribArrays;
@@ -96,16 +222,25 @@ og.shaderProgram.ShaderProgram.prototype.enableAttribArrays = function () {
     }
 };
 
+/**
+ * Delete program.
+ * @public
+ */
 og.shaderProgram.ShaderProgram.prototype.delete = function () {
     this.gl.deleteProgram(this._p);
 };
 
+/**
+ * Creates program.
+ * @public
+ * @param {Object} gl - WebGl context.
+ */
 og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
     this.gl = gl;
     this._p = this.gl.createProgram();
 
-    var fs = this.createFragmentShader(this.fragmentShader);
-    var vs = this.createVertexShader(this.vertexShader);
+    var fs = this._createFragmentShader(this.fragmentShader);
+    var vs = this._createVertexShader(this.vertexShader);
     gl.attachShader(this._p, fs);
     gl.attachShader(this._p, vs);
     gl.linkProgram(this._p);

@@ -1,5 +1,10 @@
 goog.provide('og.shaderProgram.types');
 
+/**
+ * Available shader program types listed here. Every type has their own callback
+ * function defined in the og.shaderProgram.callbacks.
+ * @type {Array.<string>}
+ */
 og.shaderProgram.types._declarations = ["FLOAT", "DOUBLE", "BOOL", "INT", "UINT", "VEC2", "VEC3", "VEC4", "DVEC2",
                                "DVEC3", "DVEC4", "BVEC2", "BVEC3", "BVEC4", "IVEC2", "IVEC3", "IVEC4", "UVEC2",
                                "UVEC3", "UVEC4", "MAT2", "DMAT2", "MAT3", "DMAT3", "MAT4", "DMAT4", "MAT2X3",

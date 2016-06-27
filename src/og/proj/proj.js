@@ -19,7 +19,6 @@ og.proj.Units = {
  * Meters per unit lookup table.
  * @const
  * @type {Object.<og.proj.Units, number>}
- * @api
  */
 og.proj.METERS_PER_UNIT = {};
 og.proj.METERS_PER_UNIT[og.proj.Units.FEET] = 0.3048;
@@ -48,6 +47,12 @@ og.proj.Projection = function (options) {
     this.id = og.proj.Projection._counter++;
 };
 
+/**
+ * Compare projections.
+ * @public
+ * @param {og.proj.Projection} proj - Projetion object.
+ * @returns {boolean}
+ */
 og.proj.Projection.prototype.equal = function (proj) {
     return proj.id == this.id;
 };

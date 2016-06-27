@@ -1,5 +1,9 @@
 goog.provide('og.quadTree');
 
+/**
+ * @namespace og.quadTree
+ */
+
 og.quadTree.NW = 0;
 og.quadTree.NE = 1;
 og.quadTree.SW = 2;
@@ -14,6 +18,9 @@ og.quadTree.WALKTHROUGH = 0;
 og.quadTree.RENDERING = 1;
 og.quadTree.NOTRENDERING = 2;
 
+/**
+ * World opposite side table.
+ */
 og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
 
 /**
