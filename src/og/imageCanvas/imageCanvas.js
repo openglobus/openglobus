@@ -1,20 +1,51 @@
 goog.provide('og.ImageCanvas');
 
+/**
+ * Usefull class for working with JS canvas object.
+ * @class
+ * @param {number} [width] - Canvas width. Default 256.
+ * @param {number} [height] - Canvas height. Default 256.
+ */
 og.ImageCanvas = function (width, height) {
+    /**
+     * Canvas object.
+     * @protected
+     * @type {Object}
+     */
     this._canvas = document.createElement("canvas");
     this._canvas.width = width || 256;
     this._canvas.height = height || 256;
+
+    /**
+     * Canvas context.
+     * @protected
+     * @type {Object}
+     */
     this._context = this._canvas.getContext('2d');
 };
 
+/**
+ * Returns canvas object.
+ * @public
+ * @returns {Object}
+ */
 og.ImageCanvas.prototype.getCanvas = function () {
     return this._canvas;
 };
 
+/**
+ * Returns canvas context pointer.
+ * @public
+ * @returns {Object}
+ */
 og.ImageCanvas.prototype.getContext = function () {
     return this._context;
 };
 
+/**
+ * Fills canvas RGBA with zeroes.
+ * @public
+ */
 og.ImageCanvas.prototype.fillEmpty = function () {
     var imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
     var pixels = imgd.data;
@@ -24,33 +55,68 @@ og.ImageCanvas.prototype.fillEmpty = function () {
     this._context.putImageData(imgd, 0, 0);
 };
 
+/**
+ * Gets canvas pixels RGBA data.
+ * @public
+ * @returns {Array.<number>}
+ */
 og.ImageCanvas.prototype.getData = function () {
     var imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
     return imgd.data;
 };
 
+/**
+ * Fill the canvas by color.
+ * @public
+ * @param {string} color - CSS string color.
+ */
 og.ImageCanvas.prototype.fillColor = function (color) {
     this._context.fillStyle = color;
     this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
 };
 
+/**
+ * Sets RGBA pixel data.
+ * @public
+ * @param {Array.<number>} data - Array RGBA data.
+ */
 og.ImageCanvas.prototype.setData = function (data) {
     var imageData = this._context.createImageData(this._canvas.width, this._canvas.height);
     imageData.data.set(data);
     this._context.putImageData(imageData, 0, 0);
 };
 
+/**
+ * Resize canvas.
+ * @public
+ * @param {number} width - Width.
+ * @param {number} height - Height.
+ */
 og.ImageCanvas.prototype.resize = function (width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
     this._context = this._canvas.getContext('2d');
 };
 
+/**
+ * Draw an image on the canvas.
+ * @public
+ * @param {Image} img - Draw image.
+ * @param {number} [x] - Left top image corner X coordinate on the canvas.
+ * @param {number} [y] - Left top image corner Y coordinate on the canvas.
+ * @param {number} [width] - Image width slice. Image width is default.
+ * @param {number} [height] - Image height slice. Image height is default.
+ */
 og.ImageCanvas.prototype.drawImage = function (img, x, y, width, height) {
     this._context = this._canvas.getContext('2d');
     this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
 };
 
+/**
+ * Converts canvas to JS image object.
+ * @public
+ * @returns {Image}
+ */
 og.ImageCanvas.prototype.getImage = function () {
     var img = new Image();
     img.width = this.getWidth();
@@ -59,37 +125,71 @@ og.ImageCanvas.prototype.getImage = function () {
     return img;
 };
 
+/**
+ * Get measured text width.
+ * @public
+ * @param {string} text - Measured text.
+ * @returns {number}
+ */
 og.ImageCanvas.prototype.getTextWidth = function (text) {
     var metrics = this._context.measureText(text);
     return Math.round(metrics.width);
 };
 
+/**
+ * Draw a text on the canvas.
+ * @public
+ * @param {string} text - Text.
+ * @param {number} [x] - Canvas X - coordinate. 0 - default.
+ * @param {number} [y] - Canvas Y - coordinate. 0 - default.
+ * @param {string} [font] - Font style. 'normal 14px Verdana' - is default.
+ * @param {string} [color] - Css font color.
+ */
 og.ImageCanvas.prototype.drawText = function (text, x, y, font, color) {
     this._context.fillStyle = color || 'black';
     this._context.font = font || 'normal 14px Verdana';
     this._context.fillText(text, x || 0, y || 14);
 };
 
+/**
+ * Gets canvas width.
+ * @public
+ * @returns {number}
+ */
 og.ImageCanvas.prototype.getWidth = function () {
     return this._canvas.width;
 };
 
+/**
+ * Gets canvas height.
+ * @public
+ * @returns {number}
+ */
 og.ImageCanvas.prototype.getHeight = function () {
     return this._canvas.height;
 };
 
+/**
+ * Load image to canvas.
+ * @public
+ * @param {string} url - Image url.
+ * @pararm {imageCallback} [callback] - Image onload callback.
+ */
 og.ImageCanvas.prototype.loadImage = function (url, callback) {
     var img = new Image();
     var that = this;
     img.onload = function () {
         that.resize(img.width, img.height);
         that._context.drawImage(img, 0, 0, img.width, img.height);
-        if (callback)
-            callback(img);
+        callback && callback(img);
     }
     img.src = url;
 };
 
+/**
+ * Open canvas image in the new window.
+ * @public
+ */
 og.ImageCanvas.prototype.openImage = function () {
     var img = this.getImage();
     var dataUrl = img.src;

@@ -39,9 +39,9 @@ og.math.Vector2.scale = function (a, scale) {
     return res;
 };
 
-og.math.Vector2.mull = function (a, b) {
+og.math.Vector2.mul = function (a, b) {
     var res = new og.math.Vector2(a.x, a.y);
-    res.mullA(b);
+    res.mulA(b);
     return res;
 };
 
@@ -91,7 +91,7 @@ og.math.Vector2.prototype.scaleTo = function (scale) {
     return new og.math.Vector2(this.x * scale, this.y * scale);
 };
 
-og.math.Vector2.prototype.mullA = function (vec) {
+og.math.Vector2.prototype.mulA = function (vec) {
     this.x *= vec.x;
     this.y *= vec.y;
     return this;
