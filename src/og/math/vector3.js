@@ -3,7 +3,7 @@ goog.provide('og.math.Vector3');
 /**
  * Class represents a 3d vector.
  * @class
- * @param {number} [x] - First cvalue.
+ * @param {number} [x] - First value.
  * @param {number} [y] - Second value.
  * @param {number} [z] - Third value.
  */
@@ -190,7 +190,7 @@ og.math.Vector3.div = function (a, b) {
 };
 
 /**
- * Converts 4d vector, Fourth value is 1.0.
+ * Converts to 4d vector, Fourth value is 1.0.
  * @public
  * @returns {og.math.Vector4}
  */
@@ -519,9 +519,16 @@ og.math.Vector3.prototype.lerp = function (v2, l) {
     return new og.math.Vector3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
 };
 
-og.math.Vector3.prototype.smerp = function (b, d) {
-    var one_d = 1 - d;
-    return new og.math.Vector3(this.x * d + b.x * one_d, this.y * d + b.y * one_d, this.z * d + b.z * one_d);
+/**
+ * Returns vector interpolation by v(t) = v1 * t + v2 * (1 - t)
+ * @public
+ * @param {og.math.Vector3} v2 - End vector.
+ * @param {number} t - Interpolate value.
+ * @returns {og.math.Vector3}
+ */
+og.math.Vector3.prototype.smerp = function (v2, t) {
+    var one_d = 1 - t;
+    return new og.math.Vector3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
 };
 
 og.math.Vector3.LERP_DELTA = 1e-6;

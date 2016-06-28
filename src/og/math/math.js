@@ -246,7 +246,7 @@ og.math.exp2 = function (x) {
  * @param {number} t
  * @param {number} h1
  * @param {number} h0
- * @returns
+ * @returns {number}
  */
 og.math.slice = function (t, h1, h0) {
     return t * (h1 - h0);
