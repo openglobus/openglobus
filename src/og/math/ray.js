@@ -2,25 +2,82 @@ goog.provide('og.math.Ray');
 
 goog.require('og.math.Vector3');
 
+/**
+ * Represents a ray that extends infinitely from the provided origin in the provided direction.
+ * @class
+ * @param {og.math.Vector3} origin - The origin of the ray.
+ * @param {og.math.Vector3} direction - The direction of the ray.
+ */
 og.math.Ray = function (origin, direction) {
-    this.origin = origin.clone();
-    this.direction = direction.clone().normalize();
-};
 
-og.math.Ray.prototype.set = function (origin, direction) {
+    /**
+     * The origin of the ray.
+     * @public
+     * @type {og.math.Vector3}
+     */
     this.origin = origin.clone();
+
+    /**
+     * The direction of the ray.
+     * @public
+     * @type {og.math.Vector3}
+     */
     this.direction = direction.clone();
 };
 
+/**
+ * Ray object creator.
+ * @function
+ * @param {og.math.Vector3} origin - The origin of the ray.
+ * @param {og.math.Vector3} direction - The direction of the ray.
+ * @returns {og.math.Ray}
+ */
+og.math.ray = function (origin, direction) {
+    return new og.math.Ray(origin, direction);
+};
+
+/** @const */
+og.math.Ray.OUTSIDE = 0;
+/** @const */
+og.math.Ray.INSIDE = 1;
+/** @const */
+og.math.Ray.INPLANE = 2;
+/** @const */
+og.math.Ray.AWAY = 3;
+
+/**
+ * Sets a ray parameters.
+ * @public
+ * @param {og.math.Vector3} origin - The origin of the ray.
+ * @param {og.math.Vector3} direction - The direction of the ray.
+ * @returns {og.math.Ray}
+ */
+og.math.Ray.prototype.set = function (origin, direction) {
+    this.origin = origin.clone();
+    this.direction = direction.clone();
+    return this;
+};
+
+/**
+ * Computes the point along the ray on the distance.
+ * @public
+ * @param {number} distance - Point distance.
+ * @returns {og.math.Vector3}
+ */
 og.math.Ray.prototype.getPoint = function (distance) {
     return og.Vector3.add(this.origin, this.direction.scaleTo(distance));
 };
 
-og.math.Ray.OUTSIDE = 0;
-og.math.Ray.INSIDE = 1;
-og.math.Ray.INPLANE = 2;
-og.math.Ray.AWAY = 3;
-
+/**
+ * Returns ray hit a triange result.
+ * @public
+ * @param {og.math.Vector3} v0 - First triangle corner coordinate.
+ * @param {og.math.Vector3} v1 - Second triangle corner coordinate.
+ * @param {og.math.Vector3} v2 - Third triangle corner coordinate.
+ * @param {og.math.Vector3} res - Hit point object pointer that stores hit result.
+ * @returns {number} - Hit code, could 0 - og.math.Ray.OUTSIDE, 1 - og.math.Ray.INSIDE, 
+ *      2 - og.math.Ray.INPLANE and 3 - og.math.Ray.AWAY(ray goes away from triangle).
+ */
 og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
     var state;
     var u = og.math.Vector3.sub(v1, v0);
@@ -33,7 +90,7 @@ og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
 
     // ray is  parallel to triangle plane
     if (Math.abs(b) < og.math.EPSILON10) {
-        if (a == 0) {
+        if (a === 0) {
             res.copy(this.origin);
             // ray lies in triangle plane
             return og.math.Ray.INPLANE;
@@ -72,39 +129,16 @@ og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
     return og.math.Ray.INSIDE;
 };
 
-//from JGT
-//og.math.Ray.prototype.hitTriangle = function (vert0, vert1, vert2) {
-//    var edge1 = og.math.Vector3.sub(vert1, vert0);
-//    var edge2 = og.math.Vector3.sub(vert2, vert0);
-
-//    var pvec = this.direction.cross(edge2);
-
-//    /* if determinant is near zero, ray lies in plane of triangle */
-//    var det = edge1.dot(pvec);
-
-//    if (det > -og.math.EPSILON6 && det < og.math.EPSILON6)
-//        return null;
-
-//    var inv_det = 1.0 / det;
-
-//    var tvec = og.math.Vector3.sub(this.origin, vert0);
-
-//    var u = tvec.dot(pvec) * inv_det;
-//    if (u < 0.0 || u > 1.0)
-//        return null;
-
-//    var qvec = tvec.cross(edge1);
-
-//    var v = this.direction.dot(qvec) * inv_det;
-//    if (v < 0.0 || u + v > 1.0)
-//        return null;
-
-//    var t = edge2.dot(qvec) * inv_det;
-
-//    return new og.math.Vector3(u, v, t);
-//};
-
-og.math.Ray.prototype.hitPlane = function (v0, v1, v2) {
+/**
+ * Gets a ray hit a plane result. If the ray cross the plane returns 1 - og.math.Ray.INSIDE otherwise returns 0 - og.math.Ray.OUTSIDE.
+ * @public
+ * @param {og.math.Vector3} v0 - First plane point.
+ * @param {og.math.Vector3} v1 - Second plane point.
+ * @param {og.math.Vector3} v2 - Third plane point.
+ * @param {og.math.Vector3} res - Hit point object pointer that stores hit result.
+ * @returns {number}
+ */
+og.math.Ray.prototype.hitPlane = function (v0, v1, v2, res) {
     var u = og.math.Vector3.sub(v1, v0);
     var v = og.math.Vector3.sub(v2, v0);
     var n = u.cross(v);
@@ -115,17 +149,33 @@ og.math.Ray.prototype.hitPlane = function (v0, v1, v2) {
 
     // ray is  parallel to the plane
     if (Math.abs(b) < og.math.EPSILON10) {
-        if (a == 0) {
-            return this.origin;
+        if (a === 0) {
+            return og.math.Ray.OUTSIDE;
         }
     }
 
     var r = a / b;
 
+    if (r < 0) {
+        return og.math.Ray.OUTSIDE;
+    }
+
+    var d = this.direction.scaleTo(r);
+
     // intersect point of ray and plane
-    return og.math.Vector3.add(this.origin, this.direction.scaleTo(r));
+    res.x = this.origin.x + d.x;
+    res.y = this.origin.y + d.y;
+    res.z = this.origin.z + d.z;
+
+    return og.math.Ray.INSIDE;
 };
 
+/**
+ * Returns a ray hit sphere coordiante. If there isn't hit returns null.
+ * @public
+ * @param {og.bv.Sphere} sphere - Sphere object.
+ * @returns {og.math.Vector3}
+ */
 og.math.Ray.prototype.hitSphere = function (sphere) {
     var r = sphere.radius, c = sphere.center,
         o = this.origin, d = this.direction;
@@ -164,5 +214,7 @@ og.math.Ray.prototype.hitSphere = function (sphere) {
 };
 
 og.math.Ray.prototype.hitBox = function (box) {
-
+    //
+    //TODO
+    //
 };

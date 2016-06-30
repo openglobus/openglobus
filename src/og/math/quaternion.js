@@ -3,35 +3,216 @@ goog.provide('og.math.Quaternion');
 goog.require('og.math');
 goog.require('og.math.Matrix4');
 
+/**
+ * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
+ * @constructor
+ * @param {Number} [x=0.0] The X component.
+ * @param {Number} [y=0.0] The Y component.
+ * @param {Number} [z=0.0] The Z component.
+ * @param {Number} [w=0.0] The W component.
+ */
 og.math.Quaternion = function (x, y, z, w) {
+
+    /**
+     * The X component.
+     * @public
+     * @type {Number}
+     * @default 0.0
+     */
     this.x = x || 0.0;
+
+    /**
+     * The Y component.
+     * @public
+     * @type {Number}
+     * @default 0.0
+     */
     this.y = y || 0.0;
+
+    /**
+     * The Z component.
+     * @public
+     * @type {Number}
+     * @default 0.0
+     */
     this.z = z || 0.0;
+
+    /**
+     * The W component.
+     * @public
+     * @type {Number}
+     * @default 0.0
+     */
     this.w = w || 0.0;
 };
 
+/**
+ * Creates quaternion instance.
+ * @function
+ * @param {Number} [x=0.0] The X component.
+ * @param {Number} [y=0.0] The Y component.
+ * @param {Number} [z=0.0] The Z component.
+ * @param {Number} [w=0.0] The W component.
+ * @returns {og.math.Quaternion}
+ */
+og.math.quaternion = function (x, y, z, w) {
+    return new og.math.Quaternion(x, y, z, w);
+};
+
+/**
+ * Identity quaternion.
+ * @const
+ * @type {og.math.Quaternion}
+ */
 og.math.Quaternion.IDENTITY = new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
 
+/**
+ * Returns a quaternion represents rotation around X axis.
+ * @static
+ * @param {number} a - The angle in radians to rotate around the axis.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.xRotation = function (a) {
     a *= 0.5;
     return new og.math.Quaternion(Math.sin(a), 0.0, 0.0, Math.cos(a));
 };
 
+/**
+ * Returns a quaternion represents rotation around Y axis.
+ * @static
+ * @param {number} a - The angle in radians to rotate around the axis.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.yRotation = function (a) {
     a *= 0.5;
     return new og.math.Quaternion(0.0, Math.sin(a), 0.0, Math.cos(a));
 };
 
+/**
+ * Returns a quaternion represents rotation around Z axis.
+ * @static
+ * @param {number} a - The angle in radians to rotate around the axis.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.zRotation = function (a) {
     a *= 0.5;
     return new og.math.Quaternion(0.0, 0.0, Math.sin(a), Math.cos(a));
 };
 
+/**
+ * Computes a quaternion representing a rotation around an axis.
+ * @static
+ * @param {og.math.Vector3} axis - The axis of rotation.
+ * @param {number} angle The angle in radians to rotate around the axis.
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.axisAngleToQuat = function (axis, angle) {
+    var res = new og.math.Quaternion();
+    var v = axis.normal();
+    var half_angle = angle * 0.5;
+    var sin_a = Math.sin(half_angle);
+    res.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
+    return res;
+};
+
+/**
+ * Computes a rotation from the given heading and up vector.
+ * @static
+ * @param {og.math.Vector3} target - Heading target coordinates.
+ * @param {og.math.Vector3} up - Up vector.
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.getLookAtTargetUp = function (target, up) {
+    var forward = target.normal();
+    forward = og.math.Vector3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
+    var right = up.cross(forward);
+    var ret = new og.math.Quaternion();
+    ret.w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
+    var w4_recip = 1.0 / (4.0 * ret.w);
+    ret.x = (forward.y - up.z) * w4_recip;
+    ret.y = (right.z - forward.x) * w4_recip;
+    ret.z = (up.x - right.y) * w4_recip;
+    return ret;
+};
+
+/**
+ * Computes a quaternion from from source point heading to the destination point.
+ * @static
+ * @param {og.math.Vector3} sourcePoint - Source coordinate.
+ * @param {og.math.Vector3} destPoint - Destination coordinate.
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.getLookAtSourceDest = function (sourcePoint, destPoint) {
+    var forwardVector = destPoint.subA(sourcePoint).normalize();
+    var dot = og.math.Vector3.FORWARD.dot(forwardVector);
+    if (Math.abs(dot - (-1.0)) < 0.000001) {
+        return og.math.Quaternion.axisAngleToQuat(og.math.Vector3.UP, Math.PI);
+    }
+    if (Math.abs(dot - (1.0)) < 0.000001) {
+        return new og.math.Quaternion(0, 0, 0, 1);
+    }
+    var rotAngle = Math.acos(dot);
+    var rotAxis = og.math.Vector3.FORWARD.cross(forwardVector).normalize();
+    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
+};
+
+/**
+ * Compute rotation between two vectors.
+ * @static
+ * @param {og.math.Vector3} u - First vector.
+ * @param {og.math.Vector3} v - Second vector.
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
+    var w = u.cross(v);
+    var q = new og.math.Quaternion(w.x, w.y, w.z, 1.0 + u.dot(v));
+    return q.normalize();
+};
+
+/**
+ * Compute rotation between two vectors with around up axis.
+ * @static
+ * @param {og.math.Vector3} source - First vector.
+ * @param {og.math.Vector3} dest - Second vector.
+ * @param {og.math.Vector3} up - Up vector.
+ * @returns {og.math.Quaternion}
+ */
+og.math.Quaternion.getRotationBetweenVectorsUp = function (source, dest, up) {
+    var dot = source.dot(dest);
+    if (Math.abs(dot - (-1.0)) < 0.000001) {
+        // vector a and b point exactly in the opposite direction, 
+        // so it is a 180 degrees turn around the up-axis
+        return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
+    }
+    if (Math.abs(dot - (1.0)) < 0.000001) {
+        // vector a and b point exactly in the same direction
+        // so we return the identity quaternion
+        return new og.math.Quaternion(0, 0, 0, 1);
+    }
+    var rotAngle = Math.acos(dot);
+    var rotAxis = source.cross(dest).normalize();
+    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
+};
+
+/**
+ * Clear quaternion. Sets zeroes.
+ * @public
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.clear = function () {
     this.x = this.y = this.z = this.w = 0;
     return this;
 };
 
+/**
+ * Sets quaternion values.
+ * @public
+ * @param {Number} [x=0.0] The X component.
+ * @param {Number} [y=0.0] The Y component.
+ * @param {Number} [z=0.0] The Z component.
+ * @param {Number} [w=0.0] The W component.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.set = function (x, y, z, w) {
     this.x = x;
     this.y = y;
@@ -40,6 +221,12 @@ og.math.Quaternion.prototype.set = function (x, y, z, w) {
     return this;
 };
 
+/**
+ * Copy quaternion values.
+ * @public
+ * @param {og.math.Quaternion} q - Copy quaternion.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.copy = function (q) {
     this.x = q.x;
     this.y = q.y;
@@ -48,6 +235,11 @@ og.math.Quaternion.prototype.copy = function (q) {
     return this;
 };
 
+/**
+ * Set current quaternion instance to identity quaternion.
+ * @public
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.setIdentity = function () {
     this.x = 0.0;
     this.y = 0.0;
@@ -56,22 +248,50 @@ og.math.Quaternion.prototype.setIdentity = function () {
     return this;
 };
 
+/**
+ * Duplicates a quaternion instance.
+ * @public
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.clone = function () {
     return new og.math.Quaternion(this.x, this.y, this.z, this.w);
 };
 
+/**
+ * Computes the componentwise sum of two quaternions.
+ * @public
+ * @param {og.math.Quaternion} q - Quaternion to add.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.add = function (q) {
     return new og.math.Quaternion(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
 };
 
+/**
+ * Computes the componentwise difference of two quaternions.
+ * @public
+ * @param {og.math.Quaternion} q - Quaternion to subtract.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.sub = function (q) {
     return new og.math.Quaternion(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
 };
 
+/**
+ * Multiplies the provided quaternion componentwise by the provided scalar.
+ * @public
+ * @param {Number} scale - The scalar to multiply with.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.scaleTo = function (scale) {
     return new og.math.Quaternion(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
 };
 
+/**
+ * Converts quaternion values to array.
+ * @public
+ * @returns {Array.<number,number,number,number>}
+ */
 og.math.Quaternion.prototype.toVec = function () {
     var x = new og.math.GLArray(4);
     x[0] = this.x;
@@ -81,6 +301,14 @@ og.math.Quaternion.prototype.toVec = function () {
     return x;
 };
 
+/**
+ * Sets current cuaternion by spherical coordinates.
+ * @public
+ * @param {number} lat - Latitude.
+ * @param {number} lon - Longitude.
+ * @param {number} angle - Angle in radians.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     var sin_a = Math.sin(angle / 2);
     var cos_a = Math.cos(angle / 2);
@@ -95,6 +323,11 @@ og.math.Quaternion.prototype.setFromSphericalCoords = function (lat, lon, angle)
     return this;
 };
 
+/**
+ * Gets spherical coordinates.
+ * @public
+ * @returns {Object} Returns object with latitude, longitude and alpha. 
+ */
 og.math.Quaternion.prototype.toSphericalCoords = function () {
     var cos_a = this.w;
     var sin_a = Math.sqrt(1.0 - cos_a * cos_a);
@@ -113,18 +346,16 @@ og.math.Quaternion.prototype.toSphericalCoords = function () {
     if (lon < 0)
         lon += 360.0;
 
-    return { lat: lat, lon: lon };
+    return { lat: lat, lon: lon, alpha: Math.acos(cos_a) };
 };
 
-og.math.Quaternion.axisAngleToQuat = function (axis, angle) {
-    var res = new og.math.Quaternion();
-    var v = axis.normal();
-    var half_angle = angle * 0.5;
-    var sin_a = Math.sin(half_angle);
-    res.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
-    return res;
-};
-
+/**
+ * Sets current quaternion representing a rotation around an axis.
+ * @public
+ * @param {og.math.Vector3} axis - The axis of rotation.
+ * @param {number} angle The angle in radians to rotate around the axis.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.setFromAxisAngle = function (axis, angle) {
     var v = axis.normal();
     var half_angle = angle * 0.5;
@@ -133,6 +364,11 @@ og.math.Quaternion.prototype.setFromAxisAngle = function (axis, angle) {
     return this;
 };
 
+/**
+ * Returns axis and angle of the current quaternion.
+ * @public
+ * @returns {Object}
+ */
 og.math.Quaternion.prototype.getAxisAngle = function () {
     var vl = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     var axis, angle;
@@ -150,6 +386,14 @@ og.math.Quaternion.prototype.getAxisAngle = function () {
     return { axis: axis, angle: angle };
 };
 
+/**
+ * Sets current quaternion by Euler's angles.
+ * @public
+ * @param {number} pitch - Pitch angle in degrees.
+ * @param {number} yaw - Yaw angle in degrees.
+ * @param {number} roll - Roll angle in degrees.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex, ey, ez;
     var cr, cp, cy, sr, sp, sy, cpcy, spsy;
@@ -177,11 +421,21 @@ og.math.Quaternion.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     return this.normalize();
 };
 
+/**
+ * Returns Euler's angles of the current quaternion.
+ * @public
+ * @returns {Object}
+ */
 og.math.Quaternion.prototype.getEulerAngles = function () {
     var matrix = this.getMatrix4();
     return matrix.getEulerAngles();
 };
 
+/**
+ * Computes a quaternion from the provided 4x4 matrix instance.
+ * @public
+ * @param {og.math.Matrix4} m - The rotation matrix.
+ */
 og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
     var tr, s, q = [];
     var i, j, k;
@@ -223,6 +477,11 @@ og.math.Quaternion.prototype.setFromMatrix4 = function (m) {
     return this;
 };
 
+/**
+ * Converts current quaternion to the rotation matrix.
+ * @public
+ * @returns {og.math.Matrix4}
+ */
 og.math.Quaternion.prototype.getMatrix4 = function () {
     var m = new og.math.Matrix4();
     var mx = m._m;
@@ -241,6 +500,12 @@ og.math.Quaternion.prototype.getMatrix4 = function () {
     return m;
 };
 
+/**
+ * Returns quatrenion and vector production.
+ * @public
+ * @param {og.math.Vector3} v - 3d Vector.
+ * @returns {og.math.Vector3}
+ */
 og.math.Quaternion.prototype.mulVec3 = function (v) {
     var d = v.x, e = v.y, g = v.z;
     var b = this.x, f = this.y, h = this.z, a = this.w;
@@ -254,6 +519,12 @@ og.math.Quaternion.prototype.mulVec3 = function (v) {
         k * a + d * -h + i * -f - j * -b);
 };
 
+/**
+ * Computes the product of two quaternions.
+ * @public
+ * @param {og.math.Quaternion} q - Quaternion to multiply.
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.mul = function (q) {
     var d = this.x, e = this.y, g = this.z, a = this.w;
     var f = q.x, h = q.y, i = q.z, b = q.w;
@@ -264,47 +535,60 @@ og.math.Quaternion.prototype.mul = function (q) {
         a * b - d * f - e * h - g * i);
 };
 
-//og.math.Quaternion.prototype.mul_v2 = function (q) {
-//    var a = (this.w + this.x) * (q.w + q.x),
-//        b = (this.z - this.y) * (q.y - q.z),
-//        c = (this.x - this.w) * (q.y + q.z),
-//        d = (this.y + this.z) * (q.x - q.w),
-//        e = (this.x + this.z) * (q.x + q.y),
-//        f = (this.x - this.z) * (q.x - q.y),
-//        g = (this.w + this.y) * (q.w - q.z),
-//        h = (this.w - this.y) * (q.w + q.z);
-//    return new og.math.Quaternion(
-//        a - (e + f + g + h) * 0.5,
-//        -c + (e - f + g - h) * 0.5,
-//        -d + (e - f - g + h) * 0.5,
-//        b + (-e - f + g + h) * 0.5);
-//};
-
+/**
+ * Gets the conjugate of the quaternion.
+ * @public
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.conjugate = function () {
     return new og.math.Quaternion(-this.x, -this.y, -this.z, this.w);
 };
 
+/** 
+ * Computes the inverse of the quaternion.
+ * @public
+ * @retuns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.inverse = function () {
-    var n = 1 / this.norm2();
+    var n = 1 / this.magnitude2();
     return new og.math.Quaternion(-this.x * n, -this.y * n, -this.z * n, this.w * n);
 };
 
-//magnitude
-og.math.Quaternion.prototype.norm = function () {
+/**
+ * Computes a magnitude of the quaternion.
+ * @public
+ * @returns {number}
+ */
+og.math.Quaternion.prototype.magnitude = function () {
     var b = this.x, c = this.y, d = this.z, a = this.w;
     return Math.sqrt(b * b + c * c + d * d + a * a);
 };
 
-//norm
-og.math.Quaternion.prototype.norm2 = function () {
+/**
+ * Computes a squared magnitude of the quaternion.
+ * @public
+ * @returns {number}
+ */
+og.math.Quaternion.prototype.magnitude2 = function () {
     var b = this.x, c = this.y, d = this.z, a = this.w;
     return b * b + c * c + d * d + a * a;
 };
 
+/**
+ * Computes the dot (scalar) product of two quaternions.
+ * @public
+ * @param {og.math.Quaternion} q - Second quatrnion.
+ * @returns {number}
+ */
 og.math.Quaternion.prototype.dot = function (q) {
     return this.x * q.x + this.y * q.y + this.z * q.z;
 };
 
+/**
+ * Current quaternion normalization.
+ * @public
+ * @returns {og.math.Quaternion}
+ */
 og.math.Quaternion.prototype.normalize = function () {
     var c = this.x, d = this.y, e = this.z, g = this.w,
         f = Math.sqrt(c * c + d * d + e * e + g * g);
@@ -323,6 +607,12 @@ og.math.Quaternion.prototype.normalize = function () {
     return this;
 };
 
+/**
+ * Compares two quaternions.
+ * @public
+ * @param {og.math.Quaternion} q - Second quatrnion.
+ * @returns {boolean}
+ */
 og.math.Quaternion.prototype.isEqual = function (q) {
     var matching = this.dot(q);
     if (Math.abs(matching - 1.0) < 0.001) {
@@ -332,10 +622,10 @@ og.math.Quaternion.prototype.isEqual = function (q) {
 };
 
 /**
- * Performs a spherical linear interpolation between two quat
- *
- * @param {og.math.Quaternion} b the end rotation
- * @param {Number} t interpolation amount between the two quaternions
+ * Performs a spherical linear interpolation between two quaternions.
+ * @public
+ * @param {og.math.Quaternion} b - The end rotation quaternion.
+ * @param {number} t - interpolation amount between the two quaternions.
  * @returns {og.math.Quaternion}
  */
 og.math.Quaternion.prototype.slerp = function (b, t) {
@@ -373,56 +663,11 @@ og.math.Quaternion.prototype.slerp = function (b, t) {
     );
 };
 
-og.math.Quaternion.getLookAtTargetUp = function (target, up) {
-    var forward = target.normal();
-    forward = og.math.Vector3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
-    var right = up.cross(forward);
-    var ret = new og.math.Quaternion();
-    ret.w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
-    var w4_recip = 1.0 / (4.0 * ret.w);
-    ret.x = (forward.y - up.z) * w4_recip;
-    ret.y = (right.z - forward.x) * w4_recip;
-    ret.z = (up.x - right.y) * w4_recip;
-    return ret;
-};
-
-og.math.Quaternion.getLookAtSourceDest = function (sourcePoint, destPoint) {
-    var forwardVector = destPoint.subA(sourcePoint).normalize();
-    var dot = og.math.Vector3.FORWARD.dot(forwardVector);
-    if (Math.abs(dot - (-1.0)) < 0.000001) {
-        return og.math.Quaternion.axisAngleToQuat(og.math.Vector3.UP, Math.PI);
-    }
-    if (Math.abs(dot - (1.0)) < 0.000001) {
-        return new og.math.Quaternion(0, 0, 0, 1);
-    }
-    var rotAngle = Math.acos(dot);
-    var rotAxis = og.math.Vector3.FORWARD.cross(forwardVector).normalize();
-    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
-};
-
-og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
-    var w = u.cross(v);
-    var q = new og.math.Quaternion(w.x, w.y, w.z, 1.0 + u.dot(v));
-    return q.normalize();
-};
-
-og.math.Quaternion.getRotationBetweenVectorsUp = function (source, dest, up) {
-    var dot = source.dot(dest);
-    if (Math.abs(dot - (-1.0)) < 0.000001) {
-        // vector a and b point exactly in the opposite direction, 
-        // so it is a 180 degrees turn around the up-axis
-        return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
-    }
-    if (Math.abs(dot - (1.0)) < 0.000001) {
-        // vector a and b point exactly in the same direction
-        // so we return the identity quaternion
-        return new og.math.Quaternion(0, 0, 0, 1);
-    }
-    var rotAngle = Math.acos(dot);
-    var rotAxis = source.cross(dest).normalize();
-    return og.math.Quaternion.axisAngleToQuat(rotAxis, rotAngle);
-};
-
+/**
+ * Returns a roll angle in radians.
+ * @public
+ * @returns {number}
+ */
 og.math.Quaternion.prototype.getRoll = function (reprojectAxis) {
     var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {
@@ -438,6 +683,11 @@ og.math.Quaternion.prototype.getRoll = function (reprojectAxis) {
     }
 };
 
+/**
+ * Returns a pitch angle in radians.
+ * @public
+ * @returns {number}
+ */
 og.math.Quaternion.prototype.getPitch = function (reprojectAxis) {
     var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {
@@ -453,6 +703,11 @@ og.math.Quaternion.prototype.getPitch = function (reprojectAxis) {
     }
 };
 
+/**
+ * Returns a yaw angle in radians.
+ * @public
+ * @returns {number}
+ */
 og.math.Quaternion.prototype.getYaw = function (reprojectAxis) {
     var x = this.x, y = this.y, z = this.z, w = this.w;
     if (reprojectAxis) {

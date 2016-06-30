@@ -204,9 +204,11 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
                 p1 = og.math.Vector3.add(p0, cam._u),
                 p2 = og.math.Vector3.add(p0, p0.normal());
 
-            var px = new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2);
-            cam.eye = this._eye0.addA(px.subA(p0).negate());
-            cam.update();
+            var px = new og.math.Vector3();
+            if (new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === og.math.Ray.INSIDE) {
+                cam.eye = this._eye0.addA(px.subA(p0).negate());
+                cam.update();
+            }
         }
     } else {
         this.scaleRot = 0;

@@ -237,10 +237,12 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
                     p1 = og.math.Vector3.add(p0, cam._u),
                     p2 = og.math.Vector3.add(p0, p0.normal());
                 var dir = cam.unproject(t.x, t.y);
-                var px = new og.math.Ray(cam.eye, dir).hitPlane(p0, p1, p2);
-                cam.eye = this._eye0.addA(px.subA(p0).negate());
-                cam.update();
-                this.scaleRot = 0;
+                var px = new og.math.Vector3();
+                if (new og.math.Ray(cam.eye, dir).hitPlane(p0, p1, p2, px) === og.math.Ray.INSIDE) {
+                    cam.eye = this._eye0.addA(px.subA(p0).negate());
+                    cam.update();
+                    this.scaleRot = 0;
+                }
             }
         }
     }
