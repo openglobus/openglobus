@@ -6,10 +6,70 @@ goog.require('og.math.Vector4');
 goog.require('og.math.Matrix3');
 //goog.require('og.math.Quaternion');
 
+/**
+ * Class represents a 4x4 matrix.
+ * @class
+ */
 og.math.Matrix4 = function () {
+    /**
+     * A 4x4 matrix, indexable as a column-major order array.
+     * @public
+     * @type {Array.<number>}
+     */
     this._m = new Array(16);
+
+    /**
+     * Projection frustum left value.
+     * @public
+     */
+    this.left;
+    /**
+     * Projection frustum right value.
+     * @public
+     */
+    this.right;
+    /**
+     * Projection frustum bottom value.
+     * @public
+     */
+    this.bottom;
+    /**
+     * Projection frustum top value.
+     * @public
+     */
+    this.top;
+    /**
+     * Projection frustum near value.
+     * @public
+     */
+    this.near;
+    /**
+     * Projection frustum far value.
+     * @public
+     */
+    this.far;
 };
 
+/**
+ * Returns identity matrix instance.
+ * @static
+ * @returns {og.math.Matrix4}
+ */
+og.math.Matrix4.identity = function () {
+    var res = new og.math.Matrix4();
+    res._m[0] = 1; res._m[1] = 0; res._m[2] = 0; res._m[3] = 0;
+    res._m[4] = 0; res._m[5] = 1; res._m[6] = 0; res._m[7] = 0;
+    res._m[8] = 0; res._m[9] = 0; res._m[10] = 1; res._m[11] = 0;
+    res._m[12] = 0; res._m[13] = 0; res._m[14] = 0; res._m[15] = 1;
+    return res;
+};
+
+/**
+ * Sets column-major order array matrix.
+ * @public
+ * @param {Array.<number>} m - Matrix array.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.set = function (m) {
     this._m[0] = m[0];
     this._m[1] = m[1];
@@ -30,16 +90,32 @@ og.math.Matrix4.prototype.set = function (m) {
     return this;
 };
 
+/**
+ * Duplicates a Matrix3 instance.
+ * @public
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.clone = function () {
     var res = new og.math.Matrix4();
     res.set(this);
     return res;
 };
 
+/**
+ * Copy matrix.
+ * @public
+ * @param {og.math.Matrix3} a - Matrix to copy.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.copy = function (a) {
     this.set(a._m);
 };
 
+/**
+ * Converts to 3x3 matrix.
+ * @public
+ * @returns {og.math.Matrix3}
+ */
 og.math.Matrix4.prototype.toMatrix3 = function () {
     var res = new og.math.Matrix3();
     var a = this._m,
@@ -56,6 +132,12 @@ og.math.Matrix4.prototype.toMatrix3 = function () {
     return res;
 };
 
+/**
+ * Multiply to 3d vector.
+ * @public
+ * @param {og.math.Vector3} p - 3d vector.
+ * @returns {og.math.Vector3}
+ */
 og.math.Matrix4.prototype.mulVec3 = function (p) {
     var d = p.x, e = p.y, g = p.z;
     return new og.math.Vector3(
@@ -65,6 +147,12 @@ og.math.Matrix4.prototype.mulVec3 = function (p) {
     );
 };
 
+/**
+ * Multiply to 4d vector.
+ * @public
+ * @param {og.math.Vector4} p - 4d vector.
+ * @returns {og.math.Vector4}
+ */
 og.math.Matrix4.prototype.mulVec4 = function (p) {
     var d = p.x, e = p.y, g = p.z, f = p.w;
     return new og.math.Vector4(
@@ -75,6 +163,11 @@ og.math.Matrix4.prototype.mulVec4 = function (p) {
     );
 };
 
+/**
+ * Creates an inversed 3x3 matrix of the current.
+ * @public
+ * @returns {og.math.Matrix3}
+ */
 og.math.Matrix4.prototype.toInverseMatrix3 = function () {
     var a = this._m;
     var c = a[0], d = a[1], e = a[2],
@@ -101,6 +194,11 @@ og.math.Matrix4.prototype.toInverseMatrix3 = function () {
     return res;
 };
 
+/**
+ * Creates an inversed matrix of the current.
+ * @public
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.inverseTo = function () {
     var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
         f = this._m[4], h = this._m[5], i = this._m[6], j = this._m[7],
@@ -128,6 +226,11 @@ og.math.Matrix4.prototype.inverseTo = function () {
     return res;
 };
 
+/**
+ * Creates a trasposed matrix of the current.
+ * @public
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.transposeTo = function () {
     var res = new og.math.Matrix4();
     res._m[0] = this._m[0]; res._m[1] = this._m[4]; res._m[2] = this._m[8]; res._m[3] = this._m[12];
@@ -137,6 +240,11 @@ og.math.Matrix4.prototype.transposeTo = function () {
     return res;
 };
 
+/**
+ * Sets matrix to identity.
+ * @public
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.setIdentity = function () {
     this._m[0] = 1; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
     this._m[4] = 0; this._m[5] = 1; this._m[6] = 0; this._m[7] = 0;
@@ -145,15 +253,12 @@ og.math.Matrix4.prototype.setIdentity = function () {
     return this;
 };
 
-og.math.Matrix4.identity = function () {
-    var res = new og.math.Matrix4();
-    res._m[0] = 1; res._m[1] = 0; res._m[2] = 0; res._m[3] = 0;
-    res._m[4] = 0; res._m[5] = 1; res._m[6] = 0; res._m[7] = 0;
-    res._m[8] = 0; res._m[9] = 0; res._m[10] = 1; res._m[11] = 0;
-    res._m[12] = 0; res._m[13] = 0; res._m[14] = 0; res._m[15] = 1;
-    return res;
-};
-
+/**
+ * Computes the product of two matrices.
+ * @public
+ * @param {og.math.Matrix4} mx - Matrix to multiply.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.mul = function (mx) {
     var d = this._m[0], e = this._m[1], g = this._m[2], f = this._m[3],
         h = this._m[4], i = this._m[5], j = this._m[6], k = this._m[7],
@@ -173,6 +278,12 @@ og.math.Matrix4.prototype.mul = function (mx) {
     return res;
 };
 
+/**
+ * Add translation vector to the current matrix.
+ * @public
+ * @param {og.math.Vector3} v - Translate vector.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.translate = function (v) {
     var d = v.x, e = v.y, b = v.z;
     var a = this._m;
@@ -183,6 +294,12 @@ og.math.Matrix4.prototype.translate = function (v) {
     return this;
 };
 
+/**
+ * Sets translation matrix to the position.
+ * @public
+ * @param {og.math.Vector3} v - Translate to position.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.translateToPosition = function (v) {
     var a = this._m;
     a[12] = v.x;
@@ -191,6 +308,13 @@ og.math.Matrix4.prototype.translateToPosition = function (v) {
     return this;
 };
 
+/**
+ * Sets current rotation matrix around the aligned axis and angle.
+ * @public
+ * @param {og.math.Vector3} u - Aligned axis.
+ * @param {number} angle - Aligned axis angle in radians.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.rotate = function (u, angle) {
     var c = Math.cos(angle),
         s = Math.sin(angle);
@@ -202,11 +326,24 @@ og.math.Matrix4.prototype.rotate = function (u, angle) {
     return this;
 };
 
+/**
+ * Gets the rotation matrix from one vector to another.
+ * @public
+ * @param {og.math.Vector3} a - Firtst vector.
+ * @param {og.math.Vector3} b - Second vector.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.rotateBetweenVectors = function (a, b) {
     var q = og.math.Quaternion.getRotationBetweenVectors(a, b);
     return q.getMatrix4();
 };
 
+/**
+ * Scale current matrix to the vector values.
+ * @public
+ * @param {og.math.Vector3} v - Scale vector.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.scale = function (v) {
     var mx = this._m;
     mx[0] = mx[0] * v.x; mx[1] = mx[1] * v.x; mx[2] = mx[2] * v.x; mx[3] = mx[3] * v.x;
@@ -216,6 +353,17 @@ og.math.Matrix4.prototype.scale = function (v) {
     return this;
 };
 
+/**
+ * Sets perspective projection matrix frustum values.
+ * @public
+ * @param {number} left
+ * @param {number} right
+ * @param {number} bottom
+ * @param {number} top
+ * @param {number} near
+ * @param {number} far
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 
     this.left = left;
@@ -226,20 +374,59 @@ og.math.Matrix4.prototype.setFrustum = function (left, right, bottom, top, near,
     this.far = far;
 
     var h = right - left, i = top - bottom, j = far - near;
-    this._m[0] = near * 2 / h; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
-    this._m[4] = 0; this._m[5] = near * 2 / i; this._m[6] = 0; this._m[7] = 0;
-    this._m[8] = (right + left) / h; this._m[9] = (top + bottom) / i; this._m[10] = -(far + near) / j; this._m[11] = -1;
-    this._m[12] = 0; this._m[13] = 0; this._m[14] = -(far * near * 2) / j; this._m[15] = 0;
+    this._m[0] = near * 2 / h;
+    this._m[1] = 0;
+    this._m[2] = 0;
+    this._m[3] = 0;
+    this._m[4] = 0;
+    this._m[5] = near * 2 / i;
+    this._m[6] = 0;
+    this._m[7] = 0;
+    this._m[8] = (right + left) / h;
+    this._m[9] = (top + bottom) / i;
+    this._m[10] = -(far + near) / j;
+    this._m[11] = -1;
+    this._m[12] = 0;
+    this._m[13] = 0;
+    this._m[14] = -(far * near * 2) / j;
+    this._m[15] = 0;
     return this;
 };
 
+/**
+ * Creates current percpective projection matrix.
+ * @public
+ * @param {number} angle - View angle in degrees.
+ * @param {number} aspect - Screen aspect ratio.
+ * @param {number} near - Near clip plane.
+ * @param {number} far - Far clip plane.
+ * @retuns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.setPerspective = function (angle, aspect, near, far) {
     angle = near * Math.tan(angle * Math.PI / 360);
     aspect = angle * aspect;
     return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
 };
 
+/**
+ * Creates current orthographic projection matrix.
+ * @public
+ * @param {number} left
+ * @param {number} right
+ * @param {number} bottom
+ * @param {number} top
+ * @param {number} near
+ * @param {number} far
+ * @retuns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
+    this.left = left;
+    this.right = right;
+    this.bottom = bottom;
+    this.top = top;
+    this.near = near;
+    this.far = far;
+
     var lr = 1.0 / (left - right),
         bt = 1.0 / (bottom - top),
         nf = 1.0 / (near - far),
@@ -264,6 +451,14 @@ og.math.Matrix4.prototype.setOrtho = function (left, right, bottom, top, near, f
     return this;
 };
 
+/**
+ * Sets current rotation matrix by euler's angles.
+ * @public
+ * @param {number} ax - Rotation angle in radians arond X axis.
+ * @param {number} ay - Rotation angle in radians arond Y axis.
+ * @param {number} az - Rotation angle in radians arond Z axis.
+ * @returns {og.math.Matrix4}
+ */
 og.math.Matrix4.prototype.eulerToMatrix = function (ax, ay, az) {
     var a = Math.cos(ax),
         b = Math.sin(ax),
