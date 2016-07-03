@@ -4,19 +4,61 @@ goog.require('og.inheritance');
 goog.require('og.layer.Layer');
 goog.require('og.ImageCanvas');
 
+/**
+ * Layer used to rendering each tile as a separate canvas object.
+ * @class
+ * @extends {og.layer.Layer}
+ * //TODO: make asynchronous handler.
+ * @param {String} [name="noname"] - Layer name.
+ * @param {Object} options:
+ * @param {number} [options.opacity=1.0] - Layer opacity.
+ * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
+ * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
+ * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
+ * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
+ * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
+ * @param {boolean} [options.visibility=true] - Layer visibility.
+ *
+ * @fires og.layer.Layer#visibilitychange
+ * @fires og.layer.Layer#add
+ * @fires og.layer.Layer#remove
+ */
 og.layer.CanvasTiles = function (name, options) {
+    options = options || {};
+
     og.inheritance.base(this, name, options);
 
-    this.width = options && options.width ? options.width : 256;
-    this.height = options && options.height ? options.height : 256;
+    /**
+     * Draw tile callback. 
+     * @type {og.layer.CanvasTiles~drawTileCallback}
+     * @public
+     */
+    this.drawTile = null;
 };
 
 og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
 
-
+/**
+ * Start to handle tile segment material.
+ * @public
+ * @virtual
+ * @param {og.planetSegment.Material} mateial
+ */
 og.layer.CanvasTiles.prototype.handleSegmentTile = function (material) {
     if (this.drawTile) {
-        this.drawTile(material, function (canvas) {
+        /**
+         * Tile custom draw function.
+         * @callback og.layer.CanvasTiles~drawTileCallback
+         * @param {og.planetSegment.Material} material
+         * @param {applyCanvasCallback} applyCanvasCallback
+         */
+        this.drawTile(material,
+            /**
+             * Apply canvas.
+             * @callback applyCanvasCallback
+             * @param {Object} canvas
+             */
+            function (canvas) {
             material.imageReady = false;
             material.applyTexture(canvas);
         });

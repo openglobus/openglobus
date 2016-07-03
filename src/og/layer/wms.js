@@ -9,7 +9,7 @@ goog.require('og.layer.XYZ');
  * @extends {og.layer.XYZ}
  * //TODO: WMS version, format, and custom srs cpecification.
  * @param {string} name - Layer name.
- * @param {Object} options:
+ * @param {Object} options - Options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
@@ -62,6 +62,16 @@ og.layer.WMS = function (name, options) {
 }
 
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
+
+/**
+ * Creates WMS layer instance.
+ * @function
+ * @param {string} name - Layer name.
+ * @param {Object} options - Options.
+ */
+og.layer.wms = function (name, options) {
+    return new og.layer.WMS(name, options);
+};
 
 /**
  * Start to load tile material.
