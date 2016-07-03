@@ -2,13 +2,43 @@ goog.provide('og.shape.Sphere');
 
 goog.require('og.shape.BaseShape');
 
-
+/**
+ * @class
+ * @extends {og.shape.BaseShape}
+ * @param {Object} options - Sphere parameters:
+ * @param {og.math.Vector3} [options.position] - Sphere position.
+ * @param {og.math.Quaternion} [options.orientation] - Sphere orientation(rotation).
+ * @param {og.math.Vector3} [options.scale] - Scale vector.
+ * @param {Array.<number,number,number,number>} [options.color] - Sphere RGBA color.
+ * @param {string} [options.src] - Texture image url source.
+ * @param {boolean} [options.visibility] - Sphere visibility.
+ * @param {number} [options.radius=100] - Sphere radius.
+ * @param {number} [options.latBands=16] - Number of latitude bands.
+ * @param {number} [options.lonBands=16] - Number of longitude bands.
+ */
 og.shape.Sphere = function (options) {
 
     goog.base(this, options);
 
+    /**
+     * Sphere radius.
+     * @protected
+     * @type {number}
+     */
     this._radius = options.radius || 100;
+
+    /**
+     * Number of latitude bands.
+     * @protected
+     * @type {number}
+     */
     this._latBands = options.latBands || 16;
+
+    /**
+     * Number of longitude bands.
+     * @protected
+     * @type {number}
+     */
     this._lonBands = options.lonBands || 16;
 
     this._createData();
@@ -16,6 +46,11 @@ og.shape.Sphere = function (options) {
 
 goog.inherits(og.shape.Sphere, og.shape.BaseShape);
 
+/**
+ * Create specific shape vertices data.
+ * @protected
+ * @virtual
+ */
 og.shape.Sphere.prototype._createData = function () {
 
     for (var latNumber = 0; latNumber <= this._latBands; latNumber++) {

@@ -2,11 +2,35 @@ goog.provide('og.shape.Icosphere');
 
 goog.require('og.shape.BaseShape');
 
+/**
+ * @class
+ * @extends {og.shape.BaseShape}
+ * @param {Object} options - Icosphere parameters:
+ * @param {og.math.Vector3} [options.position] - Icosphere position.
+ * @param {og.math.Quaternion} [options.orientation] - Icosphere orientation(rotation).
+ * @param {og.math.Vector3} [options.scale] - Scale vector.
+ * @param {Array.<number,number,number,number>} [options.color] - Icosphere RGBA color.
+ * @param {string} [options.src] - Texture image url source.
+ * @param {boolean} [options.visibility] - Icosphere visibility.
+ * @param {number} [options.size] - Icosphere radius.
+ * @param {number} [options.level] - Icosphere complexity level.
+ */
 og.shape.Icosphere = function (options) {
 
     goog.base(this, options);
 
+    /**
+     * Icosphere radius.
+     * @protected
+     * @type {number}
+     */
     this._size = options.size || 1.0;
+
+    /**
+     * Icosphere recursion level.
+     * @protected
+     * @type {number}
+     */
     this._level = options.level || 0;
 
     this._index = 0;
@@ -48,6 +72,11 @@ og.shape.Icosphere.prototype._getMiddlePoint = function (p1, p2) {
     return i;
 };
 
+/**
+ * Create specific shape vertices data.
+ * @protected
+ * @virtual
+ */
 og.shape.Icosphere.prototype._createData = function () {
 
     this._positionData = [];

@@ -4,57 +4,192 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Quaternion');
 goog.require('og.math.Matrix4');
 
+/**
+ * Base geometry shape class.
+ * @class
+ * @param {Object} options - Shape parameters:
+ * @param {og.math.Vector3} [options.position] - Shape position.
+ * @param {og.math.Quaternion} [options.orientation] - Shape orientation(rotation).
+ * @param {og.math.Vector3} [options.scale] - Scale vector.
+ * @param {Array.<number,number,number,number>} [options.color] - Shape RGBA color.
+ * @param {string} [options.src] - Texture image url source.
+ * @param {boolean} [options.visibility] - Shape visibility.
+ */
 og.shape.BaseShape = function (options) {
 
     options = options || {};
 
+    /**
+     * Unic identifier.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     this.id = og.shape.BaseShape.__staticId++;
 
+    /**
+     * Shape position.
+     * @public
+     * @type {og.math.Vector3}
+     */
     this.position = options.position || new og.math.Vector3();
+
+    /**
+     * Shape orientation(rotation)
+     * @public
+     * @type {og.math.Quaternion}
+     */
     this.orientation = options.orientation || new og.math.Quaternion(0.0, 0.0, 0.0, 1.0);
+
+    /**
+     * Scale.
+     * @public
+     * @type {og.math.Vector3}
+     */
     this.scale = options.scale || new og.math.Vector3(1.0, 1.0, 1.0);
+
+    /**
+     * Shape RGBA color.
+     * @public
+     * @type {Array.<number,number,number,number>}
+     */
     this.color = options.color || [1.0, 1.0, 1.0, 1.0];
+
+    /**
+     * Shape visibility.
+     * @public
+     * @type {boolean}
+     */
     this.visibility = (options.visibility != undefined ? options.visibility : true);
+
+    /**
+     * Image url source.
+     * @protected
+     * @type {string}
+     */
     this._src = options.src || null;
 
+    /**
+     * Vertices position gl buffer.
+     * @protected
+     */
     this._positionBuffer = null;
+
+    /**
+     * Vertices normal gl buffer.
+     * @protected
+     */
     this._normalBuffer = null;
+
+    /**
+     * Vertices indexes gl buffer.
+     * @protected
+     */
     this._indexBuffer = null;
+
+    /**
+     * Vertex texture coordinates gl buffer.
+     * @protected
+     */
     this._textureCoordBuffer = null;
 
+    /**
+     * Vertex positions.
+     * @protected
+     * @type {Array.<number>}
+     */
     this._positionData = [];
+
+    /**
+     * Vertex normals.
+     * @protected
+     * @type {Array.<number>}
+     */
     this._normalData = [];
+
+    /**
+     * Vertex indeces.
+     * @protected
+     * @type {Array.<number>}
+     */
     this._indexData = [];
+
+    /**
+     * Vertex texture coordinates.
+     * @protected
+     * @type {Array.<number>}
+     */
     this._textureCoordData = [];
 
+    /**
+     * Scale matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._mxScale = new og.math.Matrix4().setIdentity();
+
+    /**
+     * Translation matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._mxTranslation = new og.math.Matrix4().setIdentity();
+
+    /**
+     * Model matrix.
+     * @protected
+     * @type {og.math.Matrix4}
+     */
     this._mxModel = new og.math.Matrix4().setIdentity();
 
+    /**
+     * Gl texture pointer.
+     * @protected
+     */
     this.texture = null;
 
+    /**
+     * Assigned render node.
+     * @protected
+     * @type {og.node.RenderNode}
+     */
     this._renderNode = null;
 
+    /**
+     * Assigned picking color.
+     * @protected
+     * @type {Array.<number,number,number>}
+     */
     this._pickingColor = [0.0, 0.0, 0.0, 0.0];
 
     /**
      * Entity instance that holds this shape.
-     * @private
+     * @protected
      * @type {og.Entity}
      */
     this._entity = null;
 
     /**
      * Handler that stores and renders this shape object.
-     * @private
-     * @type {og.BillboardHandler}
+     * @protected
+     * @type {og.ShapeHandler}
      */
     this._handler = null;
+
+    /**
+     * Shape handler array index.
+     * @protected
+     * @type {number}
+     */
     this._handlerIndex = -1;
 };
 
 og.shape.BaseShape.__staticId = 0;
 
+/**
+ * Clear shape parameters.
+ * @public
+ */
 og.shape.BaseShape.prototype.clear = function () {
 
     this.position.set(0.0, 0.0, 0.0);
@@ -75,6 +210,11 @@ og.shape.BaseShape.prototype.clear = function () {
     this._deleteBuffers();
 };
 
+/**
+ * Sets shape color.
+ * @public
+ * @param {Array.<number,number,number,number>} color - RGBA color values array.
+ */
 og.shape.BaseShape.prototype.setColor = function (color) {
     this.color[0] = color[0];
     this.color[1] = color[1];
@@ -82,6 +222,11 @@ og.shape.BaseShape.prototype.setColor = function (color) {
     this.color[3] = color[3];
 };
 
+/**
+ * Sets shape color.
+ * @public
+ * @param {og.math.Vector4} color - RGBA color vector.
+ */
 og.shape.BaseShape.prototype.setColor4v = function (color) {
     this.color[0] = color.x;
     this.color[1] = color.y;
@@ -89,10 +234,19 @@ og.shape.BaseShape.prototype.setColor4v = function (color) {
     this.color[3] = color.w;
 };
 
+/**
+ * Sets shape opacity value.
+ * @public
+ * @param {number} opacity - Opacity value.
+ */
 og.shape.BaseShape.prototype.setOpacity = function (opacity) {
     this.color[3] = opacity;
 };
 
+/**
+ * Delete gl buffers.
+ * @protected
+ */
 og.shape.BaseShape.prototype._deleteBuffers = function () {
     var r = this._renderNode.renderer,
         gl = r.handler.gl;
@@ -106,14 +260,29 @@ og.shape.BaseShape.prototype._deleteBuffers = function () {
     this._indexBuffer = null;
 };
 
+/**
+ * Sets shape visibility.
+ * @public
+ * @param {boolean} visibility - Visibility.
+ */
 og.shape.BaseShape.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
 };
 
+/**
+ * Gets visibilty flag.
+ * @public
+ * @returns {boolean}
+ */
 og.shape.BaseShape.prototype.getVisibility = function () {
     return this.visibility;
 };
 
+/**
+ * Assign render node.
+ * @public
+ * @param {og.node.RenderNode} renderNode - Render node to assign.
+ */
 og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     this._createBuffers();
@@ -127,27 +296,50 @@ og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
     }
 };
 
+/**
+ * Sets shape position.
+ * @public
+ * @type {og.math.Vector3} position - Shape position.
+ */
 og.shape.BaseShape.prototype.setPosition3v = function (position) {
     this.position.copy(position);
     this._mxTranslation.translateToPosition(position);
     this.refresh();
 };
 
+/**
+ * Translate shape position to vector.
+ * @public
+ * @type {og.math.Vector3} vec - Translation vector.
+ */
 og.shape.BaseShape.prototype.translate3v = function (vec) {
     this.position.addA(vec);
     this._mxTranslation.translate(vec);
 };
 
+/**
+ * Sets shape scale.
+ * @param {og.math.Vector3} scale - Scale vector.
+ */
 og.shape.BaseShape.prototype.setScale3v = function (scale) {
     this.scale.copy(scale);
     this._mxScale.scale(scale);
 };
 
+/**
+ * Removes shape from shape handler.
+ * @public
+ */
 og.shape.BaseShape.prototype.remove = function () {
     this._entity = null;
     this._handler && this._handler.remove(this);
 };
 
+/**
+ * Assign picking color.
+ * @protected
+ * @param {og.math.Vector3} color - Picking RGB color.
+ */
 og.shape.BaseShape.prototype.setPickingColor3v = function (color) {
     //...
     //TODO: check the renderer before
@@ -158,6 +350,10 @@ og.shape.BaseShape.prototype.setPickingColor3v = function (color) {
     this._pickingColor[3] = 1.0;
 };
 
+/**
+ * Creates buffers.
+ * @protected
+ */
 og.shape.BaseShape.prototype._createBuffers = function () {
     this._deleteBuffers();
     var r = this._renderNode.renderer;
@@ -167,10 +363,18 @@ og.shape.BaseShape.prototype._createBuffers = function () {
     this._textureCoordBuffer = r.handler.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
 }
 
+/**
+ * Update model matrix.
+ * @public
+ */
 og.shape.BaseShape.prototype.refresh = function () {
     this._mxModel = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
 };
 
+/**
+ * Shape rendering.
+ * @public
+ */
 og.shape.BaseShape.prototype.draw = function () {
     if (this.visibility) {
         var rn = this._renderNode;
