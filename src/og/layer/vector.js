@@ -11,66 +11,66 @@ goog.require('og.QueueArray');
 
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like 
- * points, lines, polygons etc.
+ * points, lines, polygons, geometry objects etc.
  * @class
- * @param {string} [name] - Layer name.
- * @param {Object} [options] - Options:
- * @param {number} [options.minZoom] - Minimal visible zoom. 0 is default
- * @param {number} [options.maxZoom] - Maximal visible zoom. 50 is default.
+ * @extends {og.layer.Layer}
+ * @param {string} [name="noname"] - Layer name.
+ * @param {Object} [options] - Layer options:
+ * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
+ * @param {number} [options.maxZoom=50] - Maximal visible zoom. 50 is default.
  * @param {string} [options.attribution] - Layer attribution.
- * @param {string} [options.zIndex] - Layer Z-order index. 0 is default.
- * @param {boolean} [options.visibility] - Layer visibility. True is default.
- * @param {boolean} [options.isBaseLayer] - Layer base layer. False is default.
+ * @param {string} [options.zIndex=0] - Layer Z-order index. 0 is default.
+ * @param {boolean} [options.visibility=true] - Layer visibility. True is default.
+ * @param {boolean} [options.isBaseLayer=false] - Layer base layer. False is default.
  * @param {Array.<og.Entity>} [options.entities] - Entities array.
  * @param {Array.<number,number,number>} [options.scaleByDistance] - Scale by distance parameters.
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
- * @param {number} [options.maxCountNode] - Rendering optimization parameter. 30 is default.
+ * @param {number} [options.maxCountNode=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
+ * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
+ * @param {boolean} [options.groundAlign = false] - Vector data align to the ground relief. Like points with zero altitude lay on the ground.
  *
- * @fires og.Events#entitymove
- * @fires og.Events#draw
- * @fires og.Events#add
- * @fires og.Events#remove
- * @fires og.Events#entityadd
- * @fires og.Events#entityremove
- * @fires og.Events#visibilitychange
- * @fires og.Events#mousemove
- * @fires og.Events#mouseenter
- * @fires og.Events#mouseleave
- * @fires og.Events#mouselbuttonclick
- * @fires og.Events#mouserbuttonclick
- * @fires og.Events#mousembuttonclick
- * @fires og.Events#mouselbuttondoubleclick
- * @fires og.Events#mouserbuttondoubleclick
- * @fires og.Events#mousembuttondoubleclick
- * @fires og.Events#mouselbuttonup
- * @fires og.Events#mouserbuttonup
- * @fires og.Events#mousembuttonup
- * @fires og.Events#mouselbuttondown
- * @fires og.Events#mouserbuttondown
- * @fires og.Events#mousembuttondown
- * @fires og.Events#mouselbuttonhold
- * @fires og.Events#mouserbuttonhold
- * @fires og.Events#mousembuttonhold
- * @fires og.Events#mousewheel
- * @fires og.Events#touchmove
- * @fires og.Events#touchstart
- * @fires og.Events#touchend
- * @fires og.Events#doubletouch
+ * @fires og.layer.Vector#entitymove
+ * @fires og.layer.Vector#draw
+ * @fires og.layer.Vector#add
+ * @fires og.layer.Vector#remove
+ * @fires og.layer.Vector#entityadd
+ * @fires og.layer.Vector#entityremove
+ * @fires og.layer.Vector#visibilitychange
+ * @fires og.layer.Vector#mousemove
+ * @fires og.layer.Vector#mouseenter
+ * @fires og.layer.Vector#mouseleave
+ * @fires og.layer.Vector#mouselbuttonclick
+ * @fires og.layer.Vector#mouserbuttonclick
+ * @fires og.layer.Vector#mousembuttonclick
+ * @fires og.layer.Vector#mouselbuttondoubleclick
+ * @fires og.layer.Vector#mouserbuttondoubleclick
+ * @fires og.layer.Vector#mousembuttondoubleclick
+ * @fires og.layer.Vector#mouselbuttonup
+ * @fires og.layer.Vector#mouserbuttonup
+ * @fires og.layer.Vector#mousembuttonup
+ * @fires og.layer.Vector#mouselbuttondown
+ * @fires og.layer.Vector#mouserbuttondown
+ * @fires og.layer.Vector#mousembuttondown
+ * @fires og.layer.Vector#mouselbuttonhold
+ * @fires og.layer.Vector#mouserbuttonhold
+ * @fires og.layer.Vector#mousembuttonhold
+ * @fires og.layer.Vector#mousewheel
+ * @fires og.layer.Vector#touchmove
+ * @fires og.layer.Vector#touchstart
+ * @fires og.layer.Vector#touchend
+ * @fires og.layer.Vector#doubletouch
  */
 og.layer.Vector = function (name, options) {
     options = options || {};
 
     og.inheritance.base(this, name, options);
 
-    /**
-     * @public
-     */
     this.events.registerNames(og.layer.Vector.EVENT_NAMES);
 
     /**
-     * First index - near distance to the entity, after entity becomes full scale.
+     * First index - near distance to the entity, after that entity becomes full scale.
      * Second index - far distance to the entity, when entity becomes zero scale.
      * Third index - far distance to the entity, when entity becomes invisible.
      * @public
@@ -78,8 +78,18 @@ og.layer.Vector = function (name, options) {
      */
     this.scaleByDistance = options.scaleByDistance || [og.math.MAX32, og.math.MAX32, og.math.MAX32];
 
+    /**
+     * Asynchronous data handling before rendering.
+     * @public
+     * @type {boolean}
+     */
     this.async = options.async != undefined ? options.async : true;
 
+    /**
+     * Vector data ground align flag.
+     * @public
+     * @type {boolean}
+     */
     this.groundAlign = options.groundAlign || false;
 
     /**
@@ -119,147 +129,142 @@ og.layer.Vector = function (name, options) {
 
 og.inheritance.extend(og.layer.Vector, og.layer.Layer);
 
-/**
- * Vector layer event names
- * @type {Array.<string>}
- * @const
- */
 og.layer.Vector.EVENT_NAMES = [
         /**
          * Triggered when entity has moved.
-         * @event og.Events#draw
+         * @event og.layer.Vector#draw
          */
         "entitymove",
 
         /**
          * Triggered when layer begin draw.
-         * @event og.Events#draw
+         * @event og.layer.Vector#draw
          */
         "draw",
 
         /**
          * Triggered when new entity added to the layer.
-         * @event og.Events#entityadd
+         * @event og.layer.Vector#entityadd
          */
         "entityadd",
 
         /**
          * Triggered when entity removes from the collection.
-         * @event og.Events#entityremove
+         * @event og.layer.Vector#entityremove
          */
         "entityremove",
 
         /**
          * Triggered when mouse moves over the layer.
-         * @event og.Events#mousemove
+         * @event og.layer.Vector#mousemove
          */
         "mousemove",
 
         /**
          * Triggered when mouse has entered over the layer.
-         * @event og.Events#mouseenter
+         * @event og.layer.Vector#mouseenter
          */
         "mouseenter",
 
         /**
          * Triggered when mouse leaves the layer.
-         * @event og.Events#mouseenter
+         * @event og.layer.Vector#mouseenter
          */
         "mouseleave",
 
         /**
          * Mouse left button clicked.
-         * @event og.Events#mouselbuttonclick
+         * @event og.layer.Vector#mouselbuttonclick
          */
         "mouselbuttonclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.Events#mouserbuttonclick
+         * @event og.layer.Vector#mouserbuttonclick
          */
         "mouserbuttonclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.Events#mousembuttonclick
+         * @event og.layer.Vector#mousembuttonclick
          */
         "mousembuttonclick",
 
         /**
          * Mouse left button double click.
-         * @event og.Events#mouselbuttondoubleclick
+         * @event og.layer.Vector#mouselbuttondoubleclick
          */
         "mouselbuttondoubleclick",
 
         /**
          * Mouse right button double click.
-         * @event og.Events#mouserbuttondoubleclick
+         * @event og.layer.Vector#mouserbuttondoubleclick
          */
         "mouserbuttondoubleclick",
 
         /**
          * Mouse middle button double click.
-         * @event og.Events#mousembuttondoubleclick
+         * @event og.layer.Vector#mousembuttondoubleclick
          */
         "mousembuttondoubleclick",
 
         /**
          * Mouse left button up(stop pressing).
-         * @event og.Events#mouselbuttonup
+         * @event og.layer.Vector#mouselbuttonup
          */
         "mouselbuttonup",
 
         /**
          * Mouse right button up(stop pressing).
-         * @event og.Events#mouserbuttonup
+         * @event og.layer.Vector#mouserbuttonup
          */
         "mouserbuttonup",
 
         /**
          * Mouse middle button up(stop pressing).
-         * @event og.Events#mouserbuttonup
+         * @event og.layer.Vector#mousembuttonup
          */
         "mousembuttonup",
 
         /**
          * Mouse left button is just pressed down(start pressing).
-         * @event og.Events#mouselbuttondown
+         * @event og.layer.Vector#mouselbuttondown
          */
         "mouselbuttondown",
 
         /**
          * Mouse right button is just pressed down(start pressing).
-         * @event og.Events#mouserbuttondown
+         * @event og.layer.Vector#mouserbuttondown
          */
         "mouserbuttondown",
 
         /**
          * Mouse middle button is just pressed down(start pressing).
-         * @event og.Events#mousembuttondown
+         * @event og.layer.Vector#mousembuttondown
          */
         "mousembuttondown",
 
         /**
          * Mouse left button is pressing.
-         * @event og.Events#mouselbuttonhold
+         * @event og.layer.Vector#mouselbuttonhold
          */
         "mouselbuttonhold",
 
         /**
          * Mouse right button is pressing.
-         * @event og.Events#mouserbuttonhold
+         * @event og.layer.Vector#mouserbuttonhold
          */
         "mouserbuttonhold",
 
         /**
          * Mouse middle button is pressing.
-         * @event og.Events#mousembuttonhold
+         * @event og.layer.Vector#mousembuttonhold
          */
         "mousembuttonhold",
 
         /**
          * Mouse wheel is rotated.
-         * @event og.Events#mousewheel
+         * @event og.layer.Vector#mousewheel
          */
         "mousewheel",
 
@@ -280,6 +285,10 @@ og.layer.Vector.prototype.addTo = function (planet) {
     this._buildEntityCollectionsTree();
 };
 
+/**
+ * TODO: Removes layer from the planet.
+ * @public
+ */
 og.layer.Vector.prototype.remove = function () {
     this._planet && this._planet.removeLayer(this);
     //
@@ -346,6 +355,7 @@ og.layer.Vector.prototype.addEntities = function (entities, rightNow) {
 
 /**
  * Remove entity from layer.
+ * TODO: memory leaks.
  * @public
  * @param {og.Entity} entity - Entity to remove.
  * @returns {og.layer.Vector} - Returns this layer.
@@ -470,7 +480,7 @@ og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible)
 };
 
 /**
- * Clear the layer.
+ * TODO: Clear the layer.
  * @public
  */
 og.layer.Vector.prototype.clear = function () {
@@ -490,9 +500,6 @@ og.layer.Vector.prototype.each = function (callback) {
     }
 };
 
-/**
- * @private
- */
 og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     if (this._planet) {
         this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, og.quadTree.NW, null, 0,
@@ -519,9 +526,6 @@ og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
     }
 };
 
-/**
- * @private
- */
 og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     var ve = this.events;
     entityCollection.events.on("entitymove", null, function (e) { ve.dispatch(ve.entitymove, e); });
@@ -552,9 +556,6 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("touchenter", null, function (e) { ve.dispatch(ve.touchenter, e); });
 };
 
-/**
- * @private
- */
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= this._planet.maxCurrZoom) {
 
