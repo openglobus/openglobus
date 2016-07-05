@@ -28,7 +28,7 @@ goog.require('og.utils');
  *     isBaseLayer: true,
  *     url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png",
  *     visibility: true, 
- *     attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' 
+ *     attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' 
  * });
  */
 og.layer.XYZ = function (name, options) {
