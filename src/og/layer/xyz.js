@@ -183,6 +183,12 @@ og.layer.XYZ.prototype._createUrl = function (segment) {
     });
 };
 
+/**
+ * Returns actual url query string.
+ * @protected
+ * @param {og.planetSegment.Segment} segment - Segment that loads image data.
+ * @returns {string}
+ */
 og.layer.XYZ.prototype._getHTTPRequestString = function (segment) {
     var url = this._createUrl(segment);
     return this._urlRewriteCallback ? this._urlRewriteCallback(segment, url) : url;
