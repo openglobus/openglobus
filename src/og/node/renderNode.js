@@ -57,7 +57,7 @@ og.node.RenderNode = function (name) {
     /**
      * Point light array.
      * @private
-     * @type {Array.<og.light.LightSource>}
+     * @type {Array.<og.LightSource>}
      */
     this._lights = [];
     this._lightsTransformedPositions = [];
@@ -138,7 +138,7 @@ og.node.RenderNode.prototype.removeEntityCollection = function (entityCollection
 /**
  * Adds point light source.
  * @public
- * @param {og.light.LightSource} light - Light source.
+ * @param {og.LightSource} light - Light source.
  * @returns {og.node.RenderNode}
  */
 og.node.RenderNode.prototype.addLight = function (light) {
@@ -150,7 +150,7 @@ og.node.RenderNode.prototype.addLight = function (light) {
  * Gets light object by its name.
  * @public
  * @param {string} name - Point light name.
- * @returns {og.light.LightSource}
+ * @returns {og.LightSource}
  */
 og.node.RenderNode.prototype.getLightByName = function (name) {
     var li = this._lightsNames.indexOf(name);
@@ -160,7 +160,7 @@ og.node.RenderNode.prototype.getLightByName = function (name) {
 /**
  * Removes light source.
  * @public
- * @param {og.light.LightSource} light - Light source object.
+ * @param {og.LightSource} light - Light source object.
  */
 og.node.RenderNode.prototype.removeLight = function (light) {
     light.remove();

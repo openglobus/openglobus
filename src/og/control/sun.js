@@ -2,7 +2,7 @@ goog.provide('og.control.Sun');
 
 goog.require('og.inheritance');
 goog.require('og.control.BaseControl');
-goog.require('og.light.LightSource');
+goog.require('og.LightSource');
 goog.require('og.astro.earth');
 goog.require('og.math.Quaternion');
 
@@ -32,7 +32,7 @@ og.control.Sun = function (options) {
     /**
      * Light source.
      * @public
-     * @type {og.light.LightSource}
+     * @type {og.LightSource}
      */
     this.sunlight = null;
 
@@ -61,11 +61,12 @@ og.control.Sun.prototype.oninit = function () {
     this.planet.lightEnabled = true;
 
     //sunlight initialization
-    this.sunlight = new og.light.LightSource();
-    this.sunlight.setAmbient(new og.math.Vector3(0.15, 0.15, 0.25));
-    this.sunlight.setDiffuse(new og.math.Vector3(0.9, 0.9, 0.8));
-    this.sunlight.setSpecular(new og.math.Vector3(0.1, 0.1, 0.06));
-    this.sunlight.setShininess(110);
+    this.sunlight = new og.LightSource("Sun", {
+        'ambient': new og.math.Vector3(0.15, 0.15, 0.25),
+        'diffuse': new og.math.Vector3(0.9, 0.9, 0.8),
+        'specular': new og.math.Vector3(0.1, 0.1, 0.06),
+        'shininess': 110
+    });
     this.sunlight.addTo(this.planet);
 
     var that = this;

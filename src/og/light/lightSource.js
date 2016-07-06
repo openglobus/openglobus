@@ -1,36 +1,118 @@
-goog.provide('og.light.LightSource');
+goog.provide('og.LightSource');
 
 goog.require('og.math.Vector3');
 
-og.light.LightSource = function (name, position, ambient, diffuse, specular, shininess, directional) {
-    this._name = name || ("p" + og.light.LightSource._counter++);
+/**
+ * Represents basic light source.
+ * @class
+ * @param {string} [name] - Light source name.
+ * @param {Object} [params] - Light parameters:
+ * @param {og.math.Vector3} [params.position] - Light source position if it is a point light, otherwise it is a light direction vector.
+ * @param {og.math.Vector3} [params.ambient]  - Ambient RGB color.
+ * @param {og.math.Vector3} [params.diffuse]  - Diffuse RGB color.
+ * @param {og.math.Vector3} [params.specular]  - Specular RGB color.
+ * @param {number} [params.shininess]  - Specular shininess.
+ */
+og.LightSource = function (name, params) {
+    params = params || {};
+
+    /**
+     * Light name.
+     * @protected
+     * @type {string}
+     */
+    this._name = name || ("light_" + og.LightSource._counter++);
+
+    /**
+     * Render node where light is shines.
+     * @protected
+     * @type {og.node.RenderNode}
+     */
     this._renderNode = null;
 
-    this._position = position || new og.math.Vector3();
+    /**
+     * Light position.
+     * @protected
+     * @type {og.math.Vector3}
+     */
+    this._position = params.position || new og.math.Vector3();
 
-    this.directional = true;// = directional || false;
+    /**
+     * True if the light is directional.
+     * @public
+     * @type {boolean}
+     */
+    this.directional = params.derectional != undefined ? params.derectional : true;
 
-    this._ambient = ambient || new og.math.Vector3();
-    this._diffuse = diffuse || new og.math.Vector3(0.8, 0.8, 0.8);
-    this._specular = specular || new og.math.Vector3(0.18, 0.18, 0.18);
+    /**
+     * Ambient color.
+     * @protected
+     * @type {og.math.Vector3}
+     */
+    this._ambient = params.ambient || new og.math.Vector3();
 
-    this._shininess = shininess || 3.3;
+    /**
+     * Diffuse color.
+     * @protected
+     * @type {og.math.Vector3}
+     */
+    this._diffuse = params.diffuse || new og.math.Vector3(0.8, 0.8, 0.8);
 
+    /**
+     * Specular color.
+     * @protected
+     * @type {og.math.Vector3}
+     */
+    this._specular = params.specular || new og.math.Vector3(0.18, 0.18, 0.18);
+
+    /**
+     * Shininess.
+     * @protected
+     * @type {number}
+     */
+    this._shininess = params.shininess != undefined ? params.shininess : 3.3;
+
+    /**
+     * Light activity.
+     * @protected
+     * @type {boolean}
+     */
     this._active = true;
 
-    this._tempAmbient = ambient ? ambient.clone() : new og.math.Vector3();
-    this._tempDiffuse = diffuse ? diffuse.clone() : new og.math.Vector3();
-    this._tempSpecular = specular ? specular.clone() : new og.math.Vector3();
-    this._tempShininess = shininess || 1.0;
+    this._tempAmbient = this._ambient.clone();
+    this._tempDiffuse = this._diffuse.clone();
+    this._tempSpecular = this._specular.clone();
+    this._tempShininess = this._shininess;
 };
 
-og.light.LightSource._counter = 0;
+og.LightSource._counter = 0;
 
-og.light.LightSource.prototype.clone = function () {
+/**
+ * Creates light source object.
+ * @function
+ * @param {string} [name] - Light name.
+ * @param {Object} [params] - Light parameters.
+ * @returns {og.LightSource}
+ */
+og.lightSource = function (name, params) {
+    return new og.LightSource(name, params);
+};
+
+/**
+ * Creates clone of the current light object.
+ * @public
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.clone = function () {
 
 };
 
-og.light.LightSource.prototype.setActive = function (active) {
+/**
+ * Set light activity. If activity is false the light doesn't shine.
+ * @public
+ * @param {boolean} active - Light activity.
+ */
+og.LightSource.prototype.setActive = function (active) {
     if (active && !this._active) {
         var rn = this._renderNode;
         if (rn) {
@@ -58,22 +140,37 @@ og.light.LightSource.prototype.setActive = function (active) {
         this.setBlack();
         this._active = false;
     }
-    return this.active;
 };
 
-og.light.LightSource.prototype.isActive = function () {
+/**
+ * Gets light activity.
+ * @public
+ * @returns {boolean}
+ */
+og.LightSource.prototype.isActive = function () {
     return this._active;
 };
 
-
-og.light.LightSource.prototype.setPosition = function (position) {
+/**
+ * Set light source position, or if it is a directional type sets light direction vector.
+ * @public
+ * @param {og.math.Vector3} position - Light position or direction vector.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setPosition = function (position) {
     this._position.x = position.x;
     this._position.y = position.y;
     this._position.z = position.z;
     return this;
 };
 
-og.light.LightSource.prototype.setAmbient = function (rgb) {
+/**
+ * Set ambient color.
+ * @public
+ * @param {og.math.Vector3} rgb - Ambient color.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setAmbient = function (rgb) {
     this._ambient = rgb;
     var rn = this._renderNode;
     if (rn) {
@@ -87,7 +184,13 @@ og.light.LightSource.prototype.setAmbient = function (rgb) {
     return this;
 };
 
-og.light.LightSource.prototype.setDiffuse = function (rgb) {
+/**
+ * Set diffuse color.
+ * @public
+ * @param {og.math.Vector3} rgb - Diffuse color.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setDiffuse = function (rgb) {
     this._diffuse = rgb;
     var rn = this._renderNode;
     if (rn) {
@@ -101,7 +204,13 @@ og.light.LightSource.prototype.setDiffuse = function (rgb) {
     return this;
 };
 
-og.light.LightSource.prototype.setSpecular = function (rgb) {
+/**
+ * Set specular color.
+ * @public
+ * @param {og.math.Vector3} rgb - Specular color.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setSpecular = function (rgb) {
     this._specular = rgb;
     var rn = this._renderNode;
     if (rn) {
@@ -115,7 +224,13 @@ og.light.LightSource.prototype.setSpecular = function (rgb) {
     return this;
 };
 
-og.light.LightSource.prototype.setShininess = function (shininess) {
+/**
+ * Set material shininess.
+ * @public
+ * @param {number} shininess - Material shininess.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setShininess = function (shininess) {
     this._shininess = shininess;
     var rn = this._renderNode;
     if (rn) {
@@ -127,7 +242,12 @@ og.light.LightSource.prototype.setShininess = function (shininess) {
     return this;
 };
 
-og.light.LightSource.prototype.setBlack = function () {
+/**
+ * Sets light to black.
+ * @public
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.setBlack = function () {
     this._ambient.clear();
     this._diffuse.clear();
     this._specular.clear();
@@ -144,7 +264,13 @@ og.light.LightSource.prototype.setBlack = function () {
     return this;
 };
 
-og.light.LightSource.prototype.addTo = function (renderNode) {
+/**
+ * Adds current light to the render node scene.
+ * @public
+ * @param {og.node.RenderNode} renderNode - Render node scene.
+ * @returns {og.LightSource}
+ */
+og.LightSource.prototype.addTo = function (renderNode) {
     this._renderNode = renderNode;
     renderNode._lights.push(this);
     renderNode._lightsNames.push(this._name);
@@ -155,7 +281,11 @@ og.light.LightSource.prototype.addTo = function (renderNode) {
     return this;
 };
 
-og.light.LightSource.prototype.remove = function () {
+/**
+ * Removes from render node scene.
+ * @public
+ */
+og.LightSource.prototype.remove = function () {
     var rn = this.renderNode;
     if (rn) {
         var li = rn.getLightById(this._name);
@@ -163,7 +293,7 @@ og.light.LightSource.prototype.remove = function () {
             rn._lights.splice(li, 1);
             rn._lightsNames.splice(li, 1);
             rn._lightsParamsf.splice(li, 1);
-            rn._lightsParamsv.splice(li, 9);//3*3
+            rn._lightsParamsv.splice(li, 9);
         }
     }
     this._renderNode = null;

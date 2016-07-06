@@ -30,11 +30,10 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
-goog.require('og.light.LightSource');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.GeoImage');
 goog.require('og.planetSegment.GeoImageTileCreatorQueue');
-
+goog.require('og.ellipsoid.wgs84');
 /**
  * Main class for rendering planet
  * @class
@@ -55,12 +54,12 @@ og.node.Planet = function (name, ellipsoid) {
      * @public
      * @type {og.Ellipsoid}
      */
-    this.ellipsoid = ellipsoid;
+    this.ellipsoid = ellipsoid || og.ellipsoid.wgs84;
 
     /**
      * @protected
      */
-    this._planetRadius2 = ellipsoid.getPolarSize() * ellipsoid.getPolarSize();
+    this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
 
     /**
      * All layers array.
