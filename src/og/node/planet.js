@@ -34,6 +34,7 @@ goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.GeoImage');
 goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
+
 /**
  * Main class for rendering planet
  * @class
@@ -57,7 +58,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.ellipsoid = ellipsoid || og.ellipsoid.wgs84;
 
     /**
+     * Squared ellipsoid radius.
      * @protected
+     * @type {number}
      */
     this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
 
@@ -83,7 +86,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.visibleVectorLayers = [];
 
     /**
+     * Vector layers visible nodes with collections.
      * @protected
+     * @type {Array.<og.EntityCollection>}
      */
     this._frustumEntityCollections = [];
 
@@ -93,11 +98,6 @@ og.node.Planet = function (name, ellipsoid) {
      * @type {og.layer.Layer}
      */
     this.baseLayer = null;
-
-    /**
-     * @public
-     */
-    this.lightEnabled = false;
 
     /**
      * Terrain provider.
@@ -114,7 +114,9 @@ og.node.Planet = function (name, ellipsoid) {
     this.camera = null;
 
     /**
+     * Screen mouse pointer projected to planet cartesian position.
      * @public
+     * @type {og.math.Vector3}
      */
     this.mousePositionOnEarth = new og.math.Vector3();
 
@@ -157,12 +159,16 @@ og.node.Planet = function (name, ellipsoid) {
     this.maxCurrZoom = og.math.MIN;
 
     /**
+     * Current view geodetic WGS84 extent.
      * @protected
+     * @type {og.Extent}
      */
     this._viewExtentWGS84 = null;
 
     /**
+     * Current view geodetic Web Mercator extent.
      * @protected
+     * @type {og.Extent}
      */
     this._viewExtentMerc = null;
 
@@ -174,26 +180,35 @@ og.node.Planet = function (name, ellipsoid) {
     /**
      * Planet's segments collected for the rendering frame.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._renderedNodes = [];
 
     /**
+     * Current visible mercator segments tree nodes array.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._visibleNodes = {};
 
     /**
+     * Current visible north pole nodes tree nodes array.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._visibleNodesNorth = {};
 
     /**
+     * Current visible south pole nodes tree nodes array.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._visibleNodesSouth = {};
 
     /**
+     * Layers activity.
      * @public
+     * @type {boolean}
      */
     this.layersActivity = true;
 
@@ -236,37 +251,49 @@ og.node.Planet = function (name, ellipsoid) {
     this._viewChanged = true;
 
     /**
+     * Mercator grid tree.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._quadTree = null;
 
     /**
+     * North grid tree.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._quadTreeNorth = null;
 
     /**
+     * South grid tree.
      * @protected
+     * @type {og.quadTree.QuadNode}
      */
     this._quadTreeSouth = null;
 
     /**
+     * Night glowing gl texture.
      * @protected
      */
     this._nightTexture = null;
 
     /**
+     * Specular mask gl texture.
      * @protected
      */
     this._specularTexture = null;
 
     /**
+     * True for rendering night glowing texture.
      * @protected
+     * @type {boolean}
      */
     this._useNightTexture = true;
 
     /**
+     * True for rendering specular mask texture.
      * @protected
+     * @type {boolean}
      */
     this._useSpecularTexture = true;
 
@@ -428,7 +455,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
 };
 
 /**
- * Clear tree ouot the geo images textures.
+ * Redraw geo images.
  * @public
  */
 og.node.Planet.prototype.redrawGeoImages = function () {
@@ -495,13 +522,15 @@ og.node.Planet.prototype.getHeightFactor = function () {
 /**
  * Sets terrain provider
  * @public
+ * @param {og.terrainProvider.TerrainProvider} terrain - Terrain provider.
  */
 og.node.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
 };
 
 /**
- * @absract
+ * @virtual
+ * @protected
  */
 og.node.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
@@ -512,7 +541,8 @@ og.node.Planet.prototype._initializeShaders = function () {
 };
 
 /**
- * @abstract
+ * @virtual
+ * @public
  */
 og.node.Planet.prototype.initialization = function () {
     //Initialization indexes table
@@ -653,6 +683,7 @@ og.node.Planet.prototype.updateAttributionsList = function () {
 };
 
 /**
+ * Updates visible layers.
  * @public
  */
 og.node.Planet.prototype.updateVisibleLayers = function () {
@@ -696,6 +727,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
 };
 
 /**
+ * Sort visible layer preparing for rendering.
  * @protected
  */
 og.node.Planet.prototype._sortVisibleLayersByZIndex = function () {
@@ -710,6 +742,7 @@ og.node.Planet.prototype._sortVisibleLayersByZIndex = function () {
 };
 
 /**
+ * Collects visible quad nodes.
  * @protected
  */
 og.node.Planet.prototype._collectRenderNodes = function () {
@@ -772,7 +805,8 @@ og.node.Planet.prototype.frame = function () {
 };
 
 /**
- * @abstract
+ * @virtual
+ * @protected
  */
 og.node.Planet.prototype._rendering = function () {
     this._renderNodesPASS();
@@ -781,7 +815,8 @@ og.node.Planet.prototype._rendering = function () {
 };
 
 /**
- * @abstract
+ * @virtual
+ * @protected
  */
 og.node.Planet.prototype._drawOverlays = function () {
     var sh;
@@ -847,7 +882,8 @@ og.node.Planet.prototype._drawOverlays = function () {
 };
 
 /**
- * @abstract
+ * @virtual
+ * @protected
  */
 og.node.Planet.prototype._drawSingle = function () {
     var sh;
