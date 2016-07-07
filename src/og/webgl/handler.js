@@ -124,7 +124,9 @@ og.webgl.Handler = function (id, params) {
 };
 
 /**
+ * Maximum texture image size.
  * @const
+ * @type {number}
  */
 og.webgl.Handler.MAX_SIZE = 4096;
 

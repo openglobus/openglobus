@@ -24,7 +24,7 @@ og.PlanetCamera = function (planet, options) {
     /**
      * Assigned camera's planet.
      * @public
-     * @type {og.node.Planet}
+     * @type {og.scene.Planet}
      */
     this.planet = planet;
 

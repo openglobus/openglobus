@@ -70,7 +70,7 @@ og.EntityCollection = function (options) {
     /**
      * Render node context.
      * @public
-     * @type {og.node.RenderNode}
+     * @type {og.scene.RenderNode}
      */
     this.renderNode = null;
 
@@ -572,7 +572,7 @@ og.EntityCollection.prototype.reindexEntitiesArray = function (startIndex) {
 /**
  * Adds this collection to render node.
  * @public
- * @param {og.node.RenderNode} renderNode - Render node.
+ * @param {og.scene.RenderNode} renderNode - Render node.
  * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
  * @returns {og.EntityCollection}
  */

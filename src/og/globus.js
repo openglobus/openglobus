@@ -2,8 +2,8 @@ goog.provide('og.Globus');
 
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
-goog.require('og.node.Planet');
-goog.require('og.node.PlanetAtmosphere');
+goog.require('og.scene.Planet');
+goog.require('og.scene.PlanetAtmosphere');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.terrainProvider.EmptyTerrainProvider');
 
@@ -95,11 +95,11 @@ og.Globus = function (options) {
         /**
          * Render node renders a planet.
          * @public
-         * @type {og.node.Planet|og.node.PlanetAtmosphere}
+         * @type {og.scene.Planet|og.scene.PlanetAtmosphere}
          */
-        this.planet = new og.node.PlanetAtmosphere(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
+        this.planet = new og.scene.PlanetAtmosphere(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
     } else {
-        this.planet = new og.node.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
+        this.planet = new og.scene.Planet(this._planetName, options.ellipsoid ? options.ellipsoid : og.ellipsoid.wgs84);
     }
 
     //Attach terrain provider

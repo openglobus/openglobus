@@ -1,6 +1,6 @@
 goog.provide('my.LineString');
 
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.inheritance');
 
 goog.require('og.EntityCollection');
@@ -13,7 +13,7 @@ my.LineString = function (name) {
     og.inheritance.base(this, name);
 };
 
-og.inheritance.extend(my.LineString, og.node.RenderNode);
+og.inheritance.extend(my.LineString, og.scene.RenderNode);
 
 my.LineString.prototype.initialization = function () {
 

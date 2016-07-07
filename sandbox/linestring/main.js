@@ -3,7 +3,7 @@ goog.require('og.Renderer');
 goog.require('og.control.SimpleNavigation');
 goog.require('og.control.ShowFps');
 goog.require('og.shaderProgram');
-goog.require('og.node.Axes');
+goog.require('og.scene.Axes');
 goog.require('my.LineString');
 goog.require('og.math.Vector3');
 
@@ -30,7 +30,7 @@ function start() {
     renderer = new og.Renderer(context);
     renderer.init();
 
-    var axes = new og.node.Axes(10000);
+    var axes = new og.scene.Axes(10000);
 
     testNode = new my.LineString("LineString");
     //renderer.addRenderNode(axes);

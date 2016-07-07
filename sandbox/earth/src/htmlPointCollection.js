@@ -18,7 +18,7 @@ HtmlPointCollection = function () {
     this.selectedPoint = null;
 };
 
-og.inheritance.extend(HtmlPointCollection, og.node.RenderNode);
+og.inheritance.extend(HtmlPointCollection, og.scene.RenderNode);
 
 HtmlPointCollection.prototype.each = function (callback) {
     var i = this._points;

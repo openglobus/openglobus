@@ -4,7 +4,7 @@ goog.require('og.layer.WMS');
 goog.require('og.layer.Vector');
 goog.require('og.layer.CanvasTiles');
 goog.require('og.terrainProvider.TerrainProvider');
-goog.require('og.node.SkyBox');
+goog.require('og.scene.SkyBox');
 goog.require('og.control.MouseNavigation');
 goog.require('og.control.KeyboardNavigation');
 goog.require('og.control.ToggleWireframe');
@@ -32,7 +32,7 @@ function start() {
     //var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0], visibility: false });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
-    var skybox = new og.node.SkyBox({
+    var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
         "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
         "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",

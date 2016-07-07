@@ -11,7 +11,7 @@ goog.require('og.mercator');
  * Quad tree planet segment node.
  * @constructor
  * @param {og.planetSegment.Segment|og.planetSegment.SegmentWGS84} segmentPrototype - Planet segment node constructor.
- * @param {og.node.RenderNode} planet - Planet render node.
+ * @param {og.scene.RenderNode} planet - Planet render node.
  * @param {number} partId - NorthEast, SouthWest etc.
  * @param {og.quadTree.QuadNode} parent - Parent of this node.
  * @param {number} id - Tree node identifier (id * 4 + 1);

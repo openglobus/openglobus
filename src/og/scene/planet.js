@@ -1,7 +1,7 @@
-goog.provide('og.node.Planet');
+goog.provide('og.scene.Planet');
 
 goog.require('og.inheritance');
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.math');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
@@ -38,7 +38,7 @@ goog.require('og.ellipsoid.wgs84');
 /**
  * Main class for rendering planet
  * @class
- * @extends {og.node.RenderNode}
+ * @extends {og.scene.RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
  * @fires og.Event#draw
@@ -48,7 +48,7 @@ goog.require('og.ellipsoid.wgs84');
  * @fires og.Event#layervisibilitychange
  * @fires og.Event#geoimageadd
  */
-og.node.Planet = function (name, ellipsoid) {
+og.scene.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
 
     /**
@@ -298,10 +298,10 @@ og.node.Planet = function (name, ellipsoid) {
     this._useSpecularTexture = true;
 
     //events initialization
-    this.events.registerNames(og.node.Planet.EVENT_NAMES);
+    this.events.registerNames(og.scene.Planet.EVENT_NAMES);
 };
 
-og.inheritance.extend(og.node.Planet, og.node.RenderNode);
+og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -309,9 +309,9 @@ og.inheritance.extend(og.node.Planet, og.node.RenderNode);
  * @const
  * @type {number}
  */
-og.node.Planet.MAX_NODES = 250;
+og.scene.Planet.MAX_NODES = 250;
 
-og.node.Planet.EVENT_NAMES = [
+og.scene.Planet.EVENT_NAMES = [
         /**
          * Triggered before globe frame begins to render.
          * @event og.Events#draw
@@ -353,9 +353,9 @@ og.node.Planet.EVENT_NAMES = [
  * @type {string}
  * @const
  */
-og.node.Planet.defaultEmptyColor = "#C5C5C5";
+og.scene.Planet.defaultEmptyColor = "#C5C5C5";
 
-og.node.Planet.prototype.createDefaultTexture = function (params) {
+og.scene.Planet.prototype.createDefaultTexture = function (params) {
     var imgCnv;
     var texture;
     if (params && params.color) {
@@ -371,7 +371,7 @@ og.node.Planet.prototype.createDefaultTexture = function (params) {
         });
     } else {
         imgCnv = new og.ImageCanvas(2, 2);
-        imgCnv.fillColor(og.node.Planet.defaultEmptyColor);
+        imgCnv.fillColor(og.scene.Planet.defaultEmptyColor);
         texture = this.renderer.handler.createTexture(imgCnv._canvas);
     }
     texture.default = true;
@@ -384,7 +384,7 @@ og.node.Planet.prototype.createDefaultTexture = function (params) {
  * @public
  * @returns {og.layer.Layer}
  */
-og.node.Planet.prototype.getLayerByName = function (name) {
+og.scene.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;
     while (i--) {
         if (this.layers[i].name === name)
@@ -393,7 +393,7 @@ og.node.Planet.prototype.getLayerByName = function (name) {
     return undefined;
 };
 
-og.node.Planet.prototype.addGeoImage = function (geoImage) {
+og.scene.Planet.prototype.addGeoImage = function (geoImage) {
     geoImage.addTo(this);
 };
 
@@ -402,7 +402,7 @@ og.node.Planet.prototype.addGeoImage = function (geoImage) {
  * @param {og.layer.Layer} layer - Layer object.
  * @public
  */
-og.node.Planet.prototype.addLayer = function (layer) {
+og.scene.Planet.prototype.addLayer = function (layer) {
     layer.addTo(this);
 };
 
@@ -411,7 +411,7 @@ og.node.Planet.prototype.addLayer = function (layer) {
  * @param {og.layer.Layer} layer - Changed layer.
  * @protected
  */
-og.node.Planet.prototype._onLayerVisibilityChanged = function (layer) {
+og.scene.Planet.prototype._onLayerVisibilityChanged = function (layer) {
     this.events.dispatch(this.events.layervisibilitychange, layer);
 };
 
@@ -420,7 +420,7 @@ og.node.Planet.prototype._onLayerVisibilityChanged = function (layer) {
  * @param {Array.<og.layer.Layer>} layers - Layers array.
  * @public
  */
-og.node.Planet.prototype.addLayers = function (layers) {
+og.scene.Planet.prototype.addLayers = function (layers) {
     for (var i = 0; i < layers.length; i++) {
         this.addLayer(layers[i]);
     }
@@ -432,7 +432,7 @@ og.node.Planet.prototype.addLayers = function (layers) {
  * @return {og.layer.Layer|undefined} The removed layer or undefined if the layer was not found.
  * @public
  */
-og.node.Planet.prototype.removeLayer = function (layer) {
+og.scene.Planet.prototype.removeLayer = function (layer) {
     var lid = layer._id;
     for (var i = 0; i < this.layers.length; i++) {
         if (this.layers[i]._id == lid) {
@@ -458,7 +458,7 @@ og.node.Planet.prototype.removeLayer = function (layer) {
  * Redraw geo images.
  * @public
  */
-og.node.Planet.prototype.redrawGeoImages = function () {
+og.scene.Planet.prototype.redrawGeoImages = function () {
     this.geoImagesArray.sort(function (a, b) {
         return b.zIndex - a.zIndex;
     });
@@ -476,7 +476,7 @@ og.node.Planet.prototype.redrawGeoImages = function () {
  * @return {Array.<og.layer.Layer>} Layers.
  * @public
  */
-og.node.Planet.prototype.getLayers = function () {
+og.scene.Planet.prototype.getLayers = function () {
     return this.layers;
 };
 
@@ -485,7 +485,7 @@ og.node.Planet.prototype.getLayers = function () {
  * @param {og.layer.Layer} layer - Layer object.
  * @public
  */
-og.node.Planet.prototype.setBaseLayer = function (layer) {
+og.scene.Planet.prototype.setBaseLayer = function (layer) {
     if (this.baseLayer) {
         if (!this.baseLayer.isEqual(layer)) {
             this.baseLayer.setVisibility(false);
@@ -504,7 +504,7 @@ og.node.Planet.prototype.setBaseLayer = function (layer) {
  * Sets elevation scale. 1.0 is default.
  * @param {number} factor - Elevation scale.
  */
-og.node.Planet.prototype.setHeightFactor = function (factor) {
+og.scene.Planet.prototype.setHeightFactor = function (factor) {
     if (this._heightFactor !== factor) {
         this._heightFactor = factor;
         this._quadTree.reloadTerrain();
@@ -515,7 +515,7 @@ og.node.Planet.prototype.setHeightFactor = function (factor) {
  * Gets elevation scale.
  * @returns {number}
  */
-og.node.Planet.prototype.getHeightFactor = function () {
+og.scene.Planet.prototype.getHeightFactor = function () {
     return this._heightFactor;
 };
 
@@ -524,7 +524,7 @@ og.node.Planet.prototype.getHeightFactor = function () {
  * @public
  * @param {og.terrainProvider.TerrainProvider} terrain - Terrain provider.
  */
-og.node.Planet.prototype.setTerrainProvider = function (terrain) {
+og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
 };
 
@@ -532,7 +532,7 @@ og.node.Planet.prototype.setTerrainProvider = function (terrain) {
  * @virtual
  * @protected
  */
-og.node.Planet.prototype._initializeShaders = function () {
+og.scene.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
@@ -544,7 +544,7 @@ og.node.Planet.prototype._initializeShaders = function () {
  * @virtual
  * @public
  */
-og.node.Planet.prototype.initialization = function () {
+og.scene.Planet.prototype.initialization = function () {
     //Initialization indexes table
     og.PlanetSegmentHelper.initIndexesTables(6);
 
@@ -649,7 +649,7 @@ og.node.Planet.prototype.initialization = function () {
  * @param{object} param0
  * @param{object} param1
  */
-og.node.Planet.prototype.createDefaultTextures = function (param0, param1) {
+og.scene.Planet.prototype.createDefaultTextures = function (param0, param1) {
     this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
     this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
     this.solidTextureOne = this.createDefaultTexture(param0);
@@ -660,7 +660,7 @@ og.node.Planet.prototype.createDefaultTextures = function (param0, param1) {
  * Updates attribution lists
  * @public
  */
-og.node.Planet.prototype.updateAttributionsList = function () {
+og.scene.Planet.prototype.updateAttributionsList = function () {
     var html = "";
     for (var i = 0; i < this.layers.length; i++) {
         var li = this.layers[i];
@@ -686,7 +686,7 @@ og.node.Planet.prototype.updateAttributionsList = function () {
  * Updates visible layers.
  * @public
  */
-og.node.Planet.prototype.updateVisibleLayers = function () {
+og.scene.Planet.prototype.updateVisibleLayers = function () {
     this.visibleTileLayers = [];
     this.visibleTileLayers.length = 0;
 
@@ -730,7 +730,7 @@ og.node.Planet.prototype.updateVisibleLayers = function () {
  * Sort visible layer preparing for rendering.
  * @protected
  */
-og.node.Planet.prototype._sortVisibleLayersByZIndex = function () {
+og.scene.Planet.prototype._sortVisibleLayersByZIndex = function () {
 
     this.visibleTileLayers.sort(function (a, b) {
         return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
@@ -745,7 +745,7 @@ og.node.Planet.prototype._sortVisibleLayersByZIndex = function () {
  * Collects visible quad nodes.
  * @protected
  */
-og.node.Planet.prototype._collectRenderNodes = function () {
+og.scene.Planet.prototype._collectRenderNodes = function () {
 
     //clear first
     this._renderedNodes.length = 0;
@@ -773,7 +773,7 @@ og.node.Planet.prototype._collectRenderNodes = function () {
  * Render node callback.
  * @public
  */
-og.node.Planet.prototype.frame = function () {
+og.scene.Planet.prototype.frame = function () {
 
     var cam = this.renderer.activeCamera;
 
@@ -796,7 +796,7 @@ og.node.Planet.prototype.frame = function () {
 
     //free memory
     var that = this;
-    if (this._createdNodesCount > og.node.Planet.MAX_NODES) {
+    if (this._createdNodesCount > og.scene.Planet.MAX_NODES) {
         setTimeout(function () {
             that.memClear();
         }, 0);
@@ -808,7 +808,7 @@ og.node.Planet.prototype.frame = function () {
  * @virtual
  * @protected
  */
-og.node.Planet.prototype._rendering = function () {
+og.scene.Planet.prototype._rendering = function () {
     this._renderNodesPASS();
     this._renderHeightBackbufferPASS();
     this._renderVectorLayersPASS();
@@ -818,7 +818,7 @@ og.node.Planet.prototype._rendering = function () {
  * @virtual
  * @protected
  */
-og.node.Planet.prototype._drawOverlays = function () {
+og.scene.Planet.prototype._drawOverlays = function () {
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -885,7 +885,7 @@ og.node.Planet.prototype._drawOverlays = function () {
  * @virtual
  * @protected
  */
-og.node.Planet.prototype._drawSingle = function () {
+og.scene.Planet.prototype._drawSingle = function () {
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -934,7 +934,7 @@ og.node.Planet.prototype._drawSingle = function () {
 /**
  * @protected
  */
-og.node.Planet.prototype._renderNodesPASS = function () {
+og.scene.Planet.prototype._renderNodesPASS = function () {
     if (this.visibleTileLayers.length > 1) {
         this._drawOverlays();
     } else {
@@ -945,7 +945,7 @@ og.node.Planet.prototype._renderNodesPASS = function () {
 /**
  * @protected
  */
-og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
+og.scene.Planet.prototype._renderHeightBackbufferPASS = function () {
     var b = this._heightBackbuffer,
         r = this.renderer;
     var h = r.handler;
@@ -968,7 +968,7 @@ og.node.Planet.prototype._renderHeightBackbufferPASS = function () {
  * Vector layer's visible entity collections rendering pass.
  * @protected
  */
-og.node.Planet.prototype._renderVectorLayersPASS = function () {
+og.scene.Planet.prototype._renderVectorLayersPASS = function () {
 
     var i = this.visibleVectorLayers.length;
     while (i--) {
@@ -984,7 +984,7 @@ og.node.Planet.prototype._renderVectorLayersPASS = function () {
  * Vector layers picking pass.
  * @protected
  */
-og.node.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
+og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
     this.drawPickingEntityCollections(this._frustumEntityCollections);
 };
 
@@ -992,7 +992,7 @@ og.node.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
  * Starts clear memory thread.
  * @public
  */
-og.node.Planet.prototype.memClear = function () {
+og.scene.Planet.prototype.memClear = function () {
     this._quadTree.clearTree();
     this._quadTreeNorth.clearTree();
     this._quadTreeSouth.clearTree();
@@ -1006,7 +1006,7 @@ og.node.Planet.prototype.memClear = function () {
  * @param {og.math.VEctor3} direction - Ray direction.
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
+og.scene.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
     var mxTr = this.transformationMatrix.transposeTo();
     var sx = new og.math.Ray(mxTr.mulVec3(origin),
         mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
@@ -1023,7 +1023,7 @@ og.node.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
  * @param {og.math.Ray} ray - Ray 3d.
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
+og.scene.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
     return this.hitRayEllipsoid(ray.origin, ray.direction);
 };
 
@@ -1032,7 +1032,7 @@ og.node.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
  * @public
  * @param {og.math.Pixel} px - 2D sreen coordinates.
  */
-og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
+og.scene.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var cam = this.renderer.activeCamera;
     return this.hitRayEllipsoid(cam.eye, cam.unproject(px.x, px.y));
 };
@@ -1043,7 +1043,7 @@ og.node.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
  * @param {og.math.Pixel} px - 2D screen coordinates.
  * @returns {og.LonLat}
  */
-og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
+og.scene.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     if (coords) {
         return this.ellipsoid.cartesianToLonLat(coords);
@@ -1057,7 +1057,7 @@ og.node.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
  * @public
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
+og.scene.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
     var ms = this.renderer.events.mouseState;
     var distance = this.getDistanceFromPixel(ms, force);
     if (distance) {
@@ -1073,7 +1073,7 @@ og.node.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
  * @returns {og.math.Vector3}
  */
-og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
+og.scene.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
     var distance = this.getDistanceFromPixel(px, force);
     if (distance) {
         var direction = this.renderer.activeCamera.unproject(px.x, px.y);
@@ -1089,7 +1089,7 @@ og.node.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
  * @returns {og.LonLat}
  */
-og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
+og.scene.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
     var coords = this.getCartesianFromPixelTerrain(px, force);
     if (coords) {
         return this.ellipsoid.cartesianToLonLat(coords);
@@ -1103,7 +1103,7 @@ og.node.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
  * @param {og.math.Vector3} coords - Cartesian coordinates.
  * @returns {og.math.Vector2}
  */
-og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
+og.scene.Planet.prototype.getPixelFromCartesian = function (coords) {
     return this.renderer.activeCamera.project(coords);
 };
 
@@ -1113,7 +1113,7 @@ og.node.Planet.prototype.getPixelFromCartesian = function (coords) {
  * @param {og.LonLat} lonlat - Geographical coordinates.
  * @returns {og.math.Vector2}
  */
-og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
+og.scene.Planet.prototype.getPixelFromLonLat = function (lonlat) {
     var coords = this.ellipsoid.lonLatToCartesian(lonlat);
     if (coords)
         return this.renderer.activeCamera.project(coords);
@@ -1127,7 +1127,7 @@ og.node.Planet.prototype.getPixelFromLonLat = function (lonlat) {
  * @param {og.math.Vector2} px
  * @returns {number}
  */
-og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
+og.scene.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
     return coords ? coords.distance(this.renderer.activeCamera.eye) : null;
 };
@@ -1141,7 +1141,7 @@ og.node.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
  * @param {og.math.Vector2} px
  * @returns {number}
  */
-og.node.Planet.prototype.getDistanceFromPixel = function (px, force) {
+og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
     if (this._viewChanged || force) {
         this._viewChanged = false;
         var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x, this._heightBackbuffer.height - px.y));
@@ -1158,7 +1158,7 @@ og.node.Planet.prototype.getDistanceFromPixel = function (px, force) {
  * @public
  * @param {og.Extent} extent - Geographical extent.
  */
-og.node.Planet.prototype.viewExtent = function (extent) {
+og.scene.Planet.prototype.viewExtent = function (extent) {
     this.renderer.activeCamera.viewExtent(extent);
 };
 
@@ -1167,7 +1167,7 @@ og.node.Planet.prototype.viewExtent = function (extent) {
  * @public
  * @returns {og.Extent}
  */
-og.node.Planet.prototype.getViewExtent = function () {
+og.scene.Planet.prototype.getViewExtent = function () {
     if (this._viewExtentMerc) {
         var ne = this._viewExtentMerc.northEast.inverseMercator(),
             sw = this._viewExtentMerc.southWest.inverseMercator();
@@ -1198,7 +1198,7 @@ og.node.Planet.prototype.getViewExtent = function () {
  * @param {og.LonLat} lonlat - New geographical position.
  * @param {og.math.Vector3} [up] - Camera UP vector.
  */
-og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
+og.scene.Planet.prototype.viewLonLat = function (lonlat, up) {
     this.renderer.activeCamera.setLonLat(lonlat, up);
 };
 
@@ -1208,7 +1208,7 @@ og.node.Planet.prototype.viewLonLat = function (lonlat, up) {
  * @param {og.Extent} extent - Geographical extent.
  * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
  */
-og.node.Planet.prototype.flyExtent = function (extent, up) {
+og.scene.Planet.prototype.flyExtent = function (extent, up) {
     this.renderer.activeCamera.flyExtent(extent, up);
 };
 
@@ -1219,7 +1219,7 @@ og.node.Planet.prototype.flyExtent = function (extent, up) {
  * @param {og.math.Vector3} [look] - Camera "look at" point.
  * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
  */
-og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
+og.scene.Planet.prototype.flyCartesian = function (cartesian, look, up) {
     this.renderer.activeCamera.flyCartesian(cartesian, look, up);
 };
 
@@ -1230,7 +1230,7 @@ og.node.Planet.prototype.flyCartesian = function (cartesian, look, up) {
  * @param {og.math.Vector3} [look] - Camera "look at" point on the end of a flying.
  * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
  */
-og.node.Planet.prototype.flyLonLat = function (lonlat, look, up) {
+og.scene.Planet.prototype.flyLonLat = function (lonlat, look, up) {
     this.renderer.activeCamera.flyLonLat(lonlat, look, up);
 };
 
@@ -1238,11 +1238,11 @@ og.node.Planet.prototype.flyLonLat = function (lonlat, look, up) {
  * Breaks the flight.
  * @public
  */
-og.node.Planet.prototype.stopFlying = function () {
+og.scene.Planet.prototype.stopFlying = function () {
     this.renderer.activeCamera.stopFlying();
 };
 
-og.node.Planet.prototype.updateBillboardsTexCoords = function () {
+og.scene.Planet.prototype.updateBillboardsTexCoords = function () {
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
     }

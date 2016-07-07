@@ -1,6 +1,6 @@
 //goog.provide('Heatmap');
 
-//goog.require('og.node.RenderNode');
+//goog.require('og.scene.RenderNode');
 
 Heatmap = function () {
     og.inheritance.base(this);
@@ -12,7 +12,7 @@ Heatmap = function () {
     this.points = [0.6, 0.6, 0.3, 0.7, 0.8, 0.3, 0.2, 0.3, 0.3, 0.1, 0.2, 0.4];
 };
 
-og.inheritance.extend(Heatmap, og.node.RenderNode);
+og.inheritance.extend(Heatmap, og.scene.RenderNode);
 
 Heatmap.prototype.initialization = function () {
     this.drawMode = this.renderer.handler.gl.TRIANGLES;

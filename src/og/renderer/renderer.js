@@ -57,14 +57,14 @@ og.Renderer = function (handler) {
     /**
      * Render nodes drawing queue.
      * @private
-     * @type {Array.<og.node.RenderNode>}
+     * @type {Array.<og.scene.RenderNode>}
      */
     this._renderNodesArr = [];
 
     /**
      * Render nodes store for the comfortable access by the node name.
      * @public
-     * @type {Object.<og.node.RenderNode>}
+     * @type {Object.<og.scene.RenderNode>}
      */
     this.renderNodes = {};
 
@@ -272,7 +272,7 @@ og.Renderer.prototype.init = function () {
 /**
  * Adds render node to the renderer.
  * @public
- * @param {og.node.RenderNode} renderNode - Render node.
+ * @param {og.scene.RenderNode} renderNode - Render node.
  */
 og.Renderer.prototype.addRenderNode = function (renderNode) {
     if (!this.renderNodes[renderNode.name]) {
@@ -287,7 +287,7 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
 /**
  * Adds render nodes array to the renderer.
  * @public
- * @param {Array.<og.node.RenderNode>} nodesArr - Render nodes array.
+ * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
  */
 og.Renderer.prototype.addRenderNodes = function (nodesArr) {
     for (var i = 0; i < nodesArr; i++) {

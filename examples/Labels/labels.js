@@ -23,7 +23,7 @@ function main() {
     renderer = new og.Renderer(context);
     renderer.init();
 
-    var axes = new og.node.Axes(10000);
+    var axes = new og.scene.Axes(10000);
 
     scene = new MyScene("Labels");
     renderer.addRenderNode(axes);
@@ -49,7 +49,7 @@ MyScene = function (name) {
     this.texture = null;
 };
 
-og.inheritance.extend(MyScene, og.node.RenderNode);
+og.inheritance.extend(MyScene, og.scene.RenderNode);
 
 MyScene.prototype.initialization = function () {
 

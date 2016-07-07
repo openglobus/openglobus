@@ -70,7 +70,7 @@ og.layer.Layer = function (name, options) {
     /**
      * Planet node.
      * @protected
-     * @type {og.node.Planet}
+     * @type {og.scene.Planet}
      */
     this._planet = null;
 
@@ -162,7 +162,7 @@ og.layer.Layer.prototype.isEqual = function (layer) {
 /**
  * Assign the planet.
  * @protected
- * @param {og.node.Planet} planet- Planet render node.
+ * @param {og.scene.Planet} planet- Planet render node.
  */
 og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.layers.push(this);
@@ -179,7 +179,7 @@ og.layer.Layer.prototype._assignPlanet = function (planet) {
 /**
  * Adds layer to the planet.
  * @public
- * @param {og.node.Planet}
+ * @param {og.scene.Planet}
  */
 og.layer.Layer.prototype.addTo = function (planet) {
     this._assignPlanet(planet);

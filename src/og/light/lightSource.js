@@ -26,7 +26,7 @@ og.LightSource = function (name, params) {
     /**
      * Render node where light is shines.
      * @protected
-     * @type {og.node.RenderNode}
+     * @type {og.scene.RenderNode}
      */
     this._renderNode = null;
 
@@ -267,7 +267,7 @@ og.LightSource.prototype.setBlack = function () {
 /**
  * Adds current light to the render node scene.
  * @public
- * @param {og.node.RenderNode} renderNode - Render node scene.
+ * @param {og.scene.RenderNode} renderNode - Render node scene.
  * @returns {og.LightSource}
  */
 og.LightSource.prototype.addTo = function (renderNode) {

@@ -1,6 +1,6 @@
 goog.provide('my.SDF');
 
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.ImageCanvas');
@@ -20,7 +20,7 @@ my.SDF = function (name) {
 
 };
 
-og.inheritance.extend(my.SDF, og.node.RenderNode);
+og.inheritance.extend(my.SDF, og.scene.RenderNode);
 
 
 my.SDF.prototype.initialization = function () {

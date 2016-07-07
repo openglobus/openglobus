@@ -1,8 +1,8 @@
-goog.provide('og.node.RenderNode');
+goog.provide('og.scene.RenderNode');
 
 goog.require('og.Events');
 goog.require('og.inheritance');
-goog.require('og.node.Node');
+goog.require('og.scene.Node');
 goog.require('og.webgl');
 goog.require('og.math.Matrix4');
 goog.require('og.math.Vector3');
@@ -11,15 +11,15 @@ goog.require('og.utils.FontAtlas');
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
- * Forexample one node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
+ * Forexample one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
  * Each render node has own model view space defined with matrices(scale, rotation, translation, transformation).
  * There are collections of ligh sources, entities and so on in the node.
  * Access to the node is renderer.renderNodes["Earth"]
  * @class
- * @extends {og.node.Node}
+ * @extends {og.scene.Node}
  * @param {string} name - Node name.
  */
-og.node.RenderNode = function (name) {
+og.scene.RenderNode = function (name) {
 
     og.inheritance.base(this, name);
 
@@ -94,14 +94,14 @@ og.node.RenderNode = function (name) {
     this.events = new og.Events();
 };
 
-og.inheritance.extend(og.node.RenderNode, og.node.Node);
+og.inheritance.extend(og.scene.RenderNode, og.scene.Node);
 
 /**
  * Assign render node with renderer.
  * @public
  * @param {og.Renderer} renderer - Redner node's renderer.
  */
-og.node.RenderNode.prototype.assignRenderer = function (renderer) {
+og.scene.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
     this.billboardsTextureAtlas.assignHandler(renderer.handler);
     this.fontAtlas.assignHandler(renderer.handler);
@@ -119,9 +119,9 @@ og.node.RenderNode.prototype.assignRenderer = function (renderer) {
  * @public
  * @param {og.EntityCollection} entityCollection - Entity collection.
  * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
- * @returns {og.node.RenderNode}
+ * @returns {og.scene.RenderNode}
  */
-og.node.RenderNode.prototype.addEntityCollection = function (entityCollection, isHidden) {
+og.scene.RenderNode.prototype.addEntityCollection = function (entityCollection, isHidden) {
     entityCollection.addTo(this, isHidden);
     return this;
 };
@@ -131,7 +131,7 @@ og.node.RenderNode.prototype.addEntityCollection = function (entityCollection, i
  * @public
  * @param {og.EntityCollection} entityCollection - Entity collection for remove.
  */
-og.node.RenderNode.prototype.removeEntityCollection = function (entityCollection) {
+og.scene.RenderNode.prototype.removeEntityCollection = function (entityCollection) {
     entityCollection.remove();
 };
 
@@ -139,9 +139,9 @@ og.node.RenderNode.prototype.removeEntityCollection = function (entityCollection
  * Adds point light source.
  * @public
  * @param {og.LightSource} light - Light source.
- * @returns {og.node.RenderNode}
+ * @returns {og.scene.RenderNode}
  */
-og.node.RenderNode.prototype.addLight = function (light) {
+og.scene.RenderNode.prototype.addLight = function (light) {
     light.addTo(this);
     return this;
 };
@@ -152,7 +152,7 @@ og.node.RenderNode.prototype.addLight = function (light) {
  * @param {string} name - Point light name.
  * @returns {og.LightSource}
  */
-og.node.RenderNode.prototype.getLightByName = function (name) {
+og.scene.RenderNode.prototype.getLightByName = function (name) {
     var li = this._lightsNames.indexOf(name);
     return this._lights[li];
 };
@@ -162,41 +162,41 @@ og.node.RenderNode.prototype.getLightByName = function (name) {
  * @public
  * @param {og.LightSource} light - Light source object.
  */
-og.node.RenderNode.prototype.removeLight = function (light) {
+og.scene.RenderNode.prototype.removeLight = function (light) {
     light.remove();
 };
 
 /**
- * Sets node scale matrix.
+ * Sets scene node scale matrix.
  * @public
  * @param {og.math.Vector3} xyz - Component scale vector.
- * @returns {og.node.RenderNode}
+ * @returns {og.scene.RenderNode}
  */
-og.node.RenderNode.prototype.setScale = function (xyz) {
+og.scene.RenderNode.prototype.setScale = function (xyz) {
     this.scaleMatrix.scale(xyz);
     return this;
 };
 
 /**
- * Sets node translation matrix.
+ * Sets scene node translation matrix.
  * @public
  * @param {og.math.Vector3} origin - New node's position.
- * @returns {og.node.RenderNode}
+ * @returns {og.scene.RenderNode}
  */
-og.node.RenderNode.prototype.setOrigin = function (origin) {
+og.scene.RenderNode.prototype.setOrigin = function (origin) {
     this.translationMatrix.translate(origin);
     return this;
 };
 
 /**
- * Sets node rotation matrix.
+ * Sets scene node rotation matrix.
  * @public
  * @param {number} ax - Euler axis X angle rotation.
  * @param {number} ay - Euler axis Y angle rotation.
  * @param {number} az - Euler axis Z angle rotation.
- * @returns {og.node.RenderNode}
+ * @returns {og.scene.RenderNode}
  */
-og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
+og.scene.RenderNode.prototype.setAngles = function (ax, ay, az) {
     this.rotationMatrix.eulerToMatrix(ax, ay, az);
     return this;
 };
@@ -205,7 +205,7 @@ og.node.RenderNode.prototype.setAngles = function (ax, ay, az) {
  * Updates render node's matrices
  * @public
  */
-og.node.RenderNode.prototype.updateMatrices = function () {
+og.scene.RenderNode.prototype.updateMatrices = function () {
     this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
     this.itransformationMatrix = this.transformationMatrix.inverseTo();
 };
@@ -214,7 +214,7 @@ og.node.RenderNode.prototype.updateMatrices = function () {
  * Calls render frame node's callback. Used in renderer.
  * @public
  */
-og.node.RenderNode.prototype.drawNode = function () {
+og.scene.RenderNode.prototype.drawNode = function () {
     this._isActive && this._drawNodes();
 };
 
@@ -223,7 +223,7 @@ og.node.RenderNode.prototype.drawNode = function () {
  * @public
  * @returns {boolean}
  */
-og.node.RenderNode.prototype.isActive = function () {
+og.scene.RenderNode.prototype.isActive = function () {
     return this._isActive;
 };
 
@@ -232,7 +232,7 @@ og.node.RenderNode.prototype.isActive = function () {
  * @public
  * @param {boolean} isActive - Activation flag.
  */
-og.node.RenderNode.prototype.setActive = function (isActive) {
+og.scene.RenderNode.prototype.setActive = function (isActive) {
     this._isActive = isActive;
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].setActive(isActive);
@@ -242,7 +242,7 @@ og.node.RenderNode.prototype.setActive = function (isActive) {
 /**
  * @public
  */
-og.node.RenderNode.prototype.setDrawMode = function (mode) {
+og.scene.RenderNode.prototype.setDrawMode = function (mode) {
     this.drawMode = mode;
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].setDrawMode(mode);
@@ -253,7 +253,7 @@ og.node.RenderNode.prototype.setDrawMode = function (mode) {
  * This function have to be called manualy in each render node frame callback, before drawing scene geometry.
  * @public
  */
-og.node.RenderNode.prototype.transformLights = function () {
+og.scene.RenderNode.prototype.transformLights = function () {
     var r = this.renderer;
     for (var i = 0; i < this._lights.length; i++) {
         var ii = i * 4;
@@ -271,7 +271,7 @@ og.node.RenderNode.prototype.transformLights = function () {
     }
 };
 
-og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
+og.scene.RenderNode.prototype.updateBillboardsTexCoords = function () {
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
     }
@@ -280,7 +280,7 @@ og.node.RenderNode.prototype.updateBillboardsTexCoords = function () {
 /**
  * @private
  */
-og.node.RenderNode.prototype._drawNodes = function () {
+og.scene.RenderNode.prototype._drawNodes = function () {
     for (var i = 0; i < this.childNodes.length; i++) {
         if (this.childNodes[i]._isActive)
             this.childNodes[i]._drawNodes();
@@ -298,7 +298,7 @@ og.node.RenderNode.prototype._drawNodes = function () {
 /**
  * @public
  */
-og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
+og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
     if (ec.length) {
         var gl = this.renderer.handler.gl;
 
@@ -366,7 +366,7 @@ og.node.RenderNode.prototype.drawEntityCollections = function (ec) {
 /**
  * @public
  */
-og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
+og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
     if (ec.length) {
 
         var gl = this.renderer.handler.gl;
@@ -410,6 +410,6 @@ og.node.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
  * Picking entity frame callback
  * @private
  */
-og.node.RenderNode.prototype._entityCollectionPickingCallback = function () {
+og.scene.RenderNode.prototype._entityCollectionPickingCallback = function () {
     this.drawPickingEntityCollections(this.entityCollections);
 };

@@ -1,6 +1,6 @@
 ﻿goog.require('og.Globus');
 goog.require('og.layer.XYZ');
-goog.require('og.node.SkyBox');
+goog.require('og.scene.SkyBox');
 goog.require('og.control.MouseNavigation');
 goog.require('og.control.KeyboardNavigation');
 goog.require('og.control.Sun');
@@ -27,7 +27,7 @@ function init() {
     //http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg
     var sat = new og.layer.XYZ("sat", { isBaseLayer: true, maxZoom:4, url: "http://127.0.0.1/og/sandbox/earth/sat/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '<div style="color:white">Powered by <a target="_blank" style="color:blue" href="http://www.openglobus.org">OpenGlobus</a></div>' });
 
-    var skybox = new og.node.SkyBox({
+    var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
         "px": "http://127.0.0.1/og/resources/images/skyboxes/gal/_px.jpg",
         "py": "http://127.0.0.1/og/resources/images/skyboxes/gal/_py.jpg",

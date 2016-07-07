@@ -1,6 +1,6 @@
 goog.provide('Atmosphere');
 
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.shape.Sphere');
 goog.require('og.math');
 goog.require('og.math.Matrix4');
@@ -39,7 +39,7 @@ Atmosphere = function () {
     this._createData();
 };
 
-og.inheritance.extend(Atmosphere, og.node.RenderNode);
+og.inheritance.extend(Atmosphere, og.scene.RenderNode);
 
 
 Atmosphere.prototype._createData = function () {

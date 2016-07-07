@@ -3,7 +3,7 @@
 //goog.require('og.Renderer');
 //goog.require('og.control.KeyboardNavigation');
 //goog.require('og.shaderProgram.shape');
-//goog.require('og.node.Axes');
+//goog.require('og.scene.Axes');
 //goog.require('my.Heatmap');
 //goog.require('og.math.Vector3');
 //goog.require('og.utils');

@@ -151,7 +151,7 @@ og.shape.BaseShape = function (options) {
     /**
      * Assigned render node.
      * @protected
-     * @type {og.node.RenderNode}
+     * @type {og.scene.RenderNode}
      */
     this._renderNode = null;
 
@@ -281,7 +281,7 @@ og.shape.BaseShape.prototype.getVisibility = function () {
 /**
  * Assign render node.
  * @public
- * @param {og.node.RenderNode} renderNode - Render node to assign.
+ * @param {og.scene.RenderNode} renderNode - Render node to assign.
  */
 og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;

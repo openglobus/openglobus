@@ -1,23 +1,23 @@
-goog.provide('og.node.Node');
+goog.provide('og.scene.Node');
 
 /**
- * Node base class.
+ * Scene node base class.
  * @class
  * @param {string} name - Node name.
  */
-og.node.Node = function (name) {
+og.scene.Node = function (name) {
     this.name = name;
     this.topNode = this;
     this.dictionary = [];
     this.dictionary[name] = this;
     this.childNodes = [];
     this.parentNode = null;
-    this.__staticId = og.node.Node.staticCounter++;
+    this.__staticId = og.scene.Node.staticCounter++;
 };
 
-og.node.Node.staticCounter = 0;
+og.scene.Node.staticCounter = 0;
 
-og.node.Node.prototype = {
+og.scene.Node.prototype = {
     name: "",
     childNodes: [],
     parentNode: null,
@@ -25,7 +25,7 @@ og.node.Node.prototype = {
     dictionary: []
 };
 
-og.node.Node.prototype.addNode = function (node) {
+og.scene.Node.prototype.addNode = function (node) {
     if (this.parentNode == null) {
         node.topNode = this;
     }
@@ -38,20 +38,20 @@ og.node.Node.prototype.addNode = function (node) {
     this.topNode.dictionary[node.name] = node;
 };
 
-og.node.Node.prototype.destroy = function () {
+og.scene.Node.prototype.destroy = function () {
     for (var i = 0; i < this.childNodes.length; i++) {
         this.childNodes[i].destroy();
     }
     this._clear();
 };
 
-og.node.Node.prototype._clear = function () {
+og.scene.Node.prototype._clear = function () {
     this.name = "";
     this.parentNode = null;
     this.topNode = null;
     this.childNodes.length = 0;
 };
 
-og.node.Node.prototype.getNodeByName = function (name) {
+og.scene.Node.prototype.getNodeByName = function (name) {
     return this.dictionary[name];
 };

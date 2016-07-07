@@ -1,6 +1,6 @@
 goog.require('og.webgl.Handler');
 goog.require('og.Renderer');
-goog.require('og.node.Planet');
+goog.require('og.scene.Planet');
 goog.require('og.layer');
 goog.require('og.layer.XYZ');
 goog.require('og.layer.WMS');
@@ -19,7 +19,7 @@ function start() {
     var renderer = new og.Renderer(context);
     renderer.init();
 
-    var planet = new og.node.Planet("Earth", og.ellipsoid.wgs84);
+    var planet = new og.scene.Planet("Earth", og.ellipsoid.wgs84);
 
     var baselayer = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://otile1.mqcdn.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.jpg", visibility: true });
     var states = new og.layer.WMS("USA States", { isBaseLayer: false, url: "../../../geoserver/", layers: "topp:states", opacity: 0.5 });

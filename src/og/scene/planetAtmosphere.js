@@ -1,4 +1,4 @@
-goog.provide('og.node.PlanetAtmosphere');
+goog.provide('og.scene.PlanetAtmosphere');
 
 goog.require('og.shape.Icosphere');
 goog.require('og.shaderProgram.atmosphereSpace');
@@ -8,7 +8,7 @@ goog.require('og.shaderProgram.single_nl');
 goog.require('og.shaderProgram.singleAtmosphere_wl');
 goog.require('og.inheritance');
 
-og.node.PlanetAtmosphere = function(name, ellipsoid){
+og.scene.PlanetAtmosphere = function(name, ellipsoid){
     og.inheritance.base(this, name, ellipsoid);
 
     this.atmosphereSpaceParams = {
@@ -86,9 +86,9 @@ og.node.PlanetAtmosphere = function(name, ellipsoid){
     this._atmosphereIndexBuffer = null;
 };
 
-og.inheritance.extend(og.node.PlanetAtmosphere, og.node.Planet);
+og.inheritance.extend(og.scene.PlanetAtmosphere, og.scene.Planet);
 
-og.node.PlanetAtmosphere.prototype._initializeShaders = function () {
+og.scene.PlanetAtmosphere.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.singleAtmosphere_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
@@ -97,7 +97,7 @@ og.node.PlanetAtmosphere.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.atmosphereSpace(), true);
 };
 
-og.node.PlanetAtmosphere.prototype.initialization = function () {
+og.scene.PlanetAtmosphere.prototype.initialization = function () {
 
     this.constructor.superclass.initialization.call(this);
 
@@ -109,9 +109,9 @@ og.node.PlanetAtmosphere.prototype.initialization = function () {
 
 
 /**
- * @abstract
+ * @virtual
  */
-og.node.PlanetAtmosphere.prototype._rendering = function () {
+og.scene.PlanetAtmosphere.prototype._rendering = function () {
     this._renderNodesPASS();
     this._renderHeightBackbufferPASS();
     this._renderVectorLayersPASS();
@@ -119,9 +119,9 @@ og.node.PlanetAtmosphere.prototype._rendering = function () {
 };
 
 /**
- * @abstract
+ * @virtual
  */
-og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
+og.scene.PlanetAtmosphere.prototype._drawOverlays = function () {
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -203,9 +203,9 @@ og.node.PlanetAtmosphere.prototype._drawOverlays = function () {
 };
 
 /**
- * @abstract
+ * @virtual
  */
-og.node.PlanetAtmosphere.prototype._drawSingle = function () {
+og.scene.PlanetAtmosphere.prototype._drawSingle = function () {
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -269,7 +269,7 @@ og.node.PlanetAtmosphere.prototype._drawSingle = function () {
     gl.disable(gl.BLEND);
 };
 
-og.node.PlanetAtmosphere.prototype._renderAtmosphere = function () {
+og.scene.PlanetAtmosphere.prototype._renderAtmosphere = function () {
     var rn = this;
     var r = rn.renderer;
 

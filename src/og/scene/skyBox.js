@@ -1,26 +1,26 @@
-goog.provide('og.node.SkyBox');
+goog.provide('og.scene.SkyBox');
 
 goog.require('og.inheritance');
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.shaderProgram.skybox');
 
-og.node.SkyBox = function (params) {
+og.scene.SkyBox = function (params) {
     og.inheritance.base(this, "skybox");
     this.params = params;
     this.vertexPositionBuffer = null;
     this.texture = null;
 };
 
-og.inheritance.extend(og.node.SkyBox, og.node.RenderNode);
+og.inheritance.extend(og.scene.SkyBox, og.scene.RenderNode);
 
-og.node.SkyBox.prototype.initialization = function () {
+og.scene.SkyBox.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.skybox(), true);
     this.texture = this.renderer.handler.loadCubeMapTexture(this.params);
     this.createBuffers();
     this.drawMode = this.renderer.handler.gl.TRIANGLES;
 };
 
-og.node.SkyBox.prototype.frame = function () {
+og.scene.SkyBox.prototype.frame = function () {
     var h = this.renderer.handler;
     var gl = h.gl;
     var cam = this.renderer.activeCamera;
@@ -42,7 +42,7 @@ og.node.SkyBox.prototype.frame = function () {
     h.gl.enable(h.gl.DEPTH_TEST);
 };
 
-og.node.SkyBox.prototype.createBuffers = function () {
+og.scene.SkyBox.prototype.createBuffers = function () {
 
     var vertices = new Float32Array([
         - 10000.0 ,   10000.0 , - 10000.0 ,

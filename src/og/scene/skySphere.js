@@ -1,10 +1,10 @@
-goog.provide('og.node.SkySphere');
+goog.provide('og.scene.SkySphere');
 
 goog.require('og.inheritance');
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.shaderProgram.skysphere');
 
-og.node.SkySphere = function (textureFilename, lonBands, latBands) {
+og.scene.SkySphere = function (textureFilename, lonBands, latBands) {
     og.inheritance.base(this, "skysphere");
 
     this._lonBands = lonBands || 8;
@@ -21,9 +21,9 @@ og.node.SkySphere = function (textureFilename, lonBands, latBands) {
     this._indexData = [];
 };
 
-og.inheritance.extend(og.node.SkySphere, og.node.RenderNode);
+og.inheritance.extend(og.scene.SkySphere, og.scene.RenderNode);
 
-og.node.SkySphere.prototype.initialization = function () {
+og.scene.SkySphere.prototype.initialization = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.skysphere());
     this.drawMode = this.renderer.handler.gl.TRIANGLES;
     this._loadTexture();
@@ -31,14 +31,14 @@ og.node.SkySphere.prototype.initialization = function () {
     this._createBuffers();
 };
 
-og.node.SkySphere.prototype._createBuffers = function () {
+og.scene.SkySphere.prototype._createBuffers = function () {
     var h = this.renderer.handler;
     this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
     this._textureCoordBuffer = h.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
 };
 
-og.node.SkySphere.prototype._loadTexture = function () {
+og.scene.SkySphere.prototype._loadTexture = function () {
     var that = this;
     var img = new Image();
     img.onload = function () {
@@ -47,7 +47,7 @@ og.node.SkySphere.prototype._loadTexture = function () {
     img.src = this._textureFilename;
 };
 
-og.node.SkySphere.prototype._createCoordinates = function () {
+og.scene.SkySphere.prototype._createCoordinates = function () {
 
     for (var latNumber = 0; latNumber <= this._latBands; latNumber++) {
         var theta = latNumber * Math.PI / this._latBands;
@@ -87,7 +87,7 @@ og.node.SkySphere.prototype._createCoordinates = function () {
     }
 };
 
-og.node.SkySphere.prototype.frame = function () {
+og.scene.SkySphere.prototype.frame = function () {
 
     var r = this.renderer;
 

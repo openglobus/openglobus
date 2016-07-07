@@ -1,6 +1,6 @@
 function start() {
 
-    var skybox = new og.node.SkyBox({
+    var skybox = new og.scene.SkyBox({
         "positiveX": "http://www.openglobus.org/resources/images/skyboxes/tycho/px.jpg",
         "negativeX": "http://www.openglobus.org/resources/images/skyboxes/tycho/nx.jpg",
         "positiveY": "http://www.openglobus.org/resources/images/skyboxes/tycho/py.jpg",

@@ -18,7 +18,7 @@ og.control.Sun = function (options) {
     /**
      * Earth planet node.
      * @public
-     * @type {og.node.Planet}
+     * @type {og.scene.Planet}
      */
     this.planet;
 

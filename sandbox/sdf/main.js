@@ -3,7 +3,7 @@ goog.require('og.Renderer');
 goog.require('og.control.SimpleNavigation');
 goog.require('og.control.ShowFps');
 goog.require('og.shaderProgram');
-goog.require('og.node.Axes');
+goog.require('og.scene.Axes');
 goog.require('my.SDF');
 goog.require('og.math.Vector3');
 

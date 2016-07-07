@@ -4,7 +4,7 @@ goog.require('og.Renderer');
 goog.require('og.control.SimpleNavigation');
 goog.require('og.shaderProgram.shape_wl');
 goog.require('og.shaderProgram.shape_nl');
-goog.require('og.node.Axes');
+goog.require('og.scene.Axes');
 goog.require('Atmosphere');
 goog.require('og.math.Vector3');
 
@@ -31,7 +31,7 @@ function start() {
     renderer = new og.Renderer(context);
     renderer.init();
 
-    var axes = new og.node.Axes(10000);
+    var axes = new og.scene.Axes(10000);
 
     atmosphere = new Atmosphere();
     renderer.addRenderNode(axes);

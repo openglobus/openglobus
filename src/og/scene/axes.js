@@ -1,24 +1,24 @@
-goog.provide('og.node.Axes');
+goog.provide('og.scene.Axes');
 
 
 goog.require('og.inheritance');
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 
-og.node.Axes = function (size) {
+og.scene.Axes = function (size) {
     og.inheritance.base(this, "Axes");
     this.size = size;
     this.axesBuffer = null;
     this.axesColorBuffer = null;
 };
 
-og.inheritance.extend(og.node.Axes, og.node.RenderNode);
+og.inheritance.extend(og.scene.Axes, og.scene.RenderNode);
 
-og.node.Axes.prototype.initialization = function () {
+og.scene.Axes.prototype.initialization = function () {
     this.createAxisBuffer(this.size);
     this.drawMode = this.renderer.handler.gl.LINES;
 };
 
-og.node.Axes.prototype.frame = function () {
+og.scene.Axes.prototype.frame = function () {
 
     this.renderer.handler.shaderPrograms.flat.activate();
 
@@ -31,7 +31,7 @@ og.node.Axes.prototype.frame = function () {
     this.renderer.handler.shaderPrograms.flat.drawArray(this.drawMode, this.axisBuffer.numItems);
 };
 
-og.node.Axes.prototype.createAxisBuffer = function (gridSize) {
+og.scene.Axes.prototype.createAxisBuffer = function (gridSize) {
 
     var vertices = [
          0.0, 0.0, 0.0, gridSize - 1, 0.0, 0.0, // x - R

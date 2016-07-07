@@ -1,6 +1,6 @@
 goog.provide('my.Billboard');
 
-goog.require('og.node.RenderNode');
+goog.require('og.scene.RenderNode');
 goog.require('og.inheritance');
 goog.require('og.EntityCollection');
 goog.require('og.Billboard');
@@ -16,7 +16,7 @@ my.Billboard = function (name) {
     this.texture = null;
 };
 
-og.inheritance.extend(my.Billboard, og.node.RenderNode);
+og.inheritance.extend(my.Billboard, og.scene.RenderNode);
 
 
 my.Billboard.prototype.initialization = function () {

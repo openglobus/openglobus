@@ -61,7 +61,7 @@ function start() {
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
 
-    var skybox = new og.node.SkyBox({
+    var skybox = new og.scene.SkyBox({
         "nx": "resources/images/skyboxes/gal/_nx.jpg",
         "px": "resources/images/skyboxes/gal/_px.jpg",
         "py": "resources/images/skyboxes/gal/_py.jpg",
