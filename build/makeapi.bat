@@ -1,0 +1,1 @@
+jsdoc -t ../../jaguarjs-jsdoc -r ../src/ -c conf.json -d ../api
