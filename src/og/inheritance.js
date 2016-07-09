@@ -40,7 +40,7 @@ og.inheritance.extend = function (Child, Parent) {
  * This function only works if you use og.inheritance.extend to express inheritance
  * relationships between your classes.
  *
- * See og.inheritance.extend
+ * See {@link og.inheritance.extend}
  */
 og.inheritance.base = function (me) {
     var caller = arguments.callee.caller;

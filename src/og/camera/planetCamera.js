@@ -39,35 +39,35 @@ og.PlanetCamera = function (planet, options) {
 
     /**
      * Current geographical degree position.
-     * @private
+     * @protected
      * @type {og.LonLat}
      */
     this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 
     /**
      * Current geographical mercator position.
-     * @private
+     * @protected
      * @type {og.LonLat}
      */
     this._lonLatMerc = this._lonLat.forwardMercator();
 
     /**
      * Current altitude.
-     * @private
+     * @protected
      * @type {number}
      */
     this._terrainAltitude = this._lonLat.height;
 
     /**
      * Cartesian coordinates on the terrain.
-     * @private
+     * @protected
      * @type {og.math.Vector3}
      */
     this._terrainPoint = new og.math.Vector3();
 
     /**
      * Quad node that camera flies over.
-     * @private
+     * @protected
      * @type {og.quadTree.QuadNode}
      */
     this._insideSegment = null;
@@ -75,8 +75,8 @@ og.PlanetCamera = function (planet, options) {
     /**
      * Coordinates that depends on what segment class we are fling over.
      * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.QuadNode
-     * @private
-     * @type {og.LonLat} - actually it's a pointer to the _lonLat or _lonLatMerc
+     * @protected
+     * @type {og.LonLat}
      */
     this._insideSegmentPosition = null;
 

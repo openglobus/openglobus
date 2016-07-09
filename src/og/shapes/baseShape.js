@@ -299,7 +299,7 @@ og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
 /**
  * Sets shape position.
  * @public
- * @type {og.math.Vector3} position - Shape position.
+ * @param {og.math.Vector3} position - Shape position.
  */
 og.shape.BaseShape.prototype.setPosition3v = function (position) {
     this.position.copy(position);
@@ -310,7 +310,7 @@ og.shape.BaseShape.prototype.setPosition3v = function (position) {
 /**
  * Translate shape position to vector.
  * @public
- * @type {og.math.Vector3} vec - Translation vector.
+ * @param {og.math.Vector3} vec - Translation vector.
  */
 og.shape.BaseShape.prototype.translate3v = function (vec) {
     this.position.addA(vec);

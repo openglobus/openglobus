@@ -62,7 +62,7 @@ og.EntityCollection = function (options) {
 
     /**
      * Render node collections array index.
-     * @private
+     * @protected
      * @type {number}
      */
     this._renderNodeIndex = -1;
@@ -76,7 +76,7 @@ og.EntityCollection = function (options) {
 
     /**
      * Visibility option.
-     * @private
+     * @protected
      * @type {boolean}
      */
     this._visibility = options.visibility == undefined ? true : options.visibility;
@@ -114,8 +114,8 @@ og.EntityCollection = function (options) {
 
     /**
      * Entities array.
-     * @private
-     * type {Array.<og.Entity>}
+     * @protected
+     * @type {Array.<og.Entity>}
      */
     this._entities = [];
 
@@ -130,14 +130,14 @@ og.EntityCollection = function (options) {
 
     /**
      * Global opacity.
-     * @private
+     * @protected
      * @type {number}
      */
     this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
 
     /**
      * Opacity state during the animated opacity.
-     * @private
+     * @protected
      * @type {number}
      */
     this._animatedOpacity = this._opacity;

@@ -26,9 +26,6 @@ og.webgl.Handler = function (id, params) {
      * Frame background color.
      * @public
      * @type {Object}
-     * @type {number} r - Red
-     * @type {number} g - Green
-     * @type {number} b - Blue
      */
     this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
 
