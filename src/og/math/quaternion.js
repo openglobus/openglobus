@@ -170,7 +170,7 @@ og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
 };
 
 /**
- * Compute rotation between two vectors with around up axis.
+ * Compute rotation between two vectors with around vector up for exactly opposite vectors. If vectors exaclty in the same direction than returns identity quaternion.
  * @static
  * @param {og.math.Vector3} source - First vector.
  * @param {og.math.Vector3} dest - Second vector.
@@ -179,13 +179,13 @@ og.math.Quaternion.getRotationBetweenVectors = function (u, v) {
  */
 og.math.Quaternion.getRotationBetweenVectorsUp = function (source, dest, up) {
     var dot = source.dot(dest);
-    if (Math.abs(dot - (-1.0)) < 0.000001) {
-        // vector a and b point exactly in the opposite direction, 
+    if (Math.abs(dot + 1.0) < 0.000001) {
+        // vector source and dest point exactly in the opposite direction, 
         // so it is a 180 degrees turn around the up-axis
         return og.math.Quaternion.axisAngleToQuat(up, Math.PI);
     }
-    if (Math.abs(dot - (1.0)) < 0.000001) {
-        // vector a and b point exactly in the same direction
+    if (Math.abs(dot - 1.0) < 0.000001) {
+        // vector source and dest point exactly in the same direction
         // so we return the identity quaternion
         return new og.math.Quaternion(0, 0, 0, 1);
     }

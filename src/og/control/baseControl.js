@@ -43,35 +43,35 @@ og.control.BaseControl = function (options) {
 /**
  * Control initialization function have to be overriden.
  * @public
- * @abstract
+ * @virtual
  */
 og.control.BaseControl.prototype.oninit = function () { }
 
 /**
  * Control renderer assigning function have to be overriden.
  * @public
- * @abstract
+ * @virtual
  */
 og.control.BaseControl.prototype.onadd = function () { }
 
 /**
  * Control remove function have to be overriden.
  * @public
- * @abstract
+ * @virtual
  */
 og.control.BaseControl.prototype.onremove = function () { }
 
 /**
  * Control activation function have to be overriden.
  * @public
- * @abstract
+ * @virtual
  */
 og.control.BaseControl.prototype.onactivate = function () { }
 
 /**
  * Control deactivation function have to be overriden.
  * @public
- * @abstract
+ * @virtual
  */
 og.control.BaseControl.prototype.ondeactivate = function () { }
 

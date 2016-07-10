@@ -7,7 +7,9 @@
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
   },
-  "plugins": [ "plugins/markdown" ],
+  "plugins": [
+    "../../jaguarjs-jsdoc/plugins/events"
+  ],
   "templates": {
     "cleverLinks": true,
     "monospaceLinks": true,

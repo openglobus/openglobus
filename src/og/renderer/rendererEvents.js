@@ -8,8 +8,8 @@ goog.require('og.Events');
 goog.require('og.inheritance');
 goog.require('og.math.Pixel');
 
-/*
- * Renderer events here
+/**
+ * Renderer events handler.
  * @class
  * @param {og.Renderer} renderer - Renderer object, events that works for.
  */
@@ -303,19 +303,19 @@ og.RendererEvents.EVENT_NAMES = [
 
         /**
          * Triggered when double touch.
-         * @event og.RendererEvents#touchmove
+         * @event og.RendererEvents#doubletouch
          */
         "doubletouch",
 
         /**
          * Triggered when touch leaves picked object.
-         * @event og.RendererEvents#touchmove
+         * @event og.RendererEvents#touchleave
          */
         "touchleave",
 
         /**
          * Triggered when touch enter picking object.
-         * @event og.RendererEvents#touchmove
+         * @event og.RendererEvents#touchenter
          */
         "touchenter"
 ];

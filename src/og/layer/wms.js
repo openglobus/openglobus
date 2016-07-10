@@ -64,7 +64,7 @@ og.layer.WMS = function (name, options) {
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
 
 /**
- * Creates WMS layer instance.
+ * Creates WMS layer {@link og.layer.WMS} instance.
  * @function
  * @param {string} name - Layer name.
  * @param {Object} options - Options.

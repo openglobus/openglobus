@@ -14,7 +14,6 @@ goog.require('og.Events');
  * @params {boolean} [options.visibility] - Entity visibility.
  * @params {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
  * @params {number} [options.opacity] - Entity global opacity.
- *
  * @fires og.EntityCollection#entitymove
  * @fires og.EntityCollection#draw
  * @fires og.EntityCollection#drawend
@@ -216,7 +215,7 @@ og.EntityCollection.EVENT_NAMES = [
 
         /**
          * Triggered when mouse leaves the entity.
-         * @event og.EntityCollection#mouseenter
+         * @event og.EntityCollection#mouseleave
          */
         "mouseleave",
 
