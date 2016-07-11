@@ -390,15 +390,15 @@ og.RendererEvents.prototype.onMouseWheel = function (event) {
  */
 og.RendererEvents.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
+    ms.sys = event;
 
     if (ms.x === event.clientX && ms.y === event.clientY) {
         return;
     }
 
-    ms.sys = event;
-
     this._ldblClkBegins = 0;
     this._rdblClkBegins = 0;
+    this._mdblClkBegins = 0;
 
     ms.x = event.clientX;
     ms.y = event.clientY;
@@ -446,7 +446,8 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.leftButtonUp = true;
 
         if (this._ldblClkBegins) {
-            if (new Date().getTime() - this._ldblClkBegins <= ms.doubleClickDelay) {
+            var deltatime = new Date().getTime() - this._ldblClkBegins;
+            if (deltatime <= ms.doubleClickDelay) {
                 ms.leftButtonDoubleClick = true;
             }
             this._ldblClkBegins = 0;
@@ -454,8 +455,8 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
             this._ldblClkBegins = new Date().getTime();
         }
 
-        if (this._lclickX == event.clientX &&
-            this._lclickY == event.clientY) {
+        if (this._lclickX === event.clientX &&
+            this._lclickY === event.clientY) {
             ms.leftButtonClick = true;
         }
 
@@ -464,7 +465,8 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.rightButtonUp = true;
 
         if (this._rdblClkBegins) {
-            if (new Date().getTime() - this._rdblClkBegins <= ms.doubleClickDelay) {
+            var deltatime = new Date().getTime() - this._rdblClkBegins;
+            if (deltatime <= ms.doubleClickDelay) {
                 ms.rightButtonDoubleClick = true;
             }
             this._rdblClkBegins = 0;
@@ -472,8 +474,8 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
             this._rdblClkBegins = new Date().getTime();
         }
 
-        if (this._rclickX == event.clientX &&
-            this._rclickY == event.clientY) {
+        if (this._rclickX === event.clientX &&
+            this._rclickY === event.clientY) {
             ms.rightButtonClick = true;
         }
     } else if (event.button === og.input.MB_MIDDLE) {
@@ -490,8 +492,8 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
             this._mdblClkBegins = new Date().getTime();
         }
 
-        if (this._mclickX == event.clientX &&
-            this._mclickY == event.clientY) {
+        if (this._mclickX === event.clientX &&
+            this._mclickY === event.clientY) {
             ms.middleButtonClick = true;
         }
     }
@@ -734,8 +736,6 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
         ce(this.mousemove, ms);
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
-        this._ldblClkBegins = 0;
-        this._rdblClkBegins = 0;
     }
 
     if (ms.justStopped) {
