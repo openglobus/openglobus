@@ -390,11 +390,15 @@ og.RendererEvents.prototype.onMouseWheel = function (event) {
  */
 og.RendererEvents.prototype.onMouseMove = function (event) {
     var ms = this.mouseState;
-    ms.sys = event;
 
-    if (ms.x == event.clientX && ms.y == event.clientY) {
+    if (ms.x === event.clientX && ms.y === event.clientY) {
         return;
     }
+
+    ms.sys = event;
+
+    this._ldblClkBegins = 0;
+    this._rdblClkBegins = 0;
 
     ms.x = event.clientX;
     ms.y = event.clientY;
@@ -442,8 +446,7 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.leftButtonUp = true;
 
         if (this._ldblClkBegins) {
-            var deltatime = new Date().getTime() - this._ldblClkBegins;
-            if (deltatime <= ms.doubleClickDelay) {
+            if (new Date().getTime() - this._ldblClkBegins <= ms.doubleClickDelay) {
                 ms.leftButtonDoubleClick = true;
             }
             this._ldblClkBegins = 0;
@@ -461,8 +464,7 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.rightButtonUp = true;
 
         if (this._rdblClkBegins) {
-            var deltatime = new Date().getTime() - this._rdblClkBegins;
-            if (deltatime <= ms.doubleClickDelay) {
+            if (new Date().getTime() - this._rdblClkBegins <= ms.doubleClickDelay) {
                 ms.rightButtonDoubleClick = true;
             }
             this._rdblClkBegins = 0;
