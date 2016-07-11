@@ -445,18 +445,19 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.leftButtonDown = false;
         ms.leftButtonUp = true;
 
-        if (this._ldblClkBegins) {
-            var deltatime = new Date().getTime() - this._ldblClkBegins;
-            if (deltatime <= ms.doubleClickDelay) {
-                ms.leftButtonDoubleClick = true;
-            }
-            this._ldblClkBegins = 0;
-        } else {
-            this._ldblClkBegins = new Date().getTime();
-        }
-
         if (this._lclickX === event.clientX &&
             this._lclickY === event.clientY) {
+
+            if (this._ldblClkBegins) {
+                var deltatime = new Date().getTime() - this._ldblClkBegins;
+                if (deltatime <= ms.doubleClickDelay) {
+                    ms.leftButtonDoubleClick = true;
+                }
+                this._ldblClkBegins = 0;
+            } else {
+                this._ldblClkBegins = new Date().getTime();
+            }
+
             ms.leftButtonClick = true;
         }
 
@@ -464,36 +465,38 @@ og.RendererEvents.prototype.onMouseUp = function (event) {
         ms.rightButtonDown = false;
         ms.rightButtonUp = true;
 
-        if (this._rdblClkBegins) {
-            var deltatime = new Date().getTime() - this._rdblClkBegins;
-            if (deltatime <= ms.doubleClickDelay) {
-                ms.rightButtonDoubleClick = true;
-            }
-            this._rdblClkBegins = 0;
-        } else {
-            this._rdblClkBegins = new Date().getTime();
-        }
-
         if (this._rclickX === event.clientX &&
             this._rclickY === event.clientY) {
+
+            if (this._rdblClkBegins) {
+                var deltatime = new Date().getTime() - this._rdblClkBegins;
+                if (deltatime <= ms.doubleClickDelay) {
+                    ms.rightButtonDoubleClick = true;
+                }
+                this._rdblClkBegins = 0;
+            } else {
+                this._rdblClkBegins = new Date().getTime();
+            }
+
             ms.rightButtonClick = true;
         }
     } else if (event.button === og.input.MB_MIDDLE) {
         ms.middleButtonDown = false;
         ms.middleButtonUp = true;
 
-        if (this._mdblClkBegins) {
-            var deltatime = new Date().getTime() - this._mdblClkBegins;
-            if (deltatime <= ms.doubleClickDelay) {
-                ms.middleButtonDoubleClick = true;
-            }
-            this._mdblClkBegins = 0;
-        } else {
-            this._mdblClkBegins = new Date().getTime();
-        }
-
         if (this._mclickX === event.clientX &&
             this._mclickY === event.clientY) {
+
+            if (this._mdblClkBegins) {
+                var deltatime = new Date().getTime() - this._mdblClkBegins;
+                if (deltatime <= ms.doubleClickDelay) {
+                    ms.middleButtonDoubleClick = true;
+                }
+                this._mdblClkBegins = 0;
+            } else {
+                this._mdblClkBegins = new Date().getTime();
+            }
+
             ms.middleButtonClick = true;
         }
     }
