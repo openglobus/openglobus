@@ -41,12 +41,12 @@ goog.require('og.ellipsoid.wgs84');
  * @extends {og.scene.RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
- * @fires og.Event#draw
- * @fires og.Event#layeradd
- * @fires og.Event#baselayerchange
- * @fires og.Event#layerremove
- * @fires og.Event#layervisibilitychange
- * @fires og.Event#geoimageadd
+ * @fires og.scene.Planet#draw
+ * @fires og.scene.Planet#layeradd
+ * @fires og.scene.Planet#baselayerchange
+ * @fires og.scene.Planet#layerremove
+ * @fires og.scene.Planet#layervisibilitychange
+ * @fires og.scene.Planet#geoimageadd
  */
 og.scene.Planet = function (name, ellipsoid) {
     og.inheritance.base(this, name);
@@ -308,43 +308,44 @@ og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
  * 200 - is a good value for iPad and low memory devices.
  * @const
  * @type {number}
+ * @default
  */
 og.scene.Planet.MAX_NODES = 250;
 
 og.scene.Planet.EVENT_NAMES = [
         /**
          * Triggered before globe frame begins to render.
-         * @event og.Events#draw
+         * @event og.scene.Planet#draw
          */
         "draw",
 
         /**
          * Triggered when layer has added to the planet.
-         * @event og.Events#layeradd
+         * @event og.scene.Planet#layeradd
          */
         "layeradd",
 
         /**
          * Triggered when base layer changed.
-         * @event og.Events#baselayerchange
+         * @event og.scene.Planet#baselayerchange
          */
         "baselayerchange",
 
         /**
          * Triggered when layer has removed from the planet.
-         * @event og.Events#layerremove
+         * @event og.scene.Planet#layerremove
          */
         "layerremove",
 
         /**
          * Triggered when some layer visibility changed.
-         * @event og.Events#layervisibilitychange
+         * @event og.scene.Planet#layervisibilitychange
          */
         "layervisibilitychange",
 
         /**
          * Triggered when geo image added.
-         * @event og.Events#geoimageadd
+         * @event og.scene.Planet#geoimageadd
          */
         "geoimageadd"];
 
@@ -352,9 +353,14 @@ og.scene.Planet.EVENT_NAMES = [
  * Default planet empty color
  * @type {string}
  * @const
+ * @default
  */
 og.scene.Planet.defaultEmptyColor = "#C5C5C5";
 
+/**
+ * @public
+ * @param
+ */
 og.scene.Planet.prototype.createDefaultTexture = function (params) {
     var imgCnv;
     var texture;
@@ -473,7 +479,7 @@ og.scene.Planet.prototype.redrawGeoImages = function () {
 
 /**
  * Get the collection of layers associated with this planet.
- * @return {Array.<og.layer.Layer>} Layers.
+ * @return {Array.<og.layer.Layer>} Layers array.
  * @public
  */
 og.scene.Planet.prototype.getLayers = function () {
@@ -513,7 +519,7 @@ og.scene.Planet.prototype.setHeightFactor = function (factor) {
 
 /**
  * Gets elevation scale.
- * @returns {number}
+ * @returns {number} Terrain elevation scale
  */
 og.scene.Planet.prototype.getHeightFactor = function () {
     return this._heightFactor;

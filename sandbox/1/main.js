@@ -54,11 +54,11 @@ function start() {
     ];
 
     globus = new og.Globus({
-        "atmosphere": true,
+        //"atmosphere": true,
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": skybox,
+        //"skybox": skybox,
         "terrain": terrain,
         "layers": [sat, osm, hyb],
         "autoActivated": true

@@ -12,21 +12,26 @@ goog.require('og.terrainProvider.EmptyTerrainProvider');
  * @class
  *
  * @example <caption>Basic initialization</caption>
- * 
- * var globe = new og.Globus({
- *   viewExtent: new og.Extent(new og.LonLat(-180,-90), new og.LonLat(180,90)),
- *   ellipsoid: og.ellipsoid.wgs84,
- *   layers: [
- *     new og.layers.XYZ()
- *   ],
- *   terrains: [
- *     new og.terrain
- *   ],
- *   controls: [
- *     new og.controls.LayerSwitcher({autoActivated:true})
- *   ],
- *   name: "Earth",
- *   target: 'globus'
+ * globus = new og.Globus({
+ *     'atmosphere': false,
+ *     'target': 'globus',
+ *     'name': 'Earth',
+ *     'controls': [
+ *          new og.control.MouseNavigation({ autoActivate: true }),
+ *          new og.control.KeyboardNavigation({ autoActivate: true }),
+ *          new og.control.EarthCoordinates({ autoActivate: true, center: false }),
+ *          new og.control.LayerSwitcher({ autoActivate: true }),
+ *          new og.control.ZoomControl({ autoActivate: true }),
+ *          new og.control.TouchNavigation({ autoActivate: true }),
+ *          new og.control.Sun({ autoActivate: true })
+ *      ],
+ *     'skybox': skybox,
+ *     'terrain': terrain,
+ *     'layers': [
+ *          new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' })
+ *      ],
+ *     'autoActivated': true
+ * });
  *
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.

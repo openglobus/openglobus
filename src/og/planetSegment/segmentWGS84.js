@@ -5,6 +5,11 @@ goog.require('og.inheritance');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG4326');
 
+/**
+ * Planet segment Web Mercator tile class that stored and rendered with quad tree.
+ * @class
+ * @extends {og.planetSegment.Segment} 
+ */
 og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
     this._isNorth = false;
 
@@ -17,11 +22,10 @@ og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
 og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;
 og.planetSegment.SegmentWGS84._maxPoleZoom = 7;
 og.planetSegment.SegmentWGS84._pieceSize = og.planetSegment.SegmentWGS84._heightLat / Math.pow(2, og.planetSegment.SegmentWGS84._maxPoleZoom);
+og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
 
 
 og.inheritance.extend(og.planetSegment.SegmentWGS84, og.planetSegment.Segment);
-
-og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
 
 og.planetSegment.SegmentWGS84.prototype.projectNative = function (coords) {
     return coords;

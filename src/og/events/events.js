@@ -9,7 +9,7 @@ og.Events = function (eventNames) {
     /**
      * Registered event names.
      * @protected
-     * @type {Array.<String>}
+     * @type {Array.<string>}
      */
     this._eventNames = eventNames || [];
     eventNames && this.registerNames(eventNames);
@@ -17,14 +17,14 @@ og.Events = function (eventNames) {
     /**
      * Event identifier.
      * @protected
-     * @type {Number}
+     * @type {number}
      */
     this._counter = 0;
 
     /**
      * Stop propagation flag
      * @protected
-     * @type {Boolean}
+     * @type {boolean}
      */
     this._stopPropagation = false;
 };
@@ -45,7 +45,7 @@ og.Events.prototype.registerNames = function (eventNames) {
  * Returns true if event callback has stamped.
  * @protected
  * @param {Object} obj - Function.
- * @returns {boolean}
+ * @return {boolean}
  */
 og.Events.prototype._stamp = function (obj) {
     if (!obj._openglobus_id) {
@@ -59,8 +59,8 @@ og.Events.prototype._stamp = function (obj) {
  * Attach listener.
  * @public
  * @param {string} name - Event name to listen.
- * @param {Object} sender - Event callback function context. 
- * @param {eventCallback} callback - Event callback.
+ * @param {Object} sender - Event callback function owner. 
+ * @param {eventCallback} callback - Event callback function.
  */
 og.Events.prototype.on = function (name, sender, callback) {
     if (this._stamp(callback)) {
@@ -72,7 +72,7 @@ og.Events.prototype.on = function (name, sender, callback) {
  * Stop listening event name with specified callback function.
  * @public
  * @param {string} name - Event name.
- * @param {eventCallback} callback - attached to the event callback.
+ * @param {eventCallback} callback - Attached  event callback.
  */
 og.Events.prototype.off = function (name, callback) {
     if (callback._openglobus_id) {
@@ -98,7 +98,7 @@ og.Events.prototype.off = function (name, callback) {
  * Dispatch event.
  * @public
  * @param {Object} event - Event instance property that created by event name.
- * @param {*} obj - Event object.
+ * @param {Object} [obj] - Event object.
  */
 og.Events.prototype.dispatch = function (event, obj) {
     if (event && event.active) {

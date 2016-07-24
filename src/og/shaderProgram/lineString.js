@@ -1,5 +1,4 @@
 goog.provide('og.shaderProgram.lineString');
-goog.provide('og.shaderProgram.lineStringPicking');
 
 goog.require('og.shaderProgram');
 goog.require('og.shaderProgram.ShaderProgram');

@@ -97,7 +97,7 @@ og.LineString = function (options) {
     /**
      * Handler that stores and renders this linestring object.
      * @private
-     * @type {og.BillboardHandler}
+     * @type {og.LineStringHandler}
      */
     this._handler = null;
     this._handlerIndex = -1;
@@ -124,6 +124,12 @@ og.LineString.__staticId = 0;
 og.LineString.prototype.clear = function () {
     this._path.length = 0;
     this._path = [];
+
+    this._pathLonLat.length = 0;
+    this._pathLonLat = [];
+
+    this._pathLonLatMerc.length = 0;
+    this._pathLonLatMerc = [];
 
     this._mainData.length = 0;
     this._orderData.length = 0;

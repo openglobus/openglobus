@@ -360,6 +360,12 @@ og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
             }
         }
 
+        //pointClouds pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._animatedOpacity && ec[i].pointCloudHandler.draw();
+        }
+
     }
 };
 
@@ -402,6 +408,12 @@ og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
         i = ec.length;
         while (i--) {
             ec[i]._visibility && ec[i].shapeHandler.drawPicking();
+        }
+
+        //pointClouds pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
         }
     }
 };

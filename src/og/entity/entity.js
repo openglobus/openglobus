@@ -7,6 +7,7 @@ goog.require('og.Label');
 goog.require('og.LonLat');
 goog.require('og.shape.Sphere');
 goog.require('og.LineString');
+goog.require('og.PointCloud');
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -15,12 +16,16 @@ goog.require('og.LineString');
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {og.math.Vector3|Array.<number>} [options.cartesian] - Spatial entities like billboard, lanel, sphere etc. cartesian position.
- * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. cartesian position.
- * @param {boolean} [options.aground] - Geodetic type entity replaces over a relief.
+ * @param {og.math.Vector3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
+ * @param {og.LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
+ * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
- * @param {Object} [options.billboard] - Billboard options.
- * @param {Object} [options.label] - Label options.
+ * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).
+ * @param {*} [options.label] - Label options(see {@link og.Label}).
+ * @param {*} [options.sphere] - Sphere options(see {@link og.shape.Sphere}).
+ * @param {*} [options.box] - Sphere options(see {@link og.shape.Box}).
+ * @param {*} [options.lineString] - Linestring options(see {@link og.LineString}).
+ * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
  * @param {Object} [properties] - Entity custom properties.
  */
 og.Entity = function (options, properties) {
@@ -137,7 +142,8 @@ og.Entity = function (options, properties) {
         "label": [og.Label, this.setLabel],
         "sphere": [og.shape.Sphere, this.setShape],
         "box": [og.shape.Box, this.setShape],
-        "lineString": [og.LineString, this.setLineString]
+        "lineString": [og.LineString, this.setLineString],
+        "pointCloud": [og.PointCloud, this.setPointCloud]
     };
 
     /**
@@ -168,6 +174,13 @@ og.Entity = function (options, properties) {
      */
     this.lineString = this._createOptionFeature('lineString', options.lineString);
 
+    /**
+     * PointCloud entity.
+     * @public
+     * @type {og.PointCloud}
+     */
+    this.pointCloud = this._createOptionFeature('pointCloud', options.pointCloud);
+
     //this.model = null;
     //this.polygon = null;
     //this.multiPolygon = null;
@@ -183,9 +196,13 @@ og.Entity = function (options, properties) {
  * @param {og.LonLat} [options.lonlat] - Geidetic coordiantes for an entities like billboard, lanel, sphere etc. cartesian position.
  * @param {boolean} [options.aground] - Geodetic type entity replaces over a relief.
  * @param {boolean} [options.visibility] - Entity visibility.
- * @param {Object} [options.billboard] - Billboard options.
- * @param {Object} [options.label] - Label options.
- * @param {Object} [properties] - Entity custom properties.
+ * @param {*} [options.billboard] - Billboard options.
+ * @param {*} [options.label] - Label options.
+ * @param {*} [options.lineString] - LineString options.
+ * @param {*} [options.sphere] - Sphere shape options.
+ * @param {*} [options.box] - Box shape options.
+ * @param {*} [options.pointCloud] - Point cloud options.
+ * @param {*} [properties] - Entity custom properties.
  */
 og.entity = function (options, properties) {
     return new og.Entity(options, properties);
@@ -478,7 +495,10 @@ og.Entity.prototype.setPickingColor = function () {
     //lineString
     this.lineString && this.lineString.setPickingColor3v(c);
 
+    //pointCloud
+    this.pointCloud && this.pointCloud.setPickingColors();
+
     for (var i = 0; i < this.childrenNodes.length; i++) {
-        this.childrenNodes[i].setPickingColor3v(c);
+        this.childrenNodes[i].setPickingColor();
     }
 };

@@ -4,6 +4,7 @@ goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
 goog.require('og.ShapeHandler');
 goog.require('og.LineStringHandler');
+goog.require('og.PointCloudHandler');
 goog.require('og.Events');
 
 /**
@@ -108,6 +109,12 @@ og.EntityCollection = function (options) {
      */
     this.lineStringHandler = new og.LineStringHandler(this);
 
+    /**
+     * PointCloud handler
+     * @public
+     * @type {og.PointCloudHandler}
+     */
+    this.pointCloudHandler = new og.PointCloudHandler(this);
     //
     //...
 
@@ -391,6 +398,7 @@ og.EntityCollection.prototype.setPickingEnabled = function (enable) {
     this.labelHandler.pickingEnabled = enable;
     this.lineStringHandler.pickingEnabled = enable;
     this.shapeHandler.pickingEnabled = enable;
+    this.pointCloudHandler.pickingEnabled = enable;
 };
 
 /**
@@ -426,8 +434,11 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     //shape
     entity.shape && this.shapeHandler.add(entity.shape);
 
-    //shape
+    //lineString
     entity.lineString && this.lineStringHandler.add(entity.lineString);
+
+    //pointCloud
+    entity.pointCloud && this.pointCloudHandler.add(entity.pointCloud);
 
     this.events.dispatch(this.events.entityadd, entity);
 
@@ -499,6 +510,9 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
 
     //lineString
     entity.lineString && this.lineStringHandler.remove(entity.lineString);
+
+    //pointCloud
+    entity.pointCloud && this.pointCloudHandler.remove(entity.pointCloud);
 
     for (var i = 0; i < entity.childrenNodes.length; i++) {
         this._removeRecursively(entity.childrenNodes[i]);
@@ -584,8 +598,11 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
         }
         renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
         this.setRenderer(renderNode.renderer);
+
         this.shapeHandler.setRenderNode(renderNode);
         this.lineStringHandler.setRenderNode(renderNode);
+        this.pointCloudHandler.setRenderNode(renderNode);
+
         this.events.dispatch(this.events.add, this);
     }
     return this;
@@ -609,6 +626,7 @@ og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) 
  * @param {og.Renderer} renderer - Renderer.
  */
 og.EntityCollection.prototype.setRenderer = function (renderer) {
+    //todo: better to replace to setRenderNode function
     if (renderer) {
         this.billboardHandler.setRenderer(renderer);
         this.labelHandler.setRenderer(renderer);
@@ -695,6 +713,7 @@ og.EntityCollection.prototype.clear = function () {
     this.labelHandler.clear();
     this.shapeHandler.clear();
     this.lineStringHandler.clear();
+    this.pointCloudHandler.clear();
 
     var i = this._entities.length;
     while (i--) {
