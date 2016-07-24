@@ -166,10 +166,10 @@ og.PointCloud.prototype.setPickingColors = function () {
     if (this._renderNode) {
         for (var i = 0; i < this._points.length; i++) {
             var p = this._points[i];
+            p._entityCollection = this._entity._entityCollection;
             this._renderNode.renderer.assignPickingColor(p);
-            this._pickingColorData.push(p._pickingColor.x, p._pickingColor.y, p._pickingColor.z, 1.0);
+            this._pickingColorData.push(p._pickingColor.x / 255.0, p._pickingColor.y / 255.0, p._pickingColor.z / 255.0, 1.0);
         }
-
         this._createPickingColorBuffer();
     }
 };
@@ -185,6 +185,7 @@ og.PointCloud.prototype.setPoints = function (points) {
         this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
         this._points.push({
             '_pickingColor': new og.math.Vector3(),
+            '_entityCollection': this._entity && this._entity._entityCollection,
             'index': i,
             'position': pos,
             'color': col,
