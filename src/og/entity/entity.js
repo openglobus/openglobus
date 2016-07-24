@@ -463,6 +463,22 @@ og.Entity.prototype.setLineString = function (lineString) {
 };
 
 /**
+ * Sets entity pointCloud.
+ * @public
+ * @param {og.PointCloud} pointCLoud - PointCloud object.
+ */
+og.Entity.prototype.setPointCloud = function (pointCloud) {
+    if (this.pointCloud) {
+        this.pointCloud.remove();
+    }
+    this.pointCloud = pointCloud;
+    this.pointCloud._entity = this;
+    this.pointCloud.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._pointCloudHandler.add(pointCloud);
+    return pointCloud;
+};
+
+/**
  * Append child entity.
  * @public
  * @param {og.Entity} entity - Child entity.
@@ -496,7 +512,7 @@ og.Entity.prototype.setPickingColor = function () {
     this.lineString && this.lineString.setPickingColor3v(c);
 
     //pointCloud
-    this.pointCloud && this.pointCloud.setPickingColors();
+    //Sets in og.PointCloud.prototype.setRenderNode
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPickingColor();

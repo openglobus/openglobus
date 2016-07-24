@@ -16,7 +16,7 @@ og.control.SimpleNavigation = function (options) {
 
 og.inheritance.extend(og.control.SimpleNavigation, og.control.BaseControl);
 
-og.control.SimpleNavigation.prototype.initialize = function () {
+og.control.SimpleNavigation.prototype.oninit = function () {
     this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);
     this.renderer.events.on("keypress", this, this.onCameraMoveBackward, og.input.KEY_S);
     this.renderer.events.on("keypress", this, this.onCameraStrifeLeft, og.input.KEY_A);

@@ -6,7 +6,7 @@ goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
 //Picking is the same
-og.shaderProgram.lineString = function () {
+og.shaderProgram.pointCloud = function () {
     return new og.shaderProgram.ShaderProgram("pointCloud", {
         uniforms: {
             projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },

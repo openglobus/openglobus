@@ -2,6 +2,7 @@ goog.provide('og.PointCloud');
 
 goog.require('og.mercator');
 goog.require('og.math.Vector3');
+goog.require('og.math.Vector4');
 
 /**
  * PointCloud object.
@@ -135,6 +136,7 @@ og.PointCloud.prototype.getVisibility = function () {
 
 og.PointCloud.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
+    this.setPickingColors();
 };
 
 og.PointCloud.prototype.remove = function () {
@@ -157,15 +159,15 @@ og.PointCloud.prototype._createColorBuffer = function () {
 og.PointCloud.prototype._createPickingColorBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._pickingColorBuffer);
-    this._pickingColorBuffer = h.createArrayBuffer(new Float32Array(this._pickingColorData), 3, (this._pickingColorData.length) / 3);
+    this._pickingColorBuffer = h.createArrayBuffer(new Float32Array(this._pickingColorData), 4, (this._pickingColorData.length) / 4);
 };
 
 og.PointCloud.prototype.setPickingColors = function () {
     if (this._renderNode) {
         for (var i = 0; i < this._points.length; i++) {
             var p = this._points[i];
-            this.renderNode.renderer.assignPickingColor(p);
-            this._pickingColorData.push(p._pickingColor.x, p._pickingColor.y, p._pickingColor.z);
+            this._renderNode.renderer.assignPickingColor(p);
+            this._pickingColorData.push(p._pickingColor.x, p._pickingColor.y, p._pickingColor.z, 1.0);
         }
 
         this._createPickingColorBuffer();
@@ -178,21 +180,21 @@ og.PointCloud.prototype.setPoints = function (points) {
     for (var i = 0; i < points.length; i++) {
         var p = points[i];
         var pos = new og.math.Vector3(p[0], p[1], p[2]),
-            col = new og.math.Vector3(p[3], p[4], p[5]);
+            col = new og.math.Vector4(p[3], p[4], p[5], p[6]);
         this._coordinatesData.push(pos.x, pos.y, pos.z);
-        this._colorData.push(col.x, col.y, col.z);
+        this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
         this._points.push({
             '_pickingColor': new og.math.Vector3(),
             'index': i,
             'position': pos,
             'color': col,
             'pointCloud': this,
-            'properties': p[6]
+            'properties': p[7]
         });
     }
 
-    this._changedBuffers[og.LineString.COORDINATES_BUFFER] = true;
-    this._changedBuffers[og.LineString.COLOR_BUFFER] = true;
+    this._changedBuffers[og.PointCloud.COORDINATES_BUFFER] = true;
+    this._changedBuffers[og.PointCloud.COLOR_BUFFER] = true;
 };
 
 og.PointCloud.prototype.setPoint3v = function (index, point) {
@@ -232,7 +234,7 @@ og.PointCloud.prototype.draw = function () {
 
         gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
-        gl.uniform1f(shu.opacity._pName, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -258,7 +260,7 @@ og.PointCloud.prototype.drawPicking = function () {
 
         gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
-        gl.uniform1f(shu.opacity._pName, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);

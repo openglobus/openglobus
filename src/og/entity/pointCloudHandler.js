@@ -1,7 +1,6 @@
 goog.provide('og.PointCloudHandler');
 
 goog.require('og.shaderProgram.pointCloud');
-goog.require('og.shaderProgram.pointCloudPicking');
 
 og.PointCloudHandler = function (entityCollection) {
 

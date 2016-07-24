@@ -1,7 +1,6 @@
 goog.provide('og.LineStringHandler');
 
 goog.require('og.shaderProgram.lineString');
-goog.require('og.shaderProgram.lineStringPicking');
 
 og.LineStringHandler = function (entityCollection) {
 
@@ -28,9 +27,6 @@ og.LineStringHandler.prototype._initShaderProgram = function () {
         if (!this._renderer.handler.shaderPrograms.lineString) {
             this._renderer.handler.addShaderProgram(og.shaderProgram.lineString());
         }
-        //if (!this._renderer.handler.shaderPrograms.lineStringPicking) {
-        //    this._renderer.handler.addShaderProgram(og.shaderProgram.lineStringPicking());
-        //}
     }
 };
 
