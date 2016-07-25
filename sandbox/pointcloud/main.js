@@ -33,7 +33,7 @@ function start() {
     var axes = new og.scene.Axes(10000);
 
     testNode = new my.PointCloud("PointCloud");
-    //renderer.addRenderNode(axes);
+    renderer.addRenderNode(axes);
     renderer.addRenderNode(testNode);
 
     renderer.addControls([

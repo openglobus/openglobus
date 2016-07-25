@@ -29,6 +29,9 @@ og.PointCloud = function (options) {
      */
     this.visibility = (options.visibility != undefined ? options.visibility : true);
 
+    this.size = options.size || 3;
+    this.pickingSize = options.pickingSize || 0;
+
     /**
      * Parent collection render node.
      * @private
@@ -166,6 +169,7 @@ og.PointCloud.prototype.setPickingColors = function () {
     if (this._renderNode) {
         for (var i = 0; i < this._points.length; i++) {
             var p = this._points[i];
+            p._entity = this._entity;
             p._entityCollection = this._entity._entityCollection;
             this._renderNode.renderer.assignPickingColor(p);
             this._pickingColorData.push(p._pickingColor.x / 255.0, p._pickingColor.y / 255.0, p._pickingColor.z / 255.0, 1.0);
@@ -198,12 +202,16 @@ og.PointCloud.prototype.setPoints = function (points) {
     this._changedBuffers[og.PointCloud.COLOR_BUFFER] = true;
 };
 
-og.PointCloud.prototype.setPoint3v = function (index, point) {
+og.PointCloud.prototype.addPoints = function (index, point) {
+
+};
+
+og.PointCloud.prototype.addPoint = function (index, point) {
 
 };
 
 og.PointCloud.prototype.getPoint = function (index) {
-
+    return this._points[index];
 };
 
 og.PointCloud.prototype.removePoint = function (index) {
@@ -215,7 +223,10 @@ og.PointCloud.prototype.insertPoint = function (index, point) {
 };
 
 og.PointCloud.prototype.each = function (callback) {
-
+    var i = this._points.length;
+    while (i--) {
+        callback && callback(this._points[i]);
+    }
 };
 
 og.PointCloud.prototype.draw = function () {
@@ -236,6 +247,8 @@ og.PointCloud.prototype.draw = function () {
         gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
         gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
+
+        gl.uniform1f(shu.size._pName, this.size);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -262,6 +275,8 @@ og.PointCloud.prototype.drawPicking = function () {
         gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
         gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
+
+        gl.uniform1f(shu.size._pName, this.size + this.pickingSize);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);

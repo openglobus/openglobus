@@ -21,7 +21,12 @@ my.PointCloud.prototype.initialization = function () {
 
     var ex = new og.Entity({
         pointCloud: {
-            points: [[0, 0, 0, 255, 255, 255, 255, { 'name': 'First point' }]]
+            points: [
+                [0, 0, 0, 255, 255, 255, 255, { 'name': 'First point' }],
+                [100, 100, 0, 255, 0, 0, 255, { 'name': 'Second point' }],
+                [100, 100, 100, 0, 255, 0, 255]
+            ],
+            size: 15
         }
     });
 

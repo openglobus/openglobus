@@ -10,7 +10,8 @@ og.shaderProgram.pointCloud = function () {
     return new og.shaderProgram.ShaderProgram("pointCloud", {
         uniforms: {
             projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            opacity: { type: og.shaderProgram.types.FLOAT }
+            opacity: { type: og.shaderProgram.types.FLOAT },
+            size: { type: og.shaderProgram.types.FLOAT }
         },
         attributes: {
             coordinates: { type: og.shaderProgram.types.VEC3, enableArray: true },
