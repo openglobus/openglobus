@@ -26,7 +26,7 @@ my.PointCloud.prototype.initialization = function () {
                 [100, 100, 0, 255, 0, 0, 255, { 'name': 'Second point' }],
                 [100, 100, 100, 0, 255, 0, 255]
             ],
-            size: 15
+            pointSize: 15
         }
     });
 

@@ -3,7 +3,7 @@ attribute vec4 colors;
 
 uniform mat4 projectionViewMatrix;
 uniform float opacity;
-uniform float size;
+uniform float pointSize;
     
 varying vec4 color;
 
@@ -16,5 +16,5 @@ void main() {
 	color.a *= opacity;
     gl_Position = projectionViewMatrix * vec4(coordinates, 1.0);
 	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-	gl_PointSize = size;
+	gl_PointSize = pointSize;
 }
