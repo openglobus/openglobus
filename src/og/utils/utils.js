@@ -1,6 +1,6 @@
 goog.provide('og.utils');
 
-goog.require('og.Ajax');
+goog.require('og.ajax');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 goog.require('og.LonLat');
@@ -13,7 +13,7 @@ goog.require('og.LonLat');
 og.utils.readTextFile = function (fileUrl) {
     var res = "";
 
-    og.Ajax.request(fileUrl, {
+    og.ajax.request(fileUrl, {
         async: false,
         success: function (data) {
             res = data;

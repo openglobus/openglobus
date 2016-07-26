@@ -3,7 +3,7 @@ goog.provide('og.terrainProvider.TerrainProvider');
 goog.require('og.terrainProvider.EmptyTerrainProvider');
 goog.require('og.layer');
 goog.require('og.quadTree');
-goog.require('og.Ajax');
+goog.require('og.ajax');
 goog.require('og.Events');
 goog.require('og.proj.EPSG3857');
 goog.require('og.inheritance');
@@ -246,7 +246,7 @@ og.terrainProvider.TerrainProvider.prototype.getElevations = function (data) {
  */
 og.terrainProvider.TerrainProvider.prototype._exec = function (segment) {
     this._counter++;
-    var xhr = og.Ajax.request(this._getHTTPRequestString(segment), {
+    var xhr = og.ajax.request(this._getHTTPRequestString(segment), {
         responseType: this.responseType,
         sender: this,
         success: function (data) {

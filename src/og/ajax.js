@@ -1,12 +1,12 @@
-goog.provide('og.Ajax');
+goog.provide('og.ajax');
 
-goog.provide('og.Ajax.Xhr');
+goog.provide('og.ajax.Xhr');
 
 /**
  * Ajax parameters.
- * @namespace og.Ajax
+ * @namespace og.ajax
  */
-og.Ajax = {
+og.ajax = {
     /**
      * Ajax ready state result.
      * @enum
@@ -60,7 +60,7 @@ og.Ajax = {
  * @class
  * @param {Object} xhr - Current ActiveXObject object.
  */
-og.Ajax.Xhr = function (xhr) {
+og.ajax.Xhr = function (xhr) {
     /**
      * ActiveXObject object.
      * @private
@@ -78,15 +78,15 @@ og.Ajax.Xhr = function (xhr) {
     }
 };
 
-og.Ajax.defaultParams = {
-    type: og.Ajax.Method.Get,
-    async: og.Ajax.Asynchronous,
+og.ajax.defaultParams = {
+    type: og.ajax.Method.Get,
+    async: og.ajax.Asynchronous,
     data: null,
     sender: null,
     responseType: "text"
 };
 
-og.Ajax.createXMLHttp = function () {
+og.ajax.createXMLHttp = function () {
     var xhr = null;
     if (typeof (XMLHttpRequest) != undefined) {
         xhr = new XMLHttpRequest;
@@ -108,37 +108,37 @@ og.Ajax.createXMLHttp = function () {
  * @function
  * @param {string} url - Url path.
  * @param {Object} [params] - Ajax parameters:
- * @param {og.Ajax.Method|string} [params.type] - 'POST' or 'GET' ajax method. 'GET' is default.
+ * @param {og.ajax.Method|string} [params.type] - 'POST' or 'GET' ajax method. 'GET' is default.
  * @param {boolean} [params.async] - Asynchronous ajax flag. True is default.
  * @param {Object} [params.data] - Qery data.
  * @param {Object} [params.sender] - Sender object, that success callback binded with. ActiveXObject is default.
  * @param {string} [params.responseType] - Responce data type. Culd be 'text', 'json', 'jsonp', 'html'. 'text' is default.
- * @param {og.Ajax.Xhr~successCallback} [params.success] - The callback that handles the success response.
- * @param {og.Ajax.Xhr~errorCallback} [params.error] - The callback that handles the failed response.
- * @param {og.Ajax.Xhr~abortCallback} [params.abort] - The callback that handles aborted requests.
- * @returns {og.Ajax.Xhr} - Returns object that could be aborted.
+ * @param {og.ajax.Xhr~successCallback} [params.success] - The callback that handles the success response.
+ * @param {og.ajax.Xhr~errorCallback} [params.error] - The callback that handles the failed response.
+ * @param {og.ajax.Xhr~abortCallback} [params.abort] - The callback that handles aborted requests.
+ * @returns {og.ajax.Xhr} - Returns object that could be aborted.
  */
-og.Ajax.request = function (url, params) {
+og.ajax.request = function (url, params) {
 
     params = params || {};
 
     var p = {};
 
-    for (var i in og.Ajax.defaultParams) {
-        p[i] = og.Ajax.defaultParams[i];
+    for (var i in og.ajax.defaultParams) {
+        p[i] = og.ajax.defaultParams[i];
     }
 
     for (var i in params) {
         p[i] = params[i];
     }
 
-    var xhr = og.Ajax.createXMLHttp();
+    var xhr = og.ajax.createXMLHttp();
 
-    var customXhr = new og.Ajax.Xhr(xhr);
+    var customXhr = new og.ajax.Xhr(xhr);
 
     xhr.open(p.type, url, p.async);
 
-    if (p.type === og.Ajax.Method.Post) {
+    if (p.type === og.ajax.Method.Post) {
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     }
 
@@ -148,19 +148,19 @@ og.Ajax.request = function (url, params) {
     xhr.overrideMimeType("text/plain");
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === og.Ajax.ReadyState.Complete) {
-            if (xhr.status === og.Ajax.Status.OK) {
+        if (xhr.readyState === og.ajax.ReadyState.Complete) {
+            if (xhr.status === og.ajax.Status.OK) {
                 if (params.success)
                     /**
                      * Success callback.
-                     * @callback og.Ajax.Xhr~successCallback
+                     * @callback og.ajax.Xhr~successCallback
                      * @param {Object} Response data
                      */
                     params.success.call(params.sender || customXhr, xhr.response);
             } else if (xhr.aborted) {
                 /**
                  * Abort callback.
-                 * @callback og.Ajax.Xhr~abortCallback
+                 * @callback og.ajax.Xhr~abortCallback
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
@@ -168,7 +168,7 @@ og.Ajax.request = function (url, params) {
             } else {
                 /**
                  * Error callback.
-                 * @callback og.Ajax.Xhr~errorCallback
+                 * @callback og.ajax.Xhr~errorCallback
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
@@ -179,7 +179,7 @@ og.Ajax.request = function (url, params) {
         }
     };
 
-    xhr.send(params.data || og.Ajax.defaultParams.data);
+    xhr.send(params.data || og.ajax.defaultParams.data);
 
     return customXhr;
 };
