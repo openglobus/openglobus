@@ -11,8 +11,18 @@ goog.require('og.math.Vector4');
  * @param {Array.<Array.<number,number,number,number,number,number,number,*>>} [options.points] - Points cartesian coordinates array, 
  * where first three is cartesian coordinates, next fourth is a RGBA color, and last is an point properties.
  * @param {number} [options.pointSize] - Point screen size in pixels.
- * @param {number} [options.pickingPointSize] - Point border picking size in screen pixels.
+ * @param {number} [options.pickingDistance] - Point border picking size in screen pixels.
  * @parar {boolean} [options.visibility] - Point cloud visibility.
+ * @example <caption>Creates point cloud with two ten pixel size points</caption>
+ * new og.Entity({
+ *     pointCloud: {
+ *         pointSize: 10,
+ *         points: [
+ *             [0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }],
+ *             [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]
+ *         ]
+ *     }
+ * });
  */
 og.PointCloud = function (options) {
 
@@ -45,7 +55,7 @@ og.PointCloud = function (options) {
      * @public
      * @type {number}
      */
-    this.pickingPointSize = options.pickingPointSize || 0;
+    this.pickingDistance = options.pickingDistance || 0;
 
     /**
      * Parent collection render node.
@@ -68,8 +78,25 @@ og.PointCloud = function (options) {
      */
     this._points = [];
 
+    /**
+     * Coordinates array.
+     * @private
+     * @type {Array.<number>}
+     */
     this._coordinatesData = [];
+
+    /**
+     * Color array.
+     * @private
+     * @type {Array.<number>}
+     */
     this._colorData = [];
+
+    /**
+     * Picking color array.
+     * @private
+     * @type {Array.<number>}
+     */
     this._pickingColorData = [];
 
     this._coordinatesBuffer = null;
@@ -100,6 +127,10 @@ og.PointCloud.PICKING_COLOR_BUFFER = 2;
 
 og.PointCloud.__staticId = 0;
 
+/**
+ * Clears point cloud data
+ * @public
+ */
 og.PointCloud.prototype.clear = function () {
 
     this._points.length = 0;
@@ -117,55 +148,57 @@ og.PointCloud.prototype.clear = function () {
     this._deleteBuffers();
 };
 
-og.PointCloud.prototype._update = function () {
-    if (this._renderNode) {
-        var i = this._changedBuffers.length;
-        while (i--) {
-            if (this._changedBuffers[i]) {
-                this._buffersUpdateCallbacks[i].call(this);
-                this._changedBuffers[i] = false;
-            }
-        }
-    }
-};
-
-og.PointCloud.prototype._deleteBuffers = function () {
-    var r = this._renderNode.renderer,
-        gl = r.handler.gl;
-
-    gl.deleteBuffer(this._coordinatesBuffer);
-    gl.deleteBuffer(this._colorBuffer);
-    gl.deleteBuffer(this._pickingColorBuffer);
-
-    this._coordinatesBuffer = null;
-    this._colorBuffer = null;
-    this._pickingColorBuffer = null;
-};
-
+/**
+ * Set point cloud opacity.
+ * @public
+ * @param {number} opacity - Cloud opacity.
+ */
 og.PointCloud.prototype.setOpacity = function (opacity) {
     this.opacity = opacity;
 };
 
+/**
+ * Sets cloud visibility.
+ * @public
+ * @param {number} visibility - Visibility flag.
+ */
 og.PointCloud.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
 };
 
+/**
+ * @return {boolean} Point cloud visibily.
+ */
 og.PointCloud.prototype.getVisibility = function () {
     return this.visibility;
 };
 
+/**
+ * Assign rendering scene node.
+ * @public
+ * @param {og.scene.RenderNode}  renderNode - Assigned render node.
+ */
 og.PointCloud.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     this._setPickingColors();
 };
 
+/**
+ * Removes from entity.
+ * @public
+ */
 og.PointCloud.prototype.remove = function () {
     this._entity = null;
     this._handler && this._handler.remove(this);
 };
 
-//
-//[[x,y,z,r,g,b,a,{}], [x,y,z,r,g,b,a], [x,y,z], ...]
+/**
+ * Adds points to render.
+ * @public
+ * @param {Array.<Array<number,number,number,number,number,number,number,*>>} points - Point cloud array.
+ * @example
+ * var points = [[0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }], [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]];
+ */
 og.PointCloud.prototype.setPoints = function (points) {
     for (var i = 0; i < points.length; i++) {
         var pi = points[i];
@@ -195,6 +228,9 @@ og.PointCloud.prototype.setPoints = function (points) {
     this._changedBuffers[og.PointCloud.PICKING_COLOR_BUFFER] = true;
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.setPointPosition = function (index, x, y, z) {
 
     //...
@@ -202,6 +238,9 @@ og.PointCloud.prototype.setPointPosition = function (index, x, y, z) {
     this._changedBuffers[og.PointCloud.COORDINATES_BUFFER] = true;
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.setPointColor = function (index, r, g, b, a) {
 
     //...
@@ -209,6 +248,9 @@ og.PointCloud.prototype.setPointColor = function (index, r, g, b, a) {
     this._changedBuffers[og.PointCloud.COLOR_BUFFER] = true;
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.addPoints = function (points) {
 
     //...
@@ -218,6 +260,9 @@ og.PointCloud.prototype.addPoints = function (points) {
     this._changedBuffers[og.PointCloud.PICKING_COLOR_BUFFER] = true;
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.addPoint = function (index, point) {
 
     //...
@@ -227,10 +272,19 @@ og.PointCloud.prototype.addPoint = function (index, point) {
     this._changedBuffers[og.PointCloud.PICKING_COLOR_BUFFER] = true;
 };
 
+/**
+ * Returns specific point by index.
+ * @public
+ * @param {number} index - Point index.
+ * @return {*} Specific point
+ */
 og.PointCloud.prototype.getPoint = function (index) {
     return this._points[index];
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.removePoint = function (index) {
 
     //...
@@ -240,6 +294,9 @@ og.PointCloud.prototype.removePoint = function (index) {
     this._changedBuffers[og.PointCloud.PICKING_COLOR_BUFFER] = true;
 };
 
+/**
+ * @todo
+ */
 og.PointCloud.prototype.insertPoint = function (index, point) {
 
     //...
@@ -249,6 +306,11 @@ og.PointCloud.prototype.insertPoint = function (index, point) {
     this._changedBuffers[og.PointCloud.PICKING_COLOR_BUFFER] = true;
 };
 
+/**
+ * Each point iterator.
+ * @public
+ * @param {callback} callback
+ */
 og.PointCloud.prototype.each = function (callback) {
     var i = this._points.length;
     while (i--) {
@@ -303,7 +365,7 @@ og.PointCloud.prototype.drawPicking = function () {
 
         gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
 
-        gl.uniform1f(shu.size._pName, this.pointSize + this.pickingPointSize);
+        gl.uniform1f(shu.size._pName, this.pointSize + this.pickingDistance);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -313,6 +375,39 @@ og.PointCloud.prototype.drawPicking = function () {
 
         gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer.numItems);
     }
+};
+
+/**
+ * Update gl buffers.
+ * @private
+ */
+og.PointCloud.prototype._update = function () {
+    if (this._renderNode) {
+        var i = this._changedBuffers.length;
+        while (i--) {
+            if (this._changedBuffers[i]) {
+                this._buffersUpdateCallbacks[i].call(this);
+                this._changedBuffers[i] = false;
+            }
+        }
+    }
+};
+
+/**
+ * Delete buffers
+ * @private
+ */
+og.PointCloud.prototype._deleteBuffers = function () {
+    var r = this._renderNode.renderer,
+        gl = r.handler.gl;
+
+    gl.deleteBuffer(this._coordinatesBuffer);
+    gl.deleteBuffer(this._colorBuffer);
+    gl.deleteBuffer(this._pickingColorBuffer);
+
+    this._coordinatesBuffer = null;
+    this._colorBuffer = null;
+    this._pickingColorBuffer = null;
 };
 
 og.PointCloud.prototype._createCoordinatesBuffer = function () {

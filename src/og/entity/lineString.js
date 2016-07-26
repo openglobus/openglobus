@@ -121,6 +121,10 @@ og.LineString.INDEX_BUFFER = 1;
 
 og.LineString.__staticId = 0;
 
+/**
+ * Clear linestring object data.
+ * @public
+ */
 og.LineString.prototype.clear = function () {
     this._path.length = 0;
     this._path = [];
@@ -142,31 +146,14 @@ og.LineString.prototype.clear = function () {
     this._deleteBuffers();
 };
 
-og.LineString.prototype._update = function () {
-    if (this._renderNode) {
-        var i = this._changedBuffers.length;
-        while (i--) {
-            if (this._changedBuffers[i]) {
-                this._buffersUpdateCallbacks[i].call(this);
-                this._changedBuffers[i] = false;
-            }
-        }
-    }
-};
-
-og.LineString.prototype._deleteBuffers = function () {
-    var r = this._renderNode.renderer,
-        gl = r.handler.gl;
-
-    gl.deleteBuffer(this._mainBuffer);
-    gl.deleteBuffer(this._orderBuffer);
-    gl.deleteBuffer(this._indexBuffer);
-
-    this._mainBuffer = null;
-    this._orderBuffer = null;
-    this._indexBuffer = null;
-};
-
+/**
+ * Sets linestring RGBA color.
+ * @public
+ * @param {number} r - Red color.
+ * @param {number} g - Green color.
+ * @param {number} b - Blue color.
+ * @param {number} [a] - Opacity.
+ */
 og.LineString.prototype.setColor = function (r, g, b, a) {
     this.color[0] = r;
     this.color[1] = g;
@@ -174,12 +161,22 @@ og.LineString.prototype.setColor = function (r, g, b, a) {
     a && (this.color[3] = a);
 };
 
+/**
+ * Sets linestring RGB color.
+ * @public
+ * @param {og.math.Vector3} color - RGB color.
+ */
 og.LineString.prototype.setColor3v = function (color) {
     this.color[0] = color.x;
     this.color[1] = color.y;
     this.color[2] = color.z;
 };
 
+/**
+ * Sets linestring RGBA color.
+ * @public
+ * @param {og.math.Vector4} color - RGBA color.
+ */
 og.LineString.prototype.setColor4v = function (color) {
     this.color[0] = color.x;
     this.color[1] = color.y;
@@ -187,39 +184,82 @@ og.LineString.prototype.setColor4v = function (color) {
     this.color[3] = color.w;
 };
 
+/**
+ * Sets linestring opacity.
+ * @public
+ * @param {number} opacity - Opacity.
+ */
 og.LineString.prototype.setOpacity = function (opacity) {
     this.color[3] = opacity;
 };
 
+/**
+ * Sets linestring thickness in screen pixels.
+ * @public
+ * @param {number} thickness - Thickness.
+ */
 og.LineString.prototype.setThickness = function (thickness) {
     this.thickness = thickness;
 };
 
+/**
+ * Returns thickness.
+ * @public
+ * @return {number} Thickness in screen pixels.
+ */
 og.LineString.prototype.getThickness = function () {
     return this.thickness;
 };
 
+/**
+ * Sets visibility.
+ * @public
+ * @param {boolean} visibility - Linestring visibility.
+ */
 og.LineString.prototype.setVisibility = function (visibility) {
     this.visibility = visibility;
 };
 
+/**
+ * Gets linestring visibility.
+ * @public
+ * @return {boolean} Linestring visibility.
+ */
 og.LineString.prototype.getVisibility = function () {
     return this.visibility;
 };
 
+/**
+ * Sets picking distance(linestring border size for picking) in screen pixels. 
+ * @public
+ * @param {number} pickingDistance - Picking distance size.
+ */
 og.LineString.prototype.setPickingDistance = function (pickingDistance) {
     this.pickingDistance = pickingDistance;
 };
 
+/**
+ * Gets picking distance.
+ * @public
+ * @return {boolean} Picking distance.
+ */
 og.LineString.prototype.getPickingDistance = function () {
     return this.pickingDistance;
 };
 
+/**
+ * Assign with render node.
+ * @public
+ */
 og.LineString.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     this._createData3v();
 };
 
+/**
+ * Removes from entity.
+ * @public
+ */
 og.LineString.prototype.remove = function () {
     this._entity = null;
     this._handler && this._handler.remove(this);
@@ -235,24 +275,19 @@ og.LineString.prototype.setPickingColor3v = function (color) {
     this._pickingColor[3] = 1.0;
 };
 
-og.LineString.prototype._createMainBuffer = function () {
-    var h = this._renderNode.renderer.handler;
-    h.gl.deleteBuffer(this._mainBuffer);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length) / 9);
-};
-
-og.LineString.prototype._createIndexBuffer = function () {
-    var h = this._renderNode.renderer.handler;
-    h.gl.deleteBuffer(this._orderBuffer);
-    h.gl.deleteBuffer(this._indexBuffer);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
-    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
-};
-
+/**
+ * Returns linestring path cartesian coordinates.
+ * @return {Array.<og.math.Vector3>} Linestring path.
+ */
 og.LineString.prototype.getPath = function () {
     return this._path;
 };
 
+/**
+ * Sets linestring cartesian coordinates.
+ * @public
+ * @param {Array.<Array.<number,number,number>>} path - Linestring path cartesian coordinates.
+ */
 og.LineString.prototype.setPath = function (path) {
     if (this._renderNode) {
         var thisPath = this._path;
@@ -348,6 +383,12 @@ og.LineString.prototype.setPath = function (path) {
     }
 };
 
+/**
+ * Sets linestring specific point cartesian coordinates.
+ * @public
+ * @param {number} index - Specific point index.
+ * @param {og.math.Vector3} point - New cartesian coordintes.
+ */
 og.LineString.prototype.setPoint3v = function (index, point) {
     var len = this._path.length;
     if (index >= 0 && index < len &&
@@ -451,18 +492,35 @@ og.LineString.prototype.setPoint3v = function (index, point) {
     }
 };
 
+/**
+ * Returns specific linestring point cartesian coordinates by index.
+ * @public
+ * @param {number} index - Spectific point index.
+ * @return {og.math.Vector3} Linrstring point coordinate.
+ */
 og.LineString.prototype.getPoint = function (index) {
     return this._path[index];
 };
 
+/**
+ * @todo
+ */
 og.LineString.prototype.removePoint = function (index) {
 
 };
 
+/**
+ * @todo
+ */
 og.LineString.prototype.insertPoint = function (index, point) {
 
 };
 
+/**
+ * Creates linestring data.
+ * @private
+ * @param {Array.<Array<number,number,number>>} path - Linestring path cartesian coordinates.
+ */
 og.LineString.prototype._createDataArr = function (path) {
 
     var ell = this._renderNode.ellipsoid;
@@ -531,6 +589,10 @@ og.LineString.prototype._createDataArr = function (path) {
     this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
 };
 
+/**
+ * Creates line string data by the current cartesian coordinates.
+ * @private
+ */
 og.LineString.prototype._createData3v = function () {
 
     var path = this._path;
@@ -673,4 +735,59 @@ og.LineString.prototype.drawPicking = function () {
         gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         gl.enable(gl.CULL_FACE);
     }
+};
+
+/**
+ * Updates render buffers.
+ * @private
+ */
+og.LineString.prototype._update = function () {
+    if (this._renderNode) {
+        var i = this._changedBuffers.length;
+        while (i--) {
+            if (this._changedBuffers[i]) {
+                this._buffersUpdateCallbacks[i].call(this);
+                this._changedBuffers[i] = false;
+            }
+        }
+    }
+};
+
+/**
+ * Clear gl buffers.
+ * @private
+ */
+og.LineString.prototype._deleteBuffers = function () {
+    var r = this._renderNode.renderer,
+        gl = r.handler.gl;
+
+    gl.deleteBuffer(this._mainBuffer);
+    gl.deleteBuffer(this._orderBuffer);
+    gl.deleteBuffer(this._indexBuffer);
+
+    this._mainBuffer = null;
+    this._orderBuffer = null;
+    this._indexBuffer = null;
+};
+
+/**
+ * Creates gl main data buffer.
+ * @private
+ */
+og.LineString.prototype._createMainBuffer = function () {
+    var h = this._renderNode.renderer.handler;
+    h.gl.deleteBuffer(this._mainBuffer);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length) / 9);
+};
+
+/**
+ * Creates gl main daya index buffer.
+ * @private
+ */
+og.LineString.prototype._createIndexBuffer = function () {
+    var h = this._renderNode.renderer.handler;
+    h.gl.deleteBuffer(this._orderBuffer);
+    h.gl.deleteBuffer(this._indexBuffer);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
+    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
