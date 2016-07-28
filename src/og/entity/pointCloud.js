@@ -200,10 +200,11 @@ og.PointCloud.prototype.remove = function () {
  * var points = [[0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }], [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]];
  */
 og.PointCloud.prototype.setPoints = function (points) {
+    this.clear();
     for (var i = 0; i < points.length; i++) {
         var pi = points[i];
         var pos = new og.math.Vector3(pi[0], pi[1], pi[2]),
-            col = new og.math.Vector4(pi[3], pi[4], pi[5], pi[6]);
+            col = new og.math.Vector4(pi[3], pi[4], pi[5], (pi[6] == undefined ? 255.0 : pi[6]));
         this._coordinatesData.push(pos.x, pos.y, pos.z);
         this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
         var p = {
@@ -337,7 +338,7 @@ og.PointCloud.prototype.draw = function () {
 
         gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
 
-        gl.uniform1f(shu.size._pName, this.pointSize);
+        gl.uniform1f(shu.pointSize._pName, this.pointSize);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -365,7 +366,7 @@ og.PointCloud.prototype.drawPicking = function () {
 
         gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
 
-        gl.uniform1f(shu.size._pName, this.pointSize + this.pickingDistance);
+        gl.uniform1f(shu.pointSize._pName, this.pointSize + this.pickingDistance);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
         gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -398,12 +399,14 @@ og.PointCloud.prototype._update = function () {
  * @private
  */
 og.PointCloud.prototype._deleteBuffers = function () {
-    var r = this._renderNode.renderer,
-        gl = r.handler.gl;
+    if (this._renderNode) {
+        var r = this._renderNode.renderer,
+            gl = r.handler.gl;
 
-    gl.deleteBuffer(this._coordinatesBuffer);
-    gl.deleteBuffer(this._colorBuffer);
-    gl.deleteBuffer(this._pickingColorBuffer);
+        gl.deleteBuffer(this._coordinatesBuffer);
+        gl.deleteBuffer(this._colorBuffer);
+        gl.deleteBuffer(this._pickingColorBuffer);
+    }
 
     this._coordinatesBuffer = null;
     this._colorBuffer = null;
