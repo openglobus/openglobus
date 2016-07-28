@@ -288,6 +288,16 @@ og.math.Vector3.prototype.addA = function (point3) {
 };
 
 /**
+ * Gets two vectors summarization.
+ * @public
+ * @param {og.math.Vector3} - Vector to add.
+ * @returns {og.math.Vector3} Returns a sum vector.
+ */
+og.math.Vector3.prototype.add = function (point3) {
+    return new og.math.Vector3(this.x + point3.x, this.y + point3.y, this.z + point3.z);
+};
+
+/**
  * Subtract vector from the current.
  * @public
  * @param {og.math.Vector3} point3 - Subtract vector.
@@ -298,6 +308,16 @@ og.math.Vector3.prototype.subA = function (point3) {
     this.y -= point3.y;
     this.z -= point3.z;
     return this;
+};
+
+/**
+ * Gets vector subtraction.
+ * @public
+ * @param {og.math.Vector3} point3 - Subtract vector.
+ * @return {og.math.Vector3} Returns new instance of a subtraction
+ */
+og.math.Vector3.prototype.sub = function (point3) {
+    return new og.math.Vector3(this.x - point3.x, this.y - point3.y, this.z - point3.z);
 };
 
 /**

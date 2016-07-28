@@ -80,11 +80,11 @@ og.math.Ray.prototype.getPoint = function (distance) {
  */
 og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
     var state;
-    var u = og.math.Vector3.sub(v1, v0);
-    var v = og.math.Vector3.sub(v2, v0);
+    var u = v1.sub(v0);
+    var v = v2.sub(v0);
     var n = u.cross(v);
 
-    var w0 = og.math.Vector3.sub(this.origin, v0);
+    var w0 = this.origin.sub(v0);
     var a = -n.dot(w0);
     var b = n.dot(this.direction);
 
@@ -103,17 +103,17 @@ og.math.Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
     var r = a / b;
 
     // intersect point of ray and plane
-    res.copy(og.math.Vector3.add(this.origin, this.direction.scaleTo(r)));
+    res.copy(this.origin.add(this.direction.scaleTo(r)));
 
     // ray goes away from triangle
     if (r < 0.0)
         return og.math.Ray.AWAY;
 
-    // is I inside triangle?
+    // is res point inside the triangle?
     var uu = u.dot(u);
     var uv = u.dot(v);
     var vv = v.dot(v);
-    var w = og.math.Vector3.sub(res, v0);
+    var w = res.sub(v0);
     var wu = w.dot(u);
     var wv = w.dot(v);
     var D = uv * uv - uu * vv;

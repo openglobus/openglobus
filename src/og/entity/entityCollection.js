@@ -11,10 +11,11 @@ goog.require('og.Events');
  * An observable collection of og.Entity instances where each entity has a unique id.
  * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
  * @constructor
- * @params {Object} [options] - Entity options:
- * @params {boolean} [options.visibility] - Entity visibility.
- * @params {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
- * @params {number} [options.opacity] - Entity global opacity.
+ * @param {Object} [options] - Entity options:
+ * @param {boolean} [options.visibility] - Entity visibility.
+ * @param {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
+ * @param {number} [options.opacity] - Entity global opacity.
+ * @param {boolean} [options.pickingEnabled=true] - Entity picking enable. 
  * @fires og.EntityCollection#entitymove
  * @fires og.EntityCollection#draw
  * @fires og.EntityCollection#drawend
@@ -117,6 +118,10 @@ og.EntityCollection = function (options) {
     this.pointCloudHandler = new og.PointCloudHandler(this);
     //
     //...
+
+    if (options.pickingEnabled != undefined) {
+        this.setPickingEnabled(options.pickingEnabled);
+    }
 
     /**
      * Entities array.
