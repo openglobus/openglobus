@@ -232,13 +232,23 @@ og.math.log2 = function (x) {
 };
 
 /**
- * Returns two power of x.
+ * Returns two power of n.
  * @function
- * @param {number} x - Power value.
+ * @param {number} n - Power value.
  * @returns {number}
  */
-og.math.exp2 = function (x) {
-    return Math.pow(2, x);
+og.math.exp2 = function (n) {
+    return Math.pow(2, n);
+};
+
+/**
+ * Returns two power of integer n.
+ * @function
+ * @param {number} n - Integer power value.
+ * @returns {number}
+ */
+og.math.pow2i = function (n) {
+    return 2 << (n - 1);
 };
 
 /**

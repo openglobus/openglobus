@@ -484,16 +484,11 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         pn = pn.parentNode;
     }
 
-    var scale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
-
-    var dZ2 = Math.pow(2, scale);
-
-    var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-        offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
-
-    var maxZ = this.planet.terrainProvider.maxZoom;
-
     if (pn.planetSegment.terrainReady) {
+
+        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);
+        var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
+            offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
 
         var seg = this.planetSegment,
             pseg = pn.planetSegment;
@@ -501,7 +496,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         if (pn.planetSegment.terrainExists) {
             if (this.appliedTerrainNodeId != pn.nodeId) {
 
-                var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
+                var gridSize = pn.planetSegment.gridSize / dZ2;
 
                 var tempVertices = [];
 
@@ -594,6 +589,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             }
         }
 
+        var maxZ = this.planet.terrainProvider.maxZoom;
+
         if (seg.tileZoom > maxZ) {
             if (pn.planetSegment.tileZoom >= maxZ) {
                 seg.terrainReady = true;
@@ -635,13 +632,14 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 };
 
 /**
- * Static function returns triangles coordinates array due the source triangles array.
- * @param {Array} sourceArr Source array
- * @param {number} gridSize SourceArray square matrix size
- * @param {number} i0 First row index source array matrix
- * @param {number} j0 First column index
- * @param {number} size Square matrix result size.
- * @return{Array} The inside quad triangles array.
+ * Static function returns triangle coordinate array from inside of the source triangle array.
+ * @static
+ * @param {Array.<number>} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @return{Array.<number>} Triangle coordinates array from the source array.
  */
 og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     var res = [];
@@ -672,19 +670,13 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
         psegm = pn.planetSegment.materials[mId];
     }
 
-    var texScale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
-
-    var dZ2 = Math.pow(2, texScale);
-
-    var texOffsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-        texOffsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
-
     var segm = this.planetSegment.materials[mId];
-    if (/*segm.imageIsLoading && */(notEmpty || (psegm && !pn.parentNode))) {
+    if (notEmpty || (psegm && !pn.parentNode)) {
+        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);//Math.pow(2, scaleDif);
         segm.texture = psegm.texture;
-        segm.texBias[0] = texOffsetX;
-        segm.texBias[1] = texOffsetY;
-        segm.texBias[2] = 1 / Math.pow(2, texScale);
+        segm.texBias[0] = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2;
+        segm.texBias[1] = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
+        segm.texBias[2] = 1 / dZ2;
     }
 };
 
