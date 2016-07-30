@@ -541,8 +541,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     //    *<----------------------------------*v_rb
                     //                  vs
 
-                    var insideSize = 1 / gridSize;
-                    var fullSize = insideSize * pseg.gridSize;
+                    var insideSize = 1.0 / gridSize;
+                    //var fullSize = insideSize * pseg.gridSize;
 
                     var t_i0 = offsetY - insideSize * i0,
                         t_j0 = offsetX - insideSize * j0;
@@ -562,13 +562,13 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                         var vi_y = vo[i].y + t_i0,
                             vi_x = vo[i].x + t_j0;
 
-                        var vi_x_is = vi_x / insideSize,
-                            vi_y_is = vi_y / insideSize;
+                        var vi_x_is = vi_x * gridSize,
+                            vi_y_is = vi_y * gridSize;
 
                         if (vi_y + vi_x < insideSize) {
-                            coords = og.math.Vector3.add(vn.scaleTo(vi_x_is), vw.scaleTo(vi_y_is)).addA(v_lt);
+                            coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
                         } else {
-                            coords = og.math.Vector3.add(vs.scaleTo(1 - vi_x_is), ve.scaleTo(1 - vi_y_is)).addA(v_rb);
+                            coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                         }
 
                         var i3 = i * 3;
