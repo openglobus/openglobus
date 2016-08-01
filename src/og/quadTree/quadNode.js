@@ -441,16 +441,11 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
         pn = pn.parentNode;
     }
 
-    var scale = seg.tileZoom - pn.planetSegment.tileZoom;
-
-    var dZ2 = Math.pow(2, scale);
-
-    var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
-        offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
+    var dZ2 = 2 << (seg.tileZoom - pn.planetSegment.tileZoom - 1);
 
     seg.normalMapTexture = pn.planetSegment.normalMapTexture;
-    seg.normalMapTextureBias[0] = offsetX;
-    seg.normalMapTextureBias[1] = offsetY;
+    seg.normalMapTextureBias[0] = seg.tileX - pn.planetSegment.tileX * dZ2;
+    seg.normalMapTextureBias[1] = seg.tileY - pn.planetSegment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1 / dZ2;
 
     var maxZ = this.planet.terrainProvider.maxZoom;
@@ -672,7 +667,7 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
 
     var segm = this.planetSegment.materials[mId];
     if (notEmpty || (psegm && !pn.parentNode)) {
-        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);//Math.pow(2, scaleDif);
+        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);
         segm.texture = psegm.texture;
         segm.texBias[0] = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2;
         segm.texBias[1] = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
