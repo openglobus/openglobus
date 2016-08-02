@@ -60,7 +60,7 @@ og.control.ZoomControl.prototype.zoomIn = function () {
     this.planet.normalMapCreator.active = false;
     this.planet.terrainProvider.active = false;
     this.planet.layersActivity = false;
-    this.planet.geoImageTileCreator.active = false;
+    //this.planet.geoImageTileCreator.active = false;
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -78,7 +78,7 @@ og.control.ZoomControl.prototype.zoomOut = function () {
     this.planet.normalMapCreator.active = false;
     this.planet.terrainProvider.active = false;
     this.planet.layersActivity = false;
-    this.planet.geoImageTileCreator.active = false;
+    //this.planet.geoImageTileCreator.active = false;
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -100,7 +100,7 @@ og.control.ZoomControl.prototype._draw = function (e) {
         if (this._deactivate) {
             this.planet.normalMapCreator.active = true;
             this.planet.terrainProvider.active = true;
-            this.planet.geoImageTileCreator.active = true;
+            //this.planet.geoImageTileCreator.active = true;
             this.planet.layersActivity = true;
             this._deactivate = false;
         }

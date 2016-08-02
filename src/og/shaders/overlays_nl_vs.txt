@@ -5,10 +5,10 @@ attribute lowp vec3 aVertexPosition;
 attribute lowp vec2 aTextureCoord;
 
 uniform lowp mat4 projectionViewMatrix;
-uniform vec3 geoImageTexBias;
+//uniform vec3 geoImageTexBias;
 
 varying lowp vec2 vTextureCoord;
-varying vec2 vTextureCoordClear;
+//varying vec2 vTextureCoordClear;
 
 const float C = 0.1;
 const float far = 149.6e+9;
@@ -19,5 +19,5 @@ void main(void) {
 	gl_Position = projectionViewMatrix * vec4(aVertexPosition, 1.0);
 	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
 	vTextureCoord = aTextureCoord;
-	vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
+	//vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
 }

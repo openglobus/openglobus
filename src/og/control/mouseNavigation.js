@@ -124,10 +124,11 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     this._deactivate = true;
 
+    //TODO: Reoplace to the planet class
     this.planet.layersActivity = false;
     this.planet.terrainProvider.active = false;
     this.planet.normalMapCreator.active = false;
-    this.planet.geoImageTileCreator.active = false;
+    //this.planet.geoImageTileCreator.active = false;
 
     var ms = this.renderer.events.mouseState;
     this.stepIndex = this.stepsCount;
@@ -253,10 +254,11 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
     } else {
         if (this._deactivate) {
             this._deactivate = false;
+            //TODO:replace to the planet class
             this.planet.layersActivity = true;
             this.planet.terrainProvider.active = true;
             this.planet.normalMapCreator.active = true;
-            this.planet.geoImageTileCreator.active = true;
+            //this.planet.geoImageTileCreator.active = true;
         }
     }
 
@@ -279,16 +281,17 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         cam.update();
     }
 
+    //TODO:Replace to the planet class
     if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
         this.planet.layersActivity = false;
         this.planet.terrainProvider.active = false;
         this.planet.normalMapCreator.active = false;
-        this.planet.geoImageTileCreator.active = false;
+        //this.planet.geoImageTileCreator.active = false;
     } else {
         this.planet.layersActivity = true;
         this.planet.terrainProvider.active = true;
         this.planet.normalMapCreator.active = true;
-        this.planet.geoImageTileCreator.active = true;
+        //this.planet.geoImageTileCreator.active = true;
     }
 
 };

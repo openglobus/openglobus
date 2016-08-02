@@ -10,14 +10,14 @@ uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat3 normalMatrix;
 uniform vec3 uNormalMapBias;
-uniform vec3 geoImageTexBias;
+//uniform vec3 geoImageTexBias;
 uniform vec4 uGlobalTextureCoord;
 
 varying vec4 vTextureCoord;
 varying vec3 vNormal;
 varying vec4 vPosition;
 varying mat3 v_NMatrix;
-varying vec2 vTextureCoordClear;
+//varying vec2 vTextureCoordClear;
 varying vec2 vGlobalTextureCoord;
 
 void main(void) {
@@ -28,6 +28,6 @@ void main(void) {
     v_NMatrix = normalMatrix;
     vTextureCoord.xy = aTextureCoord;
     vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
-	vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
+	//vTextureCoordClear = geoImageTexBias.z *( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
 	vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
 }

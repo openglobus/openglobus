@@ -16,7 +16,7 @@ goog.require('og.control.ShowFps');
 goog.require('og.control.ZoomControl');
 goog.require('og.control.TouchNavigation');
 goog.require('og.ImageCanvas');
-goog.require('og.GeoImage');
+//goog.require('og.GeoImage');
 goog.require('og.LonLat');
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
@@ -65,6 +65,8 @@ function start() {
     });
 
     globus.planet.renderer.handler.clock.multiplier = 0;
+
+    globus.planet.lightEnabled = false;
 
     sun.sunlight.setDiffuse(new og.math.Vector3(1.0, 1.0, 1.0));
     sun.sunlight.setAmbient(new og.math.Vector3(0.1, .1, 0.21))

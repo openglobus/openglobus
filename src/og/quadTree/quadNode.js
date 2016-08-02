@@ -269,35 +269,34 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     }
 };
 
-//og.quadTree.QuadNode.prototype.createPlainSegment = function (segment) {
-//    var gridSize = this.planet.terrainProvider.gridSizeByZoom[segment.tileZoom];
-//    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
-//    segment.gridSize = gridSize;
-//    segment.createPlainVertices(gridSize);
-//    segment.createCoordsBuffers(segment.plainVertices, gridSize);
-//    segment.ready = true;
-//};
-
+/**
+ * When node is visible it begins to render with this method.
+ * @public
+ */
 og.quadTree.QuadNode.prototype.renderNode = function () {
 
     this.state = og.quadTree.RENDERING;
     var seg = this.planetSegment;
 
+    //Create ellipsoid(without elevation) vertices and normals.
     if (!seg.ready) {
         seg.createPlainSegment();
     }
 
+    //Create and load terrain data.
     if (!seg.terrainReady) {
         seg.loadTerrain();
         this.whileTerrainLoading();
     }
 
+    //Create normal map texture.
     if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
         this.whileNormalMapCreating();
     }
 
-    this.createGeoImage();
+    //this.createGeoImage();
 
+    //Create imagery tile materials.
     var vl = this.planet.visibleTileLayers,
         pm = seg.materials;
 
@@ -316,7 +315,7 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     }
 
 
-    //minimal and maximal zoom index on the screen
+    //Calculate minimal and maximal zoom index on the screen
     if (seg.tileZoom > this.planet.maxCurrZoom) {
         this.planet.maxCurrZoom = seg.tileZoom;
     }
@@ -327,35 +326,36 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
     seg._addViewExtent();
 
+    //Finally this node proceed to rendering.
     this.addToRender(this);
 };
 
-og.quadTree.QuadNode.prototype.createGeoImage = function () {
-    var seg = this.planetSegment;
+//og.quadTree.QuadNode.prototype.createGeoImage = function () {
+//    var seg = this.planetSegment;
 
-    if (this.planet.geoImagesArray.length && !(seg.geoImageReady || seg._inTheGeoImageTileCreatorQueue)) {
+//    if (this.planet.geoImagesArray.length && !(seg.geoImageReady || seg._inTheGeoImageTileCreatorQueue)) {
 
-        var pn = this;
-        while (pn.parentNode && !pn.planetSegment.geoImageReady) {
-            pn = pn.parentNode;
-        }
+//        var pn = this;
+//        while (pn.parentNode && !pn.planetSegment.geoImageReady) {
+//            pn = pn.parentNode;
+//        }
 
-        var scale = seg.tileZoom - pn.planetSegment.tileZoom;
+//        var scale = seg.tileZoom - pn.planetSegment.tileZoom;
 
-        var dZ2 = Math.pow(2, scale);
+//        var dZ2 = Math.pow(2, scale);
 
-        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
-            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
+//        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
+//            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
 
-        seg.geoImageTexture = pn.planetSegment.geoImageTexture || this.planet.transparentTexture;
+//        seg.geoImageTexture = pn.planetSegment.geoImageTexture || this.planet.transparentTexture;
 
-        seg.geoImageTextureBias[0] = offsetX;
-        seg.geoImageTextureBias[1] = offsetY;
-        seg.geoImageTextureBias[2] = 1 / dZ2;
+//        seg.geoImageTextureBias[0] = offsetX;
+//        seg.geoImageTextureBias[1] = offsetY;
+//        seg.geoImageTextureBias[2] = 1 / dZ2;
 
-        this.planet.geoImageTileCreator.queue(seg);
-    }
-};
+//        this.planet.geoImageTileCreator.queue(seg);
+//    }
+//};
 
 og.quadTree.QuadNode.prototype.addToRender = function (node) {
     var nodes = this.planet._renderedNodes;
@@ -649,7 +649,6 @@ og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     }
     return res;
 };
-
 
 og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
     var pn = this,

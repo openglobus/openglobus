@@ -9,13 +9,13 @@ uniform vec4 lightsPositions[MAX_POINT_LIGHTS];
 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
 uniform float lightsParamsf[MAX_POINT_LIGHTS];
 uniform mat3 normalMatrix;
-uniform sampler2D uGeoImage;
+//uniform sampler2D uGeoImage;
 uniform sampler2D uNightImage;
 uniform sampler2D uSpecularImage;
 
 varying vec4 vTextureCoord;
 varying vec4 vPosition;
-varying vec2 vTextureCoordGeoImage;
+//varying vec2 vTextureCoordGeoImage;
 varying vec2 vGlobalTextureCoord;
 varying vec3 c0;
 varying vec3 c1;
@@ -30,7 +30,7 @@ void main(void) {
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     
 	vec4 diffuseSampler = texture2D( uSampler, vTextureCoord.xy );
-    vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordGeoImage.st );
+    //vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordGeoImage.st );
     vec4 nightImageColor = texture2D( uNightImage, vGlobalTextureCoord.st );
     float shininess = texture2D( uSpecularImage, vGlobalTextureCoord.st ).r * 255.0;
 
@@ -41,7 +41,7 @@ void main(void) {
 	
 	vec3 night = 10.0 * vec3(0.58, 0.48, 0.25) * (0.31 - length(c0)) * nightImageColor.rgb;	
 
-    vec4 res = mix(diffuseSampler, geoImageColor, geoImageColor.a);
+    vec4 res = diffuseSampler;//mix(diffuseSampler, geoImageColor, geoImageColor.a);
 	
 	gl_FragColor = vec4(c1 + res.rgb * lightWeighting + night * step(0.0, night) + spec , res.a);
 }

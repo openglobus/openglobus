@@ -306,21 +306,6 @@ og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, st
 };
 
 /**
- * Flies to the geo image.
- * @public
- * @param {og.GeoImage} geoImage - Vieable geo image instance.
- * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
- * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
- */
-og.PlanetCamera.prototype.flyGeoImage = function (geoImage, completeCallback, startCallback) {
-    var c = geoImage.getCorners();
-    var el = this.planet.ellipsoid;
-    this.flyExtent(geoImage.getExtent(),
-        el.lonLatToCartesian(c[0]).subA(el.lonLatToCartesian(c[3])).addA(el.lonLatToCartesian(c[1]).subA(el.lonLatToCartesian(c[2]))).normalize(),
-        completeCallback, startCallback);
-};
-
-/**
  * Flies to the cartesian coordinates.
  * @public
  * @param {og.math.Vector3} cartesian - Finish cartesian coordinates.

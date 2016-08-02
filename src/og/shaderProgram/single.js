@@ -12,8 +12,8 @@ og.shaderProgram.single_nl = function () {
             projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
             texBias: { type: og.shaderProgram.types.VEC3 },
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -34,8 +34,8 @@ og.shaderProgram.single_wl = function () {
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D },
@@ -62,8 +62,8 @@ og.shaderProgram.singleAtmosphere_wl = function () {
             uSampler: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D },

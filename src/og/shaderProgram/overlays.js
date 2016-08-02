@@ -14,9 +14,9 @@ og.shaderProgram.overlays_nl = function () {
             uSamplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             texBiasArr: { type: og.shaderProgram.types.VEC3 },
             tcolorArr: { type: og.shaderProgram.types.VEC4 },
-            numTex: { type: og.shaderProgram.types.INT },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
+            numTex: { type: og.shaderProgram.types.INT }//,
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
@@ -42,8 +42,8 @@ og.shaderProgram.overlays_wl = function () {
             lightsPositions: { type: og.shaderProgram.types.VEC3 },
             lightsParamsv: { type: og.shaderProgram.types.VEC3 },
             lightsParamsf: { type: og.shaderProgram.types.FLOAT },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D }
@@ -72,8 +72,8 @@ og.shaderProgram.overlaysAtmosphere_wl = function () {
             lightsPositions: { type: og.shaderProgram.types.VEC3 },
             lightsParamsv: { type: og.shaderProgram.types.VEC3 },
             lightsParamsf: { type: og.shaderProgram.types.FLOAT },
-            uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
-            geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
+            //uGeoImage: { type: og.shaderProgram.types.SAMPLER2D },
+            //geoImageTexBias: { type: og.shaderProgram.types.VEC3 },
             uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             uNightImage: { type: og.shaderProgram.types.SAMPLER2D },
             uSpecularImage: { type: og.shaderProgram.types.SAMPLER2D },

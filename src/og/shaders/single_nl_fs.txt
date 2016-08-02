@@ -1,13 +1,13 @@
 precision mediump float;
 
 varying vec2 vTextureCoord;
-varying vec2 vTextureCoordClear;
+//varying vec2 vTextureCoordClear;
 
 uniform sampler2D uSampler;
-uniform sampler2D uGeoImage;
+//uniform sampler2D uGeoImage;
 
 void main(void) {
-	vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
+	//vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
 	vec4 segColor = texture2D( uSampler, vTextureCoord.st );
-    gl_FragColor = mix(segColor, geoImageColor, geoImageColor.a);
+    gl_FragColor = segColor;//mix(segColor, geoImageColor, geoImageColor.a);
 }

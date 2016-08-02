@@ -3,6 +3,8 @@ goog.provide('og.layer.Layer');
 
 goog.require('og.Events');
 goog.require('og.QueueArray');
+goog.require('og.mercator');
+goog.require('og.Extent');
 
 /**
  * @const
@@ -11,7 +13,7 @@ og.layer.MAXIMUM_OVERLAYS = 8;
 
 /**
  * @classdesc
- * Abstract base class; normally only used for creating subclasses and not instantiated in apps.
+ * Base class; normally only used for creating subclasses and not instantiated in apps.
  * A visual representation of raster or vector map data.
  * @class
  * @param {String} [name="noname"] - Layer name.
@@ -23,6 +25,7 @@ og.layer.MAXIMUM_OVERLAYS = 8;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {og.Extent} [options.extent=new og.Extent(-180.0, -90.0, 180.0, 90.0)] - Visible extent.
  *
  * @fires og.layer.Layer#visibilitychange
  * @fires og.layer.Layer#add
@@ -31,7 +34,7 @@ og.layer.MAXIMUM_OVERLAYS = 8;
 og.layer.Layer = function (name, options) {
 
     options = options || {};
-    
+
     /**
      * Layer user name.
      * @public
@@ -108,6 +111,28 @@ og.layer.Layer = function (name, options) {
      * @type {boolean}
      */
     this._visibility = options.visibility != undefined ? options.visibility : true;
+
+    /**
+     * Visible extent in degrees.
+     * @protected
+     * @type {og.Extent}
+     */
+    this._extent = null;
+
+    /**
+     * Visible mercator extent.
+     * @protected
+     * @type {og.Extent}
+     */
+    this._extentMerc = null;
+
+    //Setting the extent up
+    if (options.extent) {
+        this.setExtent(options.extent);
+    } else {
+        this._extent = new og.Extent(new og.LonLat(-180.0, -90), new og.LonLat(180.0, 90.0));
+        this._extentMerc = new og.Extent(new og.LonLat(-og.mercator.POLE, -og.mercator.POLE), new og.LonLat(og.mercator.POLE, og.mercator.POLE));
+    }
 
     /**
      * Events handler.
@@ -269,4 +294,21 @@ og.layer.Layer.prototype.setVisibility = function (visibility) {
  */
 og.layer.Layer.prototype.getVisibility = function () {
     return this._visibility;
+};
+
+og.layer.Layer.prototype.setExtent = function (extent) {
+    var sw = extent.southWest.clone(),
+        ne = extent.northEast.clone();
+    if (sw.lat < og.mercator.MIN_LAT) {
+        sw.lat = og.mercator.MIN_LAT;
+    }
+    if (ne.lat > og.mercator.MAX_LAT) {
+        ne.lat = og.mercator.MAX_LAT;
+    }
+    this._extent = extent.clone();
+    this._extentMerc = new og.Extent(sw.forwardMercator(), ne.forwardMercator());
+};
+
+og.layer.Layer.prototype.getExtent = function () {
+    return this._extent;
 };

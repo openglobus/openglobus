@@ -13,7 +13,7 @@ og.control.LayerSwitcher = function (options) {
     this.dialog = null;
     this.baseLayersDiv = null;
     this.overlaysDiv = null;
-    this.geoImagesDiv = null;
+    //this.geoImagesDiv = null;
     this._id = og.control.LayerSwitcher.numSwitches++;
 };
 
@@ -24,14 +24,14 @@ og.inheritance.extend(og.control.LayerSwitcher, og.control.BaseControl);
 og.control.LayerSwitcher.prototype.oninit = function () {
     this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);
-    this.renderer.renderNodes.Earth.events.on("geoimageadd", this, this.onGeoImageAdded);
+    //this.renderer.renderNodes.Earth.events.on("geoimageadd", this, this.onGeoImageAdded);
     this.createSwitcher();
     this.createDialog();
 };
 
-og.control.LayerSwitcher.prototype.onGeoImageAdded = function (geoImage) {
-    this.addSwitcher("checkbox", geoImage, this.geoImagesDiv, this._id);
-};
+//og.control.LayerSwitcher.prototype.onGeoImageAdded = function (geoImage) {
+//    this.addSwitcher("checkbox", geoImage, this.geoImagesDiv, this._id);
+//};
 
 og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
     if (layer.isBaseLayer()) {
@@ -102,19 +102,19 @@ og.control.LayerSwitcher.prototype.createOverlaysContainer = function () {
     overlaysDiv.appendChild(this.overlaysDiv);
 };
 
-og.control.LayerSwitcher.prototype.createGeoImagesContainer = function () {
-    var geoImagesDiv = document.createElement('div');
-    geoImagesDiv.className = "layersDiv";
-    this.dialog.appendChild(geoImagesDiv);
+//og.control.LayerSwitcher.prototype.createGeoImagesContainer = function () {
+//    var geoImagesDiv = document.createElement('div');
+//    geoImagesDiv.className = "layersDiv";
+//    this.dialog.appendChild(geoImagesDiv);
 
-    var overlaysLbl = document.createElement('div');
-    overlaysLbl.className = "layersDiv";
-    overlaysLbl.innerHTML = "Geo Images";
-    geoImagesDiv.appendChild(overlaysLbl);
+//    var overlaysLbl = document.createElement('div');
+//    overlaysLbl.className = "layersDiv";
+//    overlaysLbl.innerHTML = "Geo Images";
+//    geoImagesDiv.appendChild(overlaysLbl);
 
-    this.geoImagesDiv = document.createElement('div');
-    geoImagesDiv.appendChild(this.geoImagesDiv);
-};
+//    this.geoImagesDiv = document.createElement('div');
+//    geoImagesDiv.appendChild(this.geoImagesDiv);
+//};
 
 og.control.LayerSwitcher.prototype.createDialog = function () {
     this.dialog = document.createElement('div');
@@ -124,7 +124,7 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
 
     this.createBaseLayersContainer();
     this.createOverlaysContainer();
-    this.createGeoImagesContainer();
+    //this.createGeoImagesContainer();
 };
 
 og.control.LayerSwitcher.prototype.createSwitcher = function () {

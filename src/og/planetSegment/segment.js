@@ -104,11 +104,11 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
      */
     this.parentNormalMapReady = false;
 
-    /**
-     * GeoImages already made for the segment.
-     * @type {boolean}
-     */
-    this.geoImageReady = false;
+    ///**
+    // * GeoImages already made for the segment.
+    // * @type {boolean}
+    // */
+    //this.geoImageReady = false;
 
     /**
      * Terrain is allready applied flag.
@@ -143,8 +143,9 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this.geoImageTexture = null;
-    this.geoImageTextureBias = [0, 0, 1];
+    //this.geoImageTexture = null;
+    //this.geoImageTextureBias = [0, 0, 1];
+    //this._inTheGeoImageTileCreatorQueue = false;
 
     this._texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
     this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
@@ -153,7 +154,6 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this._globalTextureCoordinates = [0, 0, 0, 0];
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
-    this._inTheGeoImageTileCreatorQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 };
 
@@ -635,60 +635,60 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
     }
 };
 
-/**
- * Render geoImages to the segment texture.
- */
-og.planetSegment.Segment.prototype.createGeoImageTileTexture = function () {
-    var canvas = this.planet.geoImageTileCreator.draw(this);
-    if (canvas) {
-        this.geoImageTexture = this.handler.createTexture_mm(canvas);
-    } else {
-        this.geoImageTexture = this.planet.transparentTexture;
-    }
-    this.geoImageTextureBias = [0, 0, 1];
-    this.geoImageReady = true;
-};
+///**
+// * Render geoImages to the segment texture.
+// */
+//og.planetSegment.Segment.prototype.createGeoImageTileTexture = function () {
+//    var canvas = this.planet.geoImageTileCreator.draw(this);
+//    if (canvas) {
+//        this.geoImageTexture = this.handler.createTexture_mm(canvas);
+//    } else {
+//        this.geoImageTexture = this.planet.transparentTexture;
+//    }
+//    this.geoImageTextureBias = [0, 0, 1];
+//    this.geoImageReady = true;
+//};
 
-og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
-    if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
+//og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
+//    if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
 
-        var tc = this.planet.geoImageTileCreator;
+//        var tc = this.planet.geoImageTileCreator;
 
-        //better replace to geoImage
-        if (geoImage.getCurvature() >= 0.005 && !geoImage._mercSamplerReady) {
-            tc.createMercatorSamplerPASS(geoImage);
-        }
+//        //better replace to geoImage
+//        if (geoImage.getCurvature() >= 0.005 && !geoImage._mercSamplerReady) {
+//            tc.createMercatorSamplerPASS(geoImage);
+//        }
 
-        var h = tc._handler;
-        var sh = h.shaderPrograms.geoImage._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
-        var gl = h.gl;
+//        var h = tc._handler;
+//        var sh = h.shaderPrograms.geoImage._program;
+//        var sha = sh.attributes,
+//            shu = sh.uniforms;
+//        var gl = h.gl;
 
-        h.shaderPrograms.geoImage.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//        h.shaderPrograms.geoImage.activate();
+//        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
+//        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        if (geoImage.getCurvature() >= 0.005) {
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
-            gl.uniform1i(shu.u_sourceImage._pName, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercExtentCornersBuffer);
-            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercExtentCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        } else {
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
-            gl.uniform1i(shu.u_sourceImage._pName, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
-            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        }
+//        if (geoImage.getCurvature() >= 0.005) {
+//            gl.activeTexture(gl.TEXTURE0);
+//            gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
+//            gl.uniform1i(shu.u_sourceImage._pName, 0);
+//            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercExtentCornersBuffer);
+//            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercExtentCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//        } else {
+//            gl.activeTexture(gl.TEXTURE0);
+//            gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
+//            gl.uniform1i(shu.u_sourceImage._pName, 0);
+//            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
+//            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//        }
 
-        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
-        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        return true;
-    }
-};
+//        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
+//        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
+//        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+//        return true;
+//    }
+//};
 
 /**
  * Callback that calls in terrain provider to complete the terrain.
@@ -747,11 +747,11 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     if (this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
-    if (this.geoImageReady && !this.geoImageTexture.default) {
-        this.handler.gl.deleteTexture(this.geoImageTexture);
-    }
-    this.geoImageReady = false;
-    this.geoImageTextureBias = [0, 0, 1];
+    //if (this.geoImageReady && !this.geoImageTexture.default) {
+    //    this.handler.gl.deleteTexture(this.geoImageTexture);
+    //}
+    //this.geoImageReady = false;
+    //this.geoImageTextureBias = [0, 0, 1];
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
@@ -801,8 +801,8 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this.geoImageTexture = null;
-    this.geoImageTextureBias = null;
+    //this.geoImageTexture = null;
+    //this.geoImageTextureBias = null;
 
     this._texBiasArr = null;
     this._samplerArr = null;
@@ -1023,11 +1023,11 @@ og.planetSegment.drawSingle = function (sh, segment) {
             gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
         }
 
-        //bind geoimages texture
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-        gl.uniform1i(shu.uGeoImage._pName, 2);
-        gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
+        ////bind geoimages texture
+        //gl.activeTexture(gl.TEXTURE2);
+        //gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
+        //gl.uniform1i(shu.uGeoImage._pName, 2);
+        //gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
         segment.draw(sh);
     }
@@ -1069,10 +1069,10 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
         }
 
-        gl.activeTexture(gl.TEXTURE0 + layers.length + 1);
-        gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-        gl.uniform1i(shu.uGeoImage._pName, +layers.length + 1);
-        gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
+        //gl.activeTexture(gl.TEXTURE0 + layers.length + 1);
+        //gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
+        //gl.uniform1i(shu.uGeoImage._pName, +layers.length + 1);
+        //gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
         segment.draw(sh);
     }

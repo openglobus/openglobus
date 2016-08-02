@@ -9,7 +9,7 @@ uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform vec3 texBias;
 uniform vec3 uNormalMapBias;
-uniform vec3 geoImageTexBias;
+//uniform vec3 geoImageTexBias;
 uniform vec4 uGlobalTextureCoord;
 
 uniform vec3 cameraPosition;
@@ -30,7 +30,7 @@ uniform float fScaleOverScaleDepth;	// fScale / fScaleDepth
 
 varying vec4 vTextureCoord;
 varying vec4 vPosition;
-varying vec2 vTextureCoordGeoImage;
+//varying vec2 vTextureCoordGeoImage;
 varying vec2 vGlobalTextureCoord;
 
 varying vec3 c0;
@@ -97,6 +97,6 @@ void main(void) {
     gl_Position.z = ( log( fC * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
     vTextureCoord.xy = texBias.z * ( aTextureCoord + vec2(texBias.x, texBias.y) );
     vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + vec2(uNormalMapBias.x, uNormalMapBias.y) );
-	vTextureCoordGeoImage = geoImageTexBias.z * ( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
+	//vTextureCoordGeoImage = geoImageTexBias.z * ( aTextureCoord + vec2(geoImageTexBias.x, geoImageTexBias.y) );
 	vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
 }

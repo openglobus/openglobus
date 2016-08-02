@@ -31,8 +31,8 @@ goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
-goog.require('og.GeoImage');
-goog.require('og.planetSegment.GeoImageTileCreatorQueue');
+//goog.require('og.GeoImage');
+//goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
 
 /**
@@ -131,18 +131,18 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this.normalMapCreator = null;
 
-    /**
-     * Async gGeo images tile creator.
-     * @public
-     * @type {og.planetSegment.GeoImageTileCreatorQueue}
-     */
-    this.geoImageTileCreator = null;
+    ///**
+    // * Async gGeo images tile creator.
+    // * @public
+    // * @type {og.planetSegment.GeoImageTileCreatorQueue}
+    // */
+    //this.geoImageTileCreator = null;
 
-    /**
-     * @public
-     * @type {Array.<og.GeoImage>}
-     */
-    this.geoImagesArray = [];
+    ///**
+    // * @public
+    // * @type {Array.<og.GeoImage>}
+    // */
+    //this.geoImagesArray = [];
 
     /**
      * Current visible minimal zoom index planet segment.
@@ -341,13 +341,13 @@ og.scene.Planet.EVENT_NAMES = [
          * Triggered when some layer visibility changed.
          * @event og.scene.Planet#layervisibilitychange
          */
-        "layervisibilitychange",
+        "layervisibilitychange"/*,
 
         /**
          * Triggered when geo image added.
          * @event og.scene.Planet#geoimageadd
-         */
-        "geoimageadd"];
+         
+        "geoimageadd"*/];
 
 /**
  * Default planet empty color
@@ -399,9 +399,9 @@ og.scene.Planet.prototype.getLayerByName = function (name) {
     return undefined;
 };
 
-og.scene.Planet.prototype.addGeoImage = function (geoImage) {
-    geoImage.addTo(this);
-};
+//og.scene.Planet.prototype.addGeoImage = function (geoImage) {
+//    geoImage.addTo(this);
+//};
 
 /**
  * Adds the given layer to the planet.
@@ -460,22 +460,22 @@ og.scene.Planet.prototype.removeLayer = function (layer) {
     return undefined;
 };
 
-/**
- * Redraw geo images.
- * @public
- */
-og.scene.Planet.prototype.redrawGeoImages = function () {
-    this.geoImagesArray.sort(function (a, b) {
-        return b.zIndex - a.zIndex;
-    });
-    var refresh = function (node) {
-        node.planetSegment.geoImageTexture = node.planetSegment.planet.transparentTexture;
-        node.planetSegment.geoImageReady = false;
-    }
-    this._quadTree.traverseTree(refresh);
-    this._quadTreeNorth.traverseTree(refresh);
-    this._quadTreeSouth.traverseTree(refresh);
-};
+///**
+// * Redraw geo images.
+// * @public
+// */
+//og.scene.Planet.prototype.redrawGeoImages = function () {
+//    this.geoImagesArray.sort(function (a, b) {
+//        return b.zIndex - a.zIndex;
+//    });
+//    var refresh = function (node) {
+//        node.planetSegment.geoImageTexture = node.planetSegment.planet.transparentTexture;
+//        node.planetSegment.geoImageReady = false;
+//    }
+//    this._quadTree.traverseTree(refresh);
+//    this._quadTreeNorth.traverseTree(refresh);
+//    this._quadTreeSouth.traverseTree(refresh);
+//};
 
 /**
  * Get the collection of layers associated with this planet.
@@ -621,8 +621,8 @@ og.scene.Planet.prototype.initialization = function () {
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
 
-    //normal map renderer initialization
-    this.geoImageTileCreator = new og.planetSegment.GeoImageTileCreatorQueue(256, 256);
+    ////normal map renderer initialization
+    //this.geoImageTileCreator = new og.planetSegment.GeoImageTileCreatorQueue(256, 256);
 
     //temporary initializations
     var that = this;
