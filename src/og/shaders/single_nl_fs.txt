@@ -1,13 +1,25 @@
-precision mediump float;
+precision highp float;
 
-varying vec2 vTextureCoord;
-//varying vec2 vTextureCoordClear;
+uniform vec4 tileOffsetArr[1];
+uniform vec4 visibleExtentOffsetArr[1];
 
 uniform sampler2D uSampler;
-//uniform sampler2D uGeoImage;
+
+varying vec2 vTextureCoord;
+
+// return 1 if v inside the box, return 0 otherwise
+float insideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {
+    vec2 s = step(bottomLeft, v) - step(topRight, v);
+    return s.x * s.y;   
+}
 
 void main(void) {
-	//vec4 geoImageColor = texture2D( uGeoImage, vTextureCoordClear.st );
-	vec4 segColor = texture2D( uSampler, vTextureCoord.st );
-    gl_FragColor = segColor;//mix(segColor, geoImageColor, geoImageColor.a);
+	
+	vec2 b = visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw;
+
+	if( insideBox(b, vec2(0.0), vec2(1.0))==0.0 ) {
+		gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);	    
+	} else {
+		gl_FragColor = texture2D( uSampler, tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw );
+	}
 }

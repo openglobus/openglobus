@@ -220,6 +220,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
         this._cameraInside = false;
 
+        //Search the node which camera is flying over.
         if (this.parentNode._cameraInside) {
 
             var inside;
@@ -294,11 +295,12 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileNormalMapCreating();
     }
 
-    //this.createGeoImage();
-
     //Create imagery tile materials.
     var vl = this.planet.visibleTileLayers,
         pm = seg.materials;
+
+    seg._tileOffsetArr = [];
+    seg._visibleExtentOffsetArr = [];
 
     for (var i = 0; i < vl.length; i++) {
         var li = vl[i],
@@ -310,8 +312,11 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
 
         if (!pml_id.imageReady) {
             pml_id.loadTileImage();
-            this.whileTextureLoading(li._id);
+            this.whileImageryTileLoading(li._id);
+        } else {
+            this.planetSegment._tileOffsetArr.push(0.0, 0.0, 1.0, 1.0);
         }
+        seg._addVisibleLayerExtentOffset(pml_id.layer);
     }
 
 
@@ -650,7 +655,7 @@ og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     return res;
 };
 
-og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
+og.quadTree.QuadNode.prototype.whileImageryTileLoading = function (mId) {
     var pn = this,
         notEmpty = false;
 
@@ -666,11 +671,13 @@ og.quadTree.QuadNode.prototype.whileTextureLoading = function (mId) {
 
     var segm = this.planetSegment.materials[mId];
     if (notEmpty || (psegm && !pn.parentNode)) {
-        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);
         segm.texture = psegm.texture;
-        segm.texBias[0] = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2;
-        segm.texBias[1] = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
-        segm.texBias[2] = 1 / dZ2;
+        var dZ2 = 1.0 / (2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1));
+        this.planetSegment._tileOffsetArr.push(
+            this.planetSegment.tileX * dZ2 - pn.planetSegment.tileX,
+            this.planetSegment.tileY * dZ2 - pn.planetSegment.tileY,
+            dZ2,
+            dZ2);
     }
 };
 

@@ -205,3 +205,15 @@ og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
 og.planetSegment.SegmentWGS84.prototype.isEntityInside = function (e) {
     return this.extent.isInside(e._lonlat);
 };
+
+og.planetSegment.SegmentWGS84.prototype._addVisibleLayerExtentOffset = function (layer) {
+    var v0s = layer._extent;
+    var v0t = this.extent;
+    var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+    var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+    var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+    var dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+    var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+    var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    this._visibleExtentOffsetArr.push(dV0s_x, dV0s_y, dSize_x, dSize_y);
+};

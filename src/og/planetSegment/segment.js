@@ -143,12 +143,11 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    //this.geoImageTexture = null;
-    //this.geoImageTextureBias = [0, 0, 1];
-    //this._inTheGeoImageTileCreatorQueue = false;
+    this._tileOffsetArr = [];
+    this._visibleExtentOffsetArr = [];
 
-    this._texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
-    this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
+    //this._texBiasArr = new Float32Array(og.layer.MAXIMUM_OVERLAYS * 3);
+    //this._samplerArr = new Int32Array(og.layer.MAXIMUM_OVERLAYS);
 
     this._extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
     this._globalTextureCoordinates = [0, 0, 0, 0];
@@ -801,11 +800,10 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    //this.geoImageTexture = null;
-    //this.geoImageTextureBias = null;
-
-    this._texBiasArr = null;
-    this._samplerArr = null;
+    //this._texBiasArr = null;
+    //this._samplerArr = null;
+    this._tileOffsetArr = null;
+    this._visibleExtentOffsetArr = null;
 
     this._extentParams = null;
     this._projection = null;
@@ -992,6 +990,18 @@ og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
     }
 };
 
+og.planetSegment.Segment.prototype._addVisibleLayerExtentOffset = function (layer) {
+    var v0s = layer._extentMerc;
+    var v0t = this.extent;
+    var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+    var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+    var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+    var dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+    var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+    var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    this._visibleExtentOffsetArr.push(dV0s_x, dV0s_y, dSize_x, dSize_y);
+};
+
 og.planetSegment.drawSingle = function (sh, segment) {
     if (segment.ready) {
         var gl = segment.handler.gl;
@@ -1004,12 +1014,10 @@ og.planetSegment.drawSingle = function (sh, segment) {
         if (layers.length) {
             var baseMat = segment.materials[layers[0]._id];
             gl.bindTexture(gl.TEXTURE_2D, baseMat.texture);
-            gl.uniform3fv(shu.texBias._pName, baseMat.texBias);
+            gl.uniform4fv(shu.tileOffsetArr._pName, new Float32Array(segment._tileOffsetArr));
+            gl.uniform4fv(shu.visibleExtentOffsetArr._pName, new Float32Array(segment._visibleExtentOffsetArr));
         }
-        /*else {
-            gl.bindTexture(gl.TEXTURE_2D, segment._isNorth ? segment.planet.solidTextureOne : segment.planet.solidTextureTwo);
-            gl.uniform3fv(shu.texBias._pName, [0, 0, 1]);
-        }*/
+
         gl.uniform1i(shu.uSampler._pName, 0);
 
         //bind normalmap texture
@@ -1022,12 +1030,6 @@ og.planetSegment.drawSingle = function (sh, segment) {
             //bind segment specular and night material texture coordinates
             gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
         }
-
-        ////bind geoimages texture
-        //gl.activeTexture(gl.TEXTURE2);
-        //gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-        //gl.uniform1i(shu.uGeoImage._pName, 2);
-        //gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
 
         segment.draw(sh);
     }
@@ -1044,7 +1046,6 @@ og.planetSegment.drawOverlays = function (sh, segment) {
             var ll = layers[l];
             var mat = segment.materials[ll._id];
             var nt3 = l * 3;
-            //var nt4 = l * 4;
 
             segment._texBiasArr[nt3] = mat.texBias[0];
             segment._texBiasArr[nt3 + 1] = mat.texBias[1];

@@ -292,3 +292,7 @@ og.Extent.prototype.getCartesianBounds = function (ellipsoid) {
 
     return [xmin, xmax, ymin, ymax, zmin, zmax];
 };
+
+og.Extent.prototype.toString = function () {
+    return "[" + this.southWest.lon + ", " + this.southWest.lat + ", " + this.northEast.lon + ", " + this.northEast.lat + "]";
+};
