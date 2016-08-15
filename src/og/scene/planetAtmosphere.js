@@ -2,10 +2,10 @@ goog.provide('og.scene.PlanetAtmosphere');
 
 goog.require('og.shape.Icosphere');
 goog.require('og.shaderProgram.atmosphereSpace');
-goog.require('og.shaderProgram.overlays_nl');
-goog.require('og.shaderProgram.overlaysAtmosphere_wl');
-goog.require('og.shaderProgram.single_nl');
-goog.require('og.shaderProgram.singleAtmosphere_wl');
+//goog.require('og.shaderProgram.overlays_nl');
+//goog.require('og.shaderProgram.overlaysAtmosphere_wl');
+//goog.require('og.shaderProgram.single_nl');
+//goog.require('og.shaderProgram.singleAtmosphere_wl');
 goog.require('og.inheritance');
 
 og.scene.PlanetAtmosphere = function(name, ellipsoid){

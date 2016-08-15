@@ -67,7 +67,7 @@ og.utils.hexStringToVector = function (hex, opacity) {
 };
 
 /**
- * Adds substrings with template.
+ * Replace template substrings between '{' and '}' tokens.
  * @param {string} template - String with templates in "{" and "}"
  * @param {Object} params - Template named object with subsrtings.
  * @example <caption>Example from og.terrainProvider that replaces tile indexes in url:</caption>

@@ -113,6 +113,13 @@ og.layer.Layer = function (name, options) {
     this._visibility = options.visibility != undefined ? options.visibility : true;
 
     /**
+     * Height over the ground.
+     * @protected
+     * @type {number}
+     */
+    this._height = options.height || 0;
+
+    /**
      * Visible extent in degrees.
      * @protected
      * @type {og.Extent}

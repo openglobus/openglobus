@@ -9,6 +9,7 @@ og.planetSegment.Material = function (segment, layer) {
     this.texture = null;
     this.image = null;
     this.textureExists = false;
+    this.appliedNodeId = 0;
 };
 
 og.planetSegment.Material.prototype.assignLayer = function (layer) {
@@ -40,7 +41,7 @@ og.planetSegment.Material.prototype.applyTexture = function (img) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
         //this.texBias = [0, 0, 1];
-        //this.segment.node.appliedTextureNodeId = this.segment.node.nodeId;
+        this.appliedNodeId = this.segment.node.nodeId;
         this.imageReady = true;
         this.textureExists = true;
         this.imageIsLoading = false;

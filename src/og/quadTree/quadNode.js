@@ -271,7 +271,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 };
 
 /**
- * When node is visible it begins to render with this method.
+ * When the node is visible in frustum than begins to rendering.
  * @public
  */
 og.quadTree.QuadNode.prototype.renderNode = function () {
@@ -295,29 +295,22 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileNormalMapCreating();
     }
 
-    //Create imagery tile materials.
-    var vl = this.planet.visibleTileLayers,
-        pm = seg.materials;
+    //for (var i = 0; i < vl.length; i++) {
+    //    var li = vl[i],
+    //        pml_id = pm[li._id];
 
-    seg._tileOffsetArr = [];
-    seg._visibleExtentOffsetArr = [];
+    //    if (!pml_id) {
+    //        pml_id = seg.materials[li._id] = new og.planetSegment.Material(seg, li);
+    //    }
 
-    for (var i = 0; i < vl.length; i++) {
-        var li = vl[i],
-            pml_id = pm[li._id];
-
-        if (!pml_id) {
-            pml_id = seg.materials[li._id] = new og.planetSegment.Material(seg, li);
-        }
-
-        if (!pml_id.imageReady) {
-            pml_id.loadTileImage();
-            this.whileImageryTileLoading(li._id);
-        } else {
-            this.planetSegment._tileOffsetArr.push(0.0, 0.0, 1.0, 1.0);
-        }
-        seg._addVisibleLayerExtentOffset(pml_id.layer);
-    }
+    //    if (!pml_id.imageReady) {
+    //        pml_id.loadTileImage();
+    //        this.whileImageryTileLoading(li._id);
+    //    } else {
+    //        this.planetSegment._tileOffsetArr.push(0.0, 0.0, 1.0, 1.0);
+    //    }
+    //    seg._addVisibleLayerExtentOffset(pml_id.layer);
+    //}
 
 
     //Calculate minimal and maximal zoom index on the screen
@@ -655,31 +648,32 @@ og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     return res;
 };
 
-og.quadTree.QuadNode.prototype.whileImageryTileLoading = function (mId) {
-    var pn = this,
-        notEmpty = false;
+//og.quadTree.QuadNode.prototype.whileImageryTileLoading = function (mId) {
+//    var pn = this,
+//        notEmpty = false;
 
-    var psegm = pn.planetSegment.materials[mId];
-    while (pn.parentNode) {
-        if (psegm && psegm.imageReady) {
-            notEmpty = true;
-            break;
-        }
-        pn = pn.parentNode;
-        psegm = pn.planetSegment.materials[mId];
-    }
+//    var psegm = pn.planetSegment.materials[mId];
+//    while (pn.parentNode) {
+//        if (psegm && psegm.imageReady) {
+//            notEmpty = true;
+//            break;
+//        }
+//        pn = pn.parentNode;
+//        psegm = pn.planetSegment.materials[mId];
+//    }
 
-    var segm = this.planetSegment.materials[mId];
-    if (notEmpty || (psegm && !pn.parentNode)) {
-        segm.texture = psegm.texture;
-        var dZ2 = 1.0 / (2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1));
-        this.planetSegment._tileOffsetArr.push(
-            this.planetSegment.tileX * dZ2 - pn.planetSegment.tileX,
-            this.planetSegment.tileY * dZ2 - pn.planetSegment.tileY,
-            dZ2,
-            dZ2);
-    }
-};
+//    var segm = this.planetSegment.materials[mId];
+//    if (notEmpty || (psegm && !pn.parentNode)) {
+//        segm.texture = psegm.texture;
+//        var dZ2 = 1.0 / (2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1));
+//        psegm.appliedNodeId = this.nodeId;
+//        this.planetSegment._tileOffsetArr.push(
+//            this.planetSegment.tileX * dZ2 - pn.planetSegment.tileX,
+//            this.planetSegment.tileY * dZ2 - pn.planetSegment.tileY,
+//            dZ2,
+//            dZ2);
+//    }
+//};
 
 og.quadTree.QuadNode.prototype.clearTree = function () {
 

@@ -51,14 +51,14 @@ og.layer.WMS = function (name, options) {
      * @public
      * @type {number}
      */
-    this.width = options.width || 256;
+    this.imageWidth = options.imageWidth || 256;
 
     /**
      * WMS tile height.
      * @public
      * @type {number}
      */
-    this.height = options.height || 256;
+    this.imageHeight = options.imageHeight || 256;
 }
 
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
@@ -102,6 +102,6 @@ og.layer.WMS.prototype._createUrl = function (segment) {
             "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap" +
             "&SRS=" + segment._projection.code +
             "&BBOX=" + segment.extent.getWest() + "," + segment.extent.getSouth() + "," + segment.extent.getEast() + "," + segment.extent.getNorth() +
-            "&WIDTH=" + this.width +
-            "&HEIGHT=" + this.height;
+            "&WIDTH=" + this.imageWidth +
+            "&HEIGHT=" + this.imageHeight;
 };

@@ -206,7 +206,7 @@ og.planetSegment.SegmentWGS84.prototype.isEntityInside = function (e) {
     return this.extent.isInside(e._lonlat);
 };
 
-og.planetSegment.SegmentWGS84.prototype._addVisibleLayerExtentOffset = function (layer) {
+og.planetSegment.SegmentWGS84.prototype._getLayerExtentOffset = function (layer) {
     var v0s = layer._extent;
     var v0t = this.extent;
     var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
@@ -215,5 +215,13 @@ og.planetSegment.SegmentWGS84.prototype._addVisibleLayerExtentOffset = function 
     var dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
     var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
     var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
-    this._visibleExtentOffsetArr.push(dV0s_x, dV0s_y, dSize_x, dSize_y);
+    return [dV0s_x, dV0s_y, dSize_x, dSize_y];
+};
+
+og.planetSegment.SegmentWGS84.prototype.layerOverlap = function (l) {
+    return this.extent.overlaps(l._extent);
+};
+
+og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {
+    return this.planet.solidTextureTwo;
 };

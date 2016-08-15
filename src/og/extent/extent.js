@@ -144,9 +144,11 @@ og.Extent.prototype.isInside = function (lonlat) {
  * @param {og.Extent} e - Another extent.
  * @return {boolean}
  */
-og.Extent.prototype.intersects = function (e) {
-    return this.southWest.lon < e.northEast.lon && this.northEast.lon > e.southWest.lon &&
-       this.southWest.lat < e.northEast.lat && this.northEast.lat > e.southWest.lat;
+og.Extent.prototype.overlaps = function (e) {
+    var sw = this.southWest,
+        ne = this.northEast;
+    return sw.lon < e.northEast.lon && ne.lon > e.southWest.lon &&
+           sw.lat < e.northEast.lat && ne.lat > e.southWest.lat;
 };
 
 /**

@@ -11,10 +11,11 @@ goog.require('og.quadTree');
 goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
-goog.require('og.shaderProgram.overlays_wl');
-goog.require('og.shaderProgram.overlays_nl');
-goog.require('og.shaderProgram.single_nl');
-goog.require('og.shaderProgram.single_wl');
+goog.require('og.shaderProgram.drawnode_nl');
+//goog.require('og.shaderProgram.overlays_wl');
+//goog.require('og.shaderProgram.overlays_nl');
+//goog.require('og.shaderProgram.single_nl');
+//goog.require('og.shaderProgram.single_wl');
 goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
@@ -77,6 +78,7 @@ og.scene.Planet = function (name, ellipsoid) {
      * @type {Array.<og.layer.Layer>}
      */
     this.visibleTileLayers = [];
+    this._visibleTileLayerSlices = [];
 
     /**
      * Current visible vector layers array.
@@ -539,10 +541,11 @@ og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
  * @protected
  */
 og.scene.Planet.prototype._initializeShaders = function () {
-    this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_wl(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
 };
 
@@ -693,6 +696,7 @@ og.scene.Planet.prototype.updateAttributionsList = function () {
  * @public
  */
 og.scene.Planet.prototype.updateVisibleLayers = function () {
+
     this.visibleTileLayers = [];
     this.visibleTileLayers.length = 0;
 
@@ -729,22 +733,34 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
         }
     }
 
-    this._sortVisibleLayersByZIndex();
+    this._sortVisibleLayers();
 };
 
 /**
  * Sort visible layer preparing for rendering.
  * @protected
  */
-og.scene.Planet.prototype._sortVisibleLayersByZIndex = function () {
+og.scene.Planet.prototype._sortVisibleLayers = function () {
 
     this.visibleTileLayers.sort(function (a, b) {
-        return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
+        return (a._zIndex - b._zIndex) || (a._height - b._height);
     });
 
     this.visibleVectorLayers.sort(function (a, b) {
-        return a._isBaseLayer ? -1 : a._zIndex - b._zIndex;
+        return (a._zIndex - b._zIndex) || (a._height - b._height);
     });
+
+    this._visibleTileLayerSlices = [];
+    this._visibleTileLayerSlices.length = 0;
+    var k = -1;
+    var SLICE_SIZE = 1;
+    for (var i = 0; i < this.visibleTileLayers.length; i++) {
+        if (i % SLICE_SIZE === 0) {
+            k++;
+            this._visibleTileLayerSlices[k] = [];
+        }
+        this._visibleTileLayerSlices[k].push(this.visibleTileLayers[i]);
+    }
 };
 
 /**
@@ -820,25 +836,140 @@ og.scene.Planet.prototype._rendering = function () {
     this._renderVectorLayersPASS();
 };
 
+///**
+// * @virtual
+// * @protected
+// */
+//og.scene.Planet.prototype._drawOverlays = function () {
+//    var sh;
+//    var renderer = this.renderer;
+//    var h = renderer.handler;
+//    var gl = h.gl;
+
+//    var layers = this.visibleTileLayers;
+
+//    gl.blendEquation(gl.FUNC_ADD);
+//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+//    gl.enable(gl.BLEND);
+
+//    if (this.lightEnabled) {
+//        h.shaderPrograms.overlays_wl.activate();
+//        sh = h.shaderPrograms.overlays_wl._program,
+//        shu = sh.uniforms;
+
+//        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+//        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+//        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
+
+//        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+//        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
+//        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+
+//        //bind night glowing material
+//        gl.activeTexture(gl.TEXTURE0 + layers.length + 2);
+//        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+//        gl.uniform1i(shu.uNightImage._pName, layers.length + 2);
+
+//        //bind specular material
+//        gl.activeTexture(gl.TEXTURE0 + layers.length + 3);
+//        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+//        gl.uniform1i(shu.uSpecularImage._pName, layers.length + 3);
+
+//    } else {
+//        h.shaderPrograms.overlays_nl.activate();
+//        sh = h.shaderPrograms.overlays_nl._program;
+//        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+//    }
+
+//    var i = layers.length;
+//    while (i--) {
+//        var ll = layers[i];
+//        var nt4 = i * 4;
+//        this._tcolorArr[nt4] = ll.transparentColor[0];
+//        this._tcolorArr[nt4 + 1] = ll.transparentColor[1];
+//        this._tcolorArr[nt4 + 2] = ll.transparentColor[2];
+//        this._tcolorArr[nt4 + 3] = ll.opacity;
+//    }
+
+//    gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
+//    gl.uniform4fv(sh.uniforms.tcolorArr._pName, this._tcolorArr);
+
+//    //draw planet's nodes
+//    var i = this._renderedNodes.length;
+//    while (i--) {
+//        og.planetSegment.drawOverlays(sh, this._renderedNodes[i].planetSegment);
+//    }
+
+//    gl.disable(gl.BLEND);
+//};
+
+///**
+// * @virtual
+// * @protected
+// */
+//og.scene.Planet.prototype._drawSingle = function () {
+//    var sh;
+//    var renderer = this.renderer;
+//    var h = renderer.handler;
+//    var gl = h.gl;
+
+//    gl.blendEquation(gl.FUNC_ADD);
+//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+//    gl.enable(gl.BLEND);
+
+//    if (this.lightEnabled) {
+//        h.shaderPrograms.single_wl.activate();
+//        sh = h.shaderPrograms.single_wl._program,
+//        shu = sh.uniforms;
+
+//        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+//        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+//        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
+
+//        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+//        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
+//        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+
+//        //bind night and specular materials
+//        gl.activeTexture(gl.TEXTURE3);
+//        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+//        gl.uniform1i(shu.uNightImage._pName, 3);
+
+//        gl.activeTexture(gl.TEXTURE4);
+//        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+//        gl.uniform1i(shu.uSpecularImage._pName, 4);
+//    } else {
+//        h.shaderPrograms.single_nl.activate();
+//        sh = h.shaderPrograms.single_nl._program;
+//        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+//    }
+
+//    //draw planet's nodes
+//    var i = this._renderedNodes.length;
+//    while (i--) {
+//        og.planetSegment.drawSingle(sh, this._renderedNodes[i].planetSegment);
+//    }
+
+//    gl.disable(gl.BLEND);
+//};
+
 /**
- * @virtual
  * @protected
  */
-og.scene.Planet.prototype._drawOverlays = function () {
+og.scene.Planet.prototype._renderNodesPASS = function () {
+
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
     var gl = h.gl;
-
-    var layers = this.visibleTileLayers;
 
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
 
     if (this.lightEnabled) {
-        h.shaderPrograms.overlays_wl.activate();
-        sh = h.shaderPrograms.overlays_wl._program,
+        h.shaderPrograms.drawnode_wl.activate();
+        sh = h.shaderPrograms.drawnode_wl._program,
         shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
@@ -860,92 +991,28 @@ og.scene.Planet.prototype._drawOverlays = function () {
         gl.uniform1i(shu.uSpecularImage._pName, layers.length + 3);
 
     } else {
-        h.shaderPrograms.overlays_nl.activate();
-        sh = h.shaderPrograms.overlays_nl._program;
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
-    }
-
-    var i = layers.length;
-    while (i--) {
-        var ll = layers[i];
-        var nt4 = i * 4;
-        this._tcolorArr[nt4] = ll.transparentColor[0];
-        this._tcolorArr[nt4 + 1] = ll.transparentColor[1];
-        this._tcolorArr[nt4 + 2] = ll.transparentColor[2];
-        this._tcolorArr[nt4 + 3] = ll.opacity;
-    }
-
-    gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
-    gl.uniform4fv(sh.uniforms.tcolorArr._pName, this._tcolorArr);
-
-    //draw planet's nodes
-    var i = this._renderedNodes.length;
-    while (i--) {
-        og.planetSegment.drawOverlays(sh, this._renderedNodes[i].planetSegment);
-    }
-
-    gl.disable(gl.BLEND);
-};
-
-/**
- * @virtual
- * @protected
- */
-og.scene.Planet.prototype._drawSingle = function () {
-    var sh;
-    var renderer = this.renderer;
-    var h = renderer.handler;
-    var gl = h.gl;
-
-    gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
-
-    if (this.lightEnabled) {
-        h.shaderPrograms.single_wl.activate();
-        sh = h.shaderPrograms.single_wl._program,
-        shu = sh.uniforms;
-
-        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
-        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
-        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
-
-        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
-
-        //bind night and specular materials
-        gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-        gl.uniform1i(shu.uNightImage._pName, 3);
-
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-        gl.uniform1i(shu.uSpecularImage._pName, 4);
-    } else {
-        h.shaderPrograms.single_nl.activate();
-        sh = h.shaderPrograms.single_nl._program;
+        h.shaderPrograms.drawnode_nl.activate();
+        sh = h.shaderPrograms.drawnode_nl._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
     }
 
     //draw planet's nodes
-    var i = this._renderedNodes.length;
+    var rn = this._renderedNodes,
+        sl = this._visibleTileLayerSlices;
+
+    var i = rn.length;
     while (i--) {
-        og.planetSegment.drawSingle(sh, this._renderedNodes[i].planetSegment);
+        rn[i].planetSegment._renderBase(sh, sl[0]);
+    }
+
+    for (j = 1; j < sl.length; j++) {
+        i = rn.length;
+        while (i--) {
+            rn[i].planetSegment._renderOverlay(sh, sl[j]);
+        }
     }
 
     gl.disable(gl.BLEND);
-};
-
-/**
- * @protected
- */
-og.scene.Planet.prototype._renderNodesPASS = function () {
-    if (this.visibleTileLayers.length > 1) {
-        this._drawOverlays();
-    } else {
-        this._drawSingle();
-    }
 };
 
 /**
