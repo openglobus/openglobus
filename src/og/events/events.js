@@ -11,7 +11,7 @@ og.Events = function (eventNames) {
      * @protected
      * @type {Array.<string>}
      */
-    this._eventNames = eventNames || [];
+    this._eventNames = eventNames ? [].concat(eventNames) : [];
     eventNames && this.registerNames(eventNames);
 
     /**
