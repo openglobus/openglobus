@@ -348,7 +348,7 @@ og.scene.Planet.EVENT_NAMES = [
         /**
          * Triggered when geo image added.
          * @event og.scene.Planet#geoimageadd
-         
+
         "geoimageadd"*/];
 
 /**
@@ -733,33 +733,39 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
         }
     }
 
-    this._sortVisibleLayers();
+    this._layersUpdate();
 };
 
 /**
  * Sort visible layer preparing for rendering.
  * @protected
  */
-og.scene.Planet.prototype._sortVisibleLayers = function () {
+og.scene.Planet.prototype._layersUpdate = function () {
 
-    this.visibleTileLayers.sort(function (a, b) {
-        return (a._zIndex - b._zIndex) || (a._height - b._height);
-    });
 
     this.visibleVectorLayers.sort(function (a, b) {
         return (a._zIndex - b._zIndex) || (a._height - b._height);
     });
 
-    this._visibleTileLayerSlices = [];
-    this._visibleTileLayerSlices.length = 0;
-    var k = -1;
-    var SLICE_SIZE = 1;
-    for (var i = 0; i < this.visibleTileLayers.length; i++) {
-        if (i % SLICE_SIZE === 0) {
-            k++;
-            this._visibleTileLayerSlices[k] = [];
+
+    if (this.visibleTileLayers.length) {
+        this.visibleTileLayers.sort(function (a, b) {
+            return a._height - b._height || a._zIndex < b._zIndex;
+        });
+
+        this._visibleTileLayerSlices = [];
+        this._visibleTileLayerSlices.length = 0;
+        var k = -1;
+        var SLICE_SIZE = 1;
+        var currHeight = this.visibleTileLayers[0]._height;
+        for (var i = 0; i < this.visibleTileLayers.length; i++) {
+            if (i % SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
+                k++;
+                this._visibleTileLayerSlices[k] = [];
+                currHeight = this.visibleTileLayers[i]._height;
+            }
+            this._visibleTileLayerSlices[k].push(this.visibleTileLayers[i]);
         }
-        this._visibleTileLayerSlices[k].push(this.visibleTileLayers[i]);
     }
 };
 
@@ -1005,16 +1011,21 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         rn[i].planetSegment._renderBase(sh, sl[0]);
     }
 
+    gl.enable(gl.POLYGON_OFFSET_FILL);
     for (j = 1; j < sl.length; j++) {
         i = rn.length;
+        OFFSET && gl.polygonOffset(0, -j * OFFSET_VALUE);
         while (i--) {
             rn[i].planetSegment._renderOverlay(sh, sl[j]);
         }
     }
+    gl.disable(gl.POLYGON_OFFSET_FILL);
 
     gl.disable(gl.BLEND);
 };
 
+OFFSET = true;
+OFFSET_VALUE = 1;
 /**
  * @protected
  */
@@ -1072,7 +1083,7 @@ og.scene.Planet.prototype.memClear = function () {
 };
 
 /**
- * Returns ray vector hit ellipsoid coordinates. 
+ * Returns ray vector hit ellipsoid coordinates.
  * If the ray doesn't hit ellipsoit returns null.
  * @public
  * @param {og.math.Vector3} origin - Ray origin point.
@@ -1090,7 +1101,7 @@ og.scene.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
 };
 
 /**
- * Returns ray vector hit ellipsoid coordinates. 
+ * Returns ray vector hit ellipsoid coordinates.
  * If the ray doesn't hit ellipsoit returns null.
  * @public
  * @param {og.math.Ray} ray - Ray 3d.
@@ -1125,7 +1136,7 @@ og.scene.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
 };
 
 /**
- * Returns 3d cartesian coordinates on the relief planet by mouse cursor 
+ * Returns 3d cartesian coordinates on the relief planet by mouse cursor
  * position or null if mouse cursor is outside the planet.
  * @public
  * @returns {og.math.Vector3}
@@ -1194,7 +1205,7 @@ og.scene.Planet.prototype.getPixelFromLonLat = function (lonlat) {
 };
 
 /**
- * Returns distance from active camera to the the planet ellipsoid 
+ * Returns distance from active camera to the the planet ellipsoid
  * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
  * @public
  * @param {og.math.Vector2} px
@@ -1206,9 +1217,9 @@ og.scene.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
 };
 
 /**
- * Returns distance from active camera to the the relief planet coordiantes unprojected 
- * by 2d screen coordiantes, or null if screen coordinates outside the planet. 
- * If screen coordinates inside the planet but relief is not exists in the 
+ * Returns distance from active camera to the the relief planet coordiantes unprojected
+ * by 2d screen coordiantes, or null if screen coordinates outside the planet.
+ * If screen coordinates inside the planet but relief is not exists in the
  * point than function returns distance to the planet ellipsoid.
  * @public
  * @param {og.math.Vector2} px

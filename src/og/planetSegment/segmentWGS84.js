@@ -225,3 +225,7 @@ og.planetSegment.SegmentWGS84.prototype.layerOverlap = function (l) {
 og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {
     return this.planet.solidTextureTwo;
 };
+
+og.planetSegment.SegmentWGS84.prototype.getLayerExtent = function (layer) {
+    return layer._extentMerc;
+};

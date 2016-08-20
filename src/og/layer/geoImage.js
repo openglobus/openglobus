@@ -12,8 +12,14 @@ og.layer.GeoImage = function (name, options) {
 
 og.inheritance.extend(og.layer.GeoImage, og.layer.Layer);
 
-og.layer.GeoImage.prototype._getTexCoordsOffset = function (segment, material) {
-    var v0s = material.layer._extent;
+og.layer.GeoImage.prototype.handleSegmentTile = function (material) {
+    if (this._planet.layersActivity) {
+    }
+};
+
+
+og.layer.GeoImage.prototype.getTexCoordsOffset = function (segment) {
+    var v0s = segment.getLayerExtent(this);
     var v0t = segment.extent;
     var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
     var sSize_y = v0s.northEast.lat - v0s.southWest.lat;

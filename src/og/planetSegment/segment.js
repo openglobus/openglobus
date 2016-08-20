@@ -996,37 +996,37 @@ og.planetSegment.Segment.prototype._getLayerExtentOffset = function (layer) {
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-og.planetSegment.Segment.prototype._getTileOffset = function (layer) {
-    var pn = this.node,
-        notEmpty = false;
+//og.planetSegment.Segment.prototype._getTexCoordsOffset = function (layer) {
+//    var pn = this.node,
+//        notEmpty = false;
 
-    var mId = layer._id;
+//    var mId = layer._id;
 
-    var psegm = this.materials[mId];
-    while (pn.parentNode) {
-        if (psegm && psegm.imageReady) {
-            notEmpty = true;
-            break;
-        }
-        pn = pn.parentNode;
-        psegm = pn.planetSegment.materials[mId];
-    }
+//    var psegm = this.materials[mId];
+//    while (pn.parentNode) {
+//        if (psegm && psegm.imageReady) {
+//            notEmpty = true;
+//            break;
+//        }
+//        pn = pn.parentNode;
+//        psegm = pn.planetSegment.materials[mId];
+//    }
 
-    var segm = this.materials[mId];
-    if (notEmpty/* || (psegm && !pn.parentNode)*/) {
-        psegm.appliedNodeId = this.node.nodeId;
-        segm.texture = psegm.texture;
-        var dZ2 = 1.0 / (2 << (this.tileZoom - pn.planetSegment.tileZoom - 1));
-        return [
-            this.tileX * dZ2 - pn.planetSegment.tileX,
-            this.tileY * dZ2 - pn.planetSegment.tileY,
-            dZ2,
-            dZ2];
-    } else {
-        segm.texture = this._getDefaultTexture();
-        return [0, 0, 1, 1];;
-    }
-};
+//    var segm = this.materials[mId];
+//    if (notEmpty/* || (psegm && !pn.parentNode)*/) {
+//        psegm.appliedNodeId = this.node.nodeId;
+//        segm.texture = psegm.texture;
+//        var dZ2 = 1.0 / (2 << (this.tileZoom - pn.planetSegment.tileZoom - 1));
+//        return [
+//            this.tileX * dZ2 - pn.planetSegment.tileX,
+//            this.tileY * dZ2 - pn.planetSegment.tileY,
+//            dZ2,
+//            dZ2];
+//    } else {
+//        segm.texture = this._getDefaultTexture();
+//        return [0, 0, 1, 1];;
+//    }
+//};
 
 //og.planetSegment.drawSingle = function (sh, segment) {
 //    if (segment.ready) {
@@ -1143,14 +1143,14 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                     _tileOffsetArr[n4 + 3] = 1.0;
                 } else {
                     m.loadTileImage();
-                    var arr = this._getTileOffset(m.layer);
+                    var arr = li.getTexCoordsOffset(this);
                     _tileOffsetArr[n4] = arr[0];
                     _tileOffsetArr[n4 + 1] = arr[1];
                     _tileOffsetArr[n4 + 2] = arr[2];
                     _tileOffsetArr[n4 + 3] = arr[3];
                 }
 
-                var arr = this._getLayerExtentOffset(m.layer);
+                var arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];
                 _visibleExtentOffsetArr[n4 + 1] = arr[1];
                 _visibleExtentOffsetArr[n4 + 2] = arr[2];
@@ -1229,14 +1229,14 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                     _tileOffsetArr[n4 + 3] = 1.0;
                 } else {
                     m.loadTileImage();
-                    var arr = this._getTileOffset(m.layer);
+                    var arr = li.getTexCoordsOffset(this);
                     _tileOffsetArr[n4] = arr[0];
                     _tileOffsetArr[n4 + 1] = arr[1];
                     _tileOffsetArr[n4 + 2] = arr[2];
                     _tileOffsetArr[n4 + 3] = arr[3];
                 }
 
-                var arr = this._getLayerExtentOffset(m.layer);
+                var arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];
                 _visibleExtentOffsetArr[n4 + 1] = arr[1];
                 _visibleExtentOffsetArr[n4 + 2] = arr[2];
@@ -1469,10 +1469,14 @@ og.planetSegment.Segment.prototype._collectRenderNodes = function () {
     this.planet._visibleNodes[this.node.nodeId] = this.node;
 };
 
-og.planetSegment.Segment.prototype.layerOverlap = function (l) {
-    return this.extent.overlaps(l._extentMerc);
+og.planetSegment.Segment.prototype.layerOverlap = function (layer) {
+    return this.extent.overlaps(layer._extentMerc);
 };
 
 og.planetSegment.Segment.prototype._getDefaultTexture = function () {
     return this.planet.solidTextureOne;
+};
+
+og.planetSegment.Segment.prototype.getLayerExtent = function (layer) {
+    return layer._extentMerc;
 };
