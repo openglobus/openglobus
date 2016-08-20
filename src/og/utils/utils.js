@@ -183,3 +183,15 @@ og.utils.binarySearch = function (ar, el, compare_fn) {
     }
     return -m - 1;
 };
+
+/**
+ * @todo TESTING
+ */
+og.utils.binaryInsert = function (ar, el, compare_fn) {
+    var i = og.utils.binarySearch(ar, el, compare_fn);
+    if (i < 0) {
+        i = ~i;
+    }
+    ar.splice(i, 0, el);
+    return i;
+};
