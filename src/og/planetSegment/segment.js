@@ -1119,10 +1119,10 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(4);
-        var _visibleExtentOffsetArr = new Float32Array(4);
-        var _transparentColorArr = new Float32Array(4);
-        var _samplerArr = new Array(1);
+        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _samplerArr = new Array(this.planet.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
         var n = 0,
@@ -1189,7 +1189,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
 };
 
 og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
-    if(this.ready){
+    if (this.ready) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
@@ -1202,10 +1202,10 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(4);
-        var _visibleExtentOffsetArr = new Float32Array(4);
-        var _transparentColorArr = new Float32Array(4);
-        var _samplerArr = new Array(1);
+        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _samplerArr = new Array(this.planet.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
         var n = 0,
@@ -1213,7 +1213,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
 
         var notEmpty = false;
 
-        while (li && n < 1) {
+        while (li) {
             if (this.layerOverlap(li)) {
                 notEmpty = true;
                 var m = pm[li._id];
@@ -1277,163 +1277,163 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
 };
 
 //og.planetSegment.Segment.prototype._render = function (sh) {
-    //if (this.ready) {
-    //    var gl = this.handler.gl;
-    //    var sha = sh.attributes,
-    //        shu = sh.uniforms;
+//if (this.ready) {
+//    var gl = this.handler.gl;
+//    var sha = sh.attributes,
+//        shu = sh.uniforms;
 
-    //    var vl = this.planet.visibleTileLayers,
-    //        pm = this.materials;
+//    var vl = this.planet.visibleTileLayers,
+//        pm = this.materials;
 
-    //    //First always draw whole planet base layer segment with solid texture.
-    //    gl.activeTexture(gl.TEXTURE6);
-    //    gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
-    //    gl.uniform1i(shu.defaultTexture._pName, 6);
+//    //First always draw whole planet base layer segment with solid texture.
+//    gl.activeTexture(gl.TEXTURE6);
+//    gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
+//    gl.uniform1i(shu.defaultTexture._pName, 6);
 
-    //    var _tileOffsetArr = new Float32Array(4);
-    //    var _visibleExtentOffsetArr = new Float32Array(4);
-    //    var _transparentColorArr = new Float32Array(4);
-    //    var _samplerArr = new Array(1);
-    //    var li = vl[0];
-    //    var currHeight = li._height;
-    //    var n = 0,
-    //        i = 0;
+//    var _tileOffsetArr = new Float32Array(4);
+//    var _visibleExtentOffsetArr = new Float32Array(4);
+//    var _transparentColorArr = new Float32Array(4);
+//    var _samplerArr = new Array(1);
+//    var li = vl[0];
+//    var currHeight = li._height;
+//    var n = 0,
+//        i = 0;
 
-    //    while (li && currHeight === li._height && n < 1) {
-    //        if (this.layerOverlap(li)) {
-    //            var m = pm[li._id];
-    //            if (!m) {
-    //                m = pm[li._id] = new og.planetSegment.Material(this, li);
-    //            }
+//    while (li && currHeight === li._height && n < 1) {
+//        if (this.layerOverlap(li)) {
+//            var m = pm[li._id];
+//            if (!m) {
+//                m = pm[li._id] = new og.planetSegment.Material(this, li);
+//            }
 
-    //            var n4 = n * 4;
-    //            if (m.imageReady) {
-    //                _tileOffsetArr[n4] = 0.0;
-    //                _tileOffsetArr[n4 + 1] = 0.0;
-    //                _tileOffsetArr[n4 + 2] = 1.0;
-    //                _tileOffsetArr[n4 + 3] = 1.0;
-    //            } else {
-    //                m.loadTileImage();
-    //                var arr = this._getTileOffset(m.layer);
-    //                _tileOffsetArr[n4] = arr[0];
-    //                _tileOffsetArr[n4 + 1] = arr[1];
-    //                _tileOffsetArr[n4 + 2] = arr[2];
-    //                _tileOffsetArr[n4 + 3] = arr[3];
-    //            }
+//            var n4 = n * 4;
+//            if (m.imageReady) {
+//                _tileOffsetArr[n4] = 0.0;
+//                _tileOffsetArr[n4 + 1] = 0.0;
+//                _tileOffsetArr[n4 + 2] = 1.0;
+//                _tileOffsetArr[n4 + 3] = 1.0;
+//            } else {
+//                m.loadTileImage();
+//                var arr = this._getTileOffset(m.layer);
+//                _tileOffsetArr[n4] = arr[0];
+//                _tileOffsetArr[n4 + 1] = arr[1];
+//                _tileOffsetArr[n4 + 2] = arr[2];
+//                _tileOffsetArr[n4 + 3] = arr[3];
+//            }
 
-    //            var arr = this._getLayerExtentOffset(m.layer);
-    //            _visibleExtentOffsetArr[n4] = arr[0];
-    //            _visibleExtentOffsetArr[n4 + 1] = arr[1];
-    //            _visibleExtentOffsetArr[n4 + 2] = arr[2];
-    //            _visibleExtentOffsetArr[n4 + 3] = arr[3];
+//            var arr = this._getLayerExtentOffset(m.layer);
+//            _visibleExtentOffsetArr[n4] = arr[0];
+//            _visibleExtentOffsetArr[n4 + 1] = arr[1];
+//            _visibleExtentOffsetArr[n4 + 2] = arr[2];
+//            _visibleExtentOffsetArr[n4 + 3] = arr[3];
 
-    //            _transparentColorArr[n4] = li.transparentColor[0];
-    //            _transparentColorArr[n4 + 1] = li.transparentColor[1];
-    //            _transparentColorArr[n4 + 2] = li.transparentColor[2];
-    //            _transparentColorArr[n4 + 3] = li.opacity;
+//            _transparentColorArr[n4] = li.transparentColor[0];
+//            _transparentColorArr[n4 + 1] = li.transparentColor[1];
+//            _transparentColorArr[n4 + 2] = li.transparentColor[2];
+//            _transparentColorArr[n4 + 3] = li.opacity;
 
-    //            _samplerArr[n] = n;
+//            _samplerArr[n] = n;
 
-    //            gl.activeTexture(gl.TEXTURE0 + n);
-    //            gl.bindTexture(gl.TEXTURE_2D, m.texture);
+//            gl.activeTexture(gl.TEXTURE0 + n);
+//            gl.bindTexture(gl.TEXTURE_2D, m.texture);
 
-    //            n++;
-    //        }
-    //        i++;
-    //        li = vl[i];
-    //    }
+//            n++;
+//        }
+//        i++;
+//        li = vl[i];
+//    }
 
-    //    var indexBuffer = this._getIndexBuffer();
-    //    gl.uniform1i(shu.samplerCount._pName, n);
-    //    gl.uniform1f(shu.height._pName, currHeight);
-    //    gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
-    //    gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
-    //    gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
-    //    gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
-    //    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-    //    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    //    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-    //    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    //    sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
+//    var indexBuffer = this._getIndexBuffer();
+//    gl.uniform1i(shu.samplerCount._pName, n);
+//    gl.uniform1f(shu.height._pName, currHeight);
+//    gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
+//    gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
+//    gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
+//    gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
+//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+//    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+//    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//    sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
 
-    ////Draw overlays
-    //gl.activeTexture(gl.TEXTURE6);
-    //gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
-    //gl.uniform1i(shu.defaultTexture._pName, 6);
+////Draw overlays
+//gl.activeTexture(gl.TEXTURE6);
+//gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
+//gl.uniform1i(shu.defaultTexture._pName, 6);
 
-    //var notEmpty = false;
-    //while (i < vl.length) {
-    //    currHeight = li._height;
-    //    n = 0;
-    //    while (li && currHeight === li._height && n < 1) {
-    //        if (this.layerOverlap(li)) {
-    //            notEmpty = true;
-    //            var m = pm[li._id];
-    //            if (!m) {
-    //                m = pm[li._id] = new og.planetSegment.Material(this, li);
-    //            }
+//var notEmpty = false;
+//while (i < vl.length) {
+//    currHeight = li._height;
+//    n = 0;
+//    while (li && currHeight === li._height && n < 1) {
+//        if (this.layerOverlap(li)) {
+//            notEmpty = true;
+//            var m = pm[li._id];
+//            if (!m) {
+//                m = pm[li._id] = new og.planetSegment.Material(this, li);
+//            }
 
-    //            var n4 = n * 4;
-    //            if (m.imageReady) {
-    //                _tileOffsetArr[n4] = 0.0;
-    //                _tileOffsetArr[n4 + 1] = 0.0;
-    //                _tileOffsetArr[n4 + 2] = 1.0;
-    //                _tileOffsetArr[n4 + 3] = 1.0;
-    //            } else {
-    //                m.loadTileImage();
-    //                var arr = this._getTileOffset(m.layer);
-    //                _tileOffsetArr[n4] = arr[0];
-    //                _tileOffsetArr[n4 + 1] = arr[1];
-    //                _tileOffsetArr[n4 + 2] = arr[2];
-    //                _tileOffsetArr[n4 + 3] = arr[3];
-    //            }
+//            var n4 = n * 4;
+//            if (m.imageReady) {
+//                _tileOffsetArr[n4] = 0.0;
+//                _tileOffsetArr[n4 + 1] = 0.0;
+//                _tileOffsetArr[n4 + 2] = 1.0;
+//                _tileOffsetArr[n4 + 3] = 1.0;
+//            } else {
+//                m.loadTileImage();
+//                var arr = this._getTileOffset(m.layer);
+//                _tileOffsetArr[n4] = arr[0];
+//                _tileOffsetArr[n4 + 1] = arr[1];
+//                _tileOffsetArr[n4 + 2] = arr[2];
+//                _tileOffsetArr[n4 + 3] = arr[3];
+//            }
 
-    //            var arr = this._getLayerExtentOffset(m.layer);
-    //            _visibleExtentOffsetArr[n4] = arr[0];
-    //            _visibleExtentOffsetArr[n4 + 1] = arr[1];
-    //            _visibleExtentOffsetArr[n4 + 2] = arr[2];
-    //            _visibleExtentOffsetArr[n4 + 3] = arr[3];
+//            var arr = this._getLayerExtentOffset(m.layer);
+//            _visibleExtentOffsetArr[n4] = arr[0];
+//            _visibleExtentOffsetArr[n4 + 1] = arr[1];
+//            _visibleExtentOffsetArr[n4 + 2] = arr[2];
+//            _visibleExtentOffsetArr[n4 + 3] = arr[3];
 
-    //            _transparentColorArr[n4] = li.transparentColor[0];
-    //            _transparentColorArr[n4 + 1] = li.transparentColor[1];
-    //            _transparentColorArr[n4 + 2] = li.transparentColor[2];
-    //            _transparentColorArr[n4 + 3] = li.opacity;
+//            _transparentColorArr[n4] = li.transparentColor[0];
+//            _transparentColorArr[n4 + 1] = li.transparentColor[1];
+//            _transparentColorArr[n4 + 2] = li.transparentColor[2];
+//            _transparentColorArr[n4 + 3] = li.opacity;
 
-    //            _samplerArr[n] = n;
+//            _samplerArr[n] = n;
 
-    //            gl.activeTexture(gl.TEXTURE0 + n);
-    //            gl.bindTexture(gl.TEXTURE_2D, m.texture);
+//            gl.activeTexture(gl.TEXTURE0 + n);
+//            gl.bindTexture(gl.TEXTURE_2D, m.texture);
 
-    //            n++;
-    //        }
-    //        i++;
-    //        li = vl[i];
-    //    }
+//            n++;
+//        }
+//        i++;
+//        li = vl[i];
+//    }
 
-    //    if (notEmpty) {
-    //        gl.uniform1i(shu.samplerCount._pName, n);
-    //        gl.uniform1f(shu.height._pName, currHeight);
-    //        gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
-    //        gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
-    //        gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
-    //        gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
-    //        sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
-    //    }
-    //}
+//    if (notEmpty) {
+//        gl.uniform1i(shu.samplerCount._pName, n);
+//        gl.uniform1f(shu.height._pName, currHeight);
+//        gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
+//        gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
+//        gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
+//        gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
+//        sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
+//    }
+//}
 
-    //bind normalmap texture
-    //if (this.planet.lightEnabled) {
-    //    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-    //    gl.activeTexture(gl.TEXTURE1);
-    //    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
-    //    gl.uniform1i(shu.uNormalMap._pName, 1);
+//bind normalmap texture
+//if (this.planet.lightEnabled) {
+//    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+//    gl.activeTexture(gl.TEXTURE1);
+//    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+//    gl.uniform1i(shu.uNormalMap._pName, 1);
 
-    //    //bind segment specular and night material texture coordinates
-    //    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
-    //}
+//    //bind segment specular and night material texture coordinates
+//    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+//}
 
-    //this._draw(sh);
-    //this.node.hasNeighbor = [false, false, false, false];
+//this._draw(sh);
+//this.node.hasNeighbor = [false, false, false, false];
 //}
 //};
 //og.planetSegment.Segment.prototype._draw = function (sh) {

@@ -750,16 +750,16 @@ og.scene.Planet.prototype._layersUpdate = function () {
 
     if (this.visibleTileLayers.length) {
         this.visibleTileLayers.sort(function (a, b) {
-            return a._height - b._height || a._zIndex < b._zIndex;
+            return a._height - b._height || a._zIndex - b._zIndex;
         });
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
         var k = -1;
-        var SLICE_SIZE = 1;
+        this.SLICE_SIZE = 5;
         var currHeight = this.visibleTileLayers[0]._height;
         for (var i = 0; i < this.visibleTileLayers.length; i++) {
-            if (i % SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
+            if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
                 k++;
                 this._visibleTileLayerSlices[k] = [];
                 currHeight = this.visibleTileLayers[i]._height;

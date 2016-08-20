@@ -29,8 +29,9 @@ function start() {
     var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.png", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
     //var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://c.tile.osm.kosmosnimki.ru/kosmo/{zoom}/{tilex}/{tiley}.png" });
-    var states = new og.layer.WMS("USA States", { height: 500000, zIndex: 100, extent: og.extent(og.lonLat(-120, 20), og.lonLat(-60, 45)), visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
+    var states = new og.layer.WMS("USA States", { height: 350000, zIndex: 100, extent: og.extent(og.lonLat(-120, 20), og.lonLat(-60, 45)), visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
+    var osm2 = new og.layer.XYZ("OpenStreetMap", { height: 350000, extent: og.extent(og.lonLat(-100, 25), og.lonLat(-70, 40)), isBaseLayer: false, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '', zIndex: 0 });
 
     var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
@@ -60,7 +61,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, osm, hyb, states],
+        "layers": [sat, osm, hyb, states, osm2],
         "autoActivate": true
     });
 
