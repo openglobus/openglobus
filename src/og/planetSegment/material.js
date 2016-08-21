@@ -60,11 +60,8 @@ og.planetSegment.Material.prototype.clear = function () {
 
         if (!this.texture.default)
             this.segment.handler.gl.deleteTexture(this.texture);
-        this.texture = null;
 
-        //this.segment = null;
-        //this.layer = null;
-        //this.texBias = [0, 0, 1];
+        this.texture = null;
     }
 
     this.layer.abortMaterialLoading(this);

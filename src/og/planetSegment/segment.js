@@ -628,61 +628,6 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
     }
 };
 
-///**
-// * Render geoImages to the segment texture.
-// */
-//og.planetSegment.Segment.prototype.createGeoImageTileTexture = function () {
-//    var canvas = this.planet.geoImageTileCreator.draw(this);
-//    if (canvas) {
-//        this.geoImageTexture = this.handler.createTexture_mm(canvas);
-//    } else {
-//        this.geoImageTexture = this.planet.transparentTexture;
-//    }
-//    this.geoImageTextureBias = [0, 0, 1];
-//    this.geoImageReady = true;
-//};
-
-//og.planetSegment.Segment.prototype.drawGeoImage = function (geoImage) {
-//    if (geoImage.visibility && geoImage.imageLoaded && geoImage._mercExtent.intersects(this.extent)) {
-
-//        var tc = this.planet.geoImageTileCreator;
-
-//        //better replace to geoImage
-//        if (geoImage.getCurvature() >= 0.005 && !geoImage._mercSamplerReady) {
-//            tc.createMercatorSamplerPASS(geoImage);
-//        }
-
-//        var h = tc._handler;
-//        var sh = h.shaderPrograms.geoImage._program;
-//        var sha = sh.attributes,
-//            shu = sh.uniforms;
-//        var gl = h.gl;
-
-//        h.shaderPrograms.geoImage.activate();
-//        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
-//        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-//        if (geoImage.getCurvature() >= 0.005) {
-//            gl.activeTexture(gl.TEXTURE0);
-//            gl.bindTexture(gl.TEXTURE_2D, geoImage._mercFramebuffer.texture);
-//            gl.uniform1i(shu.u_sourceImage._pName, 0);
-//            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercExtentCornersBuffer);
-//            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercExtentCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//        } else {
-//            gl.activeTexture(gl.TEXTURE0);
-//            gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
-//            gl.uniform1i(shu.u_sourceImage._pName, 0);
-//            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._mercCornersBuffer);
-//            gl.vertexAttribPointer(sha.a_corner._pName, geoImage._mercCornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//        }
-
-//        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
-//        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
-//        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-//        return true;
-//    }
-//};
-
 /**
  * Callback that calls in terrain provider to complete the terrain.
  */
@@ -740,11 +685,6 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     if (this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
-    //if (this.geoImageReady && !this.geoImageTexture.default) {
-    //    this.handler.gl.deleteTexture(this.geoImageTexture);
-    //}
-    //this.geoImageReady = false;
-    //this.geoImageTextureBias = [0, 0, 1];
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
@@ -996,38 +936,6 @@ og.planetSegment.Segment.prototype._getLayerExtentOffset = function (layer) {
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-//og.planetSegment.Segment.prototype._getTexCoordsOffset = function (layer) {
-//    var pn = this.node,
-//        notEmpty = false;
-
-//    var mId = layer._id;
-
-//    var psegm = this.materials[mId];
-//    while (pn.parentNode) {
-//        if (psegm && psegm.imageReady) {
-//            notEmpty = true;
-//            break;
-//        }
-//        pn = pn.parentNode;
-//        psegm = pn.planetSegment.materials[mId];
-//    }
-
-//    var segm = this.materials[mId];
-//    if (notEmpty/* || (psegm && !pn.parentNode)*/) {
-//        psegm.appliedNodeId = this.node.nodeId;
-//        segm.texture = psegm.texture;
-//        var dZ2 = 1.0 / (2 << (this.tileZoom - pn.planetSegment.tileZoom - 1));
-//        return [
-//            this.tileX * dZ2 - pn.planetSegment.tileX,
-//            this.tileY * dZ2 - pn.planetSegment.tileY,
-//            dZ2,
-//            dZ2];
-//    } else {
-//        segm.texture = this._getDefaultTexture();
-//        return [0, 0, 1, 1];;
-//    }
-//};
-
 //og.planetSegment.drawSingle = function (sh, segment) {
 //    if (segment.ready) {
 //        var gl = segment.handler.gl;
@@ -1061,49 +969,15 @@ og.planetSegment.Segment.prototype._getLayerExtentOffset = function (layer) {
 //    }
 //};
 
-//og.planetSegment.drawOverlays = function (sh, segment) {
-//    if (segment.ready) {
-//        var gl = segment.handler.gl;
-//        var sha = sh.attributes,
-//            shu = sh.uniforms;
-//        var layers = segment.planet.visibleTileLayers;
+//if (this.planet.lightEnabled) {
+//    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+//    gl.activeTexture(gl.TEXTURE1);
+//    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+//    gl.uniform1i(shu.uNormalMap._pName, 1);
 
-//        for (var l = 0; l < layers.length; l++) {
-//            var ll = layers[l];
-//            var mat = segment.materials[ll._id];
-//            var nt3 = l * 3;
-
-//            segment._texBiasArr[nt3] = mat.texBias[0];
-//            segment._texBiasArr[nt3 + 1] = mat.texBias[1];
-//            segment._texBiasArr[nt3 + 2] = mat.texBias[2];
-
-//            segment._samplerArr[l] = l;
-
-//            gl.activeTexture(gl.TEXTURE0 + sh._textureID + l);
-//            gl.bindTexture(gl.TEXTURE_2D, mat.texture);
-//        }
-
-//        gl.uniform3fv(shu.texBiasArr._pName, segment._texBiasArr);
-//        gl.uniform1iv(shu.uSamplerArr._pName, segment._samplerArr);
-
-//        if (segment.planet.lightEnabled) {
-//            gl.uniform3fv(shu.uNormalMapBias._pName, segment.normalMapTextureBias);
-//            gl.activeTexture(gl.TEXTURE0 + layers.length);
-//            gl.bindTexture(gl.TEXTURE_2D, segment.normalMapTexture);
-//            gl.uniform1i(shu.uNormalMap._pName, layers.length);
-
-//            //bind segment specular and night material texture coordinates
-//            gl.uniform4fv(shu.uGlobalTextureCoord._pName, segment._globalTextureCoordinates);
-//        }
-
-//        //gl.activeTexture(gl.TEXTURE0 + layers.length + 1);
-//        //gl.bindTexture(gl.TEXTURE_2D, segment.geoImageTexture || segment.planet.transparentTexture);
-//        //gl.uniform1i(shu.uGeoImage._pName, +layers.length + 1);
-//        //gl.uniform3fv(shu.geoImageTexBias._pName, segment.geoImageTextureBias);
-
-//        segment.draw(sh);
-//    }
-//};
+//    //bind segment specular and night material texture coordinates
+//    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+//}
 
 og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
     if (this.ready) {
@@ -1119,9 +993,9 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
-        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
-        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
+        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
+        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE_4);
         var _samplerArr = new Array(this.planet.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
@@ -1185,7 +1059,11 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
         sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
     }
-    this.node.hasNeighbor = [false, false, false, false];
+
+    this.node.hasNeighbor[0] = false;
+    this.node.hasNeighbor[1] = false;
+    this.node.hasNeighbor[2] = false;
+    this.node.hasNeighbor[3] = false;
 };
 
 og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
@@ -1202,9 +1080,9 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
-        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE * 4);
-        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE * 4);
+        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
+        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
+        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE_4);
         var _samplerArr = new Array(this.planet.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
@@ -1273,179 +1151,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
             sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
         }
     }
-    this.node.hasNeighbor = [false, false, false, false];
 };
-
-//og.planetSegment.Segment.prototype._render = function (sh) {
-//if (this.ready) {
-//    var gl = this.handler.gl;
-//    var sha = sh.attributes,
-//        shu = sh.uniforms;
-
-//    var vl = this.planet.visibleTileLayers,
-//        pm = this.materials;
-
-//    //First always draw whole planet base layer segment with solid texture.
-//    gl.activeTexture(gl.TEXTURE6);
-//    gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
-//    gl.uniform1i(shu.defaultTexture._pName, 6);
-
-//    var _tileOffsetArr = new Float32Array(4);
-//    var _visibleExtentOffsetArr = new Float32Array(4);
-//    var _transparentColorArr = new Float32Array(4);
-//    var _samplerArr = new Array(1);
-//    var li = vl[0];
-//    var currHeight = li._height;
-//    var n = 0,
-//        i = 0;
-
-//    while (li && currHeight === li._height && n < 1) {
-//        if (this.layerOverlap(li)) {
-//            var m = pm[li._id];
-//            if (!m) {
-//                m = pm[li._id] = new og.planetSegment.Material(this, li);
-//            }
-
-//            var n4 = n * 4;
-//            if (m.imageReady) {
-//                _tileOffsetArr[n4] = 0.0;
-//                _tileOffsetArr[n4 + 1] = 0.0;
-//                _tileOffsetArr[n4 + 2] = 1.0;
-//                _tileOffsetArr[n4 + 3] = 1.0;
-//            } else {
-//                m.loadTileImage();
-//                var arr = this._getTileOffset(m.layer);
-//                _tileOffsetArr[n4] = arr[0];
-//                _tileOffsetArr[n4 + 1] = arr[1];
-//                _tileOffsetArr[n4 + 2] = arr[2];
-//                _tileOffsetArr[n4 + 3] = arr[3];
-//            }
-
-//            var arr = this._getLayerExtentOffset(m.layer);
-//            _visibleExtentOffsetArr[n4] = arr[0];
-//            _visibleExtentOffsetArr[n4 + 1] = arr[1];
-//            _visibleExtentOffsetArr[n4 + 2] = arr[2];
-//            _visibleExtentOffsetArr[n4 + 3] = arr[3];
-
-//            _transparentColorArr[n4] = li.transparentColor[0];
-//            _transparentColorArr[n4 + 1] = li.transparentColor[1];
-//            _transparentColorArr[n4 + 2] = li.transparentColor[2];
-//            _transparentColorArr[n4 + 3] = li.opacity;
-
-//            _samplerArr[n] = n;
-
-//            gl.activeTexture(gl.TEXTURE0 + n);
-//            gl.bindTexture(gl.TEXTURE_2D, m.texture);
-
-//            n++;
-//        }
-//        i++;
-//        li = vl[i];
-//    }
-
-//    var indexBuffer = this._getIndexBuffer();
-//    gl.uniform1i(shu.samplerCount._pName, n);
-//    gl.uniform1f(shu.height._pName, currHeight);
-//    gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
-//    gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
-//    gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
-//    gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
-//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-//    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-//    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//    sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
-
-////Draw overlays
-//gl.activeTexture(gl.TEXTURE6);
-//gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
-//gl.uniform1i(shu.defaultTexture._pName, 6);
-
-//var notEmpty = false;
-//while (i < vl.length) {
-//    currHeight = li._height;
-//    n = 0;
-//    while (li && currHeight === li._height && n < 1) {
-//        if (this.layerOverlap(li)) {
-//            notEmpty = true;
-//            var m = pm[li._id];
-//            if (!m) {
-//                m = pm[li._id] = new og.planetSegment.Material(this, li);
-//            }
-
-//            var n4 = n * 4;
-//            if (m.imageReady) {
-//                _tileOffsetArr[n4] = 0.0;
-//                _tileOffsetArr[n4 + 1] = 0.0;
-//                _tileOffsetArr[n4 + 2] = 1.0;
-//                _tileOffsetArr[n4 + 3] = 1.0;
-//            } else {
-//                m.loadTileImage();
-//                var arr = this._getTileOffset(m.layer);
-//                _tileOffsetArr[n4] = arr[0];
-//                _tileOffsetArr[n4 + 1] = arr[1];
-//                _tileOffsetArr[n4 + 2] = arr[2];
-//                _tileOffsetArr[n4 + 3] = arr[3];
-//            }
-
-//            var arr = this._getLayerExtentOffset(m.layer);
-//            _visibleExtentOffsetArr[n4] = arr[0];
-//            _visibleExtentOffsetArr[n4 + 1] = arr[1];
-//            _visibleExtentOffsetArr[n4 + 2] = arr[2];
-//            _visibleExtentOffsetArr[n4 + 3] = arr[3];
-
-//            _transparentColorArr[n4] = li.transparentColor[0];
-//            _transparentColorArr[n4 + 1] = li.transparentColor[1];
-//            _transparentColorArr[n4 + 2] = li.transparentColor[2];
-//            _transparentColorArr[n4 + 3] = li.opacity;
-
-//            _samplerArr[n] = n;
-
-//            gl.activeTexture(gl.TEXTURE0 + n);
-//            gl.bindTexture(gl.TEXTURE_2D, m.texture);
-
-//            n++;
-//        }
-//        i++;
-//        li = vl[i];
-//    }
-
-//    if (notEmpty) {
-//        gl.uniform1i(shu.samplerCount._pName, n);
-//        gl.uniform1f(shu.height._pName, currHeight);
-//        gl.uniform1iv(shu.samplerArr._pName, _samplerArr);
-//        gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
-//        gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
-//        gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
-//        sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
-//    }
-//}
-
-//bind normalmap texture
-//if (this.planet.lightEnabled) {
-//    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-//    gl.activeTexture(gl.TEXTURE1);
-//    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
-//    gl.uniform1i(shu.uNormalMap._pName, 1);
-
-//    //bind segment specular and night material texture coordinates
-//    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
-//}
-
-//this._draw(sh);
-//this.node.hasNeighbor = [false, false, false, false];
-//}
-//};
-//og.planetSegment.Segment.prototype._draw = function (sh) {
-//    var gl = this.handler.gl;
-//    var sha = sh.attributes;
-//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-//    gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-//    gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//    sh.drawIndexBuffer(this.planet.drawMode, this._getIndexBuffer());
-//    this.node.hasNeighbor = [false, false, false, false];
-//};
 
 og.planetSegment.Segment.prototype.drawHeightPicking = function () {
     if (this.ready) {

@@ -64,7 +64,7 @@ og.Events.prototype._stamp = function (obj) {
  */
 og.Events.prototype.on = function (name, sender, callback) {
     if (this._stamp(callback)) {
-        this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
+        this[name] && this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
     }
 };
 

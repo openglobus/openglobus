@@ -12,10 +12,6 @@ goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.drawnode_nl');
-//goog.require('og.shaderProgram.overlays_wl');
-//goog.require('og.shaderProgram.overlays_nl');
-//goog.require('og.shaderProgram.single_nl');
-//goog.require('og.shaderProgram.single_wl');
 goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
@@ -32,8 +28,6 @@ goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
-//goog.require('og.GeoImage');
-//goog.require('og.planetSegment.GeoImageTileCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
 
 /**
@@ -133,19 +127,6 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this.normalMapCreator = null;
 
-    ///**
-    // * Async gGeo images tile creator.
-    // * @public
-    // * @type {og.planetSegment.GeoImageTileCreatorQueue}
-    // */
-    //this.geoImageTileCreator = null;
-
-    ///**
-    // * @public
-    // * @type {Array.<og.GeoImage>}
-    // */
-    //this.geoImagesArray = [];
-
     /**
      * Current visible minimal zoom index planet segment.
      * @public
@@ -215,6 +196,7 @@ og.scene.Planet = function (name, ellipsoid) {
     this.layersActivity = true;
 
     /**
+     * Layer's transparent colors.
      * @protected
      */
     this._tcolorArr = [];
@@ -299,6 +281,14 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this._useSpecularTexture = true;
 
+    /**
+     * Segment multiple textures size.
+     * @const
+     * @public
+     */
+    this.SLICE_SIZE = 5;
+    this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
+
     //events initialization
     this.events.registerNames(og.scene.Planet.EVENT_NAMES);
 };
@@ -343,13 +333,8 @@ og.scene.Planet.EVENT_NAMES = [
          * Triggered when some layer visibility changed.
          * @event og.scene.Planet#layervisibilitychange
          */
-        "layervisibilitychange"/*,
-
-        /**
-         * Triggered when geo image added.
-         * @event og.scene.Planet#geoimageadd
-
-        "geoimageadd"*/];
+        "layervisibilitychange"
+];
 
 /**
  * Default planet empty color
@@ -400,10 +385,6 @@ og.scene.Planet.prototype.getLayerByName = function (name) {
     }
     return undefined;
 };
-
-//og.scene.Planet.prototype.addGeoImage = function (geoImage) {
-//    geoImage.addTo(this);
-//};
 
 /**
  * Adds the given layer to the planet.
@@ -461,23 +442,6 @@ og.scene.Planet.prototype.removeLayer = function (layer) {
     }
     return undefined;
 };
-
-///**
-// * Redraw geo images.
-// * @public
-// */
-//og.scene.Planet.prototype.redrawGeoImages = function () {
-//    this.geoImagesArray.sort(function (a, b) {
-//        return b.zIndex - a.zIndex;
-//    });
-//    var refresh = function (node) {
-//        node.planetSegment.geoImageTexture = node.planetSegment.planet.transparentTexture;
-//        node.planetSegment.geoImageReady = false;
-//    }
-//    this._quadTree.traverseTree(refresh);
-//    this._quadTreeNorth.traverseTree(refresh);
-//    this._quadTreeSouth.traverseTree(refresh);
-//};
 
 /**
  * Get the collection of layers associated with this planet.
@@ -542,10 +506,6 @@ og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
  */
 og.scene.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
-    //this.renderer.handler.addShaderProgram(og.shaderProgram.single_nl(), true);
-    //this.renderer.handler.addShaderProgram(og.shaderProgram.single_wl(), true);
-    //this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_nl(), true);
-    //this.renderer.handler.addShaderProgram(og.shaderProgram.overlays_wl(), true);
     this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
 };
 
@@ -623,9 +583,6 @@ og.scene.Planet.prototype.initialization = function () {
 
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
-
-    ////normal map renderer initialization
-    //this.geoImageTileCreator = new og.planetSegment.GeoImageTileCreatorQueue(256, 256);
 
     //temporary initializations
     var that = this;
@@ -710,6 +667,7 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
             if (li._isBaseLayer) {
                 this.baseLayer = li;
             }
+            //TODO: better replace to layer mathod
             if (li instanceof og.layer.XYZ ||
                 li instanceof og.layer.WMS ||
                 li instanceof og.layer.CanvasTiles) {
@@ -733,14 +691,14 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
         }
     }
 
-    this._layersUpdate();
+    this._sortLayers();
 };
 
 /**
- * Sort visible layer preparing for rendering.
+ * Sort visible layer - preparing for rendering.
  * @protected
  */
-og.scene.Planet.prototype._layersUpdate = function () {
+og.scene.Planet.prototype._sortLayers = function () {
 
 
     this.visibleVectorLayers.sort(function (a, b) {
@@ -756,7 +714,6 @@ og.scene.Planet.prototype._layersUpdate = function () {
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
         var k = -1;
-        this.SLICE_SIZE = 5;
         var currHeight = this.visibleTileLayers[0]._height;
         for (var i = 0; i < this.visibleTileLayers.length; i++) {
             if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
@@ -842,123 +799,6 @@ og.scene.Planet.prototype._rendering = function () {
     this._renderVectorLayersPASS();
 };
 
-///**
-// * @virtual
-// * @protected
-// */
-//og.scene.Planet.prototype._drawOverlays = function () {
-//    var sh;
-//    var renderer = this.renderer;
-//    var h = renderer.handler;
-//    var gl = h.gl;
-
-//    var layers = this.visibleTileLayers;
-
-//    gl.blendEquation(gl.FUNC_ADD);
-//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-//    gl.enable(gl.BLEND);
-
-//    if (this.lightEnabled) {
-//        h.shaderPrograms.overlays_wl.activate();
-//        sh = h.shaderPrograms.overlays_wl._program,
-//        shu = sh.uniforms;
-
-//        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
-//        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
-//        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
-
-//        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-//        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
-//        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
-
-//        //bind night glowing material
-//        gl.activeTexture(gl.TEXTURE0 + layers.length + 2);
-//        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-//        gl.uniform1i(shu.uNightImage._pName, layers.length + 2);
-
-//        //bind specular material
-//        gl.activeTexture(gl.TEXTURE0 + layers.length + 3);
-//        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-//        gl.uniform1i(shu.uSpecularImage._pName, layers.length + 3);
-
-//    } else {
-//        h.shaderPrograms.overlays_nl.activate();
-//        sh = h.shaderPrograms.overlays_nl._program;
-//        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
-//    }
-
-//    var i = layers.length;
-//    while (i--) {
-//        var ll = layers[i];
-//        var nt4 = i * 4;
-//        this._tcolorArr[nt4] = ll.transparentColor[0];
-//        this._tcolorArr[nt4 + 1] = ll.transparentColor[1];
-//        this._tcolorArr[nt4 + 2] = ll.transparentColor[2];
-//        this._tcolorArr[nt4 + 3] = ll.opacity;
-//    }
-
-//    gl.uniform1i(sh.uniforms.numTex._pName, layers.length);
-//    gl.uniform4fv(sh.uniforms.tcolorArr._pName, this._tcolorArr);
-
-//    //draw planet's nodes
-//    var i = this._renderedNodes.length;
-//    while (i--) {
-//        og.planetSegment.drawOverlays(sh, this._renderedNodes[i].planetSegment);
-//    }
-
-//    gl.disable(gl.BLEND);
-//};
-
-///**
-// * @virtual
-// * @protected
-// */
-//og.scene.Planet.prototype._drawSingle = function () {
-//    var sh;
-//    var renderer = this.renderer;
-//    var h = renderer.handler;
-//    var gl = h.gl;
-
-//    gl.blendEquation(gl.FUNC_ADD);
-//    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-//    gl.enable(gl.BLEND);
-
-//    if (this.lightEnabled) {
-//        h.shaderPrograms.single_wl.activate();
-//        sh = h.shaderPrograms.single_wl._program,
-//        shu = sh.uniforms;
-
-//        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
-//        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
-//        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
-
-//        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-//        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
-//        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
-
-//        //bind night and specular materials
-//        gl.activeTexture(gl.TEXTURE3);
-//        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-//        gl.uniform1i(shu.uNightImage._pName, 3);
-
-//        gl.activeTexture(gl.TEXTURE4);
-//        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-//        gl.uniform1i(shu.uSpecularImage._pName, 4);
-//    } else {
-//        h.shaderPrograms.single_nl.activate();
-//        sh = h.shaderPrograms.single_nl._program;
-//        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
-//    }
-
-//    //draw planet's nodes
-//    var i = this._renderedNodes.length;
-//    while (i--) {
-//        og.planetSegment.drawSingle(sh, this._renderedNodes[i].planetSegment);
-//    }
-
-//    gl.disable(gl.BLEND);
-//};
-
 /**
  * @protected
  */
@@ -987,14 +827,14 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
         //bind night glowing material
-        gl.activeTexture(gl.TEXTURE0 + layers.length + 2);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
         gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-        gl.uniform1i(shu.uNightImage._pName, layers.length + 2);
+        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 1);
 
         //bind specular material
-        gl.activeTexture(gl.TEXTURE0 + layers.length + 3);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 2);
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-        gl.uniform1i(shu.uSpecularImage._pName, layers.length + 3);
+        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 2);
 
     } else {
         h.shaderPrograms.drawnode_nl.activate();
@@ -1014,7 +854,7 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
     gl.enable(gl.POLYGON_OFFSET_FILL);
     for (j = 1; j < sl.length; j++) {
         i = rn.length;
-        OFFSET && gl.polygonOffset(0, -j * OFFSET_VALUE);
+        gl.polygonOffset(0, -j);
         while (i--) {
             rn[i].planetSegment._renderOverlay(sh, sl[j]);
         }
@@ -1024,8 +864,6 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
     gl.disable(gl.BLEND);
 };
 
-OFFSET = true;
-OFFSET_VALUE = 1;
 /**
  * @protected
  */

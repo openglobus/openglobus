@@ -26,7 +26,6 @@ og.quadTree.QuadNode = function (segmentPrototype, planet, partId, parent, id, t
     this.nodeId = partId + id;
     this.state = null;
     this.appliedTerrainNodeId = -1;
-    //this.appliedTextureNodeId = -1;
     this.sideSize = [1, 1, 1, 1];
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
@@ -295,24 +294,6 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         this.whileNormalMapCreating();
     }
 
-    //for (var i = 0; i < vl.length; i++) {
-    //    var li = vl[i],
-    //        pml_id = pm[li._id];
-
-    //    if (!pml_id) {
-    //        pml_id = seg.materials[li._id] = new og.planetSegment.Material(seg, li);
-    //    }
-
-    //    if (!pml_id.imageReady) {
-    //        pml_id.loadTileImage();
-    //        this.whileImageryTileLoading(li._id);
-    //    } else {
-    //        this.planetSegment._tileOffsetArr.push(0.0, 0.0, 1.0, 1.0);
-    //    }
-    //    seg._addVisibleLayerExtentOffset(pml_id.layer);
-    //}
-
-
     //Calculate minimal and maximal zoom index on the screen
     if (seg.tileZoom > this.planet.maxCurrZoom) {
         this.planet.maxCurrZoom = seg.tileZoom;
@@ -327,33 +308,6 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
     //Finally this node proceed to rendering.
     this.addToRender(this);
 };
-
-//og.quadTree.QuadNode.prototype.createGeoImage = function () {
-//    var seg = this.planetSegment;
-
-//    if (this.planet.geoImagesArray.length && !(seg.geoImageReady || seg._inTheGeoImageTileCreatorQueue)) {
-
-//        var pn = this;
-//        while (pn.parentNode && !pn.planetSegment.geoImageReady) {
-//            pn = pn.parentNode;
-//        }
-
-//        var scale = seg.tileZoom - pn.planetSegment.tileZoom;
-
-//        var dZ2 = Math.pow(2, scale);
-
-//        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
-//            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
-
-//        seg.geoImageTexture = pn.planetSegment.geoImageTexture || this.planet.transparentTexture;
-
-//        seg.geoImageTextureBias[0] = offsetX;
-//        seg.geoImageTextureBias[1] = offsetY;
-//        seg.geoImageTextureBias[2] = 1 / dZ2;
-
-//        this.planet.geoImageTileCreator.queue(seg);
-//    }
-//};
 
 og.quadTree.QuadNode.prototype.addToRender = function (node) {
     var nodes = this.planet._renderedNodes;
@@ -647,33 +601,6 @@ og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
     }
     return res;
 };
-
-//og.quadTree.QuadNode.prototype.whileImageryTileLoading = function (mId) {
-//    var pn = this,
-//        notEmpty = false;
-
-//    var psegm = pn.planetSegment.materials[mId];
-//    while (pn.parentNode) {
-//        if (psegm && psegm.imageReady) {
-//            notEmpty = true;
-//            break;
-//        }
-//        pn = pn.parentNode;
-//        psegm = pn.planetSegment.materials[mId];
-//    }
-
-//    var segm = this.planetSegment.materials[mId];
-//    if (notEmpty || (psegm && !pn.parentNode)) {
-//        segm.texture = psegm.texture;
-//        var dZ2 = 1.0 / (2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1));
-//        psegm.appliedNodeId = this.nodeId;
-//        this.planetSegment._tileOffsetArr.push(
-//            this.planetSegment.tileX * dZ2 - pn.planetSegment.tileX,
-//            this.planetSegment.tileY * dZ2 - pn.planetSegment.tileY,
-//            dZ2,
-//            dZ2);
-//    }
-//};
 
 og.quadTree.QuadNode.prototype.clearTree = function () {
 

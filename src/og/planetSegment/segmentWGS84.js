@@ -139,10 +139,10 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
     this.terrainVertices = verts;
     this.tempVertices = verts;
 
-    this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360;
-    this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180;
-    this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360;
-    this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180;
+    this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360.0;
+    this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180.0;
+    this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360.0;
+    this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
 };
 
 og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
@@ -169,30 +169,6 @@ og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
 
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
-
-//og.planetSegment.SegmentWGS84.prototype.drawGeoImage = function (geoImage) {
-//    if (geoImage.visibility && geoImage.imageLoaded && geoImage._wgs84Extent.intersects(this.extent)) {
-//        var tc = this.planet.geoImageTileCreator;
-//        var h = tc._handler;
-//        var sh = h.shaderPrograms.geoImage._program;
-//        var sha = sh.attributes,
-//            shu = sh.uniforms;
-//        var gl = h.gl;
-
-//        h.shaderPrograms.geoImage.activate();
-//        gl.bindBuffer(gl.ARRAY_BUFFER, tc._texCoordsBuffer);
-//        gl.vertexAttribPointer(sha.a_texCoord._pName, tc._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._wgs84CornersBuffer);
-//        gl.vertexAttribPointer(sha.a_corner._pName, geoImage._wgs84CornersBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//        gl.uniform4fv(shu.u_extentParams._pName, this._extentParams);
-//        gl.uniform1f(shu.u_opacity._pName, geoImage.opacity);
-//        gl.activeTexture(gl.TEXTURE0);
-//        gl.bindTexture(gl.TEXTURE_2D, geoImage._wgs84SourceTexture);
-//        gl.uniform1i(shu.u_sourceImage._pName, 0);
-//        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-//        return true;
-//    }
-//};
 
 og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
     if (this._isNorth) {
