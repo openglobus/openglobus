@@ -337,41 +337,6 @@ og.scene.Planet.EVENT_NAMES = [
 ];
 
 /**
- * Default planet empty color
- * @type {string}
- * @const
- * @default
- */
-og.scene.Planet.defaultEmptyColor = "#C5C5C5";
-
-/**
- * @public
- * @param
- */
-og.scene.Planet.prototype.createDefaultTexture = function (params) {
-    var imgCnv;
-    var texture;
-    if (params && params.color) {
-        imgCnv = new og.ImageCanvas(2, 2);
-        imgCnv.fillColor(params.color);
-        texture = this.renderer.handler.createTexture(imgCnv._canvas);
-    } else if (params && params.url) {
-        imgCnv = new og.ImageCanvas(params.width || 256, params.height || 256);
-        var that = this;
-        imgCnv.loadImage(params.url, function (img) {
-            texture = that.renderer.handler.createTexture(img);
-            texture.default = true;
-        });
-    } else {
-        imgCnv = new og.ImageCanvas(2, 2);
-        imgCnv.fillColor(og.scene.Planet.defaultEmptyColor);
-        texture = this.renderer.handler.createTexture(imgCnv._canvas);
-    }
-    texture.default = true;
-    return texture;
-};
-
-/**
  * Return layer by it name
  * @param {string} name - Name of the layer. og.layer.Layer.prototype.name
  * @public
@@ -542,9 +507,14 @@ og.scene.Planet.prototype.initialization = function () {
     }
 
     //create empty textures
-    this.solidTextureOne = this.createDefaultTexture();
-    this.solidTextureTwo = this.createDefaultTexture();
-    this.transparentTexture = this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" });
+    var that = this;
+    this.renderer.handler.createDefaultTexture(null, function (t) {
+        that.solidTextureOne = t;
+        that.solidTextureTwo = t;
+    });
+    //this.solidTextureTwo = this.renderer.handler.createDefaultTexture(null, function (t) {
+    //});
+    this.transparentTexture = this.renderer.handler.transparentTexture;
 
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
 
@@ -612,14 +582,19 @@ og.scene.Planet.prototype.initialization = function () {
 /**
  * Creates default textures first for nirth pole and whole globe and second for south pole.
  * @public
- * @param{object} param0
- * @param{object} param1
+ * @param{Object} param0
+ * @param{Object} param1
  */
 og.scene.Planet.prototype.createDefaultTextures = function (param0, param1) {
     this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
     this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
-    this.solidTextureOne = this.createDefaultTexture(param0);
-    this.solidTextureTwo = this.createDefaultTexture(param1);
+    var that = this;
+    this.renderer.handler.createDefaultTexture(param0, function (t) {
+        that.solidTextureOne = t;
+    });
+    this.renderer.handler.createDefaultTexture(param1, function (t) {
+        that.solidTextureTwo = t;
+    });
 };
 
 /**
@@ -874,7 +849,8 @@ og.scene.Planet.prototype._renderHeightBackbufferPASS = function () {
     var pp = h.shaderPrograms.heightPicking;
     h.gl.disable(h.gl.BLEND);
     b.activate();
-    b.clear();
+    h.gl.clearColor(0, 0, 0, 0);
+    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
     pp.activate();
     h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
     h.gl.uniformMatrix4fv(pp._program.uniforms.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
@@ -1066,7 +1042,8 @@ og.scene.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
 og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
     if (this._viewChanged || force) {
         this._viewChanged = false;
-        var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x, this._heightBackbuffer.height - px.y));
+        var cnv = this.renderer.handler.canvas;
+        var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
         if (!(color.x | color.y | color.z | color.w)) {
             return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
         }

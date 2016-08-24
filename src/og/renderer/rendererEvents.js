@@ -55,6 +55,10 @@ og.RendererEvents = function (renderer) {
         x: 0,
         /** Current mouse Y position. */
         y: 0,
+        /** Current mouse X position from 0 to 1 */
+        nx: 0,
+        /** Current mouse Y position from 0 to 1 */
+        ny: 0,
         /** Previous mouse X position. */
         prev_x: 0,
         /** Previous mouse Y position. */
@@ -129,6 +133,10 @@ og.RendererEvents = function (renderer) {
         x: 0,
         /** Current touch Y - coordinate. */
         y: 0,
+        /** Current touch X - coordinate from 0 to 1 */
+        nx: 0,
+        /** Current touch Y - coordinate from 0 to 1 */
+        ny: 0,
         /** Previous touch X coordinate. */
         prev_x: 0,
         /** Previous touch Y coordinate. */
@@ -403,6 +411,10 @@ og.RendererEvents.prototype.onMouseMove = function (event) {
     ms.x = event.clientX;
     ms.y = event.clientY;
 
+    var cnv = this.renderer.handler.canvas;
+    ms.nx = ms.x / cnv.width;
+    ms.ny = ms.y / cnv.height;
+
     ms.moving = true;
 
     //dispatch stop mouse event
@@ -510,6 +522,9 @@ og.RendererEvents.prototype.onTouchStart = function (event) {
     ts.sys = event;
     ts.x = event.touches.item(0).pageX - event.offsetLeft;
     ts.y = event.touches.item(0).pageY - event.offsetTop;
+    var cnv = this.renderer.handler.canvas;
+    ts.nx = ts.x / cnv.width;
+    ts.ny = ts.y / cnv.height;
     ts.prev_x = ts.x;
     ts.prev_y = ts.y;
     ts.touchStart = true;
@@ -567,6 +582,9 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
     var ts = this.touchState;
     ts.x = event.touches.item(0).pageX - event.offsetLeft;
     ts.y = event.touches.item(0).pageY - event.offsetTop;
+    var cnv = this.renderer.handler.canvas;
+    ts.nx = ts.x / cnv.width;
+    ts.ny = ts.y /cnv.height;
     ts.sys = event;
     ts.moving = true;
     this._dblTchBegins = 0;
@@ -763,7 +781,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.touchStart) {
         var r = this.renderer;
-        r._currPickingColor = r._pickingFramebuffer.readPixel(ts.x, r._pickingFramebuffer.height - ts.y);
+        r._currPickingColor = r._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
         var o = r.colorObjects;
         var c = r._currPickingColor;
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];

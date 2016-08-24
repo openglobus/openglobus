@@ -118,6 +118,8 @@ og.webgl.Handler = function (id, params) {
      * @type {frameCallback}
      */
     this._frameCallback = function () { };
+
+    this.transparentTexture = null;
 };
 
 /**
@@ -148,6 +150,26 @@ og.webgl.Handler.prototype.createTexture_n = function (image) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+};
+
+/**
+ * Creates NEAREST filter texture.
+ * @public
+ * @param {Object} image - Image or Canvas object.
+ * @returns {Object} - WebGL texture object.
+ */
+og.webgl.Handler.prototype.createEmptyTexture_n = function (width, height) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -402,6 +424,10 @@ og.webgl.Handler.prototype._setDefaults = function () {
     this.gl.cullFace(this.gl.BACK);
     this.activateFaceCulling();
     this.deactivateBlending();
+    var that = this;
+    this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
+        that.transparentTexture = t;
+    });
 };
 
 /**
@@ -588,4 +614,35 @@ og.webgl.Handler.prototype._animationFrameCallback = function () {
         that.drawFrame();
         that._animationFrameCallback();
     });
+};
+
+/**
+ * @public
+ * @param
+ */
+og.webgl.Handler.prototype.createDefaultTexture = function (params, success) {
+    var imgCnv;
+    var texture;
+    if (params && params.color) {
+        imgCnv = new og.ImageCanvas(2, 2);
+        imgCnv.fillColor(params.color);
+        texture = this.createTexture_n(imgCnv._canvas);
+        texture.default = true;
+        success(texture);
+    } else if (params && params.url) {
+        var img = new Image();
+        var that = this;
+        img.onload = function () {
+            texture = that.createTexture(this);
+            texture.default = true;
+            success(texture);
+        };
+        img.src = params.url;
+    } else {
+        imgCnv = new og.ImageCanvas(2, 2);
+        imgCnv.fillColor("#C5C5C5");
+        texture = this.createTexture_n(imgCnv._canvas);
+        texture.default = true;
+        success(texture);
+    }
 };

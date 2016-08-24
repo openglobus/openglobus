@@ -327,7 +327,8 @@ og.Renderer.prototype.draw = function () {
  * @return {Object} Object
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
-    var c = this._pickingFramebuffer.readPixel(x, this._pickingFramebuffer.height - y);
+    var cnv = this.renderer.handler.canvas;
+    var c = this._pickingFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
@@ -365,9 +366,9 @@ og.Renderer.prototype._drawPickingBuffer = function () {
         this._prevPickingColor[2] = this._currPickingColor[2];
 
         if (ts.x || ts.y) {
-            this._currPickingColor = this._pickingFramebuffer.readPixel(ts.x, this._pickingFramebuffer.height - ts.y);
+            this._currPickingColor = this._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
         } else {
-            this._currPickingColor = this._pickingFramebuffer.readPixel(ms.x, this._pickingFramebuffer.height - ms.y);
+            this._currPickingColor = this._pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
         }
     }
 };

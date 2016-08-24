@@ -10,7 +10,8 @@ goog.require('og.ImageCanvas');
  * @param {number} [width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [height] - Framebuffer height. Default is handler canvas height.
  */
-og.webgl.Framebuffer = function (handler, width, height) {
+og.webgl.Framebuffer = function (handler, width, height, options) {
+    options = options || {};
 
     /**
      * WebGL handler.
@@ -21,73 +22,87 @@ og.webgl.Framebuffer = function (handler, width, height) {
 
     /**
      * Framebuffer object.
-     * @public
+     * @private
      * @type {Object}
      */
-    this.fbo = null;
+    this._fbo = null;
+
+    /**
+     * Renderbuffer object.
+     * @private
+     * @type {Object}
+     */
+    this._rbo = null;
 
     /**
      * Framebuffer width.
-     * @public
+     * @private
      * @type {number}
      */
-    this.width = width || handler.canvas.width;
+    this._width = width || handler.canvas.width;
 
     /**
      * Framebuffer width.
-     * @public
+     * @private
      * @type {number}
      */
-    this.height = height || handler.canvas.height;
+    this._height = height || handler.canvas.height;
+
+    this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
     /**
      * Framebuffer texture.
      * @public
      * @type {number}
      */
-    this.texture = null;
+    this.texture = options.texture || null;
 
-    this._initialize();
+    this._init();
 };
+
+og.webgl.Framebuffer.prototype.destroy = function () {
+    var gl = this.handler.gl;
+    gl.deleteTexture(this.texture);
+    gl.deleteFramebuffer(this._fbo);
+    gl.deleteRenderbuffer(this._rbo);
+
+    this.texture = null;
+    this._rbo = null;
+    this._fbo = null;
+}
 
 /**
  * Framebuffer initialization.
  * @private
  */
-og.webgl.Framebuffer.prototype._initialize = function () {
-    this.fbo = this.handler.gl.createFramebuffer();
-    this._createTexture();
+og.webgl.Framebuffer.prototype._init = function () {
+    var gl = this.handler.gl;
+
+    this._fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    !this.texture && this.bindTexture(this.handler.createEmptyTexture_n(this._width, this._height));
+
+    if (this._useDepth) {
+        this._rbo = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._rbo);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._rbo);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
 /**
- * Creates framebuffer texture.
- * @private
+ * 
+ * @public
  */
-og.webgl.Framebuffer.prototype._createTexture = function () {
+og.webgl.Framebuffer.prototype.bindTexture = function (texture) {
     var gl = this.handler.gl;
-    gl.deleteTexture(this.texture);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-    this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-    //gl.generateMipmap(gl.TEXTURE_2D);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-
-    var renderbuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+    this.texture = texture;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-
     gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
 /**
@@ -97,10 +112,10 @@ og.webgl.Framebuffer.prototype._createTexture = function () {
  * @param {number} height - Framebuffer height.
  */
 og.webgl.Framebuffer.prototype.setSize = function (width, height) {
-    this.width = width;
-    this.height = height;
-    this.handler.gl.deleteFramebuffer(this.fbo);
-    this._initialize();
+    this._width = width;
+    this._height = height;
+    this.destroy();
+    this._init();
 };
 
 /**
@@ -124,10 +139,10 @@ og.webgl.Framebuffer.prototype.isComplete = function () {
 og.webgl.Framebuffer.prototype.readAllPixels = function () {
     var res;
     var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-    var pixelValues = new Uint8Array(4 * this.width * this.height);
-    gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    var pixelValues = new Uint8Array(4 * this._width * this._height);
+    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     res = pixelValues;
     //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -141,13 +156,13 @@ og.webgl.Framebuffer.prototype.readAllPixels = function () {
  * @param {number} y - Y coordinate.
  * @returns {Array.<number,number,number,number>}
  */
-og.webgl.Framebuffer.prototype.readPixel = function (x, y) {
+og.webgl.Framebuffer.prototype.readPixel = function (nx, ny) {
     var res;
     var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
     var pixelValues = new Uint8Array(4);
-    gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    gl.readPixels(nx * this._width, ny * this._height, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     res = pixelValues;
     //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -159,18 +174,10 @@ og.webgl.Framebuffer.prototype.readPixel = function (x, y) {
  * @public
  */
 og.webgl.Framebuffer.prototype.activate = function () {
-    var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-};
-
-/**
- * Clear framebuffer frame.
- * @public
- */
-og.webgl.Framebuffer.prototype.clear = function () {
-    var gl = this.handler.gl;
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    var h = this.handler,
+        gl = h.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    gl.viewport(0, 0, this._width, this._height);
 };
 
 /**
@@ -178,8 +185,10 @@ og.webgl.Framebuffer.prototype.clear = function () {
  * @public
  */
 og.webgl.Framebuffer.prototype.deactivate = function () {
-    var gl = this.handler.gl;
+    var h = this.handler,
+        gl = h.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, h.canvas.width, h.canvas.height);
 };
 
 /**
@@ -189,7 +198,7 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
  */
 og.webgl.Framebuffer.prototype.getImage = function () {
     var data = this.readAllPixels();
-    var imageCanvas = new og.ImageCanvas(this.width, this.height);
+    var imageCanvas = new og.ImageCanvas(this._width, this._height);
     imageCanvas.setData(data);
     return imageCanvas.getImage();
 };
