@@ -1,6 +1,7 @@
 goog.provide('og.utils');
 
 goog.require('og.ajax');
+goog.require('og.math.Vector2');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 goog.require('og.LonLat');
@@ -194,4 +195,74 @@ og.utils.binaryInsert = function (ar, el, compare_fn) {
     }
     ar.splice(i, 0, el);
     return i;
+};
+
+/**
+ * Returns two segment lines intersection coordinate.
+ * @static
+ * @param {og.math.Vector2} start1 - First line first coordinate.
+ * @param {og.math.Vector2} end1 - First line second coordinate.
+ * @param {og.math.Vector2} start2 - Second line first coordinate.
+ * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @return {og.math.Vector2} - Intersection coordinate.
+ */
+og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegments) {
+    var dir1 = end1.sub(start1);
+    var dir2 = end2.sub(start2);
+
+    var a1 = -dir1.y;
+    var b1 = +dir1.x;
+    var d1 = -(a1 * start1.x + b1 * start1.y);
+
+    var a2 = -dir2.y;
+    var b2 = +dir2.x;
+    var d2 = -(a2 * start2.x + b2 * start2.y);
+
+    var seg1_line2_start = a2 * start1.x + b2 * start1.y + d2;
+    var seg1_line2_end = a2 * end1.x + b2 * end1.y + d2;
+
+    var seg2_line1_start = a1 * start2.x + b1 * start2.y + d1;
+    var seg2_line1_end = a1 * end2.x + b1 * end2.y + d1;
+
+    if (isSegments && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+        return null;
+
+    var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
+
+    return new og.math.Vector2(start1.x + u * dir1.x, start1.y + u * dir1.y);
+};
+
+/**
+ * Returns two segment lines intersection coordinate.
+ * @static
+ * @param {og.math.Vector2} start1 - First line first coordinate.
+ * @param {og.math.Vector2} end1 - First line second coordinate.
+ * @param {og.math.Vector2} start2 - Second line first coordinate.
+ * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @return {og.math.Vector2} - Intersection coordinate.
+ */
+og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegments) {
+    var dir1 = new og.LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
+    var dir2 = new og.LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
+
+    var a1 = -dir1.lat;
+    var b1 = +dir1.lon;
+    var d1 = -(a1 * start1.lon + b1 * start1.lat);
+
+    var a2 = -dir2.lat;
+    var b2 = +dir2.lon;
+    var d2 = -(a2 * start2.lon + b2 * start2.lat);
+
+    var seg1_line2_start = a2 * start1.lon + b2 * start1.lat + d2;
+    var seg1_line2_end = a2 * end1.lon + b2 * end1.lat + d2;
+
+    var seg2_line1_start = a1 * start2.lon + b1 * start2.lat + d1;
+    var seg2_line1_end = a1 * end2.lon + b1 * end2.lat + d1;
+
+    if (isSegments && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+        return null;
+
+    var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
+
+    return new og.LonLat(start1.lon + u * dir1.lon, start1.lat + u * dir1.lat);
 };
