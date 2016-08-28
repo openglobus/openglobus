@@ -15,7 +15,8 @@ og.planetSegment.Material.prototype.assignLayer = function (layer) {
     this.layer = layer;
 };
 
-og.planetSegment.Material.prototype.loadTileImage = function () {
+og.planetSegment.Material.prototype.load = function () {
+    //????ref to this.layer.loadMaterial(this);
     var seg = this.segment;
     if (seg.tileZoom >= this.layer.minZoom &&
         seg.tileZoom <= this.layer.maxZoom) {
@@ -54,23 +55,6 @@ og.planetSegment.Material.prototype.textureNotExists = function () {
 };
 
 og.planetSegment.Material.prototype.clear = function () {
+    this.layer.clearMaterial(this);
 
-    if (this.imageReady) {
-        this.imageReady = false;
-
-        if (!this.texture.default)
-            this.segment.handler.gl.deleteTexture(this.texture);
-
-        this.texture = null;
-    }
-
-    this.layer.abortMaterialLoading(this);
-
-    this.imageIsLoading = false;
-    this.textureExists = false;
-
-    if (this.image) {
-        this.image.src = '';
-        this.image = null;
-    }
 };

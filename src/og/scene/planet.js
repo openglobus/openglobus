@@ -645,7 +645,8 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
             //TODO: better replace to layer mathod
             if (li instanceof og.layer.XYZ ||
                 li instanceof og.layer.WMS ||
-                li instanceof og.layer.CanvasTiles) {
+                li instanceof og.layer.CanvasTiles ||
+                li instanceof og.layer.GeoImage) {
                 this.visibleTileLayers.push(li);
             } else if (li instanceof og.layer.Vector) {
                 this.visibleVectorLayers.push(li);

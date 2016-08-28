@@ -236,6 +236,25 @@ og.layer.Layer.prototype.setAttribution = function (html) {
 };
 
 /**
+ * Sets height over the ground.
+ * @public
+ * @param {number} height - Layer height.
+ */
+og.layer.Layer.prototype.setHeight = function (height) {
+    this._height = height;
+    this._planet.updateVisibleLayers();
+};
+
+/**
+ * Gets layer height.
+ * @public
+ * @returns {number}
+ */
+og.layer.Layer.prototype.getHeight = function () {
+    return this._height;
+};
+
+/**
  * Sets z-index.
  * @public
  * @param {number} zIndex - Layer z-index.

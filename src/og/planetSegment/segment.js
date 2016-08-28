@@ -734,8 +734,6 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    //this._texBiasArr = null;
-    //this._samplerArr = null;
     this._tileOffsetArr = null;
     this._visibleExtentOffsetArr = null;
 
@@ -1010,19 +1008,12 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 }
 
                 var n4 = n * 4;
-                if (m.imageReady) {
-                    _tileOffsetArr[n4] = 0.0;
-                    _tileOffsetArr[n4 + 1] = 0.0;
-                    _tileOffsetArr[n4 + 2] = 1.0;
-                    _tileOffsetArr[n4 + 3] = 1.0;
-                } else {
-                    m.loadTileImage();
-                    var arr = li.getTexCoordsOffset(this);
-                    _tileOffsetArr[n4] = arr[0];
-                    _tileOffsetArr[n4 + 1] = arr[1];
-                    _tileOffsetArr[n4 + 2] = arr[2];
-                    _tileOffsetArr[n4 + 3] = arr[3];
-                }
+
+                var arr = li.applyMaterial(m);
+                _tileOffsetArr[n4] = arr[0];
+                _tileOffsetArr[n4 + 1] = arr[1];
+                _tileOffsetArr[n4 + 2] = arr[2];
+                _tileOffsetArr[n4 + 3] = arr[3];
 
                 var arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];
@@ -1100,19 +1091,12 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 }
 
                 var n4 = n * 4;
-                if (m.imageReady) {
-                    _tileOffsetArr[n4] = 0.0;
-                    _tileOffsetArr[n4 + 1] = 0.0;
-                    _tileOffsetArr[n4 + 2] = 1.0;
-                    _tileOffsetArr[n4 + 3] = 1.0;
-                } else {
-                    m.loadTileImage();
-                    var arr = li.getTexCoordsOffset(this);
-                    _tileOffsetArr[n4] = arr[0];
-                    _tileOffsetArr[n4 + 1] = arr[1];
-                    _tileOffsetArr[n4 + 2] = arr[2];
-                    _tileOffsetArr[n4 + 3] = arr[3];
-                }
+
+                var arr = li.applyMaterial(m);
+                _tileOffsetArr[n4] = arr[0];
+                _tileOffsetArr[n4 + 1] = arr[1];
+                _tileOffsetArr[n4 + 2] = arr[2];
+                _tileOffsetArr[n4 + 3] = arr[3];
 
                 var arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];

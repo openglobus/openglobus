@@ -284,33 +284,62 @@ og.layer.XYZ.prototype._whilePendings = function () {
 };
 
 
-og.layer.XYZ.prototype.getTexCoordsOffset = function (segment) {
-    var pn = segment.node,
-        notEmpty = false;
+og.layer.XYZ.prototype.applyMaterial = function (material) {
+    if (material.imageReady) {
+        return [0, 0, 1, 1];
+    } else {
 
-    var mId = this._id;
+        material.load();
 
-    var psegm = segment.materials[mId];
-    while (pn.parentNode) {
-        if (psegm && psegm.imageReady) {
-            notEmpty = true;
-            break;
+        var segment = material.segment;
+        var pn = segment.node,
+            notEmpty = false;
+
+        var mId = this._id;
+
+        var psegm = segment.materials[mId];
+        while (pn.parentNode) {
+            if (psegm && psegm.imageReady) {
+                notEmpty = true;
+                break;
+            }
+            pn = pn.parentNode;
+            psegm = pn.planetSegment.materials[mId];
         }
-        pn = pn.parentNode;
-        psegm = pn.planetSegment.materials[mId];
+
+        if (notEmpty/* || (psegm && !pn.parentNode)*/) {
+            psegm.appliedNodeId = segment.node.nodeId;
+            segment.materials[mId].texture = psegm.texture;
+            var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
+            return [
+                segment.tileX * dZ2 - pn.planetSegment.tileX,
+                segment.tileY * dZ2 - pn.planetSegment.tileY,
+                dZ2,
+                dZ2];
+        } else {
+            segment.materials[mId].texture = segment._getDefaultTexture();
+            return [0, 0, 1, 1];;
+        }
+    }
+};
+
+og.layer.XYZ.prototype.clearMaterial = function (material) {
+    if (material.imageReady) {
+        material.imageReady = false;
+
+        if (!material.texture.default)
+            material.segment.handler.gl.deleteTexture(material.texture);
+
+        material.texture = null;
     }
 
-    if (notEmpty/* || (psegm && !pn.parentNode)*/) {
-        psegm.appliedNodeId = segment.node.nodeId;
-        segment.materials[mId].texture = psegm.texture;
-        var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
-        return [
-            segment.tileX * dZ2 - pn.planetSegment.tileX,
-            segment.tileY * dZ2 - pn.planetSegment.tileY,
-            dZ2,
-            dZ2];
-    } else {
-        segment.materials[mId].texture = segment._getDefaultTexture();
-        return [0, 0, 1, 1];;
+    this.abortMaterialLoading(this);
+
+    material.imageIsLoading = false;
+    material.textureExists = false;
+
+    if (material.image) {
+        material.image.src = '';
+        material.image = null;
     }
 };
