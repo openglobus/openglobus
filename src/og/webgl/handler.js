@@ -159,9 +159,10 @@ og.webgl.Handler.prototype.createTexture_n = function (image) {
 };
 
 /**
- * Creates NEAREST filter texture.
+ * Creates Empty NEAREST filtered texture.
  * @public
- * @param {Object} image - Image or Canvas object.
+ * @param {number} width - Empty texture width.
+ * @param {number} height - Empty texture height.
  * @returns {Object} - WebGL texture object.
  */
 og.webgl.Handler.prototype.createEmptyTexture_n = function (width, height) {
@@ -174,6 +175,26 @@ og.webgl.Handler.prototype.createEmptyTexture_n = function (width, height) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+};
+
+/**
+ * Creates empty LINEAR filtered texture.
+ * @public
+ * @param {number} width - Empty texture width.
+ * @param {number} height - Empty texture height.
+ * @returns {Object} - WebGL texture object.
+ */
+og.webgl.Handler.prototype.createEmptyTexture_l = function (width, height) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 };

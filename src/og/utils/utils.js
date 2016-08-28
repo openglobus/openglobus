@@ -204,6 +204,7 @@ og.utils.binaryInsert = function (ar, el, compare_fn) {
  * @param {og.math.Vector2} end1 - First line second coordinate.
  * @param {og.math.Vector2} start2 - Second line first coordinate.
  * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @param {boolean} [isSegments] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
 og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegments) {
@@ -239,6 +240,7 @@ og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegmen
  * @param {og.math.Vector2} end1 - First line second coordinate.
  * @param {og.math.Vector2} start2 - Second line first coordinate.
  * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @param {boolean} [isSegments] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
 og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegments) {
