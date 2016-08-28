@@ -106,7 +106,7 @@ og.webgl.Framebuffer.prototype.bindTexture = function (texture) {
 };
 
 /**
- * Sets framebuffer size.
+ * Sets framebuffer size. Must be before the activate method.
  * @public
  * @param {number} width - Framebuffer width.
  * @param {number} height - Framebuffer height.
@@ -114,8 +114,10 @@ og.webgl.Framebuffer.prototype.bindTexture = function (texture) {
 og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this._width = width;
     this._height = height;
-    this.destroy();
-    this._init();
+    if (this._useDepth) {
+        this.destroy();
+        this._init();
+    }
 };
 
 /**
