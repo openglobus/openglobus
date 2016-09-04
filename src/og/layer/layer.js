@@ -54,7 +54,7 @@ og.layer.Layer = function (name, options) {
      * @public
      * @type {Array.<number,number,number>}
      */
-    this.transparentColor = options.transparentColor || [-1.0, -1.0, -1.0];
+    this.transparentColor = options.transparentColor || [1.0, 17.0/255.0, 22.0/255.0];
 
     /**
      * Minimal zoom level when layer is visibile.
