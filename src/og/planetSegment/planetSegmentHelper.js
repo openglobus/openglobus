@@ -2,9 +2,11 @@ goog.provide('og.PlanetSegmentHelper');
 
 goog.require('og.quadTree');
 
+og.PlanetSegmentHelper.CURRENT_POWER = 0;
+
 og.PlanetSegmentHelper.initIndexesTables = function (powerOfTwo) {
-    if (powerOfTwo != og.PlanetSegmentHelper.powerOfTwo) {
-        og.PlanetSegmentHelper.powerOfTwo = powerOfTwo;
+    if (powerOfTwo > og.PlanetSegmentHelper.CURRENT_POWER) {
+        og.PlanetSegmentHelper.CURRENT_POWER = powerOfTwo;
         og.PlanetSegmentHelper.centerIndexesTable = og.PlanetSegmentHelper.initIndexBodiesTable(powerOfTwo);
         og.PlanetSegmentHelper.textureCoordsTable = og.PlanetSegmentHelper.initTextureCoordsTable(powerOfTwo);
         og.PlanetSegmentHelper.skirtsIndexesTable = og.PlanetSegmentHelper.initIndexesBodySkirts(powerOfTwo);
