@@ -115,36 +115,6 @@ my.Triangle.prototype.initialization = function () {
     //Initialization indexes table
     og.PlanetSegmentHelper.initIndexesTables(6);
 
-    this._indexesBuffers = [];
-
-    //Iniytialize indexes buffers cache
-    for (var i = 0; i <= 6; i++) {
-        var c = Math.pow(2, i);
-        !this._indexesBuffers[c] && (this._indexesBuffers[c] = []);
-        for (var j = 0; j <= 6; j++) {
-            var w = Math.pow(2, j);
-            !this._indexesBuffers[c][w] && (this._indexesBuffers[c][w] = []);
-            for (var k = 0; k <= 6; k++) {
-                var n = Math.pow(2, k);
-                !this._indexesBuffers[c][w][n] && (this._indexesBuffers[c][w][n] = []);
-                for (var m = 0; m <= 6; m++) {
-                    var e = Math.pow(2, m);
-                    !this._indexesBuffers[c][w][n][e] && (this._indexesBuffers[c][w][n][e] = []);
-                    for (var q = 0; q <= 6; q++) {
-                        var s = Math.pow(2, q);
-                        !this._indexesBuffers[c][w][n][e][s] && (this._indexesBuffers[c][w][n][e][s] = []);
-                        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
-                        this._indexesBuffers[c][w][n][e][s] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
-                    }
-                }
-            }
-        }
-    }
-
-
-
-
-
 
     this._positionData1 = [0, 0, 0,
                           0, 1000, 0,
@@ -171,39 +141,41 @@ my.Triangle.prototype.initialization = function () {
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
     this._textureCoordBuffer = h.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
 
-    this.fb = new og.webgl.Framebuffer(this.renderer.handler, 2048, 2048, { useDepth: false });
+    this.fb = new og.webgl.Framebuffer(this.renderer.handler, 1024, 1024, { useDepth: false });
 
-    this._gridSize = 32;
+    this._gridSize = 8;
     this._texCoordsBuffer = h.createArrayBuffer(og.PlanetSegmentHelper.textureCoordsTable[this._gridSize], 2, (this._gridSize + 1) * (this._gridSize + 1));;
-    this._indexBufferImage = this._indexesBuffers[this._gridSize][this._gridSize][this._gridSize][this._gridSize][this._gridSize];
+
+    var indexes = og.PlanetSegmentHelper.createSegmentIndexes(this._gridSize, [this._gridSize, this._gridSize, this._gridSize, this._gridSize]);
+    this._indexBufferImage = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
 
     this._vertexBuffer = h.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
 
-    this.setCorners([og.lonLat(0, 0), og.lonLat(0, 5), og.lonLat(5, 5), og.lonLat(3, 3)]);
+    this.setCorners([og.lonLat(0, 40), og.lonLat(40, 30), og.lonLat(50, 0), og.lonLat(0, 0)]);
 
     var that = this;
     this.renderer.handler.createDefaultTexture({ color: "#FF0000" }, function (t) {
         that._wgs84SourceTexture = t;
     });
-    this.renderer.handler.createDefaultTexture({ url: "chess.jpg" }, function (t) {
+    this.renderer.handler.createDefaultTexture({ url: "bm.jpg" }, function (t) {
         that.texture = t;
         that.ready2 = false;
     });
 
     this.t1 = this.renderer.handler.createEmptyTexture_n(256, 256);
-    this.t2 = this.renderer.handler.createEmptyTexture_n(1024, 1024);
+    this.t2 = this.renderer.handler.createEmptyTexture_l(512, 512);
 };
 
 my.Triangle.prototype.frame = function () {
 
-    if (!this.ready1) {
-        this.fb.setSize(256, 256);
-        this.fb.activate();
-        this.fb.bindTexture(this.t1);
-        this.createMercatorSamplerPASS(this._wgs84SourceTexture);
-        this.ready1 = true;
-        this.fb.deactivate();
-    }
+    //if (!this.ready1) {
+    //    this.fb.setSize(256, 256);
+    //    this.fb.activate();
+    //    this.fb.bindTexture(this.t1);
+    //    this._wgs84SourceTexture && this.createMercatorSamplerPASS(this._wgs84SourceTexture);
+    //    this.ready1 = true;
+    //    this.fb.deactivate();
+    //}
 
     this.renderer.handler.shaderPrograms.triangle.activate();
 
@@ -221,7 +193,7 @@ my.Triangle.prototype.frame = function () {
     gl.vertexAttribPointer(sha.position._pName, this._positionBuffer1.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.t1);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.uniform1i(shu.texture._pName, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
@@ -234,10 +206,10 @@ my.Triangle.prototype.frame = function () {
     ///////////////////////////////////////
 
     if (!this.ready2) {
-        this.fb.setSize(1024, 1024);
+        this.fb.setSize(512, 512);
         this.fb.activate();
         this.fb.bindTexture(this.t2);
-        this.createMercatorSamplerPASS(this.texture);
+        this.texture && this.createMercatorSamplerPASS(this.texture);
         this.ready2 = true;
         this.fb.deactivate();
     }
@@ -293,11 +265,12 @@ my.Triangle.prototype.setCorners = function (corners) {
 
     var c = this._wgs84Corners;
     var v03 = og.lonLat((c[3].lon - c[0].lon) / this._gridSize, (c[3].lat - c[0].lat) / this._gridSize);
-    var v12 = og.lonLat((c[2].lon - c[1].lon)/this._gridSize, (c[2].lat - c[1].lat)/this._gridSize);
+    var v12 = og.lonLat((c[2].lon - c[1].lon) / this._gridSize, (c[2].lat - c[1].lat) / this._gridSize);
     var v01 = og.lonLat((c[1].lon - c[0].lon) / this._gridSize, (c[1].lat - c[0].lat) / this._gridSize);
-    var v32 = og.lonLat((c[2].lon - c[3].lon)/this._gridSize, (c[2].lat - c[3].lat)/this._gridSize);
+    var v32 = og.lonLat((c[2].lon - c[3].lon) / this._gridSize, (c[2].lat - c[3].lat) / this._gridSize);
 
-    var grid = [];
+    var grid = new Float32Array((this._gridSize + 1) * (this._gridSize + 1) * 2);
+    var k = 0;
     for (var i = 0; i <= this._gridSize; i++) {
         var P03i = og.lonLat(c[0].lon + i * v03.lon, c[0].lat + i * v03.lat),
             P12i = og.lonLat(c[1].lon + i * v12.lon, c[1].lat + i * v12.lat);
@@ -305,11 +278,12 @@ my.Triangle.prototype.setCorners = function (corners) {
             var P01j = og.lonLat(c[0].lon + j * v01.lon, c[0].lat + j * v01.lat),
                 P32j = og.lonLat(c[3].lon + j * v32.lon, c[3].lat + j * v32.lat);
             var xx = og.utils.getLinesIntersectionLonLat(P03i, P12i, P01j, P32j);
-            grid.push(xx.lon,xx.lat);
+            grid[k++] = xx.lon;
+            grid[k++] = xx.lat;
         }
     }
 
-    this._wgs84CornersBuffer = h.createArrayBuffer(new Float32Array(grid), 2, grid.length / 2);
+    this._wgs84CornersBuffer = h.createArrayBuffer(grid, 2, grid.length / 2);
 
     this._mercExtent = this._wgs84MercExtent.forwardMercator();
     this._mercExtentCorners = [this._mercExtent.getNorthWest(), this._mercExtent.getNorthEast(), this._mercExtent.getSouthEast(), this._mercExtent.getSouthWest()];

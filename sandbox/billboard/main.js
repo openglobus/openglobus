@@ -13,7 +13,7 @@ function start() {
 
     var flatShader = new og.shaderProgram.ShaderProgram("flat", {
         uniforms: {
-            uPMVMatrix: { type: og.shaderProgram.types.MAT4 }
+            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

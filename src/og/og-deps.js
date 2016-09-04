@@ -6,6 +6,7 @@ goog.addDependency('../../../og/src/og/astro/earth.js', ['og.astro.earth'], ['og
 goog.addDependency('../../../og/src/og/astro/jd.js', ['og.jd'], ['og.utils'], false);
 goog.addDependency('../../../og/src/og/astro/orbit.js', ['og.orbit'], ['og.math', 'og.math.Matrix3'], false);
 goog.addDependency('../../../og/src/og/astro/rotation.js', ['og.rotation'], [], false);
+goog.addDependency('../../../og/src/og/base.js', ['goog'], [], false);
 goog.addDependency('../../../og/src/og/bv/box.js', ['og.bv.Box'], ['og.bv', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.LonLat', 'og.math'], false);
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3'], false);
@@ -112,6 +113,7 @@ goog.addDependency('../../../og/src/og/terrainProvider/emptyTerrainProvider.js',
 goog.addDependency('../../../og/src/og/terrainProvider/terrainProvider.js', ['og.terrainProvider.TerrainProvider'], ['og.Events', 'og.QueueArray', 'og.ajax', 'og.inheritance', 'og.layer', 'og.proj.EPSG3857', 'og.quadTree', 'og.terrainProvider.EmptyTerrainProvider', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/utils/fontAtlas.js', ['og.utils.FontAtlas'], ['og.FontDetector', 'og.ImageCanvas', 'og.QueueArray', 'og.math', 'og.utils.SDFCreator', 'og.utils.TextureAtlas'], false);
 goog.addDependency('../../../og/src/og/utils/fontDetector.js', ['og.FontDetector'], [], false);
+goog.addDependency('../../../og/src/og/utils/geoImageCreator.js', ['og.utils.GeoImageCreator'], ['og.webgl.Framebuffer'], false);
 goog.addDependency('../../../og/src/og/utils/imagesCacheManager.js', ['og.utils.ImagesCacheManager'], ['og.QueueArray'], false);
 goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.NormalMapCreator'], ['og.PlanetSegmentHelper', 'og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/sdfCreator.js', ['og.utils.SDFCreator'], ['og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
