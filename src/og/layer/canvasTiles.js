@@ -44,25 +44,31 @@ og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
  * @virtual
  * @param {og.planetSegment.Material} mateial
  */
-og.layer.CanvasTiles.prototype.handleSegmentTile = function (material) {
-    if (this.drawTile) {
-        /**
-         * Tile custom draw function.
-         * @callback og.layer.CanvasTiles~drawTileCallback
-         * @param {og.planetSegment.Material} material
-         * @param {applyCanvasCallback} applyCanvasCallback
-         */
-        this.drawTile(material,
+og.layer.CanvasTiles.prototype.loadMaterial = function (material) {
+
+    var seg = material.segment;
+    if (seg.tileZoom >= this.minZoom &&
+        seg.tileZoom <= this.maxZoom) {
+
+        if (this.drawTile) {
             /**
-             * Apply canvas.
-             * @callback applyCanvasCallback
-             * @param {Object} canvas
+             * Tile custom draw function.
+             * @callback og.layer.CanvasTiles~drawTileCallback
+             * @param {og.planetSegment.Material} material
+             * @param {applyCanvasCallback} applyCanvasCallback
              */
-            function (canvas) {
-            material.imageReady = false;
-            material.applyTexture(canvas);
-        });
-    } else {
-        material.textureNotExists();
+            this.drawTile(material,
+                /**
+                 * Apply canvas.
+                 * @callback applyCanvasCallback
+                 * @param {Object} canvas
+                 */
+                function (canvas) {
+                    material.imageReady = false;
+                    material.applyTexture(canvas);
+                });
+        } else {
+            material.textureNotExists();
+        }
     }
 };

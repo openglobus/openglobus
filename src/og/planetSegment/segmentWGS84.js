@@ -205,3 +205,7 @@ og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {
 og.planetSegment.SegmentWGS84.prototype.getLayerExtent = function (layer) {
     return layer._extentMerc;
 };
+
+og.planetSegment.SegmentWGS84.prototype.getLayerTexture = function (layer) {
+    return layer._materialTexture;
+};

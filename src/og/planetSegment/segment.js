@@ -1170,3 +1170,7 @@ og.planetSegment.Segment.prototype._getDefaultTexture = function () {
 og.planetSegment.Segment.prototype.getLayerExtent = function (layer) {
     return layer._extentMerc;
 };
+
+og.planetSegment.Segment.prototype.getLayerTexture = function (layer) {
+    return layer._materialTextureMerc;
+};

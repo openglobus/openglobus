@@ -79,16 +79,22 @@ og.layer.wms = function (name, options) {
  * @virtual
  * @param {og.planetSegment.Material} mateial
  */
-og.layer.WMS.prototype.handleSegmentTile = function (material) {
-    if (this._planet.layersActivity) {
-        material.imageReady = false;
-        material.imageIsLoading = true;
-        if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
-            this.pendingsQueue.push(material);
-        } else {
-            this._exec(material);
+og.layer.WMS.prototype.loadMaterial = function (material) {
+    var seg = material.segment;
+    if (seg.tileZoom >= this.minZoom &&
+        seg.tileZoom <= this.maxZoom) {
+        if (!material.imageIsLoading) {
+            if (this._planet.layersActivity) {
+                material.imageReady = false;
+                material.imageIsLoading = true;
+                if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
+                    this.pendingsQueue.push(material);
+                } else {
+                    this._exec(material);
+                }
+            }
         }
-    };
+    }
 };
 
 /**
