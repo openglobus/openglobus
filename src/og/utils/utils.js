@@ -186,7 +186,7 @@ og.utils.binarySearch = function (ar, el, compare_fn) {
 };
 
 /**
- * @todo TESTING
+ * @todo NEEDS TESTING
  */
 og.utils.binaryInsert = function (ar, el, compare_fn) {
     var i = og.utils.binarySearch(ar, el, compare_fn);
@@ -207,7 +207,7 @@ og.utils.binaryInsert = function (ar, el, compare_fn) {
  * @param {boolean} [isSegments] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
-og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegments) {
+og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegment) {
     var dir1 = end1.sub(start1);
     var dir2 = end2.sub(start2);
 
@@ -225,7 +225,7 @@ og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegmen
     var seg2_line1_start = a1 * start2.x + b1 * start2.y + d1;
     var seg2_line1_end = a1 * end2.x + b1 * end2.y + d1;
 
-    if (isSegments && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
         return null;
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
@@ -243,7 +243,7 @@ og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegmen
  * @param {boolean} [isSegments] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
-og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegments) {
+og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegment) {
     var dir1 = new og.LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
     var dir2 = new og.LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
 
@@ -261,7 +261,7 @@ og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSe
     var seg2_line1_start = a1 * start2.lon + b1 * start2.lat + d1;
     var seg2_line1_end = a1 * end2.lon + b1 * end2.lat + d1;
 
-    if (isSegments && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
         return null;
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
