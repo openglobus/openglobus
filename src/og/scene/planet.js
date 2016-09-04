@@ -29,6 +29,7 @@ goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
 goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
+goog.require('og.utils.GeoImageCreator');
 
 /**
  * Main class for rendering planet
@@ -288,6 +289,13 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this.SLICE_SIZE = 5;
     this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
+
+    /**
+     * GeoImage creator.
+     * @protected
+     * @type{og.utils.GeoImageCreator}
+     */
+    this._geoImageCreator = null;
 
     //events initialization
     this.events.registerNames(og.scene.Planet.EVENT_NAMES);
@@ -577,6 +585,8 @@ og.scene.Planet.prototype.initialization = function () {
         };
         img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.png";
     }
+
+    this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler, 8);
 };
 
 /**
@@ -736,9 +746,10 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
  */
 og.scene.Planet.prototype.frame = function () {
 
-    var cam = this.renderer.activeCamera;
+    //Creates geoImages textures.
+    this._geoImageCreator.frame();
 
-    cam.prepareFrame();
+    this.renderer.activeCamera.prepareFrame();
 
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
