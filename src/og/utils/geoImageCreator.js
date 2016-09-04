@@ -87,24 +87,17 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
         shu = sh.uniforms;
     var gl = h.gl;
     gl.disable(gl.CULL_FACE);
-
     gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
     gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
     gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
     gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
     gl.uniform1i(shu.sourceTexture._pName, 0);
-
     sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-
     gl.enable(gl.CULL_FACE);
     f.deactivate();
 
