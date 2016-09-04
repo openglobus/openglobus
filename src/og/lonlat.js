@@ -46,6 +46,21 @@ og.lonLat = function (lon, lat, height) {
 };
 
 /**
+ * Creates coordinates array.
+ * @static
+ * @param{Array.<Array<number,number,number>>} arr - Coordinates array data.
+ * @return{Array.<og.LonLat>} the same coordinates array but each element is LonLat instance.
+ */
+og.lonLatArray = function (arr) {
+    var res = [];
+    for (var i = 0; i < arr.length; i++) {
+        var ai = arr[i];
+        res[i] = new og.LonLat(ai[0], ai[1], ai[2]);
+    }
+    return res;
+};
+
+/**
  * Creates an object by coordinate array.
  * @static
  * @param {Array.<number,number,number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height.
