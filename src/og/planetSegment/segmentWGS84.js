@@ -203,7 +203,7 @@ og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {
 };
 
 og.planetSegment.SegmentWGS84.prototype.getLayerExtent = function (layer) {
-    return layer._extentMerc;
+    return layer._extent;
 };
 
 og.planetSegment.SegmentWGS84.prototype.getLayerTexture = function (layer) {

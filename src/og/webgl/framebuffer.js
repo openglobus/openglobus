@@ -81,7 +81,7 @@ og.webgl.Framebuffer.prototype._init = function () {
     this._fbo = gl.createFramebuffer();
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    !this.texture && this.bindTexture(this.handler.createEmptyTexture_l(this._width, this._height));
+    !this.texture && this.bindOutputTexture(this.handler.createEmptyTexture_l(this._width, this._height));
 
     if (this._useDepth) {
         this._rbo = gl.createRenderbuffer();
@@ -98,7 +98,7 @@ og.webgl.Framebuffer.prototype._init = function () {
  * 
  * @public
  */
-og.webgl.Framebuffer.prototype.bindTexture = function (texture) {
+og.webgl.Framebuffer.prototype.bindOutputTexture = function (texture) {
     var gl = this.handler.gl;
     this.texture = texture;
     gl.bindTexture(gl.TEXTURE_2D, texture);
