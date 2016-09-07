@@ -156,27 +156,25 @@ og.layer.XYZ.prototype.setUrl = function (url) {
 og.layer.XYZ.prototype.loadMaterial = function (material) {
 
     var seg = material.segment;
-    if (seg.tileZoom >= this.minZoom &&
-        seg.tileZoom <= this.maxZoom) {
-        if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
-        } else {
-            material.texture = seg.planet.transparentTexture;
-        }
 
-        if (!material.imageIsLoading) {
-            if (this._planet.layersActivity) {
-                material.imageReady = false;
-                material.imageIsLoading = true;
-                if (material.segment._projection.id === og.proj.EPSG3857.id) {
-                    if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
-                        this._pendingsQueue.push(material);
-                    } else {
-                        this._exec(material);
-                    }
+    if (this._isBaseLayer) {
+        material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+    } else {
+        material.texture = seg.planet.transparentTexture;
+    }
+
+    if (!material.imageIsLoading) {
+        if (this._planet.layersActivity) {
+            material.imageReady = false;
+            material.imageIsLoading = true;
+            if (material.segment._projection.id === og.proj.EPSG3857.id) {
+                if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
+                    this._pendingsQueue.push(material);
                 } else {
-                    material.textureNotExists();
+                    this._exec(material);
                 }
+            } else {
+                material.textureNotExists();
             }
         }
     }
