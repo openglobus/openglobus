@@ -16,9 +16,11 @@ og.layer.GeoImage = function (name, options) {
     this._sourceTexture = null;
     this._materialTexture = null;
     this._materialTextureMerc = null;
+    this._intermediateTextureWgs84 = null;
     this._isOverMerc = false;
 
     this._frameCreated = false;
+    this._sourceCreated = false;
     this._frameWidth = 0;
     this._frameHeight = 0;
 

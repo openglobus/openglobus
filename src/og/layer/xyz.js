@@ -329,7 +329,7 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
                 dZ2,
                 dZ2];
         } else {
-            material.texture = segment.planet.transparentTexture//segment._getDefaultTexture();
+            material.texture = segment.planet.transparentTexture;
             return [0, 0, 1, 1];;
         }
     }

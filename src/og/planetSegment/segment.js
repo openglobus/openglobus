@@ -985,23 +985,24 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
 
         var vl = layerSlice,
             pm = this.materials;
+        var p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
         gl.activeTexture(gl.TEXTURE6);
         gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _samplerArr = new Array(this.planet.SLICE_SIZE);
+        var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+        var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+        var _transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
+        var _samplerArr = new Array(p.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
         var n = 0,
             i = 0;
 
         while (li) {
-            if (this.layerOverlap(li)) {
+            if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
                 var m = pm[li._id];
                 if (!m) {
                     m = pm[li._id] = new og.planetSegment.Material(this, li);
@@ -1048,7 +1049,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
+        sh.drawIndexBuffer(p.drawMode, indexBuffer);
     }
 
     this.node.hasNeighbor[0] = false;
@@ -1066,15 +1067,17 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         var vl = layerSlice,
             pm = this.materials;
 
+        var p = this.planet;
+
         //Draw overlays
         gl.activeTexture(gl.TEXTURE6);
-        gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
+        gl.bindTexture(gl.TEXTURE_2D, p.transparentTexture);
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
-        var _tileOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _visibleExtentOffsetArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _transparentColorArr = new Float32Array(this.planet.SLICE_SIZE_4);
-        var _samplerArr = new Array(this.planet.SLICE_SIZE);
+        var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+        var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+        var _transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
+        var _samplerArr = new Array(p.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
         var n = 0,
@@ -1083,7 +1086,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         var notEmpty = false;
 
         while (li) {
-            if (this.layerOverlap(li)) {
+            if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
                 notEmpty = true;
                 var m = pm[li._id];
                 if (!m) {
@@ -1132,7 +1135,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            sh.drawIndexBuffer(this.planet.drawMode, indexBuffer);
+            sh.drawIndexBuffer(p.drawMode, indexBuffer);
         }
     }
 };

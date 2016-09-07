@@ -194,8 +194,8 @@ og.planetSegment.SegmentWGS84.prototype._getLayerExtentOffset = function (layer)
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-og.planetSegment.SegmentWGS84.prototype.layerOverlap = function (l) {
-    return this.extent.overlaps(l._extent);
+og.planetSegment.SegmentWGS84.prototype.layerOverlap = function (layer) {
+    return this.extent.overlaps(layer._extent);
 };
 
 og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {

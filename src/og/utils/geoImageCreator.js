@@ -13,6 +13,7 @@ og.utils.GeoImageCreator = function (handler, gridSize, maxFrames) {
     this.MAX_FRAMES = maxFrames || 5;
     this._currentFrame = 0;
     this._queue = [];
+    this._always = [];
     this._initialize();
 };
 
@@ -52,234 +53,185 @@ og.utils.GeoImageCreator.prototype.createGridBuffer = function (c) {
 };
 
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
-    var h = this._handler;
+    if (geoImage) {
+        var h = this._handler;
 
-    //
-    //geoImage preparings
-    if (geoImage._image) {
-        geoImage._sourceTexture = this._handler.createTexture_n(geoImage._image);
-    }
+        var width = geoImage._frameWidth,
+            height = geoImage._frameHeight;
 
-    if (geoImage._refreshCorners) {
-        geoImage._gridBuffer = this.createGridBuffer(geoImage._corners);
-        geoImage._refreshCorners = false;
-    }
+        if (geoImage._refreshCorners) {
+            geoImage._gridBuffer = this.createGridBuffer(geoImage._corners);
+            geoImage._refreshCorners = false;
+        }
 
-    var width = geoImage._frameWidth,
-        height = geoImage._frameHeight;
-    if (!geoImage._frameCreated) {
-        geoImage._materialTexture = h.createEmptyTexture_l(width, height);
+        if (!geoImage._sourceCreated) {
+            geoImage._sourceTexture = this._handler.createTexture_n(geoImage._image);
+            geoImage._sourceCreated = true;
+        }
 
-        if (geoImage._isOverMerc) {
-            geoImage._materialTextureMerc = h.createEmptyTexture_l(width, height);
+        if (!geoImage._frameCreated) {
+            geoImage._materialTexture = h.createEmptyTexture_l(width, height);
+
+            if (geoImage._isOverMerc) {
+                geoImage._materialTextureMerc = h.createEmptyTexture_l(width, height);
+            } else {
+                geoImage._materialTextureMerc = geoImage._materialTexture;
+            }
+
+            if (geoImage._wgs84) {
+                geoImage._intermediateTextureWgs84 = h.createEmptyTexture_l(width, height);
+            }
+
+            geoImage._frameCreated = true;
+        }
+
+
+        var f = this._framebuffer;
+        f.setSize(width, height);
+        f.activate();
+
+        h.shaderPrograms.geoImageTransform.activate();
+        var sh = h.shaderPrograms.geoImageTransform._program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+        var gl = h.gl;
+        gl.disable(gl.CULL_FACE);
+
+        if (geoImage._isOverMerc && geoImage._wgs84) {
+            //PASS1
+            f.bindOutputTexture(geoImage._materialTexture);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
+            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+
+            //PASS2
+            f.bindOutputTexture(geoImage._intermediateTextureWgs84);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+            f.deactivate();
+
+            //PASS3
+            f = this._framebufferMercProj;
+            f.setSize(width, height);
+            f.activate();
+            h.shaderPrograms.geoImageMercProj.activate();
+            sh = h.shaderPrograms.geoImageMercProj._program;
+            sha = sh.attributes;
+            shu = sh.uniforms;
+            f.bindOutputTexture(geoImage._materialTextureMerc);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
+            gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
+            gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
+            gl.uniform1i(shu.u_sampler._pName, 0);
+            gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
+            gl.uniform4fv(shu.u_mercExtent._pName, [geoImage._extentMerc.southWest.lon, geoImage._extentMerc.southWest.lat,
+                geoImage._extentMerc.getWidth(), geoImage._extentMerc.getHeight()]);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            f.deactivate();
+        } else if (geoImage._isOverMerc) {
+            //PASS1
+            f.bindOutputTexture(geoImage._materialTexture);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
+            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+
+            //PASS2
+            f.bindOutputTexture(geoImage._materialTextureMerc);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+            f.deactivate();
+        } else if (geoImage._wgs84) {
+            //PASS1
+            f.bindOutputTexture(geoImage._intermediateTextureWgs84);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
+            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+            f.deactivate();
+
+            //PASS2
+            f = this._framebufferMercProj;
+            f.setSize(width, height);
+            f.activate();
+            f.bindOutputTexture(geoImage._materialTextureMerc);
+            h.shaderPrograms.geoImageMercProj.activate();
+            sh = h.shaderPrograms.geoImageMercProj._program;
+            sha = sh.attributes;
+            shu = sh.uniforms;
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
+            gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
+            gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
+            gl.uniform1i(shu.u_sampler._pName, 0);
+            gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
+            gl.uniform4fv(shu.u_mercExtent._pName, [geoImage._extentMerc.southWest.lon, geoImage._extentMerc.southWest.lat,
+                geoImage._extentMerc.getWidth(), geoImage._extentMerc.getHeight()]);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            f.deactivate();
         } else {
-            geoImage._materialTextureMerc = geoImage._materialTexture;
+            //PASS1
+            f.bindOutputTexture(geoImage._materialTexture);
+            gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
+            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
+            gl.uniform1i(shu.sourceTexture._pName, 0);
+            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
+            f.deactivate();
         }
 
-        if (geoImage._wgs84) {
-            geoImage._intermediateTextureWgs84 = h.createEmptyTexture_l(width, height);
-        }
+        gl.enable(gl.CULL_FACE);
 
-        geoImage._frameCreated = true;
+        geoImage._ready = true;
+        geoImage._creationProceeding = false;
     }
-
-
-    var f = this._framebuffer;
-    f.setSize(width, height);
-    f.activate();
-
-    h.shaderPrograms.geoImageTransform.activate();
-    var sh = h.shaderPrograms.geoImageTransform._program;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-    var gl = h.gl;
-
-    gl.disable(gl.CULL_FACE);
-
-    if (geoImage._isOverMerc && geoImage._wgs84) {
-        //PASS1
-        f.bindOutputTexture(geoImage._materialTexture);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-
-        //PASS2
-        f.bindOutputTexture(geoImage._intermediateTextureWgs84);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-        f.deactivate();
-
-        //PASS3
-        f = this._framebufferMercProj;
-        f.setSize(width, height);
-        f.activate();
-        h.shaderPrograms.geoImageMercProj.activate();
-        sh = h.shaderPrograms.geoImageMercProj._program;
-        sha = sh.attributes;
-        shu = sh.uniforms;
-        f.bindOutputTexture(geoImage._materialTextureMerc);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
-        gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
-        gl.uniform1i(shu.u_sampler._pName, 0);
-        gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
-        gl.uniform4fv(shu.u_mercExtent._pName, [geoImage._extentMerc.southWest.lon, geoImage._extentMerc.southWest.lat,
-            geoImage._extentMerc.getWidth(), geoImage._extentMerc.getHeight()]);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        f.deactivate();
-    } else if (geoImage._isOverMerc) {
-        //PASS1
-        f.bindOutputTexture(geoImage._materialTexture);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-
-        //PASS2
-        f.bindOutputTexture(geoImage._materialTextureMerc);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-        f.deactivate();
-    } else if (geoImage._wgs84) {
-        //PASS1
-        f.bindOutputTexture(geoImage._intermediateTextureWgs84);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-        f.deactivate();
-
-        //PASS2
-        f = this._framebufferMercProj;
-        f.setSize(width, height);
-        f.activate();
-        f.bindOutputTexture(geoImage._materialTextureMerc);
-        h.shaderPrograms.geoImageMercProj.activate();
-        sh = h.shaderPrograms.geoImageMercProj._program;
-        sha = sh.attributes;
-        shu = sh.uniforms;
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
-        gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
-        gl.uniform1i(shu.u_sampler._pName, 0);
-        gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
-        gl.uniform4fv(shu.u_mercExtent._pName, [geoImage._extentMerc.southWest.lon, geoImage._extentMerc.southWest.lat,
-            geoImage._extentMerc.getWidth(), geoImage._extentMerc.getHeight()]);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        f.deactivate();
-    } else {
-        //PASS1
-        f.bindOutputTexture(geoImage._materialTexture);
-        gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-        f.deactivate();
-    }
-
-    ///////////////////////////////////////////////////////////////
-    ////Creates mercator grid limited texture
-    //if (geoImage._isOverMerc) {
-    //    if (geoImage._wgs84) {
-    //        f.bindOutputTexture(geoImage._intermediateTextureWgs84);
-    //    } else {
-    //        f.bindOutputTexture(geoImage._materialTextureMerc);
-    //    }
-    //    gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-    //    gl.clear(gl.COLOR_BUFFER_BIT);
-    //    gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
-    //    gl.activeTexture(gl.TEXTURE0);
-    //    gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-    //    gl.uniform1i(shu.sourceTexture._pName, 0);
-    //    sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-    //}
-
-    //f.deactivate();
-
-    //if (geoImage._wgs84) {
-
-    //    f = this._framebufferMercProj;
-
-    //    f.setSize(width, height);
-    //    f.activate();
-    //    f.bindOutputTexture(geoImage._materialTextureMerc);
-
-    //    h.shaderPrograms.geoImageMercProj.activate();
-    //    sh = h.shaderPrograms.geoImageMercProj._program;
-    //    sha = sh.attributes;
-    //    shu = sh.uniforms;
-    //    gl.clearColor(geoImage.transparentColor[0], geoImage.transparentColor[1], geoImage.transparentColor[2], 1.0);
-    //    gl.clear(gl.COLOR_BUFFER_BIT);
-    //    gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
-    //    gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    //    gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
-    //    gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    //    gl.activeTexture(gl.TEXTURE0);
-    //    gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
-    //    gl.uniform1i(shu.u_sampler._pName, 0);
-
-    //    gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
-
-    //    gl.uniform4fv(shu.u_mercExtent._pName, [geoImage._extentMerc.southWest.lon, geoImage._extentMerc.southWest.lat,
-    //        geoImage._extentMerc.getWidth(), geoImage._extentMerc.getHeight()]);
-
-    //    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    //    f.deactivate();
-    //}
-
-    gl.enable(gl.CULL_FACE);
-
-    geoImage._ready = true;
-    geoImage._creationProceeding = false;
 };
 
 og.utils.GeoImageCreator.prototype._initBuffers = function () {
@@ -368,8 +320,17 @@ og.utils.GeoImageCreator.prototype.frame = function () {
     while (i-- && this._queue.length) {
         this.process(this._queue.shift());
     }
+
+    i = this._always.length;
+    while (i--) {
+        this.process(this._always[i]);
+    }
 };
 
 og.utils.GeoImageCreator.prototype.queue = function (geoImage) {
     this._queue.push(geoImage);
+};
+
+og.utils.GeoImageCreator.prototype.always = function (geoImage) {
+    this._always.push(geoImage);
 };
