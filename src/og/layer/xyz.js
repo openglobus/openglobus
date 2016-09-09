@@ -36,6 +36,8 @@ og.layer.XYZ = function (name, options) {
 
     this.events.registerNames(og.layer.XYZ.EVENT_NAMES);
 
+    this.transparentColor = options.transparentColor || [-1, -1, -1];
+
     /**
      * Tile url source template.
      * @public
@@ -351,5 +353,35 @@ og.layer.XYZ.prototype.clearMaterial = function (material) {
     if (material.image) {
         material.image.src = '';
         material.image = null;
+    }
+};
+
+/**
+ * @protected
+ */
+og.layer.XYZ.prototype._correctFullExtent = function () {
+    var e = this._extent,
+        em = this._extentMerc;
+    var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
+    var ENLARGE_MERCATOR_LAT = og.mercator.POLE + 50000;
+    if (e.northEast.lat === 90.0) {
+        em.northEast.lat = ENLARGE_MERCATOR_LAT;
+    }
+    if (e.northEast.lon === 180.0) {
+        em.northEast.lon = ENLARGE_MERCATOR_LON;
+    }
+    if (e.southWest.lat === -90.0) {
+        em.southWest.lat = -ENLARGE_MERCATOR_LAT;
+    }
+    if (e.southWest.lon === -180.0) {
+        em.southWest.lon = -ENLARGE_MERCATOR_LON;
+    }
+
+    if (e.northEast.lat >= og.mercator.MAX_LAT) {
+        e.northEast.lat = og.mercator.MAX_LAT;
+    }
+
+    if (e.northEast.lat <= og.mercator.MIN_LAT) {
+        e.northEast.lat = og.mercator.MIN_LAT;
     }
 };

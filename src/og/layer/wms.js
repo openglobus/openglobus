@@ -108,3 +108,25 @@ og.layer.WMS.prototype._createUrl = function (segment) {
             "&WIDTH=" + this.imageWidth +
             "&HEIGHT=" + this.imageHeight;
 };
+
+/**
+ * @protected
+ */
+og.layer.WMS.prototype._correctFullExtent = function () {
+    var e = this._extent,
+        em = this._extentMerc;
+    var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
+    var ENLARGE_MERCATOR_LAT = og.mercator.POLE + 50000;
+    if (e.northEast.lat === 90.0) {
+        em.northEast.lat = ENLARGE_MERCATOR_LAT;
+    }
+    if (e.northEast.lon === 180.0) {
+        em.northEast.lon = ENLARGE_MERCATOR_LON;
+    }
+    if (e.southWest.lat === -90.0) {
+        em.southWest.lat = -ENLARGE_MERCATOR_LAT;
+    }
+    if (e.southWest.lon === -180.0) {
+        em.southWest.lon = -ENLARGE_MERCATOR_LON;
+    }
+};
