@@ -10,30 +10,34 @@ og.layer.GeoImage = function (name, options) {
     og.inheritance.base(this, name, options);
 
     this._image = null;
-
     this._src = options.src;
 
     this._sourceTexture = null;
     this._materialTexture = null;
     this._materialTextureMerc = null;
     this._intermediateTextureWgs84 = null;
-    this._isOverMerc = false;
 
-    this._frameCreated = false;
-    this._sourceCreated = false;
     this._frameWidth = 0;
     this._frameHeight = 0;
 
     this._gridBuffer = null;
     this._extentParams = null;
     this._extentOverParams = null;
+    this._wgs84MercParams = null;
+    this._wgs84MercExtent = null;
+    this._extentOverParams = null;
+    this._mercExtentParams = null;
+
     this._wgs84 = options.wgs84 || false;
     this._refreshCorners = true;
+    this._frameCreated = false;
+    this._sourceCreated = false;
+    this._isOverMerc = false;
 
     this._ready = false;
     this._creationProceeding = false;
 
-    options.corners && this.setCornersLonLat(og.lonLatArray(options.corners));
+    options.corners && this.setCorners(options.corners);
 };
 
 og.inheritance.extend(og.layer.GeoImage, og.layer.Layer);
@@ -57,6 +61,10 @@ og.layer.GeoImage.prototype.getHeight = function () {
     return this._height;
 };
 
+og.layer.GeoImage.prototype.setCorners = function (corners) {
+    this.setCornersLonLat(og.lonLatArray(corners));
+};
+
 og.layer.GeoImage.prototype.setCornersLonLat = function (corners) {
     this._refreshCorners = true;
 
@@ -78,13 +86,20 @@ og.layer.GeoImage.prototype.setCornersLonLat = function (corners) {
     }
     this._extentOverParams = [me.southWest.lon, me.southWest.lat, 2.0 / me.getWidth(), 2.0 / me.getHeight()];
     this._extentMerc = me.forwardMercator();
+    this._correctFullExtent();
     this._wgs84MercExtent = me;
     this._wgs84MercParams = [this._wgs84MercExtent.southWest.lon, this._wgs84MercExtent.southWest.lat,
                 1.0 / this._wgs84MercExtent.getWidth(), 1.0 / this._wgs84MercExtent.getHeight()];
+    this._mercExtentParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat,
+                this._extentMerc.getWidth(), this._extentMerc.getHeight()]
 
     if (this._planet) {
         this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(corners);
         this._refreshCorners = false;
+    }
+
+    if (this._ready && !this._creationProceeding) {
+        this._planet._geoImageCreator.queue(this);
     }
 };
 

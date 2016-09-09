@@ -54,7 +54,7 @@ og.layer.Layer = function (name, options) {
      * @public
      * @type {Array.<number,number,number>}
      */
-    this.transparentColor = options.transparentColor || [1.0, 17.0/255.0, 22.0/255.0];
+    this.transparentColor = options.transparentColor || [1.0, 17.0 / 255.0, 22.0 / 255.0];
 
     /**
      * Minimal zoom level when layer is visibile.
@@ -137,8 +137,7 @@ og.layer.Layer = function (name, options) {
     if (options.extent) {
         this.setExtent(options.extent);
     } else {
-        this._extent = new og.Extent(new og.LonLat(-180.0, -90), new og.LonLat(180.0, 90.0));
-        this._extentMerc = new og.Extent(new og.LonLat(-og.mercator.POLE, -og.mercator.POLE), new og.LonLat(og.mercator.POLE, og.mercator.POLE));
+        this.setExtent(new og.Extent(new og.LonLat(-180.0, -90), new og.LonLat(180.0, 90.0)));
     }
 
     /**
@@ -333,8 +332,31 @@ og.layer.Layer.prototype.setExtent = function (extent) {
     }
     this._extent = extent.clone();
     this._extentMerc = new og.Extent(sw.forwardMercator(), ne.forwardMercator());
+    this._correctFullExtent();
 };
 
 og.layer.Layer.prototype.getExtent = function () {
     return this._extent;
+};
+
+/**
+ * @protected
+ */
+og.layer.Layer.prototype._correctFullExtent = function () {
+    var e = this._extent,
+        em = this._extentMerc;
+    var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
+    var ENLARGE_MERCATOR_LAT = og.mercator.POLE + 50000;
+    if (e.northEast.lat === 90.0) {
+        em.northEast.lat = ENLARGE_MERCATOR_LAT;
+    }
+    if (e.northEast.lon === 180.0) {
+        em.northEast.lon = ENLARGE_MERCATOR_LON;
+    }
+    if (e.southWest.lat === -90.0) {
+        em.southWest.lat = -ENLARGE_MERCATOR_LAT;
+    }
+    if (e.southWest.lon === -180.0) {
+        em.southWest.lon = -ENLARGE_MERCATOR_LON;
+    }
 };
