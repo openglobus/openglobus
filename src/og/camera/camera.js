@@ -58,7 +58,7 @@ og.Camera = function (renderer, options) {
      * @protected
      * @type {Number}
      */
-    this._aspect = 0;
+    this._aspect = options.aspect || 0;
 
     /**
      * Camera near distance.
