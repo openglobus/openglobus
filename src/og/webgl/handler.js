@@ -96,10 +96,10 @@ og.webgl.Handler = function (id, params) {
 
     /**
      * Current WebGL extensions. Becomes here after context initialization.
-     * @private
+     * @public
      * @type {Object}
      */
-    this._pExtensions = {};
+    this.extensions = {};
 
     /**
      * HTML Canvas object id.
@@ -275,7 +275,7 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, this._pExtensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
+    gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -418,8 +418,12 @@ og.webgl.Handler.prototype._initShaderPrograms = function () {
  * @param {string} extensionStr - Extension name.
  */
 og.webgl.Handler.prototype._initExtension = function (extensionStr) {
-    if (!(this._pExtensions && this._pExtensions[extensionStr]))
-        this._pExtensions[extensionStr] = og.webgl.getExtension(this.gl, extensionStr);
+    if (!(this.extensions && this.extensions[extensionStr])) {
+        var ext = og.webgl.getExtension(this.gl, extensionStr);
+        if (ext) {
+            this.extensions[extensionStr] = ext;
+        }
+    }
 };
 
 /**
@@ -444,12 +448,13 @@ og.webgl.Handler.prototype.init = function () {
     /** Sets deafult extensions */
     this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
+    this._params.extensions.push("WEBGL_draw_buffers");
     var i = this._params.extensions.length;
     while (i--) {
         this._initExtension(this._params.extensions[i]);
     }
 
-    if (!this._pExtensions.EXT_texture_filter_anisotropic)
+    if (!this.extensions.EXT_texture_filter_anisotropic)
         this.createTexture = this.createTexture_mm;
 
     /** Initilalize shaders and rendering parameters*/
