@@ -39,13 +39,11 @@ og.scene.RenderNode = function (name) {
 
     this._isActive = true;
 
-    //Actually this matrices are not important, but could 
-    //be useful for big objects like Planet.     
-    this.scaleMatrix = new og.math.Matrix4().setIdentity();
-    this.rotationMatrix = new og.math.Matrix4().setIdentity();
-    this.translationMatrix = new og.math.Matrix4().setIdentity();
-    this.transformationMatrix = new og.math.Matrix4().setIdentity();
-    this.itransformationMatrix = new og.math.Matrix4().setIdentity();
+    this._scaleMatrix = new og.math.Matrix4().setIdentity();
+    this._rotationMatrix = new og.math.Matrix4().setIdentity();
+    this._translationMatrix = new og.math.Matrix4().setIdentity();
+    this._transformationMatrix = new og.math.Matrix4().setIdentity();
+    this._inverseTransformationMatrix = new og.math.Matrix4().setIdentity();
 
     /**
      * Lighting calculations.
@@ -74,7 +72,7 @@ og.scene.RenderNode = function (name) {
 
     /**
      * Texture atlas for the billboards images. One atlas per node.
-     * @public
+     * @protected
      * @type {og.utils.TextureAtlas}
      */
     this.billboardsTextureAtlas = new og.utils.TextureAtlas();
@@ -173,7 +171,7 @@ og.scene.RenderNode.prototype.removeLight = function (light) {
  * @returns {og.scene.RenderNode}
  */
 og.scene.RenderNode.prototype.setScale = function (xyz) {
-    this.scaleMatrix.scale(xyz);
+    this._scaleMatrix.scale(xyz);
     return this;
 };
 
@@ -184,7 +182,7 @@ og.scene.RenderNode.prototype.setScale = function (xyz) {
  * @returns {og.scene.RenderNode}
  */
 og.scene.RenderNode.prototype.setOrigin = function (origin) {
-    this.translationMatrix.translate(origin);
+    this._translationMatrix.translate(origin);
     return this;
 };
 
@@ -197,7 +195,7 @@ og.scene.RenderNode.prototype.setOrigin = function (origin) {
  * @returns {og.scene.RenderNode}
  */
 og.scene.RenderNode.prototype.setAngles = function (ax, ay, az) {
-    this.rotationMatrix.eulerToMatrix(ax, ay, az);
+    this._rotationMatrix.eulerToMatrix(ax, ay, az);
     return this;
 };
 
@@ -206,8 +204,8 @@ og.scene.RenderNode.prototype.setAngles = function (ax, ay, az) {
  * @public
  */
 og.scene.RenderNode.prototype.updateMatrices = function () {
-    this.transformationMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
-    this.itransformationMatrix = this.transformationMatrix.inverseTo();
+    this._transformationMatrix = this._translationMatrix.mul(this._rotationMatrix).mul(this._scaleMatrix);
+    this._inverseTransformationMatrix = this._transformationMatrix.inverseTo();
 };
 
 /**

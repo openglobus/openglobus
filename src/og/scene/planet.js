@@ -917,11 +917,11 @@ og.scene.Planet.prototype.memClear = function () {
  * @returns {og.math.Vector3}
  */
 og.scene.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
-    var mxTr = this.transformationMatrix.transposeTo();
+    var mxTr = this._transformationMatrix.transposeTo();
     var sx = new og.math.Ray(mxTr.mulVec3(origin),
         mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
     if (sx) {
-        return this.itransformationMatrix.mulVec3(sx);
+        return this._inverseTransformationMatrix.mulVec3(sx);
     }
     return null;
 };

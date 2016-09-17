@@ -10,7 +10,7 @@ goog.require('og.ImageCanvas');
  * @param {number} [width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [height] - Framebuffer height. Default is handler canvas height.
  */
-og.webgl.Framebuffer = function (handler, width, height, options) {
+og.webgl.Framebuffer = function (handler, options) {
     options = options || {};
 
     /**
@@ -39,14 +39,14 @@ og.webgl.Framebuffer = function (handler, width, height, options) {
      * @private
      * @type {number}
      */
-    this._width = width || handler.canvas.width;
+    this._width = options.width || handler.canvas.width;
 
     /**
      * Framebuffer width.
      * @private
      * @type {number}
      */
-    this._height = height || handler.canvas.height;
+    this._height = options.height || handler.canvas.height;
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
@@ -57,7 +57,7 @@ og.webgl.Framebuffer = function (handler, width, height, options) {
      */
     this.texture = options.texture || null;
 
-    this._init();
+    this._initialize();
 };
 
 og.webgl.Framebuffer.prototype.destroy = function () {
@@ -75,7 +75,7 @@ og.webgl.Framebuffer.prototype.destroy = function () {
  * Framebuffer initialization.
  * @private
  */
-og.webgl.Framebuffer.prototype._init = function () {
+og.webgl.Framebuffer.prototype._initialize = function () {
     var gl = this.handler.gl;
 
     this._fbo = gl.createFramebuffer();
@@ -95,8 +95,9 @@ og.webgl.Framebuffer.prototype._init = function () {
 };
 
 /**
- * 
+ * Bind buffer texture.
  * @public
+ * @param{Object} texture - Output texture.
  */
 og.webgl.Framebuffer.prototype.bindOutputTexture = function (texture) {
     var gl = this.handler.gl;
@@ -117,7 +118,7 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this._height = height;
     if (this._useDepth) {
         this.destroy();
-        this._init();
+        this._initialize();
     }
 };
 
@@ -128,8 +129,7 @@ og.webgl.Framebuffer.prototype.setSize = function (width, height) {
  */
 og.webgl.Framebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
-    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if (status == gl.FRAMEBUFFER_COMPLETE)
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
         return true;
     return false;
 };
@@ -140,36 +140,28 @@ og.webgl.Framebuffer.prototype.isComplete = function () {
  * @returns {Array.<number>}
  */
 og.webgl.Framebuffer.prototype.readAllPixels = function () {
-    var res;
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
     var pixelValues = new Uint8Array(4 * this._width * this._height);
     gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-    res = pixelValues;
-    //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return res;
+    return pixelValues;
 };
 
 /**
  * Gets pixel RBGA color from framebuffer by coordinates.
  * @public
- * @param {number} x - X coordinate.
- * @param {number} y - Y coordinate.
+ * @param {number} x - Normalized x - coordinate.
+ * @param {number} y - Normalized y - coordinate.
  * @returns {Array.<number,number,number,number>}
  */
 og.webgl.Framebuffer.prototype.readPixel = function (nx, ny) {
-    var res;
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    //if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
     var pixelValues = new Uint8Array(4);
     gl.readPixels(nx * this._width, ny * this._height, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-    res = pixelValues;
-    //}
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return res;
+    return pixelValues;
 };
 
 /**
@@ -177,10 +169,12 @@ og.webgl.Framebuffer.prototype.readPixel = function (nx, ny) {
  * @public
  */
 og.webgl.Framebuffer.prototype.activate = function () {
-    var h = this.handler,
-        gl = h.gl;
+    var gl = this.handler.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.viewport(0, 0, this._width, this._height);
+
+    this.handler.framebufferStack.push(this);
 };
 
 /**
@@ -191,7 +185,15 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
     var h = this.handler,
         gl = h.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport(0, 0, h.canvas.width, h.canvas.height);
+
+    var f = this.handler.framebufferStack.popPrev();
+
+    if (f) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, f._fbo);
+        gl.viewport(0, 0, f._width, f._height);
+    } else {
+        gl.viewport(0, 0, h.canvas.width, h.canvas.height);
+    }
 };
 
 /**

@@ -5,6 +5,7 @@ goog.require('og.RendererEvents');
 goog.require('og.Camera');
 goog.require('og.math.Pixel');
 goog.require('og.utils');
+goog.require('og.webgl.MultiFramebuffer');
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler works real time.
@@ -97,7 +98,7 @@ og.Renderer = function (handler) {
     this.controls = [];
 
     /**
-     * Provide exchange between controls.
+     * Provides exchange between controls.
      * @public
      * @type {Object}
      */
@@ -256,17 +257,47 @@ og.Renderer.prototype.init = function () {
         that.draw();
     });
 
-    this.activeCamera = new og.Camera(this, { eye: new og.math.Vector3(0, 0, 12000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
+    this.activeCamera = new og.Camera(this, { eye: new og.math.Vector3(0, 0, 0), look: new og.math.Vector3(0, 0, -1), up: new og.math.Vector3(0, 1, 0) });
 
     this.events.initialize();
 
     this.handler.onCanvasResize = function (obj) {
+        that.sceneFrameBuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
         that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
-    }
+    };
 
     this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
+
+    this.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("screenFrame", {
+        uniforms: {
+            texture: { type: og.shaderProgram.types.SAMPLER2D }
+        },
+        attributes: {
+            corners: { type: og.shaderProgram.types.VEC3, enableArray: true },
+        },
+        vertexShader:
+            'attribute vec2 corners;\
+            \
+            varying vec2 tc;\
+            void main(void) {\
+                gl_Position = vec4(corners, 0.0, 1.0);\
+                tc = corners * 0.5 + 0.5;\
+            }',
+        fragmentShader:
+            'precision lowp float;\
+            uniform sampler2D texture;\
+            \
+            varying vec2 tc;\
+            \
+            void main(void) {\
+                gl_FragColor = texture2D( texture, tc );\
+            }'
+    }));
+
+    this.sceneFrameBuffer = new og.webgl.MultiFramebuffer(this.handler, { size: 3 });
+    this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 };
 
 /**
@@ -300,24 +331,44 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
  * @public
  */
 og.Renderer.prototype.draw = function () {
+    var e = this.events;
+    e.handleEvents();
+    e.dispatch(e.draw, this);
 
-    this.handler.clearFrame();
+    var sfb = this.sceneFrameBuffer;
+    sfb.activate();
+    var h = this.handler;
+    h.clearFrame();
 
-    this.events.handleEvents();
-
-    this.events.dispatch(this.events.draw, this);
+    h.gl.activeTexture(h.gl.TEXTURE0);
+    h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
     var rn = this._renderNodesArr;
     var i = rn.length;
     while (i--) {
-        //renderNodes frame call
         rn[i].drawNode();
     }
 
+    sfb.deactivate();
+
     this._drawPickingBuffer();
 
-    this.events.mouseState.moving = false;
-    this.events.touchState.moving = false;
+    var sh = h.shaderPrograms.screenFrame,
+        p = sh._program,
+        gl = h.gl;
+
+    gl.disable(gl.DEPTH_TEST);
+    sh.activate();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[1]);
+    gl.uniform1i(p.uniforms.texture._pName, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+    gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.enable(gl.DEPTH_TEST);
+
+    e.mouseState.moving = false;
+    e.touchState.moving = false;
 };
 
 /**

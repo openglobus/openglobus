@@ -26,13 +26,15 @@ function start() {
 
     var osm = new og.layer.XYZ("OpenStreetMap", { extent: og.extent(og.lonLat(0, 0), og.lonLat(45, 45)), isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
     var sat = new og.layer.XYZ("MapQuest Satellite", { isBaseLayer: true, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.png", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
+    var sat2 = new og.layer.XYZ("-MapQuest Satellite", { extent: og.extent(og.lonLat(-180, -90), og.lonLat(180, 0)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.png", visibility: false, attribution: '' });
+    var sat3 = new og.layer.XYZ("+MapQuest Satellite", { extent: og.extent(og.lonLat(-180, 0), og.lonLat(180, 90)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{zoom}/{tilex}/{tiley}.png", visibility: false, attribution: '' });
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{zoom}/{tilex}/{tiley}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
     //var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://c.tile.osm.kosmosnimki.ru/kosmo/{zoom}/{tilex}/{tiley}.png" });
     var states = new og.layer.WMS("USA States", { height: 200000, zIndex: 100, extent: og.extent(og.lonLat(-120, 20), og.lonLat(-60, 45)), visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
     var geoImage = new og.layer.GeoImage("GeoImage", { src: "bm.jpg", wgs84: true, height: 0, zIndex: 200, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 0.8 });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     var osm2 = new og.layer.XYZ("OpenStreetMap", { height: 0, extent: og.extent(og.lonLat(-100, 25), og.lonLat(-70, 40)), isBaseLayer: false, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '', zIndex: 0 });
-    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, wgs84: false, corners: [[0, 80], [70, 80], [10, 0], [0, 0]], visibility: false, isBaseLayer: false, opacity: 0.7 });
+    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
 
     var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
@@ -63,7 +65,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, osm, hyb, states, osm2, geoImage, geoImage2],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2],
         "autoActivate": true
     });
 

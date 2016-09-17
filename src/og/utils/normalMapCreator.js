@@ -88,7 +88,8 @@ og.utils.NormalMapCreator.prototype._init = function () {
 
     //initialize hidden handler
     this._handler = new og.webgl.Handler(null, {
-        width: this._width, height: this._height,
+        width: this._width,
+        height: this._height,
         context: { alpha: false, depth: false }
     });
     this._handler.addShaderProgram(normalMapBlur);
@@ -98,7 +99,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._handler.deactivateDepthTest();
 
     //create hidden handler buffer
-    this._framebuffer = new og.webgl.Framebuffer(this._handler);
+    this._framebuffer = new og.webgl.Framebuffer(this._handler, { useDepth: false });
 
     //creating vertices hached array for differents grid size segment
     for (var p = 1; p <= 6; p++) {

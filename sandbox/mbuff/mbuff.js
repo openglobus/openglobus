@@ -126,7 +126,7 @@ MBuff.prototype.initialization = function () {
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
     this._textureCoordBuffer = h.createArrayBuffer(new Float32Array(this._textureCoordData), 2, this._textureCoordData.length / 2);
 
-    this.fb = new og.webgl.MultiFramebuffer(this.renderer.handler);
+    this.fb = new og.webgl.MultiFramebuffer(this.renderer.handler, { size: 2 });
 };
 
 var cam;

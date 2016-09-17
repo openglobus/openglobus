@@ -5,7 +5,7 @@ highp vec4 encode32(highp float f) {
     float F = abs(f); 
     float s = step(0.0,-f);
     float e = floor(log2(F)); 
-    float m = (exp2(- e) * F);
+    float m = exp2(- e) * F;
     //float m = F/exp2(e);
     e = floor(log2(F) + 127.0) + floor(log2(m));
     vec4 rgba;

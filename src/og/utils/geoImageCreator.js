@@ -240,8 +240,8 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
 og.utils.GeoImageCreator.prototype._initBuffers = function () {
     og.PlanetSegmentHelper.initIndexesTables(3);
 
-    this._framebuffer = new og.webgl.Framebuffer(this._handler, 2, 2, { useDepth: false });
-    this._framebufferMercProj = new og.webgl.Framebuffer(this._handler, 2, 2, { useDepth: false });
+    this._framebuffer = new og.webgl.Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
+    this._framebufferMercProj = new og.webgl.Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
 
     var gs = this._gridSize;
     var gs1 = this._gridSize + 1;

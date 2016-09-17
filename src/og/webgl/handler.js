@@ -7,6 +7,7 @@ goog.require('og.ImageCanvas');
 goog.require('og.math.Pixel');
 goog.require('og.Clock');
 goog.require('og.Console');
+goog.require('og.Stack');
 
 /** 
  * A WebGL handler for accessing low-level WebGL capabilities. 
@@ -120,6 +121,8 @@ og.webgl.Handler = function (id, params) {
     this._frameCallback = function () { };
 
     this.transparentTexture = null;
+
+    this.framebufferStack = new og.Stack();
 };
 
 /**
