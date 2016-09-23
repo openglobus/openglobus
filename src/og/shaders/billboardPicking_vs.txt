@@ -55,5 +55,5 @@ void main() {
 
     gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
 	gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-	gl_Position.z += a_offset.z;
+	gl_Position.z += a_offset.z - 100.0;
 }

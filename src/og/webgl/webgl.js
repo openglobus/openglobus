@@ -31,7 +31,7 @@ og.webgl.getExtension = function (gl, name) {
  * @params {Object} [contextAttributes] - See canvas.getContext contextAttributes.
  * @returns {Object}
  */
-og.webgl.initWebGLContext = function (canvas, contextAttributes) {
+og.webgl.getContext = function (canvas, contextAttributes) {
     var ctx;
     try {
         ctx = canvas.getContext("experimental-webgl", contextAttributes);

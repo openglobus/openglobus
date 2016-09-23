@@ -12,7 +12,7 @@ goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.drawnode_nl');
-goog.require('og.shaderProgram.heightPicking');
+//goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
 goog.require('og.planetSegment.Segment');
@@ -216,12 +216,12 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this._indexesBuffers = [];
 
-    /**
-     * Backbuffer for relief.
-     * @protected
-     * @type {Object}
-     */
-    this._heightBackbuffer = null;
+    ///**
+    // * Backbuffer for relief.
+    // * @protected
+    // * @type {Object}
+    // */
+    //this._heightBackbuffer = null;
 
     /**
      * Calculates when mouse is moving or planet is rotating.
@@ -289,6 +289,7 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this.SLICE_SIZE = 5;
     this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
+    this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
     /**
      * GeoImage creator.
@@ -398,6 +399,7 @@ og.scene.Planet.prototype.removeLayer = function (layer) {
     var lid = layer._id;
     for (var i = 0; i < this.layers.length; i++) {
         if (this.layers[i]._id == lid) {
+            this.renderer.clearPickingColor(layer);
             this.layers.splice(i, 1);
             this.updateVisibleLayers();
             this._quadTree.traverseTree(function (node) {
@@ -479,7 +481,7 @@ og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
  */
 og.scene.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
+    //this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
 };
 
 /**
@@ -520,8 +522,7 @@ og.scene.Planet.prototype.initialization = function () {
         that.solidTextureOne = t;
         that.solidTextureTwo = t;
     });
-    //this.solidTextureTwo = this.renderer.handler.createDefaultTexture(null, function (t) {
-    //});
+
     this.transparentTexture = this.renderer.handler.transparentTexture;
 
     this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, { eye: new og.math.Vector3(0, 0, 28000000), look: new og.math.Vector3(0, 0, 0), up: new og.math.Vector3(0, 1, 0) });
@@ -540,14 +541,14 @@ og.scene.Planet.prototype.initialization = function () {
     //Applying shaders
     this._initializeShaders();
 
-    //backbuffer initialization
-    this._heightBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
+    ////backbuffer initialization
+    //this._heightBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
 
     this.updateVisibleLayers();
 
-    this.renderer.events.on("resize", this._heightBackbuffer, function (e) {
-        this.setSize(e.width, e.height);
-    });
+    //this.renderer.events.on("resize", this._heightBackbuffer, function (e) {
+    //    this.setSize(e.width, e.height);
+    //});
 
     this.renderer.activeCamera.events.on("viewchange", this, function (e) {
         this._viewChanged = true;
@@ -566,7 +567,7 @@ og.scene.Planet.prototype.initialization = function () {
     var that = this;
     this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
 
-    this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
+    //this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
     //load Earth night glowing texture
     if (this._useNightTexture) {
@@ -782,7 +783,7 @@ og.scene.Planet.prototype.frame = function () {
  */
 og.scene.Planet.prototype._rendering = function () {
     this._renderNodesPASS();
-    this._renderHeightBackbufferPASS();
+    //this._renderHeightBackbufferPASS();
     this._renderVectorLayersPASS();
 };
 
@@ -827,6 +828,7 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         h.shaderPrograms.drawnode_nl.activate();
         sh = h.shaderPrograms.drawnode_nl._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+        h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
     }
 
     //draw planet's nodes
@@ -851,28 +853,28 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
     gl.disable(gl.BLEND);
 };
 
-/**
- * @protected
- */
-og.scene.Planet.prototype._renderHeightBackbufferPASS = function () {
-    var b = this._heightBackbuffer,
-        r = this.renderer;
-    var h = r.handler;
-    var pp = h.shaderPrograms.heightPicking;
-    h.gl.disable(h.gl.BLEND);
-    b.activate();
-    h.gl.clearColor(0, 0, 0, 0);
-    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
-    pp.activate();
-    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-    h.gl.uniformMatrix4fv(pp._program.uniforms.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+///**
+// * @protected
+// */
+//og.scene.Planet.prototype._renderHeightBackbufferPASS = function () {
+//    var b = this._heightBackbuffer,
+//        r = this.renderer;
+//    var h = r.handler;
+//    var pp = h.shaderPrograms.heightPicking;
+//    h.gl.disable(h.gl.BLEND);
+//    b.activate();
+//    h.gl.clearColor(0, 0, 0, 0);
+//    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
+//    pp.activate();
+//    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
+//    h.gl.uniformMatrix4fv(pp._program.uniforms.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
 
-    var i = this._renderedNodes.length;
-    while (i--) {
-        this._renderedNodes[i].planetSegment.drawHeightPicking();
-    }
-    b.deactivate();
-};
+//    var i = this._renderedNodes.length;
+//    while (i--) {
+//        this._renderedNodes[i].planetSegment.drawHeightPicking();
+//    }
+//    b.deactivate();
+//};
 
 /**
  * Vector layer's visible entity collections rendering pass.
@@ -890,13 +892,13 @@ og.scene.Planet.prototype._renderVectorLayersPASS = function () {
     this.drawEntityCollections(this._frustumEntityCollections);
 };
 
-/**
- * Vector layers picking pass.
- * @protected
- */
-og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
-    this.drawPickingEntityCollections(this._frustumEntityCollections);
-};
+///**
+// * Vector layers picking pass.
+// * @protected
+// */
+//og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
+//    this.drawPickingEntityCollections(this._frustumEntityCollections);
+//};
 
 /**
  * Starts clear memory thread.
@@ -1055,11 +1057,14 @@ og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
     if (this._viewChanged || force) {
         this._viewChanged = false;
         var cnv = this.renderer.handler.canvas;
-        var color = og.math.Vector4.fromVec(this._heightBackbuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
+        var color = og.math.Vector4.fromVec(this.renderer.sceneFrameBuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2));
         if (!(color.x | color.y | color.z | color.w)) {
             return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
         }
-        return this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+        color.w = 0.0;
+        this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+        print2d("l1", color.x + "," + color.y + "," + color.z + "," + color.w + " / " + this._currentDistanceFromPixel, 100, 100);
+        return this._currentDistanceFromPixel;
     }
     return this._currentDistanceFromPixel;
 };

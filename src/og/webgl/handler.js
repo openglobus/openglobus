@@ -24,13 +24,6 @@ goog.require('og.Stack');
 og.webgl.Handler = function (id, params) {
 
     /**
-     * Frame background color.
-     * @public
-     * @type {Object}
-     */
-    this.backgroundColor = { "r": 0.41, "g": 0.41, "b": 0.41 };
-
-    /**
      * Application timer.
      * @public
      * @type {og.Clock}
@@ -445,7 +438,7 @@ og.webgl.Handler.prototype.init = function () {
 
     og.console = og.Console.getInstance();
 
-    this.gl = og.webgl.initWebGLContext(this.canvas, this._params.context);
+    this.gl = og.webgl.getContext(this.canvas, this._params.context);
     this._initialized = true;
 
     /** Sets deafult extensions */
@@ -640,8 +633,7 @@ og.webgl.Handler.prototype.drawFrame = function () {
  */
 og.webgl.Handler.prototype.clearFrame = function () {
     var gl = this.gl;
-    var bc = this.backgroundColor;
-    this.gl.clearColor(bc.r, bc.g, bc.b, 1.0);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 

@@ -30,6 +30,29 @@ og.layer.MAXIMUM_OVERLAYS = 8;
  * @fires og.layer.Layer#visibilitychange
  * @fires og.layer.Layer#add
  * @fires og.layer.Layer#remove
+ * @fires og.layer.Vector#mousemove
+ * @fires og.layer.Vector#mouseenter
+ * @fires og.layer.Vector#mouseleave
+ * @fires og.layer.Vector#mouselbuttonclick
+ * @fires og.layer.Vector#mouserbuttonclick
+ * @fires og.layer.Vector#mousembuttonclick
+ * @fires og.layer.Vector#mouselbuttondoubleclick
+ * @fires og.layer.Vector#mouserbuttondoubleclick
+ * @fires og.layer.Vector#mousembuttondoubleclick
+ * @fires og.layer.Vector#mouselbuttonup
+ * @fires og.layer.Vector#mouserbuttonup
+ * @fires og.layer.Vector#mousembuttonup
+ * @fires og.layer.Vector#mouselbuttondown
+ * @fires og.layer.Vector#mouserbuttondown
+ * @fires og.layer.Vector#mousembuttondown
+ * @fires og.layer.Vector#mouselbuttonhold
+ * @fires og.layer.Vector#mouserbuttonhold
+ * @fires og.layer.Vector#mousembuttonhold
+ * @fires og.layer.Vector#mousewheel
+ * @fires og.layer.Vector#touchmove
+ * @fires og.layer.Vector#touchstart
+ * @fires og.layer.Vector#touchend
+ * @fires og.layer.Vector#doubletouch
  */
 og.layer.Layer = function (name, options) {
 
@@ -141,6 +164,13 @@ og.layer.Layer = function (name, options) {
     }
 
     /**
+     * Layer picking color. Assign when added to the planet.
+     * @protected
+     * @type {og.math.Vector3}
+     */
+    this._pickingColor = new og.math.Vector3();
+
+    /**
      * Events handler.
      * @public
      * @type {og.Events}
@@ -166,7 +196,128 @@ og.layer.Layer.EVENT_NAMES = [
      * Triggered when layer has removed from the planet.
      * @event og.layer.Layer#remove
      */
-    "remove"
+    "remove",
+
+    /**
+     * Triggered when mouse moves over the layer.
+     * @event og.layer.Vector#mousemove
+     */
+    "mousemove",
+
+    /**
+     * Triggered when mouse has entered over the layer.
+     * @event og.layer.Vector#mouseenter
+     */
+    "mouseenter",
+
+    /**
+     * Triggered when mouse leaves the layer.
+     * @event og.layer.Vector#mouseenter
+     */
+    "mouseleave",
+
+    /**
+     * Mouse left button clicked.
+     * @event og.layer.Vector#mouselbuttonclick
+     */
+    "mouselbuttonclick",
+
+    /**
+     * Mouse right button clicked.
+     * @event og.layer.Vector#mouserbuttonclick
+     */
+    "mouserbuttonclick",
+
+    /**
+     * Mouse right button clicked.
+     * @event og.layer.Vector#mousembuttonclick
+     */
+    "mousembuttonclick",
+
+    /**
+     * Mouse left button double click.
+     * @event og.layer.Vector#mouselbuttondoubleclick
+     */
+    "mouselbuttondoubleclick",
+
+    /**
+     * Mouse right button double click.
+     * @event og.layer.Vector#mouserbuttondoubleclick
+     */
+    "mouserbuttondoubleclick",
+
+    /**
+     * Mouse middle button double click.
+     * @event og.layer.Vector#mousembuttondoubleclick
+     */
+    "mousembuttondoubleclick",
+
+    /**
+     * Mouse left button up(stop pressing).
+     * @event og.layer.Vector#mouselbuttonup
+     */
+    "mouselbuttonup",
+
+    /**
+     * Mouse right button up(stop pressing).
+     * @event og.layer.Vector#mouserbuttonup
+     */
+    "mouserbuttonup",
+
+    /**
+     * Mouse middle button up(stop pressing).
+     * @event og.layer.Vector#mousembuttonup
+     */
+    "mousembuttonup",
+
+    /**
+     * Mouse left button is just pressed down(start pressing).
+     * @event og.layer.Vector#mouselbuttondown
+     */
+    "mouselbuttondown",
+
+    /**
+     * Mouse right button is just pressed down(start pressing).
+     * @event og.layer.Vector#mouserbuttondown
+     */
+    "mouserbuttondown",
+
+    /**
+     * Mouse middle button is just pressed down(start pressing).
+     * @event og.layer.Vector#mousembuttondown
+     */
+    "mousembuttondown",
+
+    /**
+     * Mouse left button is pressing.
+     * @event og.layer.Vector#mouselbuttonhold
+     */
+    "mouselbuttonhold",
+
+    /**
+     * Mouse right button is pressing.
+     * @event og.layer.Vector#mouserbuttonhold
+     */
+    "mouserbuttonhold",
+
+    /**
+     * Mouse middle button is pressing.
+     * @event og.layer.Vector#mousembuttonhold
+     */
+    "mousembuttonhold",
+
+    /**
+     * Mouse wheel is rotated.
+     * @event og.layer.Vector#mousewheel
+     */
+    "mousewheel",
+
+    "touchmove",
+    "touchstart",
+    "touchend",
+    "doubletouch",
+    "touchleave",
+    "touchenter"
 ];
 
 og.layer.__layersCounter = 0;
@@ -205,6 +356,7 @@ og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.events.dispatch(planet.events.layeradd, this);
     this.events.dispatch(this.events.add, planet);
     planet.updateVisibleLayers();
+    planet.renderer.assignPickingColor(this);
 };
 
 /**

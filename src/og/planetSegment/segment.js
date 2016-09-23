@@ -995,6 +995,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
+        var _pickingColorArr = new Float32Array(p.SLICE_SIZE_3);
         var _samplerArr = new Array(p.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
@@ -1008,7 +1009,8 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                     m = pm[li._id] = new og.planetSegment.Material(this, li);
                 }
 
-                var n4 = n * 4;
+                var n4 = n * 4,
+                    n3 = n * 3;
 
                 var arr = li.applyMaterial(m);
                 _tileOffsetArr[n4] = arr[0];
@@ -1026,6 +1028,10 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 _transparentColorArr[n4 + 1] = li.transparentColor[1];
                 _transparentColorArr[n4 + 2] = li.transparentColor[2];
                 _transparentColorArr[n4 + 3] = li.opacity;
+
+                _pickingColorArr[n3] = li._pickingColor.x / 255.0;
+                _pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
+                _pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
 
                 _samplerArr[n] = n;
 
@@ -1045,6 +1051,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
         gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
+        gl.uniform3fv(shu.pickingColorArr._pName, _pickingColorArr);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
@@ -1077,6 +1084,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
+        var _pickingColorArr = new Float32Array(p.SLICE_SIZE_3);
         var _samplerArr = new Array(p.SLICE_SIZE);
         var li = vl[0];
         var currHeight = li._height;
@@ -1093,7 +1101,8 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                     m = pm[li._id] = new og.planetSegment.Material(this, li);
                 }
 
-                var n4 = n * 4;
+                var n4 = n * 4,
+                    n3 = n * 3;
 
                 var arr = li.applyMaterial(m);
                 _tileOffsetArr[n4] = arr[0];
@@ -1111,6 +1120,10 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 _transparentColorArr[n4 + 1] = li.transparentColor[1];
                 _transparentColorArr[n4 + 2] = li.transparentColor[2];
                 _transparentColorArr[n4 + 3] = li.opacity;
+
+                _pickingColorArr[n3] = li._pickingColor.x / 255.0;
+                _pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
+                _pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
 
                 _samplerArr[n] = n;
 
@@ -1131,6 +1144,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
             gl.uniform4fv(shu.tileOffsetArr._pName, _tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr._pName, _visibleExtentOffsetArr);
             gl.uniform4fv(shu.transparentColorArr._pName, _transparentColorArr);
+            gl.uniform3fv(shu.pickingColorArr._pName, _pickingColorArr);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
@@ -1140,18 +1154,18 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
     }
 };
 
-og.planetSegment.Segment.prototype.drawHeightPicking = function () {
-    if (this.ready) {
-        var gl = this.handler.gl;
-        var sh = this.handler.shaderPrograms.heightPicking._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._getIndexBuffer());
-        this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
-    }
-};
+//og.planetSegment.Segment.prototype.drawHeightPicking = function () {
+//    if (this.ready) {
+//        var gl = this.handler.gl;
+//        var sh = this.handler.shaderPrograms.heightPicking._program;
+//        var sha = sh.attributes,
+//            shu = sh.uniforms;
+//        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+//        gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._getIndexBuffer());
+//        this.node.sideSize = [this.gridSize, this.gridSize, this.gridSize, this.gridSize];
+//    }
+//};
 
 og.planetSegment.Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSize;

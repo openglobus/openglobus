@@ -111,18 +111,18 @@ og.Renderer = function (handler) {
      */
     this.colorObjects = {};
 
-    /**
-     * Color picking objects rendering queue.
-     * @type {Array.<og.Renderer~pickingCallback>}
-     */
-    this._pickingCallbacks = [];
+    ///**
+    // * Color picking objects rendering queue.
+    // * @type {Array.<og.Renderer~pickingCallback>}
+    // */
+    //this._pickingCallbacks = [];
 
-    /**
-     * Picking objects framebuffer.
-     * @private
-     * @type {og.webgl.Framebuffer}
-     */
-    this._pickingFramebuffer = null;
+    ///**
+    // * Picking objects framebuffer.
+    // * @private
+    // * @type {og.webgl.Framebuffer}
+    // */
+    //this._pickingFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -139,14 +139,14 @@ og.Renderer = function (handler) {
     this._prevPickingColor = [0, 0, 0];
 };
 
-/**
- * Adds picking rendering callback function.
- * @param {object} sender - Callback context.
- * @param {og.Renderer~pickingCallback} callback - Rendering callback.
- */
-og.Renderer.prototype.addPickingCallback = function (sender, callback) {
-    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
-};
+///**
+// * Adds picking rendering callback function.
+// * @param {object} sender - Callback context.
+// * @param {og.Renderer~pickingCallback} callback - Rendering callback.
+// */
+//og.Renderer.prototype.addPickingCallback = function (sender, callback) {
+//    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
+//};
 
 /**
  * Assign picking color to the object.
@@ -179,6 +179,7 @@ og.Renderer.prototype.assignPickingColor = function (obj) {
 og.Renderer.prototype.clearPickingColor = function (obj) {
     var c = obj._pickingColor;
     if (!c.isZero()) {
+        this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
         delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
         c.x = c.y = c.z = 0;
     }
@@ -264,11 +265,11 @@ og.Renderer.prototype.init = function () {
     this.handler.onCanvasResize = function (obj) {
         that.sceneFrameBuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        //that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
     };
 
-    this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
+    //this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
 
     this.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("screenFrame", {
         uniforms: {
@@ -351,7 +352,22 @@ og.Renderer.prototype.draw = function () {
 
     sfb.deactivate();
 
-    this._drawPickingBuffer();
+    //this._drawPickingBuffer();
+    var ms = this.events.mouseState;
+    var ts = this.events.touchState;
+
+    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+        this._prevPickingColor[0] = this._currPickingColor[0];
+        this._prevPickingColor[1] = this._currPickingColor[1];
+        this._prevPickingColor[2] = this._currPickingColor[2];
+
+        if (ts.x || ts.y) {
+            this._currPickingColor = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+        } else {
+            this._currPickingColor = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+        }
+    }
+
 
     var sh = h.shaderPrograms.screenFrame,
         p = sh._program,
@@ -379,50 +395,50 @@ og.Renderer.prototype.draw = function () {
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c = this._pickingFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height);
+    var c = this.sceneFrameBuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
-/**
- * Draw picking objects framebuffer.
- * @private
- */
-og.Renderer.prototype._drawPickingBuffer = function () {
-    this._pickingFramebuffer.activate();
+///**
+// * Draw picking objects framebuffer.
+// * @private
+// */
+//og.Renderer.prototype._drawPickingBuffer = function () {
+//    //this._pickingFramebuffer.activate();
 
-    var h = this.handler;
-    var gl = h.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.disable(h.gl.BLEND);
+//    //var h = this.handler;
+//    //var gl = h.gl;
+//    //gl.clearColor(0.0, 0.0, 0.0, 1.0);
+//    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+//    //gl.disable(h.gl.BLEND);
 
-    var dp = this._pickingCallbacks;
-    var i = dp.length;
-    while (i--) {
-        /**
-         * This callback renders picking frame.
-         * @callback og.Renderer~pickingCallback
-         */
-        dp[i].callback.call(dp[i].sender);
-    }
+//    //var dp = this._pickingCallbacks;
+//    //var i = dp.length;
+//    //while (i--) {
+//    //    /**
+//    //     * This callback renders picking frame.
+//    //     * @callback og.Renderer~pickingCallback
+//    //     */
+//    //    dp[i].callback.call(dp[i].sender);
+//    //}
 
-    this._pickingFramebuffer.deactivate();
+//    //this._pickingFramebuffer.deactivate();
 
-    var ms = this.events.mouseState;
-    var ts = this.events.touchState;
+//    var ms = this.events.mouseState;
+//    var ts = this.events.touchState;
 
-    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-        this._prevPickingColor[0] = this._currPickingColor[0];
-        this._prevPickingColor[1] = this._currPickingColor[1];
-        this._prevPickingColor[2] = this._currPickingColor[2];
+//    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+//        this._prevPickingColor[0] = this._currPickingColor[0];
+//        this._prevPickingColor[1] = this._currPickingColor[1];
+//        this._prevPickingColor[2] = this._currPickingColor[2];
 
-        if (ts.x || ts.y) {
-            this._currPickingColor = this._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
-        } else {
-            this._currPickingColor = this._pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
-        }
-    }
-};
+//        if (ts.x || ts.y) {
+//            this._currPickingColor = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+//        } else {
+//            this._currPickingColor = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+//        }
+//    }
+//};
 
 /**
  * Function starts rendering.

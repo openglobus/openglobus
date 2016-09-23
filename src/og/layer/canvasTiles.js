@@ -18,10 +18,6 @@ goog.require('og.ImageCanvas');
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- *
- * @fires og.layer.Layer#visibilitychange
- * @fires og.layer.Layer#add
- * @fires og.layer.Layer#remove
  */
 og.layer.CanvasTiles = function (name, options) {
     options = options || {};

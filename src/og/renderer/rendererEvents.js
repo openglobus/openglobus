@@ -584,7 +584,7 @@ og.RendererEvents.prototype.onTouchMove = function (event) {
     ts.y = event.touches.item(0).pageY - event.offsetTop;
     var cnv = this.renderer.handler.canvas;
     ts.nx = ts.x / cnv.width;
-    ts.ny = ts.y /cnv.height;
+    ts.ny = ts.y / cnv.height;
     ts.sys = event;
     ts.moving = true;
     this._dblTchBegins = 0;
@@ -612,37 +612,39 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];
 
-        ms.pickingObject = co;
-        ts.pickingObject = co;
+        if (co) {
+            ms.pickingObject = co;
+            ts.pickingObject = co;
 
-        //object changed
-        if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
-            //current black
-            if (!(c[0] || c[1] || c[2])) {
-                var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                var pe = po._entityCollection.events;
-                ms.pickingObject = po;
-                pe.dispatch(pe.mouseleave, ms);
-                ts.pickingObject = po;
-                pe.dispatch(pe.touchleave, ts);
-            } else {
-                //current not black
-
-                //previous not black
-                if (p[0] || p[1] || p[2]) {
+            //object changed
+            if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
+                //current black
+                if (!(c[0] || c[1] || c[2])) {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                    var pe = po._entityCollection.events;
+                    var pe = po.events || po._entityCollection.events;
                     ms.pickingObject = po;
                     pe.dispatch(pe.mouseleave, ms);
                     ts.pickingObject = po;
                     pe.dispatch(pe.touchleave, ts);
-                }
+                } else {
+                    //current not black
 
-                var ce = co._entityCollection.events;
-                ms.pickingObject = co;
-                ce.dispatch(ce.mouseenter, ms);
-                ts.pickingObject = co;
-                ce.dispatch(ce.touchenter, ts);
+                    //previous not black
+                    if (p[0] || p[1] || p[2]) {
+                        var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                        var pe = po.events || po._entityCollection.events;
+                        ms.pickingObject = po;
+                        pe.dispatch(pe.mouseleave, ms);
+                        ts.pickingObject = po;
+                        pe.dispatch(pe.touchleave, ts);
+                    }
+
+                    var ce = co.events || co._entityCollection.events;
+                    ms.pickingObject = co;
+                    ce.dispatch(ce.mouseenter, ms);
+                    ts.pickingObject = co;
+                    ce.dispatch(ce.touchenter, ts);
+                }
             }
         }
     }
@@ -654,106 +656,158 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 og.RendererEvents.prototype.handleMouseEvents = function () {
     var ms = this.mouseState,
         ce = this.dispatch;
-    var po = ms.pickingObject;
+    var po = ms.pickingObject,
+        pe = null;
 
     if (ms.leftButtonClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouselbuttonclick, ms);
+        }
         ce(this.mouselbuttonclick, ms);
         ms.leftButtonClick = false;
     }
 
     if (ms.rightButtonClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouserbuttonclick, ms);
+        }
         ce(this.mouserbuttonclick, ms);
         ms.rightButtonClick = false;
     }
 
     if (ms.middleButtonClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mousembuttonclick, ms);
+        }
         ce(this.mousembuttonclick, ms);
         ms.middleButtonClick = false;
     }
 
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonhold, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mouselbuttonhold, ms);
+            }
             ce(this.mouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondown, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mouselbuttondown, ms);
+            }
             ce(this.mouselbuttondown, ms);
         }
     }
 
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonhold, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mouserbuttonhold, ms);
+            }
             ce(this.mouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondown, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mouserbuttondown, ms);
+            }
             ce(this.mouserbuttondown, ms);
         }
     }
 
     if (ms.middleButtonDown) {
         if (ms.middleButtonHold) {
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonhold, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mousembuttonhold, ms);
+            }
             ce(this.mousembuttonhold, ms);
         } else {
             ms.middleButtonHold = true;
-            po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttondown, ms);
+            if (po) {
+                pe = po.events || po._entityCollection.events;
+                pe.dispatch(pe.mousembuttondown, ms);
+            }
             ce(this.mousembuttondown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttonup, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouselbuttonup, ms);
+        }
         ce(this.mouselbuttonup, ms);
         ms.leftButtonUp = false;
         ms.leftButtonHold = false;
     }
 
     if (ms.rightButtonUp) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttonup, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouserbuttonup, ms);
+        }
         ce(this.mouserbuttonup, ms);
         ms.rightButtonUp = false;
         ms.rightButtonHold = false;
     }
 
     if (ms.middleButtonUp) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttonup, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mousembuttonup, ms);
+        }
         ce(this.mousembuttonup, ms);
         ms.middleButtonUp = false;
         ms.middleButtonHold = false;
     }
 
     if (ms.leftButtonDoubleClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouselbuttondoubleclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouselbuttondoubleclick, ms);
+        }
         ce(this.mouselbuttondoubleclick, ms);
         ms.leftButtonDoubleClick = false;
     }
 
     if (ms.rightButtonDoubleClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mouserbuttondoubleclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mouserbuttondoubleclick, ms);
+        }
         ce(this.mouserbuttondoubleclick, ms);
         ms.rightButtonDoubleClick = false;
     }
 
     if (ms.middleButtonDoubleClick) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousembuttondoubleclick, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mousembuttondoubleclick, ms);
+        }
         ce(this.mousembuttondoubleclick, ms);
         ms.middleButtonDoubleClick = false;
     }
 
     if (ms.wheelDelta) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousewheel, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mousewheel, ms);
+        }
         ce(this.mousewheel, ms);
         ms.wheelDelta = 0;
     }
 
     if (ms.moving) {
-        po && po._entityCollection.events.dispatch(po._entityCollection.events.mousemove, ms);
+        if (po) {
+            pe = po.events || po._entityCollection.events;
+            pe.dispatch(pe.mousemove, ms);
+        }
         ce(this.mousemove, ms);
         ms.prev_x = ms.x;
         ms.prev_y = ms.y;
@@ -772,7 +826,8 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
     var ts = this.touchState,
         ce = this.dispatch;
 
-    var tpo = ts.pickingObject;
+    var tpo = ts.pickingObject,
+        tpe = null;
 
     if (ts.touchCancel) {
         ce(this.touchcancel, ts);
@@ -786,19 +841,28 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
         var c = r._currPickingColor;
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];
         tpo = ts.pickingObject = co;
-        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchstart, ts);
+        if (tpo) {
+            tpe = tpo.events || tpo._entityCollection.events;
+            tpe.dispatch(tpe.touchstart, ts);
+        }
         ce(this.touchstart, ts);
         ts.touchStart = false;
     }
 
     if (ts.doubleTouch) {
-        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.doubletouch, ts);
+        if (tpo) {
+            tpe = tpo.events || tpo._entityCollection.events;
+            tpe.dispatch(tpe.doubletouch, ts);
+        }
         ce(this.doubletouch, ts);
         ts.doubleTouch = false;
     }
 
     if (ts.touchEnd) {
-        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchend, ts);
+        if (tpo) {
+            tpe = tpo.events || tpo._entityCollection.events;
+            tpe.dispatch(tpe.touchend, ts);
+        }
         ce(this.touchend, ts);
         ts.x = 0;
         ts.y = 0;
@@ -806,7 +870,10 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
     }
 
     if (ts.moving) {
-        tpo && tpo._entityCollection.events.dispatch(tpo._entityCollection.events.touchmove, ts);
+        if (tpo) {
+            tpe = tpo.events || tpo._entityCollection.events;
+            tpe.dispatch(tpe.touchmove, ts);
+        }
         ce(this.touchmove, ts);
         ts.prev_x = ts.x;
         ts.prev_y = ts.y;
