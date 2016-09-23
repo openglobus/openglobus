@@ -103,7 +103,7 @@ og.scene.RenderNode.prototype.assignRenderer = function (renderer) {
     this.renderer = renderer;
     this.billboardsTextureAtlas.assignHandler(renderer.handler);
     this.fontAtlas.assignHandler(renderer.handler);
-    //renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+    renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
 
     for (var i = 0; i < this.entityCollections.length; i++) {
         this.entityCollections[i].setRenderer(renderer);
@@ -367,59 +367,59 @@ og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
     }
 };
 
-///**
-// * @public
-// */
-//og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
-//    if (ec.length) {
+/**
+ * @public
+ */
+og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
+    if (ec.length) {
 
-//        var gl = this.renderer.handler.gl;
+        var gl = this.renderer.handler.gl;
 
-//        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.CULL_FACE);
 
-//        //Z-buffer offset
-//        gl.enable(gl.POLYGON_OFFSET_FILL);
-//        gl.polygonOffset(0, -637000);
+        //Z-buffer offset
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(0, -637000);
 
-//        //billoard pass
-//        var i = ec.length;
-//        while (i--) {
-//            ec[i]._visibility && ec[i].billboardHandler.drawPicking();
-//        }
+        //billoard pass
+        var i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].billboardHandler.drawPicking();
+        }
 
-//        //label pass
-//        i = ec.length;
-//        while (i--) {
-//            ec[i]._visibility && ec[i].labelHandler.drawPicking();
-//        }
+        //label pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._visibility && ec[i].labelHandler.drawPicking();
+        }
 
-//        gl.disable(gl.POLYGON_OFFSET_FILL);
-//        gl.enable(gl.CULL_FACE);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.CULL_FACE);
 
-//        //lineStrings pass
-//        i = ec.length;
-//        while (i--) {
-//            ec[i]._visibility && ec[i].lineStringHandler.drawPicking();
-//        }
+        ////lineStrings pass
+        //i = ec.length;
+        //while (i--) {
+        //    ec[i]._visibility && ec[i].lineStringHandler.drawPicking();
+        //}
 
-//        //shapes pass
-//        i = ec.length;
-//        while (i--) {
-//            ec[i]._visibility && ec[i].shapeHandler.drawPicking();
-//        }
+        ////shapes pass
+        //i = ec.length;
+        //while (i--) {
+        //    ec[i]._visibility && ec[i].shapeHandler.drawPicking();
+        //}
 
-//        //pointClouds pass
-//        i = ec.length;
-//        while (i--) {
-//            ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
-//        }
-//    }
-//};
+        ////pointClouds pass
+        //i = ec.length;
+        //while (i--) {
+        //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
+        //}
+    }
+};
 
-///**
-// * Picking entity frame callback
-// * @private
-// */
-//og.scene.RenderNode.prototype._entityCollectionPickingCallback = function () {
-//    this.drawPickingEntityCollections(this.entityCollections);
-//};
+/**
+ * Picking entity frame callback
+ * @private
+ */
+og.scene.RenderNode.prototype._entityCollectionPickingCallback = function () {
+    this.drawPickingEntityCollections(this.entityCollections);
+};

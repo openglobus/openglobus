@@ -111,18 +111,18 @@ og.Renderer = function (handler) {
      */
     this.colorObjects = {};
 
-    ///**
-    // * Color picking objects rendering queue.
-    // * @type {Array.<og.Renderer~pickingCallback>}
-    // */
-    //this._pickingCallbacks = [];
+    /**
+     * Color picking objects rendering queue.
+     * @type {Array.<og.Renderer~pickingCallback>}
+     */
+    this._pickingCallbacks = [];
 
-    ///**
-    // * Picking objects framebuffer.
-    // * @private
-    // * @type {og.webgl.Framebuffer}
-    // */
-    //this._pickingFramebuffer = null;
+    /**
+     * Picking objects framebuffer.
+     * @private
+     * @type {og.webgl.Framebuffer}
+     */
+    this._pickingFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -139,14 +139,14 @@ og.Renderer = function (handler) {
     this._prevPickingColor = [0, 0, 0];
 };
 
-///**
-// * Adds picking rendering callback function.
-// * @param {object} sender - Callback context.
-// * @param {og.Renderer~pickingCallback} callback - Rendering callback.
-// */
-//og.Renderer.prototype.addPickingCallback = function (sender, callback) {
-//    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
-//};
+/**
+ * Adds picking rendering callback function.
+ * @param {object} sender - Callback context.
+ * @param {og.Renderer~pickingCallback} callback - Rendering callback.
+ */
+og.Renderer.prototype.addPickingCallback = function (sender, callback) {
+    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
+};
 
 /**
  * Assign picking color to the object.
@@ -265,11 +265,11 @@ og.Renderer.prototype.init = function () {
     this.handler.onCanvasResize = function (obj) {
         that.sceneFrameBuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        //that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
     };
 
-    //this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
+    this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
 
     this.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("screenFrame", {
         uniforms: {
@@ -352,7 +352,8 @@ og.Renderer.prototype.draw = function () {
 
     sfb.deactivate();
 
-    //this._drawPickingBuffer();
+    this._drawPickingBuffer();
+
     var ms = this.events.mouseState;
     var ts = this.events.touchState;
 
@@ -376,7 +377,7 @@ og.Renderer.prototype.draw = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[1]);
+    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[0]);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
@@ -399,46 +400,31 @@ og.Renderer.prototype.getPickingObject = function (x, y) {
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
-///**
-// * Draw picking objects framebuffer.
-// * @private
-// */
-//og.Renderer.prototype._drawPickingBuffer = function () {
-//    //this._pickingFramebuffer.activate();
+/**
+ * Draw picking objects framebuffer.
+ * @private
+ */
+og.Renderer.prototype._drawPickingBuffer = function () {
+    this._pickingFramebuffer.activate();
 
-//    //var h = this.handler;
-//    //var gl = h.gl;
-//    //gl.clearColor(0.0, 0.0, 0.0, 1.0);
-//    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-//    //gl.disable(h.gl.BLEND);
+    var h = this.handler;
+    var gl = h.gl;
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.disable(h.gl.BLEND);
 
-//    //var dp = this._pickingCallbacks;
-//    //var i = dp.length;
-//    //while (i--) {
-//    //    /**
-//    //     * This callback renders picking frame.
-//    //     * @callback og.Renderer~pickingCallback
-//    //     */
-//    //    dp[i].callback.call(dp[i].sender);
-//    //}
+    var dp = this._pickingCallbacks;
+    var i = dp.length;
+    while (i--) {
+        /**
+         * This callback renders picking frame.
+         * @callback og.Renderer~pickingCallback
+         */
+        dp[i].callback.call(dp[i].sender);
+    }
 
-//    //this._pickingFramebuffer.deactivate();
-
-//    var ms = this.events.mouseState;
-//    var ts = this.events.touchState;
-
-//    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-//        this._prevPickingColor[0] = this._currPickingColor[0];
-//        this._prevPickingColor[1] = this._currPickingColor[1];
-//        this._prevPickingColor[2] = this._currPickingColor[2];
-
-//        if (ts.x || ts.y) {
-//            this._currPickingColor = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
-//        } else {
-//            this._currPickingColor = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
-//        }
-//    }
-//};
+    this._pickingFramebuffer.deactivate();
+};
 
 /**
  * Function starts rendering.

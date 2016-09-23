@@ -1,8 +1,7 @@
-#extension GL_EXT_draw_buffers : require
 precision highp float;
 
 varying vec4 v_color;
 
 void main () {
-    gl_FragData[1] = v_color;
+    gl_FragColor = v_color;
 }

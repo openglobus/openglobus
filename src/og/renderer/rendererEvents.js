@@ -621,11 +621,13 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 //current black
                 if (!(c[0] || c[1] || c[2])) {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                    var pe = po.events || po._entityCollection.events;
-                    ms.pickingObject = po;
-                    pe.dispatch(pe.mouseleave, ms);
-                    ts.pickingObject = po;
-                    pe.dispatch(pe.touchleave, ts);
+                    if (po) {
+                        var pe = po.events || po._entityCollection.events;
+                        ms.pickingObject = po;
+                        pe.dispatch(pe.mouseleave, ms);
+                        ts.pickingObject = po;
+                        pe.dispatch(pe.touchleave, ts);
+                    }
                 } else {
                     //current not black
 

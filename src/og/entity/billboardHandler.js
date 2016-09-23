@@ -314,15 +314,14 @@ og.BillboardHandler.prototype.draw = function () {
     if (this._billboards.length) {
         this.update();
         this._displayPASS();
-        this.pickingEnabled && this._pickingPASS();
     }
 };
 
-//og.BillboardHandler.prototype.drawPicking = function () {
-//    if (this._billboards.length && this.pickingEnabled) {
-//        this._pickingPASS();
-//    }
-//};
+og.BillboardHandler.prototype.drawPicking = function () {
+    if (this._billboards.length && this.pickingEnabled) {
+        this._pickingPASS();
+    }
+};
 
 og.BillboardHandler.prototype.reindexBillbordsArray = function (startIndex) {
     var b = this._billboards;
