@@ -118,7 +118,7 @@ og.Renderer = function (handler) {
     this._pickingCallbacks = [];
 
     /**
-     * Picking objects framebuffer.
+     * Picking objects(labels and billboards) framebuffer.
      * @private
      * @type {og.webgl.Framebuffer}
      */
@@ -362,11 +362,17 @@ og.Renderer.prototype.draw = function () {
         this._prevPickingColor[1] = this._currPickingColor[1];
         this._prevPickingColor[2] = this._currPickingColor[2];
 
+        var pc;
         if (ts.x || ts.y) {
-            this._currPickingColor = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+            pc = this._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
+            if (!(pc[0] || pc[1] || pc[2]))
+                pc = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
         } else {
-            this._currPickingColor = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+            pc = this._pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
+            if (!(pc[0] || pc[1] || pc[2]))
+                pc = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
         }
+        this._currPickingColor = pc;
     }
 
 
@@ -377,7 +383,7 @@ og.Renderer.prototype.draw = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[0]/*this._pickingFramebuffer.texture*/);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
