@@ -1,5 +1,8 @@
+#extension GL_EXT_draw_buffers : require
+
 precision highp float;
 
+uniform vec3 pickingColor;
 uniform vec4 color;
 uniform vec2 uFloatParams;
 uniform vec3 uCamPos;
@@ -10,5 +13,6 @@ void main(void) {
     vec3 look = vPos - uCamPos;
 	float lookLength = length(look);
     float a = color.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));    
-    gl_FragColor = vec4(color.rgb, a);
+    gl_FragData[0] = vec4(color.rgb, a);
+    gl_FragData[1] = vec4(pickingColor, 1.0);
 }

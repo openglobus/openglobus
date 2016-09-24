@@ -1044,6 +1044,17 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
             li = vl[i];
         }
 
+        //bind normalmap texture
+        if (p.lightEnabled) {
+            gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+            gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 4);
+            gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+            gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 4);
+
+            //bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+        }
+
         var indexBuffer = this._getIndexBuffer();
         gl.uniform1i(shu.samplerCount._pName, n);
         gl.uniform1f(shu.height._pName, currHeight);
@@ -1137,6 +1148,18 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
         }
 
         if (notEmpty) {
+
+            //bind normalmap texture
+            if (p.lightEnabled) {
+                gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 4);
+                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 4);
+
+                //bind segment specular and night material texture coordinates
+                gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+            }
+
             var indexBuffer = this._getIndexBuffer();
             gl.uniform1i(shu.samplerCount._pName, n);
             gl.uniform1f(shu.height._pName, currHeight);

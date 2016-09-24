@@ -15,7 +15,8 @@ og.shaderProgram.lineString = function () {
             thickness: { type: og.shaderProgram.types.FLOAT },
             color: { type: og.shaderProgram.types.VEC4 },
             uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uFloatParams: { type: og.shaderProgram.types.VEC2 }
+            uFloatParams: { type: og.shaderProgram.types.VEC2 },
+            pickingColor: { type: og.shaderProgram.types.VEC3 }
         },
         attributes: {
             prev: { type: og.shaderProgram.types.VEC3, enableArray: true },

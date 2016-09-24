@@ -40,9 +40,6 @@ const vec2 TOPRIGHT = vec2(1.0);
 
 void main(void) {
 
-highp float xxx = 12.65;
-highp int bb = floatBitsToInt(xxx);
-	
 	gl_FragData[0] = texture2D( defaultTexture, vTextureCoord );
 	gl_FragData[1] = vec4(0.0);
 	gl_FragData[2] = vec4(encode32(range), gl_FragData[0].a);

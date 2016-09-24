@@ -10,7 +10,6 @@ goog.require('og.math.Vector3');
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {og.math.Vector4} [options.color] - RGBA color.
  * @param {boolean} [options.visibility] - LineString visibility. True default.
- * @param {number} [pickingDistance] - LineString border size in screen pixels for picking.
  * @param {Array.<og.LonLat>} [options.pathLonLat] - LineString geodetic coordinates array.
  * @param {Array.<Array.<number,number,number>>} [options.path] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
  */
@@ -48,13 +47,6 @@ og.LineString = function (options) {
     this.visibility = (options.visibility != undefined ? options.visibility : true);
 
     /**
-     * Picking border size.
-     * @public
-     * @type {number}
-     */
-    this.pickingDistance = options.pickingDistance || 2.0;
-
-    /**
      * LineString cartesian coordinates.
      * @private
      * @type {Array.<Array.<number,number,number>>}
@@ -83,7 +75,7 @@ og.LineString = function (options) {
     this._orderBuffer = null;
     this._indexBuffer = null;
 
-    this._pickingColor = [0, 0, 0, 0];
+    this._pickingColor = [0, 0, 0];
 
     this._renderNode = null;
 
@@ -230,24 +222,6 @@ og.LineString.prototype.getVisibility = function () {
 };
 
 /**
- * Sets picking distance(linestring border size for picking) in screen pixels. 
- * @public
- * @param {number} pickingDistance - Picking distance size.
- */
-og.LineString.prototype.setPickingDistance = function (pickingDistance) {
-    this.pickingDistance = pickingDistance;
-};
-
-/**
- * Gets picking distance.
- * @public
- * @return {boolean} Picking distance.
- */
-og.LineString.prototype.getPickingDistance = function () {
-    return this.pickingDistance;
-};
-
-/**
  * Assign with render node.
  * @public
  */
@@ -272,7 +246,6 @@ og.LineString.prototype.setPickingColor3v = function (color) {
     this._pickingColor[0] = color.x / 255.0;
     this._pickingColor[1] = color.y / 255.0;
     this._pickingColor[2] = color.z / 255.0;
-    this._pickingColor[3] = 1.0;
 };
 
 /**
@@ -683,43 +656,7 @@ og.LineString.prototype.draw = function () {
         gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
         gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
 
-        var mb = this._mainBuffer;
-        gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-        gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 36, 0);
-        gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 36, 12);
-        gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 36, 24);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
-        gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.disable(gl.CULL_FACE);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.CULL_FACE);
-    }
-};
-
-og.LineString.prototype.drawPicking = function () {
-    if (this.visibility && this._path.length) {
-        var rn = this._renderNode;
-        var r = rn.renderer;
-        var sh = r.handler.shaderPrograms.lineString;
-        var p = sh._program;
-        var gl = r.handler.gl,
-            sha = p.attributes,
-            shu = p.uniforms;
-
-        sh.activate();
-
-        gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
-        gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
-
-        gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-        gl.uniform1f(shu.thickness._pName, this.thickness + this.pickingDistance);
-        gl.uniform4fv(shu.color._pName, this._pickingColor);
-
-        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        gl.uniform3fv(shu.pickingColor._pName, this._pickingColor);
 
         var mb = this._mainBuffer;
         gl.bindBuffer(gl.ARRAY_BUFFER, mb);

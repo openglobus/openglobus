@@ -12,7 +12,6 @@ goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.drawnode_nl');
-//goog.require('og.shaderProgram.heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
 goog.require('og.planetSegment.Segment');
@@ -481,7 +480,7 @@ og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
  */
 og.scene.Planet.prototype._initializeShaders = function () {
     this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
-    //this.renderer.handler.addShaderProgram(og.shaderProgram.heightPicking(), true);
+    this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_wl(), true);
 };
 
 /**
@@ -815,21 +814,22 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
         //bind night glowing material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 2);
         gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 1);
+        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 2);
 
         //bind specular material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 2);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 3);
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 2);
-
+        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 3);
     } else {
         h.shaderPrograms.drawnode_nl.activate();
         sh = h.shaderPrograms.drawnode_nl._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
-        h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
     }
+
+    h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
+
 
     //draw planet's nodes
     var rn = this._renderedNodes,

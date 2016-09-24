@@ -4,13 +4,6 @@ goog.require('og.shaderProgram.lineString');
 
 og.LineStringHandler = function (entityCollection) {
 
-    /**
-     * Picking rendering option.
-     * @public
-     * @type {boolean}
-     */
-    this.pickingEnabled = true;
-
     this._entityCollection = entityCollection;
 
     this._renderer = null;
@@ -70,15 +63,6 @@ og.LineStringHandler.prototype.draw = function () {
     var i = this._lineStrings.length;
     while (i--) {
         this._lineStrings[i].draw();
-    }
-};
-
-og.LineStringHandler.prototype.drawPicking = function () {
-    if (this.pickingEnabled) {
-        var i = this._lineStrings.length;
-        while (i--) {
-            this._lineStrings[i].drawPicking();
-        }
     }
 };
 
