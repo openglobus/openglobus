@@ -992,6 +992,10 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         gl.bindTexture(gl.TEXTURE_2D, this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, 6);
 
+        var _diffuseMaterialArr = new Float32Array(p.SLICE_SIZE_3);
+        var _ambientMaterialArr = new Float32Array(p.SLICE_SIZE_3);
+        var _specularMaterialArr = new Float32Array(p.SLICE_SIZE_4);
+
         var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
@@ -1001,6 +1005,20 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         var currHeight = li._height;
         var n = 0,
             i = 0;
+
+
+        _diffuseMaterialArr[0] = li.lightMaterial.diffuse.x;
+        _diffuseMaterialArr[1] = li.lightMaterial.diffuse.y;
+        _diffuseMaterialArr[2] = li.lightMaterial.diffuse.z;
+
+        _ambientMaterialArr[0] = li.lightMaterial.ambient.x;
+        _ambientMaterialArr[1] = li.lightMaterial.ambient.y;
+        _ambientMaterialArr[2] = li.lightMaterial.ambient.z;
+
+        _specularMaterialArr[0] = li.lightMaterial.specular.x;
+        _specularMaterialArr[1] = li.lightMaterial.specular.y;
+        _specularMaterialArr[2] = li.lightMaterial.specular.z;
+        _specularMaterialArr[3] = li.lightMaterial.shininess;
 
         while (li) {
             if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
@@ -1018,7 +1036,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 _tileOffsetArr[n4 + 2] = arr[2];
                 _tileOffsetArr[n4 + 3] = arr[3];
 
-                var arr = this._getLayerExtentOffset(li);
+                arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];
                 _visibleExtentOffsetArr[n4 + 1] = arr[1];
                 _visibleExtentOffsetArr[n4 + 2] = arr[2];
@@ -1032,6 +1050,19 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 _pickingColorArr[n3] = li._pickingColor.x / 255.0;
                 _pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
                 _pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
+
+                _diffuseMaterialArr[n3] = li.lightMaterial.diffuse.x;
+                _diffuseMaterialArr[n3 + 1] = li.lightMaterial.diffuse.y;
+                _diffuseMaterialArr[n3 + 2] = li.lightMaterial.diffuse.z;
+
+                _ambientMaterialArr[n3] = li.lightMaterial.ambient.x;
+                _ambientMaterialArr[n3 + 1] = li.lightMaterial.ambient.y;
+                _ambientMaterialArr[n3 + 2] = li.lightMaterial.ambient.z;
+
+                _specularMaterialArr[n4] = li.lightMaterial.specular.x;
+                _specularMaterialArr[n4 + 1] = li.lightMaterial.specular.y;
+                _specularMaterialArr[n4 + 2] = li.lightMaterial.specular.z;
+                _specularMaterialArr[n4 + 3] = li.lightMaterial.shininess;
 
                 _samplerArr[n] = n;
 
@@ -1053,6 +1084,10 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
 
             //bind segment specular and night material texture coordinates
             gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+
+            gl.uniform3fv(shu.diffuseMaterial._pName, _diffuseMaterialArr);
+            gl.uniform3fv(shu.ambientMaterial._pName, _ambientMaterialArr);
+            gl.uniform4fv(shu.specularMaterial._pName, _specularMaterialArr);
         }
 
         var indexBuffer = this._getIndexBuffer();
@@ -1087,10 +1122,13 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
 
         var p = this.planet;
 
-        //Draw overlays
         gl.activeTexture(gl.TEXTURE6);
         gl.bindTexture(gl.TEXTURE_2D, p.transparentTexture);
         gl.uniform1i(shu.defaultTexture._pName, 6);
+
+        var _diffuseMaterialArr = new Float32Array(p.SLICE_SIZE_3);
+        var _ambientMaterialArr = new Float32Array(p.SLICE_SIZE_3);
+        var _specularMaterialArr = new Float32Array(p.SLICE_SIZE_4);
 
         var _tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
         var _visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
@@ -1121,7 +1159,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 _tileOffsetArr[n4 + 2] = arr[2];
                 _tileOffsetArr[n4 + 3] = arr[3];
 
-                var arr = this._getLayerExtentOffset(li);
+                arr = this._getLayerExtentOffset(li);
                 _visibleExtentOffsetArr[n4] = arr[0];
                 _visibleExtentOffsetArr[n4 + 1] = arr[1];
                 _visibleExtentOffsetArr[n4 + 2] = arr[2];
@@ -1135,6 +1173,19 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 _pickingColorArr[n3] = li._pickingColor.x / 255.0;
                 _pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
                 _pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
+
+                _diffuseMaterialArr[n3] = li.lightMaterial.diffuse.x;
+                _diffuseMaterialArr[n3 + 1] = li.lightMaterial.diffuse.y;
+                _diffuseMaterialArr[n3 + 2] = li.lightMaterial.diffuse.z;
+
+                _ambientMaterialArr[n3] = li.lightMaterial.ambient.x;
+                _ambientMaterialArr[n3 + 1] = li.lightMaterial.ambient.y;
+                _ambientMaterialArr[n3 + 2] = li.lightMaterial.ambient.z;
+
+                _specularMaterialArr[n4] = li.lightMaterial.specular.x;
+                _specularMaterialArr[n4 + 1] = li.lightMaterial.specular.y;
+                _specularMaterialArr[n4 + 2] = li.lightMaterial.specular.z;
+                _specularMaterialArr[n4 + 3] = li.lightMaterial.shininess;
 
                 _samplerArr[n] = n;
 
@@ -1158,6 +1209,10 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+
+                gl.uniform3fv(shu.diffuseMaterial._pName, _diffuseMaterialArr);
+                gl.uniform3fv(shu.ambientMaterial._pName, _ambientMaterialArr);
+                gl.uniform4fv(shu.specularMaterial._pName, _specularMaterialArr);
             }
 
             var indexBuffer = this._getIndexBuffer();

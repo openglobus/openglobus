@@ -50,8 +50,11 @@ og.shaderProgram.drawnode_wl = function () {
             nightTexture: { type: og.shaderProgram.types.SAMPLER2D },
             specularTexture: { type: og.shaderProgram.types.SAMPLER2D },
             lightsPositions: { type: og.shaderProgram.types.VEC4 },
-            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            lightsParamsf: { type: og.shaderProgram.types.FLOAT }
+            //lightsParamsv: { type: og.shaderProgram.types.VEC3 },
+            //lightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            diffuseMaterial: { type: og.shaderProgram.types.VEC3 },
+            ambientMaterial: { type: og.shaderProgram.types.VEC3 },
+            specularMaterial: { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },

@@ -94,6 +94,19 @@ og.layer.Layer = function (name, options) {
     this.maxZoom = options.maxZoom || 50;
 
     /**
+     * Layer light material parameters.
+     * @public
+     * @type {Object}
+     */
+    options.lightMaterial = options.lightMaterial || {};
+    this.lightMaterial = {
+        'ambient': options.lightMaterial.ambient || new og.math.Vector3(0.1, 0.1, 0.21),
+        'diffuse': options.lightMaterial.diffuse || new og.math.Vector3(1.0, 1.0, 1.0),
+        'specular': options.lightMaterial.specular || new og.math.Vector3(0.00025, 0.00015, 0.0001),
+        'shininess': 100
+    };
+
+    /**
      * Planet node.
      * @protected
      * @type {og.scene.Planet}

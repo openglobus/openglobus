@@ -806,8 +806,8 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
-        gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
-        gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
+        //gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
+        //gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
