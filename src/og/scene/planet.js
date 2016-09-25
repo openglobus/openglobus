@@ -290,6 +290,16 @@ og.scene.Planet = function (name, ellipsoid) {
     this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
     this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
+    this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
+    this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
+    this._specularMaterialArr = new Float32Array(this.SLICE_SIZE_4 + 4);
+
+    this._tileOffsetArr = new Float32Array(this.SLICE_SIZE_4);
+    this._visibleExtentOffsetArr = new Float32Array(this.SLICE_SIZE_4);
+    this._transparentColorArr = new Float32Array(this.SLICE_SIZE_4);
+    this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
+    this._samplerArr = new Array(this.SLICE_SIZE);
+
     /**
      * GeoImage creator.
      * @protected
@@ -806,22 +816,33 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
-        //gl.uniform3fv(shu.lightsParamsv._pName, this._lightsParamsv);
-        //gl.uniform1fv(shu.lightsParamsf._pName, this._lightsParamsf);
 
         gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
         gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
         //bind night glowing material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 2);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 3);
         gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
-        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 2);
+        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 3);
 
         //bind specular material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 3);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 3);
+        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 4);
+
+        this._diffuseMaterialArr[0] = this.baseLayer.lightMaterial.diffuse.x;
+        this._diffuseMaterialArr[1] = this.baseLayer.lightMaterial.diffuse.y;
+        this._diffuseMaterialArr[2] = this.baseLayer.lightMaterial.diffuse.z;
+
+        this._ambientMaterialArr[0] = this.baseLayer.lightMaterial.ambient.x;
+        this._ambientMaterialArr[1] = this.baseLayer.lightMaterial.ambient.y;
+        this._ambientMaterialArr[2] = this.baseLayer.lightMaterial.ambient.z;
+
+        this._specularMaterialArr[0] = this.baseLayer.lightMaterial.specular.x;
+        this._specularMaterialArr[1] = this.baseLayer.lightMaterial.specular.y;
+        this._specularMaterialArr[2] = this.baseLayer.lightMaterial.specular.z;
+        this._specularMaterialArr[3] = this.baseLayer.lightMaterial.shininess;
     } else {
         h.shaderPrograms.drawnode_nl.activate();
         sh = h.shaderPrograms.drawnode_nl._program;
@@ -829,7 +850,6 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
     }
 
     h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
-
 
     //draw planet's nodes
     var rn = this._renderedNodes,
@@ -852,29 +872,6 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
 
     gl.disable(gl.BLEND);
 };
-
-///**
-// * @protected
-// */
-//og.scene.Planet.prototype._renderHeightBackbufferPASS = function () {
-//    var b = this._heightBackbuffer,
-//        r = this.renderer;
-//    var h = r.handler;
-//    var pp = h.shaderPrograms.heightPicking;
-//    h.gl.disable(h.gl.BLEND);
-//    b.activate();
-//    h.gl.clearColor(0, 0, 0, 0);
-//    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
-//    pp.activate();
-//    h.gl.uniform3fv(pp._program.uniforms.camPos._pName, r.activeCamera.eye.toVec());
-//    h.gl.uniformMatrix4fv(pp._program.uniforms.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
-
-//    var i = this._renderedNodes.length;
-//    while (i--) {
-//        this._renderedNodes[i].planetSegment.drawHeightPicking();
-//    }
-//    b.deactivate();
-//};
 
 /**
  * Vector layer's visible entity collections rendering pass.

@@ -71,7 +71,7 @@ function start() {
 
     globus.planet.renderer.handler.clock.multiplier = 0;
 
-    globus.planet.lightEnabled = false;
+    //globus.planet.lightEnabled = false;
 
     sun.sunlight.setDiffuse(new og.math.Vector3(1.0, 1.0, 1.0));
     sun.sunlight.setAmbient(new og.math.Vector3(0.1, .1, 0.21))
