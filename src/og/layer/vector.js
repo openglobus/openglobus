@@ -143,17 +143,6 @@ og.layer.Vector.prototype.addTo = function (planet) {
 };
 
 /**
- * TODO: Removes layer from the planet.
- * @public
- */
-og.layer.Vector.prototype.remove = function () {
-    this._planet && this._planet.removeLayer(this);
-    //
-    //...
-    //
-};
-
-/**
  * Returns stored entities.
  * @public
  * @returns {Array.<og.Entity>}

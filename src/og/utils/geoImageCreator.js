@@ -13,7 +13,7 @@ og.utils.GeoImageCreator = function (handler, gridSize, maxFrames) {
     this.MAX_FRAMES = maxFrames || 5;
     this._currentFrame = 0;
     this._queue = [];
-    this._always = [];
+    this._animate = [];
     this._initialize();
 };
 
@@ -50,6 +50,41 @@ og.utils.GeoImageCreator.prototype.createGridBuffer = function (c) {
         }
     }
     return this._handler.createArrayBuffer(grid, 2, grid.length / 2);
+};
+
+og.utils.GeoImageCreator.prototype.frame = function () {
+    var i = this.MAX_FRAMES;
+    while (i-- && this._queue.length) {
+        this.process(this._queue.shift());
+    }
+
+    i = this._animate.length;
+    while (i--) {
+        this.process(this._animate[i]);
+    }
+};
+
+og.utils.GeoImageCreator.prototype.queue = function (geoImage) {
+    this._queue.push(geoImage);
+};
+
+og.utils.GeoImageCreator.prototype.animate = function (geoImage) {
+    this._animate.push(geoImage);
+};
+
+og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
+    var arr;
+    if (geoImage._animated) {
+        arr = this._animate;
+    } else {
+        arr = this._queue;
+    }
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].equal(geoImage)) {
+            arr.splice(i, 1);
+            return;
+        }
+    }
 };
 
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
@@ -316,24 +351,4 @@ og.utils.GeoImageCreator.prototype._initShaders = function () {
                             gl_FragColor = texture2D(u_sampler, d);\n\
             }'
     }));
-};
-
-og.utils.GeoImageCreator.prototype.frame = function () {
-    var i = this.MAX_FRAMES;
-    while (i-- && this._queue.length) {
-        this.process(this._queue.shift());
-    }
-
-    i = this._always.length;
-    while (i--) {
-        this.process(this._always[i]);
-    }
-};
-
-og.utils.GeoImageCreator.prototype.queue = function (geoImage) {
-    this._queue.push(geoImage);
-};
-
-og.utils.GeoImageCreator.prototype.always = function (geoImage) {
-    this._always.push(geoImage);
 };

@@ -31,8 +31,6 @@ og.planetSegment.Material.prototype.applyTexture = function (img) {
 };
 
 og.planetSegment.Material.prototype.textureNotExists = function () {
-    //TODO: texture have to stop loading
-    //This is a bug
     this.imageIsLoading = true;
     this.textureExists = false;
 };

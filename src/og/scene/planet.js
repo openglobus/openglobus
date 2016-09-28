@@ -405,26 +405,23 @@ og.scene.Planet.prototype.addLayers = function (layers) {
  * @public
  */
 og.scene.Planet.prototype.removeLayer = function (layer) {
+    return layer.remove();
+};
+
+/**
+ *
+ * @protected
+ * @param {og.layer.Layer} layer
+ */
+og.scene.Planet.prototype._clearLayerMaterial = function (layer) {
     var lid = layer._id;
-    for (var i = 0; i < this.layers.length; i++) {
-        if (this.layers[i]._id == lid) {
-            this.renderer.clearPickingColor(layer);
-            this.layers.splice(i, 1);
-            this.updateVisibleLayers();
-            this._quadTree.traverseTree(function (node) {
-                var mats = node.planetSegment.materials;
-                if (mats[lid]) {
-                    mats[lid].clear();
-                    mats[lid] = null;
-                }
-            });
-            this.events.dispatch(this.events.layerremove, layer);
-            layer.events.dispatch(layer.events.remove, this);
-            layer._planet = null;
-            return layer;
+    this._quadTree.traverseTree(function (node) {
+        var mats = node.planetSegment.materials;
+        if (mats[lid]) {
+            mats[lid].clear();
+            mats[lid] = null;
         }
-    }
-    return undefined;
+    });
 };
 
 /**

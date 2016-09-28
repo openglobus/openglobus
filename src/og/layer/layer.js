@@ -386,7 +386,26 @@ og.layer.Layer.prototype.addTo = function (planet) {
  * @public
  */
 og.layer.Layer.prototype.remove = function () {
-    this._planet && this._planet.removeLayer(this);
+    var p = this._planet;
+    if (p) {
+        var lid = this._id;
+        for (var i = 0; i < p.layers.length; i++) {
+            if (p.layers[i]._id == lid) {
+                p.renderer.clearPickingColor(this);
+                p.layers.splice(i, 1);
+                p.updateVisibleLayers();
+                this.clear();
+                p.events.dispatch(p.events.layerremove, this);
+                this.events.dispatch(this.events.remove, p);
+                this._planet = null;
+                return this;
+            }
+        }
+    }
+};
+
+og.layer.Layer.prototype.clear = function () {
+    this._planet && this._planet._clearLayerMaterial(this);
 };
 
 /**
