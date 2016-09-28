@@ -165,19 +165,17 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
         material.texture = seg.planet.transparentTexture;
     }
 
-    if (!material.imageIsLoading) {
-        if (this._planet.layersActivity) {
-            material.imageReady = false;
-            material.imageIsLoading = true;
-            if (material.segment._projection.id === og.proj.EPSG3857.id) {
-                if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
-                    this._pendingsQueue.push(material);
-                } else {
-                    this._exec(material);
-                }
+    if (this._planet.layersActivity) {
+        material.imageReady = false;
+        material.imageIsLoading = true;
+        if (material.segment._projection.id === og.proj.EPSG3857.id) {
+            if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
+                this._pendingsQueue.push(material);
             } else {
-                material.textureNotExists();
+                this._exec(material);
             }
+        } else {
+            material.textureNotExists();
         }
     }
 };
@@ -265,10 +263,13 @@ og.layer.XYZ.prototype._exec = function (material) {
  */
 og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
     if (material.imageIsLoading && material.image) {
+        material.image.src = "";
         this._counter--;
         og.layer.XYZ.__requestsCounter--;
         this._dequeueRequest();
     }
+    material.imageIsLoading = false;
+    material.imageReady = false;
 };
 
 og.layer.XYZ.prototype._dequeueRequest = function () {
@@ -302,7 +303,7 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
         return [0, 0, 1, 1];
     } else {
 
-        this.loadMaterial(material);
+        !material.imageIsLoading && this.loadMaterial(material);
 
         var segment = material.segment;
         var pn = segment.node,
@@ -339,13 +340,13 @@ og.layer.XYZ.prototype.clearMaterial = function (material) {
     if (material.imageReady) {
         material.imageReady = false;
 
-        if (!material.texture.default)
+        !material.texture.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
 
         material.texture = null;
     }
 
-    this.abortMaterialLoading(this);
+    this.abortMaterialLoading(material);
 
     material.imageIsLoading = false;
     material.textureExists = false;

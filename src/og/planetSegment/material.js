@@ -37,5 +37,4 @@ og.planetSegment.Material.prototype.textureNotExists = function () {
 
 og.planetSegment.Material.prototype.clear = function () {
     this.layer.clearMaterial(this);
-
 };
