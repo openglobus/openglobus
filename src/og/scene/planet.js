@@ -753,9 +753,6 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
  */
 og.scene.Planet.prototype.frame = function () {
 
-    //Creates geoImages textures.
-    this._geoImageCreator.frame();
-
     this.renderer.activeCamera.prepareFrame();
 
     //Here is the planet node dispatches a draw event before rendering begins.
@@ -772,6 +769,9 @@ og.scene.Planet.prototype.frame = function () {
     this.transformLights();
 
     this._rendering();
+
+    //Creates geoImages textures.
+    this._geoImageCreator.frame();
 
     //free memory
     var that = this;

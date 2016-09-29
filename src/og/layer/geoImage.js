@@ -13,13 +13,24 @@ og.layer.GeoImage = function (name, options) {
     this._src = options.src;
     this._imageReady = false;
 
-    this._sourceTexture = null;
+    this._frameWidth = options.frameWidth || 0;
+    this._frameHeight = options.frameHeight || 0;
+
+    if (options.image) {
+        this._image = options.image;
+        this._src = options.image.src;
+        this._frameWidth = og.math.nextHighestPowerOfTwo(this._image.width),
+        this._frameHeight = og.math.nextHighestPowerOfTwo(this._image.height);
+        this._imageReady = true;
+    }
+
+    this._sourceTexture = options.texture || null;
+    if (options.texture)
+        this._imageReady = true;
+
     this._materialTexture = null;
     this._materialTextureMerc = null;
     this._intermediateTextureWgs84 = null;
-
-    this._frameWidth = 0;
-    this._frameHeight = 0;
 
     this._gridBuffer = null;
     this._extentParams = null;
@@ -34,6 +45,8 @@ og.layer.GeoImage = function (name, options) {
     this._frameCreated = false;
     this._sourceCreated = false;
     this._isOverMerc = false;
+
+    this._animate = options.animate || false;
 
     this._ready = false;
     this._creationProceeding = false;
@@ -64,6 +77,18 @@ og.layer.GeoImage.prototype.getHeight = function () {
 
 og.layer.GeoImage.prototype.setCorners = function (corners) {
     this.setCornersLonLat(og.lonLatArray(corners));
+};
+
+og.layer.GeoImage.prototype.bindTexture = function (texture) {
+    this._imageReady = true;
+    this._sourceCreated = true;
+    this._sourceTexture = texture;
+};
+
+og.layer.GeoImage.prototype.setSize = function (width, height) {
+    this._frameWidth = width;
+    this._frameHeight = height;
+    this._frameCreated = false;
 };
 
 og.layer.GeoImage.prototype.setCornersLonLat = function (corners) {
@@ -99,7 +124,11 @@ og.layer.GeoImage.prototype.setCornersLonLat = function (corners) {
         this._refreshCorners = false;
 
         if (this._ready && !this._creationProceeding) {
-            this._planet._geoImageCreator.queue(this);
+            if (this._animate) {
+                this._planet._geoImageCreator.animate(this);
+            } else {
+                this._planet._geoImageCreator.queue(this);
+            }
         }
     }
 };
@@ -107,7 +136,7 @@ og.layer.GeoImage.prototype.setCornersLonLat = function (corners) {
 og.layer.GeoImage.prototype.loadMaterial = function (material) {
     material.imageIsLoading = true;
     this._creationProceeding = true;
-    if (!this._imageReady) {
+    if (!this._imageReady && this._src) {
         var that = this;
         this._image = new Image();
         this._image.onload = function (e) {
@@ -118,9 +147,11 @@ og.layer.GeoImage.prototype.loadMaterial = function (material) {
         }
         this._image.src = this._src;
     } else {
-        this._frameWidth = og.math.nextHighestPowerOfTwo(this._image.width),
-        this._frameHeight = og.math.nextHighestPowerOfTwo(this._image.height);
-        this._planet._geoImageCreator.queue(this);
+        if (this._animate) {
+            this._planet._geoImageCreator.animate(this);
+        } else {
+            this._planet._geoImageCreator.queue(this);
+        }
     }
 };
 
@@ -162,6 +193,7 @@ og.layer.GeoImage.prototype.clear = function () {
 };
 
 og.layer.GeoImage.prototype.clearMaterial = function (material) {
+    //just clear material pointer not geoimage
     material.image = null;
     material.texture = null;
     material.imageIsLoading = false;

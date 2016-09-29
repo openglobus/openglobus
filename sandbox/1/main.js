@@ -35,6 +35,7 @@ function start() {
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     var osm2 = new og.layer.XYZ("OpenStreetMap", { height: 0, extent: og.extent(og.lonLat(-100, 25), og.lonLat(-70, 40)), isBaseLayer: false, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '', zIndex: 0 });
     var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
+    geoImage3 = new og.layer.GeoImage("GeoImageAnimate", { wgs84:true, frameWidth: 1920, frameHeight:600, animate:true, height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
 
     var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
@@ -65,7 +66,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3],
         "autoActivate": true
     });
 
