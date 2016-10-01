@@ -53,11 +53,12 @@ og.layer.GeoVideo.prototype.setVisibility = function (visibility) {
 
 og.layer.GeoVideo.prototype._createSourceTexture = function () {
     if (!this._sourceCreated) {
-        this._sourceTexture = this.planet.renderer.handler.createTexture_n(this._video);
+        this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._video);
         this._sourceCreated = true;
     } else {
-        //var gl = this.planet.renderer.handler.gl;
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
+        var gl = this._planet.renderer.handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
     }
 };
 
@@ -66,16 +67,15 @@ og.layer.GeoVideo.prototype.loadMaterial = function (material) {
     this._creationProceeding = true;
     if (!this._sourceReady && this._src) {
         this._video = document.createElement('video');
-        this._video.onload = function () {
-            that._frameWidth = og.math.nextHighestPowerOfTwo(this.width),
-            that._frameHeight = og.math.nextHighestPowerOfTwo(this.height);
-            that._planet._geoImageCreator.add(that);
-            that._sourceReady = true;
-            this.play();
-        };
-
+        var that = this;
         this._video.oncanplay = function () {
-            console.log(this);
+            that._frameWidth = og.math.nextHighestPowerOfTwo(this.videoWidth);
+            that._frameHeight = og.math.nextHighestPowerOfTwo(this.videoHeight);
+            this.width = this.videoWidth;
+            this.height = this.videoHeight;
+            this.play();
+            that._sourceReady = true;
+            that._planet._geoImageCreator.add(that);
         };
 
         this._video.onerror = function () {
@@ -95,8 +95,6 @@ og.layer.GeoVideo.prototype.loadMaterial = function (material) {
 
         this._video.setAttribute("playsinline", "");
         this._video.setAttribute("webkit-playsinline", "");
-
-        this._video.play();
     } else {
         this._planet._geoImageCreator.add(this);
     }
