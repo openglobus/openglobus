@@ -40,8 +40,8 @@ og.layer.GeoImage.prototype.loadMaterial = function (material) {
         this._image.onload = function (e) {
             that._frameWidth = og.math.nextHighestPowerOfTwo(this.width),
             that._frameHeight = og.math.nextHighestPowerOfTwo(this.height);
-            that._planet._geoImageCreator.add(that);
             that._sourceReady = true;
+            that._planet._geoImageCreator.add(that);
         }
         this._image.src = this._src;
     } else {

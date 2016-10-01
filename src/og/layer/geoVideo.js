@@ -42,10 +42,10 @@ og.layer.GeoVideo.prototype.setVisibility = function (visibility) {
 
         //remove from creator
         if (visibility) {
-            this._ready && this._planet._geoImageCreator.add(this);
+            this._sourceReady && this._planet._geoImageCreator.add(this);
             this._video && this._video.play();
         } else {
-            this._ready && this._planet._geoImageCreator.remove(this);
+            this._sourceReady && this._planet._geoImageCreator.remove(this);
             this._video && this._video.pause();
         }
     }

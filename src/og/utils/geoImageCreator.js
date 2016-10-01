@@ -77,6 +77,7 @@ og.utils.GeoImageCreator.prototype.add = function (geoImage) {
 
 og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
     if (geoImage._isRendering) {
+        geoImage._creationProceeding = false;
         geoImage._isRendering = false;
         var arr;
         if (geoImage._animate) {
@@ -94,7 +95,7 @@ og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
 };
 
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
-    if (geoImage._sourceCreated) {
+    if (geoImage._sourceReady) {
         var h = this._handler;
 
         var width = geoImage._frameWidth,
