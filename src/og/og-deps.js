@@ -52,7 +52,10 @@ goog.addDependency('../../../og/src/og/input/keyboardHandler.js', ['og.input.Key
 goog.addDependency('../../../og/src/og/input/mouseHandler.js', ['og.input.MouseHandler'], [], false);
 goog.addDependency('../../../og/src/og/input/touchHandler.js', ['og.input.TouchHandler'], [], false);
 goog.addDependency('../../../og/src/og/layer/canvasTiles.js', ['og.layer.CanvasTiles'], ['og.ImageCanvas', 'og.inheritance', 'og.layer.Layer'], false);
-goog.addDependency('../../../og/src/og/layer/geoImage.js', ['og.layer.GeoImage'], ['og.layer.Layer'], false);
+goog.addDependency('../../../og/src/og/layer/geoImage.js', ['og.layer.GeoImage'], ['og.inheritance', 'og.layer.IGeoImage'], false);
+goog.addDependency('../../../og/src/og/layer/geoTexture2d.js', ['og.layer.GeoTexture2d'], ['og.inheritance', 'og.layer.IGeoImage'], false);
+goog.addDependency('../../../og/src/og/layer/geoVideo.js', ['og.layer.GeoVideo'], ['og.inheritance', 'og.layer.IGeoImage'], false);
+goog.addDependency('../../../og/src/og/layer/iGeoImage.js', ['og.layer.IGeoImage'], ['og.layer.Layer', 'og.math'], false);
 goog.addDependency('../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.Extent', 'og.QueueArray', 'og.mercator'], false);
 goog.addDependency('../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.LonLat', 'og.QueueArray', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);

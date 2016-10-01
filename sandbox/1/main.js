@@ -19,6 +19,7 @@ goog.require('og.LonLat');
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
 goog.require('og.layer.GeoImage');
+goog.require('og.layer.GeoTexture2d');
 
 function start() {
 
@@ -35,7 +36,7 @@ function start() {
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     var osm2 = new og.layer.XYZ("OpenStreetMap", { height: 0, extent: og.extent(og.lonLat(-100, 25), og.lonLat(-70, 40)), isBaseLayer: false, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '', zIndex: 0 });
     var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
-    geoImage3 = new og.layer.GeoImage("GeoImageAnimate", { wgs84:true, frameWidth: 1920, frameHeight:600, animate:true, height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
+    geoImage3 = new og.layer.GeoTexture2d("GeoImageAnimate", { wgs84:true, frameWidth: 1920, frameHeight:600, height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
 
     var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",

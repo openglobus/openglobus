@@ -64,31 +64,37 @@ og.utils.GeoImageCreator.prototype.frame = function () {
     }
 };
 
-og.utils.GeoImageCreator.prototype.queue = function (geoImage) {
-    this._queue.push(geoImage);
-};
-
-og.utils.GeoImageCreator.prototype.animate = function (geoImage) {
-    this._animate.push(geoImage);
+og.utils.GeoImageCreator.prototype.add = function (geoImage) {
+    if (!geoImage._isRendering) {
+        geoImage._isRendering = true;
+        if (geoImage._animate) {
+            this._animate.push(geoImage);
+        } else {
+            this._queue.push(geoImage);
+        }
+    }
 };
 
 og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
-    var arr;
-    if (geoImage._animated) {
-        arr = this._animate;
-    } else {
-        arr = this._queue;
-    }
-    for (var i = 0; i < arr.length; i++) {
-        if (arr[i].equal(geoImage)) {
-            arr.splice(i, 1);
-            return;
+    if (geoImage._isRendering) {
+        geoImage._isRendering = false;
+        var arr;
+        if (geoImage._animate) {
+            arr = this._animate;
+        } else {
+            arr = this._queue;
+        }
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].isEqual(geoImage)) {
+                arr.splice(i, 1);
+                return;
+            }
         }
     }
 };
 
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
-    if (geoImage) {
+    if (geoImage._sourceCreated) {
         var h = this._handler;
 
         var width = geoImage._frameWidth,
@@ -99,10 +105,8 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
             geoImage._refreshCorners = false;
         }
 
-        if (!geoImage._sourceCreated) {
-            geoImage._sourceTexture = this._handler.createTexture_n(geoImage._image);
-            geoImage._sourceCreated = true;
-        }
+        geoImage._createSourceTexture();
+
 
         if (!geoImage._frameCreated) {
             geoImage._materialTexture = h.createEmptyTexture_l(width, height);
@@ -268,6 +272,7 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
         gl.enable(gl.CULL_FACE);
 
         geoImage._ready = true;
+
         geoImage._creationProceeding = false;
     }
 };

@@ -663,7 +663,7 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
             if (li instanceof og.layer.XYZ ||
                 li instanceof og.layer.WMS ||
                 li instanceof og.layer.CanvasTiles ||
-                li instanceof og.layer.GeoImage) {
+                li instanceof og.layer.IGeoImage) {
                 this.visibleTileLayers.push(li);
             } else if (li instanceof og.layer.Vector) {
                 this.visibleVectorLayers.push(li);
