@@ -49,7 +49,9 @@ og.layer.IGeoImage.prototype.addTo = function (planet) {
 };
 
 og.layer.IGeoImage.prototype.getCornersLonLat = function () {
-    return this._corners.clone();
+    var c = this._corners;
+    return [new og.LonLat(c[0].lon, c[0].lat), new og.LonLat(c[1].lon, c[1].lat),
+        new og.LonLat(c[2].lon, c[2].lat), new og.LonLat(c[3].lon, c[3].lat)];
 };
 
 og.layer.IGeoImage.prototype.getCorners = function () {

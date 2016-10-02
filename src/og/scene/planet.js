@@ -1057,7 +1057,6 @@ og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
         }
         color.w = 0.0;
         this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
-        print2d("l1", color.x + "," + color.y + "," + color.z + "," + color.w + " / " + this._currentDistanceFromPixel, 100, 100);
         return this._currentDistanceFromPixel;
     }
     return this._currentDistanceFromPixel;
@@ -1169,4 +1168,13 @@ og.scene.Planet.prototype.updateBillboardsTexCoords = function () {
             });
         }
     }
+};
+
+
+og.scene.Planet.prototype.getGreatCircleDistance = function (lonLat1, lonLat2) {
+    var dLat = (lonLat2.lat - lonLat1.lat) * og.math.RADIANS;
+    var dLon = (lonLat2.lon - lonLat1.lon) * og.math.RADIANS;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lonLat1.lat * og.math.RADIANS) * Math.cos(lonLat2.lat * og.math.RADIANS);
+    return this.ellipsoid._a * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };

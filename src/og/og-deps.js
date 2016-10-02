@@ -16,6 +16,7 @@ goog.addDependency('../../../og/src/og/clock.js', ['og.Clock'], ['og.jd'], false
 goog.addDependency('../../../og/src/og/console.js', ['og.Console'], [], false);
 goog.addDependency('../../../og/src/og/control/baseControl.js', ['og.control.BaseControl'], [], false);
 goog.addDependency('../../../og/src/og/control/earthCoordinates.js', ['og.control.EarthCoordinates'], ['og.control.BaseControl', 'og.inheritance', 'og.mercator', 'og.planetSegment'], false);
+goog.addDependency('../../../og/src/og/control/geoImageDragControl.js', ['og.control.GeoImageDragControl'], ['og.control.BaseControl', 'og.inheritance', 'og.layer.IGeoImage', 'og.mercator'], false);
 goog.addDependency('../../../og/src/og/control/keyboardNavigation.js', ['og.control.KeyboardNavigation'], ['og.control.BaseControl', 'og.inheritance', 'og.input'], false);
 goog.addDependency('../../../og/src/og/control/layerSwitcher.js', ['og.control.LayerSwitcher'], ['og.inheritance'], false);
 goog.addDependency('../../../og/src/og/control/loadingSpinner.js', ['og.control.LoadingSpinner'], ['og.control.BaseControl', 'og.inheritance'], false);

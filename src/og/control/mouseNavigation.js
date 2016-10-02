@@ -161,12 +161,14 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
-    this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
-    this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
-    if (this.grabbedPoint) {
-        this._eye0.copy(this.renderer.activeCamera.eye);
-        this.grabbedSpheroid.radius = this.grabbedPoint.length();
-        this.stopRotation();
+    if (this.active) {
+        this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
+        this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
+        if (this.grabbedPoint) {
+            this._eye0.copy(this.renderer.activeCamera.eye);
+            this.grabbedSpheroid.radius = this.grabbedPoint.length();
+            this.stopRotation();
+        }
     }
 };
 
@@ -179,40 +181,42 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonUp = function (e) {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
-    if (!this.grabbedPoint)
-        return;
+    if (this.active) {
+        if (!this.grabbedPoint)
+            return;
 
-    this.planet.stopFlying();
+        this.planet.stopFlying();
 
-    if (this.renderer.events.mouseState.moving) {
+        if (this.renderer.events.mouseState.moving) {
 
-        var cam = this.renderer.activeCamera;
+            var cam = this.renderer.activeCamera;
 
-        if (cam._n.dot(cam.eye.normal()) > 0.15) {
-            var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
-            if (targetPoint) {
-                this.scaleRot = 1;
-                this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
-                var rot = this.qRot;
-                cam.eye = rot.mulVec3(cam.eye);
-                cam._v = rot.mulVec3(cam._v);
-                cam._u = rot.mulVec3(cam._u);
-                cam._n = rot.mulVec3(cam._n);
-                cam.update();
+            if (cam._n.dot(cam.eye.normal()) > 0.15) {
+                var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
+                if (targetPoint) {
+                    this.scaleRot = 1;
+                    this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
+                    var rot = this.qRot;
+                    cam.eye = rot.mulVec3(cam.eye);
+                    cam._v = rot.mulVec3(cam._v);
+                    cam._u = rot.mulVec3(cam._u);
+                    cam._n = rot.mulVec3(cam._n);
+                    cam.update();
+                }
+            } else {
+                var p0 = this.grabbedPoint,
+                    p1 = og.math.Vector3.add(p0, cam._u),
+                    p2 = og.math.Vector3.add(p0, p0.normal());
+
+                var px = new og.math.Vector3();
+                if (new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === og.math.Ray.INSIDE) {
+                    cam.eye = this._eye0.addA(px.subA(p0).negate());
+                    cam.update();
+                }
             }
         } else {
-            var p0 = this.grabbedPoint,
-                p1 = og.math.Vector3.add(p0, cam._u),
-                p2 = og.math.Vector3.add(p0, p0.normal());
-
-            var px = new og.math.Vector3();
-            if (new og.math.Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === og.math.Ray.INSIDE) {
-                cam.eye = this._eye0.addA(px.subA(p0).negate());
-                cam.update();
-            }
+            this.scaleRot = 0;
         }
-    } else {
-        this.scaleRot = 0;
     }
 };
 
@@ -239,59 +243,61 @@ og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
 
 og.control.MouseNavigation.prototype.onDraw = function (e) {
 
-    var r = this.renderer;
-    var cam = r.activeCamera;
-    var prevEye = cam.eye.clone();
+    if (this.active) {
 
-    if (this.stepIndex) {
-        r.controlsBag.scaleRot = 1;
-        var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-        cam.eye = sf.eye;
-        cam._v = sf.v;
-        cam._u = sf.u;
-        cam._n = sf.n;
-        cam.update();
-    } else {
-        if (this._deactivate) {
-            this._deactivate = false;
-            //TODO:replace to the planet class
+        var r = this.renderer;
+        var cam = r.activeCamera;
+        var prevEye = cam.eye.clone();
+
+        if (this.stepIndex) {
+            r.controlsBag.scaleRot = 1;
+            var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+            cam.eye = sf.eye;
+            cam._v = sf.v;
+            cam._u = sf.u;
+            cam._n = sf.n;
+            cam.update();
+        } else {
+            if (this._deactivate) {
+                this._deactivate = false;
+                //TODO:replace to the planet class
+                this.planet.layersActivity = true;
+                this.planet.terrainProvider.active = true;
+                this.planet.normalMapCreator.active = true;
+                //this.planet.geoImageTileCreator.active = true;
+            }
+        }
+
+        if (r.events.mouseState.leftButtonDown || !this.scaleRot)
+            return;
+
+        this.scaleRot -= this.inertia;
+        if (this.scaleRot <= 0) {
+            this.scaleRot = 0;
+        } else {
+            r.controlsBag.scaleRot = this.scaleRot;
+            var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
+            if (!(rot.x || rot.y || rot.z)) {
+                this.scaleRot = 0;
+            }
+            cam.eye = rot.mulVec3(cam.eye);
+            cam._v = rot.mulVec3(cam._v);
+            cam._u = rot.mulVec3(cam._u);
+            cam._n = rot.mulVec3(cam._n);
+            cam.update();
+        }
+
+        //TODO:Replace to the planet class
+        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
+            this.planet.layersActivity = false;
+            this.planet.terrainProvider.active = false;
+            this.planet.normalMapCreator.active = false;
+            //this.planet.geoImageTileCreator.active = false;
+        } else {
             this.planet.layersActivity = true;
             this.planet.terrainProvider.active = true;
             this.planet.normalMapCreator.active = true;
             //this.planet.geoImageTileCreator.active = true;
         }
     }
-
-    if (r.events.mouseState.leftButtonDown || !this.scaleRot)
-        return;
-
-    this.scaleRot -= this.inertia;
-    if (this.scaleRot <= 0) {
-        this.scaleRot = 0;
-    } else {
-        r.controlsBag.scaleRot = this.scaleRot;
-        var rot = this.qRot.slerp(og.math.Quaternion.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
-        if (!(rot.x || rot.y || rot.z)) {
-            this.scaleRot = 0;
-        }
-        cam.eye = rot.mulVec3(cam.eye);
-        cam._v = rot.mulVec3(cam._v);
-        cam._u = rot.mulVec3(cam._u);
-        cam._n = rot.mulVec3(cam._n);
-        cam.update();
-    }
-
-    //TODO:Replace to the planet class
-    if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
-        this.planet.layersActivity = false;
-        this.planet.terrainProvider.active = false;
-        this.planet.normalMapCreator.active = false;
-        //this.planet.geoImageTileCreator.active = false;
-    } else {
-        this.planet.layersActivity = true;
-        this.planet.terrainProvider.active = true;
-        this.planet.normalMapCreator.active = true;
-        //this.planet.geoImageTileCreator.active = true;
-    }
-
 };

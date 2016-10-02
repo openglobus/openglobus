@@ -55,7 +55,9 @@ og.utils.GeoImageCreator.prototype.createGridBuffer = function (c) {
 og.utils.GeoImageCreator.prototype.frame = function () {
     var i = this.MAX_FRAMES;
     while (i-- && this._queue.length) {
-        this.process(this._queue.shift());
+        var q = this._queue.shift();
+        q._isRendering = false;
+        this.process(q);
     }
 
     i = this._animate.length;
