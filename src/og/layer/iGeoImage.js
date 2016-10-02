@@ -6,8 +6,8 @@ goog.require('og.layer.Layer');
 og.layer.IGeoImage = function (name, options) {
     og.inheritance.base(this, name, options);
 
-    this._frameWidth = 0;
-    this._frameHeight = 0;
+    this._frameWidth = 256;
+    this._frameHeight = 256;
 
     this._sourceReady = false;
     this._sourceTexture = null;
@@ -46,6 +46,15 @@ og.inheritance.extend(og.layer.IGeoImage, og.layer.Layer);
  */
 og.layer.IGeoImage.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
+};
+
+og.layer.IGeoImage.prototype.getCornersLonLat = function () {
+    return this._corners.clone();
+};
+
+og.layer.IGeoImage.prototype.getCorners = function () {
+    var c = this._corners;
+    return [[c[0].lon, c[0].lat], [c[1].lon, c[1].lat], [c[2].lon, c[2].lat], [c[3].lon, c[3].lat]];
 };
 
 og.layer.IGeoImage.prototype.setCorners = function (corners) {
