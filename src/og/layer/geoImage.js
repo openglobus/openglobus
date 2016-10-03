@@ -37,8 +37,8 @@ og.layer.GeoImage.prototype._createSourceTexture = function () {
 };
 
 og.layer.GeoImage.prototype._onLoad = function (img) {
-    this._frameWidth = og.math.nextHighestPowerOfTwo(img.width),
-    this._frameHeight = og.math.nextHighestPowerOfTwo(img.height);
+    this._frameWidth = img.width;//og.math.nextHighestPowerOfTwo(img.width),
+    this._frameHeight = img.height;//og.math.nextHighestPowerOfTwo(img.height);
     this._sourceReady = true;
     this._planet._geoImageCreator.add(this);
 };

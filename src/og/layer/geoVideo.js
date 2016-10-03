@@ -68,8 +68,8 @@ og.layer.GeoVideo.prototype._createSourceTexture = function () {
 };
 
 og.layer.GeoVideo.prototype._onCanPlay = function (video) {
-    this._frameWidth = og.math.nextHighestPowerOfTwo(video.videoWidth);
-    this._frameHeight = og.math.nextHighestPowerOfTwo(video.videoHeight);
+    this._frameWidth = video.videoWidth;//og.math.nextHighestPowerOfTwo(video.videoWidth);
+    this._frameHeight = video.videoHeight;//og.math.nextHighestPowerOfTwo(video.videoHeight);
     video.width = video.videoWidth;
     video.height = video.videoHeight;
     video.play();
@@ -97,14 +97,14 @@ og.layer.GeoVideo.prototype.loadMaterial = function (material) {
                 this._onCanPlay(this._video);
             } else if (this._video.src) {
                 var that = this;
-                this._video.addEventListener('canplaythrough', function (e) {
+                this._video.addEventListener('canplay', function (e) {
                     that._onCanPlay(this);
                 });
             }
         } else {
             this._video = document.createElement('video');
             var that = this;
-            this._video.addEventListener('canplaythrough', function () {
+            this._video.addEventListener('canplay', function () {
                 that._onCanPlay(this);
             });
             this._video.addEventListener('error', function () {
