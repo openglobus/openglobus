@@ -65,38 +65,43 @@ og.layer.IGeoImage.prototype.setCorners = function (corners) {
 
 og.layer.IGeoImage.prototype.setCornersLonLat = function (corners) {
     this._refreshCorners = true;
-
     this._corners = corners || [0, 0, 0, 0];
-
-    //Whole extent in wgs84
     this._extent.setByCoordinates(this._corners);
-    this._extentParams = [this._extent.southWest.lon, this._extent.southWest.lat, 2.0 / this._extent.getWidth(), 2.0 / this._extent.getHeight()];
-
-    //Extent inside mercator latitude limits in mercator meters.
-    var me = this._extent.clone();
-    if (me.southWest.lat < og.mercator.MIN_LAT) {
-        me.southWest.lat = og.mercator.MIN_LAT;
-        this._isOverMerc = true;
+    if (this._ready && !this._creationProceeding) {
+        this._planet._geoImageCreator.add(this);
     }
-    if (me.northEast.lat > og.mercator.MAX_LAT) {
-        me.northEast.lat = og.mercator.MAX_LAT;
-        this._isOverMerc = true;
-    }
-    this._extentOverParams = [me.southWest.lon, me.southWest.lat, 2.0 / me.getWidth(), 2.0 / me.getHeight()];
-    this._extentMerc = me.forwardMercator();
-    this._correctFullExtent();
-    this._wgs84MercExtent = me;
-    this._wgs84MercParams = [this._wgs84MercExtent.southWest.lon, this._wgs84MercExtent.southWest.lat,
-                1.0 / this._wgs84MercExtent.getWidth(), 1.0 / this._wgs84MercExtent.getHeight()];
-    this._mercExtentParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat,
-                this._extentMerc.getWidth(), this._extentMerc.getHeight()]
+};
 
-    if (this._planet) {
-        this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(corners);
-        this._refreshCorners = false;
+og.layer.IGeoImage.prototype._updateCorners = function () {
+    if (this._refreshCorners) {
+        //Whole extent in wgs84
+        this._extent.setByCoordinates(this._corners);
+        this._extentParams = [this._extent.southWest.lon, this._extent.southWest.lat, 2.0 / this._extent.getWidth(), 2.0 / this._extent.getHeight()];
 
-        if (this._ready && !this._creationProceeding) {
-            this._planet._geoImageCreator.add(this);
+        this._isOverMerc = false;
+
+        //Extent inside mercator latitude limits in mercator meters.
+        var me = this._extent.clone();
+        if (me.southWest.lat < og.mercator.MIN_LAT) {
+            me.southWest.lat = og.mercator.MIN_LAT;
+            this._isOverMerc = true;
+        }
+        if (me.northEast.lat > og.mercator.MAX_LAT) {
+            me.northEast.lat = og.mercator.MAX_LAT;
+            this._isOverMerc = true;
+        }
+        this._extentOverParams = [me.southWest.lon, me.southWest.lat, 2.0 / me.getWidth(), 2.0 / me.getHeight()];
+        this._extentMerc = me.forwardMercator();
+        this._correctFullExtent();
+        this._wgs84MercExtent = me;
+        this._wgs84MercParams = [this._wgs84MercExtent.southWest.lon, this._wgs84MercExtent.southWest.lat,
+                    1.0 / this._wgs84MercExtent.getWidth(), 1.0 / this._wgs84MercExtent.getHeight()];
+        this._mercExtentParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat,
+                    this._extentMerc.getWidth(), this._extentMerc.getHeight()]
+
+        if (this._planet) {
+            this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(this._corners);
+            this._refreshCorners = false;
         }
     }
 };

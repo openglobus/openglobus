@@ -21,21 +21,20 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
         if (e instanceof og.layer.IGeoImage) {
             e.events.on('mousemove', null, function (ms) {
                 if (that._catchCorner) {
-                    var mpos = that.planet.getLonLatFromPixelTerrain(ms, true);
                     var corners = e.getCornersLonLat();
-                    corners[that._cornerIndex] = mpos;
+                    corners[that._cornerIndex] = that.planet.getLonLatFromPixelTerrain(ms, true);
                     e.setCornersLonLat(corners);
                 } else {
-                    var mpos = that.planet.getLonLatFromPixelTerrain(ms, true);
-                    var mdist = that.planet.getDistanceFromPixel(ms, true);
                     var d = [];
                     that._cornerIndex = -1;
                     for (var i = 0; i < e._corners.length; i++) {
                         var c = e._corners[i];
-                        var cd = that.planet.getGreatCircleDistance(c, mpos) / mdist;
+                        var cd = that.planet.getGreatCircleDistance(c,
+                            that.planet.getLonLatFromPixelTerrain(ms, true)) / that.planet.getDistanceFromPixel(ms, true);
                         d[i] = cd;
                         if (cd <= 0.03) {
                             that._cornerIndex = i;
+                            break;
                         }
                     }
                 }

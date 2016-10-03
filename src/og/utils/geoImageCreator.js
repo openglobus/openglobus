@@ -98,18 +98,13 @@ og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
 
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
     if (geoImage._sourceReady) {
-        var h = this._handler;
 
-        var width = geoImage._frameWidth,
-            height = geoImage._frameHeight;
-
-        if (geoImage._refreshCorners) {
-            geoImage._gridBuffer = this.createGridBuffer(geoImage._corners);
-            geoImage._refreshCorners = false;
-        }
-
+        geoImage._updateCorners();
         geoImage._createSourceTexture();
 
+        var h = this._handler;
+        var width = geoImage._frameWidth,
+            height = geoImage._frameHeight;
 
         if (!geoImage._frameCreated) {
             geoImage._materialTexture = h.createEmptyTexture_l(width, height);
