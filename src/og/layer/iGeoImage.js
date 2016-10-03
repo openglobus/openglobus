@@ -80,13 +80,15 @@ og.layer.IGeoImage.prototype._updateCorners = function () {
 
         this._isOverMerc = false;
 
-        //Extent inside mercator latitude limits in mercator meters.
+        this._frameCreated = false;
+
+        //Extent inside mercator grid.
         var me = this._extent.clone();
-        if (me.southWest.lat < og.mercator.MIN_LAT) {
+        if (me.southWest.lat <= og.mercator.MIN_LAT) {
             me.southWest.lat = og.mercator.MIN_LAT;
             this._isOverMerc = true;
         }
-        if (me.northEast.lat > og.mercator.MAX_LAT) {
+        if (me.northEast.lat >= og.mercator.MAX_LAT) {
             me.northEast.lat = og.mercator.MAX_LAT;
             this._isOverMerc = true;
         }
