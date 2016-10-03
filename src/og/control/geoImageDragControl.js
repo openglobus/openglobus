@@ -20,35 +20,36 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
     this.planet.events.on('layeradd', null, function (e) {
         if (e instanceof og.layer.IGeoImage) {
             e.events.on('mousemove', null, function (ms) {
-                if (that._catchCorner) {
-                    var corners = e.getCornersLonLat();
-                    corners[that._cornerIndex] = that.planet.getLonLatFromPixelTerrain(ms, true);
-                    e.setCornersLonLat(corners);
-                } else {
-                    var d = [];
-                    that._cornerIndex = -1;
-                    for (var i = 0; i < e._corners.length; i++) {
-                        var c = e._corners[i];
-                        var cd = that.planet.getGreatCircleDistance(c,
-                            that.planet.getLonLatFromPixelTerrain(ms, true)) / that.planet.getDistanceFromPixel(ms, true);
-                        d[i] = cd;
-                        if (cd <= 0.03) {
-                            that._cornerIndex = i;
-                            break;
+                if (that.active) {
+                    if (that._catchCorner) {
+                        var corners = e.getCornersLonLat();
+                        corners[that._cornerIndex] = that.planet.getLonLatFromPixelTerrain(ms, true);
+                        e.setCornersLonLat(corners);
+                    } else {
+                        that._cornerIndex = -1;
+                        for (var i = 0; i < e._corners.length; i++) {
+                            if (that.planet.ellipsoid.getGreatCircleDistance(e._corners[i],
+                                that.planet.getLonLatFromPixelTerrain(ms, true)) / that.planet.getDistanceFromPixel(ms, true)
+                                <= 0.03) {
+                                that._cornerIndex = i;
+                                break;
+                            }
                         }
                     }
                 }
             });
             e.events.on('mouselbuttondown', null, function (ms) {
-                if (that._cornerIndex != -1) {
+                if (that.active && that._cornerIndex != -1) {
                     that._catchCorner = true;
                     globus.planet.renderer.controls[0].active = false;
                 }
             });
 
             e.events.on('mouselbuttonup', null, function (ms) {
-                that._catchCorner = false;
-                globus.planet.renderer.controls[0].active = true;
+                if (that.active) {
+                    that._catchCorner = false;
+                    globus.planet.renderer.controls[0].active = true;
+                }
             });
         }
     });

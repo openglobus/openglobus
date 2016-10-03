@@ -1169,12 +1169,3 @@ og.scene.Planet.prototype.updateBillboardsTexCoords = function () {
         }
     }
 };
-
-
-og.scene.Planet.prototype.getGreatCircleDistance = function (lonLat1, lonLat2) {
-    var dLat = (lonLat2.lat - lonLat1.lat) * og.math.RADIANS;
-    var dLon = (lonLat2.lon - lonLat1.lon) * og.math.RADIANS;
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lonLat1.lat * og.math.RADIANS) * Math.cos(lonLat2.lat * og.math.RADIANS);
-    return this.ellipsoid._a * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
