@@ -21,6 +21,7 @@ goog.require('og.layer.XYZ');
  * @param {number} [options.width=256] - Tile width.
  * @param {number} [options.height=256] - Tile height.
  * @param {string} options.layers - WMS layers string.
+ * @param {string} [options.version="1.1.1"] - WMS version.
  * @example:
  * new og.layer.WMS("USA States", { 
  *     isBaseLayer: false,
@@ -29,7 +30,8 @@ goog.require('og.layer.XYZ');
  *     opacity: 0.5, 
  *     zIndex: 50, 
  *     attribution: 'USA states - geoserver WMS example', 
- *     transparentColor: [1.0, 1.0, 1.0], 
+ *     transparentColor: [1.0, 1.0, 1.0],
+ *     version: "1.1.1",
  *     visibility: false }
  * );
  *
@@ -38,6 +40,10 @@ goog.require('og.layer.XYZ');
  */
 og.layer.WMS = function (name, options) {
     og.inheritance.base(this, name, options);
+
+    if (!options.extent) {
+        this.setExtent(new og.Extent(new og.LonLat(-180.0, -90), new og.LonLat(180.0, 90)));
+    }
 
     /**
      * WMS layers string.
@@ -59,6 +65,8 @@ og.layer.WMS = function (name, options) {
      * @type {number}
      */
     this.imageHeight = options.imageHeight || 256;
+
+    this.setVersion(options.version);
 }
 
 og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
@@ -81,10 +89,10 @@ og.layer.wms = function (name, options) {
  */
 og.layer.WMS.prototype.loadMaterial = function (material) {
     var seg = material.segment;
-    if (!material.imageIsLoading) {
+    if (!material.isLoading) {
         if (this._planet.layersActivity) {
-            material.imageReady = false;
-            material.imageIsLoading = true;
+            material.isReady = false;
+            material.isLoading = true;
             if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
                 this.pendingsQueue.push(material);
             } else {
@@ -102,11 +110,41 @@ og.layer.WMS.prototype.loadMaterial = function (material) {
  */
 og.layer.WMS.prototype._createUrl = function (segment) {
     return this.url + "wms?" + "LAYERS=" + this.layers +
-            "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap" +
+            "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=" + this._version + "&REQUEST=GetMap" +
             "&SRS=" + segment._projection.code +
-            "&BBOX=" + segment.extent.getWest() + "," + segment.extent.getSouth() + "," + segment.extent.getEast() + "," + segment.extent.getNorth() +
+            "&BBOX=" + this._getBbox(segment) +
             "&WIDTH=" + this.imageWidth +
             "&HEIGHT=" + this.imageHeight;
+};
+
+og.layer.WMS.prototype.setVersion = function (version) {
+    if (version) {
+        this._version = version;
+    } else {
+        this._version = "1.1.1";
+    }
+
+    if (this._version === "1.1.1") {
+        this._getBbox = this._getBbox111;
+    } else if (version === "1.3.0") {
+        this._getBbox = this._getBbox130;
+    }
+};
+
+/**
+ * @private
+ * @return {string}
+ */
+og.layer.WMS.prototype._getBbox111 = function (segment) {
+    return segment._extent.getWest() + "," + segment._extent.getSouth() + "," + segment._extent.getEast() + "," + segment._extent.getNorth();
+};
+
+/**
+ * @private
+ * @return {string}
+ */
+og.layer.WMS.prototype._getBbox130 = function (segment) {
+    return segment._extent.getSouth() + "," + segment._extent.getWest() + "," + segment._extent.getNorth() + "," + segment._extent.getEast();
 };
 
 /**

@@ -3,8 +3,8 @@ goog.provide('og.planetSegment.Material');
 og.planetSegment.Material = function (segment, layer) {
     this.segment = segment;
     this.layer = layer;
-    this.imageReady = false;
-    this.imageIsLoading = false;
+    this.isReady = false;
+    this.isLoading = false;
     this.texture = null;
     this.image = null;
     this.textureExists = false;
@@ -20,18 +20,18 @@ og.planetSegment.Material.prototype.abortLoading = function () {
 };
 
 og.planetSegment.Material.prototype.applyTexture = function (img) {
-    if (!this.imageReady && this.imageIsLoading) {
+    if (!this.isReady && this.isLoading) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
         this.appliedNodeId = this.segment.node.nodeId;
-        this.imageReady = true;
+        this.isReady = true;
         this.textureExists = true;
-        this.imageIsLoading = false;
+        this.isLoading = false;
     }
 };
 
 og.planetSegment.Material.prototype.textureNotExists = function () {
-    this.imageIsLoading = true;
+    this.isLoading = true;
     this.textureExists = false;
 };
 

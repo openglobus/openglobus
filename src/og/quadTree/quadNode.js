@@ -47,7 +47,7 @@ og.quadTree.QuadNode._neGridSize = Math.sqrt(og.quadTree.QuadNode._vertOrder.len
 og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
     var p = this.planet;
     var ps = this.planetSegment;
-    var ext = ps.extent;
+    var ext = ps._extent;
     var size_x = ext.getWidth() * 0.5;
     var size_y = ext.getHeight() * 0.5;
     var ne = ext.northEast, sw = ext.southWest;
@@ -227,10 +227,10 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             //Because first wgs segments collected it cant be changed to lonLat.
             if (Math.abs(cam._lonLat.lat) <= og.mercator.MAX_LAT &&
                 seg._projection.id === og.proj.EPSG3857.id) {
-                inside = seg.extent.isInside(cam._lonLatMerc);
+                inside = seg._extent.isInside(cam._lonLatMerc);
                 cam._insideSegmentPosition = cam._lonLatMerc;
             } else if (seg._projection.id === og.proj.EPSG4326.id) {
-                inside = seg.extent.isInside(cam._lonLat);
+                inside = seg._extent.isInside(cam._lonLat);
                 cam._insideSegmentPosition = cam._lonLat;
             }
 
@@ -346,8 +346,8 @@ og.quadTree.QuadNode.prototype.addToRender = function (node) {
 };
 
 og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
-    var a = this.planetSegment.extent,
-        b = node.planetSegment.extent;
+    var a = this.planetSegment._extent,
+        b = node.planetSegment._extent;
     var a_ne = a.northEast, a_sw = a.southWest,
         b_ne = b.northEast, b_sw = b.southWest;
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,

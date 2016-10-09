@@ -12,11 +12,9 @@ goog.require('og.proj.EPSG4326');
  */
 og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
     this._isNorth = false;
-
     og.inheritance.base(this, node, planet, tileZoom, extent);
-
-    this.wgs84extent = extent;
     this._projection = og.proj.EPSG4326;
+    this._extentMerc = new og.Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
 };
 
 og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;
@@ -40,7 +38,7 @@ og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
 
     var maxPoleZoom;
-    var lat = this.extent.northEast.lat;
+    var lat = this._extent.northEast.lat;
     if (lat > 0) {
         //north pole limits
         var Yz = Math.floor((90.0 - lat) / og.planetSegment.SegmentWGS84._pieceSize);
@@ -57,7 +55,7 @@ og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
 
 og.planetSegment.SegmentWGS84.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
-    var extent = this.extent;
+    var extent = this._extent;
 
     this.tileX = Math.round(Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
 
@@ -74,7 +72,7 @@ og.planetSegment.SegmentWGS84.prototype._assignTileIndexes = function () {
 
 og.planetSegment.SegmentWGS84.prototype._addViewExtent = function () {
 
-    var ext = this.extent;
+    var ext = this._extent;
     if (!this.planet._viewExtentWGS84) {
         this.planet._viewExtentWGS84 = new og.Extent(
             new og.LonLat(ext.southWest.lon, ext.southWest.lat),
@@ -103,7 +101,7 @@ og.planetSegment.SegmentWGS84.prototype._addViewExtent = function () {
 
 og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize) {
     var ind = 0;
-    var e = this.extent;
+    var e = this._extent;
     var lonSize = e.getWidth();
     var latSize = e.getHeight();
     var llStep = lonSize / gridSize;
@@ -147,7 +145,7 @@ og.planetSegment.SegmentWGS84.prototype.createPlainVertices = function (gridSize
 
 og.planetSegment.SegmentWGS84.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
-        extent = this.extent;
+        extent = this._extent;
 
     var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
 
@@ -179,12 +177,12 @@ og.planetSegment.SegmentWGS84.prototype._collectRenderNodes = function () {
 };
 
 og.planetSegment.SegmentWGS84.prototype.isEntityInside = function (e) {
-    return this.extent.isInside(e._lonlat);
+    return this._extent.isInside(e._lonlat);
 };
 
 og.planetSegment.SegmentWGS84.prototype._getLayerExtentOffset = function (layer) {
     var v0s = layer._extent;
-    var v0t = this.extent;
+    var v0t = this._extent;
     var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
     var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
     var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
@@ -195,17 +193,13 @@ og.planetSegment.SegmentWGS84.prototype._getLayerExtentOffset = function (layer)
 };
 
 og.planetSegment.SegmentWGS84.prototype.layerOverlap = function (layer) {
-    return this.extent.overlaps(layer._extent);
+    return this._extent.overlaps(layer._extent);
 };
 
 og.planetSegment.SegmentWGS84.prototype._getDefaultTexture = function () {
     return this.planet.solidTextureTwo;
 };
 
-og.planetSegment.SegmentWGS84.prototype.getLayerExtent = function (layer) {
-    return layer._extent;
-};
-
-og.planetSegment.SegmentWGS84.prototype.getLayerTexture = function (layer) {
-    return layer._materialTexture;
+og.planetSegment.SegmentWGS84.prototype.getExtentMerc = function () {
+    return this._extentMerc;
 };

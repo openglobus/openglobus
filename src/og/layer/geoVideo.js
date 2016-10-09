@@ -1,6 +1,6 @@
 goog.provide('og.layer.GeoVideo');
 
-goog.require('og.layer.IGeoImage');
+goog.require('og.layer.BaseGeoImage');
 goog.require('og.inheritance');
 
 /**
@@ -16,7 +16,7 @@ og.layer.GeoVideo = function (name, options) {
     this._src = options.src || null;
 };
 
-og.inheritance.extend(og.layer.GeoVideo, og.layer.IGeoImage);
+og.inheritance.extend(og.layer.GeoVideo, og.layer.BaseGeoImage);
 
 og.layer.GeoVideo.prototype.setSrc = function (src) {
     this._planet._geoImageCreator.remove(this);
@@ -68,8 +68,18 @@ og.layer.GeoVideo.prototype._createSourceTexture = function () {
 };
 
 og.layer.GeoVideo.prototype._onCanPlay = function (video) {
-    this._frameWidth = video.videoWidth;//og.math.nextHighestPowerOfTwo(video.videoWidth);
-    this._frameHeight = video.videoHeight;//og.math.nextHighestPowerOfTwo(video.videoHeight);
+    this._frameWidth = video.videoWidth;
+
+    if (this._projType === 2) {
+        var h = video.videoHeight * 2;
+        if (h > 4096) {
+            h = 4096;
+        }
+        this._frameHeight = h;
+    } else {
+        this._frameHeight = video.videoHeight;
+    }
+
     video.width = video.videoWidth;
     video.height = video.videoHeight;
     video.play();
@@ -89,7 +99,7 @@ og.layer.GeoVideo.prototype._onError = function (video) {
 };
 
 og.layer.GeoVideo.prototype.loadMaterial = function (material) {
-    material.imageIsLoading = true;
+    material.isLoading = true;
     this._creationProceeding = true;
     if (!this._sourceReady && this._src) {
         if (this._video) {
@@ -124,6 +134,6 @@ og.layer.GeoVideo.prototype.loadMaterial = function (material) {
 og.layer.GeoVideo.prototype.abortMaterialLoading = function (material) {
     this._video && (this._video.src = '');
     this._creationProceeding = false;
-    material.imageIsLoading = false;
-    material.imageReady = false;
+    material.isLoading = false;
+    material.isReady = false;
 };

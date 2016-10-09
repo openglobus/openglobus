@@ -52,7 +52,7 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
      * Geographical extent.
      * @type {og.Extent}
      */
-    this.extent = extent;
+    this._extent = extent;
 
     /**
      * Vertices grid size.
@@ -104,12 +104,6 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
      */
     this.parentNormalMapReady = false;
 
-    ///**
-    // * GeoImages already made for the segment.
-    // * @type {boolean}
-    // */
-    //this.geoImageReady = false;
-
     /**
      * Terrain is allready applied flag.
      * @type {boolean}
@@ -143,7 +137,6 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this._extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
     this._globalTextureCoordinates = [0, 0, 0, 0];
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
@@ -177,7 +170,7 @@ og.planetSegment.Segment.prototype.getEntityTerrainPoint = function (entity, res
 };
 
 og.planetSegment.Segment.prototype.isEntityInside = function (e) {
-    return this.extent.isInside(e._lonlatMerc);
+    return this._extent.isInside(e._lonlatMerc);
 };
 
 /**
@@ -189,8 +182,8 @@ og.planetSegment.Segment.prototype.isEntityInside = function (e) {
  * @returns {number}
  */
 og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
-    var ne = this.extent.northEast,
-        sw = this.extent.southWest,
+    var ne = this._extent.northEast,
+        sw = this._extent.southWest,
         size = this.gridSize;
 
     var xmax = ne.lon,
@@ -715,7 +708,7 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
     this.handler = null;
     this.bbox = null;
     this.bsphere = null;
-    this.extent = null;
+    this._extent = null;
 
     this.materials = null;
 
@@ -737,7 +730,6 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
     this._tileOffsetArr = null;
     this._visibleExtentOffsetArr = null;
 
-    this._extentParams = null;
     this._projection = null;
     this._appliedNeighborsZoom = null;
 };
@@ -747,7 +739,7 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
  */
 og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
-        extent = this.extent;
+        extent = this._extent;
 
     var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
     var v = [og.LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
@@ -782,7 +774,7 @@ og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gri
 
 og.planetSegment.Segment.prototype._addViewExtent = function () {
 
-    var ext = this.extent;
+    var ext = this._extent;
     if (!this.planet._viewExtentMerc) {
         this.planet._viewExtentMerc = new og.Extent(
             new og.LonLat(ext.southWest.lon, ext.southWest.lat),
@@ -811,7 +803,7 @@ og.planetSegment.Segment.prototype._addViewExtent = function () {
 
 og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
-    var extent = this.extent;
+    var extent = this._extent;
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
@@ -832,7 +824,7 @@ og.planetSegment.Segment.prototype.createPlainSegment = function () {
 
 og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
 
-    var e = this.extent,
+    var e = this._extent,
         fgs = this.planet.terrainProvider.fileGridSize;
     var lonSize = e.getWidth();
     var llStep = lonSize / Math.max(fgs, gridSize);
@@ -924,7 +916,7 @@ og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
 
 og.planetSegment.Segment.prototype._getLayerExtentOffset = function (layer) {
     var v0s = layer._extentMerc;
-    var v0t = this.extent;
+    var v0t = this._extent;
     var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
     var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
     var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
@@ -1166,17 +1158,17 @@ og.planetSegment.Segment.prototype._collectRenderNodes = function () {
 };
 
 og.planetSegment.Segment.prototype.layerOverlap = function (layer) {
-    return this.extent.overlaps(layer._extentMerc);
+    return this._extent.overlaps(layer._extentMerc);
 };
 
 og.planetSegment.Segment.prototype._getDefaultTexture = function () {
     return this.planet.solidTextureOne;
 };
 
-og.planetSegment.Segment.prototype.getLayerExtent = function (layer) {
-    return layer._extentMerc;
+og.planetSegment.Segment.prototype.getExtentLonLat = function () {
+    return this._extent.inverseMercator();
 };
 
-og.planetSegment.Segment.prototype.getLayerTexture = function (layer) {
-    return layer._materialTextureMerc;
+og.planetSegment.Segment.prototype.getExtentMerc = function () {
+    return this._extent;
 };

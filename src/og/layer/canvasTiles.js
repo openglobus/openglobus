@@ -60,7 +60,7 @@ og.layer.CanvasTiles.prototype.loadMaterial = function (material) {
                  * @param {Object} canvas
                  */
                 function (canvas) {
-                    material.imageReady = false;
+                    material.isReady = false;
                     material.applyTexture(canvas);
                 });
         } else {

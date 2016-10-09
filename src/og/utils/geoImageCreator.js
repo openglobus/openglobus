@@ -99,24 +99,20 @@ og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
 og.utils.GeoImageCreator.prototype.process = function (geoImage) {
     if (geoImage._sourceReady) {
 
-        geoImage._updateCorners();
-        geoImage._createSourceTexture();
-
         var h = this._handler;
         var width = geoImage._frameWidth,
             height = geoImage._frameHeight;
 
+        geoImage._updateCorners();
+        geoImage._createSourceTexture();
+
         if (!geoImage._frameCreated) {
+            h.gl.deleteTexture(geoImage._materialTexture);
             geoImage._materialTexture = h.createEmptyTexture_l(width, height);
 
-            if (geoImage._isOverMerc) {
-                geoImage._materialTextureMerc = h.createEmptyTexture_l(width, height);
-            } else {
-                geoImage._materialTextureMerc = geoImage._materialTexture;
-            }
-
-            if (geoImage._wgs84) {
-                geoImage._intermediateTextureWgs84 = h.createEmptyTexture_l(width, height);
+            if (geoImage._projType === 2) {
+                h.gl.deleteTexture(geoImage._intermediateTexture);
+                geoImage._intermediateTexture = h.createEmptyTexture_l(width, height);
             }
 
             geoImage._frameCreated = true;
@@ -139,33 +135,21 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
 
         gl.disable(gl.CULL_FACE);
 
-        if (geoImage._isOverMerc && geoImage._wgs84) {
-            //PASS1
-            f.bindOutputTexture(geoImage._materialTexture);
+        if (geoImage._projType === 2) {
+            f.bindOutputTexture(geoImage._intermediateTexture);
             gl.clearColor(tr, tg, tb, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
             gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-
-            //PASS2
-            f.bindOutputTexture(geoImage._intermediateTextureWgs84);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferMerc);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentMercParams);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
             gl.uniform1i(shu.sourceTexture._pName, 0);
             sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
             f.deactivate();
 
-            //PASS3
             f = this._framebufferMercProj;
             f.setSize(width, height);
             f.activate();
@@ -173,7 +157,7 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
             sh = h.shaderPrograms.geoImageMercProj._program;
             sha = sh.attributes;
             shu = sh.uniforms;
-            f.bindOutputTexture(geoImage._materialTextureMerc);
+            f.bindOutputTexture(geoImage._materialTexture);
             gl.clearColor(tr, tg, tb, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
@@ -181,85 +165,35 @@ og.utils.GeoImageCreator.prototype.process = function (geoImage) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
             gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
+            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTexture);
             gl.uniform1i(shu.u_sampler._pName, 0);
             gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
             gl.uniform4fv(shu.u_mercExtent._pName, geoImage._mercExtentParams);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             f.deactivate();
-        } else if (geoImage._isOverMerc) {
-            //PASS1
+        } else if (geoImage._projType === 1) {
             f.bindOutputTexture(geoImage._materialTexture);
             gl.clearColor(tr, tg, tb, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
             gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferMerc);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentMercParams);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
             gl.uniform1i(shu.sourceTexture._pName, 0);
             sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-
-            //PASS2
-            f.bindOutputTexture(geoImage._materialTextureMerc);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentOverParams);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-            f.deactivate();
-        } else if (geoImage._wgs84) {
-            //PASS1
-            f.bindOutputTexture(geoImage._intermediateTextureWgs84);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-            f.deactivate();
-
-            //PASS2
-            f = this._framebufferMercProj;
-            f.setSize(width, height);
-            f.activate();
-            f.bindOutputTexture(geoImage._materialTextureMerc);
-            h.shaderPrograms.geoImageMercProj.activate();
-            sh = h.shaderPrograms.geoImageMercProj._program;
-            sha = sh.attributes;
-            shu = sh.uniforms;
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
-            gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
-            gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTextureWgs84);
-            gl.uniform1i(shu.u_sampler._pName, 0);
-            gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
-            gl.uniform4fv(shu.u_mercExtent._pName, geoImage._mercExtentParams);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
             f.deactivate();
         } else {
-            //PASS1
             f.bindOutputTexture(geoImage._materialTexture);
             gl.clearColor(tr, tg, tb, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
             gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBuffer);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentParams);
+            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferWgs84);
+            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferWgs84.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniform4fv(shu.extentParams._pName, geoImage._extentWgs84Params);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
             gl.uniform1i(shu.sourceTexture._pName, 0);
@@ -308,7 +242,7 @@ og.utils.GeoImageCreator.prototype._initShaders = function () {
                       uniform vec4 extentParams; \
                       void main() { \
                           v_texCoords = texCoords; \
-                          gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw)*vec2(1.0,-1.0), 0.0, 1.0); \
+                          gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
                       }',
         fragmentShader: 'precision highp float; \
                         uniform sampler2D sourceTexture; \

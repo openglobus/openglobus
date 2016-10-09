@@ -36,6 +36,10 @@ og.layer.XYZ = function (name, options) {
 
     this.events.registerNames(og.layer.XYZ.EVENT_NAMES);
 
+    if (!options.extent) {
+        this.setExtent(new og.Extent(new og.LonLat(-180.0, og.mercator.MIN_LAT), new og.LonLat(180.0, og.mercator.MAX_LAT)));
+    }
+
     this.transparentColor = options.transparentColor || [-1, -1, -1];
 
     /**
@@ -166,8 +170,8 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
     }
 
     if (this._planet.layersActivity) {
-        material.imageReady = false;
-        material.imageIsLoading = true;
+        material.isReady = false;
+        material.isLoading = true;
         if (material.segment._projection.id === og.proj.EPSG3857.id) {
             if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
                 this._pendingsQueue.push(material);
@@ -240,7 +244,7 @@ og.layer.XYZ.prototype._exec = function (material) {
     };
 
     material.image.onerror = function () {
-        if (material.imageIsLoading && material.image) {
+        if (material.isLoading && material.image) {
             that._counter--;
             og.layer.XYZ.__requestsCounter--;
             material.textureNotExists.call(material);
@@ -262,14 +266,14 @@ og.layer.XYZ.prototype._exec = function (material) {
  * @param {og.planetSegment.Material} material - Segment material.
  */
 og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
-    if (material.imageIsLoading && material.image) {
+    if (material.isLoading && material.image) {
         material.image.src = "";
         this._counter--;
         og.layer.XYZ.__requestsCounter--;
         this._dequeueRequest();
     }
-    material.imageIsLoading = false;
-    material.imageReady = false;
+    material.isLoading = false;
+    material.isReady = false;
 };
 
 og.layer.XYZ.prototype._dequeueRequest = function () {
@@ -291,7 +295,7 @@ og.layer.XYZ.prototype._whilePendings = function () {
             if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
                 return pmat;
             }
-            pmat.imageIsLoading = false;
+            pmat.isLoading = false;
         }
     }
     return null;
@@ -299,11 +303,11 @@ og.layer.XYZ.prototype._whilePendings = function () {
 
 
 og.layer.XYZ.prototype.applyMaterial = function (material) {
-    if (material.imageReady) {
+    if (material.isReady) {
         return [0, 0, 1, 1];
     } else {
 
-        !material.imageIsLoading && this.loadMaterial(material);
+        !material.isLoading && this.loadMaterial(material);
 
         var segment = material.segment;
         var pn = segment.node,
@@ -312,7 +316,7 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
         var mId = this._id;
         var psegm = material;
         while (pn.parentNode) {
-            if (psegm && psegm.imageReady) {
+            if (psegm && psegm.isReady) {
                 notEmpty = true;
                 break;
             }
@@ -337,8 +341,8 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
 };
 
 og.layer.XYZ.prototype.clearMaterial = function (material) {
-    if (material.imageReady) {
-        material.imageReady = false;
+    if (material.isReady) {
+        material.isReady = false;
 
         !material.texture.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
@@ -348,7 +352,7 @@ og.layer.XYZ.prototype.clearMaterial = function (material) {
 
     this.abortMaterialLoading(material);
 
-    material.imageIsLoading = false;
+    material.isLoading = false;
     material.textureExists = false;
 
     if (material.image) {

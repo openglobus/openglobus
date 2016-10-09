@@ -659,11 +659,11 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
             if (li._isBaseLayer) {
                 this.baseLayer = li;
             }
-            //TODO: better replace to layer mathod
+            //TODO: better replace to layer method
             if (li instanceof og.layer.XYZ ||
                 li instanceof og.layer.WMS ||
                 li instanceof og.layer.CanvasTiles ||
-                li instanceof og.layer.IGeoImage) {
+                li instanceof og.layer.BaseGeoImage) {
                 this.visibleTileLayers.push(li);
             } else if (li instanceof og.layer.Vector) {
                 this.visibleVectorLayers.push(li);

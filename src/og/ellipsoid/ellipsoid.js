@@ -203,3 +203,95 @@ og.Ellipsoid.prototype.getIntermediatePointOnGreatCircle = function (lonLat1, lo
 
     return new og.LonLat((l3 * og.math.DEGREES + 540) % 360 - 180, f3 * og.math.DEGREES);
 };
+
+og.Ellipsoid.prototype.getRhumbBearing = function (lonLat1, lonLat2) {
+    var dLon = (lonLat2.lon - lonLat1.lon) * og.math.RADIANS;
+    var dPhi = Math.log(Math.tan(lonLat2.lat * og.math.RADIANS / 2 + Math.PI / 4) / Math.tan(lonLat1.lat * og.math.RADIANS / 2 + Math.PI / 4));
+    if (Math.abs(dLon) > Math.PI) {
+        if (dLon > 0) {
+            dLon = (2 * Math.PI - dLon) * -1;
+        }
+        else {
+            dLon = 2 * Math.PI + dLon;
+        }
+    }
+    return (Math.atan2(dLon, dPhi) * og.math.DEGREES + 360) % 360;
+};
+
+/**
+ * Returns the (initial) bearing from source to destination point on the great circle.
+ * @param {og.LonLat} lonLat1 - Longitude/latitude of source point.
+ * @param {og.LonLat} lonLat2 - Longitude/latitude of destination point.
+ * @return {number} Initial bearing in degrees from north.
+ */
+og.Ellipsoid.prototype.getInitialBearing = function (lonLat1, lonLat2) {
+    var f1 = lonLat1.lat * og.math.RADIANS,
+        f2 = lonLat2.lat * og.math.RADIANS;
+    var dl = (lonLat2.lon - lonLat1.lon) * og.math.RADIANS;
+    var y = Math.sin(dl) * Math.cos(f2);
+    var x = Math.cos(f1) * Math.sin(f2) -
+            Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
+    var D = Math.atan2(y, x);
+    return (D * og.math.DEGREES + 360) % 360;
+};
+
+/**
+ * Returns final bearing arriving at destination destination point from lonLat1 point; the final bearing
+ * will differ from the initial bearing by varying degrees according to distance and latitude.
+ * @param {og.LonLat} lonLat1 - Longitude/latitude of source point.
+ * @param {og.LonLat} lonLat2 - Longitude/latitude of destination point.
+ * @return {number} Final bearing in degrees from north.
+ */
+og.Ellipsoid.prototype.getFinalBearing = function (lonLat1, lonLat2) {
+    // get initial bearing from destination lonLat2 to lonLat1 & reverse it by adding 180°
+    return (this.getInitialBearing(lonLat2, lonLat1) + 180) % 360;
+};
+
+/**
+ * Returns the point of intersection of two paths defined by point and bearing.
+ * @param   {og.LonLat} p1 - First point.
+ * @param   {number} brng1 - Initial bearing from first point.
+ * @param   {og.LonLat} p2 - Second point.
+ * @param   {number} brng2 - Initial bearing from second point.
+ * @return {og.LonLat|null} Destination point (null if no unique intersection defined).
+ */
+og.Ellipsoid.prototype.intersection = function (p1, brng1, p2, brng2) {
+    var f1 = p1.lat * og.math.RADIANS,
+        l1 = p1.lon * og.math.RADIANS;
+    var f2 = p2.lat * og.math.RADIANS,
+        l2 = p2.lon * og.math.RADIANS;
+    var D13 = brng1 * og.math.RADIANS,
+        D23 = brng2 * og.math.RADIANS;
+    var df = f2 - f1,
+        dl = l2 - l1;
+
+    var d12 = 2 * Math.asin(Math.sqrt(Math.sin(df / 2) * Math.sin(df / 2)
+        + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)));
+    if (d12 == 0) return null;
+
+    // initial/final bearings between points
+    var Da = Math.acos((Math.sin(f2) - Math.sin(f1) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f1)));
+    if (isNaN(Da)) Da = 0; // protect against rounding
+    var Db = Math.acos((Math.sin(f1) - Math.sin(f2) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f2)));
+
+    var D12 = Math.sin(l2 - l1) > 0 ? Da : 2 * Math.PI - Da;
+    var D21 = Math.sin(l2 - l1) > 0 ? 2 * Math.PI - Db : Db;
+
+    var a1 = (D13 - D12 + Math.PI) % (2 * Math.PI) - Math.PI;
+    var a2 = (D21 - D23 + Math.PI) % (2 * Math.PI) - Math.PI;
+
+    if (Math.sin(a1) == 0 && Math.sin(a2) == 0) return null; // infinite intersections
+    if (Math.sin(a1) * Math.sin(a2) < 0) return null;      // ambiguous intersection
+
+    //a1 = Math.abs(a1);
+    //a2 = Math.abs(a2);
+    // ... Ed Williams takes abs of a1/a2, but seems to break calculation?
+
+    var a3 = Math.acos(-Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12));
+    var d13 = Math.atan2(Math.sin(d12) * Math.sin(a1) * Math.sin(a2), Math.cos(a2) + Math.cos(a1) * Math.cos(a3));
+    var f3 = Math.asin(Math.sin(f1) * Math.cos(d13) + Math.cos(f1) * Math.sin(d13) * Math.cos(D13));
+    var dl13 = Math.atan2(Math.sin(D13) * Math.sin(d13) * Math.cos(f1), Math.cos(d13) - Math.sin(f1) * Math.sin(f3));
+    var l3 = l1 + dl13;
+
+    return new og.LonLat((l3 * og.math.DEGREES + 540) % 360 - 180, f3 * og.math.DEGREES);
+};

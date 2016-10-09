@@ -279,7 +279,7 @@ og.math.Vector2.prototype.divA = function (vec) {
  * @returns {number}
  */
 og.math.Vector2.prototype.dot = function (v) {
-    return v.x * this.x + v.y * this.y + v.z * this.z;
+    return v.x * this.x + v.y * this.y;
 };
 
 /**

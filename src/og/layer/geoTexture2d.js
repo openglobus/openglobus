@@ -1,6 +1,6 @@
 goog.provide('og.layer.GeoTexture2d');
 
-goog.require('og.layer.IGeoImage');
+goog.require('og.layer.BaseGeoImage');
 goog.require('og.inheritance');
 
 
@@ -20,7 +20,7 @@ og.layer.GeoTexture2d = function (name, options) {
     this._animate = true;
 };
 
-og.inheritance.extend(og.layer.GeoTexture2d, og.layer.IGeoImage);
+og.inheritance.extend(og.layer.GeoTexture2d, og.layer.BaseGeoImage);
 
 og.layer.GeoTexture2d.prototype.loadMaterial = function (material) {
     this._planet._geoImageCreator.add(this);
@@ -42,6 +42,6 @@ og.layer.GeoTexture2d.prototype.setSize = function (width, height) {
 
 og.layer.GeoTexture2d.prototype.abortMaterialLoading = function (material) {
     this._creationProceeding = false;
-    material.imageIsLoading = false;
-    material.imageReady = false;
+    material.isLoading = false;
+    material.isReady = false;
 };

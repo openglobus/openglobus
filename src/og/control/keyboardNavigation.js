@@ -34,28 +34,43 @@ og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {
 
 };
 
+var ss = 10000;
 og.control.KeyboardNavigation.prototype.onCameraMoveForward = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, -camera._lonLat.height / 30);
-    camera.update();
+    DY += ss;
+    update();
+    //var camera = this.renderer.activeCamera;
+    //camera.slide(0, 0, -camera._lonLat.height / 30);
+    //camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraMoveBackward = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, camera._lonLat.height / 30);
-    camera.update();
+    DY -= ss;
+    update();
+    //var camera = this.renderer.activeCamera;
+    //camera.slide(0, 0, camera._lonLat.height / 30);
+    //camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeLeft = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(-camera._lonLat.height / 30, 0, 0);
-    camera.update();
+    DX -= ss;
+    update();
+    //var camera = this.renderer.activeCamera;
+    //camera.slide(-camera._lonLat.height / 30, 0, 0);
+    //camera.update();
+};
+
+function update() {
+    var l = globus.planet.layers[8];
+    l.opacity = 1;
+    l.setCornersLonLat(l._cornersWgs84);
 };
 
 og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(camera._lonLat.height / 30, 0, 0);
-    camera.update();
+    DX += ss;
+    update();
+    //var camera = this.renderer.activeCamera;
+    //camera.slide(camera._lonLat.height / 30, 0, 0);
+    //camera.update();
 };
 
 og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {

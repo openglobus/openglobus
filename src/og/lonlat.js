@@ -131,6 +131,19 @@ og.LonLat.prototype.forwardMercator = function () {
     return og.LonLat.forwardMercator(this.lon, this.lat, this.height);
 };
 
+og.LonLat.prototype.forwardMercatorEPS01 = function () {
+    var lat = this.lat;
+    if (lat > 89.9) {
+        lat = 89.9;
+    } else if (lat < -89.9) {
+        lat = -89.9;
+    }
+    return new og.LonLat(
+        this.lon * og.mercator.POLE / 180,
+        Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * og.mercator.POLE);
+};
+
+
 /**
  * Converts from mercator coordinates.
  * @public
