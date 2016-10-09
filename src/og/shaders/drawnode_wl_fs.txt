@@ -62,7 +62,7 @@ void main(void) {
     vec3 eyeDirection = normalize(-v_vertex.xyz);
     vec3 reflectionDirection = reflect(-lightDirection, normal);    
     vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord.st );
-    float shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0;
+    float shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
 	float reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
     float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
 	vec3 night = nightStep * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;	
@@ -81,7 +81,7 @@ void main(void) {
 
 
 
-	spec = specularMaterial[1].rgb * pow( reflection, specularMaterial[1].w) * shininess;
+	spec = specularMaterial[1].rgb * pow( reflection, specularMaterial[1].w) * (1.0 + shininess);
     lightWeighting = ambientMaterial[1] + diffuseMaterial[1] * diffuseLightWeighting + spec;	
 
 	t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord.xy * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);

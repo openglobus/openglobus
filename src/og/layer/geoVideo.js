@@ -69,17 +69,7 @@ og.layer.GeoVideo.prototype._createSourceTexture = function () {
 
 og.layer.GeoVideo.prototype._onCanPlay = function (video) {
     this._frameWidth = video.videoWidth;
-
-    if (this._projType === 2) {
-        var h = video.videoHeight * 2;
-        if (h > 4096) {
-            h = 4096;
-        }
-        this._frameHeight = h;
-    } else {
-        this._frameHeight = video.videoHeight;
-    }
-
+    this._frameHeight = video.videoHeight;
     video.width = video.videoWidth;
     video.height = video.videoHeight;
     video.play();

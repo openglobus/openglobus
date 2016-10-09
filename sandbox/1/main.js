@@ -35,12 +35,13 @@ function start() {
     //var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://c.tile.osm.kosmosnimki.ru/kosmo/{zoom}/{tilex}/{tiley}.png" });
     var states = new og.layer.WMS("USA States", { height: 200000, zIndex: 100, extent: og.extent(og.lonLat(-120, 20), og.lonLat(-60, 45)), visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
     var tm = new og.layer.WMS("TrueMarble", { height: 0, zIndex: 100, visibility: false, isBaseLayer: true, url: "http://openglobus.org/geoserver/", layers: "og:TrueMarble.2km.21600x10800", opacity: 1.0, attribution: 'TrueMarble' });
-    var geoImage = new og.layer.GeoImage("GeoImage", { src: "bm.jpg", wgs84: true, height: 0, zIndex: 200, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 0.8 });
+    var geoImage = new og.layer.GeoImage("GeoImage", { src: "bm.jpg", height: 0, zIndex: 200, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 0.8 });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
     var osm2 = new og.layer.XYZ("OpenStreetMap", { height: 0, extent: og.extent(og.lonLat(-100, 25), og.lonLat(-70, 40)), isBaseLayer: false, url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png", visibility: true, attribution: '', zIndex: 0 });
-    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, wgs84: false, corners: [[0, 70], [40, 85], [50, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
-    geoImage3 = new og.layer.GeoTexture2d("GeoImageAnimate", { wgs84: true, frameWidth: 1920, frameHeight: 600, height: 0, zIndex: 400, wgs84: false, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
-    geoImage4 = new og.layer.GeoVideo("Video", { minZoom: 8, src: "tavaruahd.mp4", height: 0, zIndex: 400, wgs84: false, corners: [[177.19034745638677, -17.854222103595355], [177.20877442720754, -17.852755031132784], [177.20944035656285, -17.861547286977103], [177.19146734222485, -17.863358020800423]], visibility: false, isBaseLayer: false, opacity: 1.0 });
+    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 70], [40, 85], [50, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
+    geoImage3 = new og.layer.GeoTexture2d("GeoImageAnimate", { frameWidth: 1920, frameHeight: 600, height: 0, zIndex: 400, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
+    geoImage4 = new og.layer.GeoVideo("Video", { minZoom: 8, src: "tavaruahd.mp4", height: 0, zIndex: 400,  corners: [[177.19034745638677, -17.854222103595355], [177.20877442720754, -17.852755031132784], [177.20944035656285, -17.861547286977103], [177.19146734222485, -17.863358020800423]], visibility: false, isBaseLayer: false, opacity: 1.0 });
+    geoImage5 = new og.layer.GeoVideo("Clouds", { minZoom: 0, src: "clouds_1080p30.mp4", height: 0, zIndex: 400, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 1.0, transparentColor:[-1,-1,-1] });
 
     var skybox = new og.scene.SkyBox({
         "nx": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nx.jpg",
@@ -72,7 +73,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5],
         "autoActivate": true
     });
 

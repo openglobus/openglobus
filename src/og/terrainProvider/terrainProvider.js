@@ -276,7 +276,7 @@ og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (se
                 "segment": segment
             });
         }
-        segment.applyTerrain.call(segment, elevations);
+        segment.applyTerrain(elevations);
     }
     this._dequeueRequest();
 };

@@ -489,7 +489,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     //                  vs
 
                     var insideSize = 1.0 / gridSize;
-                    //var fullSize = insideSize * pseg.gridSize;
 
                     var t_i0 = offsetY - insideSize * i0,
                         t_j0 = offsetX - insideSize * j0;
@@ -547,21 +546,22 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
                 } else {
-                    seg.terrainExists = false;
-                    seg.deleteBuffers();
+                    //TODO see segment.js elevationsNotExists
+                    //seg.terrainExists = false;
+                    //seg.deleteBuffers();
 
-                    var step = 3 * seg.gridSize;
-                    var step2 = step * 0.5;
-                    var lb = step * (seg.gridSize + 1);
-                    var ml = step2 * (seg.gridSize + 1);
+                    //var step = 3 * seg.gridSize;
+                    //var step2 = step * 0.5;
+                    //var lb = step * (seg.gridSize + 1);
+                    //var ml = step2 * (seg.gridSize + 1);
 
-                    var v = seg.terrainVertices;
-                    seg.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                            v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                            v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+                    //var v = seg.terrainVertices;
+                    //seg.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                    //        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                    //        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
-                    seg.createCoordsBuffers(seg.terrainVertices, 2);
-                    seg.gridSize = 2;
+                    //seg.createCoordsBuffers(seg.terrainVertices, 2);
+                    //seg.gridSize = 2;
                 }
             } else {
                 pn = this;

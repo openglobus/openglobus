@@ -64,8 +64,24 @@ og.layer.BaseGeoImage.prototype.setCorners = function (corners) {
 og.layer.BaseGeoImage.prototype.setCornersLonLat = function (corners) {
     this._refreshCorners = true;
     this._cornersWgs84 = corners || [0, 0, 0, 0];
+    this._extent.setByCoordinates(this._cornersWgs84);
     if (this._ready && !this._creationProceeding) {
         this._planet._geoImageCreator.add(this);
+    } else {
+        this._updateProjType();
+    }
+};
+
+og.layer.BaseGeoImage.prototype._updateProjType = function () {
+    var me = this._extent;
+    if (me.southWest.lat > og.mercator.MAX_LAT ||
+        me.northEast.lat < og.mercator.MIN_LAT) {
+        this._projType = 0;
+    } else if (me.northEast.lat > og.mercator.MAX_LAT &&
+            me.southWest.lat < og.mercator.MIN_LAT) {
+        this._projType = 2;
+    } else {
+        this._projType = 1;
     }
 };
 

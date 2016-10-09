@@ -459,17 +459,18 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
             }
 
             if (this.tileZoom > 5) {
-                var step = 3 * this.gridSize;
-                var step2 = step * 0.5;
-                var lb = step * (this.gridSize + 1);
-                var ml = step2 * (this.gridSize + 1);
+                //TODO
+                //var step = 3 * this.gridSize;
+                //var step2 = step * 0.5;
+                //var lb = step * (this.gridSize + 1);
+                //var ml = step2 * (this.gridSize + 1);
 
-                var v = this.terrainVertices;
-                this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
+                //var v = this.terrainVertices;
+                //this.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
+                //        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
+                //        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
 
-                this.gridSize = 2;
+                //this.gridSize = 2;
             }
 
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
