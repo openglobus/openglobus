@@ -127,3 +127,113 @@ og.layer.GeoVideo.prototype.abortMaterialLoading = function (material) {
     material.isLoading = false;
     material.isReady = false;
 };
+
+og.layer.GeoVideo.prototype._renderingProjType1 = function () {
+    var p = this._planet,
+    h = p.renderer.handler,
+    gl = h.gl,
+    creator = p._geoImageCreator;
+
+    var width = this._frameWidth,
+        height = this._frameHeight;
+
+    this._refreshFrame && this._createFrame();
+    if (!this._sourceCreated) {
+        this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._video);
+        this._sourceCreated = true;
+    } else {
+        var gl = this._planet.renderer.handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
+    }
+
+    var f = creator._framebuffer;
+    f.setSize(width, height);
+    f.activate();
+
+    h.shaderPrograms.geoImageTransform.activate();
+    var sh = h.shaderPrograms.geoImageTransform._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var tr = this.transparentColor[0],
+        tg = this.transparentColor[1],
+        tb = this.transparentColor[2];
+
+    gl.disable(gl.CULL_FACE);
+
+    f.bindOutputTexture(this._materialTexture);
+    gl.clearColor(tr, tg, tb, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
+    gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferMerc);
+    gl.vertexAttribPointer(sha.corners._pName, this._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+    gl.uniform4fv(shu.extentParams._pName, this._extentMercParams);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+    gl.uniform1i(shu.sourceTexture._pName, 0);
+    sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
+    f.deactivate();
+
+    gl.enable(gl.CULL_FACE);
+
+    this._ready = true;
+
+    this._creationProceeding = false;
+};
+
+og.layer.GeoVideo.prototype._renderingProjType0 = function () {
+    var p = this._planet,
+    h = p.renderer.handler,
+    gl = h.gl,
+    creator = p._geoImageCreator;
+
+    var width = this._frameWidth,
+        height = this._frameHeight;
+
+    this._refreshFrame && this._createFrame();
+    if (!this._sourceCreated) {
+        this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._video);
+        this._sourceCreated = true;
+    } else {
+        var gl = this._planet.renderer.handler.gl;
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
+    }
+
+    var f = creator._framebuffer;
+    f.setSize(width, height);
+    f.activate();
+
+    h.shaderPrograms.geoImageTransform.activate();
+    var sh = h.shaderPrograms.geoImageTransform._program;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var tr = this.transparentColor[0],
+        tg = this.transparentColor[1],
+        tb = this.transparentColor[2];
+
+    gl.disable(gl.CULL_FACE);
+
+    f.bindOutputTexture(this._materialTexture);
+    gl.clearColor(tr, tg, tb, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
+    gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferWgs84);
+    gl.vertexAttribPointer(sha.corners._pName, this._gridBufferWgs84.itemSize, gl.FLOAT, false, 0, 0);
+    gl.uniform4fv(shu.extentParams._pName, this._extentWgs84Params);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+    gl.uniform1i(shu.sourceTexture._pName, 0);
+    sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
+    f.deactivate();
+
+    gl.enable(gl.CULL_FACE);
+
+    this._ready = true;
+
+    this._creationProceeding = false;
+};

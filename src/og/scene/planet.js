@@ -593,7 +593,7 @@ og.scene.Planet.prototype.initialization = function () {
         img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.png";
     }
 
-    this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler, 8);
+    this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
 };
 
 /**

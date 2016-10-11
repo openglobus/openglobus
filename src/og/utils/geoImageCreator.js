@@ -4,8 +4,8 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.PlanetSegmentHelper');
 goog.require('og.math');
 
-og.utils.GeoImageCreator = function (handler, gridSize, maxFrames) {
-    this._gridSize = gridSize || 8;
+og.utils.GeoImageCreator = function (handler, maxFrames) {
+    this._gridSize = 64;
     this._handler = handler;
     this._framebuffer = null;
     this._texCoordsBuffer = null;
@@ -28,7 +28,7 @@ og.utils.GeoImageCreator.prototype._initialize = function () {
  * @param{Array.<og.LonLat>} c - GeoImage corners coordinates.
  * @return{WebGLBuffer} Grid coordinates buffer.
  */
-og.utils.GeoImageCreator.prototype.createGridBuffer = function (c) {
+og.utils.GeoImageCreator.prototype.createGridBuffer = function (c, toMerc) {
     var gs = this._gridSize;
 
     var v03 = new og.LonLat((c[3].lon - c[0].lon) / gs, (c[3].lat - c[0].lat) / gs),
@@ -49,6 +49,14 @@ og.utils.GeoImageCreator.prototype.createGridBuffer = function (c) {
             grid[k++] = xx.lat;
         }
     }
+
+    if (toMerc) {
+        for (var i = 0; i < grid.length; i += 2) {
+            var c = og.lonLat(grid[i], grid[i + 1]).forwardMercator();
+            grid[i] = c.lon;
+            grid[i + 1] = c.lat;
+        }
+    }
     return this._handler.createArrayBuffer(grid, 2, grid.length / 2);
 };
 
@@ -57,12 +65,13 @@ og.utils.GeoImageCreator.prototype.frame = function () {
     while (i-- && this._queue.length) {
         var q = this._queue.shift();
         q._isRendering = false;
-        this.process(q);
+        //this.process(q);
+        q.rendering();
     }
 
     i = this._animate.length;
     while (i--) {
-        this.process(this._animate[i]);
+        this._animate[i].rendering();
     }
 };
 
@@ -93,119 +102,6 @@ og.utils.GeoImageCreator.prototype.remove = function (geoImage) {
                 return;
             }
         }
-    }
-};
-
-og.utils.GeoImageCreator.prototype.process = function (geoImage) {
-    if (geoImage._sourceReady) {
-
-        var h = this._handler;
-        var width = geoImage._frameWidth,
-            height = geoImage._frameHeight;
-
-        geoImage._updateCorners();
-        geoImage._createSourceTexture();
-
-        if (!geoImage._frameCreated) {
-            h.gl.deleteTexture(geoImage._materialTexture);
-            geoImage._materialTexture = h.createEmptyTexture_l(width, height);
-
-            if (geoImage._projType === 2) {
-                h.gl.deleteTexture(geoImage._intermediateTexture);
-                geoImage._intermediateTexture = h.createEmptyTexture_l(width, height);
-            }
-
-            geoImage._frameCreated = true;
-        }
-
-
-        var f = this._framebuffer;
-        f.setSize(width, height);
-        f.activate();
-
-        h.shaderPrograms.geoImageTransform.activate();
-        var sh = h.shaderPrograms.geoImageTransform._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
-        var gl = h.gl;
-
-        var tr = geoImage.transparentColor[0],
-            tg = geoImage.transparentColor[1],
-            tb = geoImage.transparentColor[2];
-
-        gl.disable(gl.CULL_FACE);
-
-        if (geoImage._projType === 2) {
-            f.bindOutputTexture(geoImage._intermediateTexture);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferMerc);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentMercParams);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-            f.deactivate();
-
-            f = this._framebufferMercProj;
-            f.setSize(width, height);
-            f.activate();
-            h.shaderPrograms.geoImageMercProj.activate();
-            sh = h.shaderPrograms.geoImageMercProj._program;
-            sha = sh.attributes;
-            shu = sh.uniforms;
-            f.bindOutputTexture(geoImage._materialTexture);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadTexCoordsBuffer);
-            gl.vertexAttribPointer(sha.a_texCoord._pName, this._quadTexCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._quadVertexBuffer);
-            gl.vertexAttribPointer(sha.a_vertex._pName, this._quadVertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._intermediateTexture);
-            gl.uniform1i(shu.u_sampler._pName, 0);
-            gl.uniform4fv(shu.u_extent._pName, geoImage._wgs84MercParams);
-            gl.uniform4fv(shu.u_mercExtent._pName, geoImage._mercExtentParams);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            f.deactivate();
-        } else if (geoImage._projType === 1) {
-            f.bindOutputTexture(geoImage._materialTexture);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferMerc);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentMercParams);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-            f.deactivate();
-        } else {
-            f.bindOutputTexture(geoImage._materialTexture);
-            gl.clearColor(tr, tg, tb, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordsBuffer);
-            gl.vertexAttribPointer(sha.texCoords._pName, this._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, geoImage._gridBufferWgs84);
-            gl.vertexAttribPointer(sha.corners._pName, geoImage._gridBufferWgs84.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniform4fv(shu.extentParams._pName, geoImage._extentWgs84Params);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, geoImage._sourceTexture);
-            gl.uniform1i(shu.sourceTexture._pName, 0);
-            sh.drawIndexBuffer(gl.TRIANGLE_STRIP, this._indexBuffer);
-            f.deactivate();
-        }
-
-        gl.enable(gl.CULL_FACE);
-
-        geoImage._ready = true;
-
-        geoImage._creationProceeding = false;
     }
 };
 
@@ -252,40 +148,40 @@ og.utils.GeoImageCreator.prototype._initShaders = function () {
                         }'
     }));
 
-    this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("geoImageMercProj", {
-        uniforms: {
-            u_sampler: { type: og.shaderProgram.types.SAMPLER2D },
-            u_extent: { type: og.shaderProgram.types.VEC4 },
-            u_mercExtent: { type: og.shaderProgram.types.VEC4 }
-        },
-        attributes: {
-            a_vertex: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
-        },
-        vertexShader: 'attribute vec2 a_vertex; \
-                            attribute vec2 a_texCoord; \
-                            varying vec2 v_texCoords; \
-                            void main() { \
-                                v_texCoords = a_texCoord; \
-                                gl_Position = vec4(a_vertex, 0, 1); \
-                            }',
-        fragmentShader: 'precision highp float; \n\
-                        uniform sampler2D u_sampler; \n\
-                        uniform vec4 u_extent; \n\
-                        uniform vec4 u_mercExtent; \n\
-                        varying vec2 v_texCoords; \n\
-                        const float POLE=20037508.34; \n\
-                        const float PI=3.141592653589793; \n\
-                        const float RAD2DEG = 180.0 / PI;\n\
-                        const float PI_BY_2 = PI / 2.0;\n\
-                        \n\
-                        vec2 inverse(vec2 lonLat){\n\
-                            return vec2(180.0 * lonLat.x / POLE, RAD2DEG * (2.0 * atan(exp(PI * lonLat.y / POLE)) - PI_BY_2));\n\
-                        }\n\
-                        \n\
-                        void main () {\n\
-                            vec2 d = (inverse(u_mercExtent.xy + u_mercExtent.zw * vec2(v_texCoords.x, v_texCoords.y)) - u_extent.xy) * u_extent.zw;\n\
-                            gl_FragColor = texture2D(u_sampler, d);\n\
-            }'
-    }));
+    //this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("geoImageMercProj", {
+    //    uniforms: {
+    //        u_sampler: { type: og.shaderProgram.types.SAMPLER2D },
+    //        u_extent: { type: og.shaderProgram.types.VEC4 },
+    //        u_mercExtent: { type: og.shaderProgram.types.VEC4 }
+    //    },
+    //    attributes: {
+    //        a_vertex: { type: og.shaderProgram.types.VEC2, enableArray: true },
+    //        a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+    //    },
+    //    vertexShader: 'attribute vec2 a_vertex; \
+    //                        attribute vec2 a_texCoord; \
+    //                        varying vec2 v_texCoords; \
+    //                        void main() { \
+    //                            v_texCoords = a_texCoord; \
+    //                            gl_Position = vec4(a_vertex, 0, 1); \
+    //                        }',
+    //    fragmentShader: 'precision highp float; \n\
+    //                    uniform sampler2D u_sampler; \n\
+    //                    uniform vec4 u_extent; \n\
+    //                    uniform vec4 u_mercExtent; \n\
+    //                    varying vec2 v_texCoords; \n\
+    //                    const float POLE=20037508.34; \n\
+    //                    const float PI=3.141592653589793; \n\
+    //                    const float RAD2DEG = 180.0 / PI;\n\
+    //                    const float PI_BY_2 = PI / 2.0;\n\
+    //                    \n\
+    //                    vec2 inverse(vec2 lonLat){\n\
+    //                        return vec2(180.0 * lonLat.x / POLE, RAD2DEG * (2.0 * atan(exp(PI * lonLat.y / POLE)) - PI_BY_2));\n\
+    //                    }\n\
+    //                    \n\
+    //                    void main () {\n\
+    //                        vec2 d = (inverse(u_mercExtent.xy + u_mercExtent.zw * vec2(v_texCoords.x, v_texCoords.y)) - u_extent.xy) * u_extent.zw;\n\
+    //                        gl_FragColor = texture2D(u_sampler, d);\n\
+    //        }'
+    //}));
 };

@@ -21,7 +21,7 @@ og.layer.BaseGeoImage = function (name, options) {
     this._extentWgs84Params = null;
     this._mercExtentParams = null;
 
-    this._refreshCorners = true;
+    this._refreshFrame = true;
     this._frameCreated = false;
     this._sourceCreated = false;
 
@@ -32,6 +32,9 @@ og.layer.BaseGeoImage = function (name, options) {
 
     this._extentWgs84 = new og.Extent();
     this._cornersWgs84 = null;
+
+    this.rendering = null;
+
     options.corners && this.setCorners(options.corners);
 };
 
@@ -62,70 +65,61 @@ og.layer.BaseGeoImage.prototype.setCorners = function (corners) {
 };
 
 og.layer.BaseGeoImage.prototype.setCornersLonLat = function (corners) {
-    this._refreshCorners = true;
-    this._cornersWgs84 = corners || [0, 0, 0, 0];
-    this._extent.setByCoordinates(this._cornersWgs84);
-    if (this._ready && !this._creationProceeding) {
-        this._planet._geoImageCreator.add(this);
-    } else {
-        this._updateProjType();
-    }
-};
+    this._refreshFrame = true;
+    this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()] || [0, 0, 0, 0];
 
-og.layer.BaseGeoImage.prototype._updateProjType = function () {
+    for (var i = 0; i < this._cornersWgs84.length; i++) {
+        if (this._cornersWgs84[i].lat >= 89.9)
+            this._cornersWgs84[i].lat = 89.9;
+        if (this._cornersWgs84[i].lat <= -89.9)
+            this._cornersWgs84[i].lat = -89.9;
+    }
+    this._extent.setByCoordinates(this._cornersWgs84);
+
     var me = this._extent;
     if (me.southWest.lat > og.mercator.MAX_LAT ||
         me.northEast.lat < og.mercator.MIN_LAT) {
         this._projType = 0;
-    } else if (me.northEast.lat > og.mercator.MAX_LAT &&
-            me.southWest.lat < og.mercator.MIN_LAT) {
-        this._projType = 2;
+        this.rendering = this._renderingProjType0;
     } else {
         this._projType = 1;
+        this.rendering = this._renderingProjType1;
+    }
+
+    if (this._ready && !this._creationProceeding) {
+        this._planet._geoImageCreator.add(this);
     }
 };
 
-og.layer.BaseGeoImage.prototype._updateCorners = function () {
-    if (this._refreshCorners) {
-        this._frameCreated = false;
+og.layer.BaseGeoImage.prototype._createFrame = function () {
+    this._extentWgs84 = this._extent.clone();
 
-        this._extentWgs84.setByCoordinates(this._cornersWgs84);
-        this._extent = this._extentWgs84;
-        var me = this._extentWgs84;
-        this._cornersMerc = [this._cornersWgs84[0].forwardMercatorEPS01(), this._cornersWgs84[1].forwardMercatorEPS01(),
-            this._cornersWgs84[2].forwardMercatorEPS01(), this._cornersWgs84[3].forwardMercatorEPS01()];
-        this._extentMerc = new og.Extent(me.southWest.forwardMercatorEPS01(), me.northEast.forwardMercatorEPS01());
+    this._cornersMerc = [this._cornersWgs84[0].forwardMercatorEPS01(), this._cornersWgs84[1].forwardMercatorEPS01(),
+        this._cornersWgs84[2].forwardMercatorEPS01(), this._cornersWgs84[3].forwardMercatorEPS01()];
 
-        if (me.southWest.lat > og.mercator.MAX_LAT ||
-            me.northEast.lat < og.mercator.MIN_LAT) {
-            this._projType = 0;
-            this._extentWgs84Params = [this._extentWgs84.southWest.lon, this._extentWgs84.southWest.lat, 2.0 / this._extentWgs84.getWidth(), 2.0 / this._extentWgs84.getHeight()];
-            if (this._planet) {
-                this._gridBufferWgs84 = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84);
-            }
-        } else if (me.northEast.lat > og.mercator.MAX_LAT &&
-                    me.southWest.lat < og.mercator.MIN_LAT) {
-            this._projType = 2;
-            this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
-            //this._correctFullExtent();
-            this._wgs84MercExtent = me;
-            this._wgs84MercParams = [this._wgs84MercExtent.southWest.lon, this._wgs84MercExtent.southWest.lat,
-                        1.0 / this._wgs84MercExtent.getWidth(), 1.0 / this._wgs84MercExtent.getHeight()];
-            this._mercExtentParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat,
-                        this._extentMerc.getWidth(), this._extentMerc.getHeight()]
+    this._extentMerc = new og.Extent(this._extentWgs84.southWest.forwardMercatorEPS01(), this._extentWgs84.northEast.forwardMercatorEPS01());
 
-            if (this._planet) {
-                this._gridBufferMerc = this._planet._geoImageCreator.createGridBuffer(this._cornersMerc);
-            }
-        } else {
-            this._projType = 1;
-            this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
-            if (this._planet) {
-                this._gridBufferMerc = this._planet._geoImageCreator.createGridBuffer(this._cornersMerc);
-            }
+    if (this._projType == 0) {
+        this._extentWgs84Params = [this._extentWgs84.southWest.lon, this._extentWgs84.southWest.lat, 2.0 / this._extentWgs84.getWidth(), 2.0 / this._extentWgs84.getHeight()];
+        if (this._planet) {
+            this._gridBufferWgs84 = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84);
         }
+    } else {
+        this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
+        if (this._planet) {
+            this._gridBufferMerc = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, true);
+        }
+    }
 
-        this._planet && (this._refreshCorners = false);
+    //creates material frame textures
+    if (this._planet) {
+        var p = this._planet,
+            h = p.renderer.handler,
+            gl = h.gl;
+
+        gl.deleteTexture(this._materialTexture);
+        this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
+        this._refreshFrame = false;
     }
 };
 
@@ -156,8 +150,7 @@ og.layer.BaseGeoImage.prototype.clear = function () {
     this._gridBufferMerc = null;
     this._gridBufferWgs84 = null;
 
-    this._refreshCorners = true;
-    this._frameCreated = false;
+    this._refreshFrame = true;
     this._sourceCreated = false;
 
     this._ready = false;
@@ -211,7 +204,7 @@ og.layer.BaseGeoImage.prototype.applyMaterial = function (material) {
     }
 
     if (this._projType === 0) {
-        var v0s = this._extent;
+        var v0s = this._extentWgs84;
         var v0t = segment._extent;
     } else {
         var v0s = this._extentMerc;
