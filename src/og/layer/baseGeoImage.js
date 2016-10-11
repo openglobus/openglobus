@@ -14,12 +14,9 @@ og.layer.BaseGeoImage = function (name, options) {
     this._sourceReady = false;
     this._sourceTexture = null;
     this._materialTexture = null;
-    this._intermediateTexture = null;
 
-    this._gridBufferWgs84 = null;
-    this._gridBufferMerc = null;
+    this._gridBuffer = null;
     this._extentWgs84Params = null;
-    this._mercExtentParams = null;
 
     this._refreshFrame = true;
     this._frameCreated = false;
@@ -101,14 +98,8 @@ og.layer.BaseGeoImage.prototype._createFrame = function () {
 
     if (this._projType == 0) {
         this._extentWgs84Params = [this._extentWgs84.southWest.lon, this._extentWgs84.southWest.lat, 2.0 / this._extentWgs84.getWidth(), 2.0 / this._extentWgs84.getHeight()];
-        if (this._planet) {
-            this._gridBufferWgs84 = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84);
-        }
     } else {
         this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
-        if (this._planet) {
-            this._gridBufferMerc = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, true);
-        }
     }
 
     //creates material frame textures
@@ -119,6 +110,9 @@ og.layer.BaseGeoImage.prototype._createFrame = function () {
 
         gl.deleteTexture(this._materialTexture);
         this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
+
+        this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, this._projType);
+
         this._refreshFrame = false;
     }
 };
@@ -137,8 +131,7 @@ og.layer.BaseGeoImage.prototype.clear = function () {
         this._creationProceeding && p._geoImageCreator.remove(this);
         p._clearLayerMaterial(this);
 
-        gl.deleteBuffer(this._gridBufferMerc);
-        gl.deleteBuffer(this._gridBufferWgs84);
+        gl.deleteBuffer(this._gridBuffer);
 
         gl.deleteTexture(this._sourceTexture);
         !this._materialTexture.default && gl.deleteTexture(this._materialTexture);
@@ -147,8 +140,7 @@ og.layer.BaseGeoImage.prototype.clear = function () {
     this._sourceTexture = null;
     this._materialTexture = null;
 
-    this._gridBufferMerc = null;
-    this._gridBufferWgs84 = null;
+    this._gridBuffer = null;
 
     this._refreshFrame = true;
     this._sourceCreated = false;

@@ -26,8 +26,6 @@ og.layer.GeoTexture2d.prototype.loadMaterial = function (material) {
     this._planet._geoImageCreator.add(this);
 };
 
-og.layer.GeoTexture2d.prototype._createSourceTexture = function () { };
-
 og.layer.GeoTexture2d.prototype.bindTexture = function (texture) {
     this._sourceReady = true;
     this._sourceCreated = true;
@@ -52,14 +50,10 @@ og.layer.GeoTexture2d.prototype._renderingProjType1 = function () {
     gl = h.gl,
     creator = p._geoImageCreator;
 
-    var width = this._frameWidth,
-        height = this._frameHeight;
-
     this._refreshFrame && this._createFrame();
-    this._createSourceTexture();
 
     var f = creator._framebuffer;
-    f.setSize(width, height);
+    f.setSize(this._frameWidth, this._frameHeight);
     f.activate();
 
     h.shaderPrograms.geoImageTransform.activate();
@@ -78,8 +72,8 @@ og.layer.GeoTexture2d.prototype._renderingProjType1 = function () {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
     gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferMerc);
-    gl.vertexAttribPointer(sha.corners._pName, this._gridBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
+    gl.vertexAttribPointer(sha.corners._pName, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.uniform4fv(shu.extentParams._pName, this._extentMercParams);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
@@ -104,7 +98,6 @@ og.layer.GeoTexture2d.prototype._renderingProjType0 = function () {
         height = this._frameHeight;
 
     this._refreshFrame && this._createFrame();
-    this._createSourceTexture();
 
     var f = creator._framebuffer;
     f.setSize(width, height);
@@ -126,8 +119,8 @@ og.layer.GeoTexture2d.prototype._renderingProjType0 = function () {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
     gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferWgs84);
-    gl.vertexAttribPointer(sha.corners._pName, this._gridBufferWgs84.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
+    gl.vertexAttribPointer(sha.corners._pName, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.uniform4fv(shu.extentParams._pName, this._extentWgs84Params);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
