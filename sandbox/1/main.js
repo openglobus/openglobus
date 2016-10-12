@@ -41,10 +41,11 @@ function start() {
     var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 70], [40, 85], [50, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.7 });
     geoImage3 = new og.layer.GeoTexture2d("GeoImageAnimate", { frameWidth: 1920, frameHeight: 600, height: 0, zIndex: 400, corners: [[0, 55], [10, 55], [10, 45], [0, 45]], visibility: false, isBaseLayer: false, opacity: 0.8 });
     geoImage4 = new og.layer.GeoVideo("Video", { minZoom: 8, src: "tavaruahd.mp4", height: 0, zIndex: 400,  corners: [[177.19034745638677, -17.854222103595355], [177.20877442720754, -17.852755031132784], [177.20944035656285, -17.861547286977103], [177.19146734222485, -17.863358020800423]], visibility: false, isBaseLayer: false, opacity: 1.0 });
-    geoImage5 = new og.layer.GeoVideo("Clouds", { minZoom: 0, src: "clouds_1080p30.mp4", height: 0, zIndex: 400, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 1.0, transparentColor: [-1, -1, -1] });
+    geoImage5 = new og.layer.GeoVideo("Clouds", { minZoom: 0, src: "clouds_1080p30.mp4", height: 0, zIndex: 400, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 1.0 });
     geoImage7 = new og.layer.GeoVideo("BIO", { minZoom: 0, src: "NASA animation Yearly biosphere cycle.mp4", height: 0, zIndex: 400, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 1.0, transparentColor: [-1, -1, -1] });
     geoImage8 = new og.layer.GeoVideo("imegracc", { minZoom: 0, src: "imergacc_20160508_1080p_p30.mp4", height: 0, zIndex: 400, corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]], visibility: false, isBaseLayer: false, opacity: 0.7 });
-
+    geoImage9 = new og.layer.GeoVideo("RainFall", { minZoom: 0, src: "trmm_philippines_rainfall_2013_720p.mp4", height: 0, zIndex: 400, corners: [[115.10176120805798, 19.712318468515733], [141.36944705892483, 20.581119469455228], [141.59120931029042, 4.711025749829452], [115.1165387994147, 5.051107016408538]], visibility: false, isBaseLayer: false, opacity: 0.7 });
+    
     geoImage6 = new og.layer.GeoImage("GRID", { src: "grid.jpg", height: 0, zIndex: 400, corners: [[0, 80], [40, 80], [40, 0], [0, 0]], visibility: false, isBaseLayer: false, opacity: 1 });
 
     var skybox = new og.scene.SkyBox({
@@ -77,7 +78,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8, geoImage9],
         "autoActivate": true
     });
 

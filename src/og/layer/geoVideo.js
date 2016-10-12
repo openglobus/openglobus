@@ -161,7 +161,7 @@ og.layer.GeoVideo.prototype._renderingProjType1 = function () {
     gl.disable(gl.CULL_FACE);
 
     f.bindOutputTexture(this._materialTexture);
-    gl.clearColor(tr, tg, tb, 1.0);
+    gl.clearColor(tr, tg, tb, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
     gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -213,7 +213,7 @@ og.layer.GeoVideo.prototype._renderingProjType0 = function () {
     gl.disable(gl.CULL_FACE);
 
     f.bindOutputTexture(this._materialTexture);
-    gl.clearColor(tr, tg, tb, 1.0);
+    gl.clearColor(tr, tg, tb, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
     gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
