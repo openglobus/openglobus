@@ -4,31 +4,58 @@ goog.require('og.layer.BaseGeoImage');
 goog.require('og.inheritance');
 
 /**
- * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.IGeoImage interface.
+ * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
  * @class
+ * @extends {og.layer.BaseGeoImage}
  */
 og.layer.GeoImage = function (name, options) {
     og.inheritance.base(this, name, options);
 
+    /**
+     * Image object.
+     * @private
+     * @type {Image}
+     */
     this._image = options.image || null;
+
+    /**
+     * Image source url path.
+     * @private
+     * @type {String}
+     */
     this._src = options.src || null;
 };
 
 og.inheritance.extend(og.layer.GeoImage, og.layer.BaseGeoImage);
 
+/**
+ * Sets image source url path.
+ * @public
+ * @param {String} srs - Image url path.
+ */
 og.layer.GeoImage.prototype.setSrc = function (src) {
-    this._planet._geoImageCreator.remove(this);
+    this._planet && this._planet._geoImageCreator.remove(this);
     this._src = src;
     this._sourceReady = false;
 };
 
+/**
+ * Sets image object.
+ * @public
+ * @param {Image} image - Image object.
+ */
 og.layer.GeoImage.prototype.setImage = function (image) {
-    this._planet._geoImageCreator.remove(this);
-    this._image = options.image;
-    this._src = options.image.src;
+    this._planet && this._planet._geoImageCreator.remove(this);
+    this._image = image;
+    this._src = image.src;
     this._sourceReady = false;
 };
 
+/**
+ * Creates source gl texture.
+ * @virtual
+ * @protected
+ */
 og.layer.GeoImage.prototype._createSourceTexture = function () {
     if (!this._sourceCreated) {
         this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._image);
@@ -36,21 +63,23 @@ og.layer.GeoImage.prototype._createSourceTexture = function () {
     }
 };
 
+/**
+ * @private
+ * @param {Image} img
+ */
 og.layer.GeoImage.prototype._onLoad = function (img) {
     this._frameWidth = img.width;
-    if (this._projType === 2) {
-        var h = img.height * 2;
-        if (h > 4096) {
-            h = 4096;
-        }
-        this._frameHeight = h;
-    } else {
-        this._frameHeight = img.height;
-    }
+    this._frameHeight = img.height;
     this._sourceReady = true;
     this._planet._geoImageCreator.add(this);
 };
 
+/**
+ * Loads planet segment material. In this case - GeoImage source image.
+ * @virtual
+ * @public
+ * @param {og.planetSegment.Material} material - GeoImage planet material.
+ */
 og.layer.GeoImage.prototype.loadMaterial = function (material) {
     material.isLoading = true;
     this._creationProceeding = true;
@@ -77,6 +106,10 @@ og.layer.GeoImage.prototype.loadMaterial = function (material) {
     }
 };
 
+/**
+ * @virtual
+ * @param {og.planetSegment.Material} material - GeoImage material.
+ */
 og.layer.GeoImage.prototype.abortMaterialLoading = function (material) {
     this._image && (this._image.src = '');
     this._creationProceeding = false;

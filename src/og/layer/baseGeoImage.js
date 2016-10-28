@@ -3,6 +3,11 @@ goog.provide('og.layer.BaseGeoImage');
 goog.require('og.math');
 goog.require('og.layer.Layer');
 
+/**
+ * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
+ * @class
+ * @extends {og.layer.Layer}
+ */
 og.layer.BaseGeoImage = function (name, options) {
     og.inheritance.base(this, name, options);
 
@@ -38,29 +43,44 @@ og.layer.BaseGeoImage = function (name, options) {
 og.inheritance.extend(og.layer.BaseGeoImage, og.layer.Layer);
 
 /**
- * Adds layer to the planet.
+ * Gets corners coordinates.
  * @public
- * @param {og.scene.Planet}
+ * @return {Array.<og.LonLat,og.LonLat,og.LonLat,og.LonLat>}
  */
-og.layer.BaseGeoImage.prototype.addTo = function (planet) {
-    this._assignPlanet(planet);
-};
-
 og.layer.BaseGeoImage.prototype.getCornersLonLat = function () {
     var c = this._cornersWgs84;
     return [new og.LonLat(c[0].lon, c[0].lat), new og.LonLat(c[1].lon, c[1].lat),
         new og.LonLat(c[2].lon, c[2].lat), new og.LonLat(c[3].lon, c[3].lat)];
 };
 
+/**
+ * Gets corners coordinates.
+ * @public
+ * @return {Array.<Array<number,number,number>>}
+ */
 og.layer.BaseGeoImage.prototype.getCorners = function () {
     var c = this._cornersWgs84;
     return [[c[0].lon, c[0].lat], [c[1].lon, c[1].lat], [c[2].lon, c[2].lat], [c[3].lon, c[3].lat]];
 };
 
+/**
+ * Sets geoImage geographical corners coordinates.
+ * @public
+ * @param {Array.<Array.<number,number,number>>} corners - GeoImage corners coordinates. Where first coordinate 
+ * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom 
+ * and fourth - left bottom image corner.
+ */
 og.layer.BaseGeoImage.prototype.setCorners = function (corners) {
     this.setCornersLonLat(og.lonLatArray(corners));
 };
 
+/**
+ * Sets geoImage geographical corners coordinates.
+ * @public
+ * @param {Array.<og.LonLat, og.LonLat, og.LonLat, og.LonLat>} corners - GeoImage corners coordinates. Where first coordinate 
+ * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom 
+ * and fourth - left bottom image corner.
+ */
 og.layer.BaseGeoImage.prototype.setCornersLonLat = function (corners) {
     this._refreshFrame = true;
     this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()] || [0, 0, 0, 0];
@@ -88,6 +108,10 @@ og.layer.BaseGeoImage.prototype.setCornersLonLat = function (corners) {
     }
 };
 
+/**
+ * Creates geoImage frame.
+ * @protected
+ */
 og.layer.BaseGeoImage.prototype._createFrame = function () {
     this._extentWgs84 = this._extent.clone();
 
@@ -117,12 +141,20 @@ og.layer.BaseGeoImage.prototype._createFrame = function () {
     }
 };
 
+/**
+ * @virtual
+ * @param {og.planetSegment.Material} material - GeoImage material.
+ */
 og.layer.BaseGeoImage.prototype.abortMaterialLoading = function (material) {
     this._creationProceeding = false;
     material.isLoading = false;
     material.isReady = false;
 };
 
+/**
+ * Clear layer material.
+ * @virtual
+ */
 og.layer.BaseGeoImage.prototype.clear = function () {
     var p = this._planet;
 
@@ -152,7 +184,8 @@ og.layer.BaseGeoImage.prototype.clear = function () {
 /**
  * Sets layer visibility.
  * @public
- * @param {boolean} visibility - Layer visibility.
+ * @virtual
+ * @param {boolean} visibility - GeoImage visibility.
  */
 og.layer.BaseGeoImage.prototype.setVisibility = function (visibility) {
     if (visibility != this._visibility) {
@@ -171,6 +204,11 @@ og.layer.BaseGeoImage.prototype.setVisibility = function (visibility) {
     }
 };
 
+/**
+ * @virtual
+ * @protected
+ * @param {og.planetSegment.Material} material - GeoImage material.
+ */
 og.layer.BaseGeoImage.prototype.clearMaterial = function (material) {
     //just clear material pointer not geoimage
     material.image = null;
@@ -180,7 +218,9 @@ og.layer.BaseGeoImage.prototype.clearMaterial = function (material) {
 };
 
 /**
+ * @virtual
  * @protected
+ * @param {og.planetSegment.Material} material - GeoImage material.
  */
 og.layer.BaseGeoImage.prototype.applyMaterial = function (material) {
 

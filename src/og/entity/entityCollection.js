@@ -615,6 +615,8 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
 
 /**
  * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
+ * @private
+ * @param {og.Ellipsoid} ellipsoid - Globe ellipsoid.
  */
 og.EntityCollection.prototype._updateGeodeticCoordinates = function (ellipsoid) {
     var e = this._entities;
@@ -733,6 +735,11 @@ og.EntityCollection.prototype.clear = function () {
     this._entities = [];
 };
 
+/**
+ * Clears entity recursevely.
+ * @private
+ * @param {og.Entity} entity - Entity to clear.
+ */
 og.EntityCollection.prototype._clearEntity = function (entity) {
     entity._entityCollection = null;
     entity._entityCollectionIndex = -1;

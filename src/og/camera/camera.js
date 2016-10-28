@@ -347,10 +347,14 @@ og.Camera.prototype.setViewAngle = function (angle) {
  * @param {og.math.Vector3} up - Camera up vector.
  */
 og.Camera.prototype.set = function (eye, look, up) {
-    this.eye.copy(eye);
+    this.eye.x = eye.x;
+    this.eye.y = eye.y;
+    this.eye.z = eye.z;
     look = look || this._n;
     up = up || this._v;
-    this._n.set(eye.x - look.x, eye.y - look.y, eye.z - look.z);
+    this._n.x = eye.x - look.x;
+    this._n.y = eye.y - look.y;
+    this._n.z = eye.z - look.z;
     this._u.copy(up.cross(this._n));
     this._n.normalize();
     this._u.normalize();

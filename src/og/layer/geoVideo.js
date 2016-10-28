@@ -4,30 +4,57 @@ goog.require('og.layer.BaseGeoImage');
 goog.require('og.inheritance');
 
 /**
- * Used to load and display a video sttream over specific corner coordinates on the globe, implements og.layer.IGeoImage interface.
+ * Used to load and display a video stream by specific corners coordinates on the globe, implements og.layer.BaseGeoImage interface.
  * @class
+ * @extends {og.layer.BaseGeoImage}
  */
 og.layer.GeoVideo = function (name, options) {
     og.inheritance.base(this, name, options);
 
+    /**
+     * @protected
+     * @const
+     * @type {Boolean}
+     */
     this._animate = true;
 
+    /**
+     * HTML5 video element object.
+     * @private
+     * @type {Object}
+     */
     this._video = options.videoElement || null;
+
+    /**
+     * VIdeo source url path.
+     * @private
+     * @type {String}
+     */
     this._src = options.src || null;
 };
 
 og.inheritance.extend(og.layer.GeoVideo, og.layer.BaseGeoImage);
 
+/**
+ * Sets video source url path.
+ * @public
+ * @param {String} srs - Video url path.
+ */
 og.layer.GeoVideo.prototype.setSrc = function (src) {
-    this._planet._geoImageCreator.remove(this);
+    this._planet && this._planet._geoImageCreator.remove(this);
     this._src = src;
     this._sourceReady = false;
 };
 
+/**
+ * Sets HTML5 video object.
+ * @public
+ * @param {Object} video - HTML5 video element object.
+ */
 og.layer.GeoVideo.prototype.setVideoElement = function (video) {
-    this._planet._geoImageCreator.remove(this);
-    this._video = options.videoElement;
-    this._src = options.videoElement.src;
+    this._planet && this._planet._geoImageCreator.remove(this);
+    this._video = video;
+    this._src = video.src;
     this._sourceReady = false;
 };
 
@@ -56,6 +83,11 @@ og.layer.GeoVideo.prototype.setVisibility = function (visibility) {
     }
 };
 
+/**
+ * Creates or refresh source video GL texture.
+ * @virtual
+ * @protected
+ */
 og.layer.GeoVideo.prototype._createSourceTexture = function () {
     if (!this._sourceCreated) {
         this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._video);
@@ -67,6 +99,9 @@ og.layer.GeoVideo.prototype._createSourceTexture = function () {
     }
 };
 
+/**
+ * @private
+ */
 og.layer.GeoVideo.prototype._onCanPlay = function (video) {
     this._frameWidth = video.videoWidth;
     this._frameHeight = video.videoHeight;
@@ -77,6 +112,9 @@ og.layer.GeoVideo.prototype._onCanPlay = function (video) {
     this._planet._geoImageCreator.add(this);
 };
 
+/**
+ * @private
+ */
 og.layer.GeoVideo.prototype._onError = function (video) {
     var err = "unknown error";
     switch (video.error.code) {
@@ -88,6 +126,12 @@ og.layer.GeoVideo.prototype._onError = function (video) {
     console.log("Error: " + err + " (errorcode=" + video.error.code + ")");
 };
 
+/**
+ * Loads planet segment material. In this case - GeoImage source video.
+ * @virtual
+ * @public
+ * @param {og.planetSegment.Material} material - GeoImage planet material.
+ */
 og.layer.GeoVideo.prototype.loadMaterial = function (material) {
     material.isLoading = true;
     this._creationProceeding = true;
@@ -121,6 +165,10 @@ og.layer.GeoVideo.prototype.loadMaterial = function (material) {
     }
 };
 
+/**
+ * @virtual
+ * @param {og.planetSegment.Material} material - GeoImage material.
+ */
 og.layer.GeoVideo.prototype.abortMaterialLoading = function (material) {
     this._video && (this._video.src = '');
     this._creationProceeding = false;

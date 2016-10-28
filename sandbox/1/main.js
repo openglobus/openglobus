@@ -45,7 +45,8 @@ function start() {
     geoImage7 = new og.layer.GeoVideo("BIO", { minZoom: 0, src: "NASA animation Yearly biosphere cycle.mp4", height: 0, zIndex: 400, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 1.0, transparentColor: [-1, -1, -1] });
     geoImage8 = new og.layer.GeoVideo("imegracc", { minZoom: 0, src: "imergacc_20160508_1080p_p30.mp4", height: 0, zIndex: 400, corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]], visibility: false, isBaseLayer: false, opacity: 0.7 });
     geoImage9 = new og.layer.GeoVideo("RainFall", { minZoom: 0, src: "trmm_philippines_rainfall_2013_720p.mp4", height: 0, zIndex: 400, corners: [[115.10176120805798, 19.712318468515733], [141.36944705892483, 20.581119469455228], [141.59120931029042, 4.711025749829452], [115.1165387994147, 5.051107016408538]], visibility: false, isBaseLayer: false, opacity: 0.7 });
-    
+    geoImage10 = new og.layer.GeoVideo("BURJ", { minZoom: 0, src: "Burjhd.mp4", height: 0, zIndex: 400, corners: [[55.26833840276765, 25.20257351509331], [55.28618985784765, 25.200010439429402], [55.28457616543171, 25.19111065253884], [55.26680675675719, 25.193790792986682]], visibility: false, isBaseLayer: false, opacity: 1.0 });
+
     geoImage6 = new og.layer.GeoImage("GRID", { src: "grid.jpg", height: 0, zIndex: 400, corners: [[0, 80], [40, 80], [40, 0], [0, 0]], visibility: false, isBaseLayer: false, opacity: 1 });
 
     var skybox = new og.scene.SkyBox({
@@ -78,7 +79,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8, geoImage9],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8, geoImage9, geoImage10],
         "autoActivate": true
     });
 

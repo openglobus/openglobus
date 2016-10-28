@@ -14,18 +14,23 @@ og.layer.MAXIMUM_OVERLAYS = 8;
 /**
  * @classdesc
  * Base class; normally only used for creating subclasses and not instantiated in apps.
- * A visual representation of raster or vector map data.
+ * A visual representation of raster or vector map data well known as a layer.
  * @class
  * @param {String} [name="noname"] - Layer name.
- * @param {Object} options:
+ * @param {Object} [options] - Layer options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
- * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
+ * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {og.Extent} [options.extent=new og.Extent(-180.0, -90.0, 180.0, 90.0)] - Visible extent.
+ * @param {Object} [options.lightMaterial] - Material lighting parameters:
+ * @param {og.math.Vector3} [options.lightMaterial.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
+ * @param {og.math.Vector3} [options.lightMaterial.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
+ * @param {og.math.Vector3} [options.lightMaterial.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
+ * @param {Number} [options.lightMaterial.shininess=100] - Shininess.
  *
  * @fires og.layer.Layer#visibilitychange
  * @fires og.layer.Layer#add
@@ -77,7 +82,7 @@ og.layer.Layer = function (name, options) {
      * @public
      * @type {Array.<number,number,number>}
      */
-    this.transparentColor = options.transparentColor || [-1, -1, -1];//[236 / 255, 83 / 255, 196 / 255];
+    this.transparentColor = options.transparentColor || [-1, -1, -1];
 
     /**
      * Minimal zoom level when layer is visibile.
@@ -93,12 +98,13 @@ og.layer.Layer = function (name, options) {
      */
     this.maxZoom = options.maxZoom || 50;
 
+    options.lightMaterial = options.lightMaterial || {};
+
     /**
      * Layer light material parameters.
      * @public
      * @type {Object}
      */
-    options.lightMaterial = options.lightMaterial || {};
     this.lightMaterial = {
         'ambient': options.lightMaterial.ambient || new og.math.Vector3(0.1, 0.1, 0.21),
         'diffuse': options.lightMaterial.diffuse || new og.math.Vector3(1.0, 1.0, 1.0),
@@ -156,7 +162,7 @@ og.layer.Layer = function (name, options) {
     this._height = options.height || 0;
 
     /**
-     * Visible extent in degrees.
+     * Visible degrees extent.
      * @protected
      * @type {og.Extent}
      */
@@ -213,123 +219,152 @@ og.layer.Layer.EVENT_NAMES = [
 
     /**
      * Triggered when mouse moves over the layer.
-     * @event og.layer.Vector#mousemove
+     * @event og.layer.Layer#mousemove
      */
     "mousemove",
 
     /**
      * Triggered when mouse has entered over the layer.
-     * @event og.layer.Vector#mouseenter
+     * @event og.layer.Layer#mouseenter
      */
     "mouseenter",
 
     /**
      * Triggered when mouse leaves the layer.
-     * @event og.layer.Vector#mouseenter
+     * @event og.layer.Layer#mouseenter
      */
     "mouseleave",
 
     /**
      * Mouse left button clicked.
-     * @event og.layer.Vector#mouselbuttonclick
+     * @event og.layer.Layer#mouselbuttonclick
      */
     "mouselbuttonclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Vector#mouserbuttonclick
+     * @event og.layer.Layer#mouserbuttonclick
      */
     "mouserbuttonclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Vector#mousembuttonclick
+     * @event og.layer.Layer#mousembuttonclick
      */
     "mousembuttonclick",
 
     /**
      * Mouse left button double click.
-     * @event og.layer.Vector#mouselbuttondoubleclick
+     * @event og.layer.Layer#mouselbuttondoubleclick
      */
     "mouselbuttondoubleclick",
 
     /**
      * Mouse right button double click.
-     * @event og.layer.Vector#mouserbuttondoubleclick
+     * @event og.layer.Layer#mouserbuttondoubleclick
      */
     "mouserbuttondoubleclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.layer.Vector#mousembuttondoubleclick
+     * @event og.layer.Layer#mousembuttondoubleclick
      */
     "mousembuttondoubleclick",
 
     /**
      * Mouse left button up(stop pressing).
-     * @event og.layer.Vector#mouselbuttonup
+     * @event og.layer.Layer#mouselbuttonup
      */
     "mouselbuttonup",
 
     /**
      * Mouse right button up(stop pressing).
-     * @event og.layer.Vector#mouserbuttonup
+     * @event og.layer.Layer#mouserbuttonup
      */
     "mouserbuttonup",
 
     /**
      * Mouse middle button up(stop pressing).
-     * @event og.layer.Vector#mousembuttonup
+     * @event og.layer.Layer#mousembuttonup
      */
     "mousembuttonup",
 
     /**
      * Mouse left button is just pressed down(start pressing).
-     * @event og.layer.Vector#mouselbuttondown
+     * @event og.layer.Layer#mouselbuttondown
      */
     "mouselbuttondown",
 
     /**
      * Mouse right button is just pressed down(start pressing).
-     * @event og.layer.Vector#mouserbuttondown
+     * @event og.layer.Layer#mouserbuttondown
      */
     "mouserbuttondown",
 
     /**
      * Mouse middle button is just pressed down(start pressing).
-     * @event og.layer.Vector#mousembuttondown
+     * @event og.layer.Layer#mousembuttondown
      */
     "mousembuttondown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.layer.Vector#mouselbuttonhold
+     * @event og.layer.Layer#mouselbuttonhold
      */
     "mouselbuttonhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.layer.Vector#mouserbuttonhold
+     * @event og.layer.Layer#mouserbuttonhold
      */
     "mouserbuttonhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.layer.Vector#mousembuttonhold
+     * @event og.layer.Layer#mousembuttonhold
      */
     "mousembuttonhold",
 
     /**
      * Mouse wheel is rotated.
-     * @event og.layer.Vector#mousewheel
+     * @event og.layer.Layer#mousewheel
      */
     "mousewheel",
 
+    /**
+     * Triggered when touching moves over the layer.
+     * @event og.layer.Layer#touchmove
+     */
     "touchmove",
+
+    /**
+     * Triggered when layer begins to touch.
+     * @event og.layer.Layer#touchstart
+     */
     "touchstart",
+
+    /**
+     * Triggered when layer has finished touching.
+     * @event og.layer.Layer#touchend
+     */
     "touchend",
+
+    /**
+     * Triggered layer has double touched.
+     * @event og.layer.Layer#doubletouch
+     */
     "doubletouch",
+
+    /**
+     * Triggered when touching leaves layer borders.
+     * @event og.layer.Layer#touchleave
+     */
     "touchleave",
+
+    /**
+     * Triggered when touch enters over the layer.
+     * @event og.layer.Layer#touchenter
+     */
     "touchenter"
 ];
 
@@ -357,6 +392,7 @@ og.layer.Layer.prototype.isEqual = function (layer) {
 /**
  * Assign the planet.
  * @protected
+ * @virtual
  * @param {og.scene.Planet} planet- Planet render node.
  */
 og.layer.Layer.prototype._assignPlanet = function (planet) {
@@ -404,6 +440,10 @@ og.layer.Layer.prototype.remove = function () {
     }
 };
 
+/**
+ * Clears layer material.
+ * @virtual
+ */
 og.layer.Layer.prototype.clear = function () {
     this._planet && this._planet._clearLayerMaterial(this);
 };
@@ -483,6 +523,7 @@ og.layer.Layer.prototype.setBaseLayer = function (flag) {
 /**
  * Sets layer visibility.
  * @public
+ * @virtual
  * @param {boolean} visibility - Layer visibility.
  */
 og.layer.Layer.prototype.setVisibility = function (visibility) {
@@ -505,6 +546,11 @@ og.layer.Layer.prototype.getVisibility = function () {
     return this._visibility;
 };
 
+/**
+ * Sets visible geographical extent.
+ * @public
+ * @param {og.Extent} extent - Layer visible geographical extent.
+ */
 og.layer.Layer.prototype.setExtent = function (extent) {
     var sw = extent.southWest.clone(),
         ne = extent.northEast.clone();
@@ -519,11 +565,17 @@ og.layer.Layer.prototype.setExtent = function (extent) {
     this._correctFullExtent();
 };
 
+/**
+ * Gets layer extent.
+ * @public
+ * @return {og.Extent}
+ */
 og.layer.Layer.prototype.getExtent = function () {
     return this._extent;
 };
 
 /**
+ * Special correction of the whole globe extent.
  * @protected
  */
 og.layer.Layer.prototype._correctFullExtent = function () {

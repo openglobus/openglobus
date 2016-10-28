@@ -540,21 +540,10 @@ og.scene.Planet.prototype.initialization = function () {
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    //use for ellipsoid picking
-    this.setScale(new og.math.Vector3(1.0, this.ellipsoid._a / this.ellipsoid._b, 1.0));
-    this.updateMatrices();
-
     //Applying shaders
     this._initializeShaders();
 
-    ////backbuffer initialization
-    //this._heightBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
-
     this.updateVisibleLayers();
-
-    //this.renderer.events.on("resize", this._heightBackbuffer, function (e) {
-    //    this.setSize(e.width, e.height);
-    //});
 
     this.renderer.activeCamera.events.on("viewchange", this, function (e) {
         this._viewChanged = true;
@@ -573,7 +562,7 @@ og.scene.Planet.prototype.initialization = function () {
     var that = this;
     this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
 
-    //this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
+    this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
     //load Earth night glowing texture
     if (this._useNightTexture) {
@@ -753,12 +742,12 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
  */
 og.scene.Planet.prototype.frame = function () {
 
-    this.renderer.activeCamera.prepareFrame();
-
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
 
     this._collectRenderNodes();
+
+    this.renderer.activeCamera.prepareFrame();
 
     //print2d("lbTiles", cam._n.dot(cam.eye.normal()), 100, 100);
     //    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
@@ -886,13 +875,13 @@ og.scene.Planet.prototype._renderVectorLayersPASS = function () {
     this.drawEntityCollections(this._frustumEntityCollections);
 };
 
-///**
-// * Vector layers picking pass.
-// * @protected
-// */
-//og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
-//    this.drawPickingEntityCollections(this._frustumEntityCollections);
-//};
+/**
+ * Vector layers picking pass.
+ * @protected
+ */
+og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () {
+    this.drawPickingEntityCollections(this._frustumEntityCollections);
+};
 
 /**
  * Starts clear memory thread.
@@ -908,29 +897,11 @@ og.scene.Planet.prototype.memClear = function () {
  * Returns ray vector hit ellipsoid coordinates.
  * If the ray doesn't hit ellipsoit returns null.
  * @public
- * @param {og.math.Vector3} origin - Ray origin point.
- * @param {og.math.VEctor3} direction - Ray direction.
- * @returns {og.math.Vector3}
- */
-og.scene.Planet.prototype.hitRayEllipsoid = function (origin, direction) {
-    var mxTr = this._transformationMatrix.transposeTo();
-    var sx = new og.math.Ray(mxTr.mulVec3(origin),
-        mxTr.mulVec3(direction)).hitSphere(new og.bv.Sphere(this.ellipsoid._a));
-    if (sx) {
-        return this._inverseTransformationMatrix.mulVec3(sx);
-    }
-    return null;
-};
-
-/**
- * Returns ray vector hit ellipsoid coordinates.
- * If the ray doesn't hit ellipsoit returns null.
- * @public
  * @param {og.math.Ray} ray - Ray 3d.
  * @returns {og.math.Vector3}
  */
 og.scene.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
-    return this.hitRayEllipsoid(ray.origin, ray.direction);
+    return this.ellipsoid.hitRay(ray.origin, ray.direction);
 };
 
 /**
@@ -940,7 +911,7 @@ og.scene.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
  */
 og.scene.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var cam = this.renderer.activeCamera;
-    return this.hitRayEllipsoid(cam.eye, cam.unproject(px.x, px.y));
+    return this.ellipsoid.hitRay(cam.eye, cam.unproject(px.x, px.y));
 };
 
 /**

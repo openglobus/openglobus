@@ -13,7 +13,7 @@ goog.require('og.LonLat');
 og.Ellipsoid = function (equatorialSize, polarSize) {
     this._a = equatorialSize;
     this._b = polarSize;
-    //this._flattening = equatorialSize / polarSize;
+    this._flattening = equatorialSize / polarSize;
 
     this._a2 = equatorialSize * equatorialSize;
     this._b2 = polarSize * polarSize;
@@ -294,4 +294,73 @@ og.Ellipsoid.prototype.intersection = function (p1, brng1, p2, brng2) {
     var l3 = l1 + dl13;
 
     return new og.LonLat((l3 * og.math.DEGREES + 540) % 360 - 180, f3 * og.math.DEGREES);
+};
+
+/**
+ * Returns ray vector hit ellipsoid coordinates.
+ * If the ray doesn't hit ellipsoid returns null.
+ * @public
+ * @param {og.math.Vector3} origin - Ray origin point.
+ * @param {og.math.Vector3} direction - Ray direction.
+ * @returns {og.math.Vector3}
+ */
+og.Ellipsoid.prototype.hitRay = function (origin, direction) {
+
+    var q = this._invRadii.mul(origin);
+    var w = this._invRadii.mul(direction);
+
+    var q2 = q.dot(q);
+    var qw = q.dot(w);
+
+    var difference, w2, product, discriminant, temp;
+
+    if (q2 > 1.0) {
+        // Outside ellipsoid.
+        if (qw >= 0.0) {
+            // Looking outward or tangent (0 intersections).
+            return null;
+        }
+
+        // qw < 0.0.
+        var qw2 = qw * qw;
+        difference = q2 - 1.0; // Positively valued.
+        w2 = w.dot(w);
+        product = w2 * difference;
+
+        if (qw2 < product) {
+            // Imaginary roots (0 intersections).
+            return null;
+        } else if (qw2 > product) {
+            // Distinct roots (2 intersections).
+            discriminant = qw * qw - product;
+            temp = -qw + Math.sqrt(discriminant); // Avoid cancellation.
+            var root0 = temp / w2;
+            var root1 = difference / temp;
+            if (root0 < root1) {
+                return origin.add(direction.scaleTo(root0));
+            }
+            return origin.add(direction.scaleTo(root1));
+        } else {
+            // qw2 == product.  Repeated roots (2 intersections).
+            var root = Math.sqrt(difference / w2);
+            return origin.add(direction.scaleTo(root));
+        }
+    } else if (q2 < 1.0) {
+        // Inside ellipsoid (2 intersections).
+        difference = q2 - 1.0; // Negatively valued.
+        w2 = w.dot(w);
+        product = w2 * difference; // Negatively valued.
+        discriminant = qw * qw - product;
+        temp = -qw + Math.sqrt(discriminant); // Positively valued.
+        return origin.add(direction.scaleTo(temp / w2));
+    } else {
+        // q2 == 1.0. On ellipsoid.
+        if (qw < 0.0) {
+            // Looking inward.
+            w2 = w.dot(w);
+            return origin.add(direction.scaleTo(-qw / w2));
+        }
+        // qw >= 0.0.  Looking outward or tangent.
+        return null;
+    }
 };

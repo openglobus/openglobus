@@ -235,7 +235,7 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
         return xyz.distance(res);
     }
 
-    res.copy(this.planet.hitRayEllipsoid(ray.origin, ray.direction));
+    res.copy(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
     return xyz.distance(res);
 };
 

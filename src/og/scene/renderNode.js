@@ -39,12 +39,6 @@ og.scene.RenderNode = function (name) {
 
     this._isActive = true;
 
-    this._scaleMatrix = new og.math.Matrix4().setIdentity();
-    this._rotationMatrix = new og.math.Matrix4().setIdentity();
-    this._translationMatrix = new og.math.Matrix4().setIdentity();
-    this._transformationMatrix = new og.math.Matrix4().setIdentity();
-    this._inverseTransformationMatrix = new og.math.Matrix4().setIdentity();
-
     /**
      * Lighting calculations.
      * @public
@@ -162,50 +156,6 @@ og.scene.RenderNode.prototype.getLightByName = function (name) {
  */
 og.scene.RenderNode.prototype.removeLight = function (light) {
     light.remove();
-};
-
-/**
- * Sets scene node scale matrix.
- * @public
- * @param {og.math.Vector3} xyz - Component scale vector.
- * @returns {og.scene.RenderNode}
- */
-og.scene.RenderNode.prototype.setScale = function (xyz) {
-    this._scaleMatrix.scale(xyz);
-    return this;
-};
-
-/**
- * Sets scene node translation matrix.
- * @public
- * @param {og.math.Vector3} origin - New node's position.
- * @returns {og.scene.RenderNode}
- */
-og.scene.RenderNode.prototype.setOrigin = function (origin) {
-    this._translationMatrix.translate(origin);
-    return this;
-};
-
-/**
- * Sets scene node rotation matrix.
- * @public
- * @param {number} ax - Euler axis X angle rotation.
- * @param {number} ay - Euler axis Y angle rotation.
- * @param {number} az - Euler axis Z angle rotation.
- * @returns {og.scene.RenderNode}
- */
-og.scene.RenderNode.prototype.setAngles = function (ax, ay, az) {
-    this._rotationMatrix.eulerToMatrix(ax, ay, az);
-    return this;
-};
-
-/**
- * Updates render node's matrices
- * @public
- */
-og.scene.RenderNode.prototype.updateMatrices = function () {
-    this._transformationMatrix = this._translationMatrix.mul(this._rotationMatrix).mul(this._scaleMatrix);
-    this._inverseTransformationMatrix = this._transformationMatrix.inverseTo();
 };
 
 /**

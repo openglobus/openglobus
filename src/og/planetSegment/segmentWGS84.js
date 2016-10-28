@@ -30,7 +30,7 @@ og.planetSegment.SegmentWGS84.prototype.projectNative = function (coords) {
 };
 
 og.planetSegment.SegmentWGS84.prototype.getTerrainPoint = function (res, xyz) {
-    res.copy(this.planet.hitRayEllipsoid(xyz, xyz.negateTo().normalize()));
+    res.copy(this.planet.ellipsoid.hitRay(xyz, xyz.negateTo().normalize()));
     return xyz.distance(res);
 };
 

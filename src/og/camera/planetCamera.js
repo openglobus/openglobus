@@ -288,8 +288,8 @@ og.PlanetCamera.prototype.getExtentPosition = function (extent) {
  */
 og.PlanetCamera.prototype.viewExtent = function (extent) {
     this.stopFlying();
-    this.set(this.getExtentPosition(extent, this.planet.ellipsoid),
-        og.math.Vector3.ZERO, og.math.Vector3.UP);
+    this.set(this.getExtentPosition(extent), og.math.Vector3.ZERO, og.math.Vector3.UP);
+    this.refresh();
 };
 
 /**
@@ -301,7 +301,7 @@ og.PlanetCamera.prototype.viewExtent = function (extent) {
  * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
  */
 og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, startCallback) {
-    this.flyCartesian(this.getExtentPosition(extent, this.planet.ellipsoid), og.math.Vector3.ZERO,
+    this.flyCartesian(this.getExtentPosition(extent), og.math.Vector3.ZERO,
         up, completeCallback, startCallback);
 };
 
@@ -317,9 +317,9 @@ og.PlanetCamera.prototype.flyExtent = function (extent, up, completeCallback, st
 og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, completeCallback, startCallback) {
 
     //???????
-    if (this.eye.distance(cartesian) < 23000) {
-        return;
-    }
+    //if (this.eye.distance(cartesian) < 23000) {
+    //    return;
+    //}
 
     this.stopFlying();
 
@@ -367,6 +367,7 @@ og.PlanetCamera.prototype.flyCartesian = function (cartesian, look, up, complete
         d = d * d * (3 - 2 * d);
         d *= d;
 
+        //Error here
         var g_i = ground_a.smerp(ground_b, d).normalize();
         var ground_i = this.planet.getRayIntersectionEllipsoid(new og.math.Ray(zero, g_i));
         var t = 1 - d;
@@ -478,15 +479,6 @@ og.PlanetCamera.prototype.rotateDown = function (angle) {
  * @public
  */
 og.PlanetCamera.prototype.prepareFrame = function () {
-    this._flyFrame();
-    this._checkCollision();
-};
-
-/**
- * Sets camera parameters with ready frames.
- * @private
- */
-og.PlanetCamera.prototype._flyFrame = function () {
     if (this._flying) {
         var c = this._numFrames - this._framesCounter;
         this.planet.normalMapCreator.active = false;
@@ -511,19 +503,13 @@ og.PlanetCamera.prototype._flyFrame = function () {
                 this._completeCallback = null;
             }
         }
-    }
-};
-
-/**
- * Check camera collision.
- * @private
- */
-og.PlanetCamera.prototype._checkCollision = function () {
-    this._terrainAltitude = this._lonLat.height;
-    if (this._lonLat.height < 1000000) {
-        this._terrainAltitude = this._insideSegment.getTerrainPoint(this._terrainPoint, this.eye, this._insideSegmentPosition);
-        if (this._terrainAltitude < this.minAltitude) {
-            this.setAltitude(this.minAltitude);
+    } else {
+        this._terrainAltitude = this._lonLat.height;
+        if (this._lonLat.height < 1000000) {
+            this._terrainAltitude = this._insideSegment.getTerrainPoint(this._terrainPoint, this.eye, this._insideSegmentPosition);
+            if (this._terrainAltitude < this.minAltitude) {
+                this.setAltitude(this.minAltitude);
+            }
         }
     }
 };
