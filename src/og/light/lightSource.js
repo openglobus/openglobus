@@ -165,6 +165,15 @@ og.LightSource.prototype.setPosition = function (position) {
 };
 
 /**
+ * Returns light source position, or if it is a directional type sets light direction vector.
+ * @public
+ * @returns {og.math.Vector3} - Light source position/direction.
+ */
+og.LightSource.prototype.getPosition = function () {
+    return this._position.clone();
+};
+
+/**
  * Set ambient color.
  * @public
  * @param {og.math.Vector3} rgb - Ambient color.
