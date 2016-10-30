@@ -171,6 +171,7 @@
 }
 
 .ogLayerSwitcherInput {
+    cursor: pointer;
 }
 
 .ogLayerSwitcherLabel {
@@ -220,3 +221,18 @@
 .ogConsole-warning {
     color: yellow;
 }
+
+.ogViewExtentBtn {
+    float: left;
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    -webkit-mask: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDEwMDAgMTAwMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTAwMCAxMDAwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48bWV0YWRhdGE+IFN2ZyBWZWN0b3IgSWNvbnMgOiBodHRwOi8vd3d3Lm9ubGluZXdlYmZvbnRzLmNvbS9pY29uIDwvbWV0YWRhdGE+PGc+PHBhdGggZD0iTTUwMC4xLDMyMS43Yy05OC40LDAtMTc4LjIsNzkuOC0xNzguMiwxNzguMmMwLDk4LjQsNzkuOCwxNzguMiwxNzguMiwxNzguMmM5OC40LDAsMTc4LjItNzkuOCwxNzguMi0xNzguMkM2NzguMyw0MDEuNSw1OTguNSwzMjEuNyw1MDAuMSwzMjEuN3ogTTg5OC4yLDQ1NS40Yy0yMC41LTE4NS43LTE2OC0zMzMuMS0zNTMuNy0zNTMuN1YxMGgtODkuMXY5MS44Yy0xODUuNywyMC41LTMzMy4xLDE2OC0zNTMuNywzNTMuN0gxMHY4OS4xaDkxLjhjMjAuNSwxODUuNywxNjgsMzMzLjEsMzUzLjcsMzUzLjdWOTkwaDg5LjF2LTkxLjhjMTg1LjctMjAuNSwzMzMuMS0xNjgsMzUzLjctMzUzLjdIOTkwdi04OS4xQzk5MCw0NTUuNCw4OTguMiw0NTUuNCw4OTguMiw0NTUuNHogTTUwMC4xLDgxMS44Yy0xNzIuMiwwLTMxMS44LTEzOS43LTMxMS44LTMxMS44YzAtMTcyLjIsMTM5LjctMzExLjgsMzExLjgtMzExLjhjMTcyLjIsMCwzMTEuOCwxMzkuNywzMTEuOCwzMTEuOEM4MTEuOSw2NzIuMSw2NzIuMiw4MTEuOCw1MDAuMSw4MTEuOHoiLz48L2c+PC9zdmc+);
+    -webkit-mask-size: 17px;
+    background: #d8d8d8;
+    margin-top: 2px;
+}
+
+    .ogViewExtentBtn:hover {
+        background: white;
+    }
