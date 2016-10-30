@@ -26,11 +26,10 @@ og.layer.MAXIMUM_OVERLAYS = 8;
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {og.Extent} [options.extent=new og.Extent(-180.0, -90.0, 180.0, 90.0)] - Visible extent.
- * @param {Object} [options.lightMaterial] - Material lighting parameters:
- * @param {og.math.Vector3} [options.lightMaterial.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
- * @param {og.math.Vector3} [options.lightMaterial.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
- * @param {og.math.Vector3} [options.lightMaterial.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
- * @param {Number} [options.lightMaterial.shininess=100] - Shininess.
+ * @param {og.math.Vector3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
+ * @param {og.math.Vector3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
+ * @param {og.math.Vector3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
+ * @param {Number} [options.shininess=100] - Shininess.
  *
  * @fires og.layer.Layer#visibilitychange
  * @fires og.layer.Layer#add
@@ -106,10 +105,10 @@ og.layer.Layer = function (name, options) {
      * @type {Object}
      */
     this.lightMaterial = {
-        'ambient': options.lightMaterial.ambient || new og.math.Vector3(0.1, 0.1, 0.21),
-        'diffuse': options.lightMaterial.diffuse || new og.math.Vector3(1.0, 1.0, 1.0),
-        'specular': options.lightMaterial.specular || new og.math.Vector3(0.00025, 0.00015, 0.0001),
-        'shininess': 100
+        'ambient': options.ambient || new og.math.Vector3(0.1, 0.1, 0.21),
+        'diffuse': options.diffuse || new og.math.Vector3(1.0, 1.0, 1.0),
+        'specular': options.specular || new og.math.Vector3(0.00025, 0.00015, 0.0001),
+        'shininess': options.shininess || 100
     };
 
     /**
