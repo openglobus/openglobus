@@ -52,6 +52,10 @@ og.control.EarthCoordinates = function (options) {
     this.position = null;
 };
 
+og.control.earthCoordinates = function (options) {
+    return new og.control.EarthCoordinates(options);
+};
+
 og.inheritance.extend(og.control.EarthCoordinates, og.control.BaseControl);
 
 og.control.EarthCoordinates.toDecimal = function (ll) {

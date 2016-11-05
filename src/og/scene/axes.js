@@ -1,8 +1,8 @@
 goog.provide('og.scene.Axes');
 
-
 goog.require('og.inheritance');
 goog.require('og.scene.RenderNode');
+goog.require('og.shaderProgram.simple');
 
 og.scene.Axes = function (size) {
     og.inheritance.base(this, "Axes");
@@ -16,19 +16,20 @@ og.inheritance.extend(og.scene.Axes, og.scene.RenderNode);
 og.scene.Axes.prototype.initialization = function () {
     this.createAxisBuffer(this.size);
     this.drawMode = this.renderer.handler.gl.LINES;
+    this.renderer.handler.addShaderProgram(og.shaderProgram.simple());
 };
 
 og.scene.Axes.prototype.frame = function () {
 
-    this.renderer.handler.shaderPrograms.flat.activate();
+    this.renderer.handler.shaderPrograms.simple.activate();
 
-    this.renderer.handler.shaderPrograms.flat.set({
+    this.renderer.handler.shaderPrograms.simple.set({
         projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
         aVertexPosition: this.axisBuffer,
         aVertexColor: this.axisColorBuffer
     });
 
-    this.renderer.handler.shaderPrograms.flat.drawArray(this.drawMode, this.axisBuffer.numItems);
+    this.renderer.handler.shaderPrograms.simple.drawArray(this.drawMode, this.axisBuffer.numItems);
 };
 
 og.scene.Axes.prototype.createAxisBuffer = function (gridSize) {

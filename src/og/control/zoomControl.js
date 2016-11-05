@@ -23,6 +23,10 @@ og.control.ZoomControl = function (options) {
 
 og.inheritance.extend(og.control.ZoomControl, og.control.BaseControl);
 
+og.control.zoomControl = function (options) {
+    return new og.control.ZoomControl(options);
+};
+
 og.control.ZoomControl.prototype.oninit = function () {
     var zoomDiv = document.createElement('div'),
         btnZoomIn = document.createElement('button'),

@@ -55,6 +55,10 @@ og.control.Sun = function (options) {
 
 og.inheritance.extend(og.control.Sun, og.control.BaseControl);
 
+og.control.sun = function (options) {
+    return new og.control.Sun(options);
+};
+
 og.control.Sun.prototype.oninit = function () {
 
     this.planet = this.renderer.renderNodes.Earth;
@@ -83,11 +87,11 @@ og.control.Sun.prototype._draw = function () {
 
     this._currDate = this.renderer.handler.clock.currentDate;
 
-    if (this.renderer.activeCamera.getHeight() < 4050000) {
+    if (this.renderer.activeCamera.getHeight() < 4650000) {
         this._lightOn = true;
         this._f = 1;
         if (this._k > 0) {
-            this._k -= 0.05;
+            this._k -= 0.01;
             var rot = og.math.Quaternion.getRotationBetweenVectors(this.sunlight._position.normal(), this.renderer.activeCamera.eye.normal());
             var r = rot.slerp(og.math.Quaternion.IDENTITY, this._k).normalize();
             this.sunlight.setPosition(r.mulVec3(this.sunlight._position));
@@ -97,7 +101,7 @@ og.control.Sun.prototype._draw = function () {
     } else {
         this._k = 1;
         if (this._f > 0) {
-            this._f -= 0.05;
+            this._f -= 0.01;
             var rot = og.math.Quaternion.getRotationBetweenVectors(this.sunlight._position.normal(), og.astro.earth.getSunPosition(this._currDate).normal());
             var r = rot.slerp(og.math.Quaternion.IDENTITY, this._f).normalize();
             this.sunlight.setPosition(r.mulVec3(this.sunlight._position));

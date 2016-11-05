@@ -73,11 +73,11 @@ og.utils.hexStringToVector = function (hex, opacity) {
  * @param {Object} params - Template named object with subsrtings.
  * @example <caption>Example from og.terrainProvider that replaces tile indexes in url:</caption>
  * var substrings = {
- *       "tilex": 12,
- *       "tiley": 15,
- *       "zoom": 8
+ *       "x": 12,
+ *       "y": 15,
+ *       "z": 8
  * }
- * og.utils.stringTemplate("http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm", substrins);
+ * og.utils.stringTemplate("http://earth3.openglobus.org/{z}/{y}/{x}.ddm", substrins);
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
 og.utils.stringTemplate = function (template, params) {

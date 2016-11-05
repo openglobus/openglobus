@@ -4,6 +4,17 @@ goog.require('og.inheritance');
 goog.require('og.scene.RenderNode');
 goog.require('og.shaderProgram.skybox');
 
+og.scene.defaultSkyBox = function () {
+    return new og.scene.SkyBox({
+        "nx": "resources/images/skyboxes/gal/_nx.jpg",
+        "px": "resources/images/skyboxes/gal/_px.jpg",
+        "py": "resources/images/skyboxes/gal/_py.jpg",
+        "ny": "resources/images/skyboxes/gal/_ny.jpg",
+        "pz": "resources/images/skyboxes/gal/_pz.jpg",
+        "nz": "resources/images/skyboxes/gal/_nz.jpg"
+    });
+};
+
 og.scene.SkyBox = function (params) {
     og.inheritance.base(this, "skybox");
     this.params = params;

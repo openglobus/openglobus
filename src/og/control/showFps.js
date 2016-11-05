@@ -15,6 +15,10 @@ og.control.ShowFps = function (options) {
 
 og.inheritance.extend(og.control.ShowFps, og.control.BaseControl);
 
+og.control.showFps = function (options) {
+    return new og.control.ShowFps(options);
+};
+
 og.control.ShowFps.prototype.oninit = function () {
     var d = document.createElement('div');
     d.className = 'defaultText ';

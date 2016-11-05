@@ -15,7 +15,21 @@ og.shaderProgram.skybox = function () {
         attributes: {
             aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
-        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "skybox_vs.txt"),
-        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "skybox_fs.txt")
+        vertexShader: 
+            'attribute vec3 aVertexPosition;\
+            uniform mat4 projectionViewMatrix;\
+            uniform vec3 pos;\
+            varying vec3 vTextureCoord;\
+            void main(void) {\
+                vTextureCoord = aVertexPosition;\
+                gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);\
+            }',
+        fragmentShader: 
+            'precision lowp float;\
+            varying vec3 vTextureCoord;\
+            uniform samplerCube uSampler;\
+            void main(void) {\
+                gl_FragColor = textureCube(uSampler, vTextureCoord);\
+            }'
     });
 };

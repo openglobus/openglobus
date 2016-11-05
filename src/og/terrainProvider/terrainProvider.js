@@ -18,7 +18,7 @@ goog.require('og.utils');
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {string} [options.url="http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
+ * @param {string} [options.url="http://earth3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.fileGridSize=32] - Elevation tile grid size. Default is 32x32.
  * @param {string} [options.responseType="arraybuffer"] - Ajax responce type.
@@ -56,7 +56,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
      * @public
      * @type {string}
      */
-    this.url = options.url || "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm";
+    this.url = options.url || "http://earth3.openglobus.org/{z}/{y}/{x}.ddm";
 
     /**
      * Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
@@ -155,7 +155,7 @@ og.terrainProvider.TerrainProvider.prototype.abort = function () {
  * @public
  * @param {string} url - Url template.
  * @example <caption>Default openglobus url template:</caption>:
- * "http://earth3.openglobus.org/{zoom}/{tiley}/{tilex}.ddm"
+ * "http://earth3.openglobus.org/{z}/{y}/{x}.ddm"
  */
 og.terrainProvider.TerrainProvider.prototype.setUrl = function (url) {
     this.url = url;
@@ -202,9 +202,9 @@ og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (se
  */
 og.terrainProvider.TerrainProvider.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
-        "tilex": segment.tileX.toString(),
-        "tiley": segment.tileY.toString(),
-        "zoom": segment.tileZoom.toString()
+        "x": segment.tileX.toString(),
+        "y": segment.tileY.toString(),
+        "z": segment.tileZoom.toString()
     });
 };
 

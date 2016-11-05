@@ -11,20 +11,7 @@ function start() {
 
     og.webgl.MAX_FRAME_DELAY = 15;
 
-    var flatShader = new og.shaderProgram.ShaderProgram("flat", {
-        uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 }
-        },
-        attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aVertexColor: { type: og.shaderProgram.types.VEC4, enableArray: true }
-        },
-        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "flat_vs.txt"),
-        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "flat_fs.txt")
-    });
-
     context = new og.webgl.Handler("canvas", { alpha: false });
-    context.addShaderProgram(flatShader);
     context.init();
 
     renderer = new og.Renderer(context);

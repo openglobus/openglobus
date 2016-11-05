@@ -36,6 +36,10 @@ og.control.MouseNavigation = function (options) {
 
 og.inheritance.extend(og.control.MouseNavigation, og.control.BaseControl);
 
+og.control.mouseNavigation = function (options) {
+    return new og.control.MouseNavigation(options);
+};
+
 og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet, stepsCount, delta, point, forward, dir) {
 
     var steps = []

@@ -46,6 +46,7 @@ function start() {
     geoImage8 = new og.layer.GeoVideo("imegracc", { minZoom: 0, src: "imergacc_20160508_1080p_p30.mp4", height: 0, zIndex: 400, corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]], visibility: false, isBaseLayer: false, opacity: 0.7 });
     geoImage9 = new og.layer.GeoVideo("RainFall", { minZoom: 0, src: "trmm_philippines_rainfall_2013_720p.mp4", height: 0, zIndex: 400, corners: [[115.10176120805798, 19.712318468515733], [141.36944705892483, 20.581119469455228], [141.59120931029042, 4.711025749829452], [115.1165387994147, 5.051107016408538]], visibility: false, isBaseLayer: false, opacity: 0.7 });
     geoImage10 = new og.layer.GeoVideo("BURJ", { minZoom: 0, src: "Burjhd.mp4", height: 0, zIndex: 400, corners: [[55.26833840276765, 25.20257351509331], [55.28618985784765, 25.200010439429402], [55.28457616543171, 25.19111065253884], [55.26680675675719, 25.193790792986682]], visibility: false, isBaseLayer: false, opacity: 1.0 });
+    geoImage11 = new og.layer.GeoVideo("Las Vegas", { minZoom: 0, src: "lv.mp4", height: 0, zIndex: 400, corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]], visibility: false, isBaseLayer: false, opacity: 1.0 });
 
     geoImage6 = new og.layer.GeoImage("GRID", { src: "grid.jpg", height: 0, zIndex: 400, corners: [[0, 80], [40, 80], [40, 0], [0, 0]], visibility: false, isBaseLayer: false, opacity: 1 });
 
@@ -58,18 +59,18 @@ function start() {
         "nz": "http://127.0.0.1/og/resources/images/skyboxes/gal/_nz.jpg"
     });
 
-    sun = new og.control.Sun({ autoActivate: true });
+    sun = new og.control.Sun();
     var controls = [
-        new og.control.MouseNavigation({ autoActivate: true }),
-        new og.control.KeyboardNavigation({ autoActivate: true }),
-        new og.control.ToggleWireframe({ autoActivate: true }),
-        new og.control.EarthCoordinates({ autoActivate: true, center: false }),
-        new og.control.LayerSwitcher({ autoActivate: true }),
-        new og.control.ZoomControl({ autoActivate: true }),
-        new og.control.TouchNavigation({ autoActivate: true }),
+        og.control.mouseNavigation(),
+        //og.control.keyboardNavigation(),
+        //og.control.toggleWireframe(),
+        og.control.earthCoordinates({ center: false }),
+        og.control.layerSwitcher(),
+        og.control.zoomControl(),
+        og.control.touchNavigation(),
         sun,
-        new og.control.ShowFps({ autoActivate: true }),
-        new og.control.GeoImageDragControl({ autoActivate: true })
+        og.control.showFps(),
+        og.control.geoImageDragControl()
     ];
 
     globus = new og.Globus({
@@ -79,7 +80,7 @@ function start() {
         "controls": controls,
         //"skybox": skybox,
         "terrain": terrain,
-        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8, geoImage9, geoImage10],
+        "layers": [sat, sat2, sat3, osm, hyb, states, osm2, geoImage, geoImage2, geoImage3, geoImage4, tm, geoImage5, geoImage6, geoImage7, geoImage8, geoImage9, geoImage10, geoImage11],
         "autoActivate": true
     });
 
@@ -94,26 +95,4 @@ function start() {
 
     globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
-
-    //ql = new og.GeoImage({
-    //    src: "ql.jpg",
-    //    corners: [og.lonLat(152.02, -31.29), og.lonLat(151.59, -30.93), og.lonLat(151.86, -30.68), og.lonLat(152.29, -31.04)],
-    //    opacity: 1.0
-    //});
-    //ql.addTo(globus.planet);
-
-
-    //ql3 = new og.GeoImage({
-    //    src: "ql3.jpg",
-    //    corners: [og.lonLat(34.51, 26.07), og.lonLat(34.11, 25.69), og.lonLat(33.84, 25.93), og.lonLat(34.23, 26.31)],
-    //    opacity: 0.8
-    //});
-    //ql3.addTo(globus.planet);
-
-    //ql4 = new og.GeoImage({
-    //    src: "bm.jpg",
-    //    corners: [og.lonLat(-180, 90), og.lonLat(180, 90), og.lonLat(180, -90), og.lonLat(-180, -90)],
-    //    opacity: 1.0
-    //});
-    //ql4.addTo(globus.planet);
 };

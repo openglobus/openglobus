@@ -14,6 +14,10 @@ og.control.GeoImageDragControl = function (options) {
 
 og.inheritance.extend(og.control.GeoImageDragControl, og.control.BaseControl);
 
+og.control.geoImageDragControl = function (options) {
+    return new og.control.GeoImageDragControl(options);
+};
+
 og.control.GeoImageDragControl.prototype.oninit = function () {
     this.planet = this.renderer.renderNodes.Earth;
     var that = this;

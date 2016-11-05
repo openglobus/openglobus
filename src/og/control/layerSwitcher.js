@@ -20,6 +20,10 @@ og.control.LayerSwitcher.numSwitches = 0;
 
 og.inheritance.extend(og.control.LayerSwitcher, og.control.BaseControl);
 
+og.control.layerSwitcher = function (options) {
+    return new og.control.LayerSwitcher(options);
+};
+
 og.control.LayerSwitcher.prototype.oninit = function () {
     this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
     this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);

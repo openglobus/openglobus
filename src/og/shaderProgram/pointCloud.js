@@ -17,7 +17,28 @@ og.shaderProgram.pointCloud = function () {
             coordinates: { type: og.shaderProgram.types.VEC3, enableArray: true },
             colors: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
-        vertexShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "pointCloud_vs.txt"),
-        fragmentShader: og.utils.readTextFile(og.shaderProgram.SHADERS_URL + "pointCloud_fs.txt")
+        vertexShader:
+            'attribute vec3 coordinates;\
+            attribute vec4 colors;\
+            uniform mat4 projectionViewMatrix;\
+            uniform float opacity;\
+            uniform float pointSize;\
+            varying vec4 color;\
+            const float C = 0.1;\
+            const float far = 149.6e+9;\
+            float logc = 2.0 / log( C * far + 1.0 );\
+            void main() {\
+                color = colors;\
+                color.a *= opacity;\
+                gl_Position = projectionViewMatrix * vec4(coordinates, 1.0);\
+                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
+                gl_PointSize = pointSize;\
+            }',
+        fragmentShader:
+            'precision highp float;\
+            varying vec4 color;\
+            void main(void) {\
+                gl_FragColor = color;\
+            }'
     });
 };

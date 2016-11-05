@@ -26,7 +26,7 @@ goog.require('og.utils');
  * @example <caption>Creates OpenStreetMap base tile layer</caption>
  * new og.layer.XYZ("OpenStreetMap", { 
  *     isBaseLayer: true,
- *     url: "http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png",
+ *     url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
  *     visibility: true, 
  *     attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' 
  * });
@@ -146,8 +146,8 @@ og.layer.XYZ.prototype.setVisibility = function (visibility) {
  * @public
  * @param {string} url - Url template.
  * @example
- * http://b.tile.openstreetmap.org/{zoom}/{tilex}/{tiley}.png
- * where {zoom}, {tilex} and {tiley} - replaces by current tile values.
+ * http://b.tile.openstreetmap.org/{z}/{x}/{y}.png
+ * where {z}, {x} and {y} - replaces by current tile values.
  */
 og.layer.XYZ.prototype.setUrl = function (url) {
     this.url = url;
@@ -192,9 +192,9 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
  */
 og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
-        "tilex": segment.tileX.toString(),
-        "tiley": segment.tileY.toString(),
-        "zoom": segment.tileZoom.toString()
+        "x": segment.tileX.toString(),
+        "y": segment.tileY.toString(),
+        "z": segment.tileZoom.toString()
     });
 };
 
