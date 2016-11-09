@@ -185,6 +185,7 @@ og.Globus = function (options) {
 
     //Run!
     if (isUndefined(options.autoActivate) || options.autoActivate) {
+        this.fadeIn(700);
         this.renderer.start();
     }
 };
