@@ -1,5 +1,5 @@
 function start() {
-    og.shaderProgram.SHADERS_URL = "./shaders/";
+    og.webgl.RESOURCES_URL = "./resources/";
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: og.math.vector3(0.0003, 0.00012, 0.00001),

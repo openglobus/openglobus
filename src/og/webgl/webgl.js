@@ -2,12 +2,6 @@ goog.provide('og.webgl');
 
 og.webgl.vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
-if (COMPILED) {
-    og.webgl.RESOURCES_URL = "/resources/";
-} else {
-    og.webgl.RESOURCES_URL = "../../resources/";
-}
-
 /**
  * The return value is null if the extension is not supported, or an extension object otherwise.
  * @param {Object} gl - WebGl context pointer.

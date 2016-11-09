@@ -20,8 +20,6 @@ og.planetSegment.SegmentWGS84 = function (node, planet, tileZoom, extent) {
 og.planetSegment.SegmentWGS84._heightLat = 90.0 - og.mercator.MAX_LAT;
 og.planetSegment.SegmentWGS84._maxPoleZoom = 7;
 og.planetSegment.SegmentWGS84._pieceSize = og.planetSegment.SegmentWGS84._heightLat / Math.pow(2, og.planetSegment.SegmentWGS84._maxPoleZoom);
-og.planetSegment.SegmentWGS84.RATIO_LOD = 1.12;
-
 
 og.inheritance.extend(og.planetSegment.SegmentWGS84, og.planetSegment.Segment);
 
@@ -49,7 +47,7 @@ og.planetSegment.SegmentWGS84.prototype.acceptForRendering = function (camera) {
         maxPoleZoom = 12 - Math.floor(Yz / 16);
     }
 
-    return camera.projectedSize(sphere.center) > og.planetSegment.SegmentWGS84.RATIO_LOD * sphere.radius ||
+    return camera.projectedSize(sphere.center) > this.planet.RATIO_LOD * sphere.radius ||
         this.tileZoom > maxPoleZoom;
 };
 

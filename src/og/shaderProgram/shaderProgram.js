@@ -1,19 +1,8 @@
 goog.provide('og.shaderProgram');
 goog.provide('og.shaderProgram.ShaderProgram');
 
+goog.require('og');
 goog.require('og.shaderProgram.callbacks');
-
-if (COMPILED) {
-    //og.shaderProgram.SHADERS_URL = "http://www.openglobus.org/shaders/";
-    /**
-     * External shader programs folder url.
-     * @const
-     * @type {string}
-     */
-    og.shaderProgram.SHADERS_URL = "/shaders/";
-} else {
-    og.shaderProgram.SHADERS_URL = "../../src/og/shaders/";
-}
 
 /**
  * Represents more comfortable using WebGL shader program.

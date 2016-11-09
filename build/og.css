@@ -133,11 +133,11 @@
 }
 
 #ogLayerSwitcherButtonMinimize {
-    background: url(../resources/images/controls/ogMinimize.png) top left no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABp0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTFH80I3AAAAWUlEQVQ4T7WRwQnAMAwDvf+WhULHcPsSDjkIStyDe0Ry/HG0kplHCiodBZWOYgo+6uBKQWHNVgoqXTHccXg895WO9e8/i07EcMe+q3UsElQ6CiodBZWOjUS8VrAiaVC/GgQAAAAASUVORK5CYII=) top left no-repeat;
 }
 
 #ogLayerSwitcherButtonMaximize {
-    background: url(../resources/images/controls/ogMaximize.png) top left no-repeat;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABp0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTFH80I3AAAAYklEQVQ4T82PwQnAMAwDvf+WhULHcDEkYIGaRIaGHNzDDx3YvnB3qgyLhDIsEpZ57svDdtbZH5r9PwrBFg5CKdRHq+btPyFGH7UTgC0chOXQjFFI4pxQ/j8rwyKhDIuEHLMXAr14nPGmYYMAAAAASUVORK5CYII=) top left no-repeat;
 }
 
 #ogLayerSwitcherDialog {
@@ -193,6 +193,7 @@
     border-radius: 2px;
     box-shadow: 0px 1px 4px rgba(64, 59, 59, 0.17);
     font-size: 14px;
+    width: 305px;
 }
 
 

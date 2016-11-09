@@ -144,19 +144,13 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 };
 
 /**
- * Level of the visible segment detalization.
- * @type {number}
- */
-og.planetSegment.Segment.RATIO_LOD = 1.12;
-
-/**
  * Returns that segment good for rendering with camera by current RATIO_LOD.
  * @public
  * @returns {boolean}
  */
 og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
-    return camera.projectedSize(sphere.center) > og.planetSegment.Segment.RATIO_LOD * sphere.radius;
+    return camera.projectedSize(sphere.center) > this.planet.RATIO_LOD * sphere.radius;
 };
 
 /**

@@ -1,5 +1,6 @@
 goog.provide('og.scene.Planet');
 
+goog.require('og');
 goog.require('og.inheritance');
 goog.require('og.scene.RenderNode');
 goog.require('og.math');
@@ -290,6 +291,13 @@ og.scene.Planet = function (name, ellipsoid) {
     this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
     this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
+    /**
+     * Level of the visible segment detalization.
+     * @public
+     * @type {number}
+     */
+    this.RATIO_LOD = 1.12;
+
     this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
     this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
     this._specularMaterialArr = new Float32Array(this.SLICE_SIZE_4 + 4);
@@ -570,7 +578,7 @@ og.scene.Planet.prototype.initialization = function () {
         img.onload = function () {
             that._nightTexture = that.renderer.handler.createTexture_af(this);
         };
-        img.src = og.webgl.RESOURCES_URL + "images/planet/earth/mnight.png";
+        img.src = og.RESOURCES_URL + "night.png";
     }
 
     //load water specular mask
@@ -579,7 +587,7 @@ og.scene.Planet.prototype.initialization = function () {
         img2.onload = function () {
             that._specularTexture = that.renderer.handler.createTexture_af(this);
         };
-        img2.src = og.webgl.RESOURCES_URL + "images/planet/earth/mspec.png";
+        img2.src = og.RESOURCES_URL + "spec.png";
     }
 
     this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
