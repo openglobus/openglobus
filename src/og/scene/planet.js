@@ -591,6 +591,9 @@ og.scene.Planet.prototype.initialization = function () {
     }
 
     this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
+
+    //first start
+    this._quadTree.renderNode();
 };
 
 /**
@@ -1048,6 +1051,18 @@ og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
  */
 og.scene.Planet.prototype.viewExtent = function (extent) {
     this.renderer.activeCamera.viewExtent(extent);
+};
+
+/**
+ * Sets camera to the planet geographical extent.
+ * @public
+ * @param {Array.<number,number,number,number>} extentArr - Geographical extent array, 
+ * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
+ */
+og.scene.Planet.prototype.viewExtentArr = function (extentArr) {
+    this.renderer.activeCamera.viewExtent(
+        new og.Extent(new og.LonLat(extentArr[0], extentArr[1]),
+        new og.LonLat(extentArr[2], extentArr[3])));
 };
 
 /**

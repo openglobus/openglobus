@@ -988,7 +988,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 p._samplerArr[n] = n;
 
                 gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture);
+                gl.bindTexture(gl.TEXTURE_2D, m.texture || this.planet.transparentTexture);
 
                 n++;
             }
@@ -1000,7 +1000,7 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
         if (p.lightEnabled) {
             gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
             gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-            gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
             gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
 
             //bind segment specular and night material texture coordinates
@@ -1101,7 +1101,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 p._samplerArr[n] = n;
 
                 gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture);
+                gl.bindTexture(gl.TEXTURE_2D, m.texture || this.planet.transparentTexture);
 
                 n++;
             }
@@ -1115,7 +1115,7 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
                 gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture);
+                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
                 gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
 
                 //bind segment specular and night material texture coordinates

@@ -140,48 +140,18 @@ og.utils.GeoImageCreator.prototype._initShaders = function () {
                           v_texCoords = texCoords; \
                           gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
                       }',
-        fragmentShader: 'precision highp float; \
+        fragmentShader:
+                        '#ifdef GL_ES\n\
+                        #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+                        precision highp float;\n\
+                        #else\n\
+                        precision mediump float;\n\
+                        #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+                        #endif // GL_ES\n\
                         uniform sampler2D sourceTexture; \
                         varying vec2 v_texCoords; \
                         void main () {  \
                             gl_FragColor = texture2D(sourceTexture, v_texCoords); \
                         }'
     }));
-
-    //this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("geoImageMercProj", {
-    //    uniforms: {
-    //        u_sampler: { type: og.shaderProgram.types.SAMPLER2D },
-    //        u_extent: { type: og.shaderProgram.types.VEC4 },
-    //        u_mercExtent: { type: og.shaderProgram.types.VEC4 }
-    //    },
-    //    attributes: {
-    //        a_vertex: { type: og.shaderProgram.types.VEC2, enableArray: true },
-    //        a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
-    //    },
-    //    vertexShader: 'attribute vec2 a_vertex; \
-    //                        attribute vec2 a_texCoord; \
-    //                        varying vec2 v_texCoords; \
-    //                        void main() { \
-    //                            v_texCoords = a_texCoord; \
-    //                            gl_Position = vec4(a_vertex, 0, 1); \
-    //                        }',
-    //    fragmentShader: 'precision highp float; \n\
-    //                    uniform sampler2D u_sampler; \n\
-    //                    uniform vec4 u_extent; \n\
-    //                    uniform vec4 u_mercExtent; \n\
-    //                    varying vec2 v_texCoords; \n\
-    //                    const float POLE=20037508.34; \n\
-    //                    const float PI=3.141592653589793; \n\
-    //                    const float RAD2DEG = 180.0 / PI;\n\
-    //                    const float PI_BY_2 = PI / 2.0;\n\
-    //                    \n\
-    //                    vec2 inverse(vec2 lonLat){\n\
-    //                        return vec2(180.0 * lonLat.x / POLE, RAD2DEG * (2.0 * atan(exp(PI * lonLat.y / POLE)) - PI_BY_2));\n\
-    //                    }\n\
-    //                    \n\
-    //                    void main () {\n\
-    //                        vec2 d = (inverse(u_mercExtent.xy + u_mercExtent.zw * vec2(v_texCoords.x, v_texCoords.y)) - u_extent.xy) * u_extent.zw;\n\
-    //                        gl_FragColor = texture2D(u_sampler, d);\n\
-    //        }'
-    //}));
 };

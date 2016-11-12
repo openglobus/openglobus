@@ -24,7 +24,13 @@ og.shaderProgram.drawnode_nl = function () {
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader:
-            'precision highp float;\
+            '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
@@ -43,7 +49,13 @@ og.shaderProgram.drawnode_nl = function () {
             }',
         fragmentShader:
             '#extension GL_EXT_draw_buffers : require\n\
-            precision highp float;\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -58,7 +70,7 @@ og.shaderProgram.drawnode_nl = function () {
                 vec2 s = step(bottomLeft, v) - step(topRight, v);\
                 return s.x * s.y;\
             }\
-            highp vec3 encode32(highp float f) {\
+            vec3 encode32(highp float f) {\
                 float F = abs(f);\
                 float s = step(0.0,-f);\
                 float e = floor(log2(F));\
@@ -146,7 +158,13 @@ og.shaderProgram.drawnode_wl = function () {
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: 
-            'precision highp float;\
+            '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionMatrix;\
@@ -176,7 +194,13 @@ og.shaderProgram.drawnode_wl = function () {
             }',
         fragmentShader: 
             '#extension GL_EXT_draw_buffers : require\n\
-            precision highp float;\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
 \n\
             #define MAX_POINT_LIGHTS 1\n\
             #define MAX_OVERLAYS 5\n\
@@ -213,7 +237,7 @@ og.shaderProgram.drawnode_wl = function () {
                 return s.x * s.y;\
             }\
 \
-            highp vec3 encode24(highp float f) {\
+            vec3 encode24(highp float f) {\
                 float F = abs(f);\
                 float s = step( 0.0, -f );\
                 float e = floor( log2(F) );\

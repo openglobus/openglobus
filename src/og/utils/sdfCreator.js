@@ -70,7 +70,13 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                 gl_Position.zw = vec2(0.0, 1.0);\n\
             }",
         fragmentShader:
-              "precision lowp float;\n\
+            "#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
             uniform vec2 uNeg;\n\
@@ -119,7 +125,13 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                 gl_Position.zw = vec2(0.0, 1.0);\n\
             }",
         fragmentShader:
-            "precision lowp float;\n\
+            "#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             uniform sampler2D uTex1;\n\
             uniform int uDistance;\n\
             varying vec2 TexCoord;\n\
@@ -157,7 +169,14 @@ og.utils.SDFCreator.prototype._initShaders = function () {
                             gl_Position.xy = aPos;\n\
                             gl_Position.zw = vec2(0.0, 1.0);\n\
                         }",
-        fragmentShader: "precision highp float;\n\
+        fragmentShader:
+                        "#ifdef GL_ES\n\
+                        #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+                        precision highp float;\n\
+                        #else\n\
+                        precision mediump float;\n\
+                        #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+                        #endif // GL_ES\n\
                         uniform sampler2D outside;\n\
                         uniform sampler2D inside;\n\
                         uniform sampler2D source;\n\

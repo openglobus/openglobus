@@ -96,7 +96,13 @@ og.shaderProgram.label = function () {
         fragmentShader:
             '#extension GL_OES_standard_derivatives : enable\n\
             #extension GL_EXT_draw_buffers : require\n\
-            precision lowp float;\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             const int MAX_SIZE = 12;\
             uniform sampler2D u_fontTextureArr[MAX_SIZE];\
             varying float v_fontIndex;\
@@ -161,7 +167,13 @@ og.shaderProgram.labelPicking = function () {
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader:
-            'precision highp float;\
+            '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             attribute vec2 a_vertices;\
             attribute vec4 a_texCoord;\
             attribute vec4 a_positions;\
@@ -216,7 +228,13 @@ og.shaderProgram.labelPicking = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            'precision highp float;\
+            '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             varying vec4 v_color;\
             void main () {\
                 gl_FragColor = v_color;\

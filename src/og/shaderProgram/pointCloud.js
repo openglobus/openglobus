@@ -35,7 +35,13 @@ og.shaderProgram.pointCloud = function () {
                 gl_PointSize = pointSize;\
             }',
         fragmentShader:
-            'precision highp float;\
+            '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             varying vec4 color;\
             void main(void) {\
                 gl_FragColor = color;\

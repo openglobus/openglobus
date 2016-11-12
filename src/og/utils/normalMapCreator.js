@@ -47,9 +47,17 @@ og.utils.NormalMapCreator.prototype._init = function () {
                           "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
                           "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
                      "}",
-        fragmentShader: "uniform sampler2D s_texture; \
+        fragmentShader: 
+                        "#ifdef GL_ES\n\
+                        #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+                        precision highp float;\n\
+                        #else\n\
+                        precision mediump float;\n\
+                        #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+                        #endif // GL_ES\n\
+                        uniform sampler2D s_texture; \
                         \
-                        varying highp vec2 blurCoordinates[5]; \
+                        varying vec2 blurCoordinates[5]; \
                         \
                         void main() { \
                             lowp vec4 sum = vec4(0.0); \
@@ -77,7 +85,14 @@ og.utils.NormalMapCreator.prototype._init = function () {
                           gl_Position = vec4(a_position, 0, 1); \
                           v_color = normalize(a_normal) * 0.5 + 0.5; \
                       }",
-        fragmentShader: "precision mediump float; \
+        fragmentShader: 
+                        "#ifdef GL_ES\n\
+                        #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+                        precision highp float;\n\
+                        #else\n\
+                        precision mediump float;\n\
+                        #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+                        #endif // GL_ES\n\
                         \
                         varying vec3 v_color; \
                         \

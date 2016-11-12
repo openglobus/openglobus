@@ -84,7 +84,13 @@ og.shaderProgram.lineString = function () {
             }',
         fragmentShader: 
             '#extension GL_EXT_draw_buffers : require\n\
-            precision highp float;\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
             uniform vec3 pickingColor;\
             uniform vec4 color;\
             uniform vec2 uFloatParams;\
