@@ -94,9 +94,9 @@ h3.tagline {
 }
 
 .features {
-    -webkit-column-count: 3;
-    -moz-column-count: 3;
-    column-count: 3;
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
 }
 
 .clearfix:before, .clearfix:after {

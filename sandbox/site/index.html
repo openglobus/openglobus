@@ -30,16 +30,16 @@
                     <span>Overview</span>
                 </div>
                 <div class="nav">
-                    <a href="examples.html">Examples</a>
+                    <a href="./examples.html">Examples</a>
                 </div>
                 <div class="nav">
-                    <a href="download.html">Download</a>
+                    <a href="http://openglobus.org/build/og.zip">Download</a>
                 </div>
                 <div class="nav">
-                    <a href="plugins.html">API</a>
+                    <a href="http://openglobus.org/api">API</a>
                 </div>
                 <div class="nav">
-                    <a href="blog.html">GitHub</a>
+                    <a href="https://github.com/OpenGlobus/OpenGlobus">GitHub</a>
                 </div>
             </div>
         </div>
@@ -47,34 +47,36 @@
 
     <div class="container">
         <div class="announcement">Nov 02, 2016 — <a href="http://www.openglobus.org">openglobus.org</a>, site created!</div>
-        <p style="margin-bottom:25px">Welcome to the OpenGlobus overview page! OpenGlobus library uses the WebGL technology it's Open Source and is also plugin free!</p>
+        <p style="margin-bottom:25px">Welcome to the OpenGlobus overview page! OpenGlobus library uses the WebGL technology it's Open Source and is free!</p>
         <div id="globus" style="height:400px; border: 1px solid #ccc; margin-bottom:50px;"></div>
         <p>Here we create a globe in the <code>'globus'</code> div with useful controls, tile layer of OpenStreetMap tiles, and then add a marker with some label:</p>
         <pre>
         <code class="hljs javascript">
-var controls = [
-    og.control.mouseNavigation(),
-    og.control.touchNavigation(),
-    og.control.zoomControl(),
-    og.control.earthCoordinates(),
-    og.control.sun()
-];
-var globus = new og.Globus({
-    'target': "globus",
-    'name': "Earth",
-    'controls': controls,
-    'skybox': og.scene.defaultSkyBox(),
-    'terrain': new og.terrainProvider.TerrainProvider("OpenGlobus")
-});
-globus.planet.viewExtent([-180, -90, 180, 90]);
-new og.layer.XYZ("OpenStreetMap", {
-    'diffuse': [0.89, 0.9, 0.83],
-    'specular': [0.0003, 0.00012, 0.00001],
-    'shininess': 20,
-    'isBaseLayer': true,
-    'url': "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    'attribution': 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
-}).addTo(globus.planet);
+    var controls = [
+        og.control.mouseNavigation(),
+        og.control.touchNavigation(),
+        og.control.zoomControl(),
+        og.control.earthCoordinates(),
+        og.control.sun()
+    ];
+    var globus = new og.Globus({
+        'target': "globus",
+        'name': "Earth",
+        'controls': controls,
+        'skybox': og.scene.defaultSkyBox(),
+        'terrain': new og.terrainProvider.TerrainProvider("OpenGlobus")
+    });
+    globus.planet.viewExtent([-180, -90, 180, 90]);
+    new og.layer.XYZ("OpenStreetMap", {
+        'diffuse': [0.89, 0.9, 0.83],
+        'specular': [0.0003, 0.00012, 0.00001],
+        'shininess': 20,
+        'isBaseLayer': true,
+        'url': "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        'attribution': 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
+    }).addTo(globus.planet);
+
+    globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
             </code>
         </pre>
     </div>
@@ -89,6 +91,24 @@ new og.layer.XYZ("OpenStreetMap", {
                     <li>Vector layers<span class="quiet">: linestrings, polygons</span></li>
                     <li>GeoImage overlays<span class="quiet">: images, videos, webgl framebuffers</span></li>
                     <li>GeoJSON<span class="quiet"> - in develop</span></li>
+                    <li>Custom canvas tiles</li>
+                </ul>
+            </div>
+
+            <div class="no-break">
+                <h3>Engine Performance</h3>
+                <ul>
+                    <li>Pure WebGL based scene rendering interface</li>
+                    <li>Simple shader program connection</li>
+                    <li>Several globus instances on the page</li>
+                    <li>Realtime rendering</li>
+                    <li>Internal timers</li>
+                    <li>Simple interface for custom controls</li>
+                    <li>Events<span class="quiet">: draw, click, mouseenter, etc.</span></li>
+                    <li>Picking<span class="quiet">: layers, objects etc.</span></li>
+                    <li>Level of detail customization</li>
+                    <li>Comfortable interaction</li>
+                    <li>No external dependencies</li>
                 </ul>
             </div>
 
@@ -99,9 +119,8 @@ new og.layer.XYZ("OpenStreetMap", {
                     <li>Geodesic coordinates display</li>
                     <li>Layer switcher</li>
                     <li>Real sun positioning</li>
-                    <li>Real moon positioning<span class="quiet">: in develop</span></li>
                     <li>Arcball navigation<span class="quiet">: mouse, touch, keyboard</span></li>
-                    <li>Pole spin navigation</li>
+                    <li>Real moon positioning<span class="quiet">: in develop</span></li>
                 </ul>
             </div>
 
@@ -112,32 +131,13 @@ new og.layer.XYZ("OpenStreetMap", {
                     <li>Terrain picking and collision detection</li>
                     <li>Custom skybox</li>
                     <li>Smooth lighting</li>
-                    <li>Layers appearance customization<span class="quiet">: lighting parameters, height over ground, transparent color</span></li>
+                    <li>Layers appearance customization<span class="quiet">: lighting parameters, height over ground, transparent color, opacity, visible bounds</span></li>
                     <li>Axis aligned billboards and labels</li>
-                    <li>Ground aligned objects</li>
-                    <li>Point clouds</li>
                     <li>Atmosphere scattering<span class="quiet"> - in develop</span></li>
                     <li>Collada objects<span class="quiet"> - in develop</span></li>
                     <li>LIDAR terrain<span class="quiet"> - in develop</span></li>
                 </ul>
-            </div>
-
-            <div class="no-break">
-                <h3>Engine Performance</h3>
-                <ul>
-                    <li>Scenes hierarchy</li>
-                    <li>A simple shader program connection</li>
-                    <li>Several globus instances on the page</li>
-                    <li>Realtime rendering</li>
-                    <li>Internal timer<span class="quiet"> or timers</span></li>
-                    <li>A simple interface for custom controls</li>
-                    <li>Events<span class="quiet">: draw, click, mouseenter, etc.</span></li>
-                    <li>Picking<span class="quiet">: layers, objects etc.</span></li>
-                    <li>Level of detail customization</li>
-                    <li>Comfortable interaction</li>
-                    <li>No external dependencies</li>
-                </ul>
-            </div>
+            </div>           
         </div>
     </div>
     <div class="bottomcontainer">

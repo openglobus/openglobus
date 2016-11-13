@@ -32,5 +32,7 @@ function start() {
         "autoActivated": true
     });
 
+    globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
+
     globus.planet.RATIO_LOD = 0.9;
 };
