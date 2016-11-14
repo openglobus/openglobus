@@ -117,6 +117,28 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
     return steps;
 };
 
+og.control.MouseNavigation.prototype.onactivate = function () {
+    this.renderer.events.on("mousewheel", this, this.onMouseWheel);
+    this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);
+    this.renderer.events.on("mouserbuttonhold", this, this.onMouseRightButtonDown);
+    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
+    this.renderer.events.on("mouserbuttondown", this, this.onMouseRightButtonClick);
+    this.renderer.events.on("mouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
+    this.renderer.events.on("draw", this, this.onDraw);
+};
+
+og.control.MouseNavigation.prototype.ondeactivate = function () {
+    this.renderer.events.off("mousewheel", this.onMouseWheel);
+    this.renderer.events.off("mouselbuttonhold", this.onMouseLeftButtonDown);
+    this.renderer.events.off("mouserbuttonhold", this.onMouseRightButtonDown);
+    this.renderer.events.off("mouselbuttondown", this.onMouseLeftButtonClick);
+    this.renderer.events.off("mouselbuttonup", this.onMouseLeftButtonUp);
+    this.renderer.events.off("mouserbuttondown", this.onMouseRightButtonClick);
+    this.renderer.events.off("mouselbuttondoubleclick", this.onMouseLeftButtonDoubleClick);
+    this.renderer.events.off("draw", this.onDraw);
+};
+
 og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     if (this.stepIndex)
@@ -142,14 +164,7 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
 og.control.MouseNavigation.prototype.oninit = function () {
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("mousewheel", this, this.onMouseWheel);
-    this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);
-    this.renderer.events.on("mouserbuttonhold", this, this.onMouseRightButtonDown);
-    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
-    this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
-    this.renderer.events.on("mouserbuttondown", this, this.onMouseRightButtonClick);
-    this.renderer.events.on("mouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
-    this.renderer.events.on("draw", this, this.onDraw);
+    this.activate();
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
@@ -296,12 +311,10 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
             this.planet.layersActivity = false;
             this.planet.terrainProvider.active = false;
             this.planet.normalMapCreator.active = false;
-            //this.planet.geoImageTileCreator.active = false;
         } else {
             this.planet.layersActivity = true;
             this.planet.terrainProvider.active = true;
             this.planet.normalMapCreator.active = true;
-            //this.planet.geoImageTileCreator.active = true;
         }
     }
 };
