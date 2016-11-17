@@ -77,7 +77,7 @@ og.Label = function (options) {
      * @private
      * @type {og.math.Vector4}
      */
-    this._outlineColor = og.utils.createColor(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
+    this._outlineColor = og.utils.createColorRGBA(options.outlineColor, new og.math.Vector4(0.0, 0.0, 0.0, 1.0));
 
     /**
      * Text horizontal align: "left", "right" and "center".
@@ -302,7 +302,7 @@ og.Label.prototype.setOutlineColor4v = function (rgba) {
  * @param {string} color - HTML string color.
  */
 og.Label.prototype.setOutlineColorHTML = function (color) {
-    this.setOutlineColor4v(og.utils.htmlColor2rgba(color));
+    this.setOutlineColor4v(og.utils.htmlColorToRgba(color));
 };
 
 /**

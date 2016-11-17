@@ -833,18 +833,18 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
         gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 4);
 
-        this._diffuseMaterialArr[0] = this.baseLayer.lightMaterial.diffuse.x;
-        this._diffuseMaterialArr[1] = this.baseLayer.lightMaterial.diffuse.y;
-        this._diffuseMaterialArr[2] = this.baseLayer.lightMaterial.diffuse.z;
+        this._diffuseMaterialArr[0] = this.baseLayer.diffuse.x;
+        this._diffuseMaterialArr[1] = this.baseLayer.diffuse.y;
+        this._diffuseMaterialArr[2] = this.baseLayer.diffuse.z;
 
-        this._ambientMaterialArr[0] = this.baseLayer.lightMaterial.ambient.x;
-        this._ambientMaterialArr[1] = this.baseLayer.lightMaterial.ambient.y;
-        this._ambientMaterialArr[2] = this.baseLayer.lightMaterial.ambient.z;
+        this._ambientMaterialArr[0] = this.baseLayer.ambient.x;
+        this._ambientMaterialArr[1] = this.baseLayer.ambient.y;
+        this._ambientMaterialArr[2] = this.baseLayer.ambient.z;
 
-        this._specularMaterialArr[0] = this.baseLayer.lightMaterial.specular.x;
-        this._specularMaterialArr[1] = this.baseLayer.lightMaterial.specular.y;
-        this._specularMaterialArr[2] = this.baseLayer.lightMaterial.specular.z;
-        this._specularMaterialArr[3] = this.baseLayer.lightMaterial.shininess;
+        this._specularMaterialArr[0] = this.baseLayer.specular.x;
+        this._specularMaterialArr[1] = this.baseLayer.specular.y;
+        this._specularMaterialArr[2] = this.baseLayer.specular.z;
+        this._specularMaterialArr[3] = this.baseLayer.shininess;
     } else {
         h.shaderPrograms.drawnode_nl.activate();
         sh = h.shaderPrograms.drawnode_nl._program;

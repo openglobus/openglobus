@@ -27,13 +27,13 @@ function start() {
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
-    var osm = new og.layer.XYZ("OpenStreetMap", { specular: og.math.vector3(0.0003, 0.00012, 0.00001), shininess: 20, diffuse: og.math.vector3(0.89, 0.9, 0.83), extent: og.extent(og.lonLat(-180, -90), og.lonLat(180, 90)), isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
+    var osm = new og.layer.XYZ("OpenStreetMap", { specular: [0.0003, 0.00012, 0.00001], shininess: 20, diffuse: [0.89, 0.9, 0.83], extent: [[-180, -90], [180, 90]], isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
     var sat = new og.layer.XYZ("MapQuest Satellite", { shininess: 20, specular: og.math.vector3(0.00048, 0.00037, 0.00035), diffuse: og.math.vector3(0.88, 0.85, 0.8), ambient: og.math.vector3(0.15, 0.1, 0.23), isBaseLayer: true, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
     var sat2 = new og.layer.XYZ("-MapQuest Satellite", { extent: og.extent(og.lonLat(-180, -90), og.lonLat(180, 0)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '' });
     var sat3 = new og.layer.XYZ("+MapQuest Satellite", { extent: og.extent(og.lonLat(-180, 0), og.lonLat(180, 90)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '' });
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{z}/{x}/{y}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
     //var kosmosnim = new og.layer.XYZ("Kosmosnimki", { isBaseLayer: true, url: "http://c.tile.osm.kosmosnimki.ru/kosmo/{z}/{x}/{y}.png" });
-    var states = new og.layer.WMS("USA States", { height: 200000, zIndex: 100, extent: og.extent(og.lonLat(-120, 20), og.lonLat(-60, 45)), visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
+    var states = new og.layer.WMS("USA States", { height: 200000, zIndex: 100, extent: [[-120, 20], [-60, 45]], visibility: false, isBaseLayer: false, url: "http://openglobus.org/geoserver/", layers: "topp:states", opacity: 0.5, zIndex: 50, attribution: 'USA states - geoserver WMS example', transparentColor: [1.0, 1.0, 1.0] });
     var tm = new og.layer.WMS("TrueMarble", { height: 0, zIndex: 100, visibility: false, isBaseLayer: true, url: "http://openglobus.org/geoserver/", layers: "og:TrueMarble.2km.21600x10800", opacity: 1.0, attribution: 'TrueMarble' });
     var geoImage = new og.layer.GeoImage("GeoImage", { src: "bm.jpg", height: 0, zIndex: 200, corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]], visibility: false, isBaseLayer: false, opacity: 0.8 });
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
@@ -93,6 +93,30 @@ function start() {
     sun.sunlight.setSpecular(new og.math.Vector3(0.00025, 0.00015, 0.0001))
     sun.sunlight.setShininess(100);
 
-    globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
+    globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
+    //globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
+
+    var placesCollection = new og.layer.Vector("Markers", { groundAlign: true });
+    globus.planet.addLayer(placesCollection);
+
+    eee = og.entity({
+        lonlat: [158.186, 52.452],
+        //label: {
+        //    text: place.name,
+        //    size: 40,
+        //    color: new og.math.Vector4(1, 1, 1, 1),
+        //    outlineColor: new og.math.Vector4(0, 0, 0, 1),
+        //    outline: 0.45,
+        //    weight: "bold",
+        //    face: "verdana",
+        //    offset: [10,-2]
+        //},
+        billboard: {
+            src: "./marker.png",
+            width: 39,
+            height: 64,
+            offset: [0, 32]
+        }
+    }).addTo(placesCollection);
 };

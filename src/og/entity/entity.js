@@ -79,7 +79,7 @@ og.Entity = function (options, properties) {
      * @protected
      * @type {og.LonLat}
      */
-    this._lonlat = options.lonlat || null;
+    this._lonlat = og.utils.createLonLat(options.lonlat);
 
     /**
      * World Mercator entity coordinates.

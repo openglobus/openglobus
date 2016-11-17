@@ -5,6 +5,7 @@ goog.require('og.Events');
 goog.require('og.QueueArray');
 goog.require('og.mercator');
 goog.require('og.Extent');
+goog.require('og.utils');
 
 /**
  * @const
@@ -97,19 +98,15 @@ og.layer.Layer = function (name, options) {
      */
     this.maxZoom = options.maxZoom || 50;
 
-    options.lightMaterial = options.lightMaterial || {};
-
     /**
      * Layer light material parameters.
      * @public
      * @type {Object}
      */
-    this.lightMaterial = {
-        'ambient': options.ambient || new og.math.Vector3(0.1, 0.1, 0.21),
-        'diffuse': options.diffuse || new og.math.Vector3(1.0, 1.0, 1.0),
-        'specular': options.specular || new og.math.Vector3(0.00025, 0.00015, 0.0001),
-        'shininess': options.shininess || 100
-    };
+    this.ambient = og.utils.createColorRGB(options.ambient, new og.math.Vector3(0.1, 0.1, 0.21));
+    this.diffuse = og.utils.createColorRGB(options.diffuse, new og.math.Vector3(1.0, 1.0, 1.0));
+    this.specular = og.utils.createColorRGB(options.specular, new og.math.Vector3(0.00025, 0.00015, 0.0001));
+    this.shininess = options.shininess || 100.0;
 
     /**
      * Planet node.
@@ -175,11 +172,7 @@ og.layer.Layer = function (name, options) {
     this._extentMerc = null;
 
     //Setting the extent up
-    if (options.extent) {
-        this.setExtent(options.extent);
-    } else {
-        this.setExtent(new og.Extent(new og.LonLat(-180.0, -90), new og.LonLat(180.0, 90.0)));
-    }
+    this.setExtent(og.utils.createExtent(options.extent, new og.Extent(new og.LonLat(-180, -90), new og.LonLat(180, 90))));
 
     /**
      * Layer picking color. Assign when added to the planet.

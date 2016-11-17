@@ -37,7 +37,7 @@ og.LineString = function (options) {
      * @public
      * @type {og.math.Vector4}
      */
-    this.color = options.color || [1.0, 1.0, 1.0, 1.0];
+    this.color = og.utils.createColorRGBA(options.color, new og.math.Vector4(1.0, 1.0, 1.0, 1.0));
 
     /**
      * LineString visibility.
@@ -147,10 +147,10 @@ og.LineString.prototype.clear = function () {
  * @param {number} [a] - Opacity.
  */
 og.LineString.prototype.setColor = function (r, g, b, a) {
-    this.color[0] = r;
-    this.color[1] = g;
-    this.color[2] = b;
-    a && (this.color[3] = a);
+    this.color.x = r;
+    this.color.y = g;
+    this.color.z = b;
+    a && (this.color.w = a);
 };
 
 /**
@@ -159,9 +159,9 @@ og.LineString.prototype.setColor = function (r, g, b, a) {
  * @param {og.math.Vector3} color - RGB color.
  */
 og.LineString.prototype.setColor3v = function (color) {
-    this.color[0] = color.x;
-    this.color[1] = color.y;
-    this.color[2] = color.z;
+    this.color.x = color.x;
+    this.color.y = color.y;
+    this.color.z = color.z;
 };
 
 /**
@@ -170,10 +170,10 @@ og.LineString.prototype.setColor3v = function (color) {
  * @param {og.math.Vector4} color - RGBA color.
  */
 og.LineString.prototype.setColor4v = function (color) {
-    this.color[0] = color.x;
-    this.color[1] = color.y;
-    this.color[2] = color.z;
-    this.color[3] = color.w;
+    this.color.x = color.x;
+    this.color.y = color.y;
+    this.color.z = color.z;
+    this.color.w = color.w;
 };
 
 /**
@@ -182,7 +182,7 @@ og.LineString.prototype.setColor4v = function (color) {
  * @param {number} opacity - Opacity.
  */
 og.LineString.prototype.setOpacity = function (opacity) {
-    this.color[3] = opacity;
+    this.color.w = opacity;
 };
 
 /**
@@ -651,7 +651,7 @@ og.LineString.prototype.draw = function () {
 
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
-        gl.uniform4fv(shu.color._pName, this.color);
+        gl.uniform4fv(shu.color._pName, [this.color.x, this.color.y, this.color.z, this.color.w]);
 
         gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
         gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());

@@ -972,18 +972,18 @@ og.planetSegment.Segment.prototype._renderBase = function (sh, layerSlice) {
                 p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
                 p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
 
-                p._diffuseMaterialArr[n3 + 3] = li.lightMaterial.diffuse.x;
-                p._diffuseMaterialArr[n3 + 1 + 3] = li.lightMaterial.diffuse.y;
-                p._diffuseMaterialArr[n3 + 2 + 3] = li.lightMaterial.diffuse.z;
+                p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
+                p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
+                p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
 
-                p._ambientMaterialArr[n3 + 3] = li.lightMaterial.ambient.x;
-                p._ambientMaterialArr[n3 + 1 + 3] = li.lightMaterial.ambient.y;
-                p._ambientMaterialArr[n3 + 2 + 3] = li.lightMaterial.ambient.z;
+                p._ambientMaterialArr[n3 + 3] = li.ambient.x;
+                p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
+                p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
 
-                p._specularMaterialArr[n4 + 4] = li.lightMaterial.specular.x;
-                p._specularMaterialArr[n4 + 1 + 4] = li.lightMaterial.specular.y;
-                p._specularMaterialArr[n4 + 2 + 4] = li.lightMaterial.specular.z;
-                p._specularMaterialArr[n4 + 3 + 4] = li.lightMaterial.shininess;
+                p._specularMaterialArr[n4 + 4] = li.specular.x;
+                p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
+                p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
+                p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
 
                 p._samplerArr[n] = n;
 
@@ -1085,18 +1085,18 @@ og.planetSegment.Segment.prototype._renderOverlay = function (sh, layerSlice) {
                 p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
                 p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
 
-                p._diffuseMaterialArr[n3 + 3] = li.lightMaterial.diffuse.x;
-                p._diffuseMaterialArr[n3 + 1 + 3] = li.lightMaterial.diffuse.y;
-                p._diffuseMaterialArr[n3 + 2 + 3] = li.lightMaterial.diffuse.z;
+                p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
+                p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
+                p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
 
-                p._ambientMaterialArr[n3 + 3] = li.lightMaterial.ambient.x;
-                p._ambientMaterialArr[n3 + 1 + 3] = li.lightMaterial.ambient.y;
-                p._ambientMaterialArr[n3 + 2 + 3] = li.lightMaterial.ambient.z;
+                p._ambientMaterialArr[n3 + 3] = li.ambient.x;
+                p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
+                p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
 
-                p._specularMaterialArr[n4 + 4] = li.lightMaterial.specular.x;
-                p._specularMaterialArr[n4 + 1 + 4] = li.lightMaterial.specular.y;
-                p._specularMaterialArr[n4 + 2 + 4] = li.lightMaterial.specular.z;
-                p._specularMaterialArr[n4 + 3 + 4] = li.lightMaterial.shininess;
+                p._specularMaterialArr[n4 + 4] = li.specular.x;
+                p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
+                p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
+                p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
 
                 p._samplerArr[n] = n;
 

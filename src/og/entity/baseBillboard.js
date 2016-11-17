@@ -45,7 +45,7 @@ og.BaseBillboard = function (options) {
      * @protected
      * @type {og.math.Vector4}
      */
-    this._color = og.utils.createColor(options.color);
+    this._color = og.utils.createColorRGBA(options.color);
 
     /**
      * Cartesian aligned axis vector.
@@ -252,7 +252,7 @@ og.BaseBillboard.prototype.setColor4v = function (color) {
  * @param {string} color - HTML style color.
  */
 og.BaseBillboard.prototype.setColorHTML = function (color) {
-    this.setColor4v(og.utils.htmlColor2rgba(color));
+    this.setColor4v(og.utils.htmlColorToRgba(color));
 };
 
 /**

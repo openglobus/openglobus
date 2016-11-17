@@ -5,6 +5,7 @@ goog.require('og.math.Vector2');
 goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 goog.require('og.LonLat');
+goog.require('og.Extent');
 
 /**
  * Synchronous text file loading. Returns file text.
@@ -30,41 +31,41 @@ og.utils.readTextFile = function (fileUrl) {
  * @param {number} [opacity] - Opacity for the output vector.
  * @returns {og.math.Vector4}
  */
-og.utils.colorToVector = function (htmlColor, opacity) {
+og.utils.htmlColorToRgba = function (htmlColor, opacity) {
     if (htmlColor[0] == "#") {
-        return og.utils.hexStringToVector(htmlColor, opacity);
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), (opacity == undefined ? 1.0 : opacity));
     } else {
-        return og.utils.rgbaStringToVector(htmlColor, opacity);
+        if (opacity == undefined) {
+            opacity = 1.0;
+        }
+        var m = htmlColor.split(",");
+        return new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
     }
 };
 
 /**
- * Converts HTML rgba style string to the number vector.
- * @param {string} rgbaString - HTML string color.
+ * Convert html color string to the RGB number vector.
+ * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector4}
+ * @returns {og.math.Vector3}
  */
-og.utils.rgbaStringToVector = function (rgbaString, opacity) {
-    if (opacity == undefined) {
-        opacity = 1.0;
+og.utils.htmlColorToRgb = function (htmlColor) {
+    if (htmlColor[0] == "#") {
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16));
+    } else {
+        var m = htmlColor.split(",");
+        return new og.math.Vector3(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]));
     }
-    var m = htmlColor.split(",");
-    return new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
-};
-
-/**
- * Converts HTML hex style string to the number vector.
- * @param {string} hex- HTML hex style string color.
- * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector4}
- */
-og.utils.hexStringToVector = function (hex, opacity) {
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-        return r + r + g + g + b + b;
-    });
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), (opacity == undefined ? 1.0 : opacity));
 };
 
 /**
@@ -105,7 +106,7 @@ og.utils.createVector3 = function (v, def) {
             return og.math.Vector3.fromVec(v);
         }
     } else if (def) {
-        return def.clone();
+        return def;
     }
     return new og.math.Vector3();
 };
@@ -118,35 +119,65 @@ og.utils.createVector4 = function (v, def) {
             return og.math.Vector4.fromVec(v);
         }
     } else if (def) {
-        return def.clone();
+        return def;
     }
     return new og.math.Vector4();
 };
 
-og.utils.createColor = function (c, def) {
+og.utils.createColorRGBA = function (c, def) {
     if (c) {
         if (c instanceof String) {
-            return og.utils.htmlColor2rgba(c);
+            return og.utils.htmlColorToRgba(c);
         } else if (c instanceof Array) {
             return new og.math.Vector4.fromVec(c);
         } else if (c instanceof og.math.Vector4) {
             return c.clone();
         }
     } else if (def) {
-        return def.clone();
+        return def;
     }
     return new og.math.Vector4(1.0, 1.0, 1.0, 1.0);
+};
+
+og.utils.createColorRGB = function (c, def) {
+    if (c) {
+        if (c instanceof String) {
+            return og.utils.htmlColorToRgb(c);
+        } else if (c instanceof Array) {
+            return new og.math.Vector3.fromVec(c);
+        } else if (c instanceof og.math.Vector3) {
+            return c.clone();
+        }
+    } else if (def) {
+        return def;
+    }
+    return new og.math.Vector3(1.0, 1.0, 1.0);
+};
+
+og.utils.createExtent = function (e, def) {
+    if (e) {
+        if (e instanceof Array) {
+            return new og.Extent(
+                og.utils.createLonLat(e[0]),
+                og.utils.createLonLat(e[1]));
+        } else if (e instanceof og.Extent) {
+            return e.clone();
+        }
+    } else if (def) {
+        return def;
+    }
+    return new og.Extent();
 };
 
 og.utils.createLonLat = function (l, def) {
     if (l) {
         if (l instanceof Array) {
-            return new og.LonLat(l[0], l[1], l[2] || 0.0);
+            return new og.LonLat(l[0], l[1], l[2]);
         } else if (l instanceof og.LonLat) {
             return l.clone();
         }
     } else if (def) {
-        return def.clone();
+        return def;
     }
     return og.LonLat();
 };
