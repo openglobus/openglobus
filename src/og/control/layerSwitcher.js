@@ -32,10 +32,12 @@ og.control.LayerSwitcher.prototype.oninit = function () {
 };
 
 og.control.LayerSwitcher.prototype.onLayerAdded = function (layer) {
-    if (layer.isBaseLayer()) {
-        this.addSwitcher("radio", layer, this.baseLayersDiv);
-    } else {
-        this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
+    if (layer.displayInLayerSwitcher) {
+        if (layer.isBaseLayer()) {
+            this.addSwitcher("radio", layer, this.baseLayersDiv);
+        } else {
+            this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
+        }
     }
 };
 

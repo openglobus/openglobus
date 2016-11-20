@@ -26,7 +26,7 @@ og.layer.MAXIMUM_OVERLAYS = 8;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {og.Extent} [options.extent=new og.Extent(-180.0, -90.0, 180.0, 90.0)] - Visible extent.
+ * @param {og.Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {og.math.Vector3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
  * @param {og.math.Vector3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
  * @param {og.math.Vector3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
@@ -69,6 +69,8 @@ og.layer.Layer = function (name, options) {
      * @type {string}
      */
     this.name = name || "noname";
+
+    this.displayInLayerSwitcher = options.displayInLayerSwitcher != undefined ? options.displayInLayerSwitcher : true;
 
     /**
      * Layer global opacity.
