@@ -29,6 +29,10 @@ og.control.Sun = function (options) {
      */
     //this._isCameraSunlight = false;
 
+    this.offsetVertical = options.offsetVertical || 5000000;
+
+    this.offsetHorizontal = options.offsetHorizontal || 5000000;
+
     /**
      * Light source.
      * @public
@@ -86,17 +90,22 @@ og.control.Sun.prototype.oninit = function () {
 og.control.Sun.prototype._draw = function () {
 
     this._currDate = this.renderer.handler.clock.currentDate;
-
-    if (this.renderer.activeCamera.getHeight() < 4650000) {
+    var cam = this.renderer.activeCamera;
+    if (cam.getHeight() < 4650000) {
         this._lightOn = true;
         this._f = 1;
+        var n = cam.eye.normal();
+        var tu = og.math.Vector3.proj_b_to_plane(cam._v, n, cam._v).normalize().scale(this.offsetVertical);
+        var tr = og.math.Vector3.proj_b_to_plane(cam._u, n, cam._u).normalize().scale(this.offsetHorizontal);
+        var d = tu.add(tr);
+        var pos = cam.eye.add(d);
         if (this._k > 0) {
             this._k -= 0.01;
-            var rot = og.math.Quaternion.getRotationBetweenVectors(this.sunlight._position.normal(), this.renderer.activeCamera.eye.normal());
+            var rot = og.math.Quaternion.getRotationBetweenVectors(this.sunlight._position.normal(), pos.normal());
             var r = rot.slerp(og.math.Quaternion.IDENTITY, this._k).normalize();
             this.sunlight.setPosition(r.mulVec3(this.sunlight._position));
         } else {
-            this.sunlight.setPosition(this.renderer.activeCamera.eye);
+            this.sunlight.setPosition(pos);
         }
     } else {
         this._k = 1;

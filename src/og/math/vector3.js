@@ -152,6 +152,21 @@ og.math.Vector3.noncollinear = function (a, b) {
 };
 
 /**
+ * Get projection of the vector to plane where n - normal to the plane.
+ * @static
+ * @param {og.math.Vector3} b - Vector.
+ * @param {og.math.Vector3} n - Plane normal.
+ * @returns {og.math.Vector3}
+ */
+og.math.Vector3.proj_b_to_plane = function (b, n, def) {
+    var res = b.sub(n.scaleTo(n.dot(b) / n.dot(n)));
+    if (def && res.isZero()) {
+        return new og.math.Vector3(def.x, def.y, def.z);
+    }
+    return res;
+};
+
+/**
  * Get projection of the first vector to the second.
  * @static
  * @param {og.math.Vector3} b - First vector.

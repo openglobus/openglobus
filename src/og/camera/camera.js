@@ -13,12 +13,12 @@ goog.require('og.Events');
  * @param {og.Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle] - Camera angle of view. Default is 35.0
- * @param {number} [options.near] - Camera near plane distance. Default is 1.0
- * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
- * @param {og.math.Vector3} [options.eye] - Camera eye position. Default (0,0,0)
- * @param {og.math.Vector3} [options.look] - Camera look position. Default (0,0,0)
- * @param {og.math.Vector3} [options.up] - Camera eye position. Default (0,1,0)
+ * @param {number} [options.viewAngle=35] - Camera angle of view. Default is 35.0
+ * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
+ * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
+ * @param {og.math.Vector3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
+ * @param {og.math.Vector3} [options.look=[0,0,0]] - Camera look position. Default (0,0,0)
+ * @param {og.math.Vector3} [options.up=[0,1,0]] - Camera eye position. Default (0,1,0)
  *
  * @fires og.Camera#viewchange
  */
@@ -204,6 +204,30 @@ og.Camera.prototype.initialize = function (renderer, options) {
         options.up || d.up.clone());
 
     this.update();
+};
+
+og.Camera.prototype.getUp = function () {
+    return this._v;
+};
+
+og.Camera.prototype.getDown = function () {
+    return this._v.negateTo();
+};
+
+og.Camera.prototype.getRight = function () {
+    return this._u;
+};
+
+og.Camera.prototype.getLeft = function () {
+    return this._u.negateTo();
+};
+
+og.Camera.prototype.getForward = function () {
+    return this._n;
+};
+
+og.Camera.prototype.getBackward = function () {
+    return this._n.negateTo();
 };
 
 /**
