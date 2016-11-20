@@ -16,7 +16,7 @@ og.planetSegment.NormalMapCreatorQueue = function (width, height) {
 og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMapCreator);
 
 og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
-    if (this.active || segment.tileZoom <= 2) {
+    if (this.active || segment.tileZoom > 0) {
         segment._inTheQueue = true;
         if (this._counter >= 1) {
             this._pendingsQueue.unshift(segment);
@@ -27,7 +27,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype.shift = function (segment) {
 };
 
 og.planetSegment.NormalMapCreatorQueue.prototype.queue = function (segment) {
-    if (this.active || segment.tileZoom <= 2) {
+    if (this.active || segment.tileZoom > 0) {
         segment._inTheQueue = true;
         if (this._counter >= 1) {
             this._pendingsQueue.push(segment);

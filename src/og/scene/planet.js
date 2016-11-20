@@ -374,7 +374,6 @@ og.scene.Planet.prototype.getLayerByName = function (name) {
         if (this.layers[i].name === name)
             return this.layers[i];
     }
-    return undefined;
 };
 
 /**
@@ -593,12 +592,16 @@ og.scene.Planet.prototype.initialization = function () {
     this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
 
     //Loads first nodes for better viewing if you have started on a lower altitude.
-    this._quadTree.createChildrenNodes();
+    this._preRender();
+};
+
+og.scene.Planet.prototype._preRender = function () {
+    this._quadTree.traverseNodes();
     this._quadTree.renderNode();
-    this._quadTree.nodes[og.quadTree.NW].renderTree();
-    this._quadTree.nodes[og.quadTree.NE].renderTree();
-    this._quadTree.nodes[og.quadTree.SW].renderTree();
-    this._quadTree.nodes[og.quadTree.SE].renderTree();
+    this._quadTree.nodes[og.quadTree.NW].renderNode();
+    this._quadTree.nodes[og.quadTree.NE].renderNode();
+    this._quadTree.nodes[og.quadTree.SW].renderNode();
+    this._quadTree.nodes[og.quadTree.SE].renderNode();
 };
 
 /**

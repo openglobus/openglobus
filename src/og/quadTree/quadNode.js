@@ -194,9 +194,6 @@ og.quadTree.QuadNode.prototype.traverseNodes = function () {
     if (!this.nodes.length) {
         this.createChildrenNodes();
     }
-    if (!this.nodes[og.quadTree.NW]) {
-        console.log(this);
-    }
     this.nodes[og.quadTree.NW].renderTree();
     this.nodes[og.quadTree.NE].renderTree();
     this.nodes[og.quadTree.SW].renderTree();
