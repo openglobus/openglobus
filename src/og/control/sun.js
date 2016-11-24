@@ -15,6 +15,8 @@ goog.require('og.math.Quaternion');
 og.control.Sun = function (options) {
     og.inheritance.base(this, options);
 
+    options = options || {};
+
     /**
      * Earth planet node.
      * @public
