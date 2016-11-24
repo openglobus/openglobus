@@ -1,6 +1,8 @@
 <html>
 <head>
     <title>OpenGlobus</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,400italic,700,300" rel="stylesheet" type="text/css">
 
@@ -13,34 +15,37 @@
     <link rel="stylesheet" href="./github-gist.css">
     <script src="./highlight.pack.js"></script>
 
+    <link rel="stylesheet" href="./slicknav.min.css">
+    <script src="./jquery.slicknav.min.js"></script>
+
     <link rel="stylesheet" href="./og.css" type="text/css" />
     <script src="./og.js"></script>
 
     <link rel="stylesheet" href="./style.css" type="text/css" />
     <script src="./start.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+        $(function () {
+            $('#menu').slicknav({
+                'label': '<div class="logo">OpenGlobus <span>pre-Alpha v0.1</span></div>'
+            });
+        });
+        hljs.initHighlightingOnLoad();
+    </script>
 </head>
 
 <body onload="start();">
-    <div class="titlecontainer">
-        <div class="container">
-            <div class="title"><a href="http://www.openglobus.org">OpenGlobus <span>pre-Alpha v0.1</span></a></div>
-            <div class="navpanel">
-                <div class="nav">
-                    <span>Overview</span>
-                </div>
-                <div class="nav">
-                    <a href="./examples.html">Examples</a>
-                </div>
-                <div class="nav">
-                    <a href="http://openglobus.org/build/og.zip">Download</a>
-                </div>
-                <div class="nav">
-                    <a href="http://openglobus.org/api">API</a>
-                </div>
-                <div class="nav">
-                    <a href="https://github.com/OpenGlobus/OpenGlobus">GitHub</a>
-                </div>
+
+    <div class="container">
+        <div id="nav">
+            <div class="bigLogo logo">OpenGlobus <span>pre-Alpha v0.1</span></div>
+            <div class="floatright">
+                <ul id="menu">
+                    <li><a href="#">Overview</a></li>
+                    <li><a href="#">Examples</a></li>
+                    <li><a href="#">API</a></li>
+                    <li><a href="#">Download</a></li>
+                    <li><a href="#">GitHub</a></li>
+                </ul>
             </div>
         </div>
     </div>
@@ -66,7 +71,6 @@
         'skybox': og.scene.defaultSkyBox(),
         'terrain': new og.terrainProvider.TerrainProvider("OpenGlobus")
     });
-    globus.planet.viewExtent([-180, -90, 180, 90]);
     new og.layer.XYZ("OpenStreetMap", {
         'diffuse': [0.89, 0.9, 0.83],
         'specular': [0.0003, 0.00012, 0.00001],
@@ -75,12 +79,9 @@
         'url': "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
         'attribution': 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
     }).addTo(globus.planet);
-
     globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
             </code>
         </pre>
-    </div>
-    <div class="container">
         <h1>Features</h1>
         <div class="features clearfix">
             <div class="no-break">
@@ -90,8 +91,8 @@
                     <li>Billbords, labels</li>
                     <li>Vector layers<span class="quiet">: linestrings, polygons</span></li>
                     <li>GeoImage overlays<span class="quiet">: images, videos, webgl framebuffers</span></li>
-                    <li>GeoJSON<span class="quiet"> - in develop</span></li>
                     <li>Custom canvas tiles</li>
+                    <li>GeoJSON<span class="indev"> - in develop</span></li>
                 </ul>
             </div>
 
@@ -120,7 +121,7 @@
                     <li>Layer switcher</li>
                     <li>Real sun positioning</li>
                     <li>Arcball navigation<span class="quiet">: mouse, touch, keyboard</span></li>
-                    <li>Real moon positioning<span class="quiet">: in develop</span></li>
+                    <li>Real moon positioning<span class="indev">: in develop</span></li>
                 </ul>
             </div>
 
@@ -133,13 +134,14 @@
                     <li>Smooth lighting</li>
                     <li>Layers appearance customization<span class="quiet">: lighting parameters, height over ground, transparent color, opacity, visible bounds</span></li>
                     <li>Axis aligned billboards and labels</li>
-                    <li>Atmosphere scattering<span class="quiet"> - in develop</span></li>
-                    <li>Collada objects<span class="quiet"> - in develop</span></li>
-                    <li>LIDAR terrain<span class="quiet"> - in develop</span></li>
+                    <li>Atmosphere scattering<span class="indev"> - in develop</span></li>
+                    <li>Collada objects<span class="indev"> - in develop</span></li>
+                    <li>LIDAR terrain<span class="indev"> - in develop</span></li>
                 </ul>
-            </div>           
+            </div>
         </div>
     </div>
+
     <div class="bottomcontainer">
         <div class="container"><div style="float:left">2016 © Free License</div></div>
     </div>

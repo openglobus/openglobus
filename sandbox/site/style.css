@@ -1,5 +1,5 @@
 body {
-    font-size: 14px;
+    font-size: 100%;
     line-height: 1.5;
     color: #333;
     font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -8,30 +8,127 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+
+
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-family: 'Open Sans',sans-serif;
     font-weight: 300;
 }
 
 .h3, h3 {
-    font-size: 20px;
+    font-size: 1.5em;
 }
+
+
+.slicknav_menu {
+    display: none;
+    background: white;
+}
+
+.slicknav_btn {
+    background: white;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    width: 100%;
+}
+
+.slicknav_nav a {
+    color: blue;
+}
+
+.slicknav_nav {
+    text-align: right;
+    font-size: 14px;
+}
+
+.slicknav_menu .slicknav_icon-bar {
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.58);
+    -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.58);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.58);
+}
+
+.slicknav_menu .slicknav_icon {
+    float: right;
+}
+
+.bigLogo {
+    display: block;
+}
+
+.logo {
+    float: left;
+    position: absolute;
+    color: initial;
+    font-weight: initial;
+    text-shadow: initial;
+}
+
+@media screen and (max-width: 40em) {
+    /* #menu is the original menu */
+    #menu {
+        display: none;
+    }
+
+    .slicknav_menu {
+        display: block;
+    }
+
+    .bigLogo {
+        display: none;
+    }
+
+    #nav {
+        display: none;
+    }
+}
+
+.floatright {
+    float: right;
+    padding-top: 5px;
+}
+
+.nav_container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 60em;
+}
+
+#nav {
+    width: 100%;
+    background: #fff;
+    height: 49px;
+}
+
+    #nav li {
+        display: inline-block;
+        padding: 0em 0.5em;
+        color: blue;
+    }
+
+    #nav a {
+        text-decoration: none;
+        font-size: 1.05em;
+    }
+
+        #nav a:hover {
+            text-decoration: underline;
+        }
+
+    #nav ul {
+        padding: 0;
+        margin: 0;
+    }
 
 .container {
     max-width: 60em;
     margin: 0 auto;
 }
 
-.nav a {
-    text-decoration: none;
-    color: blue;
-}
-
-    .nav a:hover {
-        text-decoration: underline;
-    }
-
-.title a {
+.logo a {
     text-decoration: none;
 }
 
@@ -45,24 +142,14 @@ h3.tagline {
     margin-bottom: 30px;
 }
 
-.navpanel {
-    float: right;
-}
-
-.nav {
+.logo {
     float: left;
-    padding: 23px 0px 0px 15px;
+    font-size: 1.5em;
 }
 
-.title {
-    float: left;
-    padding: 17px 0px;
-    font-size: 20px;
-}
-
-    .title span {
+    .logo span {
         color: red;
-        font-size: 11px;
+        font-size: .5em;
     }
 
 .titlecontainer {
@@ -106,4 +193,12 @@ h3.tagline {
 
 .quiet {
     color: #999;
+}
+
+.indev {
+    color: red;
+}
+
+.container pre code {
+    font-size: 14px;
 }
