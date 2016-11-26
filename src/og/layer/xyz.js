@@ -99,7 +99,7 @@ og.layer.XYZ.EVENT_NAMES = [
     "loadend"];
 
 /**
- * Creates imagery tile layer instance.
+ * Creates imagery tile {@link og.layer.XYZ} layer instance.
  * @function
  * @param {string} name - Layer name.
  * @param {Object} options - Imagery layer options.

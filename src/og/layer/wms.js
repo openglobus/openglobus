@@ -76,6 +76,7 @@ og.inheritance.extend(og.layer.WMS, og.layer.XYZ);
  * @function
  * @param {string} name - Layer name.
  * @param {Object} options - Options.
+ * @return {og.layer.WMS}
  */
 og.layer.wms = function (name, options) {
     return new og.layer.WMS(name, options);

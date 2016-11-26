@@ -29,6 +29,15 @@ og.layer.GeoImage = function (name, options) {
 og.inheritance.extend(og.layer.GeoImage, og.layer.BaseGeoImage);
 
 /**
+ * GeoImage layer {@link og.layer.GeoImage} object factory.
+ * @static
+ * @returns {og.layer.GeoImage} Returns image layer.
+ */
+og.layer.geoImage = function (name, options) {
+    return new og.layer.GeoImage(name, options);
+};
+
+/**
  * Sets image source url path.
  * @public
  * @param {String} srs - Image url path.

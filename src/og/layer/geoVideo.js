@@ -36,6 +36,15 @@ og.layer.GeoVideo = function (name, options) {
 og.inheritance.extend(og.layer.GeoVideo, og.layer.BaseGeoImage);
 
 /**
+ * GeoVideo layer {@link og.layer.GeoVideo} object factory.
+ * @static
+ * @returns {og.layer.GeoVideo} Returns video layer.
+ */
+og.layer.geoVideo = function (name, options) {
+    return new og.layer.GeoVideo(name, options);
+};
+
+/**
  * Sets video source url path.
  * @public
  * @param {String} srs - Video url path.

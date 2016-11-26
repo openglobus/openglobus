@@ -35,6 +35,15 @@ og.layer.CanvasTiles = function (name, options) {
 og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
 
 /**
+ * CanvasTiles layer {@link og.layer.CanvasTiles} object factory.
+ * @static
+ * @returns {og.layer.CanvasTiles} Returns canvas tiles layer.
+ */
+og.layer.canvasTiles = function (name, options) {
+    return new og.layer.CanvasTiles(name, options);
+};
+
+/**
  * Start to handle tile segment material.
  * @public
  * @virtual

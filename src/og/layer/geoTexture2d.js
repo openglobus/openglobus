@@ -22,6 +22,16 @@ og.layer.GeoTexture2d = function (name, options) {
 
 og.inheritance.extend(og.layer.GeoTexture2d, og.layer.BaseGeoImage);
 
+/**
+ * GeoTexture2d layer {@link og.layer.GeoTexture2d} object factory.
+ * @static
+ * @returns {og.layer.GeoTexture2d} Returns texture2d layer.
+ */
+og.layer.geoTexture2d = function (name, options) {
+    return new og.layer.GeoTexture2d(name, options);
+};
+
+
 og.layer.GeoTexture2d.prototype.loadMaterial = function (material) {
     this._planet._geoImageCreator.add(this);
 };

@@ -133,6 +133,15 @@ og.layer.Vector.EVENT_NAMES = [
 ];
 
 /**
+ * Vector layer {@link og.layer.Vector} object factory.
+ * @static
+ * @returns {og.layer.Vector} Returns vector layer.
+ */
+og.layer.vector = function (name, options) {
+    return new og.layer.Vector(name, options);
+};
+
+/**
  * Adds layer to the planet.
  * @public
  */
@@ -140,6 +149,7 @@ og.layer.Vector.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
     this._entityCollectionAlways.addTo(planet, true);
     this._buildEntityCollectionsTree();
+    return this;
 };
 
 /**
@@ -166,7 +176,7 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
 
         if (entity.lineString) {
             this._entityCollectionAlways.add(entity);
-        }else if (this._planet) {
+        } else if (this._planet) {
             if (!entity._lonlat) {
                 entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
             }
@@ -310,6 +320,7 @@ og.layer.Vector.prototype.setEntities = function (entities) {
         }
     }
     this._buildEntityCollectionsTree();
+    return this;
 };
 
 /**
@@ -323,6 +334,7 @@ og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible)
     this.scaleByDistance[0] = near;
     this.scaleByDistance[1] = far;
     this.scaleByDistance[2] = farInisible || og.math.MAX32;
+    return this;
 };
 
 /**
