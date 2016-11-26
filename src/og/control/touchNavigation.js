@@ -131,13 +131,15 @@ og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
         return;
 
     this.planet.stopFlying();
-
     this.stopRotation();
 
-    var dir = this.renderer.activeCamera.unproject(e.x, e.y);
-    this.stepIndex = this.stepsCount;
-    this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff, e, true, dir);
+    var p = this.planet.getLonLatFromPixelTerrain(e, true);
+    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
+        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * (1.0 + this.distDiff) * 1.7));
+    } else {
+        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
+    }
+
 };
 
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {

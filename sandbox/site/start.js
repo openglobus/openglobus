@@ -9,7 +9,7 @@ function start() {
         isBaseLayer: true,
         url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
-        attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
+        attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
     });
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");

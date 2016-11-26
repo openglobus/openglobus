@@ -168,14 +168,13 @@ og.control.MouseNavigation.prototype.oninit = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
-    var ms = this.renderer.events.mouseState;
-    this.stepIndex = this.stepsCount;
+    this.planet.stopFlying();
+    this.stopRotation();
+    var p = this.planet.getLonLatFromPixelTerrain(this.renderer.events.mouseState, true);
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-            this.planet, this.stepsCount, this.distDiff * 2, ms, false, ms.direction);
+        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * (1.0 + this.distDiff) * 1.7));
     } else {
-        this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-            this.planet, this.stepsCount, this.distDiff * 1.7, ms, true, ms.direction);
+        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
     }
 };
 
