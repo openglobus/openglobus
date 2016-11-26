@@ -32,6 +32,28 @@ function start() {
         "autoActivated": true
     });
 
+    og.layer.vector("Markers", { groundAlign: true })
+        .addTo(globus.planet)
+        .add(new og.Entity({
+            lonlat: [158.186, 52.452],
+            //label: {
+            //    text: place.name,
+            //    size: 40,
+            //    color: new og.math.Vector4(1, 1, 1, 1),
+            //    outlineColor: new og.math.Vector4(0, 0, 0, 1),
+            //    outline: 0.45,
+            //    weight: "bold",
+            //    face: "verdana",
+            //    offset: [10,-2]
+            //},
+            billboard: {
+                src: "./marker.png",
+                width: 39,
+                height: 64,
+                offset: [0, 32]
+            }
+        }));
+
     globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
 
     globus.planet.RATIO_LOD = 0.9;
