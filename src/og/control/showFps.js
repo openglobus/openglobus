@@ -11,6 +11,8 @@ goog.require('og.control.BaseControl');
  */
 og.control.ShowFps = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
 };
 
 og.inheritance.extend(og.control.ShowFps, og.control.BaseControl);

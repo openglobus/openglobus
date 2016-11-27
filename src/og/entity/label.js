@@ -49,7 +49,7 @@ og.Label = function (options) {
      * @private
      * @type {number}
      */
-    this._size = options.size || 32;
+    this._size = options.size || 33;
 
     /**
      * HTML5 font style. Example 'normal', 'italic'.
@@ -70,7 +70,7 @@ og.Label = function (options) {
      * @private
      * @type {number}
      */
-    this._outline = options.outline != undefined ? options.outline : 0.58;
+    this._outline = options.outline != undefined ? options.outline : 0.5;
 
     /**
      * Label outline color.

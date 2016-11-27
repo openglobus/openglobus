@@ -418,6 +418,8 @@ og.webgl.Handler.prototype._initExtension = function (extensionStr) {
         var ext = og.webgl.getExtension(this.gl, extensionStr);
         if (ext) {
             this.extensions[extensionStr] = ext;
+        } else {
+            og.console.logWrn("og.webgl.Handler: extension '" + extensionStr+"' doesn't initialize.");
         }
     }
 };

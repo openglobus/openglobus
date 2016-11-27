@@ -12,6 +12,8 @@ goog.require('og.input');
  */
 og.control.KeyboardNavigation = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
 };
 
 og.inheritance.extend(og.control.KeyboardNavigation, og.control.BaseControl);

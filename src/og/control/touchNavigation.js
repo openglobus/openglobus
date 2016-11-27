@@ -19,6 +19,8 @@ goog.require('og.math.Pixel');
 og.control.TouchNavigation = function (options) {
     og.inheritance.base(this, options);
 
+    options = options || {};
+
     this.grabbedPoint = new og.math.Vector3();
     this.inertia = 0.007;
     this.grabbedSpheroid = new og.bv.Sphere();

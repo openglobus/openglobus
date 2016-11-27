@@ -208,6 +208,7 @@
     font-family: Tahoma;
     background-color: rgba(130, 130, 130, 0.49);
     color: white;
+    z-index: 100000000;
 }
 
 .ogConsole-text {

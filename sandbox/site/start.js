@@ -2,24 +2,21 @@ function start() {
     //og.RESOURCES_URL = "./resources/";
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
-        specular: og.math.vector3(0.0003, 0.00012, 0.00001),
+        specular: [0.0003, 0.00012, 0.00001],
         shininess: 20,
-        diffuse: og.math.vector3(0.89, 0.9, 0.83),
-        extent: og.extent(og.lonLat(-180, -90), og.lonLat(180, 90)),
+        diffuse: [0.89, 0.9, 0.83],
         isBaseLayer: true,
         url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
         attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
     });
 
-    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-
     var controls = [
-        new og.control.MouseNavigation({ autoActivate: true }),
-	    new og.control.TouchNavigation({ autoActivate: true }),
-    	new og.control.ZoomControl({ autoActivate: true }),
-        new og.control.EarthCoordinates({ autoActivate: true }),
-    	new og.control.Sun({ autoActivate: true })
+        og.control.mouseNavigation(),
+	    og.control.touchNavigation(),
+    	og.control.zoomControl(),
+        og.control.earthCoordinates(),
+    	og.control.sun()
     ];
 
     globus = new og.Globus({
@@ -27,7 +24,7 @@ function start() {
         "name": "Earth",
         "controls": controls,
         "skybox": og.scene.defaultSkyBox(),
-        "terrain": terrain,
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm],
         "autoActivated": true
     });
@@ -36,19 +33,17 @@ function start() {
         .addTo(globus.planet)
         .add(new og.Entity({
             lonlat: [158.186, 52.452],
-            //label: {
-            //    text: place.name,
-            //    size: 40,
-            //    color: new og.math.Vector4(1, 1, 1, 1),
-            //    outlineColor: new og.math.Vector4(0, 0, 0, 1),
-            //    outline: 0.45,
-            //    weight: "bold",
-            //    face: "verdana",
-            //    offset: [10,-2]
-            //},
+            label: {
+                text: "There was Vasya!",
+                outline: 0,
+                size: 18,
+                color: "#000",
+                face: "Arial",
+                offset: [10, -2]
+            },
             billboard: {
                 src: "./marker.png",
-                width: 39,
+                width: 64,
                 height: 64,
                 offset: [0, 32]
             }

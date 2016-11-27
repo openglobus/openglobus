@@ -5,6 +5,9 @@ goog.require('og.control.BaseControl');
 
 og.control.LoadingSpinner = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
+
     this.spinnerElement = null;
 };
 

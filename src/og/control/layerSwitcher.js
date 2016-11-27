@@ -10,6 +10,9 @@ goog.require('og.inheritance');
  */
 og.control.LayerSwitcher = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
+
     this.dialog = null;
     this.baseLayersDiv = null;
     this.overlaysDiv = null;

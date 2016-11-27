@@ -16,6 +16,8 @@ goog.require('og.mercator');
 og.control.EarthCoordinates = function (options) {
     og.inheritance.base(this, options);
 
+    options = options || {};
+
     /**
      * Display type.
      * @private

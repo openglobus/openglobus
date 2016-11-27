@@ -18,6 +18,8 @@ goog.require('og.math.Ray');
 og.control.MouseNavigation = function (options) {
     og.inheritance.base(this, options);
 
+    options = options || {};
+
     this.grabbedPoint = new og.math.Vector3();
     this._eye0 = new og.math.Vector3();
     this.pointOnEarth = new og.math.Vector3();

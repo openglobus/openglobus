@@ -12,6 +12,9 @@ goog.require('og.input');
  */
 og.control.SimpleNavigation = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
+
     this.camera = null;
     this.speed = 10;
 };

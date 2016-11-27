@@ -7,6 +7,10 @@ goog.require('og.math.Vector4');
 goog.require('og.LonLat');
 goog.require('og.Extent');
 
+og.utils.isString = function (s) {
+    return typeof (s) === 'string' || s instanceof String;
+};
+
 /**
  * Synchronous text file loading. Returns file text.
  * @param {string} fileUrl - File name path.
@@ -34,7 +38,7 @@ og.utils.readTextFile = function (fileUrl) {
 og.utils.htmlColorToRgba = function (htmlColor, opacity) {
     if (htmlColor[0] == "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-        var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+        var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -57,7 +61,7 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
 og.utils.htmlColorToRgb = function (htmlColor) {
     if (htmlColor[0] == "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-        var hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+        var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -126,7 +130,7 @@ og.utils.createVector4 = function (v, def) {
 
 og.utils.createColorRGBA = function (c, def) {
     if (c) {
-        if (c instanceof String) {
+        if (og.utils.isString(c)) {
             return og.utils.htmlColorToRgba(c);
         } else if (c instanceof Array) {
             return new og.math.Vector4.fromVec(c);
@@ -141,7 +145,7 @@ og.utils.createColorRGBA = function (c, def) {
 
 og.utils.createColorRGB = function (c, def) {
     if (c) {
-        if (c instanceof String) {
+        if (og.utils.isString(c)) {
             return og.utils.htmlColorToRgb(c);
         } else if (c instanceof Array) {
             return new og.math.Vector3.fromVec(c);

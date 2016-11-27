@@ -13,6 +13,8 @@ goog.require('og.control.MouseNavigation');
 og.control.ZoomControl = function (options) {
     og.inheritance.base(this, options);
 
+    options = options || {};
+
     this.distDiff = 0.33;
     this.stepsCount = 5;
     this.stepsForward = null;

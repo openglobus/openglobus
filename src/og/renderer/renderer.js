@@ -287,7 +287,7 @@ og.Renderer.prototype.init = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-            'precision lowp float;\
+            'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\

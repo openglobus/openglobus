@@ -7,6 +7,9 @@ goog.require('og.layer.BaseGeoImage');
 
 og.control.GeoImageDragControl = function (options) {
     og.inheritance.base(this, options);
+
+    options = options || {};
+
     this._cornerIndex = -1;
     this._catchCorner = false;
 
