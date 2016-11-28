@@ -24,14 +24,7 @@ og.shaderProgram.drawnode_nl = function () {
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
-            attribute vec3 aVertexPosition;\
+            'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform float height;\
@@ -48,7 +41,8 @@ og.shaderProgram.drawnode_nl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#extension GL_EXT_draw_buffers : require\n\
+            '#ifdef GL_EXT_draw_buffers\n\
+            #extension GL_EXT_draw_buffers : require\n\
             #ifdef GL_ES\n\
             #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
@@ -123,7 +117,8 @@ og.shaderProgram.drawnode_nl = function () {
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[4].a * emptiness);\
                 gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[4], 1.0), step(1.0, emptiness));\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), step(1.0, emptiness));\
-            }'
+            }\n\
+            #endif'
     });
 };
 
@@ -158,14 +153,7 @@ og.shaderProgram.drawnode_wl = function () {
             aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader: 
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
-            attribute vec3 aVertexPosition;\
+            'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionMatrix;\
             uniform mat4 viewMatrix;\
@@ -192,8 +180,9 @@ og.shaderProgram.drawnode_wl = function () {
                 gl_Position = projectionMatrix * v_vertex;\
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
-        fragmentShader: 
-            '#extension GL_EXT_draw_buffers : require\n\
+        fragmentShader:
+            '#ifdef GL_EXT_draw_buffers\n\
+            #extension GL_EXT_draw_buffers : require\n\
             #ifdef GL_ES\n\
             #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
@@ -342,6 +331,7 @@ og.shaderProgram.drawnode_wl = function () {
                 emptiness = step(1.0, emptiness);\
                 gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[4], 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);\
-            }'
+            }\n\
+            #endif'
     });
 };

@@ -610,7 +610,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
         ms.pickingObject = null;
         ts.pickingObject = null;
 
-        var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+        var co = o && o[c[0] + "_" + c[1] + "_" + c[2]];
 
         if (co) {
             ms.pickingObject = co;
@@ -634,11 +634,13 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                     //previous not black
                     if (p[0] || p[1] || p[2]) {
                         var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                        var pe = po.events || po._entityCollection.events;
-                        ms.pickingObject = po;
-                        pe.dispatch(pe.mouseleave, ms);
-                        ts.pickingObject = po;
-                        pe.dispatch(pe.touchleave, ts);
+                        if (po) {
+                            var pe = po.events || po._entityCollection.events;
+                            ms.pickingObject = po;
+                            pe.dispatch(pe.mouseleave, ms);
+                            ts.pickingObject = po;
+                            pe.dispatch(pe.touchleave, ts);
+                        }
                     }
 
                     var ce = co.events || co._entityCollection.events;
@@ -838,7 +840,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.touchStart) {
         var r = this.renderer;
-        r._currPickingColor = r._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
+        r._currPickingColor = r.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
         var o = r.colorObjects;
         var c = r._currPickingColor;
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];

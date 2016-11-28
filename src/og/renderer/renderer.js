@@ -119,10 +119,17 @@ og.Renderer = function (handler) {
 
     /**
      * Picking objects(labels and billboards) framebuffer.
-     * @private
+     * @public
      * @type {og.webgl.Framebuffer}
      */
-    this._pickingFramebuffer = null;
+    this.pickingFramebuffer = null;
+
+    /**
+     * Whole scene rendering framebuffer.
+     * @public
+     * @type {og.webgl.Framebuffer|og.webgl.MultiFramebuffer}
+     */
+    this.sceneFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -263,13 +270,13 @@ og.Renderer.prototype.init = function () {
     this.events.initialize();
 
     this.handler.onCanvasResize = function (obj) {
-        that.sceneFrameBuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        that._pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        that.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        that.pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
     };
 
-    this._pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
+    this.pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
 
     this.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("screenFrame", {
         uniforms: {
@@ -297,7 +304,15 @@ og.Renderer.prototype.init = function () {
             }'
     }));
 
-    this.sceneFrameBuffer = new og.webgl.MultiFramebuffer(this.handler, { size: 3 });
+    //Here multiframebuffer(provided WEBGL_draw_buffers extension) creation.
+    this._drawBuffersExtension = this.handler.initializeExtension("WEBGL_draw_buffers");
+
+    if (this._drawBuffersExtension) {        
+        this.sceneFramebuffer = new og.webgl.MultiFramebuffer(this.handler, { size: 3 });
+    } else {
+        this.sceneFramebuffer = new og.webgl.Framebuffer(this.handler);
+    }
+
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 };
 
@@ -336,7 +351,7 @@ og.Renderer.prototype.draw = function () {
     e.handleEvents();
     e.dispatch(e.draw, this);
 
-    var sfb = this.sceneFrameBuffer;
+    var sfb = this.sceneFramebuffer;
     sfb.activate();
     var h = this.handler;
     h.clearFrame();
@@ -364,13 +379,13 @@ og.Renderer.prototype.draw = function () {
 
         var pc;
         if (ts.x || ts.y) {
-            pc = this._pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
+            pc = this.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                pc = this.sceneFrameBuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+                pc = this.sceneFramebuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
         } else {
-            pc = this._pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
+            pc = this.pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                pc = this.sceneFrameBuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+                pc = this.sceneFramebuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
         }
         this._currPickingColor = pc;
     }
@@ -402,7 +417,7 @@ og.Renderer.prototype.draw = function () {
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c = this.sceneFrameBuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
+    var c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 };
 
@@ -411,7 +426,7 @@ og.Renderer.prototype.getPickingObject = function (x, y) {
  * @private
  */
 og.Renderer.prototype._drawPickingBuffer = function () {
-    this._pickingFramebuffer.activate();
+    this.pickingFramebuffer.activate();
 
     var h = this.handler;
     var gl = h.gl;
@@ -429,7 +444,7 @@ og.Renderer.prototype._drawPickingBuffer = function () {
         dp[i].callback.call(dp[i].sender);
     }
 
-    this._pickingFramebuffer.deactivate();
+    this.pickingFramebuffer.deactivate();
 };
 
 /**

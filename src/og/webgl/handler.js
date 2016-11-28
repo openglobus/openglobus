@@ -410,18 +410,19 @@ og.webgl.Handler.prototype._initShaderPrograms = function () {
 
 /**
  * Initialize additional WebGL extensions.
- * @private
+ * @public
  * @param {string} extensionStr - Extension name.
  */
-og.webgl.Handler.prototype._initExtension = function (extensionStr) {
+og.webgl.Handler.prototype.initializeExtension = function (extensionStr, showLog) {
     if (!(this.extensions && this.extensions[extensionStr])) {
         var ext = og.webgl.getExtension(this.gl, extensionStr);
         if (ext) {
             this.extensions[extensionStr] = ext;
-        } else {
-            og.console.logWrn("og.webgl.Handler: extension '" + extensionStr+"' doesn't initialize.");
+        } else if (showLog) {
+            og.console.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
         }
     }
+    return this.extensions && this.extensions[extensionStr];
 };
 
 /**
@@ -446,10 +447,9 @@ og.webgl.Handler.prototype.init = function () {
     /** Sets deafult extensions */
     this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
-    this._params.extensions.push("WEBGL_draw_buffers");
     var i = this._params.extensions.length;
     while (i--) {
-        this._initExtension(this._params.extensions[i]);
+        this.initializeExtension(this._params.extensions[i], true);
     }
 
     if (!this.extensions.EXT_texture_filter_anisotropic)
