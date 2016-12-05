@@ -357,6 +357,7 @@ og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
     } else {
         og.console.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
     }
+    return program;
 };
 
 /**

@@ -257,7 +257,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this._p[a] = gl.getAttribLocation(this._p, a);
 
         if (this._p[a] == undefined) {
-            og.console.logErr("og.shaderProgram.ShaderProgram:" + this.name + " - attribute " + a + " is not exists.");
+            og.console.logErr("og.shaderProgram.ShaderProgram:" + this.name + " - attribute '" + a + "' is not exists.");
             gl.deleteProgram(this._p);
             return;
         }
@@ -277,7 +277,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this._p[u] = gl.getUniformLocation(this._p, u);
 
         if (this._p[u] == undefined) {
-            og.console.logErr("og.shaderProgram.ShaderProgram:" + this.name + " - uniform " + u + " is not exists.");
+            og.console.logErr("og.shaderProgram.ShaderProgram:" + this.name + " - uniform '" + u + "' is not exists.");
             gl.deleteProgram(this._p);
             return;
         }
