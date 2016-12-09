@@ -13,6 +13,11 @@ goog.require('og.quadTree.QuadNode');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.drawnode_nl');
+goog.require('og.shaderProgram.drawnode_wl');
+goog.require('og.shaderProgram.drawnode_screen_nl');
+goog.require('og.shaderProgram.drawnode_screen_wl');
+goog.require('og.shaderProgram.drawnode_colorPicking');
+goog.require('og.shaderProgram.drawnode_heightPicking');
 goog.require('og.layer');
 goog.require('og.planetSegment');
 goog.require('og.planetSegment.Segment');
@@ -315,6 +320,11 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this._geoImageCreator = null;
 
+    /**
+     * @protected
+     */
+    this._fnRendering = null;
+
     //events initialization
     this.events.registerNames(og.scene.Planet.EVENT_NAMES);
 };
@@ -493,8 +503,20 @@ og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
  * @protected
  */
 og.scene.Planet.prototype._initializeShaders = function () {
-    this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
-    this.renderer.handler.addShaderProgram(og.shaderProgram.drawnode_wl(), true);
+    var h = this.renderer.handler;
+    if (this.renderer.isMultiFramebufferCompatible()) {
+        h.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
+        h.addShaderProgram(og.shaderProgram.drawnode_wl(), true);
+        this._fnRendering = this._multiframebufferRendering;
+    } else {
+        h.addShaderProgram(og.shaderProgram.drawnode_screen_nl(), true);
+        h.addShaderProgram(og.shaderProgram.drawnode_screen_wl(), true);
+        h.addShaderProgram(og.shaderProgram.drawnode_colorPicking_(), true);
+        h.addShaderProgram(og.shaderProgram.drawnode_heightPicking(), true);
+        this._fnRendering = this._singleframebufferRendering;
+
+        this.renderer.addPickingCallback(this, this._renderColorPickingBackbufferPASS);
+    }
 };
 
 /**
@@ -776,7 +798,7 @@ og.scene.Planet.prototype.frame = function () {
 
     this.transformLights();
 
-    this._rendering();
+    this._fnRendering();
 
     //Creates geoImages textures.
     this._geoImageCreator.frame();
@@ -795,16 +817,181 @@ og.scene.Planet.prototype.frame = function () {
  * @virtual
  * @protected
  */
-og.scene.Planet.prototype._rendering = function () {
-    this._renderNodesPASS();
-    //this._renderHeightBackbufferPASS();
+og.scene.Planet.prototype._multiframebufferRendering = function () {
+    this._multiRenderNodesPASS();
+    this._renderVectorLayersPASS();
+};
+
+/**
+ * @virtual
+ * @protected
+ */
+og.scene.Planet.prototype._singleframebufferRendering = function () {
+    this._renderScreenNodesPASS();
+    this._renderHeightPickingBackbufferPASS();
     this._renderVectorLayersPASS();
 };
 
 /**
  * @protected
  */
-og.scene.Planet.prototype._renderNodesPASS = function () {
+og.scene.Planet.prototype._renderScreenNodesPASS = function () {
+
+    var sh;
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    var gl = h.gl;
+
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    if (this.lightEnabled) {
+        h.shaderPrograms.drawnode_screen_wl.activate();
+        sh = h.shaderPrograms.drawnode_wl._program,
+        shu = sh.uniforms;
+
+        gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+
+        gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+
+        //bind night glowing material
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 3);
+        gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE + 3);
+
+        //bind specular material
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
+        gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 4);
+
+        this._diffuseMaterialArr[0] = this.baseLayer.diffuse.x;
+        this._diffuseMaterialArr[1] = this.baseLayer.diffuse.y;
+        this._diffuseMaterialArr[2] = this.baseLayer.diffuse.z;
+
+        this._ambientMaterialArr[0] = this.baseLayer.ambient.x;
+        this._ambientMaterialArr[1] = this.baseLayer.ambient.y;
+        this._ambientMaterialArr[2] = this.baseLayer.ambient.z;
+
+        this._specularMaterialArr[0] = this.baseLayer.specular.x;
+        this._specularMaterialArr[1] = this.baseLayer.specular.y;
+        this._specularMaterialArr[2] = this.baseLayer.specular.z;
+        this._specularMaterialArr[3] = this.baseLayer.shininess;
+    } else {
+        h.shaderPrograms.drawnode_screen_nl.activate();
+        sh = h.shaderPrograms.drawnode_nl._program;
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+    }
+
+    //draw planet's nodes
+    var rn = this._renderedNodes,
+        sl = this._visibleTileLayerSlices;
+
+    var i = rn.length;
+    while (i--) {
+        rn[i].planetSegment._screenRendering(sh, sl[0]);
+    }
+
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    for (j = 1; j < sl.length; j++) {
+        i = rn.length;
+        gl.polygonOffset(0, -j);
+        while (i--) {
+            rn[i].planetSegment._screenRendering(sh, sl[j], this.transparentTexture, true);
+        }
+    }
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+
+    gl.disable(gl.BLEND);
+};
+
+/**
+ * @protected
+ */
+og.scene.Planet.prototype._renderHeightPickingBackbufferPASS = function () {
+    var sh;
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    var gl = h.gl;
+
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    h.shaderPrograms.drawnode_heightPicking.activate();
+    sh = h.shaderPrograms.drawnode_heightPicking._program;
+    gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+
+    h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
+
+    //draw planet's nodes
+    var rn = this._renderedNodes,
+        sl = this._visibleTileLayerSlices;
+
+    var i = rn.length;
+    while (i--) {
+        rn[i].planetSegment._heightPickingRendering(sh, sl[0]);
+    }
+
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    for (j = 1; j < sl.length; j++) {
+        i = rn.length;
+        gl.polygonOffset(0, -j);
+        while (i--) {
+            rn[i].planetSegment._heightPickingRendering(sh, sl[j], this.transparentTexture, true);
+        }
+    }
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+
+    gl.disable(gl.BLEND);
+};
+
+/**
+ * @protected
+ */
+og.scene.Planet.prototype._renderColorPickingBackbufferPASS = function () {
+    var sh;
+    var renderer = this.renderer;
+    var h = renderer.handler;
+    var gl = h.gl;
+
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    h.shaderPrograms.drawnode_colorPicking.activate();
+    sh = h.shaderPrograms.drawnode_colorPicking._program;
+    gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+
+    //draw planet's nodes
+    var rn = this._renderedNodes,
+        sl = this._visibleTileLayerSlices;
+
+    var i = rn.length;
+    while (i--) {
+        rn[i].planetSegment._colorPickingRendering(sh, sl[0]);
+    }
+
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    for (j = 1; j < sl.length; j++) {
+        i = rn.length;
+        gl.polygonOffset(0, -j);
+        while (i--) {
+            rn[i].planetSegment._colorPickingRendering(sh, sl[j], this.transparentTexture, true);
+        }
+    }
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+
+    gl.disable(gl.BLEND);
+};
+
+
+/**
+ * @protected
+ */
+og.scene.Planet.prototype._multiRenderNodesPASS = function () {
 
     var sh;
     var renderer = this.renderer;
@@ -862,7 +1049,7 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
 
     var i = rn.length;
     while (i--) {
-        rn[i].planetSegment._renderBase(sh, sl[0]);
+        rn[i].planetSegment._multiRendering(sh, sl[0]);
     }
 
     gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -870,7 +1057,7 @@ og.scene.Planet.prototype._renderNodesPASS = function () {
         i = rn.length;
         gl.polygonOffset(0, -j);
         while (i--) {
-            rn[i].planetSegment._renderOverlay(sh, sl[j]);
+            rn[i].planetSegment._multiRendering(sh, sl[j], this.transparentTexture, true);
         }
     }
     gl.disable(gl.POLYGON_OFFSET_FILL);

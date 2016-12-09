@@ -144,6 +144,11 @@ og.Renderer = function (handler) {
      * @type {Array.<number,number,number>}
      */
     this._prevPickingColor = [0, 0, 0];
+
+    /**
+     * @private
+     */
+    this._fnScreenFrame = null;
 };
 
 /**
@@ -304,13 +309,15 @@ og.Renderer.prototype.init = function () {
             }'
     }));
 
-    //Here multiframebuffer(provided WEBGL_draw_buffers extension) creation.
+    //Adds multiframebuffer(provided WEBGL_draw_buffers extension) extension.
     this._drawBuffersExtension = this.handler.initializeExtension("WEBGL_draw_buffers");
 
-    if (this._drawBuffersExtension) {        
+    if (this._drawBuffersExtension) {
         this.sceneFramebuffer = new og.webgl.MultiFramebuffer(this.handler, { size: 3 });
+        this._fnScreenFrame = this._multiframebufferScreenFrame;
     } else {
         this.sceneFramebuffer = new og.webgl.Framebuffer(this.handler);
+        this._fnScreenFrame = this._singleframebufferScreenFrame;
     }
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
@@ -359,6 +366,7 @@ og.Renderer.prototype.draw = function () {
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
+    //Rendering scene nodes
     var rn = this._renderNodesArr;
     var i = rn.length;
     while (i--) {
@@ -367,30 +375,18 @@ og.Renderer.prototype.draw = function () {
 
     sfb.deactivate();
 
+    //Rendering picking callbacks and refresh pickingColor
     this._drawPickingBuffer();
 
-    var ms = this.events.mouseState;
-    var ts = this.events.touchState;
+    //Rendering on the screen
+    this._fnScreenFrame();
 
-    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-        this._prevPickingColor[0] = this._currPickingColor[0];
-        this._prevPickingColor[1] = this._currPickingColor[1];
-        this._prevPickingColor[2] = this._currPickingColor[2];
+    e.mouseState.moving = false;
+    e.touchState.moving = false;
+};
 
-        var pc;
-        if (ts.x || ts.y) {
-            pc = this.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
-            if (!(pc[0] || pc[1] || pc[2]))
-                pc = this.sceneFramebuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
-        } else {
-            pc = this.pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
-            if (!(pc[0] || pc[1] || pc[2]))
-                pc = this.sceneFramebuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
-        }
-        this._currPickingColor = pc;
-    }
-
-
+og.Renderer.prototype._multiframebufferScreenFrame = function () {
+    var h = this.handler;
     var sh = h.shaderPrograms.screenFrame,
         p = sh._program,
         gl = h.gl;
@@ -398,15 +394,30 @@ og.Renderer.prototype.draw = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, sfb.textures[0]);
+    //MAYBE: Could be refactored with framebuf function like getTexture()
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.enable(gl.DEPTH_TEST);
+};
 
-    e.mouseState.moving = false;
-    e.touchState.moving = false;
+og.Renderer.prototype._singleframebufferScreenFrame = function () {
+    var h = this.handler;
+    var sh = h.shaderPrograms.screenFrame,
+        p = sh._program,
+        gl = h.gl;
+
+    gl.disable(gl.DEPTH_TEST);
+    sh.activate();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.texture);
+    gl.uniform1i(p.uniforms.texture._pName, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+    gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.enable(gl.DEPTH_TEST);
 };
 
 /**
@@ -417,8 +428,22 @@ og.Renderer.prototype.draw = function () {
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
+    var c;
+    if (this._drawBuffersExtension) {
+        c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
+    } else {
+        c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height);
+    }
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
+};
+
+/** 
+ * Returns true if 'WEBGL_draw_buffers' extension initialized.
+ * @public
+ * @returns {Boolean}
+ */
+og.Renderer.prototype.isMultiFramebufferCompatible = function () {
+    return (this._drawBuffersExtension ? true : false);
 };
 
 /**
@@ -445,6 +470,27 @@ og.Renderer.prototype._drawPickingBuffer = function () {
     }
 
     this.pickingFramebuffer.deactivate();
+
+    var ms = this.events.mouseState;
+    var ts = this.events.touchState;
+
+    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+        this._prevPickingColor[0] = this._currPickingColor[0];
+        this._prevPickingColor[1] = this._currPickingColor[1];
+        this._prevPickingColor[2] = this._currPickingColor[2];
+
+        var pc;
+        if (ts.x || ts.y) {
+            pc = this.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
+            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
+                pc = this.sceneFramebuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+        } else {
+            pc = this.pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
+            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
+                pc = this.sceneFramebuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+        }
+        this._currPickingColor = pc;
+    }
 };
 
 /**

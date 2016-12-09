@@ -417,11 +417,9 @@ og.shape.BaseShape.prototype.draw = function () {
         gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.uniformMatrix4fv(shu.modelMatrix._pName, false, this._mxModel._m);
 
-        //if (this.texture) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.uniform1i(shu.uSampler._pName, 0);
-        //}
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord._pName, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
