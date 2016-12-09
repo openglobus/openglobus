@@ -75,7 +75,8 @@ og.BillboardHandler.ALIGNEDAXIS_BUFFER = 8;
 og.BillboardHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
         if (!this._renderer.handler.shaderPrograms.billboard) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.billboard());
+            var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
+            this._renderer.handler.addShaderProgram(og.shaderProgram.billboard(isSingleBuffer));
         }
         if (!this._renderer.handler.shaderPrograms.billboardPicking) {
             this._renderer.handler.addShaderProgram(og.shaderProgram.billboardPicking());

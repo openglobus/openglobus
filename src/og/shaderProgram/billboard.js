@@ -6,7 +6,47 @@ goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
-og.shaderProgram.billboard = function () {
+og.shaderProgram.billboard = function (isSingleBuffer) {
+
+    var strFragment;
+    if (isSingleBuffer) {
+        strFragment = '#ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
+            uniform sampler2D u_texture;\
+            varying vec2 v_texCoords;\
+            varying vec4 v_rgba;\
+            void main () {\
+                vec4 color = texture2D(u_texture, v_texCoords);\
+                if(color.a < 0.1)\
+                    discard;\
+                gl_FragColor = color * v_rgba;\
+            }';
+    } else {
+        strFragment = '#extension GL_EXT_draw_buffers : require\n\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
+            uniform sampler2D u_texture;\
+            varying vec2 v_texCoords;\
+            varying vec4 v_rgba;\
+            void main () {\
+                vec4 color = texture2D(u_texture, v_texCoords);\
+                if(color.a < 0.1)\
+                    discard;\
+                gl_FragData[0] = color * v_rgba;\
+                gl_FragData[1] = vec4(0.0);\
+            }';
+    }
+
     return new og.shaderProgram.ShaderProgram("billboard", {
         uniforms: {
             u_texture: { type: og.shaderProgram.types.SAMPLER2D },
@@ -86,25 +126,7 @@ og.shaderProgram.billboard = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            '#extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
-            uniform sampler2D u_texture;\
-            varying vec2 v_texCoords;\
-            varying vec4 v_rgba;\
-            varying vec3 v_pickingColor;\
-            void main () {\
-                vec4 color = texture2D(u_texture, v_texCoords);\
-                if(color.a < 0.1)\
-                    discard;\
-                gl_FragData[0] = color * v_rgba;\
-                gl_FragData[1] = vec4(0.0);\
-            }'
+            strFragment
     });
 };
 

@@ -1179,7 +1179,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
     this.node.hasNeighbor[3] = false;
 };
 
-og.planetSegment.Segment.prototype._pickingColorRendering = function (sh, layerSlice, defaultTexture, isOverlay) {
+og.planetSegment.Segment.prototype._colorPickingRendering = function (sh, layerSlice, defaultTexture, isOverlay) {
     if (this.ready) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
@@ -1190,9 +1190,9 @@ og.planetSegment.Segment.prototype._pickingColorRendering = function (sh, layerS
         var p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        //gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
+        //gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+        //gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
         var li = vl[0];
         var currHeight = li._height;
@@ -1260,19 +1260,19 @@ og.planetSegment.Segment.prototype._pickingColorRendering = function (sh, layerS
         if (notEmpty || isOverlay) {
 
             //bind normalmap texture
-            if (p.lightEnabled) {
-                gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
+            //if (p.lightEnabled) {
+            //    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+            //    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+            //    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
+            //    gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
 
-                //bind segment specular and night material texture coordinates
-                gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+            //    //bind segment specular and night material texture coordinates
+            //    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
 
-                gl.uniform3fv(shu.diffuseMaterial._pName, p._diffuseMaterialArr);
-                gl.uniform3fv(shu.ambientMaterial._pName, p._ambientMaterialArr);
-                gl.uniform4fv(shu.specularMaterial._pName, p._specularMaterialArr);
-            }
+            //    gl.uniform3fv(shu.diffuseMaterial._pName, p._diffuseMaterialArr);
+            //    gl.uniform3fv(shu.ambientMaterial._pName, p._ambientMaterialArr);
+            //    gl.uniform4fv(shu.specularMaterial._pName, p._specularMaterialArr);
+            //}
 
             gl.uniform1i(shu.samplerCount._pName, n);
             gl.uniform1f(shu.height._pName, currHeight);
@@ -1306,9 +1306,9 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
         var p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        //gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
+        //gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+        //gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
         var li = vl[0];
         var currHeight = li._height;
@@ -1376,19 +1376,19 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
         if (notEmpty || isOverlay) {
 
             //bind normalmap texture
-            if (p.lightEnabled) {
-                gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
+            //if (p.lightEnabled) {
+            //    gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
+            //    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+            //    gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
+            //    gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
 
-                //bind segment specular and night material texture coordinates
-                gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
+            //    //bind segment specular and night material texture coordinates
+            //    gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
 
-                gl.uniform3fv(shu.diffuseMaterial._pName, p._diffuseMaterialArr);
-                gl.uniform3fv(shu.ambientMaterial._pName, p._ambientMaterialArr);
-                gl.uniform4fv(shu.specularMaterial._pName, p._specularMaterialArr);
-            }
+            //    gl.uniform3fv(shu.diffuseMaterial._pName, p._diffuseMaterialArr);
+            //    gl.uniform3fv(shu.ambientMaterial._pName, p._ambientMaterialArr);
+            //    gl.uniform4fv(shu.specularMaterial._pName, p._specularMaterialArr);
+            //}
 
             gl.uniform1i(shu.samplerCount._pName, n);
             gl.uniform1f(shu.height._pName, currHeight);

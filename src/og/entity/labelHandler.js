@@ -43,7 +43,8 @@ og.LabelHandler.OUTLINECOLOR_BUFFER = 11;
 og.LabelHandler.prototype.initShaderProgram = function () {
     if (this._renderer.handler) {
         if (!this._renderer.handler.shaderPrograms.label) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.label());
+            var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
+            this._renderer.handler.addShaderProgram(og.shaderProgram.label(isSingleBuffer));
         }
         if (!this._renderer.handler.shaderPrograms.labelPicking) {
             this._renderer.handler.addShaderProgram(og.shaderProgram.labelPicking());

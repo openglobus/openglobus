@@ -6,7 +6,110 @@ goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.shaderProgram.types');
 goog.require('og.utils');
 
-og.shaderProgram.label = function () {
+og.shaderProgram.label = function (isSingleBuffer) {
+
+    var strFragment;
+
+    if (isSingleBuffer) {
+        strFragment = '#extension GL_OES_standard_derivatives : enable\n\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
+            const int MAX_SIZE = 12;\
+            uniform sampler2D u_fontTextureArr[MAX_SIZE];\
+            varying float v_fontIndex;\
+            varying vec2 v_texCoords;\
+            varying vec4 v_rgba;\
+            varying vec3 v_bufferAA;\
+            varying vec3 v_pickingColor;\
+            void main () {\
+                int fi = int(v_fontIndex);\
+                vec4 color;\
+                if (fi == 0) {\
+                    color = texture2D(u_fontTextureArr[0], v_texCoords);\
+                } else if (fi == 1) {\
+                    color = texture2D(u_fontTextureArr[1], v_texCoords);\
+                } else if (fi == 2) {\
+                    color = texture2D(u_fontTextureArr[2], v_texCoords);\
+                } else if (fi == 3) {\
+                    color = texture2D(u_fontTextureArr[3], v_texCoords);\
+                } else if (fi == 4) {\
+                    color = texture2D(u_fontTextureArr[4], v_texCoords);\
+                } else if (fi == 5) {\
+                    color = texture2D(u_fontTextureArr[5], v_texCoords);\
+                } else if (fi == 6) {\
+                    color = texture2D(u_fontTextureArr[6], v_texCoords);\
+                } else if (fi == 7) {\
+                    color = texture2D(u_fontTextureArr[7], v_texCoords);\
+                } else if (fi == 8) {\
+                    color = texture2D(u_fontTextureArr[8], v_texCoords);\
+                } else if (fi == 9) {\
+                    color = texture2D(u_fontTextureArr[9], v_texCoords);\
+                }else{\
+                    color = texture2D(u_fontTextureArr[10], v_texCoords);\
+                }\
+                float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );\
+                float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );\
+                if( alpha < 0.2 )\
+                    discard;\
+                gl_FragColor = vec4(v_rgba.rgb, alpha * v_rgba.a);\
+            }';
+    } else {
+        strFragment = '#extension GL_OES_standard_derivatives : enable\n\
+            #extension GL_EXT_draw_buffers : require\n\
+            #ifdef GL_ES\n\
+            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
+            precision highp float;\n\
+            #else\n\
+            precision mediump float;\n\
+            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
+            #endif // GL_ES\n\
+            const int MAX_SIZE = 12;\
+            uniform sampler2D u_fontTextureArr[MAX_SIZE];\
+            varying float v_fontIndex;\
+            varying vec2 v_texCoords;\
+            varying vec4 v_rgba;\
+            varying vec3 v_bufferAA;\
+            varying vec3 v_pickingColor;\
+            void main () {\
+                int fi = int(v_fontIndex);\
+                vec4 color;\
+                if (fi == 0) {\
+                    color = texture2D(u_fontTextureArr[0], v_texCoords);\
+                } else if (fi == 1) {\
+                    color = texture2D(u_fontTextureArr[1], v_texCoords);\
+                } else if (fi == 2) {\
+                    color = texture2D(u_fontTextureArr[2], v_texCoords);\
+                } else if (fi == 3) {\
+                    color = texture2D(u_fontTextureArr[3], v_texCoords);\
+                } else if (fi == 4) {\
+                    color = texture2D(u_fontTextureArr[4], v_texCoords);\
+                } else if (fi == 5) {\
+                    color = texture2D(u_fontTextureArr[5], v_texCoords);\
+                } else if (fi == 6) {\
+                    color = texture2D(u_fontTextureArr[6], v_texCoords);\
+                } else if (fi == 7) {\
+                    color = texture2D(u_fontTextureArr[7], v_texCoords);\
+                } else if (fi == 8) {\
+                    color = texture2D(u_fontTextureArr[8], v_texCoords);\
+                } else if (fi == 9) {\
+                    color = texture2D(u_fontTextureArr[9], v_texCoords);\
+                }else{\
+                    color = texture2D(u_fontTextureArr[10], v_texCoords);\
+                }\
+                float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );\
+                float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );\
+                if( alpha < 0.2 )\
+                    discard;\
+                gl_FragData[0] = vec4(v_rgba.rgb, alpha * v_rgba.a);\
+                gl_FragData[1] = vec4(0.0);\
+            }';
+    }
+
     return new og.shaderProgram.ShaderProgram("label", {
         uniforms: {
             u_fontTextureArr: { type: og.shaderProgram.types.SAMPLER2DXX },
@@ -94,55 +197,7 @@ og.shaderProgram.label = function () {
                 gl_Position.z += a_offset.z + uZ;\
             }',
         fragmentShader:
-            '#extension GL_OES_standard_derivatives : enable\n\
-            #extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
-            const int MAX_SIZE = 12;\
-            uniform sampler2D u_fontTextureArr[MAX_SIZE];\
-            varying float v_fontIndex;\
-            varying vec2 v_texCoords;\
-            varying vec4 v_rgba;\
-            varying vec3 v_bufferAA;\
-            varying vec3 v_pickingColor;\
-            void main () {\
-                int fi = int(v_fontIndex);\
-                vec4 color;\
-                if (fi == 0) {\
-                    color = texture2D(u_fontTextureArr[0], v_texCoords);\
-                } else if (fi == 1) {\
-                    color = texture2D(u_fontTextureArr[1], v_texCoords);\
-                } else if (fi == 2) {\
-                    color = texture2D(u_fontTextureArr[2], v_texCoords);\
-                } else if (fi == 3) {\
-                    color = texture2D(u_fontTextureArr[3], v_texCoords);\
-                } else if (fi == 4) {\
-                    color = texture2D(u_fontTextureArr[4], v_texCoords);\
-                } else if (fi == 5) {\
-                    color = texture2D(u_fontTextureArr[5], v_texCoords);\
-                } else if (fi == 6) {\
-                    color = texture2D(u_fontTextureArr[6], v_texCoords);\
-                } else if (fi == 7) {\
-                    color = texture2D(u_fontTextureArr[7], v_texCoords);\
-                } else if (fi == 8) {\
-                    color = texture2D(u_fontTextureArr[8], v_texCoords);\
-                } else if (fi == 9) {\
-                    color = texture2D(u_fontTextureArr[9], v_texCoords);\
-                }else{\
-                    color = texture2D(u_fontTextureArr[10], v_texCoords);\
-                }\
-                float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );\
-                float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );\
-                if( alpha < 0.2 )\
-                    discard;\
-                gl_FragData[0] = vec4(v_rgba.rgb, alpha * v_rgba.a);\
-                gl_FragData[1] = vec4(0.0);\
-            }'
+            strFragment
     });
 };
 

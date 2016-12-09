@@ -221,12 +221,12 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this._indexesBuffers = [];
 
-    ///**
-    // * Backbuffer for relief.
-    // * @protected
-    // * @type {Object}
-    // */
-    //this._heightBackbuffer = null;
+    /**
+     * Backbuffer for relief. Is null when WEBGL_draw_buffers extension initialized.
+     * @protected
+     * @type {Object}
+     */
+    this._heightPickingBackbuffer = null;
 
     /**
      * Calculates when mouse is moving or planet is rotating.
@@ -511,11 +511,13 @@ og.scene.Planet.prototype._initializeShaders = function () {
     } else {
         h.addShaderProgram(og.shaderProgram.drawnode_screen_nl(), true);
         h.addShaderProgram(og.shaderProgram.drawnode_screen_wl(), true);
-        h.addShaderProgram(og.shaderProgram.drawnode_colorPicking_(), true);
+        h.addShaderProgram(og.shaderProgram.drawnode_colorPicking(), true);
         h.addShaderProgram(og.shaderProgram.drawnode_heightPicking(), true);
         this._fnRendering = this._singleframebufferRendering;
 
         this.renderer.addPickingCallback(this, this._renderColorPickingBackbufferPASS);
+
+        this._heightPickingBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
     }
 };
 
@@ -848,7 +850,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
 
     if (this.lightEnabled) {
         h.shaderPrograms.drawnode_screen_wl.activate();
-        sh = h.shaderPrograms.drawnode_wl._program,
+        sh = h.shaderPrograms.drawnode_screen_wl._program,
         shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
@@ -881,7 +883,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
         this._specularMaterialArr[3] = this.baseLayer.shininess;
     } else {
         h.shaderPrograms.drawnode_screen_nl.activate();
-        sh = h.shaderPrograms.drawnode_nl._program;
+        sh = h.shaderPrograms.drawnode_screen_nl._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
     }
 
@@ -911,6 +913,9 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
  * @protected
  */
 og.scene.Planet.prototype._renderHeightPickingBackbufferPASS = function () {
+
+    this._heightPickingBackbuffer.activate();
+
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -946,6 +951,8 @@ og.scene.Planet.prototype._renderHeightPickingBackbufferPASS = function () {
     gl.disable(gl.POLYGON_OFFSET_FILL);
 
     gl.disable(gl.BLEND);
+
+    this._heightPickingBackbuffer.deactivate();
 };
 
 /**

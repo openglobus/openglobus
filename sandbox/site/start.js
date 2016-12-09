@@ -1,3 +1,42 @@
+﻿
+function solution(N) {
+    var gLen = 0;
+    var r0 = false,
+        r1 = false;
+    var sumCurr = 0,
+        sumMax = 0;
+    for (var i = 0; i < 32; i++) {
+        var br = (N >> i & 0x1);
+        var bl = (N >> (31 - i) & 0x1);
+
+        if (r0) {
+            if (br === 0) {
+                sumCurr++;
+            } else {
+                //br === 1
+                if (sumCurr > sumMax) {
+                    sumMax = sumCurr;
+                }
+                sumCurr = 0;
+            }
+
+        } else {
+            if (br === 1) {
+                r0 = true;
+            }
+        }
+
+    }
+
+    if ((N >> (31 - i) & 0x1) === 1) {
+        if (sumCurr > sumMax) {
+            sumMax = sumCurr;
+        }
+    }
+
+    return sumMax;
+}
+
 function start() {
     //og.RESOURCES_URL = "./resources/";
 
@@ -52,4 +91,13 @@ function start() {
     globus.planet.viewExtentArr([158.0713, 52.4024, 158.2910, 52.5095]);
 
     globus.planet.RATIO_LOD = 0.9;
+
+    console.log("3 101: " + solution(3));
+    console.log("1041 ‭5‬: " + solution(1041));
+    console.log("529 ‭4‬: " + solution(529));
+    console.log("9 ‭2‬: " + solution(9));
+    console.log("0 0: " + solution(0));
+    console.log("1 1: " + solution(1));
+    console.log("2 10: " + solution(2));
+    console.log("1984 0: " + solution(1984));
 };
