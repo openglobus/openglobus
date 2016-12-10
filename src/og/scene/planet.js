@@ -222,11 +222,11 @@ og.scene.Planet = function (name, ellipsoid) {
     this._indexesBuffers = [];
 
     /**
-     * Backbuffer for relief. Is null when WEBGL_draw_buffers extension initialized.
+     * Framebuffer for relief. Is null when WEBGL_draw_buffers extension initialized.
      * @protected
      * @type {Object}
      */
-    this._heightPickingBackbuffer = null;
+    this._heightPickingFramebuffer = null;
 
     /**
      * Calculates when mouse is moving or planet is rotating.
@@ -515,9 +515,12 @@ og.scene.Planet.prototype._initializeShaders = function () {
         h.addShaderProgram(og.shaderProgram.drawnode_heightPicking(), true);
         this._fnRendering = this._singleframebufferRendering;
 
-        this.renderer.addPickingCallback(this, this._renderColorPickingBackbufferPASS);
+        this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
-        this._heightPickingBackbuffer = new og.webgl.Framebuffer(this.renderer.handler);
+        this._heightPickingFramebuffer = new og.webgl.Framebuffer(this.renderer.handler);
+        this.renderer.events.on('resize', this, function (e) {
+            this._heightPickingFramebuffer.setSize(e.clientWidth, e.clientHeight);
+        });
     }
 };
 
@@ -830,7 +833,7 @@ og.scene.Planet.prototype._multiframebufferRendering = function () {
  */
 og.scene.Planet.prototype._singleframebufferRendering = function () {
     this._renderScreenNodesPASS();
-    this._renderHeightPickingBackbufferPASS();
+    this._renderHeightPickingFramebufferPASS();
     this._renderVectorLayersPASS();
 };
 
@@ -912,14 +915,17 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
 /**
  * @protected
  */
-og.scene.Planet.prototype._renderHeightPickingBackbufferPASS = function () {
+og.scene.Planet.prototype._renderHeightPickingFramebufferPASS = function () {
 
-    this._heightPickingBackbuffer.activate();
+    this._heightPickingFramebuffer.activate();
 
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
     var gl = h.gl;
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -952,13 +958,13 @@ og.scene.Planet.prototype._renderHeightPickingBackbufferPASS = function () {
 
     gl.disable(gl.BLEND);
 
-    this._heightPickingBackbuffer.deactivate();
+    this._heightPickingFramebuffer.deactivate();
 };
 
 /**
  * @protected
  */
-og.scene.Planet.prototype._renderColorPickingBackbufferPASS = function () {
+og.scene.Planet.prototype._renderColorPickingFramebufferPASS = function () {
     var sh;
     var renderer = this.renderer;
     var h = renderer.handler;
@@ -1235,7 +1241,10 @@ og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
     if (this._viewChanged || force) {
         this._viewChanged = false;
         var cnv = this.renderer.handler.canvas;
-        var color = og.math.Vector4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2));
+        var color =
+            this.renderer._drawBuffersExtension &&
+            og.math.Vector4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2)) ||
+            og.math.Vector4.fromVec(this._heightPickingFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
         if (!(color.x | color.y | color.z | color.w)) {
             return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
         }

@@ -12,12 +12,30 @@ og.Console = (function () {
         container.style.display = "none";
         document.body.appendChild(container);
 
+        var _visibility = false;
+
+        this.getVisibility = function () {
+            return _visibility;
+        };
+
+        this.setVisibility = function (visibility) {
+            if (_visibility != visibility) {
+                _visibility = visibility;
+                if (_visibility) {
+                    this.show();
+                } else {
+                    this.hide();
+                }
+            }
+        };
+
         /**
          * Show console panel.
          * @public
          */
         this.show = function () {
             container.style.display = "block";
+            _visibility = true;
         };
 
         /**
@@ -26,6 +44,7 @@ og.Console = (function () {
          */
         this.hide = function () {
             container.style.display = "none";
+            _visibility = false;
         };
 
         /**

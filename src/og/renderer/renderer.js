@@ -274,6 +274,9 @@ og.Renderer.prototype.init = function () {
 
     this.events.initialize();
 
+    //Bind console key
+    this.events.on("charkeypress", null, function () { og.console.setVisibility(!og.console.getVisibility()); }, og.input.KEY_APOSTROPHE);
+
     this.handler.onCanvasResize = function (obj) {
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
         that.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);

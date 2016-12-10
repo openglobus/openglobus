@@ -19,6 +19,7 @@ og.input.KEY_V = 86;
 og.input.KEY_W = 87;
 og.input.KEY_X = 88;
 og.input.KEY_F1 = 112;
+og.input.KEY_APOSTROPHE = 192;
 
 og.input.MB_LEFT = 0;
 og.input.MB_RIGHT = 2;
