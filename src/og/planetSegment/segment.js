@@ -1306,9 +1306,9 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
         var p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        //gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
-        //gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        //gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
+        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
         var li = vl[0];
         var currHeight = li._height;

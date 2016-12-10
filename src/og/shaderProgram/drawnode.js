@@ -300,6 +300,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
             samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             transparentColorArr: { type: og.shaderProgram.types.VEC4 },
+            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
             height: { type: og.shaderProgram.types.FLOAT },
             cameraPosition: { type: og.shaderProgram.types.VEC3 }
         },
@@ -332,6 +333,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             precision mediump float;\n\
             #endif // GL_FRAGMENT_PRECISION_HIGH\n\
             #endif // GL_ES\n\
+            uniform sampler2D defaultTexture;\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -359,7 +361,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             const vec2 BOTTOMLEFT = vec2(0.0);\
             const vec2 TOPRIGHT = vec2(1.0);\
             void main(void) {\
-                gl_FragColor = vec4(encode32(range), 1.0);\
+                gl_FragColor = vec4(encode32(range), texture2D( defaultTexture, vTextureCoord ));\
                 if( samplerCount == 0 ) return;\
 \
                 vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);\
