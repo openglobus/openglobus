@@ -361,7 +361,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             const vec2 BOTTOMLEFT = vec2(0.0);\
             const vec2 TOPRIGHT = vec2(1.0);\
             void main(void) {\
-                gl_FragColor = vec4(encode32(range), texture2D( defaultTexture, vTextureCoord ));\
+                gl_FragColor = vec4(encode32(range), texture2D( defaultTexture, vTextureCoord ).a);\
                 if( samplerCount == 0 ) return;\
 \
                 vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);\

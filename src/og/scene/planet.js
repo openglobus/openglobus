@@ -927,6 +927,7 @@ og.scene.Planet.prototype._renderHeightPickingFramebufferPASS = function () {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    gl.enable(gl.CULL_FACE);
     gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
@@ -974,6 +975,12 @@ og.scene.Planet.prototype._renderColorPickingFramebufferPASS = function () {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
 
+    //gl.polygonOffset(0, 0);
+    //gl.enable(gl.DEPTH_TEST);
+
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    gl.polygonOffset(0, -637000);
+
     h.shaderPrograms.drawnode_colorPicking.activate();
     sh = h.shaderPrograms.drawnode_colorPicking._program;
     gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
@@ -990,7 +997,7 @@ og.scene.Planet.prototype._renderColorPickingFramebufferPASS = function () {
     gl.enable(gl.POLYGON_OFFSET_FILL);
     for (j = 1; j < sl.length; j++) {
         i = rn.length;
-        gl.polygonOffset(0, -j);
+        gl.polygonOffset(0, -637000 - j);
         while (i--) {
             rn[i].planetSegment._colorPickingRendering(sh, sl[j], this.transparentTexture, true);
         }

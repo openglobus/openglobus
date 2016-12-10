@@ -313,7 +313,7 @@ og.Renderer.prototype.init = function () {
     }));
 
     //Adds multiframebuffer(provided WEBGL_draw_buffers extension) extension.
-    this._drawBuffersExtension = false;//this.handler.initializeExtension("WEBGL_draw_buffers");
+    this._drawBuffersExtension = null;//this.handler.initializeExtension("WEBGL_draw_buffers");
 
     if (this._drawBuffersExtension) {
         this.sceneFramebuffer = new og.webgl.MultiFramebuffer(this.handler, { size: 3 });
@@ -398,7 +398,7 @@ og.Renderer.prototype._multiframebufferScreenFrame = function () {
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
     //MAYBE: Could be refactored with framebuf function like getTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[1]);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
@@ -415,8 +415,8 @@ og.Renderer.prototype._singleframebufferScreenFrame = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, /*this.sceneFramebuffer.texture*/this.pickingFramebuffer.texture);
-    gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
+    gl.bindTexture(gl.TEXTURE_2D, /*this.sceneFramebuffer.texture*/this.pickingFramebuffer.texture);
+    //gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);

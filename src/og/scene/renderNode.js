@@ -343,6 +343,8 @@ og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
             ec[i]._visibility && ec[i].labelHandler.drawPicking();
         }
 
+        gl.polygonOffset(0, 0);
+
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
 
