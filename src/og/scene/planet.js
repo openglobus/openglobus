@@ -896,7 +896,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
 
     var i = rn.length;
     while (i--) {
-        rn[i].planetSegment._screenRendering(sh, sl[0]);
+        rn[i].planetSegment._screenRendering(sh, sl[0], 0);
     }
 
     gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -904,7 +904,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
         i = rn.length;
         gl.polygonOffset(0, -j);
         while (i--) {
-            rn[i].planetSegment._screenRendering(sh, sl[j], this.transparentTexture, true);
+            rn[i].planetSegment._screenRendering(sh, sl[j], j, this.transparentTexture, true);
         }
     }
     gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -944,7 +944,7 @@ og.scene.Planet.prototype._renderHeightPickingFramebufferPASS = function () {
 
     var i = rn.length;
     while (i--) {
-        rn[i].planetSegment._heightPickingRendering(sh, sl[0]);
+        rn[i].planetSegment._heightPickingRendering(sh, sl[0], 0);
     }
 
     gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -952,7 +952,7 @@ og.scene.Planet.prototype._renderHeightPickingFramebufferPASS = function () {
         i = rn.length;
         gl.polygonOffset(0, -j);
         while (i--) {
-            rn[i].planetSegment._heightPickingRendering(sh, sl[j], this.transparentTexture, true);
+            rn[i].planetSegment._heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
         }
     }
     gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -991,7 +991,7 @@ og.scene.Planet.prototype._renderColorPickingFramebufferPASS = function () {
 
     var i = rn.length;
     while (i--) {
-        rn[i].planetSegment._colorPickingRendering(sh, sl[0]);
+        rn[i].planetSegment._colorPickingRendering(sh, sl[0], 0);
     }
 
     gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -999,7 +999,7 @@ og.scene.Planet.prototype._renderColorPickingFramebufferPASS = function () {
         i = rn.length;
         gl.polygonOffset(0, -637000 - j);
         while (i--) {
-            rn[i].planetSegment._colorPickingRendering(sh, sl[j], this.transparentTexture, true);
+            rn[i].planetSegment._colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
         }
     }
     gl.disable(gl.POLYGON_OFFSET_FILL);
