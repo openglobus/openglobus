@@ -280,11 +280,13 @@ og.Renderer.prototype.init = function () {
     this.handler.onCanvasResize = function (obj) {
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
         that.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
-        that.pickingFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
         that.events.dispatch(that.events.resize, obj);
     };
 
-    this.pickingFramebuffer = new og.webgl.Framebuffer(this.handler);
+    this.pickingFramebuffer = new og.webgl.Framebuffer(this.handler, {
+        'width': 640,
+        'height': 480
+    });
 
     this.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("screenFrame", {
         uniforms: {
@@ -415,8 +417,9 @@ og.Renderer.prototype._singleframebufferScreenFrame = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, /*this.sceneFramebuffer.texture*/this.pickingFramebuffer.texture);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
     //gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.texture);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);

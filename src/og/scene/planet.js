@@ -517,9 +517,9 @@ og.scene.Planet.prototype._initializeShaders = function () {
 
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
-        this._heightPickingFramebuffer = new og.webgl.Framebuffer(this.renderer.handler);
-        this.renderer.events.on('resize', this, function (e) {
-            this._heightPickingFramebuffer.setSize(e.clientWidth, e.clientHeight);
+        this._heightPickingFramebuffer = new og.webgl.Framebuffer(this.renderer.handler, {
+            'width': 320,
+            'height': 240
         });
     }
 };
