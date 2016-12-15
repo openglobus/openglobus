@@ -114,7 +114,7 @@ og.control.EarthCoordinates.prototype.oninit = function () {
         if (that._displayType >= og.control.EarthCoordinates.DisplayTypesConverters.length)
             that._displayType = 0;
         that._converter = og.control.EarthCoordinates.DisplayTypesConverters[that._displayType];
-        that.showPosition();
+        that._showPosition();
     };
     this.renderer.div.appendChild(this._display);
 
