@@ -290,7 +290,7 @@ og.shape.BaseShape.prototype.setRenderNode = function (renderNode) {
         var img = new Image();
         var that = this;
         img.onload = function () {
-            that.texture = renderNode.renderer.handler.createTexture_af(this);
+            that.texture = renderNode.renderer.handler.createTexture(this);
         };
         img.src = this._src;
     }

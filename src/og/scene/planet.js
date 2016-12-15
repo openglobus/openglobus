@@ -602,7 +602,7 @@ og.scene.Planet.prototype.initialization = function () {
     if (this._useNightTexture) {
         var img = new Image();
         img.onload = function () {
-            that._nightTexture = that.renderer.handler.createTexture_af(this);
+            that._nightTexture = that.renderer.handler.createTexture(this);
         };
         img.src = og.RESOURCES_URL + "night.png";
     }
@@ -611,7 +611,7 @@ og.scene.Planet.prototype.initialization = function () {
     if (this._useSpecularTexture) {
         var img2 = new Image();
         img2.onload = function () {
-            that._specularTexture = that.renderer.handler.createTexture_af(this);
+            that._specularTexture = that.renderer.handler.createTexture(this);
         };
         img2.src = og.RESOURCES_URL + "spec.png";
     }
