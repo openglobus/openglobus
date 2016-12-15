@@ -44,7 +44,13 @@ og.control.EarthCoordinates = function (options) {
      * @private
      * @type {Boolean}
      */
-    this._center = options.center || false;
+
+    var pad = false;
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        pad = true;
+    }
+
+    this._center = options.center || pad;
 
     /**
      * Current position.

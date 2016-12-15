@@ -1,9 +1,8 @@
 ﻿.ogCenterIcon {
     height: 12px;
     width: 12px;
-    margin-bottom: 5px;
-    margin-right: 5px;
-    margin-right: 3px;
+    margin-bottom: -3.5px;
+    margin-right: -7.5px;
     bottom: 50%;
     right: 50%;
     position: absolute;
@@ -204,7 +203,7 @@
     width: 100%;
     max-height: 70%;
     overflow: auto;
-    font-size: 24px;
+    font-size: 12px;
     font-family: Tahoma;
     background-color: rgba(130, 130, 130, 0.49);
     color: white;
