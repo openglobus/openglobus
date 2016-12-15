@@ -30,7 +30,7 @@ og.control.TouchNavigation = function (options) {
     this.rot = 1;
     this._eye0 = new og.math.Vector3();
 
-    this.distDiff = 0.57;
+    this.distDiff = 0.33;
     this.stepsCount = 5;
     this.stepsForward = null;
     this.stepIndex = 0;
@@ -77,16 +77,16 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
         var t0 = this.touches[0],
             t1 = this.touches[1];
 
-        t0.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-        t0.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
-        t0.prev_x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-        t0.prev_y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+        t0.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+        t0.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
+        t0.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+        t0.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
         t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0, true);
 
-        t1.x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
-        t1.y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
-        t1.prev_x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
-        t1.prev_y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
+        t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
+        t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
+        t1.prev_x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
+        t1.prev_y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
         t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
         //this.planet._viewChanged = true;
@@ -110,10 +110,10 @@ og.control.TouchNavigation.prototype.onTouchStart = function (e) {
 og.control.TouchNavigation.prototype._startTouchOne = function (e) {
     var t = this.touches[0];
 
-    t.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-    t.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
-    t.prev_x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-    t.prev_y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+    t.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+    t.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
+    t.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+    t.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
 
     t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t, true);
     this._eye0.copy(this.renderer.activeCamera.eye);
@@ -134,14 +134,8 @@ og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
 
     this.planet.stopFlying();
     this.stopRotation();
-
-    var p = this.planet.getLonLatFromPixelTerrain(e, true);
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * (1.0 + this.distDiff) * 1.7));
-    } else {
-        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
-    }
-
+    var p = this.planet.getLonLatFromPixelTerrain(this.touches[0], true);
+    this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
 };
 
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {
@@ -179,13 +173,13 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         t0.prev_x = t0.x;
         t0.prev_y = t0.y;
-        t0.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-        t0.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+        t0.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+        t0.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
 
         t1.prev_x = t1.x;
         t1.prev_y = t1.y;
-        t1.x = e.sys.touches.item(1).pageX - e.sys.offsetLeft;
-        t1.y = e.sys.touches.item(1).pageY - e.sys.offsetTop;
+        t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
+        t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
 
         //var center_x = Math.round(t0.x + (t1.x - t0.x) * 0.5);
         //var center_y = Math.round(t0.y + (t1.y - t0.y) * 0.5);
@@ -219,8 +213,8 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
 
         t.prev_x = t.x;
         t.prev_y = t.y;
-        t.x = e.sys.touches.item(0).pageX - e.sys.offsetLeft;
-        t.y = e.sys.touches.item(0).pageY - e.sys.offsetTop;
+        t.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
+        t.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
 
         if (!t.grabbedPoint)
             return;
