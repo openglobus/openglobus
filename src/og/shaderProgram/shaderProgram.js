@@ -242,13 +242,12 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
     this.use();
 
-    gl.detachShader(this._p, fs);
-    gl.detachShader(this._p, vs);
-
     for (var a in this.attributes) {
         this.attributes[a]._name = a;
         this._variables[a] = this.attributes[a];
 
+        //Maybe, it will be better to remove enableArray option...
+        this.attributes[a].enableArray = (this.attributes[a].enableArray != undefined ? this.attributes[a].enableArray : true);
         if (this.attributes[a].enableArray)
             this.attributes[a]._callback = og.shaderProgram.bindBuffer;
         else
@@ -284,4 +283,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
 
         this.uniforms[u]._pName = this._p[u];
     }
+
+    gl.detachShader(this._p, fs);
+    gl.detachShader(this._p, vs);
 };
