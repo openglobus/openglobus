@@ -18,7 +18,7 @@ og.LineStringHandler.staticCounter = 0;
 og.LineStringHandler.prototype._initShaderProgram = function () {
     if (this._renderer.handler) {
         if (!this._renderer.handler.shaderPrograms.lineString) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.lineString());
+            this._renderer.handler.addShaderProgram(og.shaderProgram.lineString(this._renderer.isMultiFramebufferCompatible()));
         }
     }
 };
