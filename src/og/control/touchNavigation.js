@@ -30,7 +30,6 @@ og.control.TouchNavigation = function (options) {
     this.rot = 1;
     this._eye0 = new og.math.Vector3();
 
-    this.distDiff = 0.33;
     this.stepsCount = 5;
     this.stepsForward = null;
     this.stepIndex = 0;
@@ -134,8 +133,9 @@ og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
 
     this.planet.stopFlying();
     this.stopRotation();
-    var p = this.planet.getLonLatFromPixelTerrain(this.touches[0], true);
-    this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
+    var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true),
+        g = this.planet.ellipsoid.cartesianToLonLat(p);
+    this.planet.flyLonLat(new og.LonLat(g.lon, g.lat, this.renderer.activeCamera.distance(p) * 0.57));
 };
 
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {

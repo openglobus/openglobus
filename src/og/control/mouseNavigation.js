@@ -172,11 +172,12 @@ og.control.MouseNavigation.prototype.oninit = function () {
 og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () {
     this.planet.stopFlying();
     this.stopRotation();
-    var p = this.planet.getLonLatFromPixelTerrain(this.renderer.events.mouseState, true);
+    var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true),
+        g = this.planet.ellipsoid.cartesianToLonLat(p);
     if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * (1.0 + this.distDiff) * 1.7));
+        this.planet.flyLonLat(new og.LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0));
     } else {
-        this.planet.flyLonLat(new og.LonLat(p.lon, p.lat, this.renderer.activeCamera.getAltitude() * this.distDiff * 1.7));
+        this.planet.flyLonLat(new og.LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
     }
 };
 
