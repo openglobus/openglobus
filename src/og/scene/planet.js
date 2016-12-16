@@ -602,7 +602,7 @@ og.scene.Planet.prototype.initialization = function () {
     if (this._useNightTexture) {
         var img = new Image();
         img.onload = function () {
-            that._nightTexture = that.renderer.handler.createTexture(this);
+            that._nightTexture = that.renderer.handler.createTexture_l(this);
         };
         img.src = og.RESOURCES_URL + "night.png";
     }
@@ -611,7 +611,7 @@ og.scene.Planet.prototype.initialization = function () {
     if (this._useSpecularTexture) {
         var img2 = new Image();
         img2.onload = function () {
-            that._specularTexture = that.renderer.handler.createTexture(this);
+            that._specularTexture = that.renderer.handler.createTexture_l(this);
         };
         img2.src = og.RESOURCES_URL + "spec.png";
     }
@@ -625,10 +625,10 @@ og.scene.Planet.prototype.initialization = function () {
 og.scene.Planet.prototype._preRender = function () {
     this._quadTree.traverseNodes();
     this._quadTree.renderNode();
-    this._quadTree.nodes[og.quadTree.NW].renderNode();
-    this._quadTree.nodes[og.quadTree.NE].renderNode();
-    this._quadTree.nodes[og.quadTree.SW].renderNode();
-    this._quadTree.nodes[og.quadTree.SE].renderNode();
+    //this._quadTree.nodes[og.quadTree.NW].renderNode();
+    //this._quadTree.nodes[og.quadTree.NE].renderNode();
+    //this._quadTree.nodes[og.quadTree.SW].renderNode();
+    //this._quadTree.nodes[og.quadTree.SE].renderNode();
 };
 
 /**
