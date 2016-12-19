@@ -133,9 +133,9 @@ og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
 
     this.planet.stopFlying();
     this.stopRotation();
-    var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true),
+    var p = this.planet.getCartesianFromPixelTerrain(this.touches[0], true),
         g = this.planet.ellipsoid.cartesianToLonLat(p);
-    this.planet.flyLonLat(new og.LonLat(g.lon, g.lat, this.renderer.activeCamera.distance(p) * 0.57));
+    this.planet.flyLonLat(new og.LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
 };
 
 og.control.TouchNavigation.prototype.onTouchEnd = function (e) {

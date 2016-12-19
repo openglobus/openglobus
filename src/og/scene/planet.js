@@ -629,6 +629,12 @@ og.scene.Planet.prototype._preRender = function () {
     //this._quadTree.nodes[og.quadTree.NE].renderNode();
     //this._quadTree.nodes[og.quadTree.SW].renderNode();
     //this._quadTree.nodes[og.quadTree.SE].renderNode();
+
+    this._quadTreeNorth.traverseNodes();
+    this._quadTreeNorth.renderNode();
+
+    this._quadTreeSouth.traverseNodes();
+    this._quadTreeSouth.renderNode();
 };
 
 /**

@@ -693,3 +693,10 @@ og.webgl.Handler.prototype.createDefaultTexture = function (params, success) {
         success(texture);
     }
 };
+
+/**
+ * @public
+ */
+og.webgl.Handler.prototype.destroy = function () {
+
+};

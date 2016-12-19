@@ -206,3 +206,11 @@ og.ImageCanvas.prototype.openImage = function () {
     printWin.document.close();
     printWin.focus();
 };
+
+
+og.ImageCanvas.prototype.destroy = function () {
+    this._canvas.width = 1;
+    this._canvas.height = 1;
+    this._canvas = null;
+    this._context = null;
+};

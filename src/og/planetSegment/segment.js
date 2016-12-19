@@ -129,7 +129,7 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.tempVertices = [];
 
     this.normalMapTexture = null;
-    this.normalMapTextureBias = [0, 0, 1];
+    this.normalMapTextureBias = new Float32Array(3);
     this.normalMapVertices = [];
     this.normalMapNormals = null;
 
@@ -137,7 +137,7 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.vertexPositionBuffer = null;
     this.vertexTextureCoordBuffer = null;
 
-    this._globalTextureCoordinates = [0, 0, 0, 0];
+    this._globalTextureCoordinates = new Float32Array(4);
     this._projection = og.proj.EPSG3857;
     this._inTheQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
@@ -640,7 +640,10 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
         this.normalMapTexture = this.handler.createTexture_mm(this.planet.normalMapCreator.draw(this.normalMapNormals));
 
         this.normalMapReady = true;
-        this.normalMapTextureBias = [0, 0, 1];
+
+        this.normalMapTextureBias[0] = 0;
+        this.normalMapTextureBias[1] = 0;
+        this.normalMapTextureBias[2] = 1;
     }
 };
 
@@ -682,7 +685,7 @@ og.planetSegment.Segment.prototype.deleteMaterials = function () {
             mi.clear();
         }
     }
-    m.length = 0;
+    this.materials.length = 0;
 };
 
 /**
@@ -704,7 +707,9 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.normalMapReady = false;
     this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
-    this.normalMapTextureBias = [0, 0, 1];
+    this.normalMapTextureBias[0] = 0;
+    this.normalMapTextureBias[1] = 0;
+    this.normalMapTextureBias[2] = 1;
     this._inTheQueue = false;
 };
 
@@ -724,6 +729,13 @@ og.planetSegment.Segment.prototype.clearSegment = function () {
 og.planetSegment.Segment.prototype.destroySegment = function () {
 
     this.clearSegment();
+
+    var i = this._renderingSlices.length;
+    while (i--) {
+        this._renderingSlices[i].clear();
+    }
+
+    this._renderingSlices = null;
 
     this.node = null;
 
@@ -755,6 +767,8 @@ og.planetSegment.Segment.prototype.destroySegment = function () {
 
     this._projection = null;
     this._appliedNeighborsZoom = null;
+
+    this._globalTextureCoordinates = null;
 };
 
 /**
@@ -1286,6 +1300,25 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
     this.node.hasNeighbor[3] = false;
 };
 
+og.planetSegment._RenderingSlice = function (p) {
+    this.layers = [];
+    this.tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+    this.visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+    this.transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
+
+    this.clear = function () {
+        this.layers.length = 0;
+        this.tileOffsetArr.length = 0;
+        this.visibleExtentOffsetArr.length = 0;
+        this.transparentColorArr.length = 0;
+
+        this.layers = null;
+        this.tileOffsetArr = null;
+        this.visibleExtentOffsetArr = null;
+        this.transparentColorArr = null;
+    };
+};
+
 og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
     if (this.ready) {
         var gl = this.handler.gl;
@@ -1311,12 +1344,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
         var slice = this._renderingSlices[sliceIndex];
 
         if (!slice) {
-            slice = this._renderingSlices[sliceIndex] = {
-                'layers': [],
-                'tileOffsetArr': new Float32Array(p.SLICE_SIZE_4),
-                'visibleExtentOffsetArr': new Float32Array(p.SLICE_SIZE_4),
-                'transparentColorArr': new Float32Array(p.SLICE_SIZE_4)
-            };
+            slice = this._renderingSlices[sliceIndex] = new og.planetSegment._RenderingSlice(p);
         } else {
             slice.layers = [];
         }

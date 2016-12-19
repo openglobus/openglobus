@@ -81,6 +81,8 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
         }
 
         atlas.createTexture();
+        sdfCanvas.destroy();
+        sdfCanvas = null;
     }
 
     return fontIndex;

@@ -109,14 +109,29 @@ og.control.EarthCoordinates.prototype.oninit = function () {
     this._display = document.createElement('div');
     this._display.className = 'ogEarthCoordinatesControl';
     var that = this;
-    this._display.onclick = function (e) {
-        that._displayType += 1;
+
+    function _refresh(el) {
         if (that._displayType >= og.control.EarthCoordinates.DisplayTypesConverters.length)
             that._displayType = 0;
+        if (that._displayType == 0) {
+            el.style.width = "275px";
+        } else if (that._displayType == 1) {
+            el.style.width = "355px";
+        } else if (that._displayType == 2) {
+            el.style.width = "350px";
+        }
         that._converter = og.control.EarthCoordinates.DisplayTypesConverters[that._displayType];
         that._showPosition();
     };
+
+    this._display.onclick = function (e) {
+        that._displayType += 1;
+        _refresh(this);
+    };
+
     this.renderer.div.appendChild(this._display);
+
+    _refresh(this._display);
 
     centerDiv = document.createElement('div');
     centerDiv.className = 'ogCenterIcon';
@@ -154,7 +169,8 @@ og.control.EarthCoordinates.prototype.setCenter = function (center) {
 
 og.control.EarthCoordinates.prototype._showPosition = function () {
     if (this.position) {
-        this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " Height(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
+        this.position.height = ((this.position.height > 10000 || this.position.heigh < -10000) ? 0 : this.position.heigh);
+        this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " h(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
     } else {
         this._display.innerHTML = "Lat/Lon: " + "_____________________";
     }
