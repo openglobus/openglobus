@@ -637,7 +637,7 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
         this._normalMapEdgeEqualize(og.quadTree.W, 0, true);
         this._normalMapEdgeEqualize(og.quadTree.E, gs, true);
 
-        this.normalMapTexture = this.handler.createTexture_mm(this.planet.normalMapCreator.draw(this.normalMapNormals));
+        this.normalMapTexture = this.handler.createTexture_l(this.planet.normalMapCreator.draw(this.normalMapNormals));
 
         this.normalMapReady = true;
 
