@@ -212,7 +212,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {
 
             var cam = this.renderer.activeCamera;
 
-            if (cam._n.dot(cam.eye.normal()) > 0.15) {
+            if (cam._n.dot(cam.eye.normal()) > 0.28) {
                 var targetPoint = new og.math.Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
                 if (targetPoint) {
                     this.scaleRot = 1;

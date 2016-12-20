@@ -225,7 +225,7 @@ og.control.TouchNavigation.prototype.onTouchMove = function (e) {
         var targetPoint = new og.math.Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
         if (targetPoint) {
-            if (cam._n.dot(cam.eye.normal()) > 0.15) {
+            if (cam._n.dot(cam.eye.normal()) > 0.28) {
                 this.qRot = og.math.Quaternion.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
                 var rot = this.qRot;
                 cam.eye = rot.mulVec3(cam.eye);
