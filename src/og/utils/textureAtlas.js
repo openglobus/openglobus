@@ -222,7 +222,7 @@ og.utils.TextureAtlasNode = function (rect) {
     this.childNodes = null;
     this.image = null;
     this.rect = rect;
-    this.texCoords = new Array(8);
+    this.texCoords = [];
     this.atlas = null;
 };
 

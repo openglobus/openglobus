@@ -35,7 +35,7 @@ og.utils.SDFCreator.prototype._initHandler = function (width, height) {
         width: width, height: height,
         context: { alpha: true, depth: false }
     });
-    this._handler.init();
+    this._handler.initialize();
     this._handler.deactivateFaceCulling();
     this._handler.deactivateDepthTest();
 
@@ -58,42 +58,43 @@ og.utils.SDFCreator.prototype._initShaders = function () {
             aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader:
-            "attribute vec2 aPos;\n\
-            uniform vec2 uTexSize;\n\
-            varying vec2 TexCoord;\n\
-            varying vec2 vTexSize;\n\
-            void main() {\n\
-                TexCoord = (aPos + 1.0) * 0.5;\n\
-                TexCoord *= uTexSize;\n\
-                vTexSize = uTexSize;\n\
-                gl_Position.xy = aPos;\n\
-                gl_Position.zw = vec2(0.0, 1.0);\n\
+            "precision highp float;\
+            attribute vec2 aPos;\
+            uniform vec2 uTexSize;\
+            varying vec2 TexCoord;\
+            varying vec2 vTexSize;\
+            void main() {\
+                TexCoord = (aPos + 1.0) * 0.5;\
+                TexCoord *= uTexSize;\
+                vTexSize = uTexSize;\
+                gl_Position.xy = aPos;\
+                gl_Position.zw = vec2(0.0, 1.0);\
             }",
         fragmentShader:
-            "precision highp float;\n\
-            uniform sampler2D uTex1;\n\
-            uniform int uDistance;\n\
-            uniform vec2 uNeg;\n\
-            varying vec2 TexCoord;\n\
-            varying vec2 vTexSize;\n\
-            const int maxDistance = "+ this._outsideDistance + ";\n\
-            void main() {\n\
-                if ( uNeg.x - uNeg.y * texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\n\
-                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n\
-                    return;\n\
-                }\n\
-                for ( int i=1; i <= maxDistance; i++ ) {\n\
-                    if(i > uDistance) break;\n\
-                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\n\
-                        gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\n\
-                        return;\n\
-                    }\n\
-                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\n\
-                        gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\n\
-                        return;\n\
-                    }\n\
-                }\n\
-                gl_FragColor = vec4(1.0);\n\
+            "precision highp float;\
+            uniform sampler2D uTex1;\
+            uniform int uDistance;\
+            uniform vec2 uNeg;\
+            varying vec2 TexCoord;\
+            varying vec2 vTexSize;\
+            const int maxDistance = " + this._outsideDistance + ";\
+            void main() {\
+                if ( uNeg.x - uNeg.y * texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\
+                    return;\
+                }\
+                for ( int i=1; i <= maxDistance; i++ ) {\
+                    if(i > uDistance) break;\
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\
+                        gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\
+                        return;\
+                    }\
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\
+                        gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\
+                        return;\
+                    }\
+                }\
+                gl_FragColor = vec4(1.0);\
             }"
     });
 
@@ -107,37 +108,38 @@ og.utils.SDFCreator.prototype._initShaders = function () {
             aPos: { type: og.shaderProgram.types.VEC2, enableArray: true }
         },
         vertexShader:
-            "attribute vec2 aPos;\n\
-            uniform vec2 uTexSize;\n\
-            varying vec2 TexCoord;\n\
-            varying vec2 vTexSize;\n\
+            "precision highp float;\
+            attribute vec2 aPos;\
+            uniform vec2 uTexSize;\
+            varying vec2 TexCoord;\
+            varying vec2 vTexSize;\
             void main() {\n\
-                TexCoord = (aPos + 1.0) * 0.5;\n\
-                TexCoord *= uTexSize;\n\
-                vTexSize = uTexSize;\n\
-                gl_Position.xy = aPos;\n\
-                gl_Position.zw = vec2(0.0, 1.0);\n\
+                TexCoord = (aPos + 1.0) * 0.5;\
+                TexCoord *= uTexSize;\
+                vTexSize = uTexSize;\
+                gl_Position.xy = aPos;\
+                gl_Position.zw = vec2(0.0, 1.0);\
             }",
         fragmentShader:
-            "precision highp float;\n\
-            uniform sampler2D uTex1;\n\
-            uniform int uDistance;\n\
-            varying vec2 TexCoord;\n\
-            varying vec2 vTexSize;\n\
-            const int maxDistance = " + this._outsideDistance + ";\n\
-            float CalcC(float H, float V) {\n\
-                return ( sqrt( H * H + V * V ) );\n\
-            }\n\
-            void main(){\n\
-                float dist = CalcC( 0.0, texture2D( uTex1, TexCoord / vTexSize ).r );\n\
-                for ( int i = 1; i <= maxDistance; i++ ) {\n\
-                    if(i > uDistance) break;\n\
-                    float H = float(i) / float(uDistance);\n\
-                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord + vec2( float(i), 0.0) ) / vTexSize ).r ) );\n\
-                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord - vec2( float(i), 0.0) ) / vTexSize ).r ) );\n\
-                }\n\
-                gl_FragColor = vec4(dist);\n\
-                gl_FragColor.w = 1.0;\n\
+            "precision highp float;\
+            uniform sampler2D uTex1;\
+            uniform int uDistance;\
+            varying vec2 TexCoord;\
+            varying vec2 vTexSize;\
+            const int maxDistance = " + this._outsideDistance + ";\
+            float CalcC(float H, float V) {\
+                return ( sqrt( H * H + V * V ) );\
+            }\
+            void main(){\
+                float dist = CalcC( 0.0, texture2D( uTex1, TexCoord / vTexSize ).r );\
+                for ( int i = 1; i <= maxDistance; i++ ) {\
+                    if(i > uDistance) break;\
+                    float H = float(i) / float(uDistance);\
+                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord + vec2( float(i), 0.0) ) / vTexSize ).r ) );\
+                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord - vec2( float(i), 0.0) ) / vTexSize ).r ) );\
+                }\
+                gl_FragColor = vec4(dist);\
+                gl_FragColor.w = 1.0;\
             }"
     });
 

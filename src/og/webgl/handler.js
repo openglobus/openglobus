@@ -363,10 +363,10 @@ og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
 /**
  * Removes shader program from handler.
  * @public
- * @param {og.shaderProgram.ShaderProgram} program - Shader program.
+ * @param {String} program - Shader program name.
  */
-og.webgl.Handler.prototype.removeShaderProgram = function (program) {
-    this.shaderPrograms[program.name].remove();
+og.webgl.Handler.prototype.removeShaderProgram = function (name) {
+    this.shaderPrograms[name] && this.shaderPrograms[name].remove();
 };
 
 /**
@@ -430,7 +430,7 @@ og.webgl.Handler.prototype.initializeExtension = function (extensionStr, showLog
  * Main function that initialize handler.
  * @public
  */
-og.webgl.Handler.prototype.init = function () {
+og.webgl.Handler.prototype.initialize = function () {
 
     if (this._id) {
         this.canvas = document.getElementById(this._id);
@@ -645,10 +645,19 @@ og.webgl.Handler.prototype.clearFrame = function () {
  * @public
  */
 og.webgl.Handler.prototype.start = function () {
-    var d = new Date();
-    this._lastAnimationFrameTime = d.getTime();
-    this.clock.setDate(d);
-    this._animationFrameCallback();
+    if (!this._requestAnimationFrameId && this._initialized) {
+        var d = new Date();
+        this._lastAnimationFrameTime = d.getTime();
+        this.clock.setDate(d);
+        this._animationFrameCallback();
+    }
+};
+
+og.webgl.Handler.prototype.stop = function () {
+    if (this._requestAnimationFrameId) {
+        window.cancelAnimationFrame(this._requestAnimationFrameId);
+        this._requestAnimationFrameId = null;
+    }
 };
 
 /**
@@ -657,7 +666,7 @@ og.webgl.Handler.prototype.start = function () {
  */
 og.webgl.Handler.prototype._animationFrameCallback = function () {
     var that = this;
-    window.requestAnimationFrame(function () {
+    this._requestAnimationFrameId = window.requestAnimationFrame(function () {
         that.drawFrame();
         that._animationFrameCallback();
     });
@@ -699,4 +708,65 @@ og.webgl.Handler.prototype.createDefaultTexture = function (params, success) {
  */
 og.webgl.Handler.prototype.destroy = function () {
 
+    this.stop();
+
+    for (var p in this.shaderPrograms) {
+        this.removeShaderProgram(p);
+    }
+
+    gl.deleteTexture(this.transparentTexture);
+    this.transparentTexture = null;
+
+    this.framebufferStack = null;
+    this.framebufferStack = new og.Stack();
+
+    if (this.canvas.parentNode) {
+        this.canvas.parentNode.removeChild(this.canvas);
+    }
+    this.canvas.width = 1;
+    this.canvas.height = 1;
+    this.canvas = null;
+
+    var gl = this.gl;
+
+    gl.canvas = null;
+
+    var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+    var tmp = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
+    for (var ii = 0; ii < numAttribs; ++ii) {
+        gl.disableVertexAttribArray(ii);
+        gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
+        gl.vertexAttrib1f(ii, 0);
+    }
+    gl.deleteBuffer(tmp);
+
+    var numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+    for (var ii = 0; ii < numTextureUnits; ++ii) {
+        gl.activeTexture(gl.TEXTURE0 + ii);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.useProgram(null);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.disable(gl.BLEND);
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.DITHER);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.blendColor(0, 0, 0, 0);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.ONE, gl.ZERO);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clearDepth(1);
+    gl.clearStencil(-1);
+
+    this.gl = null;
+
+    this._initialized = false;
 };

@@ -284,6 +284,7 @@ og.shaderProgram.ShaderProgram.prototype.createProgram = function (gl) {
         this.uniforms[u]._pName = this._p[u];
     }
 
+    //Maybe it will be better to deleteProgram...
     gl.detachShader(this._p, fs);
     gl.detachShader(this._p, vs);
 };

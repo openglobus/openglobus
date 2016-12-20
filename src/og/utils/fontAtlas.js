@@ -74,7 +74,7 @@ og.utils.FontAtlas.prototype.createFont = function (face, style, weight) {
             sdfCanvas.drawText(ti, 49, pT, tF, "white");
             var res = sc.createSDF(sdfCanvas._canvas, tis, tis);
             res.__nodeIndex = ti;
-            var n = atlas.addImage(res, true, true);
+            var n = atlas.addImage(res, true);
 
             var tokenWidth = sdfCanvas.getTextWidth(ti);
             n.emptySize = tokenWidth / sdfSize;

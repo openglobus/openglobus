@@ -70,7 +70,7 @@ og.Globus = function (options) {
 
     //WegGL handler creation
     var _handler = new og.webgl.Handler(_canvasId, { 'alpha': false, 'antialias': false });
-    _handler.init();
+    _handler.initialize();
 
     /**
      * Interface for the renderer context(events, input states, renderer nodes etc.)
