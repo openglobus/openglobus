@@ -228,7 +228,7 @@ og.webgl.Handler.prototype.createTexture_l = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, image);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -263,7 +263,7 @@ og.webgl.Handler.prototype.createTexture_mm = function (image) {
  * @param {Object} image - Image or Canvas object.
  * @returns {Object} - WebGL texture object.
  */
-og.webgl.Handler.prototype.createTexture_af = function (image) {
+og.webgl.Handler.prototype.createTexture_a = function (image) {
     var gl = this.gl;
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -284,7 +284,7 @@ og.webgl.Handler.prototype.createTexture_af = function (image) {
  * @param {Object} image - Image or Canvas object.
  * @returns {Object} - WebGL texture object.
  */
-og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_af;
+og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_a;
 
 /**
  * Creates cube texture.
