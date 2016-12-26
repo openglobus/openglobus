@@ -28,8 +28,8 @@ og.control.layerSwitcher = function (options) {
 };
 
 og.control.LayerSwitcher.prototype.oninit = function () {
-    this.renderer.renderNodes.Earth.events.on("layeradd", this, this.onLayerAdded);
-    this.renderer.renderNodes.Earth.events.on("layerremove", this, this.onLayerRemoved);
+    this.planet.events.on("layeradd", this, this.onLayerAdded);
+    this.planet.events.on("layerremove", this, this.onLayerRemoved);
     this.createSwitcher();
     this.createDialog();
 };
@@ -56,7 +56,7 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
     var center = document.createElement('div');
     center.classList.add('ogViewExtentBtn');
     center.onclick = function () {
-        that.renderer.renderNodes.Earth.flyExtent(obj.getExtent());
+        that.planet.flyExtent(obj.getExtent());
     };
 
     var inp = document.createElement('input');

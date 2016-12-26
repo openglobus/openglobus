@@ -21,9 +21,9 @@ og.control.ToggleWireframe.prototype.oninit = function () {
 };
 
 og.control.ToggleWireframe.prototype.toogleWireframe = function (e) {
-    if (this.renderer.renderNodes.Earth.drawMode === this.renderer.handler.gl.LINE_STRIP) {
-        this.renderer.renderNodes.Earth.setDrawMode(this.renderer.handler.gl.TRIANGLE_STRIP);
+    if (this.planet.drawMode === this.renderer.handler.gl.LINE_STRIP) {
+        this.planet.setDrawMode(this.renderer.handler.gl.TRIANGLE_STRIP);
     } else {
-        this.renderer.renderNodes.Earth.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
+        this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
     }
 };

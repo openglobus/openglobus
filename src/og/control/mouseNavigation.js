@@ -165,7 +165,6 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 };
 
 og.control.MouseNavigation.prototype.oninit = function () {
-    this.planet = this.renderer.renderNodes.Earth;
     this.activate();
 };
 

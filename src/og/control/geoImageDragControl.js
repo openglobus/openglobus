@@ -22,7 +22,6 @@ og.control.geoImageDragControl = function (options) {
 };
 
 og.control.GeoImageDragControl.prototype.oninit = function () {
-    this.planet = this.renderer.renderNodes.Earth;
     var that = this;
     this.planet.events.on('layeradd', null, function (e) {
         if (e instanceof og.layer.BaseGeoImage) {

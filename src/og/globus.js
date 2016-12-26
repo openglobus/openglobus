@@ -118,7 +118,7 @@ og.Globus = function (options) {
 
     //Add controls
     if (options.controls) {
-        this.renderer.addControls(options.controls)
+        this.planet.addControls(options.controls)
     }
 
     if (options.layers) {

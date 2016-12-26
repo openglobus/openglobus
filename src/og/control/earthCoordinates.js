@@ -182,7 +182,7 @@ og.control.EarthCoordinates.prototype._draw = function () {
     if (r.controlsBag.scaleRot <= 0 &&
         !r.activeCamera._flying ||
         ts.moving && ts.sys.touches.length === 1) {
-        this.position = r.renderNodes.Earth.getLonLatFromPixelTerrain(r.handler.getCenter());
+        this.position = this.planet.getLonLatFromPixelTerrain(r.handler.getCenter());
         this._showPosition();
     }
 };
@@ -193,7 +193,7 @@ og.control.EarthCoordinates.prototype._onMouseMove = function () {
     if (!(ms.leftButtonDown || ms.rightButtonDown) &&
         r.controlsBag.scaleRot <= 0 &&
         !r.activeCamera._flying) {
-        this.position = r.renderNodes.Earth.getLonLatFromPixelTerrain(ms, true);
+        this.position = this.planet.getLonLatFromPixelTerrain(ms, true);
         this._showPosition();
     }
 };

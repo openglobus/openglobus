@@ -58,7 +58,6 @@ og.control.touchNavigation = function (options) {
 };
 
 og.control.TouchNavigation.prototype.oninit = function () {
-    this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("touchstart", this, this.onTouchStart);
     this.renderer.events.on("touchend", this, this.onTouchEnd);
     this.renderer.events.on("doubletouch", this, this.onDoubleTouch);

@@ -52,7 +52,6 @@ og.control.ZoomControl.prototype.oninit = function () {
         that.zoomOut();
     };
 
-    this.planet = this.renderer.renderNodes.Earth;
     this.renderer.events.on("draw", this, this._draw);
 };
 

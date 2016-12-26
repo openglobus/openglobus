@@ -708,6 +708,8 @@ og.webgl.Handler.prototype.createDefaultTexture = function (params, success) {
  */
 og.webgl.Handler.prototype.destroy = function () {
 
+    var gl = this.gl;
+
     this.stop();
 
     for (var p in this.shaderPrograms) {
@@ -726,8 +728,6 @@ og.webgl.Handler.prototype.destroy = function () {
     this.canvas.width = 1;
     this.canvas.height = 1;
     this.canvas = null;
-
-    var gl = this.gl;
 
     gl.canvas = null;
 

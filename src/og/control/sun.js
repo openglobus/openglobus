@@ -22,7 +22,7 @@ og.control.Sun = function (options) {
      * @public
      * @type {og.scene.Planet}
      */
-    this.planet;
+    this.planet = null;
 
     /**
      * Sunlight position placed in the camera eye.
@@ -66,9 +66,6 @@ og.control.sun = function (options) {
 };
 
 og.control.Sun.prototype.oninit = function () {
-
-    this.planet = this.renderer.renderNodes.Earth;
-    this.planet._sunControl = this;
 
     this.planet.lightEnabled = true;
 
