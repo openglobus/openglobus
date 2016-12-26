@@ -129,6 +129,8 @@ og.layer.WMS.prototype.setVersion = function (version) {
         this._getBbox = this._getBbox111;
     } else if (version === "1.3.0") {
         this._getBbox = this._getBbox130;
+    } else {
+        this._getBbox = this._getBbox111;
     }
 };
 
