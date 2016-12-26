@@ -6,16 +6,11 @@
 </head>
 <body>
     <div id="globus" style="width:100%;height:70%"></div>
-    <button id="btnOSM">OSM</button>
-    <button id="btnMQS">MapQuest Sat.</button>
+    <button id="btnOSM">Set attribution</button>
     <script>
 
         document.getElementById("btnOSM").onclick = function () {
-            osm.setVisibility(true);
-        };
-
-        document.getElementById("btnMQS").onclick = function () {
-            sat.setVisibility(true);
+            states.setAttribution("Hello, WMS default USA population states example!");
         };
 
         var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -28,41 +23,33 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var sat = new og.layer.XYZ("MapQuest Satellite", {
-            shininess: 20,
-            specular: og.math.vector3(0.00048, 0.00037, 0.00035),
-            diffuse: og.math.vector3(0.88, 0.85, 0.8),
-            ambient: og.math.vector3(0.15, 0.1, 0.23),
-            isBaseLayer: true,
-            url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
-            visibility: false,
-            attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+        var states = new og.layer.WMS("USA Population", {
+            extent: [[-128, 24], [-66, 49]],
+            visibility: true,
+            isBaseLayer: false,
+            url: "http://openglobus.org/geoserver/",
+            layers: "topp:states",
+            opacity: 1.0,
+            attribution: 'Hi!',
+            transparentColor: [1.0, 1.0, 1.0]
         });
-
-        //var kos = new og.layer.XYZ("Kosmosnimki", {
-        //    isBaseLayer: true,
-        //    specular: [0.0003, 0.00012, 0.00001],
-        //    shininess: 20,
-        //    diffuse: [0.89, 0.9, 0.83],
-        //    url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={z}&x={x}&y={y}"
-        //});
-
-        var controls = [
-            og.control.mouseNavigation(),
-            og.control.touchNavigation(),
-            og.control.zoomControl(),
-            og.control.earthCoordinates(),
-            og.control.sun()
-        ];
 
         globus = new og.Globus({
             "target": "globus",
             "name": "Earth",
-            "controls": controls,
+            "controls": [
+                og.control.mouseNavigation(),
+                og.control.touchNavigation(),
+                og.control.zoomControl(),
+                og.control.earthCoordinates(),
+                og.control.sun()
+            ],
             "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, sat]
+            "layers": [osm, states]
         });
+
+        globus.planet.flyExtent(states.getExtent());
     </script>
 </body>
 </html>
