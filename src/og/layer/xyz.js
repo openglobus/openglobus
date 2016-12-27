@@ -252,12 +252,7 @@ og.layer.XYZ.prototype._exec = function (material) {
         that._dequeueRequest();
     };
 
-    //if (material.segment.materials.length) {
     material.image.src = this._getHTTPRequestString(material.segment);
-    //material.image = img;
-    //} else {
-    //    this._dequeueRequest();
-    //}
 };
 
 /**
@@ -324,8 +319,8 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
             psegm = pn.planetSegment.materials[mId];
         }
 
-        if (notEmpty/* || (psegm && !pn.parentNode)*/) {
-            psegm.appliedNodeId = segment.node.nodeId;
+        if (notEmpty) {
+            material.appliedNodeId = pn.nodeId;
             material.texture = psegm.texture;
             var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
             return [
