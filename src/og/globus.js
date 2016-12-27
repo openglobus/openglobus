@@ -6,6 +6,11 @@ goog.require('og.scene.Planet');
 goog.require('og.scene.PlanetAtmosphere');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.terrainProvider.EmptyTerrainProvider');
+goog.require('og.control.MouseNavigation');
+goog.require('og.control.TouchNavigation');
+goog.require('og.control.ZoomControl');
+goog.require('og.control.EarthCoordinates');
+goog.require('og.control.Sun');
 
 /**
  * Creates a WebGL context with globe.
@@ -119,6 +124,14 @@ og.Globus = function (options) {
     //Add controls
     if (options.controls) {
         this.planet.addControls(options.controls)
+    } else {
+        this.planet.addControls([
+            new og.control.MouseNavigation(),
+            new og.control.TouchNavigation(),
+            new og.control.ZoomControl(),
+            new og.control.EarthCoordinates(),
+            new og.control.Sun()
+        ]);
     }
 
     if (options.layers) {
