@@ -49,14 +49,15 @@ og.Events.prototype.registerNames = function (eventNames) {
  * @param {Object} obj - Function.
  * @return {boolean}
  */
-og.Events.prototype._stamp = function (obj) {
+og.Events.prototype._stamp = function (name, obj) {
 
     if (!obj._openglobus_id) {
         obj._openglobus_id = ++this._counter;
     }
 
-    if (!this._stampCache[obj._openglobus_id]) {
-        this._stampCache[obj._openglobus_id] = obj._openglobus_id;
+    var st = name + "_" + obj._openglobus_id;
+    if (!this._stampCache[st]) {
+        this._stampCache[st] = obj._openglobus_id;
         return true;
     }
 
@@ -71,7 +72,7 @@ og.Events.prototype._stamp = function (obj) {
  * @param {eventCallback} callback - Event callback function.
  */
 og.Events.prototype.on = function (name, sender, callback) {
-    if (this._stamp(callback)) {
+    if (this._stamp(name, callback)) {
         this[name] && this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
     }
 };
@@ -83,7 +84,7 @@ og.Events.prototype.on = function (name, sender, callback) {
  * @param {eventCallback} callback - Attached  event callback.
  */
 og.Events.prototype.off = function (name, callback) {
-    if (callback._openglobus_id && this._stampCache[callback._openglobus_id]) {
+    if (callback._openglobus_id && this._stampCache[name + "_" + callback._openglobus_id]) {
         var h = this[name].handlers;
         var i = h.length;
         var indexToRemove = -1;
@@ -96,9 +97,10 @@ og.Events.prototype.off = function (name, callback) {
         }
 
         if (indexToRemove != -1) {
+            var st = name + "_" + callback._openglobus_id;
             h.splice(indexToRemove, 1);
-            this._stampCache[callback._openglobus_id] = undefined;
-            delete this._stampCache[callback._openglobus_id];
+            this._stampCache[st] = undefined;
+            delete this._stampCache[st];
         }
     }
 };

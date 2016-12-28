@@ -15,6 +15,7 @@ goog.require('og.control.ShowFps');
 goog.require('og.control.Sun');
 goog.require('og.control.ZoomControl');
 goog.require('og.control.TouchNavigation');
+goog.require('og.control.GeoImageDragControl');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.layer.Layer');
 goog.require('og.layer.BaseGeoImage');
