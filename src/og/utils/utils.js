@@ -183,7 +183,7 @@ og.utils.createLonLat = function (l, def) {
     } else if (def) {
         return def;
     }
-    return og.LonLat();
+    return new og.LonLat();
 };
 
 

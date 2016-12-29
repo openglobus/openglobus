@@ -969,17 +969,22 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var vl = layerSlice,
-            pm = this.materials;
-        var p = this.planet;
+        var pm = this.materials,
+            p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
         gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
-        var li = vl[0];
-        var currHeight = li._height;
+        var currHeight, li;
+        if (layerSlice) {
+            li = layerSlice[0];
+            currHeight = li._height;
+        } else {
+            currHeight = 0;
+        }
+
         var n = 0,
             i = 0;
 
@@ -1041,7 +1046,7 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
                 n++;
             }
             i++;
-            li = vl[i];
+            li = layerSlice[i];
         }
 
         if (notEmpty || !isOverlay) {
@@ -1107,17 +1112,22 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var vl = layerSlice,
-            pm = this.materials;
-        var p = this.planet;
+        var pm = this.materials,
+            p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
         gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
         gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
-        var li = vl[0];
-        var currHeight = li._height;
+        var currHeight, li;
+        if (layerSlice) {
+            li = layerSlice[0];
+            currHeight = li._height;
+        } else {
+            currHeight = 0;
+        }
+
         var n = 0,
             i = 0;
 
@@ -1184,7 +1194,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
                 n++;
             }
             i++;
-            li = vl[i];
+            li = layerSlice[i];
         }
 
         if (notEmpty || !isOverlay) {
@@ -1230,12 +1240,15 @@ og.planetSegment.Segment.prototype._colorPickingRendering = function (sh, layerS
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var vl = layerSlice,
-            pm = this.materials;
-        var p = this.planet;
+        var pm = this.materials,
+            p = this.planet;
 
-        var li = vl[0];
-        var currHeight = li._height;
+        var currHeight;
+        if (layerSlice) {
+            currHeight = layerSlice[0]._height;
+        } else {
+            currHeight = 0;
+        }
 
         var notEmpty = false;
 
@@ -1285,17 +1298,21 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var vl = layerSlice,
-            pm = this.materials;
-        var p = this.planet;
+        var pm = this.materials,
+            p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
         gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this.planet.solidTextureOne);
         gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
 
-        var li = vl[0];
-        var currHeight = li._height;
+        var currHeight;
+        if (layerSlice) {
+            currHeight = layerSlice[0]._height;
+        } else {
+            currHeight = 0;
+        }
+
         var n = 0;
 
         var slice = this._renderingSlices[sliceIndex];
