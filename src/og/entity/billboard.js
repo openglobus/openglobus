@@ -46,14 +46,14 @@ og.Billboard = function (options) {
      * @protected
      * @type {number}
      */
-    this._width = options.width || (options.size ? options.size.x : 0);
+    this._width = options.width || (options.size ? options.size[0] : 30);
 
     /**
      * Billboard screen height.
      * @protected
      * @type {number}
      */
-    this._height = options.height || (options.size ? options.size.y : 0);
+    this._height = options.height || (options.size ? options.size[1] : 30);
 };
 
 og.inheritance.extend(og.Billboard, og.BaseBillboard);

@@ -12,7 +12,8 @@ goog.require('og.Events');
  * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
  * @constructor
  * @param {Object} [options] - Entity options:
- * @param {boolean} [options.visibility] - Entity visibility.
+ * @param {Array.<og.Entity>} [options.entities] - Entities array.
+ * @param {boolean} [options.visibility=true] - Entity visibility.
  * @param {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable. 
@@ -128,7 +129,7 @@ og.EntityCollection = function (options) {
      * @protected
      * @type {Array.<og.Entity>}
      */
-    this._entities = [];
+    this._entities = options.entities || [];
 
     /**
      * First index - near distance to the entity, after entity becomes full scale.
@@ -160,6 +161,9 @@ og.EntityCollection = function (options) {
      */
     this.events = new og.Events();
     this.events.registerNames(og.EntityCollection.EVENT_NAMES);
+
+    //initialize current entities
+    this.addEntities(this._entities);
 };
 
 og.EntityCollection.__staticCounter = 0;

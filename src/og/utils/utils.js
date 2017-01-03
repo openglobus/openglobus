@@ -6,6 +6,7 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Vector4');
 goog.require('og.LonLat');
 goog.require('og.Extent');
+goog.require('og.utils.colorTable');
 
 og.utils.isString = function (s) {
     return typeof (s) === 'string' || s instanceof String;
@@ -36,19 +37,24 @@ og.utils.readTextFile = function (fileUrl) {
  * @returns {og.math.Vector4}
  */
 og.utils.htmlColorToRgba = function (htmlColor, opacity) {
+    var hColor = og.utils.colorTable[htmlColor];
+    if (hColor) {
+        htmlColor = hColor;
+    }
+
     if (htmlColor[0] == "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
         var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), (opacity == undefined ? 1.0 : opacity));
+        return new og.math.Vector4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, (opacity == undefined ? 1.0 : opacity));
     } else {
         if (opacity == undefined) {
             opacity = 1.0;
         }
         var m = htmlColor.split(",");
-        return new og.math.Vector4(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]), (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
+        return new og.math.Vector4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
     }
 };
 
@@ -59,16 +65,21 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
  * @returns {og.math.Vector3}
  */
 og.utils.htmlColorToRgb = function (htmlColor) {
+    var hColor = og.utils.colorTable[htmlColor];
+    if (hColor) {
+        htmlColor = hColor;
+    }
+
     if (htmlColor[0] == "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
         var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new og.math.Vector4(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16));
+        return new og.math.Vector4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255);
     } else {
         var m = htmlColor.split(",");
-        return new og.math.Vector3(parseInt(m[0].split("(")[1]), parseInt(m[1]), parseInt(m[2]));
+        return new og.math.Vector3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
     }
 };
 
@@ -310,7 +321,7 @@ og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSe
  * @param {Object} xml - Xml object
  * @return {Object} - Json converted object.
  */
-og.utils.xmlToJson = function(xml) {
+og.utils.xmlToJson = function (xml) {
 
     // Create the return object
     var obj = {};

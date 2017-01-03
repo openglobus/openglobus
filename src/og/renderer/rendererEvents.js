@@ -612,14 +612,26 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 
         var co = o && o[c[0] + "_" + c[1] + "_" + c[2]];
 
-        if (co) {
-            ms.pickingObject = co;
-            ts.pickingObject = co;
+        ms.pickingObject = co;
+        ts.pickingObject = co;
 
-            //object changed
-            if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
-                //current black
-                if (!(c[0] || c[1] || c[2])) {
+        //object changed
+        if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
+            //current black
+            if (!(c[0] || c[1] || c[2])) {
+                var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                if (po) {
+                    var pe = po.events || po._entityCollection.events;
+                    ms.pickingObject = po;
+                    pe.dispatch(pe.mouseleave, ms);
+                    ts.pickingObject = po;
+                    pe.dispatch(pe.touchleave, ts);
+                }
+            } else {
+                //current not black
+
+                //previous not black
+                if (p[0] || p[1] || p[2]) {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     if (po) {
                         var pe = po.events || po._entityCollection.events;
@@ -628,21 +640,9 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                         ts.pickingObject = po;
                         pe.dispatch(pe.touchleave, ts);
                     }
-                } else {
-                    //current not black
+                }
 
-                    //previous not black
-                    if (p[0] || p[1] || p[2]) {
-                        var po = o[p[0] + "_" + p[1] + "_" + p[2]];
-                        if (po) {
-                            var pe = po.events || po._entityCollection.events;
-                            ms.pickingObject = po;
-                            pe.dispatch(pe.mouseleave, ms);
-                            ts.pickingObject = po;
-                            pe.dispatch(pe.touchleave, ts);
-                        }
-                    }
-
+                if (co) {
                     var ce = co.events || co._entityCollection.events;
                     ms.pickingObject = co;
                     ce.dispatch(ce.mouseenter, ms);

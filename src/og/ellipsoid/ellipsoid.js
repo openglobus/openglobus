@@ -218,6 +218,24 @@ og.Ellipsoid.prototype.getRhumbBearing = function (lonLat1, lonLat2) {
     return (Math.atan2(dLon, dPhi) * og.math.DEGREES + 360) % 360;
 };
 
+og.Ellipsoid.prototype.getBearing = function (lonLat1, lonLat2) {
+    var f1 = lonLat1.lat * og.math.RADIANS, l1 = lonLat1.lon * og.math.RADIANS;
+    var f2 = lonLat2.lat * og.math.RADIANS, l2 = lonLat2.lon * og.math.RADIANS;
+    var y = Math.sin(l2 - l1) * Math.cos(f2);
+    var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(l2 - l1);
+    return Math.atan2(y, x) * og.math.DEGREES;
+};
+
+og.Ellipsoid.prototype.getBearingDestination = function (lonLat1, bearing, distance) {
+    bearing = bearing * og.math.RADIANS;
+    var nlon = (lonLat1.lon + 540) % 360 - 180;
+    var f1 = lonLat1.lat * og.math.RADIANS, l1 = nlon * og.math.RADIANS;
+    var dR = distance / this._a;
+    var f2 = Math.asin(Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing));
+    return new og.LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2)))
+        * og.math.DEGREES, f2 * og.math.DEGREES);
+};
+
 /**
  * Returns the (initial) bearing from source to destination point on the great circle.
  * @param {og.LonLat} lonLat1 - Longitude/latitude of source point.
