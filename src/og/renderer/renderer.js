@@ -401,6 +401,7 @@ og.Renderer.prototype._multiframebufferScreenFrame = function () {
     gl.activeTexture(gl.TEXTURE0);
     //MAYBE: Could be refactored with framebuf function like getTexture()
     gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);

@@ -15,6 +15,9 @@ goog.require('og.Events');
  * @param {Array.<og.Entity>} [options.entities] - Entities array.
  * @param {boolean} [options.visibility=true] - Entity visibility.
  * @param {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
+ * First index - near distance to the entity, after entity becomes full scale.
+ * Second index - far distance to the entity, when entity becomes zero scale.
+ * Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable. 
  * @fires og.EntityCollection#entitymove
@@ -426,10 +429,10 @@ og.EntityCollection.prototype.getOpacity = function () {
  * @param {number} far - Zerol scale entity distance.
  * @param {number} [farInvisible] - Entity visibility distance.
  */
-og.EntityCollection.prototype.setScaleByDistance = function (near, far, farInisible) {
+og.EntityCollection.prototype.setScaleByDistance = function (near, far, farInvisible) {
     this.scaleByDistance[0] = near;
     this.scaleByDistance[1] = far;
-    this.scaleByDistance[2] = farInisible || og.math.MAX32;
+    this.scaleByDistance[2] = farInvisible || og.math.MAX32;
 };
 
 og.EntityCollection.prototype._addRecursively = function (entity) {
