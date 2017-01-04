@@ -181,12 +181,14 @@
             var gl = r.handler.gl;
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            //Actually a better way to replace this function to native gl.
             r.handler.shaderPrograms.vectorMap.set({
                 'aPos': vertBuffer,
                 'iGlobalTime': animCounter += 0.03,
                 'iResolution': [1024, 1024]
-            });
-            r.handler.shaderPrograms.vectorMap.drawArray(r.handler.gl.TRIANGLE_STRIP, vertBuffer.numItems);
+            }).drawArray(r.handler.gl.TRIANGLE_STRIP, vertBuffer.numItems);
+
             frameBuffer.deactivate();
         });
 
