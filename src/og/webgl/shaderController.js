@@ -62,6 +62,7 @@ og.webgl.ShaderController.prototype.activate = function () {
         p.enableAttribArrays();
         p.use();
     }
+    return this;
 };
 
 /**
@@ -99,29 +100,35 @@ og.webgl.ShaderController.prototype.isActive = function () {
 };
 
 /**
- * Sets program uniforms and attributes values.
+ * Sets program uniforms and attributes values and return controller instance.
  * @public
  * @param {Object} - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
+ * @return {og.webgl.ShaderController}
  */
 og.webgl.ShaderController.prototype.set = function (params) {
     this._program.set(params);
+    return this;
 };
 
 /**
- * Draw index buffer with this program
+ * Draw index buffer with this program.
  * @public
  * @param {number} mode - Gl draw mode
  * @param {}
+ * @return {og.webgl.ShaderController} Returns current shader controller instance.
  */
 og.webgl.ShaderController.prototype.drawIndexBuffer = function (mode, buffer) {
     this._program.drawIndexBuffer(mode, buffer);
+    return this;
 };
 
 /**
  * Calls Gl drawArray function.
  * @param {number} - Gl draw mode.
  * @param {number} - draw items count.
+ * @return {og.webgl.ShaderController} Returns current shader controller instance.
  */
 og.webgl.ShaderController.prototype.drawArray = function (mode, numItems) {
     this._program.drawArray(mode, numItems);
+    return this;
 };

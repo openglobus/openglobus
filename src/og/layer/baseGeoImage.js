@@ -251,3 +251,19 @@ og.layer.BaseGeoImage.prototype.applyMaterial = function (material) {
     var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
+
+/**
+ * Gets frame width size in pixels.
+ * @public
+ */
+og.layer.BaseGeoImage.prototype.getFrameWidth = function () {
+    return this._frameWidth;
+};
+
+/**
+ * Gets frame height size in pixels.
+ * @public
+ */
+og.layer.BaseGeoImage.prototype.getFrameHeight = function () {
+    return this._frameHeight;
+};
