@@ -106,6 +106,7 @@ og.webgl.ShaderController.prototype.isActive = function () {
  * @return {og.webgl.ShaderController}
  */
 og.webgl.ShaderController.prototype.set = function (params) {
+    this.activate();
     this._program.set(params);
     return this;
 };
