@@ -23,16 +23,16 @@ og.inheritance.extend(og.control.SimpleNavigation, og.control.BaseControl);
 
 og.control.SimpleNavigation.prototype.oninit = function () {
     this.camera = this.renderer.activeCamera;
-    this.renderer.events.on("keypress", this, this.onCameraMoveForward, og.input.KEY_W);
-    this.renderer.events.on("keypress", this, this.onCameraMoveBackward, og.input.KEY_S);
-    this.renderer.events.on("keypress", this, this.onCameraStrifeLeft, og.input.KEY_A);
-    this.renderer.events.on("keypress", this, this.onCameraStrifeRight, og.input.KEY_D);
-    this.renderer.events.on("keypress", this, this.onCameraLookUp, og.input.KEY_UP);
-    this.renderer.events.on("keypress", this, this.onCameraLookDown, og.input.KEY_DOWN);
-    this.renderer.events.on("keypress", this, this.onCameraTurnLeft, og.input.KEY_LEFT);
-    this.renderer.events.on("keypress", this, this.onCameraTurnRight, og.input.KEY_RIGHT);
-    this.renderer.events.on("keypress", this, this.onCameraRollLeft, og.input.KEY_Q);
-    this.renderer.events.on("keypress", this, this.onCameraRollRight, og.input.KEY_E);
+    this.renderer.events.on("keypress", og.input.KEY_W, this.onCameraMoveForward, this);
+    this.renderer.events.on("keypress", og.input.KEY_S, this.onCameraMoveBackward, this);
+    this.renderer.events.on("keypress", og.input.KEY_A, this.onCameraStrifeLeft, this);
+    this.renderer.events.on("keypress", og.input.KEY_D, this.onCameraStrifeRight, this);
+    this.renderer.events.on("keypress", og.input.KEY_UP, this.onCameraLookUp, this);
+    this.renderer.events.on("keypress", og.input.KEY_DOWN, this.onCameraLookDown, this);
+    this.renderer.events.on("keypress", og.input.KEY_LEFT, this.onCameraTurnLeft, this);
+    this.renderer.events.on("keypress", og.input.KEY_RIGHT, this.onCameraTurnRight, this);
+    this.renderer.events.on("keypress", og.input.KEY_Q, this.onCameraRollLeft, this);
+    this.renderer.events.on("keypress", og.input.KEY_E, this.onCameraRollRight, this);
 };
 
 og.control.SimpleNavigation.prototype.onCameraMoveForward = function (event) {

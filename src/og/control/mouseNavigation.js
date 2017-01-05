@@ -120,14 +120,14 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
 };
 
 og.control.MouseNavigation.prototype.onactivate = function () {
-    this.renderer.events.on("mousewheel", this, this.onMouseWheel);
-    this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);
-    this.renderer.events.on("mouserbuttonhold", this, this.onMouseRightButtonDown);
-    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
-    this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
-    this.renderer.events.on("mouserbuttondown", this, this.onMouseRightButtonClick);
-    this.renderer.events.on("mouselbuttondoubleclick", this, this.onMouseLeftButtonDoubleClick);
-    this.renderer.events.on("draw", this, this.onDraw);
+    this.renderer.events.on("mousewheel", this.onMouseWheel, this);
+    this.renderer.events.on("mouselbuttonhold", this.onMouseLeftButtonDown, this);
+    this.renderer.events.on("mouserbuttonhold", this.onMouseRightButtonDown, this);
+    this.renderer.events.on("mouselbuttondown", this.onMouseLeftButtonClick, this);
+    this.renderer.events.on("mouselbuttonup", this.onMouseLeftButtonUp, this);
+    this.renderer.events.on("mouserbuttondown", this.onMouseRightButtonClick, this);
+    this.renderer.events.on("mouselbuttondoubleclick", this.onMouseLeftButtonDoubleClick, this);
+    this.renderer.events.on("draw", this.onDraw, this);
 };
 
 og.control.MouseNavigation.prototype.ondeactivate = function () {

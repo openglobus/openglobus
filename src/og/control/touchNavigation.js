@@ -58,12 +58,12 @@ og.control.touchNavigation = function (options) {
 };
 
 og.control.TouchNavigation.prototype.oninit = function () {
-    this.renderer.events.on("touchstart", this, this.onTouchStart);
-    this.renderer.events.on("touchend", this, this.onTouchEnd);
-    this.renderer.events.on("doubletouch", this, this.onDoubleTouch);
-    this.renderer.events.on("touchcancel", this, this.onTouchCancel);
-    this.renderer.events.on("touchmove", this, this.onTouchMove);
-    this.renderer.events.on("draw", this, this.onDraw);
+    this.renderer.events.on("touchstart", this.onTouchStart, this);
+    this.renderer.events.on("touchend", this.onTouchEnd, this);
+    this.renderer.events.on("doubletouch", this.onDoubleTouch, this);
+    this.renderer.events.on("touchcancel", this.onTouchCancel, this);
+    this.renderer.events.on("touchmove", this.onTouchMove, this);
+    this.renderer.events.on("draw", this.onDraw, this);
 };
 
 og.control.TouchNavigation.prototype.onTouchStart = function (e) {

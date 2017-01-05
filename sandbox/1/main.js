@@ -120,3 +120,81 @@ function start() {
         }
     }).addTo(placesCollection);
 };
+
+
+
+function main2() {
+
+    function rnd(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    var entities = [],
+        colors = ['red', 'orange', 'yellow', 'green', 'lightblue', 'darkblue', 'purple']
+
+    for (var i = 0; i < 5000; i++) {
+        entities.push(og.entity({
+            'name': 'sat-' + i,
+            'lonlat': [rnd(-180, 180), rnd(-90, 90), rnd(100000, 5000000)],
+            'billboard': {
+                'src': 'carrot.png',
+                'size': [24, 24],
+                'color': colors[i % 7],
+                'rotation': rnd(0, 360)
+            }
+        }, {
+            'bearing': rnd(0, 360),
+            'color': colors[i % 7]
+        }));
+    }
+
+    sats = new og.EntityCollection({
+        'entities': entities,
+        'scaleByDistance': [6000000, 24000000, 10000000000]
+    });
+
+    sats.events.on("draw", function (c) {
+        c.each(function (e) {
+            var ll = globus.planet.ellipsoid.getBearingDestination(e._lonlat, e.properties.bearing, 2000);
+            e.properties.bearing = globus.planet.ellipsoid.getFinalBearing(e._lonlat, ll);
+            e.setLonLat(new og.LonLat(ll.lon, ll.lat, e._lonlat.height));
+            e.billboard.setRotation(e.billboard.getRotation() + 0.01);
+        });
+    });
+
+    sats.events.on("mouseenter", function (e) {
+        var b = e.pickingObject.billboard;
+        b.setScale(3);
+        b.setColor(1, 1, 1);
+    });
+
+    sats.events.on("mouseleave", function (e) {
+        var b = e.pickingObject.billboard;
+        b.setScale(1);
+        b.setColorHTML(e.pickingObject.properties.color);
+    });
+
+    var sat = new og.layer.XYZ("MapQuest Satellite", {
+        shininess: 20,
+        specular: og.math.vector3(0.00048, 0.00037, 0.00035),
+        diffuse: og.math.vector3(0.88, 0.85, 0.8),
+        ambient: og.math.vector3(0.15, 0.1, 0.23),
+        isBaseLayer: true,
+        url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+    });
+
+
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "skybox": og.scene.defaultSkyBox(),
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        "layers": [sat]
+    });
+
+    sats.addTo(globus.planet);
+
+    globus.planet.flyLonLat(og.lonLat(54.5, 43.5, 20108312));
+};

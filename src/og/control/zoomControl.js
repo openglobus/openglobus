@@ -52,7 +52,7 @@ og.control.ZoomControl.prototype.oninit = function () {
         that.zoomOut();
     };
 
-    this.renderer.events.on("draw", this, this._draw);
+    this.renderer.events.on("draw", this._draw, this);
 };
 
 /** 

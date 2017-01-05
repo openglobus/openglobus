@@ -1,5 +1,7 @@
 goog.provide('og.Events');
 
+goog.require('og.utils');
+
 /**
  * Base events class to handle custom events.
  * @class
@@ -29,7 +31,11 @@ og.Events = function (eventNames) {
     this._stopPropagation = false;
 
     this._stampCache = {};
+
+    this.__id = og.Events.__staticCounter++;
 };
+
+og.Events.__staticCounter = 0;
 
 /**
  * Function that creates event object properties that would be dispatched.
@@ -51,13 +57,12 @@ og.Events.prototype.registerNames = function (eventNames) {
  */
 og.Events.prototype._stamp = function (name, obj) {
 
-    if (!obj._openglobus_id) {
-        obj._openglobus_id = ++this._counter;
-    }
+    var ogid = og.utils.stamp(obj);
 
-    var st = name + "_" + obj._openglobus_id;
+    var st = name + "_" + this.__id + "_" + ogid;
+
     if (!this._stampCache[st]) {
-        this._stampCache[st] = obj._openglobus_id;
+        this._stampCache[st] = ogid;
         return true;
     }
 
@@ -68,10 +73,10 @@ og.Events.prototype._stamp = function (name, obj) {
  * Attach listener.
  * @public
  * @param {string} name - Event name to listen.
- * @param {Object} sender - Event callback function owner. 
  * @param {eventCallback} callback - Event callback function.
+ * @param {Object} sender - Event callback function owner. 
  */
-og.Events.prototype.on = function (name, sender, callback) {
+og.Events.prototype.on = function (name, callback, sender) {
     if (this._stamp(name, callback)) {
         this[name] && this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
     }
@@ -84,7 +89,8 @@ og.Events.prototype.on = function (name, sender, callback) {
  * @param {eventCallback} callback - Attached  event callback.
  */
 og.Events.prototype.off = function (name, callback) {
-    if (callback._openglobus_id && this._stampCache[name + "_" + callback._openglobus_id]) {
+    var st = name + "_" + this.__id + "_" + callback._openglobus_id;
+    if (callback._openglobus_id && this._stampCache[st]) {
         var h = this[name].handlers;
         var i = h.length;
         var indexToRemove = -1;
@@ -97,7 +103,6 @@ og.Events.prototype.off = function (name, callback) {
         }
 
         if (indexToRemove != -1) {
-            var st = name + "_" + callback._openglobus_id;
             h.splice(indexToRemove, 1);
             this._stampCache[st] = undefined;
             delete this._stampCache[st];

@@ -392,7 +392,7 @@ og.layer.Layer.prototype.isEqual = function (layer) {
 og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.layers.push(this);
     this._planet = planet;
-    this.events.on("visibilitychange", planet, planet._onLayerVisibilityChanged);
+    this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
     if (this._isBaseLayer && this._visibility) {
         planet.setBaseLayer(this);
     }

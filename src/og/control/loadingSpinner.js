@@ -31,7 +31,7 @@ og.control.LoadingSpinner.prototype.oninit = function () {
 
     this.spinnerElement.className = "displayBlock";
     document.body.appendChild(this.spinnerElement);
-    this.renderer.events.on("draw", this, this.draw);
+    this.renderer.events.on("draw", this.draw, this);
 };
 
 og.control.LoadingSpinner.prototype.draw = function () {

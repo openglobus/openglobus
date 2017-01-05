@@ -386,32 +386,32 @@ og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
 
 og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     var ve = this.events;
-    entityCollection.events.on("entitymove", null, function (e) { ve.dispatch(ve.entitymove, e); });
-    entityCollection.events.on("mousemove", null, function (e) { ve.dispatch(ve.mousemove, e); });
-    entityCollection.events.on("mouseenter", null, function (e) { ve.dispatch(ve.mouseenter, e); });
-    entityCollection.events.on("mouseleave", null, function (e) { ve.dispatch(ve.mouseleave, e); });
-    entityCollection.events.on("mouselbuttonclick", null, function (e) { ve.dispatch(ve.mouselbuttonclick, e); });
-    entityCollection.events.on("mouserbuttonclick", null, function (e) { ve.dispatch(ve.mouserbuttonclick, e); });
-    entityCollection.events.on("mousembuttonclick", null, function (e) { ve.dispatch(ve.mousembuttonclick, e); });
-    entityCollection.events.on("mouselbuttondoubleclick", null, function (e) { ve.dispatch(ve.mouselbuttondoubleclick, e); });
-    entityCollection.events.on("mouserbuttondoubleclick", null, function (e) { ve.dispatch(ve.mouserbuttondoubleclick, e); });
-    entityCollection.events.on("mousembuttondoubleclick", null, function (e) { ve.dispatch(ve.mousembuttondoubleclick, e); });
-    entityCollection.events.on("mouselbuttonup", null, function (e) { ve.dispatch(ve.mouselbuttonup, e); });
-    entityCollection.events.on("mouserbuttonup", null, function (e) { ve.dispatch(ve.mouserbuttonup, e); });
-    entityCollection.events.on("mousembuttonup", null, function (e) { ve.dispatch(ve.mousembuttonup, e); });
-    entityCollection.events.on("mouselbuttondown", null, function (e) { ve.dispatch(ve.mouselbuttondown, e); });
-    entityCollection.events.on("mouserbuttondown", null, function (e) { ve.dispatch(ve.mouserbuttondown, e); });
-    entityCollection.events.on("mousembuttondown", null, function (e) { ve.dispatch(ve.mousembuttondown, e); });
-    entityCollection.events.on("mouselbuttonhold", null, function (e) { ve.dispatch(ve.mouselbuttonhold, e); });
-    entityCollection.events.on("mouserbuttonhold", null, function (e) { ve.dispatch(ve.mouserbuttonhold, e); });
-    entityCollection.events.on("mousembuttonhold", null, function (e) { ve.dispatch(ve.mousembuttonhold, e); });
-    entityCollection.events.on("mousewheel", null, function (e) { ve.dispatch(ve.mousewheel, e); });
-    entityCollection.events.on("touchmove", null, function (e) { ve.dispatch(ve.touchmove, e); });
-    entityCollection.events.on("touchstart", null, function (e) { ve.dispatch(ve.touchstart, e); });
-    entityCollection.events.on("touchend", null, function (e) { ve.dispatch(ve.touchend, e); });
-    entityCollection.events.on("doubletouch", null, function (e) { ve.dispatch(ve.doubletouch, e); });
-    entityCollection.events.on("touchleave", null, function (e) { ve.dispatch(ve.touchleave, e); });
-    entityCollection.events.on("touchenter", null, function (e) { ve.dispatch(ve.touchenter, e); });
+    entityCollection.events.on("entitymove", function (e) { ve.dispatch(ve.entitymove, e); });
+    entityCollection.events.on("mousemove", function (e) { ve.dispatch(ve.mousemove, e); });
+    entityCollection.events.on("mouseenter", function (e) { ve.dispatch(ve.mouseenter, e); });
+    entityCollection.events.on("mouseleave", function (e) { ve.dispatch(ve.mouseleave, e); });
+    entityCollection.events.on("mouselbuttonclick", function (e) { ve.dispatch(ve.mouselbuttonclick, e); });
+    entityCollection.events.on("mouserbuttonclick", function (e) { ve.dispatch(ve.mouserbuttonclick, e); });
+    entityCollection.events.on("mousembuttonclick", function (e) { ve.dispatch(ve.mousembuttonclick, e); });
+    entityCollection.events.on("mouselbuttondoubleclick", function (e) { ve.dispatch(ve.mouselbuttondoubleclick, e); });
+    entityCollection.events.on("mouserbuttondoubleclick", function (e) { ve.dispatch(ve.mouserbuttondoubleclick, e); });
+    entityCollection.events.on("mousembuttondoubleclick", function (e) { ve.dispatch(ve.mousembuttondoubleclick, e); });
+    entityCollection.events.on("mouselbuttonup", function (e) { ve.dispatch(ve.mouselbuttonup, e); });
+    entityCollection.events.on("mouserbuttonup", function (e) { ve.dispatch(ve.mouserbuttonup, e); });
+    entityCollection.events.on("mousembuttonup", function (e) { ve.dispatch(ve.mousembuttonup, e); });
+    entityCollection.events.on("mouselbuttondown", function (e) { ve.dispatch(ve.mouselbuttondown, e); });
+    entityCollection.events.on("mouserbuttondown", function (e) { ve.dispatch(ve.mouserbuttondown, e); });
+    entityCollection.events.on("mousembuttondown", function (e) { ve.dispatch(ve.mousembuttondown, e); });
+    entityCollection.events.on("mouselbuttonhold", function (e) { ve.dispatch(ve.mouselbuttonhold, e); });
+    entityCollection.events.on("mouserbuttonhold", function (e) { ve.dispatch(ve.mouserbuttonhold, e); });
+    entityCollection.events.on("mousembuttonhold", function (e) { ve.dispatch(ve.mousembuttonhold, e); });
+    entityCollection.events.on("mousewheel", function (e) { ve.dispatch(ve.mousewheel, e); });
+    entityCollection.events.on("touchmove", function (e) { ve.dispatch(ve.touchmove, e); });
+    entityCollection.events.on("touchstart", function (e) { ve.dispatch(ve.touchstart, e); });
+    entityCollection.events.on("touchend", function (e) { ve.dispatch(ve.touchend, e); });
+    entityCollection.events.on("doubletouch", function (e) { ve.dispatch(ve.doubletouch, e); });
+    entityCollection.events.on("touchleave", function (e) { ve.dispatch(ve.touchleave, e); });
+    entityCollection.events.on("touchenter", function (e) { ve.dispatch(ve.touchenter, e); });
 };
 
 og.layer.Vector.prototype._collectVisibleCollections = function (outArr) {

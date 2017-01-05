@@ -79,11 +79,11 @@ og.control.Sun.prototype.oninit = function () {
     this.sunlight.addTo(this.planet);
 
     var that = this;
-    this.renderer.events.on("draw", this, this._draw);
+    this.renderer.events.on("draw", this._draw, this);
 
-    this.renderer.events.on("charkeypress", this, function () {
+    this.renderer.events.on("charkeypress", og.input.KEY_L, function () {
         that.planet.lightEnabled = !that.planet.lightEnabled;
-    }, og.input.KEY_L);
+    });
 };
 
 og.control.Sun.prototype._draw = function () {

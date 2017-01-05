@@ -23,9 +23,9 @@ og.control.geoImageDragControl = function (options) {
 
 og.control.GeoImageDragControl.prototype.oninit = function () {
     var that = this;
-    this.planet.events.on('layeradd', null, function (e) {
+    this.planet.events.on('layeradd', function (e) {
         if (e instanceof og.layer.BaseGeoImage) {
-            e.events.on('mousemove', null, function (ms) {
+            e.events.on('mousemove', function (ms) {
                 if (that.active) {
                     if (that._catchCorner) {
                         var corners = e.getCornersLonLat();
@@ -44,14 +44,14 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
                     }
                 }
             });
-            e.events.on('mouselbuttondown', null, function (ms) {
+            e.events.on('mouselbuttondown', function (ms) {
                 if (that.active && that._cornerIndex != -1) {
                     that._catchCorner = true;
                     globus.planet.renderer.controls[0].active = false;
                 }
             });
 
-            e.events.on('mouselbuttonup', null, function (ms) {
+            e.events.on('mouselbuttonup', function (ms) {
                 if (that.active) {
                     that._catchCorner = false;
                     globus.planet.renderer.controls[0].active = true;

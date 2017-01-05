@@ -8,6 +8,15 @@ goog.require('og.LonLat');
 goog.require('og.Extent');
 goog.require('og.utils.colorTable');
 
+og.utils._stampCounter = 0;
+og.utils.stamp = function (obj) {
+    var stamp = obj._openglobus_id;
+    if (!stamp) {
+        stamp = obj._openglobus_id = ++og.utils._stampCounter;
+    }
+    return stamp;
+};
+
 og.utils.isString = function (s) {
     return typeof (s) === 'string' || s instanceof String;
 };

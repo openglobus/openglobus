@@ -598,22 +598,22 @@ og.scene.Planet.prototype.initialization = function () {
 
     this.updateVisibleLayers();
 
-    this.renderer.activeCamera.events.on("viewchange", this, function (e) {
+    this.renderer.activeCamera.events.on("viewchange", function (e) {
         this._viewChanged = true;
-    });
-    this.renderer.events.on("mousemove", this, function (e) {
+    }, this);
+    this.renderer.events.on("mousemove", function (e) {
         this._viewChanged = true;
-    });
-    this.renderer.events.on("touchmove", this, function (e) {
+    }, this);
+    this.renderer.events.on("touchmove", function (e) {
         this._viewChanged = true;
-    });
+    }, this);
 
     //normal map renderer initialization
     this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
 
     //temporary initializations
     var that = this;
-    this.renderer.events.on("charkeypress", this, function () { that.memClear(); }, og.input.KEY_C);
+    //this.renderer.events.on("charkeypress", og.input.KEY_C, function () { that.memClear(); });
 
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 

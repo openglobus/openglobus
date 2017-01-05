@@ -344,16 +344,16 @@ og.RendererEvents.prototype.handleEvents = function () {
  * Set render event callback.
  * @public
  * @param {string} name - Event name
- * @param {*} sender - Callback context
  * @param {eventCallback} callback - Callback function
  * @param {number} [key] - Key code from og.input
+ * @param {*} sender - Callback context
  * @param {number} [priority] - Event callback priority
  */
-og.RendererEvents.prototype.on = function (name, sender, callback, key, priority) {
-    if (!this[name]) {
-        this._keyboardHandler.addEvent(name, sender, callback, key, priority);
+og.RendererEvents.prototype.on = function (name, p0, p1, p2, p3) {
+    if (name == "keypress" || name == "charkeypress") {
+        this._keyboardHandler.addEvent(name, p2, p1, p0, p3);
     } else {
-        this.constructor.superclass.on.call(this, name, sender, callback);
+        this.constructor.superclass.on.call(this, name, p0, p1);
     }
 };
 

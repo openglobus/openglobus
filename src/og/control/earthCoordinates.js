@@ -139,10 +139,10 @@ og.control.EarthCoordinates.prototype.oninit = function () {
     this.renderer.div.appendChild(centerDiv);
 
     if (this._center) {
-        this.renderer.events.on("draw", this, this._draw);
+        this.renderer.events.on("draw", this._draw, this);
         centerDiv.style.display = "block";
     } else {
-        this.renderer.events.on("mousemove", this, this._onMouseMove);
+        this.renderer.events.on("mousemove", this._onMouseMove, this);
         centerDiv.style.display = "none";
     }
 };
@@ -157,11 +157,11 @@ og.control.EarthCoordinates.prototype.setCenter = function (center) {
         this._center = center;
         if (center) {
             this.renderer.events.off("mousemove", this._onMouseMove);
-            this.renderer.events.on("draw", this, this._draw);
+            this.renderer.events.on("draw", this._draw, this);
             centerDiv.style.display = "block";
         } else {
             this.renderer.events.off("draw", this._draw);
-            this.renderer.events.on("mousemove", this, this._onMouseMove);
+            this.renderer.events.on("mousemove", this._onMouseMove, this);
             centerDiv.style.display = "none";
         }
     }

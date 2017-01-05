@@ -28,8 +28,8 @@ og.control.layerSwitcher = function (options) {
 };
 
 og.control.LayerSwitcher.prototype.oninit = function () {
-    this.planet.events.on("layeradd", this, this.onLayerAdded);
-    this.planet.events.on("layerremove", this, this.onLayerRemoved);
+    this.planet.events.on("layeradd", this.onLayerAdded, this);
+    this.planet.events.on("layerremove", this.onLayerRemoved, this);
     this.createSwitcher();
     this.createDialog();
 };
@@ -68,7 +68,7 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
         obj.setVisibility(this.checked);
     };
 
-    obj.events && obj.events.on("visibilitychange", null, function (e) {
+    obj.events && obj.events.on("visibilitychange", function (e) {
         inp.checked = e.getVisibility();
     });
 
