@@ -36,7 +36,7 @@
             'scaleByDistance': [6000000, 24000000, 10000000000]
         });
 
-        carrots.events.on("draw", null, function (c) {
+        carrots.events.on("draw", function (c) {
             c.each(function (e) {
                 var ll = globus.planet.ellipsoid.getBearingDestination(e._lonlat, e.properties.bearing, 2000);
                 e.properties.bearing = globus.planet.ellipsoid.getFinalBearing(e._lonlat, ll);
@@ -45,13 +45,13 @@
             });
         });
 
-        carrots.events.on("mouseenter", null, function (e) {
+        carrots.events.on("mouseenter", function (e) {
             var b = e.pickingObject.billboard;
             b.setScale(3);
             b.setColor(1, 1, 1);
         });
 
-        carrots.events.on("mouseleave", null, function (e) {
+        carrots.events.on("mouseleave", function (e) {
             var b = e.pickingObject.billboard;
             b.setScale(1);
             b.setColorHTML(e.pickingObject.properties.color);

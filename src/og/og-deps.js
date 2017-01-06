@@ -41,7 +41,7 @@ goog.addDependency('../../../og/src/og/entity/lineStringHandler.js', ['og.LineSt
 goog.addDependency('../../../og/src/og/entity/pointCloud.js', ['og.PointCloud'], ['og.math.Vector3', 'og.math.Vector4', 'og.mercator'], false);
 goog.addDependency('../../../og/src/og/entity/pointCloudHandler.js', ['og.PointCloudHandler'], ['og.shaderProgram.pointCloud'], false);
 goog.addDependency('../../../og/src/og/entity/shapeHandler.js', ['og.ShapeHandler'], ['og.shaderProgram.shape_nl', 'og.shaderProgram.shape_wl', 'og.shape.BaseShape', 'og.shape.Sphere'], false);
-goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], [], false);
+goog.addDependency('../../../og/src/og/events/events.js', ['og.Events'], ['og.utils'], false);
 goog.addDependency('../../../og/src/og/extent/extent.js', ['og.Extent', 'og.extent'], ['og.LonLat', 'og.math'], false);
 goog.addDependency('../../../og/src/og/frustum.js', ['og.Frustum'], [], false);
 goog.addDependency('../../../og/src/og/globus.js', ['og.Globus'], ['og.Renderer', 'og.control.EarthCoordinates', 'og.control.MouseNavigation', 'og.control.Sun', 'og.control.TouchNavigation', 'og.control.ZoomControl', 'og.ellipsoid.wgs84', 'og.scene.Planet', 'og.scene.PlanetAtmosphere', 'og.terrainProvider.EmptyTerrainProvider', 'og.webgl.Handler'], false);
