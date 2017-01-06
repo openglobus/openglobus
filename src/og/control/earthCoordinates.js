@@ -169,7 +169,7 @@ og.control.EarthCoordinates.prototype.setCenter = function (center) {
 
 og.control.EarthCoordinates.prototype._showPosition = function () {
     if (this.position) {
-        this.position.height = ((this.position.height > 10000 || this.position.heigh < -10000) ? 0 : this.position.heigh);
+        this.position.height = ((this.position.height > 10000 || this.position.height < -10000) ? 0 : this.position.height);
         this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " h(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
     } else {
         this._display.innerHTML = "Lat/Lon: " + "_____________________";
