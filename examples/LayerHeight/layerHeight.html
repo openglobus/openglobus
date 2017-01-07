@@ -25,16 +25,29 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
+        var osmRed = new og.layer.XYZ("OpenStreetMap", {
+            diffuse: [0.6, 0.5, .5],
+            specular: og.math.vector3(0.7, 0.4, 0.4),
+            shininess: 70,
+            isBaseLayer: false,
+            extent: [[130.10, 31.16], [130.9, 31.8]],
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            height: 4000,
+            opacity: 0.5,
+            zIndex: 10
+        });
+
         var sat = new og.layer.XYZ("MapQuest Satellite", {
             shininess: 20,
-            specular: og.math.vector3(0.8, 0.7, 0.58),
-            diffuse: og.math.vector3(1.2, 1.1, 1.1),
-            ambient: og.math.vector3(0.15, 0.1, 0.23),
+            specular: og.math.vector3(0.2, 0.2, 0.2),
+            diffuse: og.math.vector3(1.2, 1.2, 1.2),
             isBaseLayer: false,
             height: 4000,
             extent: [[130.355, 31.368], [130.656, 31.583]],
             url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
             visibility: true,
+            zIndex: 15,
             attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
@@ -49,7 +62,8 @@
             isBaseLayer: false,
             attribution: '<a href="http://www.satimagingcorp.com/">www.satimagingcorp.com</a> SPOT-7',
             opacity: 1.0,
-            height: 8000
+            height: 10000,
+            zIndex: 5
         });
 
         globus = new og.Globus({
@@ -57,7 +71,7 @@
             "name": "Earth",
             "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, sat, img]
+            "layers": [osm, osmRed, sat, img]
         });
 
         globus.planet.flyExtent(img.getExtent());
