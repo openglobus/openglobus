@@ -73,13 +73,13 @@ og.layer.Vector = function (name, options) {
      * Maximum entities quantity in the tree node.
      * @private
      */
-    this._maxCountPerCollection = options.maxCountNode || 30;
+    this._nodeCapacity = options.nodeCapacity || 30;
 
     /**
-     * Manimal tree node deep index.
+     * Manimal tree node depth index.
      * @private
      */
-    this._minTreeZoom = 5;
+    this._minDepth = options.minDepth || 5;
 
     /**
      * Stored entities.

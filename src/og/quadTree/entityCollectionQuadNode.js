@@ -36,7 +36,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.insertEntity = function (entity, 
 
         this.count++;
 
-        if (this.count > this.layer._maxCountPerCollection) {
+        if (this.count > this.layer._nodeCapacity) {
             var cn = this.childrenNodes;
             if (cn.length) {
                 if (cn[og.quadTree.NW].extent.isInside(p)) {
@@ -119,8 +119,8 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities, r
 
     this.count = entities.length;
 
-    if (entities.length > this.layer._maxCountPerCollection ||
-        this.zoom < this.layer.minZoom || this.zoom < this.layer._minTreeZoom) {
+    if (entities.length > this.layer._nodeCapacity ||
+        this.zoom < this.layer.minZoom || this.zoom < this.layer._minDepth) {
         var cn = this.childrenNodes;
         if (!cn.length) {
             this.createChildrenNodes();
