@@ -1,0 +1,68 @@
+<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<body>
+    <div id="globus" style="width:100%;height:70%"></div>
+    <script>
+
+        var trees = [];
+
+        for (var i = 0; i < 100; i++) {
+            for (var j = 0; j < 100; j++) {
+                var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
+                trees.push(new og.Entity({
+                    'name': 'tree',
+                    'lonlat': coords,
+                    'billboard': {
+                        'src': 'tree.png',
+                        'size': [16, 32],
+                        'offset': [0, 16],
+                        'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                    }
+                }));
+            }
+        }
+
+        forest = new og.layer.Vector("Forest", {
+            'groundAlign': true,
+            'entities': trees,
+            'async': false,
+            'maxCountNode': trees.length
+        });
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "skybox": og.scene.defaultSkyBox(),
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, forest]
+        });
+
+        var center = forest.getExtent().getCenter();
+
+        var angle = 0.1 * og.math.RADIANS;
+        globus.renderer.events.on("draw", function () {
+            forest.each(function (e) {
+                var c = e._lonlat;
+                var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
+                var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+                e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
+            });
+        });
+
+    </script>
+</body>
+</html>

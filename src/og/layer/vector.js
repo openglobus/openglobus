@@ -86,6 +86,7 @@ og.layer.Vector = function (name, options) {
      * @private
      */
     this._entities = options.entities ? [].concat(options.entities) : [];
+
     this._entityCollectionAlways = new og.EntityCollection();
     this._bindEventsDefault(this._entityCollectionAlways);
 
@@ -162,6 +163,24 @@ og.layer.Vector.prototype.getEntities = function () {
 };
 
 /**
+ * @private
+ */
+og.layer.Vector.prototype._fitExtent = function (entity) {
+    if (entity._lonlat.lon > this._extent.northEast.lon) {
+        this._extent.northEast.lon = entity._lonlat.lon;
+    }
+    if (entity._lonlat.lat > this._extent.northEast.lat) {
+        this._extent.northEast.lat = entity._lonlat.lat;
+    }
+    if (entity._lonlat.lon < this._extent.southWest.lon) {
+        this._extent.southWest.lon = entity._lonlat.lon;
+    }
+    if (entity._lonlat.lat < this._extent.southWest.lat) {
+        this._extent.southWest.lat = entity._lonlat.lat;
+    }
+};
+
+/**
  * Adds entity to the layer.
  * @public
  * @param {og.Entity} entity - Entity.
@@ -180,6 +199,10 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
             if (!entity._lonlat) {
                 entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
             }
+
+            this._fitExtent(entity);
+
+            //poles trees
             if (entity._lonlat.lat > og.mercator.MAX_LAT) {
                 this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
             } else if (entity._lonlat.lat < og.mercator.MIN_LAT) {
@@ -359,6 +382,9 @@ og.layer.Vector.prototype.each = function (callback) {
 };
 
 og.layer.Vector.prototype._buildEntityCollectionsTree = function () {
+
+    this._extent = new og.Extent(new og.LonLat(180, 90), new og.LonLat(-180, -90));
+
     if (this._planet) {
         this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, og.quadTree.NW, null, 0,
             og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet, 0);

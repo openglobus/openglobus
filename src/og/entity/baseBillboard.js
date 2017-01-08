@@ -52,7 +52,7 @@ og.BaseBillboard = function (options) {
      * @protected
      * @type {og.math.Vector3}
      */
-    this._alignedAxis = og.utils.createVector3(options.algnedAxis);
+    this._alignedAxis = og.utils.createVector3(options.alignedAxis);
 
     /**
      * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
