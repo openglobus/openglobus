@@ -16,7 +16,7 @@ goog.require('og.mercator');
  * @param {og.quadTree.QuadNode} parent - Parent of this node.
  * @param {number} id - Tree node identifier (id * 4 + 1);
  * @param {number} tileZoom - Deep index of the quad tree.
- * @param {og.Extent} extent - Planet segment extent. 
+ * @param {og.Extent} extent - Planet segment extent.
  */
 og.quadTree.QuadNode = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
     this.planet = planet;
@@ -168,14 +168,15 @@ og.quadTree.QuadNode.prototype.reloadTerrain = function () {
 };
 
 og.quadTree.QuadNode.prototype.getState = function () {
-    var pn = this.parentNode;
-    while (pn) {
-        if (pn.state != og.quadTree.WALKTHROUGH) {
-            return og.quadTree.NOTRENDERING;
-        }
-        pn = pn.parentNode;
-    }
-    return this.state;
+    return this.planetSegment.getNodeState();
+    // var pn = this.parentNode;
+    // while (pn) {
+    //     if (pn.state !== og.quadTree.WALKTHROUGH) {
+    //         return og.quadTree.NOTRENDERING;
+    //     }
+    //     pn = pn.parentNode;
+    // }
+    // return this.state;
 };
 
 og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis) {
@@ -465,13 +466,13 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
                     var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                    //v_lt(x,y,z)             vn 
-                    //    *---------------------------------->*       
-                    //    |        |        |        |     .  ^       
-                    //    |        |        |        |   .    |       
-                    //    |        |        |        | .      |       
-                    //    *--------*--------*--------*--------*       
-                    //    |        |        |     .  |        |       
+                    //v_lt(x,y,z)             vn
+                    //    *---------------------------------->*
+                    //    |        |        |        |     .  ^
+                    //    |        |        |        |   .    |
+                    //    |        |        |        | .      |
+                    //    *--------*--------*--------*--------*
+                    //    |        |        |     .  |        |
                     //    |        |        |   .    |        |
                     //    |        |        |ofX, ofY|        |
                     //  vw*--------*--------*--------*--------*ve

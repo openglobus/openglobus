@@ -1372,3 +1372,8 @@ og.planetSegment.Segment.prototype.getExtentLonLat = function () {
 og.planetSegment.Segment.prototype.getExtentMerc = function () {
     return this._extent;
 };
+
+og.planetSegment.Segment.prototype.getNodeState = function () {
+    var vn = this.planet._visibleNodes[this.node.nodeId];
+    return vn && vn.state || og.quadTree.NOTRENDERING;
+};

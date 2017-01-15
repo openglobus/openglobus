@@ -14,9 +14,9 @@ og.quadTree.E = 1;
 og.quadTree.S = 2;
 og.quadTree.W = 3;
 
-og.quadTree.WALKTHROUGH = 0;
+og.quadTree.NOTRENDERING = 0;
 og.quadTree.RENDERING = 1;
-og.quadTree.NOTRENDERING = 2;
+og.quadTree.WALKTHROUGH = 2;
 
 /**
  * World opposite side table.
