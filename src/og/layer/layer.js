@@ -365,6 +365,17 @@ og.layer.Layer.EVENT_NAMES = [
 og.layer.__layersCounter = 0;
 
 /**
+ * Returns true if a layer has imagery tiles.
+ * @public
+ * @virtual
+ * @returns {boolean}
+ */
+og.layer.Layer.prototype.hasImageryTiles = function () {
+    return true;
+};
+
+
+/**
  * Gets layer identifier.
  * @public
  * @returns {string}

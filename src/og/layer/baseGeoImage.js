@@ -66,8 +66,8 @@ og.layer.BaseGeoImage.prototype.getCorners = function () {
 /**
  * Sets geoImage geographical corners coordinates.
  * @public
- * @param {Array.<Array.<number,number,number>>} corners - GeoImage corners coordinates. Where first coordinate 
- * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom 
+ * @param {Array.<Array.<number,number,number>>} corners - GeoImage corners coordinates. Where first coordinate
+ * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
  * and fourth - left bottom image corner.
  */
 og.layer.BaseGeoImage.prototype.setCorners = function (corners) {
@@ -77,8 +77,8 @@ og.layer.BaseGeoImage.prototype.setCorners = function (corners) {
 /**
  * Sets geoImage geographical corners coordinates.
  * @public
- * @param {Array.<og.LonLat, og.LonLat, og.LonLat, og.LonLat>} corners - GeoImage corners coordinates. Where first coordinate 
- * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom 
+ * @param {Array.<og.LonLat, og.LonLat, og.LonLat, og.LonLat>} corners - GeoImage corners coordinates. Where first coordinate
+ * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
  * and fourth - left bottom image corner.
  */
 og.layer.BaseGeoImage.prototype.setCornersLonLat = function (corners) {
@@ -227,9 +227,7 @@ og.layer.BaseGeoImage.prototype.applyMaterial = function (material) {
     var segment = material.segment;
 
     if (this._ready) {
-        material.isReady = true;
-        material.isLoading = false;
-        material.texture = this._materialTexture;
+        material.applyTexture(this._materialTexture);
     } else {
         material.texture = this._planet.transparentTexture;
         !this._creationProceeding && this.loadMaterial(material);

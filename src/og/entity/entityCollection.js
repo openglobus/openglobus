@@ -19,7 +19,7 @@ goog.require('og.Events');
  * Second index - far distance to the entity, when entity becomes zero scale.
  * Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.opacity] - Entity global opacity.
- * @param {boolean} [options.pickingEnabled=true] - Entity picking enable. 
+ * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
  * @fires og.EntityCollection#entitymove
  * @fires og.EntityCollection#draw
  * @fires og.EntityCollection#drawend
@@ -721,7 +721,7 @@ og.EntityCollection.prototype.each = function (callback) {
  */
 og.EntityCollection.prototype.clear = function () {
 
-    //TODO: Optimize by replace delete 
+    //TODO: Optimize by replace delete
     //code to the clearEntity function.
     this.billboardHandler.clear();
     this.labelHandler.clear();

@@ -9,6 +9,9 @@ og.planetSegment.Material = function(segment, layer) {
     this.image = null;
     this.textureExists = false;
     this.appliedNodeId = 0;
+
+    //vector data
+    this.indexBuffer = null;
 };
 
 og.planetSegment.Material.prototype.assignLayer = function(layer) {

@@ -9,10 +9,10 @@ goog.require('og.Clock');
 goog.require('og.Console');
 goog.require('og.Stack');
 
-/** 
- * A WebGL handler for accessing low-level WebGL capabilities. 
+/**
+ * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
- * @param {string} id - Canvas element id that WebGL handler assing with. If it's null 
+ * @param {string} id - Canvas element id that WebGL handler assing with. If it's null
  * or undefined creates hidden canvas and handler bacomes hidden.
  * @param {Object} [params] - Handler options:
  * @param {number} [params.anisotropy] - Anisitropy filter degree. 8 is default.
@@ -538,6 +538,7 @@ og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numIte
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);//??
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;
@@ -555,6 +556,7 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);//??
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;

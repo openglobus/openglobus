@@ -20,7 +20,7 @@ goog.require('og.ImageCanvas');
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {og.layer.CanvasTiles~drawTileCallback} [options.drawTile] - Draw tile callback.
  */
-og.layer.CanvasTiles = function (name, options) {
+og.layer.CanvasTiles = function(name, options) {
     options = options || {};
 
     og.inheritance.base(this, name, options);
@@ -38,10 +38,10 @@ og.layer.CanvasTiles = function (name, options) {
      * @protected
      * @type {Array.<og.planetSegment.Material>}
      */
-    this._pendingsQueue = [];//new og.QueueArray();
+    this._pendingsQueue = []; //new og.QueueArray();
 
     /**
-     * Draw tile callback. 
+     * Draw tile callback.
      * @type {og.layer.CanvasTiles~drawTileCallback}
      * @public
      */
@@ -55,7 +55,7 @@ og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
  * @static
  * @returns {og.layer.CanvasTiles} Returns canvas tiles layer.
  */
-og.layer.canvasTiles = function (name, options) {
+og.layer.canvasTiles = function(name, options) {
     return new og.layer.CanvasTiles(name, options);
 };
 
@@ -73,7 +73,7 @@ og.layer.CanvasTiles.MAX_REQUESTS = 7;
  * Abort loading tiles.
  * @public
  */
-og.layer.CanvasTiles.prototype.abortLoading = function () {
+og.layer.CanvasTiles.prototype.abortLoading = function() {
     var q = this._pendingsQueue;
     for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
         if (q._array[i]) {
@@ -89,7 +89,7 @@ og.layer.CanvasTiles.prototype.abortLoading = function () {
  * @public
  * @param {boolean} visibility - Layer visibility.
  */
-og.layer.CanvasTiles.prototype.setVisibility = function (visibility) {
+og.layer.CanvasTiles.prototype.setVisibility = function(visibility) {
     if (visibility != this._visibility) {
         this._visibility = visibility;
         if (this._isBaseLayer && visibility) {
@@ -108,7 +108,7 @@ og.layer.CanvasTiles.prototype.setVisibility = function (visibility) {
  * @virtual
  * @param {og.planetSegment.Material} mateial
  */
-og.layer.CanvasTiles.prototype.loadMaterial = function (material) {
+og.layer.CanvasTiles.prototype.loadMaterial = function(material) {
 
     var seg = material.segment;
 
@@ -134,7 +134,7 @@ og.layer.CanvasTiles.prototype.loadMaterial = function (material) {
  * @protected
  * @param {og.planetSegment.Material} material - Loads material image.
  */
-og.layer.CanvasTiles.prototype._exec = function (material) {
+og.layer.CanvasTiles.prototype._exec = function(material) {
     og.layer.CanvasTiles.__requestsCounter++;
     this._counter++;
     var that = this;
@@ -146,19 +146,25 @@ og.layer.CanvasTiles.prototype._exec = function (material) {
          * @param {og.planetSegment.Material} material
          * @param {applyCanvasCallback} applyCanvasCallback
          */
-        setTimeout(function () {
+        setTimeout(function() {
+            var e = that.events.load;
+            if (e.length) {
+                that.events.dispatch(e, material);
+            }
             that.drawTile(material,
-            /**
-             * Apply canvas.
-             * @callback applyCanvasCallback
-             * @param {Object} canvas
-             */
-            function (canvas) {
-                that._counter--;
-                og.layer.CanvasTiles.__requestsCounter--;
-                material.applyTexture(canvas);
-                that._dequeueRequest();
-            });
+                /**
+                 * Apply canvas.
+                 * @callback applyCanvasCallback
+                 * @param {Object} canvas
+                 */
+                function(canvas) {
+                    that._counter--;
+                    og.layer.CanvasTiles.__requestsCounter--;
+                    if (material.isLoading) {
+                        material.applyImage(canvas);
+                    }
+                    that._dequeueRequest();
+                });
         }, 50);
     } else {
         material.textureNotExists();
@@ -170,7 +176,7 @@ og.layer.CanvasTiles.prototype._exec = function (material) {
  * @public
  * @param {og.planetSegment.Material} material - Segment material.
  */
-og.layer.CanvasTiles.prototype.abortMaterialLoading = function (material) {
+og.layer.CanvasTiles.prototype.abortMaterialLoading = function(material) {
     if (material.isLoading && material.image) {
         material.image.src = "";
         this._counter--;
@@ -181,7 +187,7 @@ og.layer.CanvasTiles.prototype.abortMaterialLoading = function (material) {
     material.isReady = false;
 };
 
-og.layer.CanvasTiles.prototype._dequeueRequest = function () {
+og.layer.CanvasTiles.prototype._dequeueRequest = function() {
     if (this._pendingsQueue.length) {
         if (og.layer.CanvasTiles.__requestsCounter < og.layer.CanvasTiles.MAX_REQUESTS) {
             var pmat;
@@ -193,7 +199,7 @@ og.layer.CanvasTiles.prototype._dequeueRequest = function () {
     }
 };
 
-og.layer.CanvasTiles.prototype._whilePendings = function () {
+og.layer.CanvasTiles.prototype._whilePendings = function() {
     while (this._pendingsQueue.length) {
         var pmat = this._pendingsQueue.pop();
         if (pmat.segment.node) {
@@ -207,7 +213,7 @@ og.layer.CanvasTiles.prototype._whilePendings = function () {
 };
 
 
-og.layer.CanvasTiles.prototype.applyMaterial = function (material) {
+og.layer.CanvasTiles.prototype.applyMaterial = function(material) {
     if (material.isReady) {
         return [0, 0, 1, 1];
     } else {
@@ -237,7 +243,8 @@ og.layer.CanvasTiles.prototype.applyMaterial = function (material) {
                 segment.tileX * dZ2 - pn.planetSegment.tileX,
                 segment.tileY * dZ2 - pn.planetSegment.tileY,
                 dZ2,
-                dZ2];
+                dZ2
+            ];
         } else {
             material.texture = segment.planet.transparentTexture;
             return [0, 0, 1, 1];
@@ -245,7 +252,7 @@ og.layer.CanvasTiles.prototype.applyMaterial = function (material) {
     }
 };
 
-og.layer.CanvasTiles.prototype.clearMaterial = function (material) {
+og.layer.CanvasTiles.prototype.clearMaterial = function(material) {
     if (material.isReady) {
         material.isReady = false;
 

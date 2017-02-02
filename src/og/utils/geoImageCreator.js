@@ -65,7 +65,6 @@ og.utils.GeoImageCreator.prototype.frame = function () {
     while (i-- && this._queue.length) {
         var q = this._queue.shift();
         q._isRendering = false;
-        //this.process(q);
         q.rendering();
     }
 
@@ -141,13 +140,7 @@ og.utils.GeoImageCreator.prototype._initShaders = function () {
                           gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
                       }',
         fragmentShader:
-                        '#ifdef GL_ES\n\
-                        #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-                        precision highp float;\n\
-                        #else\n\
-                        precision mediump float;\n\
-                        #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-                        #endif // GL_ES\n\
+                        'precision highp float;\n\
                         uniform sampler2D sourceTexture; \
                         varying vec2 v_texCoords; \
                         void main () {  \
