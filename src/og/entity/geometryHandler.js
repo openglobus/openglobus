@@ -113,13 +113,13 @@ og.GeometryHandler.prototype.setPolyVerticesArr = function(index, vertices) {
 og.GeometryHandler.prototype.createPolyVerticesBuffer = function() {
     var h = this._handler;
     h.gl.deleteBuffer(this._polyVerticesBuffer);
-    this._polyVerticesBuffer = h.createArrayBuffer(this._polyVertices, 2, this._polyVertices.length / 2);
+    this._polyVerticesBuffer = h.createArrayBuffer(new Float32Array(this._polyVertices), 2, this._polyVertices.length / 2);
 };
 
 og.GeometryHandler.prototype.createPolyColorsBuffer = function() {
     var h = this._handler;
     h.gl.deleteBuffer(this._polyColorsBuffer);
-    this._polyColorsBuffer = h.createArrayBuffer(this._polyColors, 4, this._polyColors.length / 4);
+    this._polyColorsBuffer = h.createArrayBuffer(new Float32Array(this._polyColors), 4, this._polyColors.length / 4);
 };
 
 og.GeometryHandler.prototype.remove = function(geometry) {
