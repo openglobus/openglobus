@@ -77,9 +77,9 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 if (segmentIndexes) {
                     material.indexBuffer = h.createElementArrayBuffer(segmentIndexes, 1, segmentIndexes.length);
 
-                     if (material.textureExists) {
-                         texture = material.updateTexture;
-                     } else {
+                    if (material.textureExists) {
+                        texture = material._updateTexture;
+                    } else {
                         var texture = h.createEmptyTexture_l(this._width, this._height);
                     }
                     f.bindOutputTexture(texture);

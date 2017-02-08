@@ -108,10 +108,12 @@ og.GeometryHandler.prototype._refreshPlanetNode = function(treeNode) {
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         for (var j = 0; j < g.length; j++) {
-            var m = ni.planetSegment.materials[lid];
-            if (m && g[j]._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
-                m.isReady = false;
-                m.updateTexture = m.texture;
+            if (g[j]._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+                var m = ni.planetSegment.materials[lid];
+                if (m) {
+                    m.isReady = false;
+                    m._updateTexture = m.texture;
+                }
                 this._refreshPlanetNode(ni);
             }
         }
@@ -156,7 +158,7 @@ og.GeometryHandler.prototype.setPolyColorArr = function(geometry, color) {
     var index = geometry._polyVerticesHandlerIndex,
         size = index + geometry._polyVertices.length * 2;
     var a = this._polyColors;
-    for (var i = index; i < size; i+=4) {
+    for (var i = index; i < size; i += 4) {
         a[i] = color.x;
         a[i + 1] = color.y;
         a[i + 2] = color.z;
