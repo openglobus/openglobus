@@ -244,8 +244,8 @@ og.Extent.prototype.getSouth = function () {
  * @returns {boolean}
  */
 og.Extent.prototype.equals = function (extent) {
-    return this.southWest.lon == extent.southWest.lon && this.southWest.lat == extent.southWest.lat &&
-        this.northEast.lon == extent.northEast.lon && this.northEast.lat == extent.northEast.lat;
+    return this.southWest.lon === extent.southWest.lon && this.southWest.lat === extent.southWest.lat &&
+        this.northEast.lon === extent.northEast.lon && this.northEast.lat === extent.northEast.lat;
 };
 
 /**

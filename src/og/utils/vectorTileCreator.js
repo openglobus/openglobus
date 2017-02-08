@@ -68,25 +68,32 @@ og.utils.VectorTileCreator.prototype.frame = function() {
         gl.disable(gl.DEPTH_TEST);
 
         var i = this.MAX_FRAMES;
+        var prevLayerId = -1;
         while (i-- && this._queue.length) {
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
-                var gh = material.layer._geometryHandler;
-                var segmentIndexes = gh.collect(material.segment);
+                var geomHandler = material.layer._geometryHandler;
+                var segmentIndexes = geomHandler.collect(material.segment);
                 if (segmentIndexes) {
-                    material.indexBuffer = h.createElementArrayBuffer(new Uint16Array(segmentIndexes), 1, segmentIndexes.length);
+                    material.indexBuffer = h.createElementArrayBuffer(segmentIndexes, 1, segmentIndexes.length);
 
-                    var texture = h.createEmptyTexture_l(this._width, this._height);
+                     if (material.textureExists) {
+                         texture = material.updateTexture;
+                     } else {
+                        var texture = h.createEmptyTexture_l(this._width, this._height);
+                    }
                     f.bindOutputTexture(texture);
 
                     gl.clearColor(0.0, 0.0, 0.0, 0.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, gh._polyVerticesBuffer);
-                    gl.vertexAttribPointer(sha.coordinates._pName, gh._polyVerticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, gh._polyColorsBuffer);
-                    gl.vertexAttribPointer(sha.colors._pName, gh._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    if (prevLayerId !== material.layer._id) {
+                        prevLayerId = material.layer._id;
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBuffer);
+                        gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
+                        gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    }
 
                     var extent = material.segment.getExtentLonLat();
                     gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);

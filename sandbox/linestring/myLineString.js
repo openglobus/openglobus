@@ -81,11 +81,11 @@ my.LineString.prototype.initialization = function () {
     this.ec.add(ez);
 
     this.ec.addTo(this);
-    //this.ec.events.on("mouseenter", null, function (e) {
+    //this.ec.events.on("mouseenter", function (e) {
     //    e.pickingObject.lineString.setColor(1, 1, 0);
     //});
 
-    //this.ec.events.on("mouseleave", null, function (e) {
+    //this.ec.events.on("mouseleave", function (e) {
     //    e.pickingObject.lineString.setColor(1, 1, 1);
     //})
 

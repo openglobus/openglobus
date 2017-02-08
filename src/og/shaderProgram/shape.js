@@ -48,13 +48,7 @@ og.shaderProgram.shape_wl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             varying vec2 vTextureCoord;\
             varying vec3 vNormal;\
             varying vec4 vPosition;\
@@ -113,13 +107,7 @@ og.shaderProgram.shape_nl = function () {
                 vTextureCoord = aTextureCoord;\
             }',
         fragmentShader: 
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             uniform vec4 uColor;\
             uniform sampler2D uSampler;\
             varying vec2 vTextureCoord;\

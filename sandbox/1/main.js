@@ -27,8 +27,8 @@ function start() {
 
     //og.shaderProgram.SHADERS_URL = "./shaders/";
 
-    var osm = new og.layer.XYZ("OpenStreetMap", { specular: [0.0003, 0.00012, 0.00001], shininess: 20, diffuse: [0.89, 0.9, 0.83], extent: [[0, 0], [45, 45]], isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
-    var sat = new og.layer.XYZ("MapQuest Satellite", { shininess: 20, specular: og.math.vector3(0.00048, 0.00037, 0.00035), diffuse: og.math.vector3(0.88, 0.85, 0.8), ambient: og.math.vector3(0.15, 0.1, 0.23), isBaseLayer: true, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
+    var osm = new og.layer.XYZ("OpenStreetMap", { specular: [0.0003, 0.00012, 0.00001], shininess: 20, diffuse: [0.89, 0.9, 0.83], extent: [[0, 0], [45, 45]], isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data ï¿½ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' });
+    var sat = new og.layer.XYZ("MapQuest Satellite", { shininess: 20, specular: og.math.vector3(0.00048, 0.00037, 0.00035), diffuse: og.math.vector3(0.88, 0.85, 0.8), ambient: og.math.vector3(0.15, 0.1, 0.23), isBaseLayer: true, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: 'ï¿½2014 MapQuest - Portions ï¿½2014 "Map data ï¿½ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"' });
     var sat2 = new og.layer.XYZ("-MapQuest Satellite", { extent: og.extent(og.lonLat(-180, -90), og.lonLat(180, 0)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '' });
     var sat3 = new og.layer.XYZ("+MapQuest Satellite", { extent: og.extent(og.lonLat(-180, 0), og.lonLat(180, 90)), isBaseLayer: false, url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png", visibility: false, attribution: '' });
     var hyb = new og.layer.XYZ("MapQuest Hybrid", { isBaseLayer: false, url: "http://otile1-s.mqcdn.com/tiles/1.0.0/hyb/{z}/{x}/{y}.png", visibility: false, zIndex: 20, opacity: 1, attribution: '' });
@@ -125,76 +125,62 @@ function start() {
 
 function main2() {
 
-    function rnd(min, max) {
-        return Math.random() * (max - min) + min;
+    var trees = [];
+
+    for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 10; j++) {
+            var coords = new og.LonLat(i * 0.1, j * 0.1);
+            trees.push(new og.Entity({
+                'name': 'tree',
+                'lonlat': coords,
+                'billboard': {
+                    'src': 'tree.png',
+                    'size': [16, 32],
+                    'offset': [0, 16],
+                    'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                }
+            }));
+        }
     }
 
-    var entities = [],
-        colors = ['red', 'orange', 'yellow', 'green', 'lightblue', 'darkblue', 'purple']
+    trees[0].setGeometry(new og.Geometry({
+        'type': "Polygon",
+        'coordinates': [ [[0,0],[0, 20],[20,20],[20,0]] ],
+        'style': {}
+    }));
 
-    for (var i = 0; i < 5000; i++) {
-        entities.push(og.entity({
-            'name': 'sat-' + i,
-            'lonlat': [rnd(-180, 180), rnd(-90, 90), rnd(100000, 5000000)],
-            'billboard': {
-                'src': 'carrot.png',
-                'size': [24, 24],
-                'color': colors[i % 7],
-                'rotation': rnd(0, 360)
-            }
-        }, {
-            'bearing': rnd(0, 360),
-            'color': colors[i % 7]
-        }));
-    }
+    // trees[1].setGeometry(new og.Geometry({
+    //     'type': "MultiPolygon",
+    //     'coordinates': [  [ [[],[],[]] ]  ],
+    //     'style': {}
+    // }));
 
-    sats = new og.EntityCollection({
-        'entities': entities,
-        'scaleByDistance': [6000000, 24000000, 10000000000]
+
+    forest = new og.layer.Vector("Forest", {
+        'groundAlign': true,
+        'entities': trees,
+        'async': false,
+        'nodeCapacity': trees.length,
+        'zIndex': 100,
+        'visibility': true,
+        'isBaseLayer': false
     });
 
-    sats.events.on("draw", function (c) {
-        c.each(function (e) {
-            var ll = globus.planet.ellipsoid.getBearingDestination(e._lonlat, e.properties.bearing, 2000);
-            e.properties.bearing = globus.planet.ellipsoid.getFinalBearing(e._lonlat, ll);
-            e.setLonLat(new og.LonLat(ll.lon, ll.lat, e._lonlat.height));
-            e.billboard.setRotation(e.billboard.getRotation() + 0.01);
-        });
-    });
-
-    sats.events.on("mouseenter", function (e) {
-        var b = e.pickingObject.billboard;
-        b.setScale(3);
-        b.setColor(1, 1, 1);
-    });
-
-    sats.events.on("mouseleave", function (e) {
-        var b = e.pickingObject.billboard;
-        b.setScale(1);
-        b.setColorHTML(e.pickingObject.properties.color);
-    });
-
-    var sat = new og.layer.XYZ("MapQuest Satellite", {
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
         shininess: 20,
-        specular: og.math.vector3(0.00048, 0.00037, 0.00035),
-        diffuse: og.math.vector3(0.88, 0.85, 0.8),
-        ambient: og.math.vector3(0.15, 0.1, 0.23),
+        diffuse: [0.89, 0.9, 0.83],
         isBaseLayer: true,
-        url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
-        attribution: '©2014 MapQuest - Portions ©2014 "Map data © <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
-
 
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [sat]
+        "layers": [osm, forest]
     });
-
-    sats.addTo(globus.planet);
-
-    globus.planet.flyLonLat(og.lonLat(54.5, 43.5, 20108312));
 };

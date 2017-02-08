@@ -42,7 +42,7 @@ HtmlPointCollection.prototype.add = function (point) {
         }
 
         var that = this;
-        point.events.on("click", null, function () {
+        point.events.on("click", function () {
             if (point.selected) {
                 console.log("video");
             } else {
@@ -65,7 +65,7 @@ HtmlPointCollection.prototype.removePoint = function (point) {
 
 HtmlPointCollection.prototype.initialization = function () {
     var that = this;
-    this.renderer.events.on("mouselbuttonclick", null, function () {
+    this.renderer.events.on("mouselbuttonclick", function () {
         that.hideClickAnimation(that.selectedPoint);
         that.selectedPoint = null;
     });
@@ -82,7 +82,7 @@ HtmlPointCollection.prototype.showClickAnimation = function (point) {
         }
     };
 
-    this.renderer.events.on("draw", null, frame);
+    this.renderer.events.on("draw", frame);
 };
 
 HtmlPointCollection.prototype.hideClickAnimation = function (point) {
@@ -100,7 +100,7 @@ HtmlPointCollection.prototype.hideClickAnimation = function (point) {
             }
         };
 
-        this.renderer.events.on("draw", null, frame);
+        this.renderer.events.on("draw", frame);
     }
 };
 

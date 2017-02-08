@@ -1,8 +1,13 @@
 goog.provide('og.Geometry');
 
 goog.require('og.Extent');
+goog.require('og.utils');
+goog.require('og.math.Vector4');
+goog.require('og.LonLat');
 
 og.Geometry = function(options) {
+    this._id = og.Geometry.__staticCounter++;
+
     options = options || {};
     options.style = options.style || {};
 
@@ -11,9 +16,15 @@ og.Geometry = function(options) {
      * @protected
      * @type {og.Entity}
      */
-    this._entity = null; //this._entity._vectorLayer._geometryHandler
+    this._entity = null;
 
     this._handler = null;
+    this._handlerIndex = -1;
+    this._polyVerticesHandlerIndex = -1;
+    this._polyIndexesHandlerIndex = -1;
+
+    this._polyVertices = null;
+    this._polyIndexes = null;
 
     this._type = options.type && og.Geometry.getType(options.type) || og.Geometry.POINT;
     this._coordinates = [];
@@ -23,14 +34,14 @@ og.Geometry = function(options) {
     }, this._coordinates);
 
     this._style = options.style || {};
-    this._style.fillStyle = options.style.fillStyle || 'blue';
+    this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
     this._style.lineWidth = options.style.lineWidth || 3;
-    this._style.strokeStyle = options.style.strokeStyle || 'darkblue';
+    this._style.strokeColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
 
     this._visibility = options.visibility || true
-
-    this._handlerIndex = -1;
 };
+
+og.Geometry.__staticCounter = 0;
 
 og.Geometry.POINT = 1;
 og.Geometry.LINESTRING = 2;
@@ -121,8 +132,24 @@ og.Geometry.prototype.setGeometry = function(geometryObj) {
     return this;
 };
 
-og.Geometry.prototype.setStyle = function(style) {
-    this._style = style;
+og.Geometry.prototype.setFillColor = function(r, g, b, a) {
+    var c = this._style.fillColor;
+    c.x = r;
+    c.y = g;
+    c.z = b;
+    c.w = a;
+    this._handler && this._handler.setPolyColorArr(this, c);
+    return this;
+};
+
+og.Geometry.prototype.setFillColor4v = function(rgba) {
+    return this.setFillColor(rgba.x, rgba.y, rgba.z, rgba.w);
+};
+
+og.Geometry.prototype.setFillOpacity = function(opacity) {
+    var c = this._style.fillColor;
+    c.w = opacity;
+    this._handler && this._handler.setPolyColorArr(this, c);
     return this;
 };
 
@@ -141,8 +168,4 @@ og.Geometry.prototype.getExtent = function() {
 
 og.Geometry.prototype.getType = function() {
     return this._type;
-};
-
-og.Geometry.prototype.getFillColorRGBA = function() {
-    return og.utils.htmlColorToRgba(this._style.fillStyle);
 };

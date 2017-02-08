@@ -27,8 +27,8 @@ Heatmap.prototype.initialization = function () {
 
     this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
 
-    this.renderer.events.on("mousemove", this, this.onMouseMove);
-    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
+    this.renderer.events.on("mousemove", this.onMouseMove, this);
+    this.renderer.events.on("mouselbuttondown", this.onMouseLeftButtonClick, this);
 };
 
 Heatmap.prototype.onMouseMove = function (e) {

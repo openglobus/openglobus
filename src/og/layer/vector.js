@@ -95,7 +95,7 @@ og.layer.Vector = function(name, options) {
     });
     this._bindEventsDefault(this._entityCollectionAlways);
 
-    this._geometryHandler = new og.GeometryHandler();
+    this._geometryHandler = new og.GeometryHandler(this);
 
     this._entityCollectionsTree = null;
     this._entityCollectionsTreeNorth = null;

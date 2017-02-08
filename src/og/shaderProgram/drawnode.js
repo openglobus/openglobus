@@ -47,13 +47,7 @@ og.shaderProgram.drawnode_nl = function () {
             }',
         fragmentShader:
             '#extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -156,13 +150,7 @@ og.shaderProgram.drawnode_screen_nl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -239,13 +227,7 @@ og.shaderProgram.drawnode_colorPicking = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -326,13 +308,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             uniform sampler2D defaultTexture;\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
@@ -411,7 +387,6 @@ og.shaderProgram.drawnode_wl = function () {
             normalMatrix: { type: og.shaderProgram.types.MAT3 },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
-            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             nightTexture: { type: og.shaderProgram.types.SAMPLER2D },
             specularTexture: { type: og.shaderProgram.types.SAMPLER2D },
             lightsPositions: { type: og.shaderProgram.types.VEC4 },
@@ -453,13 +428,7 @@ og.shaderProgram.drawnode_wl = function () {
             }',
         fragmentShader:
             '#extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
 \n\
             #define MAX_POINT_LIGHTS 1\n\
             #define MAX_OVERLAYS 5\n\
@@ -520,8 +489,8 @@ og.shaderProgram.drawnode_wl = function () {
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);\
                 vec3 eyeDirection = normalize(-v_vertex.xyz);\
                 vec3 reflectionDirection = reflect(-lightDirection, normal);\
-                vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord.st );\
-                float shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;\
+                vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord );\
+                float shininess = texture2D( specularTexture, vGlobalTextureCoord ).r * 255.0 * overGround;\
                 float reflection = max( dot(reflectionDirection, eyeDirection), 0.0);\
                 float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);\
                 vec3 night = nightStep * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;\
@@ -617,7 +586,6 @@ og.shaderProgram.drawnode_screen_wl = function () {
             transparentColorArr: { type: og.shaderProgram.types.VEC4 },
             defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
             height: { type: og.shaderProgram.types.FLOAT },
-            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
             normalMatrix: { type: og.shaderProgram.types.MAT3 },
             uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
             uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
@@ -659,13 +627,7 @@ og.shaderProgram.drawnode_screen_wl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
 \n\
             #define MAX_POINT_LIGHTS 1\n\
             #define MAX_OVERLAYS 5\n\
@@ -711,8 +673,8 @@ og.shaderProgram.drawnode_screen_wl = function () {
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);\
                 vec3 eyeDirection = normalize(-v_vertex.xyz);\
                 vec3 reflectionDirection = reflect(-lightDirection, normal);\
-                vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord.st );\
-                float shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;\
+                vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord );\
+                float shininess = texture2D( specularTexture, vGlobalTextureCoord ).r * 255.0 * overGround;\
                 float reflection = max( dot(reflectionDirection, eyeDirection), 0.0);\
                 float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);\
                 vec3 night = nightStep * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;\

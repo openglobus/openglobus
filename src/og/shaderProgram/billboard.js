@@ -10,13 +10,7 @@ og.shaderProgram.billboard = function (isSingleBuffer) {
 
     var strFragment;
     if (isSingleBuffer) {
-        strFragment = '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+        strFragment = 'precision highp float;\n\
             uniform sampler2D u_texture;\
             varying vec2 v_texCoords;\
             varying vec4 v_rgba;\
@@ -28,13 +22,7 @@ og.shaderProgram.billboard = function (isSingleBuffer) {
             }';
     } else {
         strFragment = '#extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
             uniform sampler2D u_texture;\
             varying vec2 v_texCoords;\
             varying vec4 v_rgba;\
@@ -68,13 +56,7 @@ og.shaderProgram.billboard = function (isSingleBuffer) {
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec2 a_texCoord;\
             attribute vec4 a_positions;\
@@ -150,13 +132,7 @@ og.shaderProgram.billboardPicking = function () {
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec4 a_positions;\
             attribute vec3 a_offset;\
@@ -205,13 +181,7 @@ og.shaderProgram.billboardPicking = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             varying vec4 v_color;\
             void main () {\
                 gl_FragColor = v_color;\

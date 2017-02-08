@@ -25,6 +25,7 @@ og.planetSegment.Material.prototype.abortLoading = function() {
 og.planetSegment.Material.prototype.applyImage = function(img) {
     this.image = img;
     this.texture = this.segment.handler.createTexture(img);
+    this.updateTexture = null;
     this.appliedNodeId = this.segment.node.nodeId;
     this.isReady = true;
     this.textureExists = true;
@@ -33,6 +34,7 @@ og.planetSegment.Material.prototype.applyImage = function(img) {
 
 og.planetSegment.Material.prototype.applyTexture = function(texture) {
     this.texture = texture;
+    this.updateTexture = null;
     this.appliedNodeId = this.segment.node.nodeId;
     this.isReady = true;
     this.textureExists = true;

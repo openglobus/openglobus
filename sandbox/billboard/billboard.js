@@ -22,7 +22,7 @@ my.Billboard.prototype.initialization = function () {
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    //this.renderer.events.on("charkeypress", this, this.toogleWireframe, og.input.KEY_X);
+    //this.renderer.events.on("charkeypress", this.toogleWireframe, og.input.KEY_X);
 
     ec = new og.EntityCollection();
 
@@ -81,19 +81,19 @@ my.Billboard.prototype.initialization = function () {
 
     ec.addTo(this);
 
-    ec.events.on("touchstart", null, function (e) {
+    ec.events.on("touchstart", function (e) {
         print2d("t1", "start-" + e.pickingObject.label.getText(), 100, 100);
     });
 
-    ec.events.on("touchend", null, function (e) {
+    ec.events.on("touchend", function (e) {
         print2d("t1", "end-" + e.pickingObject.label.getText(), 100, 100);
     });
 
-    //ec.events.on("touchenter", null, function (e) {
+    //ec.events.on("touchenter", function (e) {
     //    print2d("t1", "enter-" + e.pickingObject.label.getText(), 100, 100);
     //});
 
-    //ec.events.on("touchleave", null, function (e) {
+    //ec.events.on("touchleave", function (e) {
     //    print2d("t1", "leave-" + e.pickingObject.label.getText(), 100, 100);
     //});
 

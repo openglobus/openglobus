@@ -12,13 +12,7 @@ og.shaderProgram.label = function (isSingleBuffer) {
 
     if (isSingleBuffer) {
         strFragment = '#extension GL_OES_standard_derivatives : enable\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
             const int MAX_SIZE = 12;\
             uniform sampler2D u_fontTextureArr[MAX_SIZE];\
             varying float v_fontIndex;\
@@ -61,13 +55,7 @@ og.shaderProgram.label = function (isSingleBuffer) {
     } else {
         strFragment = '#extension GL_OES_standard_derivatives : enable\n\
             #extension GL_EXT_draw_buffers : require\n\
-            #ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
             precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
             const int MAX_SIZE = 12;\
             uniform sampler2D u_fontTextureArr[MAX_SIZE];\
             varying float v_fontIndex;\
@@ -166,7 +154,7 @@ og.shaderProgram.label = function (isSingleBuffer) {
                     return;\
                 }\
                 v_fontIndex = a_fontIndex;\
-                v_texCoords = a_texCoord.xy;\
+                v_texCoords = vec2(a_texCoord.xy);\
                 vec3 look = a_positions.xyz - uCamPos;\
                 float lookDist = length(look);\
                 v_rgba = a_rgba;\
@@ -222,13 +210,7 @@ og.shaderProgram.labelPicking = function () {
             a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
         },
         vertexShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec4 a_texCoord;\
             attribute vec4 a_positions;\
@@ -283,13 +265,7 @@ og.shaderProgram.labelPicking = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            '#ifdef GL_ES\n\
-            #ifdef GL_FRAGMENT_PRECISION_HIGH\n\
-            precision highp float;\n\
-            #else\n\
-            precision mediump float;\n\
-            #endif // GL_FRAGMENT_PRECISION_HIGH\n\
-            #endif // GL_ES\n\
+            'precision highp float;\n\
             varying vec4 v_color;\
             void main () {\
                 gl_FragColor = v_color;\

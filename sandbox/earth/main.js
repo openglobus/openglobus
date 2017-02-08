@@ -39,12 +39,12 @@ function init() {
     sun = new og.control.Sun({ autoActivate: true });
     nav = new EarthNavigation({ autoActivate: true });
 
-    nav.events.on("zoomin", null, function () {
+    nav.events.on("zoomin", function () {
         $(".line-v").addClass("active");
         $(".line-h").addClass("active");
     });
 
-    nav.events.on("zoomout", null, function () {
+    nav.events.on("zoomout", function () {
         $(".line-v").removeClass("active");
         $(".line-h").removeClass("active");
         if (pointCollection.selectedPoint) {
@@ -95,7 +95,7 @@ function createClouds() {
 
     var rot = 0;
     step = 0.008;
-    globus.planet.renderer.events.on("draw", null, function () {
+    globus.planet.renderer.events.on("draw", function () {
         collection._entities[0].shape.orientation = new og.math.Quaternion.yRotation(rot * og.math.RADIANS);
         collection._entities[0].shape.refresh();
         rot -= step;
@@ -125,13 +125,13 @@ function loadPoints() {
                 name: di.name
             });
 
-            point.events.on("click", point, function () {
+            point.events.on("click", function () {
                 nav.stopRotation();
                 nav.currState = 1;
                 $(".line-v").addClass("active");
                 $(".line-h").addClass("active");
                 globus.planet.flyLonLat(og.lonLat(this._lonlat.lon, this._lonlat.lat, nav.positionState[1].h));
-            });
+            }, point);
 
             pointCollection.add(point);
         }

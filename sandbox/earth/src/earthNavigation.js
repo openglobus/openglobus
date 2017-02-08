@@ -88,16 +88,16 @@ EarthNavigation.prototype.onMouseWheel = function (event) {
 
 EarthNavigation.prototype.init = function () {
     this.planet = this.renderer.renderNodes.Earth;
-    this.renderer.events.on("mousewheel", this, this.onMouseWheel);
-    this.renderer.events.on("mouselbuttonhold", this, this.onMouseLeftButtonDown);
-    this.renderer.events.on("mouselbuttondown", this, this.onMouseLeftButtonClick);
-    this.renderer.events.on("mouselbuttonup", this, this.onMouseLeftButtonUp);
+    this.renderer.events.on("mousewheel", this.onMouseWheel);
+    this.renderer.events.on("mouselbuttonhold", this.onMouseLeftButtonDown);
+    this.renderer.events.on("mouselbuttondown", this.onMouseLeftButtonClick);
+    this.renderer.events.on("mouselbuttonup", this.onMouseLeftButtonUp);
 
-    this.renderer.events.on("touchstart", this, this.onTouchStart);
-    this.renderer.events.on("touchend", this, this.onTouchEnd);
-    this.renderer.events.on("touchmove", this, this.onTouchMove);
+    this.renderer.events.on("touchstart", this.onTouchStart);
+    this.renderer.events.on("touchend", this.onTouchEnd);
+    this.renderer.events.on("touchmove", this.onTouchMove);
 
-    this.renderer.events.on("draw", this, this.onDraw);
+    this.renderer.events.on("draw", this.onDraw);
 };
 
 EarthNavigation.prototype.onTouchStart = function (e) {
