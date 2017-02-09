@@ -77,10 +77,11 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 if (segmentIndexes) {
                     material.indexBuffer = h.createElementArrayBuffer(segmentIndexes, 1, segmentIndexes.length);
 
+                    var texture;
                     if (material._updateTexture) {
                         texture = material._updateTexture;
                     } else {
-                        var texture = h.createEmptyTexture_l(this._width, this._height);
+                        texture = h.createEmptyTexture_l(this._width, this._height);
                     }
                     f.bindOutputTexture(texture);
                     gl.clearColor(1.0, 1.0, 1.0, 0.0);

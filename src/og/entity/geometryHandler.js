@@ -116,10 +116,10 @@ og.GeometryHandler.prototype._refreshPlanetNode = function(treeNode) {
                 this._refreshPlanetNode(ni);
                 var m = ni.planetSegment.materials[lid];
                 if (m) {
-                    m.isReady = false;
-                    if (!m.texture.default) {
+                    if (m.isReady) {
                         m._updateTexture = m.texture;
                     }
+                    m.isReady = false;
                 }
             }
         }

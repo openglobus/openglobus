@@ -169,4 +169,12 @@ function main2() {
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm, forest]
     });
+
+    globus.renderer.events.on("charkeypress", og.input.KEY_Q, function(){
+        v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(1,1,0,1);
+    }, this);
+    globus.renderer.events.on("charkeypress", og.input.KEY_W, function(){
+        v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(0,1,0,1)
+    }, this);
+
 };
