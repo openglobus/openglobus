@@ -687,6 +687,8 @@ og.layer.Vector.prototype.clearMaterial = function(material) {
         !material.texture.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
         material.texture = null;
+        material.segment.handler.gl.deleteTexture(material._updateTexture);
+        material._updateTexture = null;
         gl.deleteBuffer(material.indexBuffer);
         material.indexBuffer = null;
     }

@@ -125,43 +125,29 @@ function start() {
 
 function main2() {
 
-    var trees = [];
+    var entities = [];
 
-    for (var i = 0; i < 10; i++) {
-        for (var j = 0; j < 10; j++) {
-            var coords = new og.LonLat(i * 0.1, j * 0.1);
-            trees.push(new og.Entity({
-                'name': 'tree',
-                'lonlat': coords,
-                'billboard': {
-                    'src': 'tree.png',
-                    'size': [16, 32],
-                    'offset': [0, 16],
-                    'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+
+            entities.push(new og.Entity({
+                'geometry': {
+                    'type': "Polygon",
+                    'coordinates': [ [[0,0],[0, 10],[10,0] ]],
+                    'style': {}
                 }
             }));
-        }
-    }
 
-    trees[0].setGeometry(new og.Geometry({
-        'type': "Polygon",
-        'coordinates': [ [[0,0],[0, 20],[20,20],[20,0]] ],
-        'style': {}
-    }));
-
-    // trees[1].setGeometry(new og.Geometry({
-    //     'type': "MultiPolygon",
-    //     'coordinates': [  [ [[],[],[]] ]  ],
-    //     'style': {}
-    // }));
-
+            entities.push(new og.Entity({
+                'geometry': {
+                    'type': "Polygon",
+                    'coordinates': [ [[0,88],[32, 10],[10,0] ]],
+                    'style': {
+                        'fillColor':"#ff0000"
+                    }
+                }
+            }));
 
     forest = new og.layer.Vector("Forest", {
-        'groundAlign': true,
-        'entities': trees,
-        'async': false,
-        'nodeCapacity': trees.length,
-        'zIndex': 100,
+        'entities': entities,
         'visibility': true,
         'isBaseLayer': false
     });

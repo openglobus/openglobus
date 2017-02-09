@@ -59,7 +59,11 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
             this._polyVertices.push.apply(this._polyVertices, data.vertices);
-            this._polyIndexes.push.apply(this._polyIndexes, indexes);
+
+            for (var i = 0; i < indexes.length; i++) {
+                this._polyIndexes.push(indexes[i] + geometry._polyIndexesHandlerIndex);
+            }
+            //this._polyIndexes.push.apply(this._polyIndexes, indexes);
 
             var color = geometry._style.fillColor;
             for (var i = 0; i < data.vertices.length / 2; i++) {
@@ -109,12 +113,14 @@ og.GeometryHandler.prototype._refreshPlanetNode = function(treeNode) {
         var ni = nodes[i];
         for (var j = 0; j < g.length; j++) {
             if (g[j]._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+                this._refreshPlanetNode(ni);
                 var m = ni.planetSegment.materials[lid];
                 if (m) {
                     m.isReady = false;
-                    m._updateTexture = m.texture;
+                    if (!m.texture.default) {
+                        m._updateTexture = m.texture;
+                    }
                 }
-                this._refreshPlanetNode(ni);
             }
         }
     }
@@ -155,8 +161,8 @@ og.GeometryHandler.prototype.update = function() {
 };
 
 og.GeometryHandler.prototype.setPolyColorArr = function(geometry, color) {
-    var index = geometry._polyVerticesHandlerIndex,
-        size = index + geometry._polyVertices.length * 2;
+    var index = geometry._polyVerticesHandlerIndex * 2, // ... / 2 * 4
+        size = index + geometry._polyVertices.length * 2; // ... / 2 * 4
     var a = this._polyColors;
     for (var i = index; i < size; i += 4) {
         a[i] = color.x;
