@@ -118,6 +118,9 @@ og.GeometryHandler.prototype._refreshPlanetNode = function(treeNode) {
                 if (m) {
                     if (m.isReady) {
                         m._updateTexture = m.texture;
+                        if(m.segment.node.getState() !== og.quadTree.RENDERING){
+                            m.textureExists = false;
+                        }
                     }
                     m.isReady = false;
                 }

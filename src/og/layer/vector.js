@@ -674,9 +674,9 @@ og.layer.Vector.prototype.applyMaterial = function(material) {
                 dZ2
             ];
         } else {
-            if (material._updateTexture) {
+            if (material.textureExists && material._updateTexture) {
                 material.texture = material._updateTexture;
-            }else{
+            } else {
                 material.texture = segment.planet.transparentTexture;
             }
             return [0, 0, 1, 1];
