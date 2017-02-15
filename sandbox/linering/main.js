@@ -4,12 +4,10 @@ goog.require('og.control.SimpleNavigation');
 goog.require('og.control.ShowFps');
 goog.require('og.shaderProgram');
 goog.require('og.scene.Axes');
-goog.require('my.LineString');
+goog.require('my.LineRing');
 goog.require('og.math.Vector3');
 
 function start() {
-
-    og.webgl.MAX_FRAME_DELAY = 15;
 
     context = new og.webgl.Handler("canvas", { alpha: false });
     context.initialize();
@@ -19,13 +17,13 @@ function start() {
 
     var axes = new og.scene.Axes(10000);
 
-    testNode = new my.LineString("LineString");
+    lineRing = new my.LineRing("LineRing");
     //renderer.addRenderNode(axes);
-    renderer.addRenderNode(testNode);
+    renderer.addRenderNode(lineRing);
 
     renderer.addControls([
-        new og.control.SimpleNavigation({ autoActivate: true }),
-        new og.control.ShowFps({ autoActivate: true })
+        new og.control.SimpleNavigation(),
+        new og.control.ShowFps()
     ]);
 
     renderer.start();

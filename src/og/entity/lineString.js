@@ -629,8 +629,6 @@ og.LineString.prototype._createData3v = function () {
     this._changedBuffers[og.LineString.INDEX_BUFFER] = true;
 };
 
-//FLOATSIZE = 4;
-//components = 9;
 og.LineString.prototype.draw = function () {
     if (this.visibility && this._path.length) {
 

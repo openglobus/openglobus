@@ -263,7 +263,7 @@ og.Renderer.prototype.removeControl = function (control) {
  * Renderer initialization.
  * @public
  */
-og.Renderer.prototype.init = function () {
+og.Renderer.prototype.initialize = function () {
     var that = this;
 
     this.handler.setFrameCallback(function () {
