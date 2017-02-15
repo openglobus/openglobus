@@ -1,21 +1,21 @@
-goog.provide('my.LineString');
+goog.provide('my.Polyline');
 
 goog.require('og.scene.RenderNode');
 goog.require('og.inheritance');
 
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
-goog.require('og.LineString');
+goog.require('og.Polyline');
 goog.require('og.Label');
 
 
-my.LineString = function (name) {
+my.Polyline = function (name) {
     og.inheritance.base(this, name);
 };
 
-og.inheritance.extend(my.LineString, og.scene.RenderNode);
+og.inheritance.extend(my.Polyline, og.scene.RenderNode);
 
-my.LineString.prototype.initialization = function () {
+my.Polyline.prototype.initialization = function () {
 
     var a, b, bc, c, d, i, j, l, lnx, lny, lnz, lx, ly, lz, nx, ny, nz, result, x, y, z, _i;
     result = [];
@@ -56,21 +56,21 @@ my.LineString.prototype.initialization = function () {
     this.ec = new og.EntityCollection();
     var s = 10000;
     var ex = new og.Entity({
-        lineString: {
+        polyline: {
             path: [[0, 1000, 0], [s / 3, 0, 0], [s * 2 / 3, 1000, 0], [s, 3000, 0]],
             thickness: 15,
             color: [1, 0, 0, 1]
         }
     });
     var ey = new og.Entity({
-        lineString: {
+        polyline: {
             path: [[0, 0, 0], [0, s, 0]],
             thickness: 15,
             color: [0, 0, 1, 1]
         }
     });
     var ez = new og.Entity({
-        lineString: {
+        polyline: {
             path: [[0, 0, 0], [0, 0, s]],
             thickness: 15,
             color: [0, 1, 0, 1]
@@ -82,15 +82,15 @@ my.LineString.prototype.initialization = function () {
 
     this.ec.addTo(this);
     //this.ec.events.on("mouseenter", function (e) {
-    //    e.pickingObject.lineString.setColor(1, 1, 0);
+    //    e.pickingObject.polyline.setColor(1, 1, 0);
     //});
 
     //this.ec.events.on("mouseleave", function (e) {
-    //    e.pickingObject.lineString.setColor(1, 1, 1);
+    //    e.pickingObject.polyline.setColor(1, 1, 1);
     //})
 
 };
 
 
-my.LineString.prototype.frame = function () {
+my.Polyline.prototype.frame = function () {
 };

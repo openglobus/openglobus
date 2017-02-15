@@ -4,7 +4,7 @@ goog.require('og.control.SimpleNavigation');
 goog.require('og.control.ShowFps');
 goog.require('og.shaderProgram');
 goog.require('og.scene.Axes');
-goog.require('my.LineString');
+goog.require('my.Polyline');
 goog.require('og.math.Vector3');
 
 function start() {
@@ -19,7 +19,7 @@ function start() {
 
     var axes = new og.scene.Axes(10000);
 
-    testNode = new my.LineString("LineString");
+    testNode = new my.Polyline("Polyline");
     //renderer.addRenderNode(axes);
     renderer.addRenderNode(testNode);
 

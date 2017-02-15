@@ -83,7 +83,7 @@ og.Globus = function (options) {
      * @type {og.Renderer}
      */
     this.renderer = new og.Renderer(_handler);
-    this.renderer.init();
+    this.renderer.initialize();
     this.renderer.div = this.div;
     this.renderer.div.attributions = document.createElement("div");
     this.renderer.div.attributions.classList.add("ogAttribution");

@@ -3,7 +3,7 @@ goog.provide('og.EntityCollection');
 goog.require('og.BillboardHandler');
 goog.require('og.LabelHandler');
 goog.require('og.ShapeHandler');
-goog.require('og.LineStringHandler');
+goog.require('og.PolylineHandler');
 goog.require('og.PointCloudHandler');
 goog.require('og.Events');
 
@@ -108,11 +108,11 @@ og.EntityCollection = function (options) {
     this.shapeHandler = new og.ShapeHandler(this);
 
     /**
-     * LineString handler
+     * Polyline handler
      * @public
-     * @type {og.LineStringHandler}
+     * @type {og.PolylineHandler}
      */
-    this.lineStringHandler = new og.LineStringHandler(this);
+    this.polylineHandler = new og.PolylineHandler(this);
 
     /**
      * PointCloud handler
@@ -408,7 +408,7 @@ og.EntityCollection.prototype.setOpacity = function (opacity) {
 og.EntityCollection.prototype.setPickingEnabled = function (enable) {
     this.billboardHandler.pickingEnabled = enable;
     this.labelHandler.pickingEnabled = enable;
-    this.lineStringHandler.pickingEnabled = enable;
+    this.polylineHandler.pickingEnabled = enable;
     this.shapeHandler.pickingEnabled = enable;
     this.pointCloudHandler.pickingEnabled = enable;
 };
@@ -446,8 +446,8 @@ og.EntityCollection.prototype._addRecursively = function (entity) {
     //shape
     entity.shape && this.shapeHandler.add(entity.shape);
 
-    //lineString
-    entity.lineString && this.lineStringHandler.add(entity.lineString);
+    //polyline
+    entity.polyline && this.polylineHandler.add(entity.polyline);
 
     //pointCloud
     entity.pointCloud && this.pointCloudHandler.add(entity.pointCloud);
@@ -520,8 +520,8 @@ og.EntityCollection.prototype._removeRecursively = function (entity) {
     //shape
     entity.shape && this.shapeHandler.remove(entity.shape);
 
-    //lineString
-    entity.lineString && this.lineStringHandler.remove(entity.lineString);
+    //polyline
+    entity.polyline && this.polylineHandler.remove(entity.polyline);
 
     //pointCloud
     entity.pointCloud && this.pointCloudHandler.remove(entity.pointCloud);
@@ -612,7 +612,7 @@ og.EntityCollection.prototype.addTo = function (renderNode, isHidden) {
         this.setRenderer(renderNode.renderer);
 
         this.shapeHandler.setRenderNode(renderNode);
-        this.lineStringHandler.setRenderNode(renderNode);
+        this.polylineHandler.setRenderNode(renderNode);
         this.pointCloudHandler.setRenderNode(renderNode);
 
         this.events.dispatch(this.events.add, this);
@@ -726,7 +726,7 @@ og.EntityCollection.prototype.clear = function () {
     this.billboardHandler.clear();
     this.labelHandler.clear();
     this.shapeHandler.clear();
-    this.lineStringHandler.clear();
+    this.polylineHandler.clear();
     this.pointCloudHandler.clear();
 
     var i = this._entities.length;

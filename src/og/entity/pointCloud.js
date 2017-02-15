@@ -104,7 +104,7 @@ og.PointCloud = function (options) {
     this._pickingColorBuffer = null;
 
     /**
-     * Handler that stores and renders this linestring object.
+     * Handler that stores and renders this object.
      * @private
      * @type {og.PointCloudHandler}
      */

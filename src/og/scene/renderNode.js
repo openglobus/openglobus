@@ -288,10 +288,10 @@ og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
         //Z-buffer offset
         gl.polygonOffset(0, 0);
 
-        //lineStrings pass
+        //polylins pass
         i = ec.length;
         while (i--) {
-            ec[i]._animatedOpacity && ec[i].lineStringHandler.draw();
+            ec[i]._animatedOpacity && ec[i].polylineHandler.draw();
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -348,10 +348,10 @@ og.scene.RenderNode.prototype.drawPickingEntityCollections = function (ec) {
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
 
-        ////lineStrings pass
+        ////polylines pass
         //i = ec.length;
         //while (i--) {
-        //    ec[i]._visibility && ec[i].lineStringHandler.drawPicking();
+        //    ec[i]._visibility && ec[i].polylineHandler.drawPicking();
         //}
 
         ////shapes pass

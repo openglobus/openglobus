@@ -7,7 +7,7 @@ goog.require('og.Label');
 goog.require('og.LonLat');
 goog.require('og.Extent');
 goog.require('og.shape.Sphere');
-goog.require('og.LineString');
+goog.require('og.Polyline');
 goog.require('og.PointCloud');
 goog.require('og.Geometry');
 
@@ -27,7 +27,7 @@ goog.require('og.Geometry');
  * @param {*} [options.label] - Label options(see {@link og.Label}).
  * @param {*} [options.sphere] - Sphere options(see {@link og.shape.Sphere}).
  * @param {*} [options.box] - Sphere options(see {@link og.shape.Box}).
- * @param {*} [options.lineString] - Linestring options(see {@link og.LineString}).
+ * @param {*} [options.Polyline] - Polyline options(see {@link og.Polyline}).
  * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
  * @param {Object} [properties] - Entity custom properties.
@@ -146,7 +146,7 @@ og.Entity = function(options, properties) {
         "label": [og.Label, this.setLabel],
         "sphere": [og.shape.Sphere, this.setShape],
         "box": [og.shape.Box, this.setShape],
-        "lineString": [og.LineString, this.setLineString],
+        "polyline": [og.Polyline, this.setPolyline],
         "pointCloud": [og.PointCloud, this.setPointCloud],
         "geometry": [og.Geometry, this.setGeometry],
     };
@@ -173,11 +173,11 @@ og.Entity = function(options, properties) {
     this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
 
     /**
-     * Linestring entity.
+     * Polyline entity.
      * @public
-     * @type {og.LineString}
+     * @type {og.Polyline}
      */
-    this.lineString = this._createOptionFeature('lineString', options.lineString);
+    this.polyline = this._createOptionFeature('polyline', options.polyline);
 
     /**
      * PointCloud entity.
@@ -209,7 +209,7 @@ og.Entity = function(options, properties) {
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {*} [options.billboard] - Billboard options.
  * @param {*} [options.label] - Label options.
- * @param {*} [options.lineString] - LineString options.
+ * @param {*} [options.polyline] - polyline options.
  * @param {*} [options.sphere] - Sphere shape options.
  * @param {*} [options.box] - Box shape options.
  * @param {*} [options.pointCloud] - Point cloud options.
@@ -267,8 +267,8 @@ og.Entity.prototype.setVisibility = function(visibility) {
     //shape
     this.shape && this.shape.setVisibility(visibility);
 
-    //lineString
-    this.lineString && this.lineString.setVisibility(visibility);
+    //polyline
+    this.polyline && this.polyline.setVisibility(visibility);
 
     //geometry
     this.geometry && this.geometry.setVisibility(visibility);
@@ -464,19 +464,19 @@ og.Entity.prototype.setShape = function(shape) {
 };
 
 /**
- * Sets entity lineString.
+ * Sets entity polyline.
  * @public
- * @param {og.LineString} lineString - lineString object.
+ * @param {og.Polyline} polyline - Polyline object.
  */
-og.Entity.prototype.setLineString = function(lineString) {
-    if (this.lineString) {
-        this.lineString.remove();
+og.Entity.prototype.setPolyline = function (polyline) {
+    if (this.polyline) {
+        this.polyline.remove();
     }
-    this.lineString = lineString;
-    this.lineString._entity = this;
-    this.lineString.setVisibility(this._visibility);
-    this._entityCollection && this._entityCollection._lineStringHandler.add(lineString);
-    return lineString;
+    this.polyline = polyline;
+    this.polyline._entity = this;
+    this.polyline.setVisibility(this._visibility);
+    this._entityCollection && this._entityCollection._polylineHandler.add(polyline);
+    return polyline;
 };
 
 /**
@@ -541,8 +541,8 @@ og.Entity.prototype.setPickingColor = function() {
     //shape
     this.shape && this.shape.setPickingColor3v(c);
 
-    //lineString
-    this.lineString && this.lineString.setPickingColor3v(c);
+    //polyline
+    this.polyline && this.polyline.setPickingColor3v(c);
 
     for (var i = 0; i < this.childrenNodes.length; i++) {
         this.childrenNodes[i].setPickingColor();
@@ -559,8 +559,8 @@ og.Entity.prototype.getExtent = function() {
         sw = res.southWest,
         ne = res.northEast;
 
-    if(this.lineString) {
-        var e = this.lineString.getExtent();
+    if (this.polyline) {
+        var e = this.polyline.getExtent();
         if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
         if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
         if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;
