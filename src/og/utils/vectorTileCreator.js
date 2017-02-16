@@ -2,6 +2,7 @@ goog.provide('og.utils.VectorTileCreator');
 
 goog.require('og.webgl.Framebuffer');
 goog.require('og.PlanetSegmentHelper');
+goog.require('og.shaderProgram.lineString');
 goog.require('og.math');
 
 og.utils.VectorTileCreator = function(handler, maxFrames, width, height) {
@@ -17,6 +18,9 @@ og.utils.VectorTileCreator = function(handler, maxFrames, width, height) {
 };
 
 og.utils.VectorTileCreator.prototype._initialize = function() {
+
+    this._handler.addShaderProgram(og.shaderProgram.lineString());
+
     this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileRasterization", {
         uniforms: {
             'extentParams': {
@@ -51,6 +55,7 @@ og.utils.VectorTileCreator.prototype._initialize = function() {
         height: this._height,
         useDepth: false
     });
+
 };
 
 og.utils.VectorTileCreator.prototype.frame = function() {

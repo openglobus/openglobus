@@ -20,9 +20,6 @@ my.LineRing.prototype.initialization = function() {
         uniforms: {
             'viewport': {
                 type: og.shaderProgram.types.VEC2
-            },
-            'thickness': {
-                type: og.shaderProgram.types.FLOAT
             }
         },
         attributes: {
@@ -37,15 +34,27 @@ my.LineRing.prototype.initialization = function() {
             },
             'order': {
                 type: og.shaderProgram.types.VEC2
+            },
+            'color': {
+                type: og.shaderProgram.types.VEC4
+            },
+            'thickness': {
+                type: og.shaderProgram.types.FLOAT
             }
         },
         vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
                 attribute vec2 next;\
                 attribute vec2 order;\
+                attribute vec4 color;\
+                attribute float thickness;\
                 uniform vec2 viewport;\
-                uniform float thickness;\
+                varying vec4 vColor;\
+                varying vec2 vCur;\
+                varying vec2 vCurBase;\
+                varying float vT;\
                 void main(){\
+                    vColor = color;\
                     vec2 dirNext = next - current;\
                     vec2 dirPrev = normalize(prev - current);\
                     vec2 sNormalNext = normalize(vec2(-dirNext[1], dirNext[0]));\
@@ -53,61 +62,86 @@ my.LineRing.prototype.initialization = function() {
                     vec2 dir = sNormalNext - sNormalPrev;\
                     float sinA = dirPrev[0] * dir[1] - dirPrev[1] * dir[0];\
                     if(abs(sinA) < 0.3){\
-                        if(order[1] == 0.0){\
-                            float ccw = sign(dirNext[0] * dirPrev[1] - dirNext[1] * dirPrev[0]);\
-                            if(order[0] == 1.0) {\
-                                dir = sNormalPrev * ccw;\
+                        if(order.y == 0.0){\
+                            if(order.x == 1.0) {\
+                                dir = sNormalPrev * sign(dirNext[0] * dirPrev[1] - dirNext[1] * dirPrev[0]);\
                             } else {\
-                                dir = sNormalNext * order[0] * ccw;\
+                                dir = sNormalNext * order.x * sign(dirNext[0] * dirPrev[1] - dirNext[1] * dirPrev[0]);\
                             }\
-                        } else if(order[1] == 1.0) {\
-                            dir = sNormalPrev * order[0];\
+                        } else if(order.y == 1.0) {\
+                            dir = sNormalPrev * order.x;\
                         } else {\
-                            dir = sNormalNext * order[0];\
+                            dir = sNormalNext * order.x;\
                         }\
                     }else{\
-                        dir /= order[1] * sinA * order[0];\
+                        dir /= order.y * sinA * order.x;\
                     }\
                     \
                     vec2 c = (current + dir * thickness) / viewport;\
-                    gl_Position = vec4(-1.0 + c[0], 1.0 - c[1], 0.0, 1.0);\
+                    vCur = c;\
+                    vT = thickness;\
+                    vCurBase = current / viewport;\
+                    gl_Position = vec4(-1.0 + c.x, 1.0 - c.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
+                varying vec4 vColor;\
+                varying vec2 vCur;\
+                varying vec2 vCurBase;\
+                varying float vT;\
                 void main() {\
-                    gl_FragColor = vec4(1.0);\
+                    float d = 1.0 - distance(vCur, vCurBase) * 50.0;\
+                    gl_FragColor = vec4(vColor.rgb, vColor.a);\
                 }'
     }));
 
-    var path = [[80,80], [800,800], [1300,100], [900,900], [1500,900]];
+    var pathArr = [
+        [
+            [10, 10],
+            [200, 10],
+            [500, 500]
+        ],
+        [
+            [80, 80],
+            [800, 800],
+            [1300, 100],
+            [900, 900],
+            [1500, 900]
+        ]
+    ];
 
     this._mainData = [];
     this._orderData = [];
-    for(var i = 0; i < path.length; i++) {
-        var cur = path[i],
-            pre,
-            nex,
-            nex2;
+    this._colorData = [];
+    this._thicknessData = [];
 
-            if(i == 0){
+    for (var j = 0; j < pathArr.length; j++) {
+        path = pathArr[j];
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i],
+                pre,
+                nex,
+                nex2;
+
+            if (i == 0) {
                 pre = path[path.length - 1];
-            }else{
+            } else {
                 pre = path[i - 1];
             }
 
-            if(i == path.length - 2){
+            if (i == path.length - 2) {
                 nex2 = path[0];
             } else {
                 nex2 = path[i + 2];
             }
 
-            if(i == path.length - 1){
+            if (i == path.length - 1) {
                 nex = path[0];
                 nex2 = path[1];
-            }else{
+            } else {
                 nex = path[i + 1];
             }
 
-        this._mainData.push(
+            this._mainData.push(
                 cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
                 cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
                 nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
@@ -121,149 +155,64 @@ my.LineRing.prototype.initialization = function() {
                 nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
                 nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1]
                 //>
-        );
+            );
 
-        this._orderData.push(
-            1, -1,
-            -1, -1,
-            1, 1,
+            this._orderData.push(
+                1, -1, -1, -1,
+                1, 1,
 
-            1, -1,
-            -1, 1,
-            1, 1,
+                1, -1, -1, 1,
+                1, 1,
 
-            -1, 0,
-            0, 0,
-            1, 0
-        );
+                -1, 0,
+                0, 0,
+                1, 0
+            );
+
+            var color,
+                t;
+            if (j == 0) {
+                color = new og.math.Vector4(1, 0, 0, 1);
+                t = 20 * 0.5;
+            } else {
+                color = new og.math.Vector4(0, 1, 0, 1);
+                t = 50 * 0.5;
+            }
+
+            var r = color.x,
+                g = color.y,
+                b = color.z,
+                a = color.w;
+
+            this._colorData.push(
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a,
+                r, g, b, a);
+
+            this._thicknessData.push(
+                t,
+                t,
+                t,
+                t,
+                t,
+                t,
+                t,
+                t,
+                t);
+        }
     }
-//[[100,100],[1300,100], [900,900],[100,900]]
-    // var pre = new og.math.Vector2(100, 100),
-    //     cur = new og.math.Vector2(1300, 100),
-    //     nex = new og.math.Vector2(900, 900),
-    //     nex2 = new og.math.Vector2(100, 900);
-    //
-    // this._mainData = [
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //
-    //     //<
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     //>
-    //
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //
-    //     cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //
-    //     //<
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     //>
-    //
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //
-    //     nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //
-    //     //<
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     //>
-    //
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //
-    //     nex2[0], nex2[1], nex[0], nex[1], pre[0], pre[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //
-    //     //<
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     pre[0], pre[1], nex2[0], nex2[1], cur[0], cur[1],
-    //     //>
-    //
-    // ];
-    // this._orderData = [
-    //     1, -1,
-    //     -1, -1,
-    //     1, 1,
-    //
-    //     1, -1,
-    //     -1, 1,
-    //     1, 1,
-    //
-    //     //<
-    //     -1, 0,
-    //     0, 0,
-    //     1, 0,
-    //     //>
-    //
-    //     1, -1,
-    //     -1, -1,
-    //     1, 1,
-    //
-    //     1, -1,
-    //     -1, 1,
-    //     1, 1,
-    //
-    //     //<
-    //     -1, 0,
-    //     0, 0,
-    //     1, 0,
-    //     //>
-    //
-    //     1, -1,
-    //     -1, -1,
-    //     1, 1,
-    //
-    //     1, -1,
-    //     -1, 1,
-    //     1, 1,
-    //
-    //     //<
-    //     -1, 0,
-    //     0, 0,
-    //     1, 0,
-    //     //>
-    //
-    //     1, -1,
-    //     -1, -1,
-    //     1, 1,
-    //
-    //     1, -1,
-    //     -1, 1,
-    //     1, 1,
-    //
-    //     //<
-    //     -1, 0,
-    //     0, 0,
-    //     1, 0,
-    //     //>
-    //
-    // ];
 
     var h = this.renderer.handler;
     this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
     this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, (this._mainData.length) / 6);
-
+    this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, (this._colorData.length) / 4);
+    this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessData), 1, this._colorData.length);
 };
 
 
@@ -279,9 +228,13 @@ my.LineRing.prototype.frame = function() {
 
     sh.activate();
 
+    gl.enable(gl.BLEND);
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+
     gl.disable(gl.CULL_FACE);
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-    gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
@@ -289,9 +242,16 @@ my.LineRing.prototype.frame = function() {
     gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 24, 8);
     gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 24, 16);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+    gl.vertexAttribPointer(sha.color._pName, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
+    gl.vertexAttribPointer(sha.thickness._pName, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.drawArrays(gl.TRIANGLES, 0, this._mainBuffer.numItems);
     gl.enable(gl.CULL_FACE);
+    gl.disable(gl.BLEND);
 };

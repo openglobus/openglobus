@@ -34,9 +34,10 @@ og.Geometry = function(options) {
     }, this._coordinates);
 
     this._style = options.style || {};
-    this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
+    this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 0.5));
     this._style.lineWidth = options.style.lineWidth || 3;
     this._style.strokeColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
+    this._style.strokeWidth = options.style.strokeWidth || 0;
 
     this._visibility = options.visibility || true
 };
