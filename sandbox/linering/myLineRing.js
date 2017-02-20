@@ -10,7 +10,7 @@ goog.require('og.Label');
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 20;
+    this.thickness = 50;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -20,6 +20,9 @@ my.LineRing.prototype.initialization = function() {
         uniforms: {
             'viewport': {
                 type: og.shaderProgram.types.VEC2
+            },
+            'thickness': {
+                type: og.shaderProgram.types.FLOAT
             }
         },
         attributes: {
@@ -33,186 +36,82 @@ my.LineRing.prototype.initialization = function() {
                 type: og.shaderProgram.types.VEC2
             },
             'order': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'color': {
-                type: og.shaderProgram.types.VEC4
-            },
-            'thickness': {
                 type: og.shaderProgram.types.FLOAT
             }
         },
         vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
                 attribute vec2 next;\
-                attribute vec2 order;\
-                attribute vec4 color;\
-                attribute float thickness;\
+                attribute float order;\
+                uniform float thickness;\
                 uniform vec2 viewport;\
-                varying vec4 vColor;\
-                varying vec2 vCur;\
-                varying vec2 vCurBase;\
-                varying float vT;\
-                void main(){\
-                    vColor = color;\
-                    vec2 dirNext = next - current;\
-                    vec2 dirPrev = normalize(prev - current);\
-                    vec2 sNormalNext = normalize(vec2(-dirNext[1], dirNext[0]));\
-                    vec2 sNormalPrev = normalize(vec2(-dirPrev[1], dirPrev[0]));\
-                    vec2 dir = sNormalNext - sNormalPrev;\
-                    float sinA = dirPrev[0] * dir[1] - dirPrev[1] * dir[0];\
-                    if(abs(sinA) < 0.3){\
-                        if(order.y == 0.0){\
-                            if(order.x == 1.0) {\
-                                dir = sNormalPrev * sign(dirNext[0] * dirPrev[1] - dirNext[1] * dirPrev[0]);\
-                            } else {\
-                                dir = sNormalNext * order.x * sign(dirNext[0] * dirPrev[1] - dirNext[1] * dirPrev[0]);\
-                            }\
-                        } else if(order.y == 1.0) {\
-                            dir = sNormalPrev * order.x;\
-                        } else {\
-                            dir = sNormalNext * order.x;\
-                        }\
-                    }else{\
-                        dir /= order.y * sinA * order.x;\
+                \
+                vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
+                    if(start1 != start2){\
+                        vec2 dir2 = end2 - start2;\
+                        float a2 = -dir2.y;\
+                        float b2 = dir2.x;\
+                        float d2 = a2 * start2.x + b2 * start2.y;\
+                        float seg1_start = a2 * start1.x + b2 * start1.y - d2;\
+                        float u = seg1_start / (seg1_start - a2 * end1.x - b2 * end1.y + d2);\
+                        return start1 + u * (end1 - start1);\
                     }\
+                    return start1;\
+                }\
+                void main(){\
+                    vec2 dirNext = normalize(next - current);\
+                    vec2 dirPrev = normalize(prev - current);\
+                    vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
+                    vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
                     \
-                    vec2 c = (current + dir * thickness) / viewport;\
-                    vCur = c;\
-                    vT = thickness;\
-                    vCurBase = current / viewport;\
-                    gl_Position = vec4(-1.0 + c.x, 1.0 - c.y, 0.0, 1.0);\
+                    /*vec2 dir = sNormalNext - sNormalPrev;*/\
+                    /*float sinA = dirPrev.x * dir.y - dirPrev.y * dir.x;*/\
+                    /*vec2 c = (current + order * dir * thickness) / viewport;*/\
+                    \
+                    float d = thickness * order;\
+                    vec2 m = getIntersection( current + normalPrev * d, \
+                        prev + normalPrev * d, current + normalNext * d, next + normalNext * d ) / viewport;\
+                    gl_Position = vec4(-1.0 + m.x, 1.0 - m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
-                varying vec4 vColor;\
-                varying vec2 vCur;\
-                varying vec2 vCurBase;\
-                varying float vT;\
                 void main() {\
-                    float d = 1.0 - distance(vCur, vCurBase) * 50.0;\
-                    gl_FragColor = vec4(vColor.rgb, vColor.a);\
+                    gl_FragColor = vec4(1.0);\
                 }'
     }));
 
-    var pathArr = [
-        [
-            [10, 10],
-            [200, 10],
-            [500, 500]
-        ],
-        [
-            [80, 80],
-            [800, 800],
-            [1300, 100],
-            [900, 900],
-            [1500, 900]
-        ]
-    ];
-
     this._mainData = [];
     this._orderData = [];
-    this._colorData = [];
-    this._thicknessData = [];
+    this._indexData = [];
 
-    for (var j = 0; j < pathArr.length; j++) {
-        path = pathArr[j];
-        for (var i = 0; i < path.length; i++) {
-            var cur = path[i],
-                pre,
-                nex,
-                nex2;
+    var p0 = og.math.vector2(300, 500),
+        p1 = og.math.vector2(300, 100),
+        p2 = og.math.vector2(500, 100),
+        p3 = og.math.vector2(800, 100);
 
-            if (i == 0) {
-                pre = path[path.length - 1];
-            } else {
-                pre = path[i - 1];
-            }
+    this._mainData.push(
+        p3.x, p3.y, p3.x, p3.y,
+        p0.x, p0.y, p0.x, p0.y,
+        p1.x, p1.y, p1.x, p1.y,
+        p2.x, p2.y, p2.x, p2.y,
+        p3.x, p3.y, p3.x, p3.y,
+        p0.x, p0.y, p0.x, p0.y
+    );
 
-            if (i == path.length - 2) {
-                nex2 = path[0];
-            } else {
-                nex2 = path[i + 2];
-            }
+    this._orderData.push(
+        1, -1,
+        1, -1,
+        1, -1,
+        1, -1,
+        1, -1,
+        1, -1
+    );
 
-            if (i == path.length - 1) {
-                nex = path[0];
-                nex2 = path[1];
-            } else {
-                nex = path[i + 1];
-            }
-
-            this._mainData.push(
-                cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-                cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-
-                cur[0], cur[1], pre[0], pre[1], nex[0], nex[1],
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-
-                //<
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1],
-                nex[0], nex[1], cur[0], cur[1], nex2[0], nex2[1]
-                //>
-            );
-
-            this._orderData.push(
-                1, -1, -1, -1,
-                1, 1,
-
-                1, -1, -1, 1,
-                1, 1,
-
-                -1, 0,
-                0, 0,
-                1, 0
-            );
-
-            var color,
-                t;
-            if (j == 0) {
-                color = new og.math.Vector4(1, 0, 0, 1);
-                t = 20 * 0.5;
-            } else {
-                color = new og.math.Vector4(0, 1, 0, 1);
-                t = 50 * 0.5;
-            }
-
-            var r = color.x,
-                g = color.y,
-                b = color.z,
-                a = color.w;
-
-            this._colorData.push(
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a,
-                r, g, b, a);
-
-            this._thicknessData.push(
-                t,
-                t,
-                t,
-                t,
-                t,
-                t,
-                t,
-                t,
-                t);
-        }
-    }
+    this._indexData.push(0, 1, 2, 3, 4, 5, 6, 7);
 
     var h = this.renderer.handler;
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, (this._mainData.length) / 6);
-    this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, (this._colorData.length) / 4);
-    this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessData), 1, this._colorData.length);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, (this._orderData.length / 2));
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, (this._mainData.length) / 4);
+    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
 
 
@@ -228,30 +127,49 @@ my.LineRing.prototype.frame = function() {
 
     sh.activate();
 
-    gl.enable(gl.BLEND);
-    gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
+    //    gl.enable(gl.BLEND);
+    //    gl.blendEquation(gl.FUNC_ADD);
+    //    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.disable(gl.CULL_FACE);
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
+    gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 24, 0);
-    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 24, 8);
-    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 24, 16);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-    gl.vertexAttribPointer(sha.color._pName, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
-    gl.vertexAttribPointer(sha.thickness._pName, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
+    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 16);
+    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
-    gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-    gl.drawArrays(gl.TRIANGLES, 0, this._mainBuffer.numItems);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
     gl.enable(gl.CULL_FACE);
     gl.disable(gl.BLEND);
 };
+
+
+
+// struct Line {\
+//     float A, B, C;\
+// };\
+// \
+// Line getLine(vec2 p0, vec2 p1) {\
+//     return Line(p1.y - p0.y, p0.x - p1.x, p1.x * p0.y - p0.x * p1.y);\
+// }\
+// \
+// Line getParallel(Line l, vec2 p){\
+//     return Line(l.A, l.B, -l.A * p.x - l.B * p.y);\
+// }\
+// \
+// vec2 getIntersection(Line L0, Line L1, vec2 p) {\
+//     if(/*L0.A / L1.A != L0.B / L1.B*/true){\
+//         float x = (L1.B * L0.C - L0.B * L1.C) / (L0.B * L1.A - L1.B * L0.A);\
+//         float y = -(L0.C + L0.A * x) / L0.B;\
+//         return vec2(x, y);\
+//     }\
+//     return vec2(p);\
+// }\
