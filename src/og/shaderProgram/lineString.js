@@ -10,6 +10,9 @@ og.shaderProgram.lineString = function() {
         uniforms: {
             'viewport': {
                 type: og.shaderProgram.types.VEC2
+            },
+            'extentParams': {
+                type: og.shaderProgram.types.VEC4
             }
         },
         attributes: {
@@ -39,6 +42,7 @@ og.shaderProgram.lineString = function() {
                 attribute vec4 color;\
                 attribute float thickness;\
                 uniform vec2 viewport;\
+                uniform vec4 extentParams; \
                 varying vec4 vColor;\
                 void main(){\
                     vColor = color;\
@@ -64,8 +68,10 @@ og.shaderProgram.lineString = function() {
                         dir /= order.y * sinA * order.x;\
                     }\
                     \
-                    vec2 c = (current + dir * thickness) / viewport;\
-                    gl_Position = vec4(-1.0 + c.x, 1.0 - c.y, 0.0, 1.0);\
+                    vec2 eCurrent = (-1.0 + (current - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
+                    vec2 eDir = (-1.0 + (dir - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
+                    vec2 c = eCurrent + (eDir * thickess) / viewport;\
+                    gl_Position = vec4(c.x, c.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
                     varying vec4 vColor;\
@@ -81,7 +87,7 @@ og.shaderProgram.lineString.createLineStringData = function(path) {
 
 og.shaderProgram.lineString.createLineRingData = function(path, color, t) {
 
-    t = t != undefined ? t || 1.0;
+    t = t != undefined ? t : 1.0;
 
     var vertexArr = [],
         orderArr = [],

@@ -6,6 +6,7 @@ goog.require('og.shaderProgram');
 goog.require('og.scene.Axes');
 goog.require('my.LineRing');
 goog.require('og.math.Vector3');
+goog.require('og.math.Line');
 
 function start() {
 

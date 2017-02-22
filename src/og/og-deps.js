@@ -35,7 +35,7 @@ goog.addDependency('../../../og/src/og/entity/billboardHandler.js', ['og.Billboa
 goog.addDependency('../../../og/src/og/entity/entity.js', ['og.Entity', 'og.entity'], ['og.Billboard', 'og.Extent', 'og.Geometry', 'og.Label', 'og.LonLat', 'og.PointCloud', 'og.Polyline', 'og.math.Vector3', 'og.shape.Sphere'], false);
 goog.addDependency('../../../og/src/og/entity/entityCollection.js', ['og.EntityCollection'], ['og.BillboardHandler', 'og.Events', 'og.LabelHandler', 'og.PointCloudHandler', 'og.PolylineHandler', 'og.ShapeHandler'], false);
 goog.addDependency('../../../og/src/og/entity/geometry.js', ['og.Geometry'], ['og.Extent', 'og.LonLat', 'og.math.Vector4', 'og.utils'], false);
-goog.addDependency('../../../og/src/og/entity/geometryHandler.js', ['og.GeometryHandler'], ['og.Geometry', 'og.utils.earcut'], false);
+goog.addDependency('../../../og/src/og/entity/geometryHandler.js', ['og.GeometryHandler'], ['og.Geometry', 'og.shaderProgram.lineString', 'og.utils.earcut'], false);
 goog.addDependency('../../../og/src/og/entity/label.js', ['og.Label'], ['og.BaseBillboard', 'og.inheritance', 'og.math.Vector4', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/entity/labelHandler.js', ['og.LabelHandler'], ['og.BillboardHandler', 'og.Label', 'og.inheritance', 'og.shaderProgram.label', 'og.shaderProgram.labelPicking'], false);
 goog.addDependency('../../../og/src/og/entity/pointCloud.js', ['og.PointCloud'], ['og.math.Vector3', 'og.math.Vector4', 'og.mercator'], false);
@@ -65,6 +65,7 @@ goog.addDependency('../../../og/src/og/layer/xyz.js', ['og.layer.XYZ'], ['og.inh
 goog.addDependency('../../../og/src/og/light/lightSource.js', ['og.LightSource'], ['og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/lonlat.js', ['og.LonLat'], ['og.mercator'], false);
 goog.addDependency('../../../og/src/og/math/coder.js', ['og.math.coder'], ['og.math', 'og.math.Vector4'], false);
+goog.addDependency('../../../og/src/og/math/line.js', ['og.math.Line'], ['og.math.Vector2'], false);
 goog.addDependency('../../../og/src/og/math/math.js', ['og.math'], [], false);
 goog.addDependency('../../../og/src/og/math/matrix3.js', ['og.math.Matrix3'], ['og.math', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/math/matrix4.js', ['og.math.Matrix4'], ['og.math', 'og.math.Matrix3', 'og.math.Vector3', 'og.math.Vector4'], false);
@@ -104,6 +105,7 @@ goog.addDependency('../../../og/src/og/shaderProgram/billboard.js', ['og.shaderP
 goog.addDependency('../../../og/src/og/shaderProgram/callbacks.js', ['og.shaderProgram.callbacks'], ['og.shaderProgram.types'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/drawnode.js', ['og.shaderProgram.drawnode_colorPicking', 'og.shaderProgram.drawnode_heightPicking', 'og.shaderProgram.drawnode_nl', 'og.shaderProgram.drawnode_screen_nl', 'og.shaderProgram.drawnode_screen_wl', 'og.shaderProgram.drawnode_wl'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/label.js', ['og.shaderProgram.label', 'og.shaderProgram.labelPicking'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
+goog.addDependency('../../../og/src/og/shaderProgram/lineString.js', ['og.shaderProgram.lineString'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/pointCloud.js', ['og.shaderProgram.pointCloud'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/polyline.js', ['og.shaderProgram.polyline'], ['og.shaderProgram', 'og.shaderProgram.ShaderProgram', 'og.shaderProgram.types', 'og.utils'], false);
 goog.addDependency('../../../og/src/og/shaderProgram/shaderProgram.js', ['og.shaderProgram', 'og.shaderProgram.ShaderProgram'], ['og', 'og.shaderProgram.callbacks'], false);
@@ -127,7 +129,7 @@ goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.No
 goog.addDependency('../../../og/src/og/utils/sdfCreator.js', ['og.utils.SDFCreator'], ['og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/textureAtlas.js', ['og.utils.TextureAtlas', 'og.utils.TextureAtlasNode'], ['og.ImageCanvas', 'og.Rectangle', 'og.utils.ImagesCacheManager'], false);
 goog.addDependency('../../../og/src/og/utils/utils.js', ['og.utils'], ['og.Extent', 'og.LonLat', 'og.ajax', 'og.math.Vector2', 'og.math.Vector3', 'og.math.Vector4', 'og.utils.colorTable'], false);
-goog.addDependency('../../../og/src/og/utils/vectorTileCreator.js', ['og.utils.VectorTileCreator'], ['og.PlanetSegmentHelper', 'og.math', 'og.webgl.Framebuffer'], false);
+goog.addDependency('../../../og/src/og/utils/vectorTileCreator.js', ['og.utils.VectorTileCreator'], ['og.PlanetSegmentHelper', 'og.math', 'og.shaderProgram.lineString', 'og.webgl.Framebuffer'], false);
 goog.addDependency('../../../og/src/og/webgl/framebuffer.js', ['og.webgl.Framebuffer'], ['og.ImageCanvas', 'og.webgl'], false);
 goog.addDependency('../../../og/src/og/webgl/handler.js', ['og.webgl.Handler'], ['og.Clock', 'og.Console', 'og.ImageCanvas', 'og.Stack', 'og.math', 'og.math.Pixel', 'og.webgl', 'og.webgl.ShaderController'], false);
 goog.addDependency('../../../og/src/og/webgl/multiFramebuffer.js', ['og.webgl.MultiFramebuffer'], ['og.ImageCanvas', 'og.webgl'], false);

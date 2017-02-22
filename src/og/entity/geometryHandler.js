@@ -2,6 +2,7 @@ goog.provide('og.GeometryHandler');
 
 goog.require('og.utils.earcut');
 goog.require('og.Geometry');
+goog.require('og.shaderProgram.lineString');
 
 og.GeometryHandler = function(layer) {
     this.__staticId = og.GeometryHandler.staticCounter++;
@@ -19,8 +20,18 @@ og.GeometryHandler = function(layer) {
     this._polyColors = [];
     this._polyIndexes = [];
 
+    this._lineVertices = [];
+    this._lineColors = [];
+    this._lineThickness = [];
+    this._lineOrders = [];
+
     this._polyVerticesBuffer = null;
     this._polyColorsBuffer = null;
+
+    this._lineVerticesBuffer = null;
+    this._lineColorsBuffer = null;
+    this._lineThicknessBuffer = null;
+    this._lineOrdersBuffer = null;
 
     this._buffersUpdateCallbacks = [];
     this._buffersUpdateCallbacks[og.GeometryHandler.POLYVERTICES_BUFFER] = this.createPolyVerticesBuffer;
@@ -63,7 +74,6 @@ og.GeometryHandler.prototype.add = function(geometry) {
             for (var i = 0; i < indexes.length; i++) {
                 this._polyIndexes.push(indexes[i] + geometry._polyIndexesHandlerIndex);
             }
-            //this._polyIndexes.push.apply(this._polyIndexes, indexes);
 
             var color = geometry._style.fillColor;
             for (var i = 0; i < data.vertices.length / 2; i++) {
@@ -72,6 +82,23 @@ og.GeometryHandler.prototype.add = function(geometry) {
 
             geometry._polyVertices = data.vertices;
             geometry._polyIndexes = indexes;
+
+            //Polygon stroke data
+            for (var i = 0; i < geometry._coordinates.length; i++) {
+                var ci = geometry._coordinates[i];
+                var ringData = og.shaderProgram.lineString.createLineRingData(ci,
+                    geometry._style.strokeColor, geometry._style.strokeWidth);
+
+                geometry._lineVertices = ringData.vertexArr;
+                geometry._lineOrders = ringData.orderArr;
+                geometry._lineColors = ringData.colorArr;
+                geometry._lineThickness = ringData.thicknessArr;
+
+                this._lineVertices.push.apply(this._lineVertices, ringData.vertexArr);
+                this._lineOrders.push.apply(this._lineOrders, ringData.orderArr);
+                this._lineColors.push.apply(this._lineColors, ringData.colorArr);
+                this._lineThickness.push.apply(this._lineThickness, ringData.thicknessArr);
+            }
 
         } else if (geometry._type === og.Geometry.MULTIPOLYGON) {
             var coordinates = geometry._coordinates;
@@ -118,7 +145,7 @@ og.GeometryHandler.prototype._refreshPlanetNode = function(treeNode) {
                 if (m) {
                     if (m.isReady) {
                         m._updateTexture = m.texture;
-                        if(m.segment.node.getState() !== og.quadTree.RENDERING){
+                        if (m.segment.node.getState() !== og.quadTree.RENDERING) {
                             m.textureExists = false;
                         }
                     }

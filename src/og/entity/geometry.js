@@ -26,6 +26,11 @@ og.Geometry = function(options) {
     this._polyVertices = null;
     this._polyIndexes = null;
 
+    this._lineVertices = null;
+    this._lineThickness = null;
+    this._lineColors = null;
+    this._lineOrders = null;
+
     this._type = options.type && og.Geometry.getType(options.type) || og.Geometry.POINT;
     this._coordinates = [];
     this._extent = og.Geometry.getExtent({
@@ -35,9 +40,9 @@ og.Geometry = function(options) {
 
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 0.5));
-    this._style.lineWidth = options.style.lineWidth || 3;
     this._style.strokeColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
-    this._style.strokeWidth = options.style.strokeWidth || 0;
+    this._style.strokeWidth = options.style.strokeWidth || 3;
+    this._style.lineWidth = options.style.lineWidth || 3;
 
     this._visibility = options.visibility || true
 };

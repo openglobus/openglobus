@@ -10,12 +10,22 @@ goog.require('og.Label');
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 50;
+    this.thickness = 30;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
 
 my.LineRing.prototype.initialization = function() {
+    this.renderer.events.on("charkeypress", og.input.KEY_X, function(){
+        if(this._drawType == this.renderer.handler.gl.LINE_STRIP){
+            this._drawType = this.renderer.handler.gl.TRIANGLE_STRIP;
+        }else{
+            this._drawType = this.renderer.handler.gl.LINE_STRIP;
+        }
+    }, this);
+
+    this._drawType = this.renderer.handler.gl.TRIANGLE_STRIP;
+
     this.renderer.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("lineRing", {
         uniforms: {
             'viewport': {
@@ -47,13 +57,12 @@ my.LineRing.prototype.initialization = function() {
                 uniform vec2 viewport;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
-                    if(start1 != start2){\
-                        vec2 dir2 = end2 - start2;\
-                        float a2 = -dir2.y;\
-                        float b2 = dir2.x;\
-                        float d2 = a2 * start2.x + b2 * start2.y;\
-                        float seg1_start = a2 * start1.x + b2 * start1.y - d2;\
-                        float u = seg1_start / (seg1_start - a2 * end1.x - b2 * end1.y + d2);\
+                    if(start1 != start2) {\
+                        vec2 dir = end2 - start2;\
+                        vec2 perp = vec2(-dir.y, dir.x);\
+                        float d2 = dot(perp, start2);\
+                        float seg = dot(perp, start1) - d2;\
+                        float u = seg / (seg - dot(perp, end1) + d2);\
                         return start1 + u * (end1 - start1);\
                     }\
                     return start1;\
@@ -63,14 +72,23 @@ my.LineRing.prototype.initialization = function() {
                     vec2 dirPrev = normalize(prev - current);\
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
+                    float d = thickness * sign(order);\
                     \
-                    /*vec2 dir = sNormalNext - sNormalPrev;*/\
-                    /*float sinA = dirPrev.x * dir.y - dirPrev.y * dir.x;*/\
-                    /*vec2 c = (current + order * dir * thickness) / viewport;*/\
-                    \
-                    float d = thickness * order;\
-                    vec2 m = getIntersection( current + normalPrev * d, \
-                        prev + normalPrev * d, current + normalNext * d, next + normalNext * d ) / viewport;\
+                    vec2 m = getIntersection( current + normalPrev * d, prev + normalPrev * d,\
+                        current + normalNext * d, next + normalNext * d );\
+                    float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
+                    if( dot(dirNext, dirPrev) > 0.0 && dot(dirNext + dirPrev, m - current) < 0.0 ){\
+                        if(order * ccw == -1.0){\
+                            m = current + normalPrev * d;\
+                        }else if(order * ccw == 1.0){\
+                            m = current + normalNext * d;\
+                        }else if(order * ccw == -2.0){\
+                            m = current + normalNext * d;\
+                        }else if(order * ccw == 2.0){\
+                            m = current + normalPrev * d;\
+                        }\
+                    }\
+                    m /= viewport;\
                     gl_Position = vec4(-1.0 + m.x, 1.0 - m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
@@ -83,30 +101,30 @@ my.LineRing.prototype.initialization = function() {
     this._orderData = [];
     this._indexData = [];
 
-    var p0 = og.math.vector2(300, 500),
-        p1 = og.math.vector2(300, 100),
-        p2 = og.math.vector2(500, 100),
-        p3 = og.math.vector2(800, 100);
+    var p0 = og.math.vector2(120, 70),
+        p1 = og.math.vector2(100, 800),
+        p2 = og.math.vector2(500, 300),
+        p3 = og.math.vector2(900, 90);
 
     this._mainData.push(
-        p3.x, p3.y, p3.x, p3.y,
-        p0.x, p0.y, p0.x, p0.y,
-        p1.x, p1.y, p1.x, p1.y,
-        p2.x, p2.y, p2.x, p2.y,
-        p3.x, p3.y, p3.x, p3.y,
-        p0.x, p0.y, p0.x, p0.y
+        p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
+        p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,
+        p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,
+        p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,
+        p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
+        p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y
     );
 
     this._orderData.push(
-        1, -1,
-        1, -1,
-        1, -1,
-        1, -1,
-        1, -1,
-        1, -1
+        1, -1, 2, -2,
+        1, -1, 2, -2,
+        1, -1, 2, -2,
+        1, -1, 2, -2,
+        1, -1, 2, -2,
+        1, -1, 2, -2
     );
 
-    this._indexData.push(0, 1, 2, 3, 4, 5, 6, 7);
+    this._indexData.push(0, 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
 
     var h = this.renderer.handler;
     this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, (this._orderData.length / 2));
@@ -138,14 +156,14 @@ my.LineRing.prototype.frame = function() {
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
     gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
-    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 16);
-    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
+    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
+    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-    gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     gl.enable(gl.CULL_FACE);
     gl.disable(gl.BLEND);

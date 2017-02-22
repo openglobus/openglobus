@@ -19,8 +19,10 @@ og.utils.VectorTileCreator = function(handler, maxFrames, width, height) {
 
 og.utils.VectorTileCreator.prototype._initialize = function() {
 
+    //Line
     this._handler.addShaderProgram(og.shaderProgram.lineString());
 
+    //Polygon
     this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileRasterization", {
         uniforms: {
             'extentParams': {
