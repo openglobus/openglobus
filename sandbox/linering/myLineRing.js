@@ -10,16 +10,16 @@ goog.require('og.Label');
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 30;
+    this.thickness = 3;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
 
 my.LineRing.prototype.initialization = function() {
-    this.renderer.events.on("charkeypress", og.input.KEY_X, function(){
-        if(this._drawType == this.renderer.handler.gl.LINE_STRIP){
+    this.renderer.events.on("charkeypress", og.input.KEY_X, function() {
+        if (this._drawType == this.renderer.handler.gl.LINE_STRIP) {
             this._drawType = this.renderer.handler.gl.TRIANGLE_STRIP;
-        }else{
+        } else {
             this._drawType = this.renderer.handler.gl.LINE_STRIP;
         }
     }, this);
@@ -32,6 +32,9 @@ my.LineRing.prototype.initialization = function() {
                 type: og.shaderProgram.types.VEC2
             },
             'thickness': {
+                type: og.shaderProgram.types.FLOAT
+            },
+            'alpha': {
                 type: og.shaderProgram.types.FLOAT
             }
         },
@@ -92,46 +95,64 @@ my.LineRing.prototype.initialization = function() {
                     gl_Position = vec4(-1.0 + m.x, 1.0 - m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
+                uniform float alpha;\
                 void main() {\
-                    gl_FragColor = vec4(1.0);\
+                    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);\
                 }'
     }));
+
+    var path = [
+        [120, 70],
+        [100, 800],
+        [500, 300],
+        [900, 90],
+        [500, 200]
+    ];
 
     this._mainData = [];
     this._orderData = [];
     this._indexData = [];
 
-    var p0 = og.math.vector2(120, 70),
-        p1 = og.math.vector2(100, 800),
-        p2 = og.math.vector2(500, 300),
-        p3 = og.math.vector2(900, 90);
+    var pi = path[path.length - 1];
+    this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
+    this._orderData.push(1, -1, 2, -2);
+    var k = 0;
+    for (var i = 0; i < path.length; i++) {
+        pi = path[i];
+        this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
+        this._orderData.push(1, -1, 2, -2);
+        this._indexData.push(k++, k++, k++, k++);
+    }
+    pi = path[0];
+    this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
+    this._orderData.push(1, -1, 2, -2);
+    this._indexData.push(0, 1);
 
-    this._mainData.push(
-        p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
-        p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,
-        p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,
-        p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,
-        p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
-        p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y
-    );
+    // this._mainData.push(
+    //     p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
+    //     p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,
+    //     p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,
+    //     p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,
+    //     p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
+    //     p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y
+    // );
+    //
+    // this._orderData.push(
+    //     1, -1, 2, -2,
+    //     1, -1, 2, -2,
+    //     1, -1, 2, -2,
+    //     1, -1, 2, -2,
+    //     1, -1, 2, -2,
+    //     1, -1, 2, -2
+    // );
 
-    this._orderData.push(
-        1, -1, 2, -2,
-        1, -1, 2, -2,
-        1, -1, 2, -2,
-        1, -1, 2, -2,
-        1, -1, 2, -2,
-        1, -1, 2, -2
-    );
-
-    this._indexData.push(0, 1, 2, 3 ,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
+    //this._indexData.push(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
 
     var h = this.renderer.handler;
     this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, (this._orderData.length / 2));
     this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, (this._mainData.length) / 4);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
-
 
 my.LineRing.prototype.frame = function() {
 
@@ -145,24 +166,34 @@ my.LineRing.prototype.frame = function() {
 
     sh.activate();
 
-    //    gl.enable(gl.BLEND);
-    //    gl.blendEquation(gl.FUNC_ADD);
-    //    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+    gl.blendFuncSeparate(
+        gl.SRC_ALPHA,
+        gl.ONE_MINUS_SRC_ALPHA,
+        gl.ONE,
+        gl.ONE_MINUS_SRC_ALPHA
+    );
+    gl.disable(gl.DEPTH_TEST);
 
     gl.disable(gl.CULL_FACE);
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-    gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
+    gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
+    gl.uniform1f(shu.alpha._pName, 0.54);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
-    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
-    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
-
+    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 0, 32);
+    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 0, 64);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+    gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+    gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
+    gl.uniform1f(shu.alpha._pName, 1.0);
     gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     gl.enable(gl.CULL_FACE);
