@@ -10,7 +10,7 @@ goog.require('og.Label');
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 3;
+    this.thickness = 10;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -36,7 +36,11 @@ my.LineRing.prototype.initialization = function() {
             },
             'alpha': {
                 type: og.shaderProgram.types.FLOAT
-            }
+            },
+            'color': {
+                type: og.shaderProgram.types.VEC4
+            },
+
         },
         attributes: {
             'prev': {
@@ -81,13 +85,14 @@ my.LineRing.prototype.initialization = function() {
                         current + normalNext * d, next + normalNext * d );\
                     float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
                     if( dot(dirNext, dirPrev) > 0.0 && dot(dirNext + dirPrev, m - current) < 0.0 ){\
-                        if(order * ccw == -1.0){\
+                        float occw = order * ccw;\
+                        if(occw == -1.0){\
                             m = current + normalPrev * d;\
-                        }else if(order * ccw == 1.0){\
+                        }else if(occw == 1.0){\
                             m = current + normalNext * d;\
-                        }else if(order * ccw == -2.0){\
+                        }else if(occw == -2.0){\
                             m = current + normalNext * d;\
-                        }else if(order * ccw == 2.0){\
+                        }else if(occw == 2.0){\
                             m = current + normalPrev * d;\
                         }\
                     }\
@@ -96,8 +101,9 @@ my.LineRing.prototype.initialization = function() {
                 }',
         fragmentShader: 'precision highp float;\
                 uniform float alpha;\
+                uniform vec4 color;\
                 void main() {\
-                    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);\
+                    gl_FragColor = vec4(color.rgb, alpha * color.a);\
                 }'
     }));
 
@@ -127,26 +133,6 @@ my.LineRing.prototype.initialization = function() {
     this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
     this._orderData.push(1, -1, 2, -2);
     this._indexData.push(0, 1);
-
-    // this._mainData.push(
-    //     p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
-    //     p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,
-    //     p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,  p1.x, p1.y,
-    //     p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,  p2.x, p2.y,
-    //     p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,  p3.x, p3.y,
-    //     p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y,  p0.x, p0.y
-    // );
-    //
-    // this._orderData.push(
-    //     1, -1, 2, -2,
-    //     1, -1, 2, -2,
-    //     1, -1, 2, -2,
-    //     1, -1, 2, -2,
-    //     1, -1, 2, -2,
-    //     1, -1, 2, -2
-    // );
-
-    //this._indexData.push(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1);
 
     var h = this.renderer.handler;
     this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, (this._orderData.length / 2));
@@ -180,6 +166,7 @@ my.LineRing.prototype.frame = function() {
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
     gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
     gl.uniform1f(shu.alpha._pName, 0.54);
+    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 0.9]);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
