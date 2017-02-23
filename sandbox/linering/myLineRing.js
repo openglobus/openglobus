@@ -37,7 +37,7 @@ function test0(order) {
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 55;
+    this.thickness = 10;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -91,51 +91,63 @@ my.LineRing.prototype.initialization = function() {
                 uniform vec2 viewport;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
-                    /*if(start1 != start2) {*/\
-                        vec2 dir = end2 - start2;\
-                        vec2 perp = vec2(-dir.y, dir.x);\
-                        float d2 = dot(perp, start2);\
-                        float seg = dot(perp, start1) - d2;\
-                        float u = seg / (seg - dot(perp, end1) + d2);\
-                        return start1 + u * (end1 - start1);\
-                    /*}\
-                    return start1;*/\
+                    vec2 dir = end2 - start2;\
+                    vec2 perp = vec2(-dir.y, dir.x);\
+                    float d2 = dot(perp, start2);\
+                    float seg = dot(perp, start1) - d2;\
+                    float u = seg / (seg - dot(perp, end1) + d2);\
+                    return start1 + u * (end1 - start1);\
                 }\
                 void main(){\
-                    vec2 dirNext = normalize(next - current);\
-                    vec2 dirPrev = normalize(prev - current);\
+                    vec2 _next = next;\
+                    vec2 _prev = prev;\
+                    if(prev == current){\
+                        if(next == current){\
+                            _next = current + vec2(1.0, 0.0);\
+                            _prev = current - next;\
+                        }else{\
+                            _prev = current + normalize(current - next);\
+                        }\
+                    }\
+                    if(next == current){\
+                        _next = current + normalize(current - _prev);\
+                    }\
+                    vec2 sNext = _next / viewport,\
+                         sCurrent = current / viewport,\
+                         sPrev = _prev / viewport;\
+                    vec2 dirNext = normalize(sNext - sCurrent);\
+                    vec2 dirPrev = normalize(sPrev - sCurrent);\
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
-                    float d = thickness * sign(order);\
+                    vec2 d = thickness * sign(order) / viewport;\
                     \
                     vec2 m;\
                     float dotNP = dot(dirNext, dirPrev);\
                     if(abs(dotNP) != 1.0){\
-                        m = getIntersection( current + normalPrev * d, prev + normalPrev * d,\
-                            current + normalNext * d, next + normalNext * d );\
+                        m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
+                            sCurrent + normalNext * d, sNext + normalNext * d );\
                     }else{\
-                        m = current + normalPrev * d;\
+                        m = sCurrent + normalPrev * d;\
                     }\
                     \
-                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - current) < 0.0 ){\
+                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
                         float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
                         float occw = order * ccw;\
                         if(occw == -1.0){\
-                            m = current + normalPrev * d;\
+                            m = sCurrent + normalPrev * d;\
                         }else if(occw == 1.0){\
-                            m = current + normalNext * d;\
+                            m = sCurrent + normalNext * d;\
                         }else if(occw == -2.0){\
-                            m = current + normalNext * d;\
+                            m = sCurrent + normalNext * d;\
                         }else if(occw == 2.0){\
-                            m = current + normalPrev * d;\
+                            m = sCurrent + normalPrev * d;\
                         }\
                     }else{\
-                        float maxDist = max(distance(current, next), distance(current, prev));\
-                        if(distance(current, m) > maxDist){\
-                            m = current + maxDist * normalize(m - current);\
+                        float maxDist = max(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
+                        if(distance(sCurrent, m) > maxDist){\
+                            m = sCurrent + maxDist * normalize(m - sCurrent);\
                         }\
                     }\
-                    m /= viewport;\
                     gl_Position = vec4(-1.0 + m.x, 1.0 - m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
@@ -148,9 +160,8 @@ my.LineRing.prototype.initialization = function() {
 
     var path = [
         [100, 100],
-        [400, 100],
-        [400, 110],
-        [100, 120]
+        [200, 100],
+        [200, 450]
     ];
 
     this._mainData = [];
@@ -164,12 +175,12 @@ my.LineRing.prototype.initialization = function() {
     var k = 0;
     for (var i = 0; i < path.length; i++) {
         var cur = path[i];
-        if (cur[0] != prev[0] || cur[1] != prev[1]) {
+        //if (cur[0] != prev[0] || cur[1] != prev[1]) {
             this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
             this._orderData.push(1, -1, 2, -2);
             this._indexData.push(k++, k++, k++, k++);
-        }
-        prev = cur;
+        //}
+        //prev = cur;
     }
     var first = path[0];
     this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
@@ -205,10 +216,10 @@ my.LineRing.prototype.frame = function() {
     gl.disable(gl.DEPTH_TEST);
 
     gl.disable(gl.CULL_FACE);
-    gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
+    gl.uniform2fv(shu.viewport._pName, [512, 512]);
     gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
     gl.uniform1f(shu.alpha._pName, 0.54);
-    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 0.5]);
+    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 1]);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
