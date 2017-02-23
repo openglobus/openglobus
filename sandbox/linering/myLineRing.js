@@ -7,10 +7,37 @@ goog.require('og.EntityCollection');
 goog.require('og.Entity');
 goog.require('og.Label');
 
+function getIntersection(start1, end1, start2, end2) {
+    if (!start1.equal(start2)) {
+        var dir = end2.sub(start2);
+        var perp = new og.math.Vector2(-dir.y, dir.x);
+        var d2 = perp.dot(start2);
+        var seg = perp.dot(start1) - d2;
+        var u = seg / (seg - perp.dot(end1) + d2);
+        return start1.add(end1.sub(start1).scale(u));
+    }
+    return start1;
+}
+
+function test0(order) {
+    thickness = 20;
+    current = og.math.vector2(100, 300), prev = og.math.vector2(700, 300), next = og.math.vector2(700, 300);
+    dirNext = next.sub(current).normalize(), dirPrev = next.sub(current).normalize();
+    normalNext = og.math.vector2(-dirNext.y, dirNext.x).normalize();
+    normalPrev = og.math.vector2(dirPrev.y, -dirPrev.x).normalize();
+    d = thickness * Math.sign(order);
+    //vec2 m = getIntersection( current + normalPrev * d, prev + normalPrev * d,
+    //    current + normalNext * d, next + normalNext * d );
+    m = getIntersection(current.add(normalPrev.scaleTo(d)), prev.add(normalPrev.scaleTo(d)),
+        current.add(normalNext.scaleTo(d)), next.add(normalNext.scaleTo(d)));
+
+    ccw = Math.sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
+    if (ccw == 0.0) ccw = 1.0;
+}
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 10;
+    this.thickness = 55;
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -64,15 +91,15 @@ my.LineRing.prototype.initialization = function() {
                 uniform vec2 viewport;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
-                    if(start1 != start2) {\
+                    /*if(start1 != start2) {*/\
                         vec2 dir = end2 - start2;\
                         vec2 perp = vec2(-dir.y, dir.x);\
                         float d2 = dot(perp, start2);\
                         float seg = dot(perp, start1) - d2;\
                         float u = seg / (seg - dot(perp, end1) + d2);\
                         return start1 + u * (end1 - start1);\
-                    }\
-                    return start1;\
+                    /*}\
+                    return start1;*/\
                 }\
                 void main(){\
                     vec2 dirNext = normalize(next - current);\
@@ -81,10 +108,17 @@ my.LineRing.prototype.initialization = function() {
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
                     float d = thickness * sign(order);\
                     \
-                    vec2 m = getIntersection( current + normalPrev * d, prev + normalPrev * d,\
-                        current + normalNext * d, next + normalNext * d );\
-                    float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
-                    if( dot(dirNext, dirPrev) > 0.0 && dot(dirNext + dirPrev, m - current) < 0.0 ){\
+                    vec2 m;\
+                    float dotNP = dot(dirNext, dirPrev);\
+                    if(abs(dotNP) != 1.0){\
+                        m = getIntersection( current + normalPrev * d, prev + normalPrev * d,\
+                            current + normalNext * d, next + normalNext * d );\
+                    }else{\
+                        m = current + normalPrev * d;\
+                    }\
+                    \
+                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - current) < 0.0 ){\
+                        float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
                         float occw = order * ccw;\
                         if(occw == -1.0){\
                             m = current + normalPrev * d;\
@@ -94,6 +128,11 @@ my.LineRing.prototype.initialization = function() {
                             m = current + normalNext * d;\
                         }else if(occw == 2.0){\
                             m = current + normalPrev * d;\
+                        }\
+                    }else{\
+                        float maxDist = max(distance(current, next), distance(current, prev));\
+                        if(distance(current, m) > maxDist){\
+                            m = current + maxDist * normalize(m - current);\
                         }\
                     }\
                     m /= viewport;\
@@ -108,29 +147,32 @@ my.LineRing.prototype.initialization = function() {
     }));
 
     var path = [
-        [120, 70],
-        [100, 800],
-        [500, 300],
-        [900, 90],
-        [500, 200]
+        [100, 100],
+        [400, 100],
+        [400, 110],
+        [100, 120]
     ];
 
     this._mainData = [];
     this._orderData = [];
     this._indexData = [];
 
-    var pi = path[path.length - 1];
-    this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
+    var last = path[path.length - 1];
+    var prev = last;
+    this._mainData.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
     this._orderData.push(1, -1, 2, -2);
     var k = 0;
     for (var i = 0; i < path.length; i++) {
-        pi = path[i];
-        this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
-        this._orderData.push(1, -1, 2, -2);
-        this._indexData.push(k++, k++, k++, k++);
+        var cur = path[i];
+        if (cur[0] != prev[0] || cur[1] != prev[1]) {
+            this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            this._orderData.push(1, -1, 2, -2);
+            this._indexData.push(k++, k++, k++, k++);
+        }
+        prev = cur;
     }
-    pi = path[0];
-    this._mainData.push(pi[0], pi[1], pi[0], pi[1], pi[0], pi[1], pi[0], pi[1]);
+    var first = path[0];
+    this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
     this._orderData.push(1, -1, 2, -2);
     this._indexData.push(0, 1);
 
@@ -166,7 +208,7 @@ my.LineRing.prototype.frame = function() {
     gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
     gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
     gl.uniform1f(shu.alpha._pName, 0.54);
-    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 0.9]);
+    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 0.5]);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);

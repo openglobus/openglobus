@@ -215,7 +215,17 @@ og.math.Vector2.prototype.addA = function (v) {
 };
 
 /**
- * Subtract vector from the current.
+ * Summarize two vectors.
+ * @public
+ * @param {og.math.Vector2}
+ * @returns {og.math.Vector2}
+ */
+og.math.Vector2.prototype.add = function (v) {
+    return new og.math.Vector2(this.x + v.x, this.y + v.y);
+};
+
+/**
+ * Subtract vector from the current where results saved on the current instance.
  * @public
  * @param {og.math.Vector2} v - Subtract vector.
  * @returns {og.math.Vector2}
@@ -224,6 +234,16 @@ og.math.Vector2.prototype.subA = function (v) {
     this.x -= v.x;
     this.y -= v.y;
     return this;
+};
+
+/**
+ * Subtract vector from the current.
+ * @public
+ * @param {og.math.Vector2} v - Subtract vector.
+ * @returns {og.math.Vector2}
+ */
+og.math.Vector2.prototype.sub = function (v) {
+    return new og.math.Vector2(this.x - v.x, this.y - v.y);
 };
 
 /**
