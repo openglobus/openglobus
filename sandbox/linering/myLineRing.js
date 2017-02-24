@@ -6,6 +6,8 @@ goog.require('og.inheritance');
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
 goog.require('og.Label');
+goog.require('og.LonLat');
+goog.require('og.Extent');
 
 function getIntersection(start1, end1, start2, end2) {
     if (!start1.equal(start2)) {
@@ -37,7 +39,11 @@ function test0(order) {
 
 my.LineRing = function(name) {
     og.inheritance.base(this, name);
-    this.thickness = 10;
+    this.thickness = 5;
+
+    this._mainData = [];
+    this._orderData = [];
+    this._indexData = [];
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -67,6 +73,9 @@ my.LineRing.prototype.initialization = function() {
             'color': {
                 type: og.shaderProgram.types.VEC4
             },
+            'extentParams': {
+                type: og.shaderProgram.types.VEC4
+            }
 
         },
         attributes: {
@@ -89,6 +98,7 @@ my.LineRing.prototype.initialization = function() {
                 attribute float order;\
                 uniform float thickness;\
                 uniform vec2 viewport;\
+                uniform vec4 extentParams;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
                     vec2 dir = end2 - start2;\
@@ -98,6 +108,11 @@ my.LineRing.prototype.initialization = function() {
                     float u = seg / (seg - dot(perp, end1) + d2);\
                     return start1 + u * (end1 - start1);\
                 }\
+                \
+                vec2 proj(vec2 coordinates){\
+                    return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
+                }\
+                \
                 void main(){\
                     vec2 _next = next;\
                     vec2 _prev = prev;\
@@ -112,9 +127,10 @@ my.LineRing.prototype.initialization = function() {
                     if(next == current){\
                         _next = current + normalize(current - _prev);\
                     }\
-                    vec2 sNext = _next / viewport,\
-                         sCurrent = current / viewport,\
-                         sPrev = _prev / viewport;\
+                    \
+                    vec2 sNext = proj(_next),\
+                         sCurrent = proj(current),\
+                         sPrev = proj(_prev);\
                     vec2 dirNext = normalize(sNext - sCurrent);\
                     vec2 dirPrev = normalize(sPrev - sCurrent);\
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
@@ -148,7 +164,7 @@ my.LineRing.prototype.initialization = function() {
                             m = sCurrent + maxDist * normalize(m - sCurrent);\
                         }\
                     }\
-                    gl_Position = vec4(-1.0 + m.x, 1.0 - m.y, 0.0, 1.0);\
+                    gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
                 uniform float alpha;\
@@ -159,14 +175,11 @@ my.LineRing.prototype.initialization = function() {
     }));
 
     var path = [
-        [100, 100],
-        [200, 100],
-        [200, 450]
+        [0, 0],
+        [0, 40],
+        [40, 40],
+        [40, 0]
     ];
-
-    this._mainData = [];
-    this._orderData = [];
-    this._indexData = [];
 
     var last = path[path.length - 1];
     var prev = last;
@@ -175,12 +188,9 @@ my.LineRing.prototype.initialization = function() {
     var k = 0;
     for (var i = 0; i < path.length; i++) {
         var cur = path[i];
-        //if (cur[0] != prev[0] || cur[1] != prev[1]) {
-            this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-            this._orderData.push(1, -1, 2, -2);
-            this._indexData.push(k++, k++, k++, k++);
-        //}
-        //prev = cur;
+        this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+        this._orderData.push(1, -1, 2, -2);
+        this._indexData.push(k++, k++, k++, k++);
     }
     var first = path[0];
     this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
@@ -188,8 +198,8 @@ my.LineRing.prototype.initialization = function() {
     this._indexData.push(0, 1);
 
     var h = this.renderer.handler;
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, (this._orderData.length / 2));
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, (this._mainData.length) / 4);
+    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, this._orderData.length / 2);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, this._mainData.length / 4);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
 };
 
@@ -207,19 +217,15 @@ my.LineRing.prototype.frame = function() {
 
     gl.enable(gl.BLEND);
     gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-    gl.blendFuncSeparate(
-        gl.SRC_ALPHA,
-        gl.ONE_MINUS_SRC_ALPHA,
-        gl.ONE,
-        gl.ONE_MINUS_SRC_ALPHA
-    );
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.disable(gl.DEPTH_TEST);
-
     gl.disable(gl.CULL_FACE);
+
     gl.uniform2fv(shu.viewport._pName, [512, 512]);
-    gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
-    gl.uniform1f(shu.alpha._pName, 0.54);
-    gl.uniform4fv(shu.color._pName, [1.0, 0.0, 0.0, 1]);
+    gl.uniform4fv(shu.color._pName, [1.0, 1.0, 1.0, 1]);
+
+    var extent = new og.Extent(new og.LonLat(-180, -90), new og.LonLat(180, 90));
+    gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
@@ -229,36 +235,18 @@ my.LineRing.prototype.frame = function() {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
+    //Antialiase pass
+    gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
+    gl.uniform1f(shu.alpha._pName, 0.54);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
+    //Aliased pass
     gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
     gl.uniform1f(shu.alpha._pName, 1.0);
     gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
     gl.disable(gl.BLEND);
 };
-
-
-
-// struct Line {\
-//     float A, B, C;\
-// };\
-// \
-// Line getLine(vec2 p0, vec2 p1) {\
-//     return Line(p1.y - p0.y, p0.x - p1.x, p1.x * p0.y - p0.x * p1.y);\
-// }\
-// \
-// Line getParallel(Line l, vec2 p){\
-//     return Line(l.A, l.B, -l.A * p.x - l.B * p.y);\
-// }\
-// \
-// vec2 getIntersection(Line L0, Line L1, vec2 p) {\
-//     if(/*L0.A / L1.A != L0.B / L1.B*/true){\
-//         float x = (L1.B * L0.C - L0.B * L1.C) / (L0.B * L1.A - L1.B * L0.A);\
-//         float y = -(L0.C + L0.A * x) / L0.B;\
-//         return vec2(x, y);\
-//     }\
-//     return vec2(p);\
-// }\
