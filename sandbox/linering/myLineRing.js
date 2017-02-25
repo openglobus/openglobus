@@ -44,6 +44,8 @@ my.LineRing = function(name) {
     this._mainData = [];
     this._orderData = [];
     this._indexData = [];
+    this._thicknessData = [];
+    this._colorData = [];
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
@@ -64,19 +66,15 @@ my.LineRing.prototype.initialization = function() {
             'viewport': {
                 type: og.shaderProgram.types.VEC2
             },
-            'thickness': {
+            'thicknessOutline': {
                 type: og.shaderProgram.types.FLOAT
             },
             'alpha': {
                 type: og.shaderProgram.types.FLOAT
             },
-            'color': {
-                type: og.shaderProgram.types.VEC4
-            },
             'extentParams': {
                 type: og.shaderProgram.types.VEC4
             }
-
         },
         attributes: {
             'prev': {
@@ -90,15 +88,24 @@ my.LineRing.prototype.initialization = function() {
             },
             'order': {
                 type: og.shaderProgram.types.FLOAT
+            },
+            'color': {
+                type: og.shaderProgram.types.VEC4
+            },
+            'thickness': {
+                type: og.shaderProgram.types.FLOAT
             }
         },
         vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
                 attribute vec2 next;\
                 attribute float order;\
-                uniform float thickness;\
+                attribute float thickness;\
+                attribute vec4 color;\
+                uniform float thicknessOutline;\
                 uniform vec2 viewport;\
                 uniform vec4 extentParams;\
+                varying vec4 vColor;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
                     vec2 dir = end2 - start2;\
@@ -114,6 +121,7 @@ my.LineRing.prototype.initialization = function() {
                 }\
                 \
                 void main(){\
+                    vColor = color;\
                     vec2 _next = next;\
                     vec2 _prev = prev;\
                     if(prev == current){\
@@ -135,7 +143,7 @@ my.LineRing.prototype.initialization = function() {
                     vec2 dirPrev = normalize(sPrev - sCurrent);\
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
-                    vec2 d = thickness * sign(order) / viewport;\
+                    vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
                     float dotNP = dot(dirNext, dirPrev);\
@@ -168,39 +176,82 @@ my.LineRing.prototype.initialization = function() {
                 }',
         fragmentShader: 'precision highp float;\
                 uniform float alpha;\
-                uniform vec4 color;\
+                varying vec4 vColor;\
                 void main() {\
-                    gl_FragColor = vec4(color.rgb, alpha * color.a);\
+                    gl_FragColor = vec4(vColor.rgb, alpha * vColor.a);\
                 }'
     }));
 
-    var path = [
-        [0, 0],
-        [0, 40],
-        [40, 40],
-        [40, 0]
+    var pathArr = [
+        [
+            [0, 0],
+            [70, 0],
+            [50, 50]
+        ],
+        [
+            [-10, -10],
+            [-12, -40],
+            [100, -70]
+        ],
+        [
+            [0, 0],
+            [-50, -70],
+            [-90, -20],
+            [-50, 50]
+        ]
     ];
 
-    var last = path[path.length - 1];
-    var prev = last;
-    this._mainData.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-    this._orderData.push(1, -1, 2, -2);
-    var k = 0;
-    for (var i = 0; i < path.length; i++) {
-        var cur = path[i];
-        this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+    var colors = [
+        [1, 0, 0, 1],
+        [0, 1, 0, 1],
+        [1, 1, 1, 1]
+    ];
+    var thickness = [24, 14, 15];
+
+    var index = 0;
+    for (var j = 0; j < pathArr.length; j++) {
+        path = pathArr[j];
+        var startIndex = index;
+        var last = path[path.length - 1];
+        var prev = last;
+        this._mainData.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         this._orderData.push(1, -1, 2, -2);
-        this._indexData.push(k++, k++, k++, k++);
+        var t = thickness[j],
+            c = colors[j];
+        this._thicknessData.push(t, t, t, t);
+        this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            this._orderData.push(1, -1, 2, -2);
+            this._thicknessData.push(t, t, t, t);
+            this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            this._indexData.push(index++, index++, index++, index++);
+        }
+
+        var first = path[0];
+        this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        this._orderData.push(1, -1, 2, -2);
+        this._thicknessData.push(t, t, t, t);
+        this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        this._indexData.push(startIndex, startIndex + 1);
+
+        this._indexData.push(startIndex, startIndex);
+        if (j < pathArr.length - 1) {
+            this._indexData.push(index + 8, index + 8);
+        }
+
+        index += 8;
     }
-    var first = path[0];
-    this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-    this._orderData.push(1, -1, 2, -2);
-    this._indexData.push(0, 1);
 
     var h = this.renderer.handler;
     this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, this._orderData.length / 2);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, this._mainData.length / 4);
+    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, this._mainData.length / 2);
     this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+
+    this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessData), 1, this._thicknessData.length);
+    this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, this._colorData.length / 4);
 };
 
 my.LineRing.prototype.frame = function() {
@@ -222,27 +273,39 @@ my.LineRing.prototype.frame = function() {
     gl.disable(gl.CULL_FACE);
 
     gl.uniform2fv(shu.viewport._pName, [512, 512]);
-    gl.uniform4fv(shu.color._pName, [1.0, 1.0, 1.0, 1]);
 
     var extent = new og.Extent(new og.LonLat(-180, -90), new og.LonLat(180, 90));
     gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
+    //thickness
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
+    gl.vertexAttribPointer(sha.thickness._pName, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    //color
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
+    gl.vertexAttribPointer(sha.color._pName, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    //vertex
     var mb = this._mainBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 0, 32);
-    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 0, 64);
+    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
+    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
+    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
+
+    //order
     gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
+    //
     //Antialiase pass
-    gl.uniform1f(shu.thickness._pName, (this.thickness + 2) * 0.5);
+    gl.uniform1f(shu.thicknessOutline._pName, 2);
     gl.uniform1f(shu.alpha._pName, 0.54);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
     gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
+    //
     //Aliased pass
-    gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
+    gl.uniform1f(shu.thicknessOutline._pName, 1);
     gl.uniform1f(shu.alpha._pName, 1.0);
     gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
