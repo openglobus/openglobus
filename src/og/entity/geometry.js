@@ -20,16 +20,20 @@ og.Geometry = function(options) {
 
     this._handler = null;
     this._handlerIndex = -1;
-    this._polyVerticesHandlerIndex = -1;
-    this._polyIndexesHandlerIndex = -1;
 
     this._polyVertices = null;
     this._polyIndexes = null;
 
     this._lineVertices = null;
-    this._lineThickness = null;
-    this._lineColors = null;
     this._lineOrders = null;
+    this._lineIndexes = null;
+
+    this._polyVerticesHandlerIndex = -1;
+    this._polyIndexesHandlerIndex = -1;
+
+    this._lineVerticesHandlerIndex = -1;
+    this._lineOrdersHandlerIndex = -1;
+    this._lineIndexecHandlerIndex = -1;
 
     this._type = options.type && og.Geometry.getType(options.type) || og.Geometry.POINT;
     this._coordinates = [];
@@ -152,6 +156,18 @@ og.Geometry.prototype.setFillColor4v = function(rgba) {
     return this.setFillColor(rgba.x, rgba.y, rgba.z, rgba.w);
 };
 
+og.Geometry.prototype.setStrokeColor = function(r,g,b,a){
+    //TODO
+};
+
+og.Geometry.prototype.setStrokeOpacity = function(opacity){
+    //TODO
+};
+
+og.Geometry.prototype.setStrokeWidth = function(r,g,b,a){
+    //TODO
+};
+
 og.Geometry.prototype.setFillOpacity = function(opacity) {
     var c = this._style.fillColor;
     c.w = opacity;
@@ -161,11 +177,12 @@ og.Geometry.prototype.setFillOpacity = function(opacity) {
 
 og.Geometry.prototype.setVisibility = function(visibility) {
     this._visibility = visibility;
+    //...
     return this;
 };
 
 og.Geometry.prototype.remove = function() {
-
+    //...
 };
 
 og.Geometry.prototype.getExtent = function() {

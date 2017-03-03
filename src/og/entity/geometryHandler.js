@@ -2,7 +2,6 @@ goog.provide('og.GeometryHandler');
 
 goog.require('og.utils.earcut');
 goog.require('og.Geometry');
-goog.require('og.shaderProgram.lineString');
 
 og.GeometryHandler = function(layer) {
     this.__staticId = og.GeometryHandler.staticCounter++;
@@ -27,11 +26,13 @@ og.GeometryHandler = function(layer) {
 
     this._polyVerticesBuffer = null;
     this._polyColorsBuffer = null;
+    this._polyIndexesBuffer = null;
 
     this._lineVerticesBuffer = null;
     this._lineColorsBuffer = null;
     this._lineThicknessBuffer = null;
     this._lineOrdersBuffer = null;
+    this._lineIndexesBuffer = null;
 
     this._buffersUpdateCallbacks = [];
     this._buffersUpdateCallbacks[og.GeometryHandler.POLYVERTICES_BUFFER] = this.createPolyVerticesBuffer;
@@ -44,6 +45,56 @@ og.GeometryHandler.staticCounter = 0;
 
 og.GeometryHandler.POLYVERTICES_BUFFER = 0;
 og.GeometryHandler.POLYCOLORS_BUFFER = 1;
+
+og.GeometryHandler.createLineRingData = function(pathArr, color, thickness) {
+    var index = 0;
+    var t = thickness,
+        c = color;
+    var _lineVertices = [],
+        _lineOrders = [],
+        _lineThickness = [],
+        _lineIndexes = [];
+
+    for (var j = 0; j < pathArr.length; j++) {
+        var path = pathArr[j];
+        var startIndex = index;
+        var last = path[path.length - 1];
+        var prev = last;
+        _lineVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        _lineOrders.push(1, -1, 2, -2);
+        _lineThickness.push(t, t, t, t);
+        _lineColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            _lineVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            _lineOrders.push(1, -1, 2, -2);
+            _lineThickness.push(t, t, t, t);
+            _lineColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            _lineIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first = path[0];
+        _lineVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        _lineOrders.push(1, -1, 2, -2);
+        _lineThickness.push(t, t, t, t);
+        _lineColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        _lineIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+
+        if (j < pathArr.length - 1) {
+            _lineIndexes.push(index + 8, index + 8);
+            index += 8;
+        }
+    }
+
+    return {
+        'vertices': _lineVertices,
+        'colors': _lineColors,
+        'thickness': _lineThickness,
+        'indexes': _lineIndexes,
+        'orders': _lineOrders
+    };
+};
 
 og.GeometryHandler.prototype.assignHandler = function(handler) {
     this._handler = handler;
@@ -83,22 +134,11 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._polyVertices = data.vertices;
             geometry._polyIndexes = indexes;
 
-            //Polygon stroke data
-            for (var i = 0; i < geometry._coordinates.length; i++) {
-                var ci = geometry._coordinates[i];
-                var ringData = og.shaderProgram.lineString.createLineRingData(ci,
-                    geometry._style.strokeColor, geometry._style.strokeWidth);
-
-                geometry._lineVertices = ringData.vertexArr;
-                geometry._lineOrders = ringData.orderArr;
-                geometry._lineColors = ringData.colorArr;
-                geometry._lineThickness = ringData.thicknessArr;
-
-                this._lineVertices.push.apply(this._lineVertices, ringData.vertexArr);
-                this._lineOrders.push.apply(this._lineOrders, ringData.orderArr);
-                this._lineColors.push.apply(this._lineColors, ringData.colorArr);
-                this._lineThickness.push.apply(this._lineThickness, ringData.thicknessArr);
-            }
+            //Creates polygon stroke data
+            var ringData = og.GeometryHandler.createLineRingData(geometry._coordinates[i],
+                geometry._style.strokeColor, geometry._style.strokeWidth);
+            //...
+            //
 
         } else if (geometry._type === og.Geometry.MULTIPOLYGON) {
             var coordinates = geometry._coordinates;
@@ -236,6 +276,7 @@ og.GeometryHandler.prototype.createPolyVerticesBuffer = function() {
     var h = this._handler;
     h.gl.deleteBuffer(this._polyVerticesBuffer);
     this._polyVerticesBuffer = h.createArrayBuffer(new Float32Array(this._polyVertices), 2, this._polyVertices.length / 2);
+    this._polyIndexesBuffer = h.createElementArrayBuffer(new Uint16Array(this._polyIndexes), 1, this._polyIndexes.length);
 };
 
 og.GeometryHandler.prototype.createPolyColorsBuffer = function() {
@@ -265,8 +306,4 @@ og.GeometryHandler.prototype.reindexArray = function(startIndex) {
     for (var i = startIndex; i < g.length; i++) {
         g[i]._handlerIndex = i;
     }
-};
-
-og.GeometryHandler.prototype.collect = function(segment) {
-    return new Uint16Array(this._polyIndexes);
 };

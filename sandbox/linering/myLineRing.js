@@ -41,14 +41,59 @@ my.LineRing = function(name) {
     og.inheritance.base(this, name);
     this.thickness = 5;
 
-    this._mainData = [];
-    this._orderData = [];
-    this._indexData = [];
-    this._thicknessData = [];
-    this._colorData = [];
+    this._lineVertices = [];
+    this._lineOrders = [];
+    this._lineIndexes = [];
+    this._lineThickness = [];
+    this._lineColors = [];
 };
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
+
+function appendLineRingData(pathArr, color, thickness, outVertices, outOrders, outIndexes, outColors, outThickness) {
+    var index = 0;
+
+    if (outIndexes.length > 0) {
+        index = outIndexes[outIndexes.length - 5] + 9;
+        outIndexes.push(index, index);
+    }
+
+    var t = thickness,
+        c = color;
+
+    for (var j = 0; j < pathArr.length; j++) {
+        path = pathArr[j];
+        var startIndex = index;
+        var last = path[path.length - 1];
+        var prev = last;
+        outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outOrders.push(1, -1, 2, -2);
+
+        outThickness.push(t, t, t, t);
+        outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outOrders.push(1, -1, 2, -2);
+            outThickness.push(t, t, t, t);
+            outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            outIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first = path[0];
+        outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outOrders.push(1, -1, 2, -2);
+        outThickness.push(t, t, t, t);
+        outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+
+        if (j < pathArr.length - 1) {
+            index += 8;
+            outIndexes.push(index, index);
+        }
+    }
+};
 
 my.LineRing.prototype.initialization = function() {
     this.renderer.events.on("charkeypress", og.input.KEY_X, function() {
@@ -184,20 +229,18 @@ my.LineRing.prototype.initialization = function() {
 
     var pathArr = [
         [
-            [0, 0],
-            [70, 0],
+            [20, 0],
+            [90, 0],
+            [30, 50]
+        ],
+        [
+            [-10, -5],
+            [-12, -35]
+        ],
+        [
+            [0 - 20, -20],
+            [-20 - 20, 10],
             [50, 50]
-        ],
-        [
-            [-10, -10],
-            [-12, -40],
-            [100, -70]
-        ],
-        [
-            [0, 0],
-            [-50, -70],
-            [-90, -20],
-            [-50, 50]
         ]
     ];
 
@@ -206,52 +249,22 @@ my.LineRing.prototype.initialization = function() {
         [0, 1, 0, 1],
         [1, 1, 1, 1]
     ];
-    var thickness = [24, 14, 15];
 
-    var index = 0;
-    for (var j = 0; j < pathArr.length; j++) {
-        path = pathArr[j];
-        var startIndex = index;
-        var last = path[path.length - 1];
-        var prev = last;
-        this._mainData.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-        this._orderData.push(1, -1, 2, -2);
-        var t = thickness[j],
-            c = colors[j];
-        this._thicknessData.push(t, t, t, t);
-        this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+    var thickness = [8, 4, 12];
 
-        for (var i = 0; i < path.length; i++) {
-            var cur = path[i];
-            this._mainData.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-            this._orderData.push(1, -1, 2, -2);
-            this._thicknessData.push(t, t, t, t);
-            this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
-            this._indexData.push(index++, index++, index++, index++);
-        }
+    appendLineRingData([pathArr[0], pathArr[1]], colors[0], thickness[0],
+        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
 
-        var first = path[0];
-        this._mainData.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-        this._orderData.push(1, -1, 2, -2);
-        this._thicknessData.push(t, t, t, t);
-        this._colorData.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
-        this._indexData.push(startIndex, startIndex + 1);
-
-        this._indexData.push(startIndex, startIndex);
-        if (j < pathArr.length - 1) {
-            this._indexData.push(index + 8, index + 8);
-        }
-
-        index += 8;
-    }
+    appendLineRingData([pathArr[2]], colors[2], thickness[2],
+        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
 
     var h = this.renderer.handler;
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 1, this._orderData.length / 2);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 2, this._mainData.length / 2);
-    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+    this._lineOrdersBuffer = h.createArrayBuffer(new Float32Array(this._lineOrders), 1, this._lineOrders.length / 2);
+    this._lineVerticesBuffer = h.createArrayBuffer(new Float32Array(this._lineVertices), 2, this._lineVertices.length / 2);
+    this._lineIndexesBuffer = h.createElementArrayBuffer(new Uint16Array(this._lineIndexes), 1, this._lineIndexes.length);
 
-    this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessData), 1, this._thicknessData.length);
-    this._colorBuffer = h.createArrayBuffer(new Float32Array(this._colorData), 4, this._colorData.length / 4);
+    this._lineThicknessBuffer = h.createArrayBuffer(new Float32Array(this._lineThickness), 1, this._lineThickness.length);
+    this._lineColorsBuffer = h.createArrayBuffer(new Float32Array(this._lineColors), 4, this._lineColors.length / 4);
 };
 
 my.LineRing.prototype.frame = function() {
@@ -278,36 +291,36 @@ my.LineRing.prototype.frame = function() {
     gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
     //thickness
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
-    gl.vertexAttribPointer(sha.thickness._pName, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineThicknessBuffer);
+    gl.vertexAttribPointer(sha.thickness._pName, this._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     //color
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-    gl.vertexAttribPointer(sha.color._pName, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineColorsBuffer);
+    gl.vertexAttribPointer(sha.color._pName, this._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     //vertex
-    var mb = this._mainBuffer;
+    var mb = this._lineVerticesBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
     gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
     gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
     gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
 
     //order
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
-    gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineOrdersBuffer);
+    gl.vertexAttribPointer(sha.order._pName, this._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
     //
     //Antialiase pass
     gl.uniform1f(shu.thicknessOutline._pName, 2);
     gl.uniform1f(shu.alpha._pName, 0.54);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-    gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
+    gl.drawElements(this._drawType, this._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     //
     //Aliased pass
     gl.uniform1f(shu.thicknessOutline._pName, 1);
     gl.uniform1f(shu.alpha._pName, 1.0);
-    gl.drawElements(this._drawType, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(this._drawType, this._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
