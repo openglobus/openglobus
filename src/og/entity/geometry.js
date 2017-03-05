@@ -21,16 +21,16 @@ og.Geometry = function(options) {
     this._handler = null;
     this._handlerIndex = -1;
 
-    this._polyVertices = null;
-    this._polyIndexes = null;
-
-    this._lineVertices = null;
-    this._lineOrders = null;
-    this._lineIndexes = null;
-
+    //Polygon
+    this._polyVerticesLength = -1;
+    this._polyIndexesLength = -1;
     this._polyVerticesHandlerIndex = -1;
     this._polyIndexesHandlerIndex = -1;
 
+    //Line(Linestring and polygon's stroke(s)
+    this._lineVerticesLength = -1;
+    this._lineOrdersLength = -1;
+    this._lineIndexesLength = -1;
     this._lineVerticesHandlerIndex = -1;
     this._lineOrdersHandlerIndex = -1;
     this._lineIndexecHandlerIndex = -1;

@@ -258,7 +258,7 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                     gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                     //vertex
-                    var mb = this._lineVerticesBuffer;
+                    var mb = geomHandler._lineVerticesBuffer;
                     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
                     gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
                     gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
