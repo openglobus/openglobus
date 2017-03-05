@@ -57,7 +57,7 @@ og.GeometryHandler.LINEINDEXESANDORDERS_BUFFER = 3;
 og.GeometryHandler.LINECOLORS_BUFFER = 4;
 og.GeometryHandler.LINETHICKNESS_BUFFER = 5;
 
-og.GeometryHandler.appendLineRingData(pathArr, color, thickness,
+og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness,
     outVertices, outOrders, outIndexes, outColors, outThickness) {
     var index = 0;
 
@@ -67,7 +67,7 @@ og.GeometryHandler.appendLineRingData(pathArr, color, thickness,
     }
 
     var t = thickness,
-        c = color;
+        c = [color.x, color.y, color.z, color.w];
 
     for (var j = 0; j < pathArr.length; j++) {
         path = pathArr[j];
@@ -146,7 +146,7 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._lineOrdersHandlerIndex = this._lineOrders.length;
             geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
             geometry._lineColorsHandlerIndex = this._lineColors.length;
-            geometry._lineThicknesHandlerIndex = this._lineThickness.length;
+            geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
             var ringData = og.GeometryHandler.appendLineRingData(geometry._coordinates,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
@@ -156,7 +156,7 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex + 1;
             geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex + 1;
             geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex + 1;
-            geometry._lineThicknesLength = this._lineThicknes.length - geometry._lineThicknesHandlerIndex + 1;
+            geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex + 1;
 
         } else if (geometry._type === og.Geometry.MULTIPOLYGON) {
             var coordinates = geometry._coordinates;

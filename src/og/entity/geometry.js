@@ -31,9 +31,11 @@ og.Geometry = function(options) {
     this._lineVerticesLength = -1;
     this._lineOrdersLength = -1;
     this._lineIndexesLength = -1;
+    this._lineThicknessLength = -1;
     this._lineVerticesHandlerIndex = -1;
     this._lineOrdersHandlerIndex = -1;
-    this._lineIndexecHandlerIndex = -1;
+    this._lineIndexesHandlerIndex = -1;
+    this._lineThicknessHandlerIndex = -1;
 
     this._type = options.type && og.Geometry.getType(options.type) || og.Geometry.POINT;
     this._coordinates = [];
@@ -44,7 +46,7 @@ og.Geometry = function(options) {
 
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 0.5));
-    this._style.strokeColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 1));
+    this._style.strokeColor = og.utils.createColorRGBA(options.style.strokeColor, new og.math.Vector4(0, 0, 1, 1));
     this._style.strokeWidth = options.style.strokeWidth || 3;
     this._style.lineWidth = options.style.lineWidth || 3;
 

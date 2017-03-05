@@ -207,28 +207,29 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 }
                 f.bindOutputTexture(texture);
 
+                gl.clearColor(1.0, 1.0, 1.0, 0.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                var extent = material.segment.getExtentLonLat();
+
                 h.shaderPrograms.vectorTilePolygonRasterization.activate();
                 var sh = h.shaderPrograms.vectorTilePolygonRasterization._program;
                 var sha = sh.attributes,
                     shu = sh.uniforms;
 
-                gl.clearColor(1.0, 1.0, 1.0, 0.0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-
                 //=========================================
                 //Polygon rendering
                 //=========================================
-                if (prevLayerId !== material.layer._id) {
-                    prevLayerId = material.layer._id;
+                //if (prevLayerId !== material.layer._id) {
+                //    prevLayerId = material.layer._id;
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBuffer);
-                    gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBuffer);
+                gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
-                    gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                }
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
+                gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                //}
 
-                var extent = material.segment.getExtentLonLat();
 
                 gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
@@ -238,38 +239,38 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 //=========================================
                 //Polygon stroke and linestring rendering
                 //=========================================
-                h.shaderPrograms.vectorTilePolygonRasterization.activate();
-                var sh = h.shaderPrograms.vectorTilePolygonRasterization._program;
-                var sha = sh.attributes,
-                    shu = sh.uniforms;
+                h.shaderPrograms.vectorTileLineRasterization.activate();
+                sh = h.shaderPrograms.vectorTileLineRasterization._program;
+                sha = sh.attributes;
+                shu = sh.uniforms;
 
                 gl.uniform2fv(shu.viewport._pName, [this._width, this._height]);
 
                 gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
-                if (prevLayerId !== material.layer._id) {
-                    prevLayerId = material.layer._id;
-                    //thickness
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
-                    gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                //if (prevLayerId !== material.layer._id) {
+                //    prevLayerId = material.layer._id;
+                //thickness
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
+                gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                    //color
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
-                    gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                //color
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
+                gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                    //vertex
-                    var mb = geomHandler._lineVerticesBuffer;
-                    gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-                    gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
-                    gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
-                    gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
+                //vertex
+                var mb = geomHandler._lineVerticesBuffer;
+                gl.bindBuffer(gl.ARRAY_BUFFER, mb);
+                gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
+                gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
+                gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
 
-                    //order
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineOrdersBuffer);
-                    gl.vertexAttribPointer(sha.order._pName, geomHandler._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+                //order
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineOrdersBuffer);
+                gl.vertexAttribPointer(sha.order._pName, geomHandler._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer);
-                }
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer);
+                //}
                 //
                 //Antialias pass
                 gl.uniform1f(shu.thicknessOutline._pName, 2);

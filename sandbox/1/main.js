@@ -131,7 +131,7 @@ function main2() {
             entities.push(new og.Entity({
                 'geometry': {
                     'type': "Polygon",
-                    'coordinates': [ [[0,0],[0, 10],[10,0] ]],
+                    'coordinates': [ [[0,0],[0, 10],[10,7] ]],
                     'style': {}
                 }
             }));
@@ -139,7 +139,7 @@ function main2() {
             entities.push(new og.Entity({
                 'geometry': {
                     'type': "Polygon",
-                    'coordinates': [ [[0,88],[32, 10],[10,0] ]],
+                    'coordinates': [ [[0,88],[32, 10],[10,10] ]],
                     'style': {
                         'fillColor':"#ff0000"
                     }
