@@ -152,7 +152,7 @@ og.GeometryHandler.prototype.add = function(geometry) {
             this._polyVertices.push.apply(this._polyVertices, data.vertices);
 
             for (var i = 0; i < indexes.length; i++) {
-                this._polyIndexes.push(indexes[i] + geometry._polyIndexesHandlerIndex);
+                this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
             }
 
             var color = geometry._style.fillColor;
@@ -212,7 +212,10 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
             this._polyVertices.push.apply(this._polyVertices, vertices);
-            this._polyIndexes.push.apply(this._polyIndexes, indexes);
+
+            for (var i = 0; i < indexes.length; i++) {
+                this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
+            }
 
             var color = geometry._style.fillColor;
             for (var i = 0; i < vertices.length / 2; i++) {
