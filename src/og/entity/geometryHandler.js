@@ -26,7 +26,11 @@ og.GeometryHandler = function(layer) {
     this._lineIndexes = [];
     this._lineColors = [];
     this._lineThickness = [];
+    this._lineStrokes = [];
+    this._lineStrokeColors = [];
+    this._lineThicknessMask = [];
 
+    //Buffers
     this._polyVerticesBuffer = null;
     this._polyColorsBuffer = null;
     this._polyIndexesBuffer = null;
@@ -34,6 +38,9 @@ og.GeometryHandler = function(layer) {
     this._lineVerticesBuffer = null;
     this._lineColorsBuffer = null;
     this._lineThicknessBuffer = null;
+    this._lineThicknessMaskBuffer = null;
+    this._lineStrokesBuffer = null;
+    this._lineStrokeColorsBuffer = null;
     this._lineOrdersBuffer = null;
     this._lineIndexesBuffer = null;
 
@@ -44,6 +51,8 @@ og.GeometryHandler = function(layer) {
     this._buffersUpdateCallbacks[og.GeometryHandler.LINEINDEXESANDORDERS_BUFFER] = this.createLineIndexesAndOrdersBuffer;
     this._buffersUpdateCallbacks[og.GeometryHandler.LINECOLORS_BUFFER] = this.createLineColorsBuffer;
     this._buffersUpdateCallbacks[og.GeometryHandler.LINETHICKNESS_BUFFER] = this.createLineThicknessBuffer;
+    this._buffersUpdateCallbacks[og.GeometryHandler.LINESTROKES_BUFFER] = this.createLineStrokesBuffer;
+    this._buffersUpdateCallbacks[og.GeometryHandler.LINESTROKECOLORS_BUFFER] = this.createLineStrokeColorsBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 };
@@ -56,9 +65,11 @@ og.GeometryHandler.LINEVERTICES_BUFFER = 2;
 og.GeometryHandler.LINEINDEXESANDORDERS_BUFFER = 3;
 og.GeometryHandler.LINECOLORS_BUFFER = 4;
 og.GeometryHandler.LINETHICKNESS_BUFFER = 5;
+og.GeometryHandler.LINESTROKES_BUFFER = 6;
+og.GeometryHandler.LINESTROKECOLORS_BUFFER = 7;
 
-og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness,
-    outVertices, outOrders, outIndexes, outColors, outThickness) {
+og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness, strokeColor, strokeSize,
+    outVertices, outOrders, outIndexes, outColors, outThickness, outStrokeColors, outStrokes, outThicknessMask) {
     var index = 0;
 
     if (outIndexes.length > 0) {
@@ -67,7 +78,9 @@ og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness,
     }
 
     var t = thickness,
-        c = [color.x, color.y, color.z, color.w];
+        c = [color.x, color.y, color.z, color.w],
+        s = strokeSize,
+        sc = [strokeColor.x, strokeColor.y, strokeColor.z, strokeColor.w];
 
     for (var j = 0; j < pathArr.length; j++) {
         path = pathArr[j];
@@ -78,14 +91,20 @@ og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness,
         outOrders.push(1, -1, 2, -2);
 
         outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
 
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
+            outStrokes.push(s, s, s, s);
+            outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
             outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
             outIndexes.push(index++, index++, index++, index++);
         }
 
@@ -93,7 +112,10 @@ og.GeometryHandler.appendLineRingData = function(pathArr, color, thickness,
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
         outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
 
         if (j < pathArr.length - 1) {
@@ -148,9 +170,11 @@ og.GeometryHandler.prototype.add = function(geometry) {
             geometry._lineColorsHandlerIndex = this._lineColors.length;
             geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-            var ringData = og.GeometryHandler.appendLineRingData(geometry._coordinates,
+            og.GeometryHandler.appendLineRingData(geometry._coordinates,
+                geometry._style.lineColor, geometry._style.lineWidth,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
-                this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
+                this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors,
+                this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
 
             geometry._lineVerticesLength = this._lineVertices.length - geometry._lineVerticesHandlerIndex + 1;
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex + 1;
@@ -164,11 +188,24 @@ og.GeometryHandler.prototype.add = function(geometry) {
                 indexes = [],
                 colors = [];
 
+            //Creates polygon stroke data
+            geometry._lineVerticesHandlerIndex = this._lineVertices.length;
+            geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+            geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+            geometry._lineColorsHandlerIndex = this._lineColors.length;
+            geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
             for (var i = 0; i < coordinates.length; i++) {
                 var ci = coordinates[i];
                 var data = og.utils.earcut.flatten(ci);
                 vertices.push.apply(vertices, data.vertices);
                 indexes.push.apply(indexes, og.utils.earcut(data.vertices, data.holes, 2));
+
+                og.GeometryHandler.appendLineRingData(ci,
+                    geometry._style.lineColor, geometry._style.lineWidth,
+                    geometry._style.strokeColor, geometry._style.strokeWidth,
+                    this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors,
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
             }
 
             geometry._polyVerticesHandlerIndex = this._polyVertices.length;
@@ -184,6 +221,12 @@ og.GeometryHandler.prototype.add = function(geometry) {
 
             geometry._polyVerticesLength = vertices.length;
             geometry._polyIndexesLength = indexes.length;
+
+            geometry._lineVerticesLength = this._lineVertices.length - geometry._lineVerticesHandlerIndex + 1;
+            geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex + 1;
+            geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex + 1;
+            geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex + 1;
+            geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex + 1;
         }
 
         this.refresh();
@@ -329,6 +372,21 @@ og.GeometryHandler.prototype.createLineThicknessBuffer = function() {
     var h = this._handler;
     h.gl.deleteBuffer(this._lineThicknessBuffer);
     this._lineThicknessBuffer = h.createArrayBuffer(new Float32Array(this._lineThickness), 1, this._lineThickness.length);
+
+    h.gl.deleteBuffer(this._lineThicknessMaskBuffer);
+    this._lineThicknessMaskBuffer = h.createArrayBuffer(new Float32Array(this._lineThicknessMask), 4, this._lineThicknessMask.length / 4);
+};
+
+og.GeometryHandler.prototype.createLineStrokesBuffer = function() {
+    var h = this._handler;
+    h.gl.deleteBuffer(this._lineStrokesBuffer);
+    this._lineStrokesBuffer = h.createArrayBuffer(new Float32Array(this._lineStrokes), 1, this._lineStrokes.length);
+};
+
+og.GeometryHandler.prototype.createLineStrokeColorsBuffer = function() {
+    var h = this._handler;
+    h.gl.deleteBuffer(this._lineStrokeColorsBuffer);
+    this._lineStrokeColorsBuffer = h.createArrayBuffer(new Float32Array(this._lineStrokeColors), 4, this._lineStrokeColors.length / 4);
 };
 
 og.GeometryHandler.prototype.remove = function(geometry) {

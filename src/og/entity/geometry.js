@@ -46,9 +46,10 @@ og.Geometry = function(options) {
 
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 0.5));
-    this._style.strokeColor = og.utils.createColorRGBA(options.style.strokeColor, new og.math.Vector4(0, 0, 1, 1));
-    this._style.strokeWidth = options.style.strokeWidth || 3;
+    this._style.lineColor = og.utils.createColorRGBA(options.style.lineColor, new og.math.Vector4(0, 0, 1, 1));
+    this._style.strokeColor = og.utils.createColorRGBA(options.style.strokeColor, new og.math.Vector4(1, 1, 1, 0.95));
     this._style.lineWidth = options.style.lineWidth || 3;
+    this._style.strokeWidth = options.style.strokeWidth || 0;
 
     this._visibility = options.visibility || true
 };
@@ -159,15 +160,55 @@ og.Geometry.prototype.setFillColor4v = function(rgba) {
 };
 
 og.Geometry.prototype.setStrokeColor = function(r,g,b,a){
-    //TODO
+    var c = this._style.strokeColor;
+    c.x = r;
+    c.y = g;
+    c.z = b;
+    c.w = a;
+    this._handler && this._handler.setStrokeColorArr(this, c);
+    return this;
+};
+
+og.Geometry.prototype.setLineColor = function(r,g,b,a){
+    var c = this._style.lineColor;
+    c.x = r;
+    c.y = g;
+    c.z = b;
+    c.w = a;
+    this._handler && this._handler.setLineColorArr(this, c);
+    return this;
+};
+
+og.Geometry.prototype.setStrokeColor4v = function(rgba){
+    return this.setStrokeColor(rgba.x, rgba.y, rgba.z, rgba.w);
+};
+
+og.Geometry.prototype.setLineColor4v = function(rgba){
+    return this.setLineColor(rgba.x, rgba.y, rgba.z, rgba.w);
 };
 
 og.Geometry.prototype.setStrokeOpacity = function(opacity){
-    //TODO
+    var c = this._style.strokeColor;
+    c.w = opacity;
+    return this.setStrokeColor(c.x, c.y, c.z, opacity);
 };
 
-og.Geometry.prototype.setStrokeWidth = function(r,g,b,a){
-    //TODO
+og.Geometry.prototype.setLineOpacity = function(opacity){
+    var c = this._style.lineColor;
+    c.w = opacity;
+    return this.setLineColor(c.x, c.y, c.z, opacity);
+};
+
+og.Geometry.prototype.setStrokeWidth = function(width){
+    this._style.strokeWidth = width;
+    this._handler && this._handler.setStrokeThicknessArr(this, width);
+    return this;
+};
+
+og.Geometry.prototype.setLineWidth = function(width){
+    this._style.lineWidth = width;
+    this._handler && this._handler.setLineThicknessArr(this, width);
+    return this;
 };
 
 og.Geometry.prototype.setFillOpacity = function(opacity) {

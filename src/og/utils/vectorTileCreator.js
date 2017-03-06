@@ -250,9 +250,6 @@ og.utils.VectorTileCreator.prototype.frame = function() {
 
                 //if (prevLayerId !== material.layer._id) {
                 //    prevLayerId = material.layer._id;
-                //thickness
-                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
-                gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 //color
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
@@ -271,7 +268,17 @@ og.utils.VectorTileCreator.prototype.frame = function() {
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer);
                 //}
-                //
+
+                gl.uniform1f(shu.thicknessOutline._pName, 1);
+                gl.uniform1f(shu.alpha._pName, 1.0);
+
+                //PASS 1 - stroke
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokesBuffer);
+                gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineStrokesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokeColorsBuffer);
+                gl.vertexAttribPointer(sha.color._pName, geomHandler._lineStrokeColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
                 //Antialias pass
                 gl.uniform1f(shu.thicknessOutline._pName, 2);
                 gl.uniform1f(shu.alpha._pName, 0.54);
@@ -281,6 +288,43 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 gl.uniform1f(shu.thicknessOutline._pName, 1);
                 gl.uniform1f(shu.alpha._pName, 1.0);
                 gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+                //PASS 2 - mask
+                // gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
+                // gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                //
+                // gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessMaskBuffer);
+                // gl.vertexAttribPointer(sha.color._pName, geomHandler._lineThicknessMaskBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                //
+                // gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+                //PASS 3 - inside line
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
+                gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
+                gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+                //Antialias pass
+                gl.uniform1f(shu.thicknessOutline._pName, 2);
+                gl.uniform1f(shu.alpha._pName, 0.54);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                //
+                //Aliased pass
+                gl.uniform1f(shu.thicknessOutline._pName, 1);
+                gl.uniform1f(shu.alpha._pName, 1.0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+                // //Antialias pass
+                // gl.uniform1f(shu.thicknessOutline._pName, 2);
+                // gl.uniform1f(shu.alpha._pName, 0.54);
+                // gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                // //
+                // //Aliased pass
+                // gl.uniform1f(shu.thicknessOutline._pName, 1);
+                // gl.uniform1f(shu.alpha._pName, 1.0);
+                // gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
 
                 material.applyTexture(texture);
 
