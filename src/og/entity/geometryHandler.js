@@ -309,6 +309,60 @@ og.GeometryHandler.prototype.setPolyColorArr = function(geometry, color) {
     this._updatedGeometry[geometry._id] = true;
 };
 
+og.GeometryHandler.prototype.setLineStrokeColorArr = function(geometry, color){
+    var index = geometry._lineColorsHandlerIndex,
+        size = index + geometry._lineColorsLength;
+    var a = this._lineStrokeColors;
+    for (var i = index; i < size; i += 4) {
+        a[i] = color.x;
+        a[i + 1] = color.y;
+        a[i + 2] = color.z;
+        a[i + 3] = color.w;
+    }
+    this._changedBuffers[og.GeometryHandler.LINESTROKECOLORS_BUFFER] = true;
+    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+    this._updatedGeometry[geometry._id] = true;
+};
+
+og.GeometryHandler.prototype.setLineColorArr = function(geometry, color){
+    var index = geometry._lineColorsHandlerIndex,
+        size = index + geometry._lineColorsLength;
+    var a = this._lineColors;
+    for (var i = index; i < size; i += 4) {
+        a[i] = color.x;
+        a[i + 1] = color.y;
+        a[i + 2] = color.z;
+        a[i + 3] = color.w;
+    }
+    this._changedBuffers[og.GeometryHandler.LINECOLORS_BUFFER] = true;
+    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+    this._updatedGeometry[geometry._id] = true;
+};
+
+og.GeometryHandler.prototype.setLineStrokeArr = function(geometry, width){
+    var index = geometry._lineStrokesHandlerIndex,
+        size = index + geometry._lineStrokesLength;
+    var a = this._lineStrokes;
+    for (var i = index; i < size; i++) {
+        a[i] = width;
+    }
+    this._changedBuffers[og.GeometryHandler.LINESTROKES_BUFFER] = true;
+    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+    this._updatedGeometry[geometry._id] = true;
+};
+
+og.GeometryHandler.prototype.setLineThicknessArr = function(geometry, width){
+    var index = geometry._lineThicknessHandlerIndex,
+        size = index + geometry._lineThicknessLength;
+    var a = this._lineThickness;
+    for (var i = index; i < size; i++) {
+        a[i] = width;
+    }
+    this._changedBuffers[og.GeometryHandler.LINETHICKNESS_BUFFER] = true;
+    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+    this._updatedGeometry[geometry._id] = true;
+};
+
 og.GeometryHandler.prototype.setPolyVerticesArr = function(geometry, vertices, indexes) {
     var index = geometry._handlerIndex;
     if (vertices.length === geometry._polyVerticesLength && indexes.length === geometry._polyIndexesLength) {
@@ -332,6 +386,8 @@ og.GeometryHandler.prototype.setPolyVerticesArr = function(geometry, vertices, i
         //
     }
     this._changedBuffers[og.GeometryHandler.POLYVERTICES_BUFFER] = true;
+    this._changedBuffers[og.GeometryHandler.POLYVERTICES_BUFFER] = true;
+
     !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
     this._updatedGeometry[geometry._id] = true;
 };

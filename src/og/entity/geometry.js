@@ -201,7 +201,7 @@ og.Geometry.prototype.setLineOpacity = function(opacity){
 
 og.Geometry.prototype.setStrokeWidth = function(width){
     this._style.strokeWidth = width;
-    this._handler && this._handler.setStrokeThicknessArr(this, width);
+    this._handler && this._handler.setLineStrokeArr(this, width);
     return this;
 };
 
