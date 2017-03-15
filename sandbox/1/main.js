@@ -145,6 +145,16 @@ function main2() {
                     }
                 }
             }));
+
+            entities.push(new og.Entity({
+                'geometry': {
+                    'type': "Polygon",
+                    'coordinates': [ [[-5,-5],[-10, 20],[-12,-1] ]],
+                    'style': {
+                        'fillColor':"#ffff00"
+                    }
+                }
+            }));
             
     forest = new og.layer.Vector("Forest", {
         'entities': entities,
