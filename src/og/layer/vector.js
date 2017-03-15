@@ -311,6 +311,9 @@ og.layer.Vector.prototype.removeEntity = function(entity) {
                 }
             }
         }
+
+        entity.geometry && entity._geometryHandler.remove(entity.geometry);
+        
         entity._nodePtr && (entity._nodePtr = null);
         this.events.dispatch(this.events.entityremove, entity);
     }

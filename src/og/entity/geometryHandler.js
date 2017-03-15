@@ -451,10 +451,7 @@ og.GeometryHandler.prototype.createLineStrokeColorsBuffer = function () {
 og.GeometryHandler.prototype.remove = function (geometry) {
     var index = geometry._handlerIndex;
     if (index !== -1) {
-        geometry._handlerIndex = -1;
-        geometry._handler = null;
         this._geometries.splice(index, 1);
-        //this._reindexGeometryArray(index);
 
         //polygon
         this._polyVertices.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
@@ -494,15 +491,27 @@ og.GeometryHandler.prototype.remove = function (geometry) {
             gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
         }
 
+        geometry._handler = null;
+        geometry._handlerIndex = -1;
+
+        geometry._polyVerticesLength = -1;
+        geometry._polyIndexesLength = -1;
+        geometry._polyVerticesHandlerIndex = -1;
+        geometry._polyIndexesHandlerIndex = -1;
+
+        geometry._lineVerticesLength = -1;
+        geometry._lineOrdersLength = -1;
+        geometry._lineIndexesLength = -1;
+        geometry._lineColorsLength = -1;
+        geometry._lineThicknessLength = -1;
+        geometry._lineVerticesHandlerIndex = -1;
+        geometry._lineOrdersHandlerIndex = -1;
+        geometry._lineIndexesHandlerIndex = -1;
+        geometry._lineThicknessHandlerIndex = -1;
+        geometry._lineColorsHandlerIndex = -1;
+
         !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry._id] = true;
         this.refresh();
     }
 };
-
-// og.GeometryHandler.prototype._reindexGeometryArray = function(startIndex) {
-//     var g = this._geometries;
-//     for (var i = startIndex; i < g.length; i++) {
-//         g[i]._handlerIndex = i;
-//     }
-// };
