@@ -232,6 +232,8 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
         }
 
+        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+        this._updatedGeometry[geometry._id] = true;
         this.refresh();
     }
 };
