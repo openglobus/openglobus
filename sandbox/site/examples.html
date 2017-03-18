@@ -17,6 +17,9 @@
 
     <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
 
+    <link rel="stylesheet" href="./github-gist.css">
+    <script src="./highlight.pack.js"></script>
+
     <script src="./jquery/jquery-1.10.2.min.js"></script>
     <link rel="stylesheet" href="./jquery/jquery-ui-1.7.2.custom.css">
     <script src="./jquery/jquery-ui-1.10.4.min.js"></script>
@@ -32,10 +35,45 @@
             });
         });
         hljs.initHighlightingOnLoad();
+
+        function _t(template, params) {
+            return template.replace(/{[^{}]+}/g, function (key) {
+                return params[key.replace(/[{}]+/g, "")] || "";
+            });
+        };
+
+        var elArr = [];
+
+        var template = 
+        '<div class="col-sm-4">\
+            <a class="example" href="{url}">\
+              <span class="mainlink">\
+                <strong>{title}</strong><br>\
+                <small>({filename})</small>\
+              </span>\
+              <p class="description">{description}</p>\
+            </a>\
+          </div>';
+
+        $.getJSON("./examples.json", function(list){
+            for( var i=0; i < list.length; i++ ){
+                var li = list[i];
+                var urlParts = li[2].split('/');
+                var filename = urlParts[urlParts.length - 1];
+                elArr.push($.parseHTML(_t(template, {
+                    'url': li[2],
+                    'title': li[0],
+                    'filename': filename,
+                    'description': li[1]
+                }))[0]);
+            }
+
+            $("#examplesContainer .row").html(elArr);
+        });
     </script>
 </head>
 
-<body onload="start();">
+<body>
 
     <div class="container">
         <div id="nav">
@@ -52,10 +90,9 @@
         </div>
     </div>
 
-    <div id="examplesContainer"></div>
-
-    <div class="bottomcontainer">
-        <div class="container"><div style="float:left">2016 @ Free License</div></div>
+    <div id="examplesContainer">
+        <div class="row"></div>
     </div>
+    
 </body>
 </html>

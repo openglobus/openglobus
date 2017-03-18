@@ -46,6 +46,11 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .slicknav_nav {
     text-align: right;
     font-size: 1.05em;
+    color: black;
+}
+
+.slicknav_nav .slicknav_txtnode{
+    margin-right: 15px;
 }
 
 .slicknav_menu .slicknav_icon-bar {
@@ -225,4 +230,73 @@ code {
 .container pre code {
     font-size: 14px;
     font-family: monospace;
+}
+
+.col-sm-4{
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+    float: left;
+    width: calc(25% - 30px);
+}
+
+.row {
+}
+
+.row:before {
+    display: table;
+    content: " ";
+}
+
+.example {
+    display: block;
+    padding: 10px;
+    background-color: #F5F5F5;
+    height: 100px;
+    margin: 10px 0;
+    overflow: auto;
+    text-decoration: none;
+}
+
+.example p.description {
+    font-size: smaller;
+    margin: 12px 0;
+}
+
+.example small{
+    color: #7070ff;
+    font-size: 10px;
+}
+
+.example:hover {
+    background-color: #e8e8ff;
+}
+
+.example a:focus, a:hover {
+    color:#0000c1;
+    text-decoration: underline;
+}
+
+b, strong {
+    font-weight: 700;
+}
+
+#examplesContainer{
+    width:100%;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 10px;
+}
+
+@media screen and (max-width: 40em) {
+    .col-sm-4{
+        width: calc(50% - 30px);
+    }
+}
+
+@media screen and (max-width: 30em) {
+    .col-sm-4{
+        width: calc(100% - 30px);
+    }
 }
