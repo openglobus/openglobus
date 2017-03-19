@@ -124,9 +124,9 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, thickness, str
 
         var first = path[0];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-            lon = og.mercator.forward_lon(first[0]);
-            lat = og.mercator.forward_lat(first[1]);
-            outVerticesMerc.push(lon, lat, lon, lat, lon, lat, lon, lat);
+        lon = og.mercator.forward_lon(first[0]);
+        lat = og.mercator.forward_lat(first[1]);
+        outVerticesMerc.push(lon, lat, lon, lat, lon, lat, lon, lat);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
@@ -210,7 +210,8 @@ og.GeometryHandler.prototype.add = function (geometry) {
             var coordinates = geometry._coordinates;
             var vertices = [],
                 indexes = [],
-                colors = [];
+                colors = [],
+                verticesMerc = [];
 
             //Creates polygon stroke data
             geometry._lineVerticesHandlerIndex = this._lineVerticesLonLat.length;
@@ -222,20 +223,34 @@ og.GeometryHandler.prototype.add = function (geometry) {
             for (var i = 0; i < coordinates.length; i++) {
                 var ci = coordinates[i];
                 var data = og.utils.earcut.flatten(ci);
-                vertices.push.apply(vertices, data.vertices);
-                indexes.push.apply(indexes, og.utils.earcut(data.vertices, data.holes, 2));
+                var dataIndexes = og.utils.earcut(data.vertices, data.holes, 2);
+                
+                for (var j = 0; j < dataIndexes.length; j++) {
+                    indexes.push(dataIndexes[j] + vertices.length * 0.5);
+                }
+
+                for (var j = 0; j < data.vertices.length; j += 2) {
+                    var lon = data.vertices[j],
+                        lat = data.vertices[j + 1];
+                    vertices.push(lon, lat);
+                    verticesMerc.push(og.mercator.forward_lon(lon), og.mercator.forward_lat(lat))
+                }
+
+                //indexes.push.apply(indexes, dataIndexes);
 
                 og.GeometryHandler.appendLineRingData(ci,
                     geometry._style.lineColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
-                    this._lineVerticesLonLat, this._lineOrders, this._lineIndexes, this._lineColors,
+                    this._lineVerticesLonLat, this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors,
                     this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
             }
 
             geometry._polyVerticesHandlerIndex = this._polyVerticesLonLat.length;
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
+            //og.mercator.forward_lon(lon), og.mercator.forward_lat(lat)
             this._polyVerticesLonLat.push.apply(this._polyVerticesLonLat, vertices);
+            this._polyVerticesMerc.push.apply(this._polyVerticesMerc, verticesMerc);
 
             for (var i = 0; i < indexes.length; i++) {
                 this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);

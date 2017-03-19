@@ -5,7 +5,7 @@ goog.require('og.utils');
 goog.require('og.math.Vector4');
 goog.require('og.LonLat');
 
-og.Geometry = function(options) {
+og.Geometry = function (options) {
     this._id = og.Geometry.__staticCounter++;
 
     options = options || {};
@@ -47,8 +47,8 @@ og.Geometry = function(options) {
     }, this._coordinates);
 
     this._style = options.style || {};
-    this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0, 0, 1, 0.5));
-    this._style.lineColor = og.utils.createColorRGBA(options.style.lineColor, new og.math.Vector4(0, 0, 1, 1));
+    this._style.fillColor = og.utils.createColorRGBA(options.style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.4));
+    this._style.lineColor = og.utils.createColorRGBA(options.style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
     this._style.strokeColor = og.utils.createColorRGBA(options.style.strokeColor, new og.math.Vector4(1, 1, 1, 0.95));
     this._style.lineWidth = options.style.lineWidth || 3;
     this._style.strokeWidth = options.style.strokeWidth || 0;
@@ -63,7 +63,7 @@ og.Geometry.LINESTRING = 2;
 og.Geometry.POLYGON = 3;
 og.Geometry.MULTIPOLYGON = 4;
 
-og.Geometry.getType = function(typeStr) {
+og.Geometry.getType = function (typeStr) {
     return og.Geometry[typeStr.toUpperCase()];
 };
 
@@ -74,7 +74,7 @@ og.Geometry.getType = function(typeStr) {
  @param {Array} outoordinates - Geometry feature coordinates clone.
  @returns {og.Extent}
  */
-og.Geometry.getExtent = function(geometryObj, outCoordinates) {
+og.Geometry.getExtent = function (geometryObj, outCoordinates) {
     var res = new og.Extent(new og.LonLat(180.0, 90.0), new og.LonLat(-180.0, -90.0));
     var t = og.Geometry.getType(geometryObj.type);
     if (t === og.Geometry.POINT) {
@@ -141,13 +141,13 @@ og.Geometry.getExtent = function(geometryObj, outCoordinates) {
 
 /**
  */
-og.Geometry.prototype.setGeometry = function(geometryObj) {
+og.Geometry.prototype.setGeometry = function (geometryObj) {
     this._type = og.Geometry.getType(geometryObj.type || "Point");
     this._extent = og.Geometry.getExtent(geometryObj, this._coordinates);
     return this;
 };
 
-og.Geometry.prototype.setFillColor = function(r, g, b, a) {
+og.Geometry.prototype.setFillColor = function (r, g, b, a) {
     var c = this._style.fillColor;
     c.x = r;
     c.y = g;
@@ -157,11 +157,11 @@ og.Geometry.prototype.setFillColor = function(r, g, b, a) {
     return this;
 };
 
-og.Geometry.prototype.setFillColor4v = function(rgba) {
+og.Geometry.prototype.setFillColor4v = function (rgba) {
     return this.setFillColor(rgba.x, rgba.y, rgba.z, rgba.w);
 };
 
-og.Geometry.prototype.setStrokeColor = function(r,g,b,a){
+og.Geometry.prototype.setStrokeColor = function (r, g, b, a) {
     var c = this._style.strokeColor;
     c.x = r;
     c.y = g;
@@ -171,7 +171,7 @@ og.Geometry.prototype.setStrokeColor = function(r,g,b,a){
     return this;
 };
 
-og.Geometry.prototype.setLineColor = function(r,g,b,a){
+og.Geometry.prototype.setLineColor = function (r, g, b, a) {
     var c = this._style.lineColor;
     c.x = r;
     c.y = g;
@@ -181,59 +181,59 @@ og.Geometry.prototype.setLineColor = function(r,g,b,a){
     return this;
 };
 
-og.Geometry.prototype.setStrokeColor4v = function(rgba){
+og.Geometry.prototype.setStrokeColor4v = function (rgba) {
     return this.setStrokeColor(rgba.x, rgba.y, rgba.z, rgba.w);
 };
 
-og.Geometry.prototype.setLineColor4v = function(rgba){
+og.Geometry.prototype.setLineColor4v = function (rgba) {
     return this.setLineColor(rgba.x, rgba.y, rgba.z, rgba.w);
 };
 
-og.Geometry.prototype.setStrokeOpacity = function(opacity){
+og.Geometry.prototype.setStrokeOpacity = function (opacity) {
     var c = this._style.strokeColor;
     c.w = opacity;
     return this.setStrokeColor(c.x, c.y, c.z, opacity);
 };
 
-og.Geometry.prototype.setLineOpacity = function(opacity){
+og.Geometry.prototype.setLineOpacity = function (opacity) {
     var c = this._style.lineColor;
     c.w = opacity;
     return this.setLineColor(c.x, c.y, c.z, opacity);
 };
 
-og.Geometry.prototype.setStrokeWidth = function(width){
+og.Geometry.prototype.setStrokeWidth = function (width) {
     this._style.strokeWidth = width;
     this._handler && this._handler.setLineStrokeArr(this, width);
     return this;
 };
 
-og.Geometry.prototype.setLineWidth = function(width){
+og.Geometry.prototype.setLineWidth = function (width) {
     this._style.lineWidth = width;
     this._handler && this._handler.setLineThicknessArr(this, width);
     return this;
 };
 
-og.Geometry.prototype.setFillOpacity = function(opacity) {
+og.Geometry.prototype.setFillOpacity = function (opacity) {
     var c = this._style.fillColor;
     c.w = opacity;
     this._handler && this._handler.setPolyColorArr(this, c);
     return this;
 };
 
-og.Geometry.prototype.setVisibility = function(visibility) {
+og.Geometry.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
     //...
     return this;
 };
 
-og.Geometry.prototype.remove = function() {
+og.Geometry.prototype.remove = function () {
     this._handler && this._handler.remove(this);
 };
 
-og.Geometry.prototype.getExtent = function() {
+og.Geometry.prototype.getExtent = function () {
     return this._extent.clone();
 };
 
-og.Geometry.prototype.getType = function() {
+og.Geometry.prototype.getType = function () {
     return this._type;
 };

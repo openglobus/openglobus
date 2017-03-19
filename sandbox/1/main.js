@@ -130,19 +130,9 @@ function main2() {
 
     entities.push(new og.Entity({
         'geometry': {
-            'type': "Polygon",
-            'coordinates': [[[0,0], [40, 10], [50, 0], [10,-5]]],
+            'type': "MultiPolygon",
+            'coordinates': [ [[[0,0], [0, 10], [10, 10], [10,0]]], [[[20,20],[30,10],[8,2]]] ],
             'style': {}
-        }
-    }));
-
-    entities.push(new og.Entity({
-        'geometry': {
-            'type': "Polygon",
-            'coordinates': [ [[0,88],[32, 10],[10,10] ]],
-            'style': {
-                'fillColor':"#ff0000"
-            }
         }
     }));
             
@@ -177,6 +167,7 @@ function main2() {
         v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(0,1,0,1)
     }, this);
 
+    test_addForest();
 };
 
 
@@ -184,7 +175,7 @@ function test_addEntity(){
     forest.add(new og.Entity({
         'geometry': {
             'type': "Polygon",
-            'coordinates': [ [[-5,-5],[-10, 20],[-12,-1] ]],
+            'coordinates': [ [[17,85.8],[30, 89.4],[-3,86] ]],
             'style': {
                 'fillColor':"#ffff00"
             }
