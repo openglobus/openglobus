@@ -122,39 +122,29 @@ function start() {
 };
 
 
+var forest;
 
 function main2() {
 
     var entities = [];
 
+    entities.push(new og.Entity({
+        'geometry': {
+            'type': "Polygon",
+            'coordinates': [[[0,0], [40, 10], [50, 0], [10,-5]]],
+            'style': {}
+        }
+    }));
 
-            entities.push(new og.Entity({
-                'geometry': {
-                    'type': "Polygon",
-                    'coordinates': [[[0,0], [40, 10], [50, 0], [10,-5]]],
-                    'style': {}
-                }
-            }));
-
-            entities.push(new og.Entity({
-                'geometry': {
-                    'type': "Polygon",
-                    'coordinates': [ [[0,88],[32, 10],[10,10] ]],
-                    'style': {
-                        'fillColor':"#ff0000"
-                    }
-                }
-            }));
-
-            entities.push(new og.Entity({
-                'geometry': {
-                    'type': "Polygon",
-                    'coordinates': [ [[-5,-5],[-10, 20],[-12,-1] ]],
-                    'style': {
-                        'fillColor':"#ffff00"
-                    }
-                }
-            }));
+    entities.push(new og.Entity({
+        'geometry': {
+            'type': "Polygon",
+            'coordinates': [ [[0,88],[32, 10],[10,10] ]],
+            'style': {
+                'fillColor':"#ff0000"
+            }
+        }
+    }));
             
     forest = new og.layer.Vector("Forest", {
         'entities': entities,
@@ -177,7 +167,7 @@ function main2() {
         "name": "Earth",
         "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, forest]
+        "layers": [osm]
     });
 
     globus.renderer.events.on("charkeypress", og.input.KEY_Q, function(){
@@ -187,4 +177,21 @@ function main2() {
         v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(0,1,0,1)
     }, this);
 
+};
+
+
+function test_addEntity(){
+    forest.add(new og.Entity({
+        'geometry': {
+            'type': "Polygon",
+            'coordinates': [ [[-5,-5],[-10, 20],[-12,-1] ]],
+            'style': {
+                'fillColor':"#ffff00"
+            }
+        }
+    }));
+};
+
+function test_addForest(){
+    forest.addTo(globus.planet);
 };

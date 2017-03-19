@@ -211,6 +211,7 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 var extent = material.segment.getExtentLonLat();
+                var extentMerc = material.segment.getExtent();
 
                 h.shaderPrograms.vectorTilePolygonRasterization.activate();
                 var sh = h.shaderPrograms.vectorTilePolygonRasterization._program;
@@ -223,21 +224,20 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 //if (prevLayerId !== material.layer._id) {
                 //    prevLayerId = material.layer._id;
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBuffer);
-                gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBufferMerc);
+                gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
                 gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
                 //}
 
-
-                gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
+                gl.uniform4fv(shu.extentParams._pName, [extentMerc.southWest.lon, extentMerc.southWest.lat, 2.0 / extentMerc.getWidth(), 2.0 / extentMerc.getHeight()]);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
                 gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
                 //=========================================
-                //Polygon stroke and linestring rendering
+                //Strokes and linestrings rendering
                 //=========================================
                 h.shaderPrograms.vectorTileLineRasterization.activate();
                 sh = h.shaderPrograms.vectorTileLineRasterization._program;
