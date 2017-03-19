@@ -23,7 +23,7 @@ og.GeometryHandler = function (layer) {
     this._polyIndexes = [];
 
     //Line arrays
-    this._lineVertices = [];
+    //this._lineVertices = [];
     this._lineVerticesLonLat = [];
     this._lineVerticesMerc = [];
     this._lineOrders = [];
@@ -41,7 +41,7 @@ og.GeometryHandler = function (layer) {
     this._polyColorsBuffer = null;
     this._polyIndexesBuffer = null;
 
-    this._lineVerticesBuffer = null;
+    //this._lineVerticesBuffer = null;
     this._lineVerticesBufferLonLat = null;
     this._lineVerticesBufferMerc = null;
     this._lineColorsBuffer = null;
@@ -77,7 +77,7 @@ og.GeometryHandler.LINESTROKES_BUFFER = 6;
 og.GeometryHandler.LINESTROKECOLORS_BUFFER = 7;
 
 og.GeometryHandler.appendLineRingData = function (pathArr, color, thickness, strokeColor, strokeSize,
-    outVertices, outOrders, outIndexes, outColors, outThickness, outStrokeColors, outStrokes, outThicknessMask) {
+    outVertices, outVerticesMerc, outOrders, outIndexes, outColors, outThickness, outStrokeColors, outStrokes, outThicknessMask) {
     var index = 0;
 
     if (outIndexes.length > 0) {
@@ -96,6 +96,9 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, thickness, str
         var last = path[path.length - 1];
         var prev = last;
         outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        var lon = og.mercator.forward_lon(last[0]),
+            lat = og.mercator.forward_lat(last[1]);
+        outVerticesMerc.push(lon, lat, lon, lat, lon, lat, lon, lat);
         outOrders.push(1, -1, 2, -2);
 
         outThickness.push(t, t, t, t);
@@ -107,6 +110,9 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, thickness, str
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            lon = og.mercator.forward_lon(cur[0]);
+            lat = og.mercator.forward_lat(cur[1]);
+            outVerticesMerc.push(lon, lat, lon, lat, lon, lat, lon, lat);
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
@@ -118,6 +124,9 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, thickness, str
 
         var first = path[0];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+            lon = og.mercator.forward_lon(first[0]);
+            lat = og.mercator.forward_lat(first[1]);
+            outVerticesMerc.push(lon, lat, lon, lat, lon, lat, lon, lat);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
@@ -179,7 +188,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._polyIndexesLength = indexes.length;
 
             //Creates polygon stroke data
-            geometry._lineVerticesHandlerIndex = this._lineVertices.length;
+            geometry._lineVerticesHandlerIndex = this._lineVerticesLonLat.length;
             geometry._lineOrdersHandlerIndex = this._lineOrders.length;
             geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
             geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -188,10 +197,10 @@ og.GeometryHandler.prototype.add = function (geometry) {
             og.GeometryHandler.appendLineRingData(geometry._coordinates,
                 geometry._style.lineColor, geometry._style.lineWidth,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
-                this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors,
+                this._lineVerticesLonLat, this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors,
                 this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
 
-            geometry._lineVerticesLength = this._lineVertices.length - geometry._lineVerticesHandlerIndex;
+            geometry._lineVerticesLength = this._lineVerticesLonLat.length - geometry._lineVerticesHandlerIndex;
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
             geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
             geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -204,7 +213,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                 colors = [];
 
             //Creates polygon stroke data
-            geometry._lineVerticesHandlerIndex = this._lineVertices.length;
+            geometry._lineVerticesHandlerIndex = this._lineVerticesLonLat.length;
             geometry._lineOrdersHandlerIndex = this._lineOrders.length;
             geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
             geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -219,7 +228,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                 og.GeometryHandler.appendLineRingData(ci,
                     geometry._style.lineColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
-                    this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors,
+                    this._lineVerticesLonLat, this._lineOrders, this._lineIndexes, this._lineColors,
                     this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
             }
 
@@ -240,7 +249,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._polyVerticesLength = vertices.length;
             geometry._polyIndexesLength = indexes.length;
 
-            geometry._lineVerticesLength = this._lineVertices.length - geometry._lineVerticesHandlerIndex;
+            geometry._lineVerticesLength = this._lineVerticesLonLat.length - geometry._lineVerticesHandlerIndex;
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
             geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
             geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -427,8 +436,10 @@ og.GeometryHandler.prototype.createPolyColorsBuffer = function () {
 
 og.GeometryHandler.prototype.createLineVerticesBuffer = function () {
     var h = this._handler;
-    h.gl.deleteBuffer(this._lineVerticesBuffer);
-    this._lineVerticesBuffer = h.createArrayBuffer(new Float32Array(this._lineVertices), 2, this._lineVertices.length / 2);
+    h.gl.deleteBuffer(this._lineVerticesBufferLonLat);
+    h.gl.deleteBuffer(this._lineVerticesBufferMerc);
+    this._lineVerticesBufferLonLat = h.createArrayBuffer(new Float32Array(this._lineVerticesLonLat), 2, this._lineVerticesLonLat.length / 2);
+    this._lineVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesMerc), 2, this._lineVerticesMerc.length / 2);
 };
 
 og.GeometryHandler.prototype.createLineIndexesAndOrdersBuffer = function () {
@@ -484,7 +495,8 @@ og.GeometryHandler.prototype.remove = function (geometry) {
         }
 
         //line
-        this._lineVertices.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+        this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+        this._lineVerticesMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
         this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
         this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
         this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);

@@ -210,8 +210,7 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 gl.clearColor(1.0, 1.0, 1.0, 0.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                var extent = material.segment.getExtentLonLat();
-                var extentMerc = material.segment.getExtent();
+                var extent = material.segment.getExtentMerc();
 
                 h.shaderPrograms.vectorTilePolygonRasterization.activate();
                 var sh = h.shaderPrograms.vectorTilePolygonRasterization._program;
@@ -231,7 +230,7 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
                 //}
 
-                gl.uniform4fv(shu.extentParams._pName, [extentMerc.southWest.lon, extentMerc.southWest.lat, 2.0 / extentMerc.getWidth(), 2.0 / extentMerc.getHeight()]);
+                gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
                 gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -256,7 +255,7 @@ og.utils.VectorTileCreator.prototype.frame = function() {
                 gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 //vertex
-                var mb = geomHandler._lineVerticesBuffer;
+                var mb = geomHandler._lineVerticesBufferMerc;
                 gl.bindBuffer(gl.ARRAY_BUFFER, mb);
                 gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
                 gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
