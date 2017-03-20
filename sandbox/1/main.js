@@ -126,6 +126,8 @@ var forest;
 
 function main2() {
 
+    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 0], [0, 20], [20, 20], [20, 0]], visibility: true, isBaseLayer: false, opacity: 0.7 });
+
     var entities = [];
 
     entities.push(new og.Entity({
@@ -157,7 +159,7 @@ function main2() {
         "name": "Earth",
         "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm]
+        "layers": [osm, geoImage2]
     });
 
     globus.renderer.events.on("charkeypress", og.input.KEY_Q, function(){
@@ -175,7 +177,7 @@ function test_addEntity(){
     forest.add(new og.Entity({
         'geometry': {
             'type': "Polygon",
-            'coordinates': [ [[17,85.8],[30, 89.4],[-3,86] ]],
+            'coordinates': [ [[-10,6],[-1, 12],[-3,-3] ]],
             'style': {
                 'fillColor':"#ffff00"
             }
