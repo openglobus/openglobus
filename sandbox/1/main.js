@@ -127,13 +127,23 @@ var forest;
 function main2() {
 
     var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 0], [0, 20], [20, 20], [20, 0]], visibility: true, isBaseLayer: false, opacity: 0.7 });
+    var states = new og.layer.WMS("USA Population", {
+        extent: [[-128, 24], [-66, 49]],
+        visibility: true,
+        isBaseLayer: false,
+        url: "http://openglobus.org/geoserver/",
+        layers: "topp:states",
+        opacity: 1.0,
+        attribution: 'Hi!',
+        transparentColor: [1.0, 1.0, 1.0]
+    });
 
     var entities = [];
 
     entities.push(new og.Entity({
         'geometry': {
             'type': "MultiPolygon",
-            'coordinates': [ [[[0,0], [0, 10], [10, 10], [10,0]]], [[[20,20],[30,10],[8,2]]] ],
+            'coordinates': [ [[[-110,25], [-110, 40], [-100, 40], [-100,25]]], [[[20,20],[30,10],[8,2]]] ],
             'style': {}
         }
     }));
@@ -159,7 +169,7 @@ function main2() {
         "name": "Earth",
         "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, geoImage2]
+        "layers": [osm, geoImage2, states]
     });
 
     globus.renderer.events.on("charkeypress", og.input.KEY_Q, function(){

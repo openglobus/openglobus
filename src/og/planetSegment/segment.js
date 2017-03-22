@@ -518,7 +518,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     if ((this._extent.getEast() === og.mercator.POLE &&
                         ns._extent.getWest() === -og.mercator.POLE) ||
                         (this._extent.getWest() === -og.mercator.POLE &&
-                        ns._extent.getEast() === og.mercator.POLE)) {
+                            ns._extent.getEast() === og.mercator.POLE)) {
                         //UNKNOWN BUG
                         //for (var k = 0 ; k <= size; k++) {
                         //    var vInd_a = (k * s1 + i_a) * 3,
@@ -529,7 +529,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                         //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
                         //}
                     } else {
-                        for (var k = 0 ; k <= size; k++) {
+                        for (var k = 0; k <= size; k++) {
                             var vInd_a = (k * s1 + i_a) * 3,
                                 vInd_b = (k * s1 + i_b) * 3;
 
@@ -539,7 +539,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                         }
                     }
                 } else {
-                    for (var k = 0 ; k <= size; k++) {
+                    for (var k = 0; k <= size; k++) {
                         var vInd_a = (i_a * s1 + k) * 3,
                             vInd_b = (i_b * s1 + k) * 3;
 
@@ -555,7 +555,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     if ((this._extent.getEast() === og.mercator.POLE &&
                         ns._extent.getWest() === -og.mercator.POLE) ||
                         (this._extent.getWest() === -og.mercator.POLE &&
-                        ns._extent.getEast() === og.mercator.POLE)) {
+                            ns._extent.getEast() === og.mercator.POLE)) {
                         //UNKNOWN BUG
                         //for (var k = 0 ; k <= size; k++) {
                         //    var vInd_a = (k * s1 + i_a) * 3,
@@ -566,7 +566,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                         //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
                         //}
                     } else {
-                        for (var k = 0 ; k <= size; k++) {
+                        for (var k = 0; k <= size; k++) {
                             var vInd_a = (k * s1 + i_a) * 3,
                                 vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
 
@@ -576,7 +576,7 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                         }
                     }
                 } else {
-                    for (var k = 0 ; k <= size; k++) {
+                    for (var k = 0; k <= size; k++) {
                         var vInd_a = (i_a * s1 + k) * 3,
                             vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
 
@@ -780,9 +780,9 @@ og.planetSegment.Segment.prototype.createBoundsByExtent = function () {
 
     var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
     var v = [og.LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
-        og.LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
-        og.LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
-        og.LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat)];
+    og.LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
+    og.LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
+    og.LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat)];
 
     for (var i = 0; i < v.length; i++) {
         var coord = ellipsoid.lonLatToCartesian(v[i]);
@@ -1039,9 +1039,13 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
                 p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
 
                 p._samplerArr[n] = n;
-
                 gl.activeTexture(gl.TEXTURE0 + n);
                 gl.bindTexture(gl.TEXTURE_2D, m.texture || this.planet.transparentTexture);
+
+
+                p._pickingMaskArr[n] = n + p.SLICE_SIZE;
+                gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
+                gl.bindTexture(gl.TEXTURE_2D, m.pickingMask || this.planet.transparentTexture);
 
                 n++;
             }
@@ -1054,9 +1058,9 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
                 gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
+                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE * 2 + 2);
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
@@ -1069,6 +1073,7 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             gl.uniform1i(shu.samplerCount._pName, n);
             gl.uniform1f(shu.height._pName, currHeight);
             gl.uniform1iv(shu.samplerArr._pName, p._samplerArr);
+            gl.uniform1iv(shu.pickingMaskArr._pName, p._pickingMaskArr);
             gl.uniform4fv(shu.tileOffsetArr._pName, p._tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr._pName, p._visibleExtentOffsetArr);
             gl.uniform4fv(shu.transparentColorArr._pName, p._transparentColorArr);

@@ -410,7 +410,16 @@ og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.events.dispatch(planet.events.layeradd, this);
     this.events.dispatch(this.events.add, planet);
     planet.updateVisibleLayers();
-    planet.renderer.assignPickingColor(this);
+    this._bindPicking();
+};
+
+/**
+ * Assign picking color to the layer.
+ * @protected
+ * @virtual
+ */
+og.layer.Layer.prototype._bindPicking = function () {
+    this._planet && this._planet.renderer.assignPickingColor(this);
 };
 
 /**

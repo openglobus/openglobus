@@ -621,7 +621,8 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
             if (!(c[0] || c[1] || c[2])) {
                 var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                 if (po) {
-                    var pe = po.events || po._entityCollection.events;
+                    //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
+                    var pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                     ms.pickingObject = po;
                     pe.dispatch(pe.mouseleave, ms);
                     ts.pickingObject = po;
@@ -634,7 +635,8 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 if (p[0] || p[1] || p[2]) {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     if (po) {
-                        var pe = po.events || po._entityCollection.events;
+                        //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
+                        var pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                         ms.pickingObject = po;
                         pe.dispatch(pe.mouseleave, ms);
                         ts.pickingObject = po;
@@ -643,7 +645,8 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 }
 
                 if (co) {
-                    var ce = co.events || co._entityCollection.events;
+                    //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
+                    var ce = co.events || co._entityCollection && co._entityCollection.events || co._vectorLayer.events;
                     ms.pickingObject = co;
                     ce.dispatch(ce.mouseenter, ms);
                     ts.pickingObject = co;
@@ -665,7 +668,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouselbuttonclick, ms);
         }
         ce(this.mouselbuttonclick, ms);
@@ -674,7 +677,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouserbuttonclick, ms);
         }
         ce(this.mouserbuttonclick, ms);
@@ -683,7 +686,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mousembuttonclick, ms);
         }
         ce(this.mousembuttonclick, ms);
@@ -693,14 +696,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mouselbuttonhold, ms);
             }
             ce(this.mouselbuttonhold, ms);
         } else {
             ms.leftButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mouselbuttondown, ms);
             }
             ce(this.mouselbuttondown, ms);
@@ -710,14 +713,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mouserbuttonhold, ms);
             }
             ce(this.mouserbuttonhold, ms);
         } else {
             ms.rightButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mouserbuttondown, ms);
             }
             ce(this.mouserbuttondown, ms);
@@ -727,14 +730,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.middleButtonDown) {
         if (ms.middleButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mousembuttonhold, ms);
             }
             ce(this.mousembuttonhold, ms);
         } else {
             ms.middleButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
                 pe.dispatch(pe.mousembuttondown, ms);
             }
             ce(this.mousembuttondown, ms);
@@ -743,7 +746,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouselbuttonup, ms);
         }
         ce(this.mouselbuttonup, ms);
@@ -753,7 +756,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouserbuttonup, ms);
         }
         ce(this.mouserbuttonup, ms);
@@ -763,7 +766,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mousembuttonup, ms);
         }
         ce(this.mousembuttonup, ms);
@@ -773,7 +776,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouselbuttondoubleclick, ms);
         }
         ce(this.mouselbuttondoubleclick, ms);
@@ -782,7 +785,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mouserbuttondoubleclick, ms);
         }
         ce(this.mouserbuttondoubleclick, ms);
@@ -791,7 +794,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mousembuttondoubleclick, ms);
         }
         ce(this.mousembuttondoubleclick, ms);
@@ -800,7 +803,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.wheelDelta) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mousewheel, ms);
         }
         ce(this.mousewheel, ms);
@@ -809,7 +812,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.moving) {
         if (po) {
-            pe = po.events || po._entityCollection.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
             pe.dispatch(pe.mousemove, ms);
         }
         ce(this.mousemove, ms);

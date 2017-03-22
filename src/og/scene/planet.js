@@ -313,6 +313,7 @@ og.scene.Planet = function(name, ellipsoid) {
     this._transparentColorArr = new Float32Array(this.SLICE_SIZE_4);
     this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
     this._samplerArr = new Array(this.SLICE_SIZE);
+    this._pickingMaskArr = new Array(this.SLICE_SIZE);
 
     /**
      * GeoImage creator.

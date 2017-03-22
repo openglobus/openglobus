@@ -163,37 +163,41 @@ og.Renderer.prototype.addPickingCallback = function (sender, callback) {
 /**
  * Assign picking color to the object.
  * @public
- * @param {Object} obj - Object that pressuming to be picked.
+ * @param {Object} obj - Object that pressume to be picked.
  */
 og.Renderer.prototype.assignPickingColor = function (obj) {
-    var r = 0, g = 0, b = 0;
-    var str = "0_0_0";
-    while (!(r || g || b) || this.colorObjects[str]) {
-        r = og.math.randomi(1, 255);
-        g = og.math.randomi(1, 255);
-        b = og.math.randomi(1, 255);
-        str = r + "_" + g + "_" + b;
+    if (!obj._pickingColor || obj._pickingColor.isZero()) {
+        var r = 0, g = 0, b = 0;
+        var str = "0_0_0";
+        while (!(r || g || b) || this.colorObjects[str]) {
+            r = og.math.randomi(1, 255);
+            g = og.math.randomi(1, 255);
+            b = og.math.randomi(1, 255);
+            str = r + "_" + g + "_" + b;
+        }
+
+        if (!obj._pickingColor)
+            obj._pickingColor = new og.math.Vector3(r, g, b);
+        else
+            obj._pickingColor.set(r, g, b);
+
+        this.colorObjects[str] = obj;
     }
-
-    if (!obj._pickingColor)
-        obj._pickingColor = new og.math.Vector3(r, g, b);
-    else
-        obj._pickingColor.set(r, g, b);
-
-    this.colorObjects[str] = obj;
 };
 
 /**
  * Removes picking color from object.
  * @public
- * @param {Object} obj - Object to remove picking color from.
+ * @param {Object} obj - Object to remove picking color.
  */
 og.Renderer.prototype.clearPickingColor = function (obj) {
-    var c = obj._pickingColor;
-    if (!c.isZero()) {
-        this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
-        delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
-        c.x = c.y = c.z = 0;
+    if (!obj._pickingColor.isZero()) {
+        var c = obj._pickingColor;
+        if (!c.isZero()) {
+            this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
+            delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
+            c.x = c.y = c.z = 0;
+        }
     }
 };
 
@@ -298,7 +302,7 @@ og.Renderer.prototype.initialize = function () {
             corners: { type: og.shaderProgram.types.VEC3, enableArray: true },
         },
         vertexShader:
-            'attribute vec2 corners;\
+        'attribute vec2 corners;\
             \
             varying vec2 tc;\
             void main(void) {\
@@ -306,7 +310,7 @@ og.Renderer.prototype.initialize = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-            'precision highp float;\
+        'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\
@@ -402,7 +406,7 @@ og.Renderer.prototype._multiframebufferScreenFrame = function () {
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
     //MAYBE: Could be refactored with framebuf function like getTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[1]);
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
     gl.uniform1i(p.uniforms.texture._pName, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);

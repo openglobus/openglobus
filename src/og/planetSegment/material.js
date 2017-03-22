@@ -6,6 +6,7 @@ og.planetSegment.Material = function(segment, layer) {
     this.isReady = false;
     this.isLoading = false;
     this.texture = null;
+    this.pickingMask = null;
     this.image = null;
     this.textureExists = false;
     this.appliedNodeId = 0;
@@ -13,6 +14,7 @@ og.planetSegment.Material = function(segment, layer) {
     //vector data
     this.indexBuffer = null;
     this._updateTexture = null;
+    this._updatePickingMask = null;
 };
 
 og.planetSegment.Material.prototype.assignLayer = function(layer) {
@@ -33,9 +35,11 @@ og.planetSegment.Material.prototype.applyImage = function(img) {
     this.isLoading = false;
 };
 
-og.planetSegment.Material.prototype.applyTexture = function(texture) {
+og.planetSegment.Material.prototype.applyTexture = function(texture, pickingMask) {
     this.texture = texture;
+    this.pickingMask = pickingMask || null;
     this._updateTexture = null;
+    this._updatePickingMask = null;
     this.appliedNodeId = this.segment.node.nodeId;
     this.isReady = true;
     this.textureExists = true;

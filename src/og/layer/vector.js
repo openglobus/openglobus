@@ -40,7 +40,7 @@ goog.require('og.GeometryHandler');
  * @fires og.layer.Vector#entityremove
  * @fires og.layer.Vector#visibilitychange
  */
-og.layer.Vector = function(name, options) {
+og.layer.Vector = function (name, options) {
     options = options || {};
 
     og.inheritance.base(this, name, options);
@@ -147,15 +147,19 @@ og.layer.Vector.EVENT_NAMES = [
  * @static
  * @returns {og.layer.Vector} Returns vector layer.
  */
-og.layer.vector = function(name, options) {
+og.layer.vector = function (name, options) {
     return new og.layer.Vector(name, options);
+};
+
+og.layer.Vector.prototype._bindPicking = function () {
+    this._pickingColor.clear();
 };
 
 /**
  * Adds layer to the planet.
  * @public
  */
-og.layer.Vector.prototype.addTo = function(planet) {
+og.layer.Vector.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
     this._geometryHandler.assignHandler(planet.renderer.handler);
     this._entityCollectionAlways.addTo(planet, true);
@@ -169,7 +173,7 @@ og.layer.Vector.prototype.addTo = function(planet) {
  * @virtual
  * @returns {boolean}
  */
-og.layer.Vector.prototype.hasImageryTiles = function() {
+og.layer.Vector.prototype.hasImageryTiles = function () {
     //TODO: check for polygons
     return true;
 };
@@ -179,14 +183,14 @@ og.layer.Vector.prototype.hasImageryTiles = function() {
  * @public
  * @returns {Array.<og.Entity>}
  */
-og.layer.Vector.prototype.getEntities = function() {
+og.layer.Vector.prototype.getEntities = function () {
     return [].concat(this._entities);
 };
 
 /**
  * @private
  */
-og.layer.Vector.prototype._fitExtent = function(entity) {
+og.layer.Vector.prototype._fitExtent = function (entity) {
     if (entity._lonlat.lon > this._extent.northEast.lon) {
         this._extent.northEast.lon = entity._lonlat.lon;
     }
@@ -209,7 +213,7 @@ og.layer.Vector.prototype._fitExtent = function(entity) {
  * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.add = function(entity, rightNow) {
+og.layer.Vector.prototype.add = function (entity, rightNow) {
     if (!(entity._vectorLayer || entity._entityCollection)) {
         entity._vectorLayer = this;
         entity._vectorLayerIndex = this._entities.length;
@@ -224,7 +228,10 @@ og.layer.Vector.prototype.add = function(entity, rightNow) {
         }
 
         if (entity.geometry) {
-            this._geometryHandler.add(entity.geometry);
+            if (this._planet) {
+                this._planet.renderer.assignPickingColor(entity);
+                this._geometryHandler.add(entity.geometry);
+            }
         }
 
 
@@ -259,7 +266,7 @@ og.layer.Vector.prototype.add = function(entity, rightNow) {
  * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.addEntities = function(entities, rightNow) {
+og.layer.Vector.prototype.addEntities = function (entities, rightNow) {
     var i = entities.length;
     while (i--) {
         this.add(entities[i], rightNow);
@@ -274,7 +281,7 @@ og.layer.Vector.prototype.addEntities = function(entities, rightNow) {
  * @param {og.Entity} entity - Entity to remove.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.removeEntity = function(entity) {
+og.layer.Vector.prototype.removeEntity = function (entity) {
     if (entity._vectorLayer && this.isEqual(entity._vectorLayer)) {
         this._entities.splice(entity._vectorLayerIndex, 1);
         this._reindexEntitiesArray(entity._vectorLayerIndex);
@@ -312,8 +319,13 @@ og.layer.Vector.prototype.removeEntity = function(entity) {
             }
         }
 
-        entity.geometry && this._geometryHandler.remove(entity.geometry);
-        
+        if (entity.geometry) {
+            if (this._planet) {
+                this._geometryHandler.remove(entity.geometry);
+                this._planet.renderer.clearPickingColor(entity);
+            }
+        }
+
         entity._nodePtr && (entity._nodePtr = null);
         this.events.dispatch(this.events.entityremove, entity);
     }
@@ -325,18 +337,18 @@ og.layer.Vector.prototype.removeEntity = function(entity) {
  * @public
  * @param {number} enable
  */
-og.layer.Vector.prototype.setPickingEnabled = function(enable) {
+og.layer.Vector.prototype.setPickingEnabled = function (enable) {
     this._pickingEnabled = enable;
 
     this._entityCollectionAlways.setPickingEnabled(enable);
 
-    this._entityCollectionsTree.traverseTree(function(ec) {
+    this._entityCollectionsTree.traverseTree(function (ec) {
         ec.setPickingEnabled(enable);
     });
-    this._entityCollectionsTreeNorth.traverseTree(function(ec) {
+    this._entityCollectionsTreeNorth.traverseTree(function (ec) {
         ec.setPickingEnabled(enable);
     });
-    this._entityCollectionsTreeSouth.traverseTree(function(ec) {
+    this._entityCollectionsTreeSouth.traverseTree(function (ec) {
         ec.setPickingEnabled(enable);
     });
 };
@@ -346,7 +358,7 @@ og.layer.Vector.prototype.setPickingEnabled = function(enable) {
  * @public
  * @param {number} startIndex - Entity array index.
  */
-og.layer.Vector.prototype._reindexEntitiesArray = function(startIndex) {
+og.layer.Vector.prototype._reindexEntitiesArray = function (startIndex) {
     var e = this._entities;
     for (var i = startIndex; i < e.length; i++) {
         e[i]._vectorLayerIndex = i;
@@ -359,7 +371,7 @@ og.layer.Vector.prototype._reindexEntitiesArray = function(startIndex) {
  * @param {Array.<og.Entity>} entities - Entity array.
  * @returns {og.layer.Vector} - Returns this layer.
  */
-og.layer.Vector.prototype.removeEntities = function(entities) {
+og.layer.Vector.prototype.removeEntities = function (entities) {
     var i = entities.length;
     while (i--) {
         this.removeEntity(entities[i]);
@@ -374,7 +386,7 @@ og.layer.Vector.prototype.removeEntities = function(entities) {
  * @param {number} far - Zerol scale entity distance.
  * @param {number} [farInvisible] - Entity visibility distance.
  */
-og.layer.Vector.prototype.setScaleByDistance = function(near, far, farInisible) {
+og.layer.Vector.prototype.setScaleByDistance = function (near, far, farInisible) {
     this.scaleByDistance[0] = near;
     this.scaleByDistance[1] = far;
     this.scaleByDistance[2] = farInisible || og.math.MAX32;
@@ -385,7 +397,7 @@ og.layer.Vector.prototype.setScaleByDistance = function(near, far, farInisible) 
  * TODO: Clear the layer.
  * @public
  */
-og.layer.Vector.prototype.clear = function() {
+og.layer.Vector.prototype.clear = function () {
     //TODO
 };
 
@@ -394,7 +406,7 @@ og.layer.Vector.prototype.clear = function() {
  * @public
  * @param {callback} callback - Entity callback.
  */
-og.layer.Vector.prototype.each = function(callback) {
+og.layer.Vector.prototype.each = function (callback) {
     var e = this._entities;
     var i = e.length;
     while (i--) {
@@ -407,7 +419,7 @@ og.layer.Vector.prototype.each = function(callback) {
  * @public
  * @param {Array.<og.Entity>} entities - New entity array.
  */
-og.layer.Vector.prototype.setEntities = function(entities) {
+og.layer.Vector.prototype.setEntities = function (entities) {
 
     this.clear();
 
@@ -430,7 +442,10 @@ og.layer.Vector.prototype.setEntities = function(entities) {
         }
 
         if (ei.geometry) {
-            this._geometryHandler.add(ei.geometry);
+            if (this._planet) {
+                this._planet.renderer.assignPickingColor(ei);
+                this._geometryHandler.add(ei.geometry);
+            }
         }
 
         this._entities[i] = ei;
@@ -447,7 +462,7 @@ og.layer.Vector.prototype.setEntities = function(entities) {
     return this;
 };
 
-og.layer.Vector.prototype._createEntityCollectionsTree = function(entitiesForTree) {
+og.layer.Vector.prototype._createEntityCollectionsTree = function (entitiesForTree) {
     if (this._planet) {
         this._entityCollectionsTree = new og.quadTree.EntityCollectionQuadNode(this, og.quadTree.NW, null, 0,
             og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet, 0);
@@ -462,89 +477,89 @@ og.layer.Vector.prototype._createEntityCollectionsTree = function(entitiesForTre
     }
 };
 
-og.layer.Vector.prototype._bindEventsDefault = function(entityCollection) {
+og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     var ve = this.events;
-    entityCollection.events.on("entitymove", function(e) {
+    entityCollection.events.on("entitymove", function (e) {
         ve.dispatch(ve.entitymove, e);
     });
-    entityCollection.events.on("mousemove", function(e) {
+    entityCollection.events.on("mousemove", function (e) {
         ve.dispatch(ve.mousemove, e);
     });
-    entityCollection.events.on("mouseenter", function(e) {
+    entityCollection.events.on("mouseenter", function (e) {
         ve.dispatch(ve.mouseenter, e);
     });
-    entityCollection.events.on("mouseleave", function(e) {
+    entityCollection.events.on("mouseleave", function (e) {
         ve.dispatch(ve.mouseleave, e);
     });
-    entityCollection.events.on("mouselbuttonclick", function(e) {
+    entityCollection.events.on("mouselbuttonclick", function (e) {
         ve.dispatch(ve.mouselbuttonclick, e);
     });
-    entityCollection.events.on("mouserbuttonclick", function(e) {
+    entityCollection.events.on("mouserbuttonclick", function (e) {
         ve.dispatch(ve.mouserbuttonclick, e);
     });
-    entityCollection.events.on("mousembuttonclick", function(e) {
+    entityCollection.events.on("mousembuttonclick", function (e) {
         ve.dispatch(ve.mousembuttonclick, e);
     });
-    entityCollection.events.on("mouselbuttondoubleclick", function(e) {
+    entityCollection.events.on("mouselbuttondoubleclick", function (e) {
         ve.dispatch(ve.mouselbuttondoubleclick, e);
     });
-    entityCollection.events.on("mouserbuttondoubleclick", function(e) {
+    entityCollection.events.on("mouserbuttondoubleclick", function (e) {
         ve.dispatch(ve.mouserbuttondoubleclick, e);
     });
-    entityCollection.events.on("mousembuttondoubleclick", function(e) {
+    entityCollection.events.on("mousembuttondoubleclick", function (e) {
         ve.dispatch(ve.mousembuttondoubleclick, e);
     });
-    entityCollection.events.on("mouselbuttonup", function(e) {
+    entityCollection.events.on("mouselbuttonup", function (e) {
         ve.dispatch(ve.mouselbuttonup, e);
     });
-    entityCollection.events.on("mouserbuttonup", function(e) {
+    entityCollection.events.on("mouserbuttonup", function (e) {
         ve.dispatch(ve.mouserbuttonup, e);
     });
-    entityCollection.events.on("mousembuttonup", function(e) {
+    entityCollection.events.on("mousembuttonup", function (e) {
         ve.dispatch(ve.mousembuttonup, e);
     });
-    entityCollection.events.on("mouselbuttondown", function(e) {
+    entityCollection.events.on("mouselbuttondown", function (e) {
         ve.dispatch(ve.mouselbuttondown, e);
     });
-    entityCollection.events.on("mouserbuttondown", function(e) {
+    entityCollection.events.on("mouserbuttondown", function (e) {
         ve.dispatch(ve.mouserbuttondown, e);
     });
-    entityCollection.events.on("mousembuttondown", function(e) {
+    entityCollection.events.on("mousembuttondown", function (e) {
         ve.dispatch(ve.mousembuttondown, e);
     });
-    entityCollection.events.on("mouselbuttonhold", function(e) {
+    entityCollection.events.on("mouselbuttonhold", function (e) {
         ve.dispatch(ve.mouselbuttonhold, e);
     });
-    entityCollection.events.on("mouserbuttonhold", function(e) {
+    entityCollection.events.on("mouserbuttonhold", function (e) {
         ve.dispatch(ve.mouserbuttonhold, e);
     });
-    entityCollection.events.on("mousembuttonhold", function(e) {
+    entityCollection.events.on("mousembuttonhold", function (e) {
         ve.dispatch(ve.mousembuttonhold, e);
     });
-    entityCollection.events.on("mousewheel", function(e) {
+    entityCollection.events.on("mousewheel", function (e) {
         ve.dispatch(ve.mousewheel, e);
     });
-    entityCollection.events.on("touchmove", function(e) {
+    entityCollection.events.on("touchmove", function (e) {
         ve.dispatch(ve.touchmove, e);
     });
-    entityCollection.events.on("touchstart", function(e) {
+    entityCollection.events.on("touchstart", function (e) {
         ve.dispatch(ve.touchstart, e);
     });
-    entityCollection.events.on("touchend", function(e) {
+    entityCollection.events.on("touchend", function (e) {
         ve.dispatch(ve.touchend, e);
     });
-    entityCollection.events.on("doubletouch", function(e) {
+    entityCollection.events.on("doubletouch", function (e) {
         ve.dispatch(ve.doubletouch, e);
     });
-    entityCollection.events.on("touchleave", function(e) {
+    entityCollection.events.on("touchleave", function (e) {
         ve.dispatch(ve.touchleave, e);
     });
-    entityCollection.events.on("touchenter", function(e) {
+    entityCollection.events.on("touchenter", function (e) {
         ve.dispatch(ve.touchenter, e);
     });
 };
 
-og.layer.Vector.prototype.collectVisibleCollections = function(outArr) {
+og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
     var p = this._planet;
 
     if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom) {
@@ -581,7 +596,7 @@ og.layer.Vector.prototype.collectVisibleCollections = function(outArr) {
     }
 };
 
-og.layer.Vector.prototype._queueDeferredNode = function(node) {
+og.layer.Vector.prototype._queueDeferredNode = function (node) {
     if (this._visibility) {
         node._inTheQueue = true;
         if (this._counter >= 1) {
@@ -592,10 +607,10 @@ og.layer.Vector.prototype._queueDeferredNode = function(node) {
     }
 };
 
-og.layer.Vector.prototype._execDeferredNode = function(node) {
+og.layer.Vector.prototype._execDeferredNode = function (node) {
     this._counter++;
     var that = this;
-    setTimeout(function() {
+    setTimeout(function () {
         node.applyCollection();
         that._counter--;
         if (that._deferredEntitiesPendingQueue.length && that._counter < 1) {
@@ -617,7 +632,7 @@ og.layer.Vector.prototype._execDeferredNode = function(node) {
  * @virtual
  * @param {og.planetSegment.Material} mateial
  */
-og.layer.Vector.prototype.loadMaterial = function(material) {
+og.layer.Vector.prototype.loadMaterial = function (material) {
 
     var seg = material.segment;
 
@@ -639,12 +654,12 @@ og.layer.Vector.prototype.loadMaterial = function(material) {
  * @public
  * @param {og.planetSegment.Material} material - Segment material.
  */
-og.layer.Vector.prototype.abortMaterialLoading = function(material) {
+og.layer.Vector.prototype.abortMaterialLoading = function (material) {
     material.isLoading = false;
     material.isReady = false;
 };
 
-og.layer.Vector.prototype.applyMaterial = function(material) {
+og.layer.Vector.prototype.applyMaterial = function (material) {
     if (material.isReady) {
         return [0, 0, 1, 1];
     } else {
@@ -669,6 +684,7 @@ og.layer.Vector.prototype.applyMaterial = function(material) {
         if (notEmpty) {
             material.appliedNodeId = pn.nodeId;
             material.texture = psegm.texture;
+            material.pickingMask = psegm.pickingMask;
             var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
             return [
                 segment.tileX * dZ2 - pn.planetSegment.tileX,
@@ -679,23 +695,34 @@ og.layer.Vector.prototype.applyMaterial = function(material) {
         } else {
             if (material.textureExists && material._updateTexture) {
                 material.texture = material._updateTexture;
+                material.pickingMask = material._updatePickingMask;
             } else {
                 material.texture = segment.planet.transparentTexture;
+                material.pickingMask = segment.planet.transparentTexture;
             }
             return [0, 0, 1, 1];
         }
     }
 };
 
-og.layer.Vector.prototype.clearMaterial = function(material) {
+og.layer.Vector.prototype.clearMaterial = function (material) {
     if (material.isReady) {
         var gl = material.segment.handler.gl;
+        
         material.isReady = false;
-        !material.texture.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
-        material.texture = null;
+
+        !material.texture.default && material.segment.handler.gl.deleteTexture(material.texture);
+        !material.pickingMask.default && material.segment.handler.gl.deleteTexture(material.pickingMask);
+
+        //TODO: tests needed
         material.segment.handler.gl.deleteTexture(material._updateTexture);
+        material.segment.handler.gl.deleteTexture(material._updatePickingMask);
+
+        material.texture = null;
+        material.pickingMask = null;
         material._updateTexture = null;
+        material._updatePickingMask = null;
+        
         gl.deleteBuffer(material.indexBuffer);
         material.indexBuffer = null;
     }
