@@ -18,6 +18,7 @@ og.shaderProgram.drawnode_nl = function () {
             tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
             visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
             samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
+            pickingMaskArr: { type: og.shaderProgram.types.SAMPLER2DXX },
             transparentColorArr: { type: og.shaderProgram.types.VEC4 },
             pickingColorArr: { type: og.shaderProgram.types.VEC3 },
             defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
@@ -54,6 +55,7 @@ og.shaderProgram.drawnode_nl = function () {
             uniform vec3 pickingColorArr[5];\
             uniform sampler2D defaultTexture;\
             uniform sampler2D samplerArr[5];\
+            uniform sampler2D pickingMaskArr[5];\
             uniform int samplerCount;\
             varying vec2 vTextureCoord;\
             varying float range;\
@@ -82,43 +84,58 @@ og.shaderProgram.drawnode_nl = function () {
                 gl_FragData[2] = vec4(encode32(range), gl_FragData[0].a);\
                 if( samplerCount == 0 ) return;\
 \
-                vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);\
+                vec2 tc = tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw;\
+                float ins = insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord.xy * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);\
+                vec4 t = texture2D( samplerArr[0], tc ) * ins;\
+                vec4 p = texture2D( pickingMaskArr[0], tc ) * ins;\
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[0].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = vec4(pickingColorArr[0], emptiness);\
+                gl_FragData[1] = vec4(max(pickingColorArr[0], p.rgb), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), emptiness);\
                 if( samplerCount == 1 ) return;\
 \
-                t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw;\
+                ins = insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord.xy * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[1], tc ) * ins;\
+                p = texture2D( pickingMaskArr[1], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[1].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[1], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[1], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), emptiness);\
                 if( samplerCount == 2 ) return;\
 \
-                t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw;\
+                ins = insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[2], tc ) * ins;\
+                p = texture2D( pickingMaskArr[2], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[2].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[2], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[2], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), emptiness);\
                 if( samplerCount == 3 ) return;\
 \
-                t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw;\
+                ins = insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[3], tc ) * ins;\
+                p = texture2D( pickingMaskArr[3], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[3].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[3], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[3], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), emptiness);\
                 if( samplerCount == 4 ) return;\
 \
-                t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw;\
+                ins = insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[4], tc ) * ins;\
+                p = texture2D( pickingMaskArr[4], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], t, transparentColorArr[4].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[4], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[4], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(encode32(range), 1.0), emptiness);\
             }'
     });
@@ -567,11 +584,14 @@ og.shaderProgram.drawnode_wl = function () {
                 spec = specularMaterial[4].rgb * pow( reflection, specularMaterial[4].w);\
                 lightWeighting = ambientMaterial[4] + diffuseMaterial[4] * diffuseLightWeighting + spec;\
 \
-                t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw;\
+                ins = insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[3], tc ) * ins;\
+                p = texture2D( pickingMaskArr[3], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, t.a), transparentColorArr[3].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[3], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[3], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);\
                 if( samplerCount == 4 ) return;\
 \
@@ -580,11 +600,14 @@ og.shaderProgram.drawnode_wl = function () {
                 spec = specularMaterial[5].rgb * pow( reflection, specularMaterial[5].w);\
                 lightWeighting = ambientMaterial[5] + diffuseMaterial[5] * diffuseLightWeighting + spec;\
 \
-                t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);\
+                tc = tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw;\
+                ins = insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);\
+                t = texture2D( samplerArr[4], tc ) * ins;\
+                p = texture2D( pickingMaskArr[4], tc ) * ins;\
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));\
                 gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, t.a), transparentColorArr[4].a * emptiness);\
                 emptiness = 1.0 - step(0.0, -emptiness);\
-                gl_FragData[1] = mix( gl_FragData[1], vec4(pickingColorArr[4], 1.0), emptiness);\
+                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[4], p.rgb), 1.0), emptiness);\
                 gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);\
             }'
     });
