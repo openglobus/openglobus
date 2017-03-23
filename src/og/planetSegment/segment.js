@@ -973,9 +973,9 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 1);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE * 2 + 1);
 
         var currHeight, li;
         if (layerSlice) {

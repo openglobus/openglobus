@@ -93,7 +93,7 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         c = [color.x, color.y, color.z, color.w],
         s = strokeSize,
         sc = [strokeColor.x, strokeColor.y, strokeColor.z, strokeColor.w],
-        p = [pickingColor.x / 255, pickingColor.y / 255, pickingColor.z / 255, 1.0];
+        p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
 
     for (var j = 0; j < pathArr.length; j++) {
         path = pathArr[j];
@@ -167,7 +167,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
         geometry._handlerIndex = this._geometries.length;
         this._geometries.push(geometry);
 
-        var pickingColor = geometry._entity._pickingColor;
+        var pickingColor = geometry._entity._pickingColor.scaleTo(1/255);
 
         if (geometry._type === og.Geometry.POLYGON) {
             var data = og.utils.earcut.flatten(geometry._coordinates);
@@ -190,7 +190,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             var color = geometry._style.fillColor;
             for (var i = 0; i < data.vertices.length / 2; i++) {
                 this._polyColors.push(color.x, color.y, color.z, color.w);
-                this._polyPickingColors.push(pickingColor.x / 255, pickingColor.y / 255, pickingColor.z / 255, 1.0);
+                this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
             }
 
             geometry._polyVerticesLength = data.vertices.length;
@@ -268,7 +268,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             var color = geometry._style.fillColor;
             for (var i = 0; i < vertices.length / 2; i++) {
                 this._polyColors.push(color.x, color.y, color.z, color.w);
-                this._polyPickingColors.push(pickingColor.x / 255, pickingColor.y / 255, pickingColor.z / 255, 1.0);
+                this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
             }
 
             geometry._polyVerticesLength = vertices.length;
