@@ -1270,15 +1270,19 @@ og.planetSegment.Segment.prototype._colorPickingRendering = function (sh, layerS
             p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
 
             p._samplerArr[n] = n;
-
             gl.activeTexture(gl.TEXTURE0 + n);
             gl.bindTexture(gl.TEXTURE_2D, pm[li._id].texture || this.planet.transparentTexture);
+
+            p._pickingMaskArr[n] = n + p.SLICE_SIZE;
+            gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, pm[li._id].pickingMask || this.planet.transparentTexture);
         }
 
         if (notEmpty || !isOverlay) {
             gl.uniform1i(shu.samplerCount._pName, n);
             gl.uniform1f(shu.height._pName, currHeight);
             gl.uniform1iv(shu.samplerArr._pName, p._samplerArr);
+            gl.uniform1iv(shu.pickingMaskArr._pName, p._pickingMaskArr);
             gl.uniform4fv(shu.tileOffsetArr._pName, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr._pName, slice.visibleExtentOffsetArr);
             gl.uniform4fv(shu.transparentColorArr._pName, slice.transparentColorArr);
