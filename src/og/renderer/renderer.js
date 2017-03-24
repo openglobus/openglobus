@@ -320,7 +320,7 @@ og.Renderer.prototype.initialize = function () {
             }'
     }));
 
-    //Adds multiframebuffer(provided WEBGL_draw_buffers extension) extension.
+    //Append multiframebuffer(WEBGL_draw_buffers) extension.
     this._drawBuffersExtension = this.handler.initializeExtension("WEBGL_draw_buffers");
 
     if (this._drawBuffersExtension) {

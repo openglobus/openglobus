@@ -167,7 +167,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
         geometry._handlerIndex = this._geometries.length;
         this._geometries.push(geometry);
 
-        var pickingColor = geometry._entity._pickingColor.scaleTo(1/255);
+        var pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
         if (geometry._type === og.Geometry.POLYGON) {
             var data = og.utils.earcut.flatten(geometry._coordinates);
@@ -233,7 +233,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                 var ci = coordinates[i];
                 var data = og.utils.earcut.flatten(ci);
                 var dataIndexes = og.utils.earcut(data.vertices, data.holes, 2);
-                
+
                 for (var j = 0; j < dataIndexes.length; j++) {
                     indexes.push(dataIndexes[j] + vertices.length * 0.5);
                 }
@@ -245,8 +245,6 @@ og.GeometryHandler.prototype.add = function (geometry) {
                     verticesMerc.push(og.mercator.forward_lon(lon), og.mercator.forward_lat(lat))
                 }
 
-                //indexes.push.apply(indexes, dataIndexes);
-
                 og.GeometryHandler.appendLineRingData(ci,
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
@@ -257,9 +255,10 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._polyVerticesHandlerIndex = this._polyVerticesLonLat.length;
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
-            //og.mercator.forward_lon(lon), og.mercator.forward_lat(lat)
-            this._polyVerticesLonLat.push.apply(this._polyVerticesLonLat, vertices);
-            this._polyVerticesMerc.push.apply(this._polyVerticesMerc, verticesMerc);
+            for (var k = 0; k < vertices.length; k++) {
+                this._polyVerticesLonLat.push(vertices[k]);
+                this._polyVerticesMerc.push(verticesMerc[k]);
+            }
 
             for (var i = 0; i < indexes.length; i++) {
                 this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
@@ -288,14 +287,18 @@ og.GeometryHandler.prototype.add = function (geometry) {
 };
 
 og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
+
     var nodes = treeNode.nodes,
         g = this._updatedGeometryArr,
         lid = this._layer._id;
+
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         for (var j = 0; j < g.length; j++) {
             if (g[j]._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+
                 this._refreshPlanetNode(ni);
+
                 var m = ni.planetSegment.materials[lid];
                 if (m) {
                     if (m.isReady) {
@@ -451,7 +454,7 @@ og.GeometryHandler.prototype.createPolyVerticesBuffer = function () {
     h.gl.deleteBuffer(this._polyVerticesBufferMerc);
     this._polyVerticesBufferLonLat = h.createArrayBuffer(new Float32Array(this._polyVerticesLonLat), 2, this._polyVerticesLonLat.length / 2);
     this._polyVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._polyVerticesMerc), 2, this._polyVerticesMerc.length / 2);
-    this._polyIndexesBuffer = h.createElementArrayBuffer(new Uint16Array(this._polyIndexes), 1, this._polyIndexes.length);
+    this._polyIndexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._polyIndexes), 1, this._polyIndexes.length);
 };
 
 og.GeometryHandler.prototype.createPolyColorsBuffer = function () {
@@ -481,7 +484,7 @@ og.GeometryHandler.prototype.createLineIndexesAndOrdersBuffer = function () {
     this._lineOrdersBuffer = h.createArrayBuffer(new Float32Array(this._lineOrders), 1, this._lineOrders.length / 2);
 
     h.gl.deleteBuffer(this._lineIndexesBuffer);
-    this._lineIndexesBuffer = h.createElementArrayBuffer(new Uint16Array(this._lineIndexes), 1, this._lineIndexes.length);
+    this._lineIndexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._lineIndexes), 1, this._lineIndexes.length);
 };
 
 og.GeometryHandler.prototype.createLineColorsBuffer = function () {

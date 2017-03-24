@@ -140,16 +140,15 @@ function main2() {
 
     var entities = [];
 
-    entities.push(new og.Entity({
-        'geometry': {
-            'type': "MultiPolygon",
-            'coordinates': [ [[[-110,25], [-110, 40], [-100, 40], [-100,25]]], [[[20,20],[30,10],[8,2]]] ],
-            'style': {}
-        }
-    }));
-            
+    // entities.push(new og.Entity({
+    //     'geometry': {
+    //         'type': "MultiPolygon",
+    //         'coordinates': [ [[[-110,25], [-110, 40], [-100, 40], [-100,25]]], [[[20,20],[30,10],[8,2]]] ],
+    //         'style': {}
+    //     }
+    // }));
+
     forest = new og.layer.Vector("Forest", {
-        'entities': entities,
         'visibility': true,
         'isBaseLayer': false
     });
@@ -169,32 +168,37 @@ function main2() {
         "name": "Earth",
         "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, geoImage2, states]
+        "layers": [osm]
     });
 
-    globus.renderer.events.on("charkeypress", og.input.KEY_Q, function(){
-        v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(1,1,0,1);
-    }, this);
-    globus.renderer.events.on("charkeypress", og.input.KEY_W, function(){
-        v = globus.planet.layers[1]; e = v._entities[1];; e.geometry.setFillColor(0,1,0,1)
-    }, this);
 
-    test_addForest();
+    $.getJSON("custom.json", function (data) {
+        var f = data.features;
+        for (var i = 0; i < f.length; i++) {
+            var fi = f[i];
+            //for (var j = 0; j < fi.length; j++) {
+                forest.add(new og.Entity({
+                    'geometry': fi.geometry
+                }));
+            //}
+        }
+        test_addForest();
+    });
 };
 
 
-function test_addEntity(){
+function test_addEntity() {
     forest.add(new og.Entity({
         'geometry': {
             'type': "Polygon",
-            'coordinates': [ [[-10,6],[-1, 12],[-3,-3] ]],
+            'coordinates': [[[-10, 6], [-1, 12], [-3, -3]]],
             'style': {
-                'fillColor':"#ffff00"
+                'fillColor': "#ffff00"
             }
         }
     }));
 };
 
-function test_addForest(){
+function test_addForest() {
     forest.addTo(globus.planet);
 };

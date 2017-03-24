@@ -191,9 +191,14 @@ og.utils.VectorTileCreator.prototype.frame = function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var i = this.MAX_FRAMES;
+        //var i = this.MAX_FRAMES;
         var prevLayerId = -1;
-        while (i-- && this._queue.length) {
+
+        var startTime = window.performance.now(),
+            deltaTime = 0;
+
+        while (deltaTime < 0.25 && this._queue.length) {
+
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
@@ -230,7 +235,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
-                gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                 //Polygon picking PASS
                 var pickingMask;
@@ -248,7 +253,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
                 gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
 
                 //=========================================
@@ -295,12 +300,12 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 //Antialias pass
                 gl.uniform1f(shu.thicknessOutline._pName, 2);
                 gl.uniform1f(shu.alpha._pName, 0.54);
-                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                 //
                 //Aliased pass
                 gl.uniform1f(shu.thicknessOutline._pName, 1);
                 gl.uniform1f(shu.alpha._pName, 1.0);
-                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                 //PASS - inside line
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
@@ -312,12 +317,12 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 //Antialias pass
                 gl.uniform1f(shu.thicknessOutline._pName, 2);
                 gl.uniform1f(shu.alpha._pName, 0.54);
-                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                 //Aliased pass
                 gl.uniform1f(shu.thicknessOutline._pName, 1);
                 gl.uniform1f(shu.alpha._pName, 1.0);
-                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                 
                 f.bindOutputTexture(pickingMask);
 
@@ -326,13 +331,15 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
                 gl.vertexAttribPointer(sha.color._pName, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                 material.applyTexture(texture, pickingMask);
 
             } else {
                 material.isLoading = false;
             }
+
+            deltaTime = window.performance.now() - startTime;
         }
 
         gl.disable(gl.BLEND);

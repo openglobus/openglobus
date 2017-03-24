@@ -1,6 +1,6 @@
 goog.provide('og.utils.earcut');
 
-(function() {
+(function () {
     // ISC License
     //
     // Copyright (c) 2016, Mapbox
@@ -395,20 +395,11 @@ goog.provide('og.utils.earcut');
                     q = q.nextZ;
                     if (!q) break;
                 }
-
                 qSize = inSize;
 
                 while (pSize > 0 || (qSize > 0 && q)) {
 
-                    if (pSize === 0) {
-                        e = q;
-                        q = q.nextZ;
-                        qSize--;
-                    } else if (qSize === 0 || !q) {
-                        e = p;
-                        p = p.nextZ;
-                        pSize--;
-                    } else if (p.z <= q.z) {
+                    if (pSize !== 0 && (qSize === 0 || !q || p.z <= q.z)) {
                         e = p;
                         p = p.nextZ;
                         pSize--;
@@ -606,7 +597,7 @@ goog.provide('og.utils.earcut');
 
     // return a percentage difference between the polygon area and its triangulation area;
     // used to verify correctness of triangulation
-    earcut.deviation = function(data, holeIndices, dim, triangles) {
+    earcut.deviation = function (data, holeIndices, dim, triangles) {
         var hasHoles = holeIndices && holeIndices.length;
         var outerLen = hasHoles ? holeIndices[0] * dim : data.length;
 
@@ -643,13 +634,9 @@ goog.provide('og.utils.earcut');
     }
 
     // turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
-    earcut.flatten = function(data) {
+    earcut.flatten = function (data) {
         var dim = data[0][0].length,
-            result = {
-                vertices: [],
-                holes: [],
-                dimensions: dim
-            },
+            result = { vertices: [], holes: [], dimensions: dim },
             holeIndex = 0;
 
         for (var i = 0; i < data.length; i++) {
@@ -663,7 +650,7 @@ goog.provide('og.utils.earcut');
         }
         return result;
     };
-
+    
     og.utils.earcut = earcut;
 
 })();
