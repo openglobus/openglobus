@@ -172,7 +172,7 @@ function main2() {
     });
 
 
-    $.getJSON("custom.json", function (data) {
+    $.getJSON("custom.geo.json", function (data) {
         var f = data.features;
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
