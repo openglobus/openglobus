@@ -288,17 +288,14 @@ og.GeometryHandler.prototype.add = function (geometry) {
 
 og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
 
-    var nodes = treeNode.nodes,
-        g = this._updatedGeometryArr,
-        lid = this._layer._id;
+    var lid = this._layer._id;
 
-    for (var i = 0; i < nodes.length; i++) {
-        var ni = nodes[i];
-        for (var j = 0; j < g.length; j++) {
-            if (g[j]._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
-
-                this._refreshPlanetNode(ni);
-
+    function refreshRecursevely(geometry, treeNode) {
+        var nodes = treeNode.nodes;
+        for (var i = 0; i < nodes.length; i++) {
+            var ni = nodes[i];
+            if (geometry._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+                refreshRecursevely(geometry, ni);
                 var m = ni.planetSegment.materials[lid];
                 if (m) {
                     if (m.isReady) {
@@ -312,6 +309,12 @@ og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
                 }
             }
         }
+    };
+
+    var g = this._updatedGeometryArr;
+
+    for (var i = 0; i < g.length; i++) {
+        refreshRecursevely(g[i], treeNode);
     }
 };
 
