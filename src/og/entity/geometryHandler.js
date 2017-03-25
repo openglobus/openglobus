@@ -286,35 +286,31 @@ og.GeometryHandler.prototype.add = function (geometry) {
     }
 };
 
-og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
-
+og.GeometryHandler.prototype._refreshRecursevely = function (geometry, treeNode) {
     var lid = this._layer._id;
-
-    function refreshRecursevely(geometry, treeNode) {
-        var nodes = treeNode.nodes;
-        for (var i = 0; i < nodes.length; i++) {
-            var ni = nodes[i];
-            if (geometry._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
-                refreshRecursevely(geometry, ni);
-                var m = ni.planetSegment.materials[lid];
-                if (m) {
-                    if (m.isReady) {
-                        m._updateTexture = m.texture;
-                        m._updatePickingMask = m.pickingMask;
-                        if (m.segment.node.getState() !== og.quadTree.RENDERING) {
-                            m.textureExists = false;
-                        }
-                    }
-                    m.isReady = false;
+    for (var i = 0; i < treeNode.nodes.length; i++) {
+        var ni = treeNode.nodes[i];
+        if (geometry._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+            this._refreshRecursevely(geometry, ni);
+            var m = ni.planetSegment.materials[lid];
+            if (m && m.isReady) {
+                m._updateTexture = m.texture;
+                m._updatePickingMask = m.pickingMask;
+                if (m.segment.node.getState() !== og.quadTree.RENDERING) {
+                    m.textureExists = false;
+                    m.pickingReady = geometry._pickingReady;
+                    geometry._pickingReady = true;
                 }
+                m.isReady = false;
             }
         }
-    };
+    }
+};
 
+og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
     var g = this._updatedGeometryArr;
-
     for (var i = 0; i < g.length; i++) {
-        refreshRecursevely(g[i], treeNode);
+        this._refreshRecursevely(g[i], treeNode);
     }
 };
 

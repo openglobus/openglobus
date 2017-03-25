@@ -53,7 +53,10 @@ og.Geometry = function (options) {
     this._style.lineWidth = options.style.lineWidth || 3;
     this._style.strokeWidth = options.style.strokeWidth || 0;
 
-    this._visibility = options.visibility || true
+    this._visibility = options.visibility || true;
+
+    //optimization flag for picking mask rendering pass
+    this._pickingReady = false;
 };
 
 og.Geometry.__staticCounter = 0;
@@ -149,6 +152,9 @@ og.Geometry.prototype.setGeometry = function (geometryObj) {
 
 og.Geometry.prototype.setFillColor = function (r, g, b, a) {
     var c = this._style.fillColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
@@ -163,6 +169,9 @@ og.Geometry.prototype.setFillColor4v = function (rgba) {
 
 og.Geometry.prototype.setStrokeColor = function (r, g, b, a) {
     var c = this._style.strokeColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
@@ -173,6 +182,9 @@ og.Geometry.prototype.setStrokeColor = function (r, g, b, a) {
 
 og.Geometry.prototype.setLineColor = function (r, g, b, a) {
     var c = this._style.lineColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
@@ -203,18 +215,23 @@ og.Geometry.prototype.setLineOpacity = function (opacity) {
 
 og.Geometry.prototype.setStrokeWidth = function (width) {
     this._style.strokeWidth = width;
+    this._pickingReady = false;
     this._handler && this._handler.setLineStrokeArr(this, width);
     return this;
 };
 
 og.Geometry.prototype.setLineWidth = function (width) {
     this._style.lineWidth = width;
+    this._pickingReady = false;
     this._handler && this._handler.setLineThicknessArr(this, width);
     return this;
 };
 
 og.Geometry.prototype.setFillOpacity = function (opacity) {
     var c = this._style.fillColor;
+    if (c.w === 0.0 && opacity !== 0.0 || c.w !== 0.0 && opacity === 0.0) {
+        this._pickingReady = false;
+    }
     c.w = opacity;
     this._handler && this._handler.setPolyColorArr(this, c);
     return this;
@@ -227,6 +244,7 @@ og.Geometry.prototype.setVisibility = function (visibility) {
 };
 
 og.Geometry.prototype.remove = function () {
+    this._pickingReady = false;
     this._handler && this._handler.remove(this);
 };
 
