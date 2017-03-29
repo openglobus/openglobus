@@ -337,12 +337,11 @@ og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
- * 200 - is a good value for iPad and low memory devices.
  * @const
  * @type {number}
  * @default
  */
-og.scene.Planet.MAX_NODES = 250;
+og.scene.Planet.MAX_NODES = 50;
 
 og.scene.Planet.EVENT_NAMES = [
     /**
@@ -553,22 +552,23 @@ og.scene.Planet.prototype._initializeShaders = function() {
  */
 og.scene.Planet.prototype.initialization = function() {
     //Initialization indexes table
-    og.PlanetSegmentHelper.initIndexesTables(6);
+    var TABLESIZE = 6;
+    og.PlanetSegmentHelper.initIndexesTables(TABLESIZE);
 
-    //Iniytialize indexes buffers cache
-    for (var i = 0; i <= 6; i++) {
+    //Iniytialize indexes buffers cache. It takes ~100mb RAM!
+    for (var i = 0; i <= TABLESIZE; i++) {
         var c = Math.pow(2, i);
         !this._indexesBuffers[c] && (this._indexesBuffers[c] = []);
-        for (var j = 0; j <= 6; j++) {
+        for (var j = 0; j <= TABLESIZE; j++) {
             var w = Math.pow(2, j);
             !this._indexesBuffers[c][w] && (this._indexesBuffers[c][w] = []);
-            for (var k = 0; k <= 6; k++) {
+            for (var k = 0; k <= TABLESIZE; k++) {
                 var n = Math.pow(2, k);
                 !this._indexesBuffers[c][w][n] && (this._indexesBuffers[c][w][n] = []);
-                for (var m = 0; m <= 6; m++) {
+                for (var m = 0; m <= TABLESIZE; m++) {
                     var e = Math.pow(2, m);
                     !this._indexesBuffers[c][w][n][e] && (this._indexesBuffers[c][w][n][e] = []);
-                    for (var q = 0; q <= 6; q++) {
+                    for (var q = 0; q <= TABLESIZE; q++) {
                         var s = Math.pow(2, q);
                         !this._indexesBuffers[c][w][n][e][s] && (this._indexesBuffers[c][w][n][e][s] = []);
                         var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
@@ -630,7 +630,7 @@ og.scene.Planet.prototype.initialization = function() {
         var img = new Image();
         img.crossOrigin = '';
         img.onload = function() {
-            that._nightTexture = that.renderer.handler.createTexture_l(this);
+            that._nightTexture = that.renderer.handler.createTexture_mm(this);
         };
         img.src = og.RESOURCES_URL + "night.png";
     }
@@ -656,10 +656,6 @@ og.scene.Planet.prototype.initialization = function() {
 og.scene.Planet.prototype._preRender = function() {
     this._quadTree.traverseNodes();
     this._quadTree.renderNode();
-    //this._quadTree.nodes[og.quadTree.NW].renderNode();
-    //this._quadTree.nodes[og.quadTree.NE].renderNode();
-    //this._quadTree.nodes[og.quadTree.SW].renderNode();
-    //this._quadTree.nodes[og.quadTree.SE].renderNode();
 
     this._quadTreeNorth.traverseNodes();
     this._quadTreeNorth.renderNode();

@@ -13,7 +13,7 @@ goog.require('og.Events');
  * @param {og.Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle=35] - Camera angle of view. Default is 35.0
+ * @param {number} [options.viewAngle=30] - Camera angle of view. Default is 30.0
  * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
  * @param {og.math.Vector3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
@@ -159,7 +159,7 @@ og.Camera.EVENT_NAMES = [
 ];
 
 og.Camera.defaultOptions = {
-    viewAngle: 35,
+    viewAngle: 30,
     near: 1,
     far: og.math.MAX,
     eye: new og.math.Vector3(0, 0, 0),
@@ -184,7 +184,7 @@ og.Camera.prototype._setViewMatrix = function () {
  * @public
  * @param {og.Renderer} renderer - OpenGlobus renderer object.
  * @param {Object} [options] - Camera options:
- * @param {number} [options.viewAngle] - Camera angle of view. Default is 35.0
+ * @param {number} [options.viewAngle] - Camera angle of view. Default is 30.0
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
  * @param {og.math.Vector3} [options.eye] - Camera eye position. Default (0,0,0)
