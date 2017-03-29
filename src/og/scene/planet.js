@@ -1323,7 +1323,7 @@ og.scene.Planet.prototype.getDistanceFromPixel = function(px, force) {
             this.renderer._drawBuffersExtension &&
             og.math.Vector4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2)) ||
             og.math.Vector4.fromVec(this._heightPickingFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
-        if (!(color.x | color.y | color.z | color.w)) {
+        if (!(color.x | color.y | color.z)) {
             return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
         }
         color.w = 0.0;
