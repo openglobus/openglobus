@@ -710,10 +710,10 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
         var gl = material.segment.handler.gl;
         
         material.isReady = false;
+        material.pickingReady = false;
 
         material.texture && !material.texture.default && gl.deleteTexture(material.texture);
         material.pickingMask && !material.pickingMask.default && gl.deleteTexture(material.pickingMask);
-
         material._updateTexture && !material._updateTexture && gl.deleteTexture(material._updateTexture);
         material._updatePickingMask && !material._updatePickingMask && gl.deleteTexture(material._updatePickingMask);
 
@@ -721,7 +721,6 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
         material.pickingMask = null;
         material._updateTexture = null;
         material._updatePickingMask = null;
-        material.pickingReady = false;
     }
 
     this.abortMaterialLoading(material);

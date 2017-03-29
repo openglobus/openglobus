@@ -150,7 +150,9 @@ function main2() {
 
     forest = new og.layer.Vector("Forest", {
         'visibility': true,
-        'isBaseLayer': false
+        'isBaseLayer': false,
+        'diffuse': [0, 0, 0],
+        'ambient': [1, 1, 1]
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -171,20 +173,21 @@ function main2() {
         "layers": [osm]
     });
 
+    globus.planet.addControl(og.control.layerSwitcher());
 
     $.getJSON("countries.json", function (data) {
         var f = data.features;
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
             //for (var j = 0; j < fi.length; j++) {
-                forest.add(new og.Entity({
-                    'geometry': fi.geometry
-                }));
+            forest.add(new og.Entity({
+                'geometry': fi.geometry
+            }));
             //}
         }
         test_addForest();
-        globus.planet.layers[1].events.on("mouseleave", function(e){ e.pickingObject.geometry.setFillColor(0,0,1,0.2); });
-        globus.planet.layers[1].events.on("mouseenter", function(e){ e.pickingObject.geometry.setFillColor(1,1,0,0.6); });
+        globus.planet.layers[1].events.on("mouseleave", function (e) { e.pickingObject.geometry.setFillColor(0, 0, 1, 0.2); });
+        globus.planet.layers[1].events.on("mouseenter", function (e) { e.pickingObject.geometry.setFillColor(1, 1, 0, 0.6); });
     });
 };
 

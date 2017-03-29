@@ -555,7 +555,7 @@ og.scene.Planet.prototype.initialization = function() {
     var TABLESIZE = 6;
     og.PlanetSegmentHelper.initIndexesTables(TABLESIZE);
 
-    //Iniytialize indexes buffers cache. It takes ~100mb RAM!
+    //Iniytialize indexes buffers cache. It takes ~120mb RAM!
     for (var i = 0; i <= TABLESIZE; i++) {
         var c = Math.pow(2, i);
         !this._indexesBuffers[c] && (this._indexesBuffers[c] = []);
@@ -828,7 +828,7 @@ og.scene.Planet.prototype.frame = function() {
 
     this.renderer.activeCamera.prepareFrame();
 
-    print2d("lbTiles", this._vectorTileCreator._queue.length, 100, 100);
+    //print2d("lbTiles", this._vectorTileCreator._queue.length, 100, 100);
     //    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
     //    print2d("t2", "tp: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
     //    print2d("t1", "nmc: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);

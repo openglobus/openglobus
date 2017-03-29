@@ -104,7 +104,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
     //create hidden handler buffer
     this._framebuffer = new og.webgl.Framebuffer(this._handler, { useDepth: false });
 
-    //creating vertices hached array for differents grid size segment
+    //create vertices hasharray for different grid size segments
     for (var p = 1; p <= 6; p++) {
         var gs = Math.pow(2, p);
         var gs2 = (gs / 2);
@@ -122,7 +122,6 @@ og.utils.NormalMapCreator.prototype._init = function () {
     }
 
     //create 2d screen square buffer
-
     var positions = new Float32Array([
         -1.0, -1.0,
          1.0, -1.0,
@@ -179,7 +178,6 @@ og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
 og.utils.NormalMapCreator.prototype.draw = function (normals) {
     this._drawNormalMap(normals);
-    //return this._framebuffer.getImage();
     this._drawBlur();
     return this._handler.canvas;
 };
