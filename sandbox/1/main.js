@@ -166,13 +166,13 @@ function main2() {
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
-        "skybox": og.scene.defaultSkyBox(),
+        //"skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm]
     });
 
 
-    $.getJSON("custom.geo.json", function (data) {
+    $.getJSON("countries.json", function (data) {
         var f = data.features;
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
@@ -183,6 +183,8 @@ function main2() {
             //}
         }
         test_addForest();
+        globus.planet.layers[1].events.on("mouseleave", function(e){ e.pickingObject.geometry.setFillColor(0,0,1,0.2); });
+        globus.planet.layers[1].events.on("mouseenter", function(e){ e.pickingObject.geometry.setFillColor(1,1,0,0.6); });
     });
 };
 

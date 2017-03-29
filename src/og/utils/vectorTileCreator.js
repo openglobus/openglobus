@@ -205,7 +205,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
 
                 var pickingMask;
                 var texture;
-                
+
                 if (material._updateTexture) {
                     texture = material._updateTexture;
                 } else {
@@ -255,7 +255,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                     gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                     gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                }else{
+                } else {
                     pickingMask = material.pickingMask;
                 }
 

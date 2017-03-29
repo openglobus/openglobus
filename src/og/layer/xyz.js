@@ -228,10 +228,10 @@ og.layer.XYZ.prototype._exec = function(material) {
     og.layer.XYZ.__requestsCounter++;
     this._counter++;
 
-    var that = this;
     material.image = new Image();
     material.image.crossOrigin = '';
 
+    var that = this;
     material.image.onload = function() {
         that._counter--;
         og.layer.XYZ.__requestsCounter--;
@@ -355,6 +355,7 @@ og.layer.XYZ.prototype.clearMaterial = function(material) {
     material.textureExists = false;
 
     if (material.image) {
+        material.image.onload = null;
         material.image.src = '';
         material.image = null;
     }

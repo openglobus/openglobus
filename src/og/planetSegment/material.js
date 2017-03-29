@@ -12,7 +12,6 @@ og.planetSegment.Material = function(segment, layer) {
     this.appliedNodeId = 0;
 
     //vector data
-    this.indexBuffer = null;
     this._updateTexture = null;
     this._updatePickingMask = null;
     this.pickingReady = false;

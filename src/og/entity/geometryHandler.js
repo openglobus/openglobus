@@ -298,10 +298,12 @@ og.GeometryHandler.prototype._refreshRecursevely = function (geometry, treeNode)
                 m._updatePickingMask = m.pickingMask;
                 if (m.segment.node.getState() !== og.quadTree.RENDERING) {
                     m.textureExists = false;
-                    m.pickingReady = geometry._pickingReady;
-                    geometry._pickingReady = true;
+                    m.pickingReady = false;
+                } else {
+                    m.pickingReady = m.pickingReady && geometry._pickingReady;
                 }
                 m.isReady = false;
+                geometry._pickingReady = true;
             }
         }
     }

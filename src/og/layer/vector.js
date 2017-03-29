@@ -711,29 +711,21 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
         
         material.isReady = false;
 
-        !material.texture.default && material.segment.handler.gl.deleteTexture(material.texture);
-        !material.pickingMask.default && material.segment.handler.gl.deleteTexture(material.pickingMask);
+        material.texture && !material.texture.default && gl.deleteTexture(material.texture);
+        material.pickingMask && !material.pickingMask.default && gl.deleteTexture(material.pickingMask);
 
-        //TODO: tests needed
-        material.segment.handler.gl.deleteTexture(material._updateTexture);
-        material.segment.handler.gl.deleteTexture(material._updatePickingMask);
+        material._updateTexture && !material._updateTexture && gl.deleteTexture(material._updateTexture);
+        material._updatePickingMask && !material._updatePickingMask && gl.deleteTexture(material._updatePickingMask);
 
         material.texture = null;
         material.pickingMask = null;
         material._updateTexture = null;
         material._updatePickingMask = null;
-        
-        gl.deleteBuffer(material.indexBuffer);
-        material.indexBuffer = null;
+        material.pickingReady = false;
     }
 
     this.abortMaterialLoading(material);
 
     material.isLoading = false;
     material.textureExists = false;
-
-    if (material.image) {
-        material.image.src = "";
-        material.image = null;
-    }
 };
