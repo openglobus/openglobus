@@ -124,6 +124,12 @@ og.control.LayerSwitcher.prototype.createDialog = function () {
 
     this.createBaseLayersContainer();
     this.createOverlaysContainer();
+
+    if (this.planet) {
+        for (var i = 0; i < this.planet.layers.length; i++) {
+            this.onLayerAdded(this.planet.layers[i]);
+        }
+    }
 };
 
 og.control.LayerSwitcher.prototype.createSwitcher = function () {
