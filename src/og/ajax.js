@@ -174,6 +174,9 @@ og.ajax.request = function (url, params) {
                  */
                 params.error && params.error.call(params.sender || customXhr, xhr.response, xhr.status);
             }
+            delete xhr['onreadystatechange'];
+            xhr.onreadystatechange = null;
+            xhr = null;
         } else {
             //still loading
         }
