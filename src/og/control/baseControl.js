@@ -81,13 +81,15 @@ og.control.BaseControl.prototype.ondeactivate = function () { }
  * @type {og.Renderer}
  */
 og.control.BaseControl.prototype.addTo = function (renderer) {
-    this.renderer = renderer;
-    renderer.controls.push(this);
-    this.onadd && this.onadd();
-    if (this.autoActivate) {
-        this.oninit && this.oninit();
-        this._initialized = true;
-        this.active = true;
+    if (renderer) {
+        this.renderer = renderer;
+        renderer.controls.push(this);
+        this.onadd && this.onadd();
+        if (this.autoActivate) {
+            this.oninit && this.oninit();
+            this._initialized = true;
+            this.active = true;
+        }
     }
 };
 
