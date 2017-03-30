@@ -50,6 +50,8 @@ og.webgl.Framebuffer = function (handler, options) {
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
+    this._active = false;
+
     /**
      * Framebuffer texture.
      * @public
@@ -69,6 +71,8 @@ og.webgl.Framebuffer.prototype.destroy = function () {
     this.texture = null;
     this._rbo = null;
     this._fbo = null;
+
+    this._active = false;
 }
 
 /**
@@ -108,7 +112,7 @@ og.webgl.Framebuffer.prototype.bindOutputTexture = function (texture) {
 };
 
 /**
- * Sets framebuffer size. Must be before the activate method.
+ * Sets framebuffer viewport size.
  * @public
  * @param {number} width - Framebuffer width.
  * @param {number} height - Framebuffer height.
@@ -116,6 +120,9 @@ og.webgl.Framebuffer.prototype.bindOutputTexture = function (texture) {
 og.webgl.Framebuffer.prototype.setSize = function (width, height) {
     this._width = width;
     this._height = height;
+    if (this._active) {
+        this.handler.gl.viewport(0, 0, this._width, this._height);
+    }
     if (this._useDepth) {
         this.destroy();
         this._initialize();
@@ -173,7 +180,9 @@ og.webgl.Framebuffer.prototype.activate = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.viewport(0, 0, this._width, this._height);
-
+    this._active = true;
+    var c = this.handler.framebufferStack.current().data;
+    c && (c._active = false);
     this.handler.framebufferStack.push(this);
 };
 
@@ -185,6 +194,7 @@ og.webgl.Framebuffer.prototype.deactivate = function () {
     var h = this.handler,
         gl = h.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    this._active = false;
 
     var f = this.handler.framebufferStack.popPrev();
 

@@ -183,6 +183,13 @@ og.utils.VectorTileCreator.prototype.frame = function () {
             gl = h.gl;
 
         var f = this._framebuffer;
+
+        var width = this._width,
+            height = this._height;
+
+        var pickingMask,
+            texture;
+
         f.activate();
 
         gl.disable(gl.CULL_FACE);
@@ -201,16 +208,23 @@ og.utils.VectorTileCreator.prototype.frame = function () {
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
-                var geomHandler = material.layer._geometryHandler;
-
-                var pickingMask;
-                var texture;
-
-                if (material._updateTexture) {
-                    texture = material._updateTexture;
+                if (material.segment.tileZoom <= 2) {
+                    width = this._width * 2;
+                    height = this._height * 2;
                 } else {
-                    texture = h.createEmptyTexture_l(this._width, this._height);
+                    width = this._width;
+                    height = this._height;
                 }
+
+                //if (material._updateTexture) {
+                //    texture = material._updateTexture;
+                //} else {
+                    texture = h.createEmptyTexture_l(width, height);
+                //}
+
+                f.setSize(width, height);
+
+                var geomHandler = material.layer._geometryHandler;
 
                 f.bindOutputTexture(texture);
 
@@ -243,7 +257,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                     if (material._updatePickingMask) {
                         pickingMask = material._updatePickingMask;
                     } else {
-                        pickingMask = h.createEmptyTexture_l(this._width, this._height);
+                        pickingMask = h.createEmptyTexture_l(width, height);
                     }
 
                     f.bindOutputTexture(pickingMask);
@@ -269,7 +283,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 sha = sh.attributes;
                 shu = sh.uniforms;
 
-                gl.uniform2fv(shu.viewport._pName, [this._width, this._height]);
+                gl.uniform2fv(shu.viewport._pName, [width, height]);
 
                 gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
 

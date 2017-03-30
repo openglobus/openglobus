@@ -20,6 +20,10 @@ og.Stack = function (size) {
     }
     _current = _head;
 
+    this.current = function(){
+        return _current;
+    };
+
     this.push = function (data) {
         _current = _current.next;
         _current.data = data;

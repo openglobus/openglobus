@@ -294,15 +294,14 @@ og.GeometryHandler.prototype._refreshRecursevely = function (geometry, treeNode)
             this._refreshRecursevely(geometry, ni);
             var m = ni.planetSegment.materials[lid];
             if (m && m.isReady) {
-                m._updateTexture = m.texture;
-                m._updatePickingMask = m.pickingMask;
                 if (m.segment.node.getState() !== og.quadTree.RENDERING) {
-                    m.textureExists = false;
-                    m.pickingReady = false;
+                    m.layer.clearMaterial(m);
                 } else {
                     m.pickingReady = m.pickingReady && geometry._pickingReady;
+                    m.isReady = false;
+                    m._updateTexture = m.texture;
+                    m._updatePickingMask = m.pickingMask;
                 }
-                m.isReady = false;
                 geometry._pickingReady = true;
             }
         }

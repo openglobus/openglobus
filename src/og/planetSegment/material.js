@@ -37,15 +37,18 @@ og.planetSegment.Material.prototype.applyImage = function(img) {
 };
 
 og.planetSegment.Material.prototype.applyTexture = function(texture, pickingMask) {
+
     this.texture = texture;
-    this.pickingMask = pickingMask || null;
     this._updateTexture = null;
+
+    this.pickingMask = pickingMask || null;
     this._updatePickingMask = null;
-    this.appliedNodeId = this.segment.node.nodeId;
+
     this.isReady = true;
     this.pickingReady = true;
     this.textureExists = true;
     this.isLoading = false;
+    this.appliedNodeId = this.segment.node.nodeId;
 };
 
 og.planetSegment.Material.prototype.textureNotExists = function() {

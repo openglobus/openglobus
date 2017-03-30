@@ -246,7 +246,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
             og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
 
     if (inFrustum || this._cameraInside) {
-        if (seg.tileZoom <= 2 && seg.normalMapReady) {
+        if (seg.tileZoom <= 1 && seg.normalMapReady) {
             this.traverseNodes();
         } else if (seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam._lonLat.height, altVis);

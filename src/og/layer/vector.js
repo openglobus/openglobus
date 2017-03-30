@@ -706,22 +706,28 @@ og.layer.Vector.prototype.applyMaterial = function (material) {
 };
 
 og.layer.Vector.prototype.clearMaterial = function (material) {
-    if (material.isReady) {
+    //if (material.isReady) {
         var gl = material.segment.handler.gl;
         
         material.isReady = false;
         material.pickingReady = false;
 
-        material.texture && !material.texture.default && gl.deleteTexture(material.texture);
-        material.pickingMask && !material.pickingMask.default && gl.deleteTexture(material.pickingMask);
-        material._updateTexture && !material._updateTexture && gl.deleteTexture(material._updateTexture);
-        material._updatePickingMask && !material._updatePickingMask && gl.deleteTexture(material._updatePickingMask);
-
+        var t = material.texture
         material.texture = null;
+        t && !t.default && gl.deleteTexture(t);
+
+        t = material.pickingMask;
         material.pickingMask = null;
+        t && !t.default && gl.deleteTexture(t);
+
+        t = material._updateTexture;
         material._updateTexture = null;
+        t && !t.default && gl.deleteTexture(t);
+
+        t = material._updatePickingMask;
         material._updatePickingMask = null;
-    }
+        t && !t.default && gl.deleteTexture(t);
+    //}
 
     this.abortMaterialLoading(material);
 
