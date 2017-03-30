@@ -706,7 +706,7 @@ og.layer.Vector.prototype.applyMaterial = function (material) {
 };
 
 og.layer.Vector.prototype.clearMaterial = function (material) {
-    //if (material.isReady) {
+    if (material.isReady) {
         var gl = material.segment.handler.gl;
         
         material.isReady = false;
@@ -727,7 +727,7 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
         t = material._updatePickingMask;
         material._updatePickingMask = null;
         t && !t.default && gl.deleteTexture(t);
-    //}
+    }
 
     this.abortMaterialLoading(material);
 
