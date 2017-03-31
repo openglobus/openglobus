@@ -216,11 +216,11 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                     height = this._height;
                 }
 
-                //if (material._updateTexture) {
-                //    texture = material._updateTexture;
-                //} else {
+                if (material._updateTexture) {
+                    texture = material._updateTexture;
+                } else {
                     texture = h.createEmptyTexture_l(width, height);
-                //}
+                }
 
                 f.setSize(width, height);
 
