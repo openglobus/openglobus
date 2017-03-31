@@ -1040,12 +1040,12 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
 
                 p._samplerArr[n] = n;
                 gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture || this.planet.transparentTexture);
+                gl.bindTexture(gl.TEXTURE_2D, m.texture && gl.isTexture(m.texture) && m.texture || this.planet.transparentTexture);
 
 
                 p._pickingMaskArr[n] = n + p.SLICE_SIZE;
                 gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
-                gl.bindTexture(gl.TEXTURE_2D, m.pickingMask || this.planet.transparentTexture);
+                gl.bindTexture(gl.TEXTURE_2D, m.pickingMask && gl.isTexture(m.pickingMask) && m.pickingMask || this.planet.transparentTexture);
 
                 n++;
             }

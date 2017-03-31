@@ -186,8 +186,14 @@ function main2() {
             //}
         }
         test_addForest();
-        globus.planet.layers[1].events.on("mouseleave", function (e) { e.pickingObject.geometry.setFillColor(0, 0, 1, 0.2); });
-        globus.planet.layers[1].events.on("mouseenter", function (e) { e.pickingObject.geometry.setFillColor(1, 1, 0, 0.6); });
+        globus.planet.layers[1].events.on("mouseleave", function (e) { 
+            e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6); 
+            e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0); 
+        });
+        globus.planet.layers[1].events.on("mouseenter", function (e) { 
+            e.pickingObject.geometry.setFillColor(1, 0, 0, 0.4); 
+            e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0); 
+        });
     });
 };
 

@@ -341,7 +341,7 @@ og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
  * @type {number}
  * @default
  */
-og.scene.Planet.MAX_NODES = 50;
+og.scene.Planet.MAX_NODES = 120;
 
 og.scene.Planet.EVENT_NAMES = [
     /**
