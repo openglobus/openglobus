@@ -4,11 +4,12 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.PlanetSegmentHelper');
 goog.require('og.math');
 
-og.utils.VectorTileCreator = function (handler, maxFrames, width, height) {
+og.utils.VectorTileCreator = function (planet, maxFrames, width, height) {
 
     this._width = width || 256;
     this._height = height || 256;
-    this._handler = handler;
+    this._handler = planet.renderer.handler;
+    this._planet = planet;
     this._framebuffer = null;
     this.MAX_FRAMES = maxFrames || 5;
     this._currentFrame = 0;
@@ -178,7 +179,7 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
 };
 
 og.utils.VectorTileCreator.prototype.frame = function () {
-    if (this._queue.length) {
+    if (this._planet.layersActivity && this._queue.length) {
         var h = this._handler,
             gl = h.gl;
 
@@ -252,25 +253,27 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
                 gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                //Polygon picking PASS
-                if (!material.pickingReady) {
-                    if (material._updatePickingMask) {
-                        pickingMask = material._updatePickingMask;
+                if (material.layer._pickingEnabled) {
+                    //Polygon picking PASS
+                    if (!material.pickingReady) {
+                        if (material._updatePickingMask) {
+                            pickingMask = material._updatePickingMask;
+                        } else {
+                            pickingMask = h.createEmptyTexture_n(width, height);
+                        }
+
+                        f.bindOutputTexture(pickingMask);
+
+                        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                        gl.clear(gl.COLOR_BUFFER_BIT);
+
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
+                        gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+                        gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                     } else {
-                        pickingMask = h.createEmptyTexture_l(width, height);
+                        pickingMask = material.pickingMask;
                     }
-
-                    f.bindOutputTexture(pickingMask);
-
-                    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                    gl.clear(gl.COLOR_BUFFER_BIT);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
-                    gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                } else {
-                    pickingMask = material.pickingMask;
                 }
 
                 //=========================================
@@ -341,15 +344,17 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.uniform1f(shu.alpha._pName, 1.0);
                 gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                if (!material.pickingReady) {
-                    f.bindOutputTexture(pickingMask);
+                if (material.layer._pickingEnabled) {
+                    if (!material.pickingReady) {
+                        f.bindOutputTexture(pickingMask);
 
-                    gl.uniform1f(shu.thicknessOutline._pName, 8);
+                        gl.uniform1f(shu.thicknessOutline._pName, 8);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
-                    gl.vertexAttribPointer(sha.color._pName, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
+                        gl.vertexAttribPointer(sha.color._pName, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    }
                 }
 
                 material.applyTexture(texture, pickingMask);

@@ -83,7 +83,7 @@ og.PlanetCamera = function (planet, options) {
     //Camera's flying frames
     this._framesArr = [];
     this._framesCounter = 0;
-    this._numFrames = 150;
+    this._numFrames = 50;
     this._completeCallback = null;
     this._flying = false;
 };

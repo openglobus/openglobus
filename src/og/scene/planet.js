@@ -647,7 +647,7 @@ og.scene.Planet.prototype.initialization = function() {
 
     this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
 
-    this._vectorTileCreator = new og.utils.VectorTileCreator(this.renderer.handler);
+    this._vectorTileCreator = new og.utils.VectorTileCreator(this);
 
     //Loads first nodes for better viewing if you have started on a lower altitude.
     this._preRender();
