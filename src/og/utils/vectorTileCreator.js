@@ -306,9 +306,6 @@ og.utils.VectorTileCreator.prototype.frame = function () {
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer);
 
-                gl.uniform1f(shu.thicknessOutline._pName, 1);
-                gl.uniform1f(shu.alpha._pName, 1.0);
-
                 //PASS - stroke
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokesBuffer);
                 gl.vertexAttribPointer(sha.thickness._pName, geomHandler._lineStrokesBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -337,7 +334,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.uniform1f(shu.thicknessOutline._pName, 2);
                 gl.uniform1f(shu.alpha._pName, 0.54);
                 gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
+                //
                 //Aliased pass
                 gl.uniform1f(shu.thicknessOutline._pName, 1);
                 gl.uniform1f(shu.alpha._pName, 1.0);

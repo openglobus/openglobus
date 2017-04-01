@@ -91,6 +91,8 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
     if (outIndexes.length > 0) {
         index = outIndexes[outIndexes.length - 5] + 9;
         outIndexes.push(index, index);
+    }else{
+        outIndexes.push(0, 0);        
     }
 
     var t = thickness,
@@ -457,9 +459,6 @@ og.GeometryHandler.prototype.bringToFront = function (geometry) {
     var polyIndexes = this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
     var lineIndexes = this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
 
-    geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
-    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
-
     this._geometries.splice(geometry._handlerIndex, 1);
 
     var g = this._geometries;
@@ -469,6 +468,9 @@ og.GeometryHandler.prototype.bringToFront = function (geometry) {
         gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
         gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
     }
+
+    geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
+    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
 
     geometry._handlerIndex = this._geometries.length;
     this._geometries.push(geometry);
