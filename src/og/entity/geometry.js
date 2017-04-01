@@ -220,6 +220,11 @@ og.Geometry.prototype.setStrokeWidth = function (width) {
     return this;
 };
 
+og.Geometry.prototype.bringToFront = function(){
+    this._handler && this._handler.bringToFront(this);
+    return this;
+};
+
 og.Geometry.prototype.setLineWidth = function (width) {
     this._style.lineWidth = width;
     this._pickingReady = false;

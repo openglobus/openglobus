@@ -245,17 +245,17 @@ my.LineRing.prototype.initialization = function() {
     ];
 
     var colors = [
-        [1, 0, 0, 1],
+        [1, 0, 0, 0.3],
         [0, 1, 0, 1],
-        [1, 1, 1, 1]
+        [1, 1, 1, 0.3]
     ];
 
     var thickness = [8, 4, 12];
 
-    appendLineRingData([pathArr[0], pathArr[1]], colors[0], thickness[0],
+    appendLineRingData([pathArr[2]], colors[2], thickness[2],
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
 
-    appendLineRingData([pathArr[2]], colors[2], thickness[2],
+    appendLineRingData([pathArr[0], pathArr[1]], colors[0], thickness[0],
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
 
     var h = this.renderer.handler;
