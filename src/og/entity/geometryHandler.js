@@ -465,7 +465,7 @@ og.GeometryHandler.prototype.bringToFront = function (geometry) {
     var g = this._geometries;
     for (var i = geometry._handlerIndex; i < g.length; i++) {
         var gi = g[i];
-        gi._handlerIndex -= 1;
+        gi._handlerIndex = i;
         gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
         gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
     }

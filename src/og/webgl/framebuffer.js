@@ -184,6 +184,7 @@ og.webgl.Framebuffer.prototype.activate = function () {
     var c = this.handler.framebufferStack.current().data;
     c && (c._active = false);
     this.handler.framebufferStack.push(this);
+    return this;
 };
 
 /**

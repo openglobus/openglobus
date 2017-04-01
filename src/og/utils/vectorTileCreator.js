@@ -183,49 +183,45 @@ og.utils.VectorTileCreator.prototype.frame = function () {
         var h = this._handler,
             gl = h.gl;
 
-        var f = this._framebuffer;
-
-        var width = this._width,
-            height = this._height;
-
-        var pickingMask,
-            texture;
-
-        f.activate();
-
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+        var hLine = h.shaderPrograms.vectorTileLineRasterization,
+            hPoly = h.shaderPrograms.vectorTilePolygonRasterization;
+
+        var width, height;
+        var pickingMask, texture;
+
         var prevLayerId = -1;
 
-        var startTime = window.performance.now(),
-            deltaTime = 0;
+        var extentParams = new Array(4);
+
+        var f = this._framebuffer.activate();
+
+        var width2 = this._width * 2,
+            height2 = this._height * 2;
+
+        var deltaTime = 0,
+            startTime = window.performance.now();
 
         while (this._queue.length && deltaTime < 0.25) {
-
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
                 if (material.segment.tileZoom <= 2) {
-                    width = this._width * 2;
-                    height = this._height * 2;
+                    width = width2;
+                    height = height2;
                 } else {
                     width = this._width;
                     height = this._height;
                 }
 
-                if (material._updateTexture) {
-                    texture = material._updateTexture;
-                } else {
-                    texture = h.createEmptyTexture_l(width, height);
-                }
+                texture = texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
 
                 f.setSize(width, height);
-
-                var geomHandler = material.layer._geometryHandler;
 
                 f.bindOutputTexture(texture);
 
@@ -233,16 +229,22 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 var extent = material.segment.getExtentMerc();
+                extentParams[0] = extent.southWest.lon;
+                extentParams[1] = extent.southWest.lat;
+                extentParams[2] = 2.0 / extent.getWidth();
+                extentParams[3] = 2.0 / extent.getHeight();
 
-                h.shaderPrograms.vectorTilePolygonRasterization.activate();
-                var sh = h.shaderPrograms.vectorTilePolygonRasterization._program;
+                hPoly.activate();
+                var sh = hPoly._program;
                 var sha = sh.attributes,
                     shu = sh.uniforms;
+
+                var geomHandler = material.layer._geometryHandler;
 
                 //=========================================
                 //Polygon rendering
                 //=========================================
-                gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
+                gl.uniform4fv(shu.extentParams._pName, extentParams);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBufferMerc);
                 gl.vertexAttribPointer(sha.coordinates._pName, geomHandler._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
@@ -251,6 +253,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 gl.vertexAttribPointer(sha.colors._pName, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
+
                 gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                 if (material.layer._pickingEnabled) {
@@ -281,18 +284,14 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                 //=========================================
                 f.bindOutputTexture(texture);
 
-                h.shaderPrograms.vectorTileLineRasterization.activate();
-                sh = h.shaderPrograms.vectorTileLineRasterization._program;
+                hLine.activate();
+                sh = hLine._program;
                 sha = sh.attributes;
                 shu = sh.uniforms;
 
                 gl.uniform2fv(shu.viewport._pName, [width, height]);
 
-                gl.uniform4fv(shu.extentParams._pName, [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()]);
-
-                //color
-                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
-                gl.vertexAttribPointer(sha.color._pName, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.uniform4fv(shu.extentParams._pName, extentParams);
 
                 //vertex
                 var mb = geomHandler._lineVerticesBufferMerc;
@@ -352,19 +351,18 @@ og.utils.VectorTileCreator.prototype.frame = function () {
 
                         gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
                         gl.vertexAttribPointer(sha.color._pName, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
                         gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                     }
                 }
 
                 material.applyTexture(texture, pickingMask);
 
-
             } else {
                 material.isLoading = false;
             }
 
             deltaTime = window.performance.now() - startTime;
+            prevLayerId = material.layer._id;
         }
 
         gl.disable(gl.BLEND);
