@@ -147,8 +147,8 @@ og.Extent.prototype.isInside = function (lonlat) {
 og.Extent.prototype.overlaps = function (e) {
     var sw = this.southWest,
         ne = this.northEast;
-    return sw.lon < e.northEast.lon && ne.lon > e.southWest.lon &&
-           sw.lat < e.northEast.lat && ne.lat > e.southWest.lat;
+    return sw.lon <= e.northEast.lon && ne.lon >= e.southWest.lon &&
+           sw.lat <= e.northEast.lat && ne.lat >= e.southWest.lat;
 };
 
 /**
