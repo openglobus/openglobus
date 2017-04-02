@@ -50,6 +50,11 @@ og.webgl.Framebuffer = function (handler, options) {
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
+    /**
+     * Framebuffer activity. 
+     * @private
+     * @type {boolean}
+     */
     this._active = false;
 
     /**
@@ -174,6 +179,7 @@ og.webgl.Framebuffer.prototype.readPixel = function (nx, ny) {
 /**
  * Activate framebuffer frame to draw.
  * @public
+ * @returns {og.webgl.Framebuffer} Returns Current framebuffer.
  */
 og.webgl.Framebuffer.prototype.activate = function () {
     var gl = this.handler.gl;

@@ -36,7 +36,6 @@ og.webgl.MultiFramebuffer = function (handler, options) {
     /**
      * Render buffer object.
      * @private
-     * @private
      */
     this._rbo = null;
 
@@ -62,9 +61,20 @@ og.webgl.MultiFramebuffer = function (handler, options) {
      */
     this.textures = [];
 
+    /**
+     * Framebuffer activity. 
+     * @private
+     * @type {boolean}
+     */
+    this._active = false;
+
     this._initialize();
 };
 
+/**
+ * Destroy framebuffer instance.
+ * @public
+ */
 og.webgl.MultiFramebuffer.prototype.destroy = function () {
     var gl = this.handler.gl;
     gl.deleteFramebuffer(this._fbo);
@@ -186,6 +196,7 @@ og.webgl.MultiFramebuffer.prototype.isComplete = function () {
 /**
  * Activate framebuffer frame to draw.
  * @public
+ * @returns {og.webgl.MultiFramebuffer} Returns current framebuffer.
  */
 og.webgl.MultiFramebuffer.prototype.activate = function () {
     var h = this.handler,
@@ -193,7 +204,11 @@ og.webgl.MultiFramebuffer.prototype.activate = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.viewport(0, 0, this._width, this._height);
+    this._active = true;
+    var c = this.handler.framebufferStack.current().data;
+    c && (c._active = false);
     h.framebufferStack.push(this);
+    return this;
 };
 
 /**
@@ -205,6 +220,7 @@ og.webgl.MultiFramebuffer.prototype.deactivate = function () {
         gl = h.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, h.canvas.width, h.canvas.height);
+    this._active = false;
 
     var f = h.framebufferStack.popPrev();
     if (f) {

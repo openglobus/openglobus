@@ -69,8 +69,7 @@ og.ShapeHandler.prototype.draw = function () {
 };
 
 og.ShapeHandler.prototype.drawPicking = function () {
-    if (this.pickingEnabled) {
-    }
+
 };
 
 og.ShapeHandler.prototype.clear = function () {

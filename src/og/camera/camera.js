@@ -233,7 +233,7 @@ og.Camera.prototype.getBackward = function () {
 /**
  * Clone camera instance to another one.
  * @public
- * @abstract
+ * @virtual
  * @returns {og.Camera}
  */
 og.Camera.prototype.clone = function () {
@@ -254,7 +254,7 @@ og.Camera.prototype.clone = function () {
 /**
  * Updates camera view space.
  * @public
- * @abstract
+ * @virtual
  */
 og.Camera.prototype.update = function () {
 

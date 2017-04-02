@@ -93,7 +93,7 @@ og.inheritance.extend(og.PlanetCamera, og.Camera);
 /**
  * Clone planet camera instance to another one.
  * @public
- * @abstract
+ * @virtual
  * @returns {og.PlanetCamera}
  */
 og.PlanetCamera.prototype.clone = function () {
@@ -116,7 +116,7 @@ og.PlanetCamera.prototype.clone = function () {
 /**
  * Updates camera view space.
  * @public
- * @abstract
+ * @virtual
  */
 og.PlanetCamera.prototype.update = function () {
 
