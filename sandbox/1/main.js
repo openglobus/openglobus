@@ -181,7 +181,13 @@ function main2() {
             var fi = f[i];
             //for (var j = 0; j < fi.length; j++) {
             forest.add(new og.Entity({
-                'geometry': fi.geometry
+                'geometry': {
+                    'type': fi.geometry.type,
+                    'coordinates': fi.geometry.coordinates,
+                    'style': {
+                        'fillColor': "rgba(255,255,255,0.6)"
+                    }
+                }
             }));
             //}
         }
@@ -204,7 +210,7 @@ function main2() {
     // forest.add(new og.Entity({
     //     'geometry': {
     //         'type': "Polygon",
-    //         'coordinates': [[[0.3, 0.3], [0.3, 2], [2, 2], [2, 0.3]]]
+    //         'coordinates': [[[0, 0], [0, 2], [2, 2], [2, 0]]]
     //     }
     // }));
 
@@ -221,7 +227,7 @@ function main2() {
     //         'coordinates': [[[1, 1], [1.5, 4], [4, 4], [4, 1]]]
     //     }
     // }));
-    
+
     // test_addForest();
 
     // globus.planet.layers[1].events.on("mouseleave", function (e) {
