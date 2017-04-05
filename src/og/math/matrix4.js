@@ -51,6 +51,15 @@ og.math.Matrix4 = function () {
 };
 
 /**
+ * Matrix4 factory.
+ * @static
+ * @returns {og.math.Matrix4}
+ */
+og.math.matrix4 = function () {
+    return new og.math.Matrix4();
+};
+
+/**
  * Returns identity matrix instance.
  * @static
  * @returns {og.math.Matrix4}
@@ -309,13 +318,33 @@ og.math.Matrix4.prototype.translateToPosition = function (v) {
 };
 
 /**
+ * Rotate currrent matrix around the aligned axis and angle.
+ * @public
+ * @param {og.math.Vector3} u - Aligned axis.
+ * @param {number} angle - Aligned axis angle in radians.
+ * @returns {og.math.Matrix4}
+ * @todo: OPTIMIZE: reveal multiplication
+ */
+og.math.Matrix4.prototype.rotate = function (u, angle) {
+    var c = Math.cos(angle),
+        s = Math.sin(angle);
+    var rot = new og.math.Matrix4();
+    var mx = rot._m;
+    mx[0] = c + (1 - c) * u.x * u.x; mx[1] = (1 - c) * u.y * u.x - s * u.z; mx[2] = (1 - c) * u.z * u.x + s * u.y; mx[3] = 0;
+    mx[4] = (1 - c) * u.x * u.y + s * u.z; mx[5] = c + (1 - c) * u.y * u.y; mx[6] = (1 - c) * u.z * u.y - s * u.x; mx[7] = 0;
+    mx[8] = (1 - c) * u.x * u.z - s * u.y; mx[9] = (1 - c) * u.y * u.z + s * u.x; mx[10] = c + (1 - c) * u.z * u.z; mx[11] = 0;
+    mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
+    return this.mul(rot);
+};
+
+/**
  * Sets current rotation matrix around the aligned axis and angle.
  * @public
  * @param {og.math.Vector3} u - Aligned axis.
  * @param {number} angle - Aligned axis angle in radians.
  * @returns {og.math.Matrix4}
  */
-og.math.Matrix4.prototype.rotate = function (u, angle) {
+og.math.Matrix4.prototype.setRotation = function (u, angle) {
     var c = Math.cos(angle),
         s = Math.sin(angle);
     var mx = this._m;

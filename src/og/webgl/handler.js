@@ -116,6 +116,10 @@ og.webgl.Handler = function (id, params) {
     this.transparentTexture = null;
 
     this.framebufferStack = new og.Stack();
+
+    if (params.autoActivate) {
+        this.initialize();
+    }
 };
 
 /**

@@ -17,6 +17,16 @@ og.math.Matrix3 = function () {
 };
 
 /**
+ * Matrix3 factory.
+ * @static
+ * @return {og.math.Matrix3}
+ */
+ 
+og.math.matrix3 = function(){
+    return new og.math.Matrix3();
+};
+
+/**
  * Sets column-major order array matrix.
  * @public
  * @param {Array.<number>} m - Matrix array.

@@ -1,4 +1,4 @@
-[["Attrbution", "Example of setting and changing layer's attribution.", "http://openglobus.org/examples/Attribution/attribution.html"],
+[["Attrbution", "Example of setting and changing layer's attribution.","http://openglobus.org/examples/Attribution/attribution.html"],
 ["Base Layers", "Example of basics of the base layer settings.", "http://openglobus.org/examples/BaseLayers/baseLayers.html"],
 ["Billboards", "Demonstartion displaying billboards moving around the globe.", "http://openglobus.org/examples/Billboards/billboards.html"],
 ["Ground Billboards", "Example rendering billboards moving on the ground surface.", "http://openglobus.org/examples/BillboardsOnTheGround/billboardsOnTheGround.html"],
@@ -12,4 +12,5 @@
 ["Layer Height", "Demonstrates how to show layers on different heights.", "http://openglobus.org/examples/LayerHeight/layerHeight.html"],
 ["Multiple Viewports", "Example of two separated globe scenes on the screen.", "http://openglobus.org/examples/MultipleViewports/multipleViewports.html"],
 ["Tiled WMS Layer", "Example of common WMS layer.", "http://openglobus.org/examples/WMS/wms.html"],
+["Vector Layer", "Example of vector layer.", "http://openglobus.org/examples/VectorLayer/vectorLayer.html"],
 ["...", "to be continued...", "http://openglobus.org/examples"]]

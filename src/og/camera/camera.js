@@ -383,6 +383,7 @@ og.Camera.prototype.set = function (eye, look, up) {
     this._n.normalize();
     this._u.normalize();
     this._v.copy(this._n.cross(this._u));
+    return this;
 };
 
 /**
@@ -496,7 +497,7 @@ og.Camera.prototype.rotateAround = function (angle, isArc, center, up) {
     center = center || og.math.Vector3.ZERO;
     up = up || og.math.Vector3.UP;
 
-    var rot = new og.math.Matrix4().rotate(isArc ? this._v : up, angle);
+    var rot = new og.math.Matrix4().setRotation(isArc ? this._v : up, angle);
     var tr = new og.math.Matrix4().setIdentity().translate(center);
     var ntr = new og.math.Matrix4().setIdentity().translate(center.negateTo());
 

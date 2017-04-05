@@ -355,7 +355,7 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
  * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
  */
 og.Renderer.prototype.addRenderNodes = function (nodesArr) {
-    for (var i = 0; i < nodesArr; i++) {
+    for (var i = 0; i < nodesArr.length; i++) {
         this.addRenderNode(nodesArr[i]);
     }
 };

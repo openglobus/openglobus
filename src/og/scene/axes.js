@@ -6,9 +6,13 @@ goog.require('og.shaderProgram.simple');
 
 og.scene.Axes = function (size) {
     og.inheritance.base(this, "Axes");
-    this.size = size;
+    this.size = size || 10;
     this.axesBuffer = null;
     this.axesColorBuffer = null;
+};
+
+og.scene.axes = function (size) {
+    return new og.scene.Axes(size);
 };
 
 og.inheritance.extend(og.scene.Axes, og.scene.RenderNode);

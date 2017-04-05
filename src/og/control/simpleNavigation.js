@@ -16,10 +16,17 @@ og.control.SimpleNavigation = function (options) {
     options = options || {};
 
     this.camera = null;
-    this.speed = 10;
+    this.speed = options.speed || 1.0;
 };
 
 og.inheritance.extend(og.control.SimpleNavigation, og.control.BaseControl);
+
+/**
+ * Creates simple navigation control instance.
+ */
+og.control.simpleNavigation = function (options) {
+    return new og.control.SimpleNavigation(options);
+};
 
 og.control.SimpleNavigation.prototype.oninit = function () {
     this.camera = this.renderer.activeCamera;
