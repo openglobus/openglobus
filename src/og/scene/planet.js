@@ -337,7 +337,7 @@ og.scene.Planet = function (name, ellipsoid) {
      */
     this._fnRendering = null;
 
-
+    this._memKey = new og.idle.Key();
 
     //events initialization
     this.events.registerNames(og.scene.Planet.EVENT_NAMES);
@@ -1199,9 +1199,18 @@ og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () 
  * @public
  */
 og.scene.Planet.prototype.memClear = function () {
+
+    this.layerLock.lock(this._memKey);
+    this.terrainLock.lock(this._memKey);
+    this.normalMapCreator.lock(this._memKey);
+
     this._quadTree.clearTree();
     this._quadTreeNorth.clearTree();
     this._quadTreeSouth.clearTree();
+
+    this.layerLock.free(this._memKey);
+    this.terrainLock.free(this._memKey);
+    this.normalMapCreator.free(this._memKey);
 };
 
 /**

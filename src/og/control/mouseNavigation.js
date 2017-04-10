@@ -196,6 +196,9 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
 
 og.control.MouseNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
+    this.planet.layerLock.free(this._keyLock);
+    this.planet.terrainLock.free(this._keyLock);
+    this.planet.normalMapCreator.free(this._keyLock);
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonUp = function (e) {
@@ -308,7 +311,7 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
             cam.update();
         }
 
-        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {       
+        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
             this.planet.layerLock.lock(this._keyLock);
             this.planet.terrainLock.lock(this._keyLock);
             this.planet.normalMapCreator.lock(this._keyLock);
