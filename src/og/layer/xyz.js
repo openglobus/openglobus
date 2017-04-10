@@ -170,7 +170,7 @@ og.layer.XYZ.prototype.loadMaterial = function(material) {
         material.texture = seg.planet.transparentTexture;
     }
 
-    if (this._planet.layersActivity) {
+    if (this._planet.layerLock.isFree()) {
         material.isReady = false;
         material.isLoading = true;
         if (material.segment._projection.id === og.proj.EPSG3857.id) {

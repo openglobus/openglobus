@@ -87,13 +87,6 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this.MAX_LOADING_TILES = options.MAX_LOADING_TILES || 4;
 
     /**
-     * Provider activity.
-     * @public
-     * @type {boolean}
-     */
-    this.active = true;
-
-    /**
      * Events handler.
      * @public
      * @type {og.Events}
@@ -177,7 +170,7 @@ og.terrainProvider.TerrainProvider.prototype.setName = function (name) {
  * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
  */
 og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (segment) {
-    if (this.active) {
+    if (this._planet.terrainLock.isFree()) {
         segment.terrainReady = false;
         segment.terrainIsLoading = true;
         if (segment._projection.id == og.proj.EPSG3857.id) {

@@ -3,6 +3,7 @@ goog.provide('og.PlanetCamera');
 goog.require('og.Camera');
 goog.require('og.inheritance');
 goog.require('og.math.Vector3');
+goog.require('og.idle');
 
 /**
  * Planet camera.
@@ -79,6 +80,8 @@ og.PlanetCamera = function (planet, options) {
      * @type {og.LonLat}
      */
     this._insideSegmentPosition = null;
+
+    this._keyLock = new og.idle.Key();
 
     //Camera's flying frames
     this._framesArr = [];
@@ -414,9 +417,11 @@ og.PlanetCamera.prototype.flyLonLat = function (lonlat, look, up, completeCallba
  * @public
  */
 og.PlanetCamera.prototype.stopFlying = function () {
-    this.planet.normalMapCreator.active = true;
-    this.planet.terrainProvider.active = true;
-    this.planet.layersActivity = true;
+
+    this.planet.layerLock.free(this._keyLock);
+    this.planet.terrainLock.free(this._keyLock);
+    this.planet.normalMapCreator.free(this._keyLock);
+
     this._flying = false;
     this._framesArr.length = 0;
     this._framesArr = [];
@@ -481,14 +486,19 @@ og.PlanetCamera.prototype.rotateDown = function (angle) {
 og.PlanetCamera.prototype.prepareFrame = function () {
     if (this._flying) {
         var c = this._numFrames - this._framesCounter;
-        this.planet.normalMapCreator.active = false;
-        if (c % 20) {
+
+        this.planet.layerLock.lock(this._keyLock);
+        this.planet.terrainLock.lock(this._keyLock);
+        this.planet.normalMapCreator.lock(this._keyLock);
+
+        //if (c % 20) {
             //this.planet.terrainProvider.active = false;
-            this.planet.layersActivity = false;
-        } else {
+        //    this.planet.layersActivity = false;
+        //} else {
             //this.planet.terrainProvider.active = true;
-            this.planet.layersActivity = true;
-        }
+        //    this.planet.layersActivity = true;
+        //}
+
         this.eye = this._framesArr[c].eye;
         this._u = this._framesArr[c].u;
         this._v = this._framesArr[c].v;

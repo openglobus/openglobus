@@ -3,6 +3,7 @@ goog.provide('og.utils.VectorTileCreator');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.PlanetSegmentHelper');
 goog.require('og.math');
+goog.require('og.idle');
 
 og.utils.VectorTileCreator = function (planet, maxFrames, width, height) {
 
@@ -179,7 +180,7 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
 };
 
 og.utils.VectorTileCreator.prototype.frame = function () {
-    if (this._planet.layersActivity && this._queue.length) {
+    if (this._planet.layerLock.isFree() && this._queue.length) {
         var h = this._handler,
             gl = h.gl;
 
@@ -207,7 +208,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
         var deltaTime = 0,
             startTime = window.performance.now();
 
-        while (this._queue.length && deltaTime < 0.25) {
+        while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 

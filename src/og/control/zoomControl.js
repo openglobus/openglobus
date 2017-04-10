@@ -3,6 +3,8 @@ goog.provide('og.control.ZoomControl');
 goog.require('og.inheritance');
 goog.require('og.control.BaseControl');
 goog.require('og.control.MouseNavigation');
+goog.require('og.idle');
+
 
 /**
  * Planet zoom buttons control.
@@ -19,6 +21,7 @@ og.control.ZoomControl = function (options) {
     this.stepsCount = 5;
     this.stepsForward = null;
     this.stepIndex = 0;
+    this._keyLock = new og.idle.Key();
 
     this.planet = null;
 };
@@ -62,10 +65,10 @@ og.control.ZoomControl.prototype.oninit = function () {
 og.control.ZoomControl.prototype.zoomIn = function () {
 
     this._deactivate = true;
-    this.planet.normalMapCreator.active = false;
-    this.planet.terrainProvider.active = false;
-    this.planet.layersActivity = false;
-    //this.planet.geoImageTileCreator.active = false;
+
+    this.planet.layerLock.lock(this._keyLock);
+    this.planet.terrainLock.lock(this._keyLock);
+    this.planet.normalMapCreator.lock(this._keyLock);
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -80,10 +83,9 @@ og.control.ZoomControl.prototype.zoomOut = function () {
 
     this._deactivate = true;
 
-    this.planet.normalMapCreator.active = false;
-    this.planet.terrainProvider.active = false;
-    this.planet.layersActivity = false;
-    //this.planet.geoImageTileCreator.active = false;
+    this.planet.layerLock.lock(this._keyLock);
+    this.planet.terrainLock.lock(this._keyLock);
+    this.planet.normalMapCreator.lock.lock(this._keyLock);
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -103,10 +105,11 @@ og.control.ZoomControl.prototype._draw = function (e) {
         cam.update();
     } else if (!cam._flying) {
         if (this._deactivate) {
-            this.planet.normalMapCreator.active = true;
-            this.planet.terrainProvider.active = true;
-            //this.planet.geoImageTileCreator.active = true;
-            this.planet.layersActivity = true;
+
+            this.planet.layerLock.free(this._keyLock);
+            this.planet.terrainLock.free(this._keyLock);
+            this.planet.normalMapCreator.free(this._keyLock);
+
             this._deactivate = false;
         }
     }

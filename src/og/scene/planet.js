@@ -36,6 +36,7 @@ goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.utils.GeoImageCreator');
 goog.require('og.utils.VectorTileCreator');
+goog.require('og.idle');
 
 /**
  * Main class for rendering planet
@@ -196,11 +197,18 @@ og.scene.Planet = function (name, ellipsoid) {
     this._visibleNodesSouth = {};
 
     /**
-     * Layers activity.
+     * Layers activity lock.
      * @public
-     * @type {boolean}
+     * @type {og.idle.Lock}
      */
-    this.layersActivity = true;
+    this.layerLock = new og.idle.Lock();
+
+    /**
+     * Terrain providers activity lock.
+     * @public
+     * @type {og.idle.Lock}
+     */
+    this.terrainLock = new og.idle.Lock();
 
     /**
      * Layer's transparent colors.
@@ -328,6 +336,8 @@ og.scene.Planet = function (name, ellipsoid) {
      * @protected
      */
     this._fnRendering = null;
+
+
 
     //events initialization
     this.events.registerNames(og.scene.Planet.EVENT_NAMES);
@@ -518,6 +528,7 @@ og.scene.Planet.prototype.getHeightFactor = function () {
  */
 og.scene.Planet.prototype.setTerrainProvider = function (terrain) {
     this.terrainProvider = terrain;
+    this.terrainProvider._planet = this;
 };
 
 /**
@@ -828,7 +839,10 @@ og.scene.Planet.prototype.frame = function () {
 
     this.renderer.activeCamera.prepareFrame();
 
-    //print2d("lbTiles", this._vectorTileCreator._queue.length, 100, 100);
+    print2d("lbTiles", this.layerLock._lock, 100, 100);
+    print2d("l1", this.terrainLock._lock, 100, 140);
+    print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
+
     //    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
     //    print2d("t2", "tp: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
     //    print2d("t1", "nmc: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);

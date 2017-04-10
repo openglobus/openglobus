@@ -174,7 +174,7 @@
                 var gradRad = grad * og.math.RADIANS;
                 var rotate = og.math.Matrix4.identity()
                     .rotate(og.math.vector3(0, 1, 0), gradRad)
-                    .rotate(og.math.vector3(1,0,0), gradRad);
+                    .rotate(og.math.vector3(1, 0, 0), gradRad);
                 grad++;
 
                 var modelViewMat = r.activeCamera._viewMatrix.mul(rotate);
@@ -205,7 +205,7 @@
             og.control.simpleNavigation({ 'speed': 0.3 }),
             og.control.showFps()
         ]);
-        renderer.activeCamera.set(og.math.vector3(5,5,5), og.math.Vector3.ZERO).update();
+        renderer.activeCamera.set(og.math.vector3(5, 5, 5), og.math.Vector3.ZERO).update();
         renderer.start();
     </script>
 </body>

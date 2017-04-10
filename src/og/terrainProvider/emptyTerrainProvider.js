@@ -38,6 +38,13 @@ og.terrainProvider.EmptyTerrainProvider = function () {
      * @type {number}
      */
     this.fileGridSize = 2;
+
+    /**
+     * Planet node.
+     * @protected
+     * @type {og.scene.Planet}
+     */
+    this._planet = null;
 };
 
 /**

@@ -9,6 +9,8 @@ goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
 goog.require('og.math.Pixel');
+goog.require('og.idle');
+
 
 /**
  * Touch pad planet camera dragging control.

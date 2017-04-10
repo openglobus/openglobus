@@ -642,7 +642,7 @@ og.layer.Vector.prototype.loadMaterial = function (material) {
         material.texture = seg.planet.transparentTexture;
     }
 
-    if (this._planet.layersActivity) {
+    if (this._planet.layerLock.isFree()) {
         material.isReady = false;
         material.isLoading = true;
         this._planet._vectorTileCreator.add(material);

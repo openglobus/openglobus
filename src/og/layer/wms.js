@@ -91,7 +91,7 @@ og.layer.wms = function (name, options) {
 og.layer.WMS.prototype.loadMaterial = function (material) {
     var seg = material.segment;
     if (!material.isLoading) {
-        if (this._planet.layersActivity) {
+        if (this._planet.layerLock.isFree()) {
             material.isReady = false;
             material.isLoading = true;
             if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {

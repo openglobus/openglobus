@@ -177,20 +177,20 @@ function main2() {
 
     $.getJSON("countries.json", function (data) {
         var f = data.features;
-        // for (var i = 0; i < f.length; i++) {
-        //     var fi = f[i];
-        //     //for (var j = 0; j < fi.length; j++) {
-        //     forest.add(new og.Entity({
-        //         'geometry': {
-        //             'type': fi.geometry.type,
-        //             'coordinates': fi.geometry.coordinates,
-        //             'style': {
-        //                 'fillColor': "rgba(255,255,255,0.6)"
-        //             }
-        //         }
-        //     }));
-        //     //}
-        // }
+        for (var i = 0; i < f.length; i++) {
+            var fi = f[i];
+            //for (var j = 0; j < fi.length; j++) {
+            forest.add(new og.Entity({
+                'geometry': {
+                    'type': fi.geometry.type,
+                    'coordinates': fi.geometry.coordinates,
+                    'style': {
+                        'fillColor': "rgba(255,255,255,0.6)"
+                    }
+                }
+            }));
+            //}
+        }
         test_addForest();
         globus.planet.layers[1].events.on("mouseleave", function (e) {
             e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);

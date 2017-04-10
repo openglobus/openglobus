@@ -8,6 +8,8 @@ goog.require('og.math.Matrix4');
 goog.require('og.math.Quaternion');
 goog.require('og.bv.Sphere');
 goog.require('og.math.Ray');
+goog.require('og.idle');
+
 
 /**
  * Mouse planet camera dragging control.
@@ -34,6 +36,8 @@ og.control.MouseNavigation = function (options) {
     this.stepsCount = 5;
     this.stepsForward = null;
     this.stepIndex = 0;
+
+    this._keyLock = new og.idle.Key();
 };
 
 og.inheritance.extend(og.control.MouseNavigation, og.control.BaseControl);
@@ -152,11 +156,9 @@ og.control.MouseNavigation.prototype.onMouseWheel = function (event) {
 
     this._deactivate = true;
 
-    //TODO: Reoplace to the planet class
-    this.planet.layersActivity = false;
-    this.planet.terrainProvider.active = false;
-    this.planet.normalMapCreator.active = false;
-    //this.planet.geoImageTileCreator.active = false;
+    this.planet.layerLock.lock(this._keyLock);
+    this.planet.terrainLock.lock(this._keyLock);
+    this.planet.normalMapCreator.lock(this._keyLock);
 
     var ms = this.renderer.events.mouseState;
     this.stepIndex = this.stepsCount;
@@ -280,11 +282,10 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
         } else {
             if (this._deactivate) {
                 this._deactivate = false;
-                //TODO:replace to the planet class
-                this.planet.layersActivity = true;
-                this.planet.terrainProvider.active = true;
-                this.planet.normalMapCreator.active = true;
-                //this.planet.geoImageTileCreator.active = true;
+
+                this.planet.layerLock.free(this._keyLock);
+                this.planet.terrainLock.free(this._keyLock);
+                this.planet.normalMapCreator.free(this._keyLock);
             }
         }
 
@@ -307,15 +308,14 @@ og.control.MouseNavigation.prototype.onDraw = function (e) {
             cam.update();
         }
 
-        //TODO:Replace to the planet class
-        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
-            this.planet.layersActivity = false;
-            this.planet.terrainProvider.active = false;
-            this.planet.normalMapCreator.active = false;
+        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {       
+            this.planet.layerLock.lock(this._keyLock);
+            this.planet.terrainLock.lock(this._keyLock);
+            this.planet.normalMapCreator.lock(this._keyLock);
         } else {
-            this.planet.layersActivity = true;
-            this.planet.terrainProvider.active = true;
-            this.planet.normalMapCreator.active = true;
+            this.planet.layerLock.free(this._keyLock);
+            this.planet.terrainLock.free(this._keyLock);
+            this.planet.normalMapCreator.free(this._keyLock);
         }
     }
 };

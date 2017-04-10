@@ -118,7 +118,7 @@ og.layer.CanvasTiles.prototype.loadMaterial = function(material) {
         material.texture = seg.planet.transparentTexture;
     }
 
-    if (this._planet.layersActivity) {
+    if (this._planet.layerLock.isFree()) {
         material.isReady = false;
         material.isLoading = true;
         if (og.layer.CanvasTiles.__requestsCounter >= og.layer.CanvasTiles.MAX_REQUESTS && this._counter) {
