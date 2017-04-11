@@ -51,6 +51,8 @@ og.control.TouchNavigation = function (options) {
     this.earthUp = null;
 
     this.touches = [new Touch(), new Touch()];
+
+    this._keyLock = new og.idle.Key();
 };
 
 og.inheritance.extend(og.control.TouchNavigation, og.control.BaseControl);
@@ -126,6 +128,9 @@ og.control.TouchNavigation.prototype._startTouchOne = function (e) {
 
 og.control.TouchNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
+    this.planet.layerLock.free(this._keyLock);
+    this.planet.terrainLock.free(this._keyLock);
+    this.planet.normalMapCreator.free(this._keyLock);
 };
 
 og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
@@ -259,6 +264,8 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
         return;
 
     var r = this.renderer;
+    var cam = r.activeCamera;
+    var prevEye = cam.eye.clone();
 
     if (this.stepIndex) {
         r.controlsBag.scaleRot = 1;
@@ -289,5 +296,15 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
         cam._u = rot.mulVec3(cam._u);
         cam._n = rot.mulVec3(cam._n);
         cam.update();
+    }
+
+    if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
+        this.planet.layerLock.lock(this._keyLock);
+        this.planet.terrainLock.lock(this._keyLock);
+        this.planet.normalMapCreator.lock(this._keyLock);
+    } else {
+        this.planet.layerLock.free(this._keyLock);
+        this.planet.terrainLock.free(this._keyLock);
+        this.planet.normalMapCreator.free(this._keyLock);
     }
 };

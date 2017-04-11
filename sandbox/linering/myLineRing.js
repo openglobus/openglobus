@@ -37,7 +37,7 @@ function test0(order) {
     if (ccw == 0.0) ccw = 1.0;
 }
 
-my.LineRing = function(name) {
+my.LineRing = function (name) {
     og.inheritance.base(this, name);
     this.thickness = 5;
 
@@ -95,8 +95,8 @@ function appendLineRingData(pathArr, color, thickness, outVertices, outOrders, o
     }
 };
 
-my.LineRing.prototype.initialization = function() {
-    this.renderer.events.on("charkeypress", og.input.KEY_X, function() {
+my.LineRing.prototype.initialization = function () {
+    this.renderer.events.on("charkeypress", og.input.KEY_X, function () {
         if (this._drawType == this.renderer.handler.gl.LINE_STRIP) {
             this._drawType = this.renderer.handler.gl.TRIANGLE_STRIP;
         } else {
@@ -153,6 +153,7 @@ my.LineRing.prototype.initialization = function() {
                 varying vec4 vColor;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
+                    if(start1 == start2) return start1;\
                     vec2 dir = end2 - start2;\
                     vec2 perp = vec2(-dir.y, dir.x);\
                     float d2 = dot(perp, start2);\
@@ -192,14 +193,14 @@ my.LineRing.prototype.initialization = function() {
                     \
                     vec2 m;\
                     float dotNP = dot(dirNext, dirPrev);\
-                    if(abs(dotNP) != 1.0){\
+                    /*if(abs(dotNP) != 1.0){*/\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
-                    }else{\
-                        m = sCurrent + normalPrev * d;\
-                    }\
+                    /*} else {*/\
+                        /*m = sCurrent + normalPrev * d;*/\
+                    /*}*/\
                     \
-                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
+                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0){\
                         float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
                         float occw = order * ccw;\
                         if(occw == -1.0){\
@@ -211,12 +212,13 @@ my.LineRing.prototype.initialization = function() {
                         }else if(occw == 2.0){\
                             m = sCurrent + normalPrev * d;\
                         }\
-                    }else{\
+                    } else {\
                         float maxDist = max(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
                         if(distance(sCurrent, m) > maxDist){\
                             m = sCurrent + maxDist * normalize(m - sCurrent);\
                         }\
                     }\
+                    if( dotNP == -1.0 ){  sCurrent + 2.0 * normalize(m - sCurrent); }\
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
@@ -229,33 +231,23 @@ my.LineRing.prototype.initialization = function() {
 
     var pathArr = [
         [
-            [20, 0],
-            [90, 0],
-            [30, 50]
-        ],
-        [
-            [-10, -5],
-            [-12, -35]
-        ],
-        [
-            [0 - 20, -20],
-            [-20 - 20, 10],
-            [50, 50]
+            [0, 0],
+            [10, 0],
+            //[20, 0],
+            [40, 0],
+            [40, -50]
         ]
     ];
 
     var colors = [
-        [1, 0, 0, 0.3],
+        [0, 1, 0, 1],
         [0, 1, 0, 1],
         [1, 1, 1, 0.3]
     ];
 
     var thickness = [8, 4, 12];
 
-    appendLineRingData([pathArr[2]], colors[2], thickness[2],
-        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
-
-    appendLineRingData([pathArr[0], pathArr[1]], colors[0], thickness[0],
+    appendLineRingData([pathArr[0]], colors[0], thickness[0],
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
 
     var h = this.renderer.handler;
@@ -267,7 +259,7 @@ my.LineRing.prototype.initialization = function() {
     this._lineColorsBuffer = h.createArrayBuffer(new Float32Array(this._lineColors), 4, this._lineColors.length / 4);
 };
 
-my.LineRing.prototype.frame = function() {
+my.LineRing.prototype.frame = function () {
 
     var rn = this;
     var r = rn.renderer;
@@ -309,12 +301,12 @@ my.LineRing.prototype.frame = function() {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._lineOrdersBuffer);
     gl.vertexAttribPointer(sha.order._pName, this._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-    //
-    //Antialiase pass
-    gl.uniform1f(shu.thicknessOutline._pName, 2);
-    gl.uniform1f(shu.alpha._pName, 0.54);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
-    gl.drawElements(this._drawType, this._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    // //
+    // //Antialiase pass
+    // gl.uniform1f(shu.thicknessOutline._pName, 2);
+    // gl.uniform1f(shu.alpha._pName, 0.54);
+     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
+    // gl.drawElements(this._drawType, this._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     //
     //Aliased pass

@@ -68,6 +68,8 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                 varying vec4 vColor;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
+                    if(start1 == start2) return start1;\
+                    \
                     vec2 dir = end2 - start2;\
                     vec2 perp = vec2(-dir.y, dir.x);\
                     float d2 = dot(perp, start2);\
@@ -107,12 +109,9 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     \
                     vec2 m;\
                     float dotNP = dot(dirNext, dirPrev);\
-                    if(abs(dotNP) != 1.0){\
-                        m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
+                    \
+                    m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
-                    }else{\
-                        m = sCurrent + normalPrev * d;\
-                    }\
                     \
                     if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
                         float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
