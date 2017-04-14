@@ -144,9 +144,12 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
 
 /**
  */
-og.Geometry.prototype.setGeometry = function (geometryObj) {
-    this._type = og.Geometry.getType(geometryObj.type || "Point");
-    this._extent = og.Geometry.getExtent(geometryObj, this._coordinates);
+og.Geometry.prototype.setGeometry = function (geoJson) {
+    var h = this._handler;
+    this.remove();
+    this._type = og.Geometry.getType(geoJson.type || "Point");
+    this._extent = og.Geometry.getExtent(geoJson, this._coordinates);
+    h.add(this);
     return this;
 };
 
@@ -220,7 +223,7 @@ og.Geometry.prototype.setStrokeWidth = function (width) {
     return this;
 };
 
-og.Geometry.prototype.bringToFront = function(){
+og.Geometry.prototype.bringToFront = function () {
     this._handler && this._handler.bringToFront(this);
     return this;
 };
@@ -249,7 +252,6 @@ og.Geometry.prototype.setVisibility = function (visibility) {
 };
 
 og.Geometry.prototype.remove = function () {
-    this._pickingReady = false;
     this._handler && this._handler.remove(this);
 };
 

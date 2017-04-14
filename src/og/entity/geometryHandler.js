@@ -15,15 +15,16 @@ og.GeometryHandler = function (layer) {
     this._updatedGeometryArr = [];
     this._updatedGeometry = {};
 
+    this._removeGeometryExtentArr = [];
+    this._removeGeometryExtents = {};
+
     //Polygon arrays
-    // this._polyVerticesLonLat = [];
     this._polyVerticesMerc = [];
     this._polyColors = [];
     this._polyPickingColors = [];
     this._polyIndexes = [];
 
     //Line arrays
-    //this._lineVerticesLonLat = [];
     this._lineVerticesMerc = [];
     this._lineOrders = [];
     this._lineIndexes = [];
@@ -35,13 +36,11 @@ og.GeometryHandler = function (layer) {
     this._lineThicknessMask = [];
 
     //Buffers
-    //this._polyVerticesBufferLonLat = null;
     this._polyVerticesBufferMerc = null;
     this._polyColorsBuffer = null;
     this._polyPickingColorsBuffer = null;
     this._polyIndexesBuffer = null;
 
-    //this._lineVerticesBufferLonLat = null;
     this._lineVerticesBufferMerc = null;
     this._lineColorsBuffer = null;
     this._linePickingColorsBuffer = null;
@@ -179,7 +178,6 @@ og.GeometryHandler.prototype.add = function (geometry) {
             }
 
             var data = og.utils.earcut.flatten(ci);
-
             var indexes = og.utils.earcut(data.vertices, data.holes, 2);
 
             geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
@@ -232,7 +230,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._lineColorsHandlerIndex = this._lineColors.length;
             geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-            for (var i = 0; i < coordinates.length; i++) {                
+            for (var i = 0; i < coordinates.length; i++) {
                 var cci = coordinates[i];
                 var ci = [];
                 for (var j = 0; j < cci.length; j++) {
@@ -288,6 +286,84 @@ og.GeometryHandler.prototype.add = function (geometry) {
     }
 };
 
+og.GeometryHandler.prototype.remove = function (geometry) {
+    var index = geometry._handlerIndex;
+    if (index !== -1) {
+        this._geometries.splice(index, 1);
+
+        //polygon
+        //this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+        this._polyVerticesMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+        this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
+        this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
+        this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
+        var di = geometry._polyVerticesLength * 0.5;
+        for (var i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
+            this._polyIndexes[i] -= di;
+        }
+
+        //line
+        //this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+        this._lineVerticesMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+        this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
+        this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
+        this._linePickingColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
+        this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
+        this._lineThickness.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
+        this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
+        this._lineThicknessMask.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
+        this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
+        di = geometry._lineVerticesLength * 0.5;
+        for (var i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
+            this._lineIndexes[i] -= di;
+        }
+
+        //reindex
+        var g = this._geometries;
+        for (i = index; i < g.length; i++) {
+            var gi = g[i];
+            gi._handlerIndex = i;
+            gi._polyVerticesHandlerIndex -= geometry._polyVerticesLength;
+            gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
+
+            gi._lineVerticesHandlerIndex -= geometry._lineVerticesLength;
+            gi._lineOrdersHandlerIndex -= geometry._lineOrdersLength;
+            gi._lineColorsHandlerIndex -= geometry._lineColorsLength;
+            gi._lineThicknessHandlerIndex -= geometry._lineThicknessLength;
+            gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
+        }
+
+        geometry._pickingReady = false;
+
+        geometry._handler = null;
+        geometry._handlerIndex = -1;
+
+        geometry._polyVerticesLength = -1;
+        geometry._polyIndexesLength = -1;
+        geometry._polyVerticesHandlerIndex = -1;
+        geometry._polyIndexesHandlerIndex = -1;
+
+        geometry._lineVerticesLength = -1;
+        geometry._lineOrdersLength = -1;
+        geometry._lineIndexesLength = -1;
+        geometry._lineColorsLength = -1;
+        geometry._lineThicknessLength = -1;
+        geometry._lineVerticesHandlerIndex = -1;
+        geometry._lineOrdersHandlerIndex = -1;
+        geometry._lineIndexesHandlerIndex = -1;
+        geometry._lineThicknessHandlerIndex = -1;
+        geometry._lineColorsHandlerIndex = -1;
+
+        // !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+        // this._updatedGeometry[geometry._id] = true;
+
+        !this._removeGeometryExtents[geometry._id] && this._removeGeometryExtentArr.push(geometry.getExtent());
+        this._removeGeometryExtents[geometry._id] = true;
+
+        this.refresh();
+    }
+};
+
 og.GeometryHandler.prototype._refreshRecursevely = function (geometry, treeNode) {
     var lid = this._layer._id;
     for (var i = 0; i < treeNode.nodes.length; i++) {
@@ -310,9 +386,34 @@ og.GeometryHandler.prototype._refreshRecursevely = function (geometry, treeNode)
     }
 };
 
+og.GeometryHandler.prototype._refreshRecursevelyExt = function (extent, treeNode) {
+    var lid = this._layer._id;
+    for (var i = 0; i < treeNode.nodes.length; i++) {
+        var ni = treeNode.nodes[i];
+        if (extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+            this._refreshRecursevelyExt(extent, ni);
+            var m = ni.planetSegment.materials[lid];
+            if (m && m.isReady) {
+                m.layer.clearMaterial(m);
+                // m.pickingReady = false;
+                // m.isReady = false;
+                // m._updateTexture = m.texture;
+                // m._updatePickingMask = m.pickingMask;
+            }
+        }
+    }
+};
+
 og.GeometryHandler.prototype._refreshPlanetNode = function (treeNode) {
+    var i = 0;
+
+    var e = this._removeGeometryExtentArr;
+    for (i = 0; i < e.length; i++) {
+        this._refreshRecursevelyExt(e[i], treeNode);
+    }
+
     var g = this._updatedGeometryArr;
-    for (var i = 0; i < g.length; i++) {
+    for (i = 0; i < g.length; i++) {
         this._refreshRecursevely(g[i], treeNode);
     }
 };
@@ -327,6 +428,10 @@ og.GeometryHandler.prototype._updatePlanet = function () {
     this._updatedGeometryArr.length = 0;
     this._updatedGeometryArr = [];
     this._updatedGeometry = {};
+
+    this._removeGeometryExtentArr.length = 0;
+    this._removeGeometryExtentArr = [];
+    this._removeGeometryExtents = {};
 };
 
 og.GeometryHandler.prototype.refresh = function () {
@@ -420,24 +525,6 @@ og.GeometryHandler.prototype.setLineThicknessArr = function (geometry, width) {
     this._updatedGeometry[geometry._id] = true;
 };
 
-og.GeometryHandler.prototype.setPolyVerticesArr = function (geometry, vertices, indexes) {
-    var index = geometry._handlerIndex;
-    if (vertices.length === geometry._polyVerticesLength && indexes.length === geometry._polyIndexesLength) {
-        //
-        //...
-        //
-    } else {
-        //
-        //...
-        //
-    }
-    this._changedBuffers[og.GeometryHandler.POLYVERTICES_BUFFER] = true;
-    this._changedBuffers[og.GeometryHandler.LINEVERTICES_BUFFER] = true;
-
-    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-    this._updatedGeometry[geometry._id] = true;
-};
-
 og.GeometryHandler.prototype.bringToFront = function (geometry) {
 
     var polyIndexes = this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
@@ -471,9 +558,7 @@ og.GeometryHandler.prototype.bringToFront = function (geometry) {
 
 og.GeometryHandler.prototype.createPolyVerticesBuffer = function () {
     var h = this._handler;
-    //h.gl.deleteBuffer(this._polyVerticesBufferLonLat);
     h.gl.deleteBuffer(this._polyVerticesBufferMerc);
-    //this._polyVerticesBufferLonLat = h.createArrayBuffer(new Float32Array(this._polyVerticesLonLat), 2, this._polyVerticesLonLat.length / 2);
     this._polyVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._polyVerticesMerc), 2, this._polyVerticesMerc.length / 2);
 };
 
@@ -497,9 +582,7 @@ og.GeometryHandler.prototype.createPolyPickingColorsBuffer = function () {
 
 og.GeometryHandler.prototype.createLineVerticesBuffer = function () {
     var h = this._handler;
-    //h.gl.deleteBuffer(this._lineVerticesBufferLonLat);
     h.gl.deleteBuffer(this._lineVerticesBufferMerc);
-    //this._lineVerticesBufferLonLat = h.createArrayBuffer(new Float32Array(this._lineVerticesLonLat), 2, this._lineVerticesLonLat.length / 2);
     this._lineVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesMerc), 2, this._lineVerticesMerc.length / 2);
 };
 
@@ -546,76 +629,4 @@ og.GeometryHandler.prototype.createLineStrokeColorsBuffer = function () {
     var h = this._handler;
     h.gl.deleteBuffer(this._lineStrokeColorsBuffer);
     this._lineStrokeColorsBuffer = h.createArrayBuffer(new Float32Array(this._lineStrokeColors), 4, this._lineStrokeColors.length / 4);
-};
-
-og.GeometryHandler.prototype.remove = function (geometry) {
-    var index = geometry._handlerIndex;
-    if (index !== -1) {
-        this._geometries.splice(index, 1);
-
-        //polygon
-        //this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-        this._polyVerticesMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-        this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
-        this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
-        this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
-        var di = geometry._polyVerticesLength * 0.5;
-        for (var i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
-            this._polyIndexes[i] -= di;
-        }
-
-        //line
-        //this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-        this._lineVerticesMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-        this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
-        this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-        this._linePickingColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-        this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-        this._lineThickness.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-        this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-        this._lineThicknessMask.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-        this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
-        di = geometry._lineVerticesLength * 0.5;
-        for (var i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
-            this._lineIndexes[i] -= di;
-        }
-
-        //reindex
-        var g = this._geometries;
-        for (i = index; i < g.length; i++) {
-            var gi = g[i];
-            gi._handlerIndex = i;
-            gi._polyVerticesHandlerIndex -= geometry._polyVerticesLength;
-            gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
-
-            gi._lineVerticesHandlerIndex -= geometry._lineVerticesLength;
-            gi._lineOrdersHandlerIndex -= geometry._lineOrdersLength;
-            gi._lineColorsHandlerIndex -= geometry._lineColorsLength;
-            gi._lineThicknessHandlerIndex -= geometry._lineThicknessLength;
-            gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
-        }
-
-        geometry._handler = null;
-        geometry._handlerIndex = -1;
-
-        geometry._polyVerticesLength = -1;
-        geometry._polyIndexesLength = -1;
-        geometry._polyVerticesHandlerIndex = -1;
-        geometry._polyIndexesHandlerIndex = -1;
-
-        geometry._lineVerticesLength = -1;
-        geometry._lineOrdersLength = -1;
-        geometry._lineIndexesLength = -1;
-        geometry._lineColorsLength = -1;
-        geometry._lineThicknessLength = -1;
-        geometry._lineVerticesHandlerIndex = -1;
-        geometry._lineOrdersHandlerIndex = -1;
-        geometry._lineIndexesHandlerIndex = -1;
-        geometry._lineThicknessHandlerIndex = -1;
-        geometry._lineColorsHandlerIndex = -1;
-
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
-        this.refresh();
-    }
 };
