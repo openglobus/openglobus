@@ -84,7 +84,8 @@ og.GeometryHandler.POLYPICKINGCOLORS_BUFFER = 10;
 og.GeometryHandler.LINEPICKINGCOLORS_BUFFER = 11;
 
 og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, thickness, strokeColor, strokeSize,
-    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, outThicknessMask) {
+    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, outThicknessMask, 
+    outVertices2) {
     var index = 0;
 
     if (outIndexes.length > 0) {
@@ -106,6 +107,7 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         var last = path[path.length - 1];
         var prev = last;
         outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         outOrders.push(1, -1, 2, -2);
 
         outThickness.push(t, t, t, t);
@@ -118,6 +120,7 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
@@ -130,6 +133,7 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
 
         var first = path[0];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         lon = og.mercator.forward_lon(first[0]);
         lat = og.mercator.forward_lat(first[1]);
         outOrders.push(1, -1, 2, -2);
@@ -167,6 +171,9 @@ og.GeometryHandler.prototype.add = function (geometry) {
 
         var pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
+        geometry._polyVerticesMerc = [];
+        geometry._lineVerticesMerc = [];
+
         if (geometry._type === og.Geometry.POLYGON) {
             var coordinates = geometry._coordinates;
             var ci = [];
@@ -180,6 +187,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             var data = og.utils.earcut.flatten(ci);
             var indexes = og.utils.earcut(data.vertices, data.holes, 2);
 
+            geometry._polyVerticesMerc = data.vertices;
             geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
@@ -190,7 +198,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             }
 
             var color = geometry._style.fillColor;
-            for (var i = 0; i < data.vertices.length / 2; i++) {
+            for (var i = 0; i < data.vertices.length * 0.5; i++) {
                 this._polyColors.push(color.x, color.y, color.z, color.w);
                 this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
             }
@@ -209,7 +217,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                 geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
                 this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
+                this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask, geometry._lineVerticesMerc);
 
             geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
@@ -252,9 +260,10 @@ og.GeometryHandler.prototype.add = function (geometry) {
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
                     this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask);
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask, geometry._lineVerticesMerc);
             }
 
+            geometry._polyVerticesMerc = vertices;
             geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
             geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
@@ -279,6 +288,9 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
             geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
         }
+
+        //Refresh visibility
+        this.setGeometryVisibility(geometry);
 
         !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
         this._updatedGeometry[geometry._id] = true;
@@ -338,11 +350,13 @@ og.GeometryHandler.prototype.remove = function (geometry) {
         geometry._handler = null;
         geometry._handlerIndex = -1;
 
+        geometry._polyVerticesMerc = [];
         geometry._polyVerticesLength = -1;
         geometry._polyIndexesLength = -1;
         geometry._polyVerticesHandlerIndex = -1;
         geometry._polyIndexesHandlerIndex = -1;
 
+        geometry._lineVerticesMerc = [];
         geometry._lineVerticesLength = -1;
         geometry._lineOrdersLength = -1;
         geometry._lineIndexesLength = -1;
@@ -353,9 +367,6 @@ og.GeometryHandler.prototype.remove = function (geometry) {
         geometry._lineIndexesHandlerIndex = -1;
         geometry._lineThicknessHandlerIndex = -1;
         geometry._lineColorsHandlerIndex = -1;
-
-        // !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        // this._updatedGeometry[geometry._id] = true;
 
         !this._removeGeometryExtents[geometry._id] && this._removeGeometryExtentArr.push(geometry.getExtent());
         this._removeGeometryExtents[geometry._id] = true;
@@ -454,6 +465,30 @@ og.GeometryHandler.prototype.update = function () {
         }
         needUpdate && this._updatePlanet();
     }
+};
+
+og.GeometryHandler.prototype.setGeometryVisibility = function (geometry) {
+    var v = geometry._visibility ? 1.0 : 0.0;
+
+    var a = this._polyVerticesMerc;
+    var l = geometry._polyVerticesHandlerIndex + geometry._polyVerticesLength;
+    var ind = geometry._polyVerticesHandlerIndex;
+    for (var i = 0; i < l; i++) {
+        a[ind + i] = geometry._polyVerticesMerc[ind + i] * v;
+    }
+
+    a = this._lineVerticesMerc;
+    l = geometry._lineVerticesHandlerIndex + geometry._lineVerticesLength;
+    ind = geometry._lineVerticesHandlerIndex;
+    for (var i = 0; i < l; i++) {
+        a[ind + i] = geometry._lineVerticesMerc[ind + i] * v;
+    }
+
+    this._changedBuffers[og.GeometryHandler.POLYVERTICES_BUFFER] = true;
+    this._changedBuffers[og.GeometryHandler.LINEVERTICES_BUFFER] = true;
+
+    !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
+    this._updatedGeometry[geometry._id] = true;
 };
 
 og.GeometryHandler.prototype.setPolyColorArr = function (geometry, color) {

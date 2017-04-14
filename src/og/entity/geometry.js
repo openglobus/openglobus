@@ -22,12 +22,14 @@ og.Geometry = function (options) {
     this._handlerIndex = -1;
 
     //Polygon
+    this._polyVerticesMerc = [];
     this._polyVerticesLength = -1;
     this._polyIndexesLength = -1;
     this._polyVerticesHandlerIndex = -1;
     this._polyIndexesHandlerIndex = -1;
 
     //Line(Linestring and polygon's stroke(s)
+    this._lineVerticesMerc = [];
     this._lineVerticesLength = -1;
     this._lineOrdersLength = -1;
     this._lineIndexesLength = -1;
@@ -247,8 +249,12 @@ og.Geometry.prototype.setFillOpacity = function (opacity) {
 
 og.Geometry.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
-    //...
+    this._handler && this._handler.setGeometryVisibility(this);
     return this;
+};
+
+og.Geometry.prototype.getVisibility = function () {
+    return this._visibility;
 };
 
 og.Geometry.prototype.remove = function () {
