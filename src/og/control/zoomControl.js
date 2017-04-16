@@ -85,7 +85,7 @@ og.control.ZoomControl.prototype.zoomOut = function () {
 
     this.planet.layerLock.lock(this._keyLock);
     this.planet.terrainLock.lock(this._keyLock);
-    this.planet.normalMapCreator.lock.lock(this._keyLock);
+    this.planet.normalMapCreator.lock(this._keyLock);
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,

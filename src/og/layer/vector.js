@@ -191,17 +191,19 @@ og.layer.Vector.prototype.getEntities = function () {
  * @private
  */
 og.layer.Vector.prototype._fitExtent = function (entity) {
-    if (entity._lonlat.lon > this._extent.northEast.lon) {
-        this._extent.northEast.lon = entity._lonlat.lon;
+    var ee = entity.getExtent(),
+        e = this._extent;
+    if (ee.southWest.lon < e.southWest.lon) {
+        e.southWest.lon = ee.southWest.lon;
     }
-    if (entity._lonlat.lat > this._extent.northEast.lat) {
-        this._extent.northEast.lat = entity._lonlat.lat;
+    if (ee.southWest.lat < e.southWest.lat) {
+        e.southWest.lat = ee.southWest.lat;
     }
-    if (entity._lonlat.lon < this._extent.southWest.lon) {
-        this._extent.southWest.lon = entity._lonlat.lon;
+    if (ee.northEast.lon > e.northEast.lon) {
+        e.northEast.lon = ee.northEast.lon;
     }
-    if (entity._lonlat.lat < this._extent.southWest.lat) {
-        this._extent.southWest.lat = entity._lonlat.lat;
+    if (ee.northEast.lat > e.northEast.lat) {
+        e.northEast.lat = ee.northEast.lat;
     }
     this.setExtent(this._extent);
 };
@@ -219,6 +221,9 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
         entity._vectorLayerIndex = this._entities.length;
         this._entities.push(entity);
 
+
+        this._fitExtent(entity);
+
         //
         //...pointCloud, shape, model etc.
         //
@@ -234,14 +239,11 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
             }
         }
 
-
         if (entity.billboard || entity.label) {
             if (this._planet) {
                 if (!entity._lonlat) {
                     entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
-
-                this._fitExtent(entity);
 
                 //poles trees
                 if (entity._lonlat.lat > og.mercator.MAX_LAT) {
