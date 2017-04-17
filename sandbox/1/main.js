@@ -177,20 +177,20 @@ function main2() {
 
     $.getJSON("countries.json", function (data) {
         var f = data.features;
-        for (var i = 0; i < f.length; i++) {
-            var fi = f[i];
-            //for (var j = 0; j < fi.length; j++) {
-            forest.add(new og.Entity({
-                'geometry': {
-                    'type': fi.geometry.type,
-                    'coordinates': fi.geometry.coordinates,
-                    'style': {
-                        'fillColor': "rgba(255,255,255,0.6)"
-                    }
-                }
-            }, fi.properties));
-            //}
-        }
+        // for (var i = 0; i < f.length; i++) {
+        //     var fi = f[i];
+        //     //for (var j = 0; j < fi.length; j++) {
+        //     forest.add(new og.Entity({
+        //         'geometry': {
+        //             'type': fi.geometry.type,
+        //             'coordinates': fi.geometry.coordinates,
+        //             'style': {
+        //                 'fillColor': "rgba(255,255,255,0.6)"
+        //             }
+        //         }
+        //     }, fi.properties));
+        //     //}
+        // }
         test_addForest();
         globus.planet.layers[1].events.on("mouseleave", function (e) {
             e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
@@ -261,3 +261,34 @@ function test_addEntity() {
 function test_addForest() {
     forest.addTo(globus.planet);
 };
+
+
+/*
+<div style="
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 3px;
+    background-color: rgba(18, 133, 214, 0.32);
+    z-index: 1;
+    transition: width 0.20s;
+"><div style="
+    width: 5px;
+    height: 40px;
+    background-color: white;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    margin-right: -5px;
+    z-index: 0;
+    right: 0px;
+    float: right;
+"></div><div style="
+    width: 270px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+">Hello world</div></div>
+*/
