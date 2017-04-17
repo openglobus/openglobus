@@ -471,17 +471,17 @@ og.GeometryHandler.prototype.setGeometryVisibility = function (geometry) {
     var v = geometry._visibility ? 1.0 : 0.0;
 
     var a = this._polyVerticesMerc;
-    var l = geometry._polyVerticesHandlerIndex + geometry._polyVerticesLength;
+    var l = geometry._polyVerticesLength;
     var ind = geometry._polyVerticesHandlerIndex;
     for (var i = 0; i < l; i++) {
-        a[ind + i] = geometry._polyVerticesMerc[ind + i] * v;
+        a[ind + i] = geometry._polyVerticesMerc[i] * v;
     }
 
     a = this._lineVerticesMerc;
-    l = geometry._lineVerticesHandlerIndex + geometry._lineVerticesLength;
+    l = geometry._lineVerticesLength;
     ind = geometry._lineVerticesHandlerIndex;
-    for (var i = 0; i < l; i++) {
-        a[ind + i] = geometry._lineVerticesMerc[ind + i] * v;
+    for (i = 0; i < l; i++) {
+        a[ind + i] = geometry._lineVerticesMerc[i] * v;
     }
 
     this._changedBuffers[og.GeometryHandler.POLYVERTICES_BUFFER] = true;

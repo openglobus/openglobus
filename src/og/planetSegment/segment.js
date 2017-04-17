@@ -958,9 +958,9 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 1);
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE * 2 + 1);
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE * 2 + 2);
 
         var currHeight, li;
         if (layerSlice) {
@@ -975,8 +975,8 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
 
         var notEmpty = false;
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
+        //gl.activeTexture(gl.TEXTURE0);
+        //gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
 
         while (li) {
             if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
@@ -1043,9 +1043,9 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
+                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 3);
                 gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE * 2 + 2);
+                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE * 2 + 3);
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
@@ -1106,9 +1106,9 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
         gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE);
 
         var currHeight, li;
         if (layerSlice) {
@@ -1192,9 +1192,9 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
                 gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 2);
+                gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 3);
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
