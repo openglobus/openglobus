@@ -150,16 +150,16 @@
 
         var handler = globus.renderer.handler;
 
-        //Handler context must be one for geoTex framebuffer source and planet renderer.
+        //Framebuffer that we want to render.
         var frameBuffer = new og.webgl.Framebuffer(handler, {
             'width': 1024,
             'height': 1024
         });
 
-        //Bing framebuffer texture as geoImage texture.
+        //Bind framebuffer texture to the geoTexture2d layer.
         geoTex.bindTexture(frameBuffer.texture);
 
-        //Attach vector field shader rendering
+        //Attach vector field shader.
         handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorMap", {
             uniforms: {
                 'iGlobalTime': { type: og.shaderProgram.types.FLOAT },
@@ -175,8 +175,9 @@
         var animCounter = 0,
             vertBuffer = handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
-        //Rendering vector field
         globus.renderer.events.on("draw", function (r) {
+
+            //Rendering vector field to geoTexture2d buffer
             frameBuffer.activate();
             var gl = r.handler.gl;
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -190,6 +191,7 @@
             }).drawArray(r.handler.gl.TRIANGLE_STRIP, vertBuffer.numItems);
 
             frameBuffer.deactivate();
+            
         });
 
         globus.planet.flyExtent(geoTex.getExtent());

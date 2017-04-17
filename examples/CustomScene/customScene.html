@@ -8,8 +8,17 @@
 
 <body>
     <canvas id="myCanvas" style="width: 100%; height: 70%; display: block"></canvas>
-    <div>Example from <a href="http://learningwebgl.com/blog/?p=507">http://learningwebgl.com/</a></div>
+    <div>
+        <div style="float:left; padding: 15px;"><input type="checkbox" id="cubeScene" checked>MyScene scene activity</div>
+        <div style="float:left; padding: 15px;"><input type="checkbox" id="axisScene" checked>Axis scene activity</div>
+    </div>
     <script>
+        document.getElementById("cubeScene").onchange = function () {
+            renderer.renderNodes.MyScene.setActive(this.checked);
+        };
+        document.getElementById("axisScene").onchange = function () {
+            renderer.renderNodes.Axes.setActive(this.checked);
+        };
         //Define custom control class
         var MyScene = function () {
             og.inheritance.base(this, "MyScene");
@@ -159,6 +168,7 @@
 
             var grad = 0;
             this.frame = function () {
+
                 var r = this.renderer;
                 var sh = r.handler.shaderPrograms.myShader;
                 var p = sh._program;
@@ -166,11 +176,7 @@
 
                 sh.activate();
 
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, this.neheTexture);
-                gl.uniform1i(p.uniforms.uSampler._pName, 0);
-
-
+                //Cube rotation
                 var gradRad = grad * og.math.RADIANS;
                 var rotate = og.math.Matrix4.identity()
                     .rotate(og.math.vector3(0, 1, 0), gradRad)
@@ -178,6 +184,11 @@
                 grad++;
 
                 var modelViewMat = r.activeCamera._viewMatrix.mul(rotate);
+
+                //Sets shader's data
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, this.neheTexture);
+                gl.uniform1i(p.uniforms.uSampler._pName, 0);
 
                 gl.uniformMatrix4fv(p.uniforms.uMVMatrix._pName, false, modelViewMat._m);
                 gl.uniformMatrix4fv(p.uniforms.uPMatrix._pName, false, r.activeCamera._projectionMatrix._m);
