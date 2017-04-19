@@ -851,7 +851,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];
         tpo = ts.pickingObject = co;
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
             tpe.dispatch(tpe.touchstart, ts);
         }
         ce(this.touchstart, ts);
@@ -860,7 +860,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.doubleTouch) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
             tpe.dispatch(tpe.doubletouch, ts);
         }
         ce(this.doubletouch, ts);
@@ -869,7 +869,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.touchEnd) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
             tpe.dispatch(tpe.touchend, ts);
         }
         ce(this.touchend, ts);
@@ -880,7 +880,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.moving) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
             tpe.dispatch(tpe.touchmove, ts);
         }
         ce(this.touchmove, ts);

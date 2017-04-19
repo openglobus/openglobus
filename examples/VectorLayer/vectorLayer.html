@@ -1,14 +1,16 @@
 <html>
+
 <head>
     <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
     <script src="http://www.openglobus.org/og.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
 </head>
+
 <body>
     <div id="globus" style="width:100%;height:70%"></div>
     <script>
-
         var osm = new og.layer.XYZ("OpenStreetMap", {
             specular: [0.0003, 0.00012, 0.00001],
             shininess: 20,
@@ -33,13 +35,13 @@
             "layers": [osm]
         });
 
-	$.getJSON("countries.json", function (data) {
-	    var countries = new og.layer.Vector("Countries", {
-        	'visibility': true,
-	        'isBaseLayer': false,
-	        'diffuse': [0, 0, 0],
-        	'ambient': [1, 1, 1]
-	    });
+        $.getJSON("countries.json", function (data) {
+            var countries = new og.layer.Vector("Countries", {
+                'visibility': true,
+                'isBaseLayer': false,
+                'diffuse': [0, 0, 0],
+                'ambient': [1, 1, 1]
+            });
 
             countries.addTo(globus.planet);
 
@@ -57,7 +59,7 @@
                 }));
             }
 
-	    countries.events.on("mouseleave", function (e) {
+            countries.events.on("mouseleave", function (e) {
                 e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
                 e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
             });
@@ -69,8 +71,11 @@
             countries.events.on("mouselbuttonclick", function (e) {
                 globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
             });
+            countries.events.on("touchstart", function (e) {
+                globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
+            });
         });
-
     </script>
 </body>
+
 </html>
