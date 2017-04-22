@@ -24,13 +24,16 @@
             osm.setZIndex(++maxZIndex);
         });
 
+        osm.events.on("touchstart", function () {
+            osm.setZIndex(++maxZIndex);
+        });
 
         var sat = new og.layer.XYZ("MapQuest Satellite", {
             isBaseLayer: false,
             extent: [[-12, 38], [8, 53]],
             url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
             visibility: true,
-            attribution: '�2014 MapQuest - Portions �2014 "Map data � <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+            attribution: '2014 MapQuest - Portions 2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
         sat.events.on("mouselbuttonclick", function () {

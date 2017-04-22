@@ -19,12 +19,15 @@ goog.require('og.ImageCanvas');
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {og.layer.CanvasTiles~drawTileCallback} [options.drawTile] - Draw tile callback.
+ * @fires og.layer.CanvasTiles#load
+ * @fires og.layer.CanvasTiles#loadend
  */
 og.layer.CanvasTiles = function(name, options) {
     options = options || {};
 
     og.inheritance.base(this, name, options);
 
+    this.events.registerNames(og.layer.CanvasTiles.EVENT_NAMES);
 
     /**
      * Current creating tiles couter.
@@ -67,6 +70,20 @@ og.layer.CanvasTiles.__requestsCounter = 0;
  * @type {number}
  */
 og.layer.CanvasTiles.MAX_REQUESTS = 7;
+
+og.layer.CanvasTiles.EVENT_NAMES = [
+    /**
+     * Triggered when current tile image has loaded before rendereing.
+     * @event og.layer.CanvasTiles#load
+     */
+    "load",
+
+    /**
+     * Triggered when all tiles have loaded or loading has stopped.
+     * @event og.layer.CanvasTiles#loadend
+     */
+    "loadend"
+];
 
 
 /**
