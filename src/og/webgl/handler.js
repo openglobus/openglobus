@@ -521,7 +521,7 @@ og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numIte
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);//??
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;
@@ -539,7 +539,7 @@ og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize,
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);//??
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;

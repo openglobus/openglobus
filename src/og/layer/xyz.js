@@ -87,7 +87,7 @@ og.layer.XYZ.MAX_REQUESTS = 7;
 
 og.layer.XYZ.EVENT_NAMES = [
     /**
-     * Triggered when current tile image has loaded but before rendereing.
+     * Triggered when current tile image has loaded before rendereing.
      * @event og.layer.XYZ#load
      */
     "load",

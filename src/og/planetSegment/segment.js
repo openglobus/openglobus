@@ -1105,11 +1105,6 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
         var pm = this.materials,
             p = this.planet;
 
-        //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE);
-
         var currHeight, li;
         if (layerSlice) {
             li = layerSlice[0];
@@ -1117,6 +1112,11 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
         } else {
             currHeight = 0;
         }
+
+        //First always draw whole planet base layer segment with solid texture.
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 2);
 
         var n = 0,
             i = 0;
@@ -1179,7 +1179,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
                 p._samplerArr[n] = n;
 
                 gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture || this.planet.transparentTexture);
+                gl.bindTexture(gl.TEXTURE_2D, m.texture || p.transparentTexture);
 
                 n++;
             }
@@ -1188,13 +1188,20 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
         }
 
         if (notEmpty || !isOverlay) {
+            gl.uniform1i(shu.samplerCount._pName, n);
+            gl.uniform1f(shu.height._pName, currHeight);
+            gl.uniform1iv(shu.samplerArr._pName, p._samplerArr);
+            gl.uniform4fv(shu.tileOffsetArr._pName, slice.tileOffsetArr);
+            gl.uniform4fv(shu.visibleExtentOffsetArr._pName, slice.visibleExtentOffsetArr);
+            gl.uniform4fv(shu.transparentColorArr._pName, slice.transparentColorArr);
 
             //bind normalmap texture
             if (p.lightEnabled) {
-                gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
                 gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
+                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || p.transparentTexture);
                 gl.uniform1i(shu.uNormalMap._pName, p.SLICE_SIZE + 3);
+
+                gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord._pName, this._globalTextureCoordinates);
@@ -1204,12 +1211,6 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
                 gl.uniform4fv(shu.specularMaterial._pName, p._specularMaterialArr);
             }
 
-            gl.uniform1i(shu.samplerCount._pName, n);
-            gl.uniform1f(shu.height._pName, currHeight);
-            gl.uniform1iv(shu.samplerArr._pName, p._samplerArr);
-            gl.uniform4fv(shu.tileOffsetArr._pName, slice.tileOffsetArr);
-            gl.uniform4fv(shu.visibleExtentOffsetArr._pName, slice.visibleExtentOffsetArr);
-            gl.uniform4fv(shu.transparentColorArr._pName, slice.transparentColorArr);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
@@ -1296,9 +1297,9 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
             p = this.planet;
 
         //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 1);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this.planet.solidTextureOne);
-        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE + 1);
+        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
+        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
+        gl.uniform1i(shu.defaultTexture._pName, p.SLICE_SIZE);
 
         var currHeight;
         if (layerSlice) {
@@ -1317,7 +1318,7 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
             notEmpty = true;
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
-            gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || this.planet.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || p.transparentTexture);
         }
 
         if (notEmpty || !isOverlay) {

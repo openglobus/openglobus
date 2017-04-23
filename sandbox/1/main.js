@@ -126,19 +126,19 @@ var forest;
 
 function main2() {
 
-    var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 0], [0, 20], [20, 20], [20, 0]], visibility: true, isBaseLayer: false, opacity: 0.7 });
-    var states = new og.layer.WMS("USA Population", {
-        extent: [[-128, 24], [-66, 49]],
-        visibility: true,
-        isBaseLayer: false,
-        url: "http://openglobus.org/geoserver/",
-        layers: "topp:states",
-        opacity: 1.0,
-        attribution: 'Hi!',
-        transparentColor: [1.0, 1.0, 1.0]
-    });
+    //var geoImage2 = new og.layer.GeoImage("GeoImage2", { src: "ql.jpg", height: 0, zIndex: 400, corners: [[0, 0], [0, 20], [20, 20], [20, 0]], visibility: true, isBaseLayer: false, opacity: 0.7 });
+    // var states = new og.layer.WMS("USA Population", {
+    //     extent: [[-128, 24], [-66, 49]],
+    //     visibility: true,
+    //     isBaseLayer: false,
+    //     url: "http://openglobus.org/geoserver/",
+    //     layers: "topp:states",
+    //     opacity: 1.0,
+    //     attribution: 'Hi!',
+    //     transparentColor: [1.0, 1.0, 1.0]
+    // });
 
-    var entities = [];
+    //var entities = [];
 
     // entities.push(new og.Entity({
     //     'geometry': {
@@ -148,12 +148,12 @@ function main2() {
     //     }
     // }));
 
-    forest = new og.layer.Vector("Forest", {
-        'visibility': true,
-        'isBaseLayer': false,
-        'diffuse': [0, 0, 0],
-        'ambient': [1, 1, 1]
-    });
+    // forest = new og.layer.Vector("Forest", {
+    //     'visibility': true,
+    //     'isBaseLayer': false,
+    //     'diffuse': [0, 0, 0],
+    //     'ambient': [1, 1, 1]
+    // });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
@@ -168,81 +168,42 @@ function main2() {
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
-        //"skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm]
     });
 
     globus.planet.addControl(og.control.layerSwitcher());
 
-    $.getJSON("countries.json", function (data) {
-        var f = data.features;
-        for (var i = 0; i < f.length; i++) {
-            var fi = f[i];
-            //for (var j = 0; j < fi.length; j++) {
-            forest.add(new og.Entity({
-                'geometry': {
-                    'type': fi.geometry.type,
-                    'coordinates': fi.geometry.coordinates,
-                    'style': {
-                        'fillColor': "rgba(255,255,255,0.6)"
-                    }
-                }
-            }, fi.properties));
-            //}
-        }
-        test_addForest();
-        globus.planet.layers[1].events.on("mouseleave", function (e) {
-            e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
-            e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
-        });
-        globus.planet.layers[1].events.on("mouseenter", function (e) {
-            e.pickingObject.geometry.bringToFront();
-            e.pickingObject.geometry.setFillColor(1, 0, 0, 0.4);
-            e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0);
-        });
-        globus.planet.layers[1].events.on("mouselbuttonclick", function (e) {
-            globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
-        });
-    });
-
-
-    // forest.add(new og.Entity({
-    //     'geometry': {
-    //         'type': "Polygon",
-    //         'coordinates': [[[0, 0], [0, 2], [2, 2], [2, 0]]]
+    // $.getJSON("countries.json", function (data) {
+    //     var f = data.features;
+    //     for (var i = 0; i < f.length; i++) {
+    //         var fi = f[i];
+    //         //for (var j = 0; j < fi.length; j++) {
+    //         forest.add(new og.Entity({
+    //             'geometry': {
+    //                 'type': fi.geometry.type,
+    //                 'coordinates': fi.geometry.coordinates,
+    //                 'style': {
+    //                     'fillColor': "rgba(255,255,255,0.6)"
+    //                 }
+    //             }
+    //         }, fi.properties));
+    //         //}
     //     }
-    // }));
-
-    // forest.add(new og.Entity({
-    //     'geometry': {
-    //         'type': "Polygon",
-    //         'coordinates': [[[2, -1], [2, 3], [3, 3], [3, -1]]]
-    //     }
-    // }));
-
-    // forest.add(new og.Entity({
-    //     'geometry': {
-    //         'type': "Polygon",
-    //         'coordinates': [[[1, 1], [1.5, 4], [4, 4], [4, 1]]]
-    //     }
-    // }));
-
-    // test_addForest();
-
-    // globus.planet.layers[1].events.on("mouseleave", function (e) {
-    //     e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
-    //     e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
+    //     test_addForest();
+    //     globus.planet.layers[1].events.on("mouseleave", function (e) {
+    //         e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
+    //         e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
+    //     });
+    //     globus.planet.layers[1].events.on("mouseenter", function (e) {
+    //         e.pickingObject.geometry.bringToFront();
+    //         e.pickingObject.geometry.setFillColor(1, 0, 0, 0.4);
+    //         e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0);
+    //     });
+    //     globus.planet.layers[1].events.on("mouselbuttonclick", function (e) {
+    //         globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
+    //     });
     // });
-    // globus.planet.layers[1].events.on("mouseenter", function (e) {
-    //     e.pickingObject.geometry.bringToFront();
-    //     e.pickingObject.geometry.setFillColor(1, 0, 0, 0.4);
-    //     e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0);
-    // });
-    // globus.planet.layers[1].events.on("mouselbuttonclick", function (e) {
-    //     globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
-    // });
-
 };
 
 

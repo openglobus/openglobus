@@ -297,11 +297,11 @@ og.scene.Planet = function (name, ellipsoid) {
     this._useSpecularTexture = true;
 
     /**
-     * Segment multiple textures size.
+     * Segment multiple textures size.(4 - convinient value for the most devices)
      * @const
      * @public
      */
-    this.SLICE_SIZE = 5;
+    this.SLICE_SIZE = 4;
     this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
     this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
@@ -320,8 +320,8 @@ og.scene.Planet = function (name, ellipsoid) {
     this._visibleExtentOffsetArr = new Float32Array(this.SLICE_SIZE_4);
     this._transparentColorArr = new Float32Array(this.SLICE_SIZE_4);
     this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
-    this._samplerArr = new Array(this.SLICE_SIZE);
-    this._pickingMaskArr = new Array(this.SLICE_SIZE);
+    this._samplerArr = new Int32Array(this.SLICE_SIZE);
+    this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
 
     /**
      * GeoImage creator.
@@ -901,7 +901,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
     if (this.lightEnabled) {
         h.shaderPrograms.drawnode_screen_wl.activate();
         sh = h.shaderPrograms.drawnode_screen_wl._program,
-            shu = sh.uniforms;
+        shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
 
@@ -910,14 +910,14 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
         gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
 
         //bind night glowing material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
         gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture) || this.transparentTexture);
-        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE * 2);
+        gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE);
 
         //bind specular material
-        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2 + 1);
+        gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
         gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE * 2 + 1);
+        gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 1);
 
         var b = this.baseLayer;
         if (b) {
