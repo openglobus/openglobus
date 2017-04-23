@@ -9,17 +9,17 @@
     <div id="globus" style="width:100%;height:70%"></div>
     <script>
 
-        var trees = [];
+        var points = [];
 
-        for (var i = 0; i < 100; i++) {
-            for (var j = 0; j < 100; j++) {
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 10; j++) {
                 var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
-                trees.push(new og.Entity({
-                    'name': 'tree',
+                points.push(new og.Entity({
+                    'name': 'Blue Marker',
                     'lonlat': coords,
                     'billboard': {
-                        'src': 'tree.png',
-                        'size': [16, 32],
+                        'src': 'marker.png',
+                        'size': [18, 32],
                         'offset': [0, 16],
                         'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
                     }
@@ -27,11 +27,11 @@
             }
         }
 
-        forest = new og.layer.Vector("Forest", {
+        pointLayer = new og.layer.Vector("pointLayer", {
             'groundAlign': true,
-            'entities': trees,
+            'entities': points,
             'async': false,
-            'nodeCapacity': trees.length
+            'nodeCapacity': points.length
         });
 
         var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -47,17 +47,22 @@
         globus = new og.Globus({
             "target": "globus",
             "name": "Earth",
-            "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, forest]
+            "layers": [osm, pointLayer]
         });
 
-        var center = forest.getExtent().getCenter();
+        globus.planet.camera.set(
+            og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+            og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
+            og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
+        ).update();
 
+        //Rotate points around the center
+        var center = pointLayer.getExtent().getCenter();
         var angle = 0.1 * og.math.RADIANS;
         globus.renderer.events.on("draw", function () {
-            forest.each(function (e) {
-                var c = e._lonlat;
+            pointLayer.each(function (e) {
+                var c = e.getLonLat();
                 var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
                 var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
                 e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));

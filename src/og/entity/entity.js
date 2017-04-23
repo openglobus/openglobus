@@ -32,7 +32,7 @@ goog.require('og.Geometry');
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
  * @param {Object} [properties] - Entity custom properties.
  */
-og.Entity = function(options, properties) {
+og.Entity = function (options, properties) {
 
     options = options || {};
 
@@ -216,13 +216,13 @@ og.Entity = function(options, properties) {
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
  * @param {*} [properties] - Entity custom properties.
  */
-og.entity = function(options, properties) {
+og.entity = function (options, properties) {
     return new og.Entity(options, properties);
 };
 
 og.Entity.__staticCounter = 0;
 
-og.Entity.prototype._createOptionFeature = function(featureName, options) {
+og.Entity.prototype._createOptionFeature = function (featureName, options) {
     if (options) {
         var c = this._featureConstructorArray[featureName];
         return c[1].call(this, new c[0](options));
@@ -236,7 +236,7 @@ og.Entity.prototype._createOptionFeature = function(featureName, options) {
  * @param {og.EntityCollection|og.layer.Vector} collection - Specified entity collection or vector layer.
  * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
  */
-og.Entity.prototype.addTo = function(collection, rightNow) {
+og.Entity.prototype.addTo = function (collection, rightNow) {
     collection.add(this, rightNow);
     return this;
 };
@@ -245,7 +245,7 @@ og.Entity.prototype.addTo = function(collection, rightNow) {
  * Removes current entity from collection and layer.
  * @public
  */
-og.Entity.prototype.remove = function() {
+og.Entity.prototype.remove = function () {
     this._vectorLayer && this._vectorLayer.removeEntity(this);
     this._entityCollection && this._entityCollection.removeEntity(this);
 };
@@ -255,7 +255,7 @@ og.Entity.prototype.remove = function() {
  * @public
  * @param {boolean} visibilty - Entity visibility.
  */
-og.Entity.prototype.setVisibility = function(visibility) {
+og.Entity.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
 
     //billboards
@@ -283,7 +283,7 @@ og.Entity.prototype.setVisibility = function(visibility) {
  * @public
  * @returns {boolean}
  */
-og.Entity.prototype.getVisibility = function() {
+og.Entity.prototype.getVisibility = function () {
     return this._visibility;
 };
 
@@ -292,7 +292,7 @@ og.Entity.prototype.getVisibility = function() {
  * @public
  * @param {og.math.Vector3} position - Cartesian position in 3d space.
  */
-og.Entity.prototype.setCartesian3v = function(cartesian) {
+og.Entity.prototype.setCartesian3v = function (cartesian) {
     this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
 };
 
@@ -303,7 +303,7 @@ og.Entity.prototype.setCartesian3v = function(cartesian) {
  * @param {number} y - 3d space Y - position.
  * @param {number} z - 3d space Z - position.
  */
-og.Entity.prototype.setCartesian = function(x, y, z) {
+og.Entity.prototype.setCartesian = function (x, y, z) {
 
     var p = this._cartesian;
 
@@ -333,7 +333,7 @@ og.Entity.prototype.setCartesian = function(x, y, z) {
  * @protected
  * @param {og.math.Vector3} position - Cartesian position in 3d space.
  */
-og.Entity.prototype._setCartesian3vSilent = function(cartesian) {
+og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
 
     var p = this._cartesian;
 
@@ -360,12 +360,8 @@ og.Entity.prototype._setCartesian3vSilent = function(cartesian) {
  * @public
  * @returns {og.LonLat}
  */
-og.Entity.prototype.getLonLat = function() {
-    var ec = this._entityCollectio;
-    if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-        this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(lonlat);
-        return this._lonlat;
-    }
+og.Entity.prototype.getLonLat = function () {
+    return this._lonlat.clone();
 };
 
 /**
@@ -373,7 +369,7 @@ og.Entity.prototype.getLonLat = function() {
  * @public
  * @param {og.LonLat} lonlat - WGS84 coordinates.
  */
-og.Entity.prototype.setLonLat = function(lonlat) {
+og.Entity.prototype.setLonLat = function (lonlat) {
     var l = this._lonlat;
 
     l.lon = lonlat.lon;
@@ -399,7 +395,7 @@ og.Entity.prototype.setLonLat = function(lonlat) {
  * @public
  * @param {number} altitude - Altitude.
  */
-og.Entity.prototype.setAltitude = function(altitude) {
+og.Entity.prototype.setAltitude = function (altitude) {
     this._altitude = altitude;
 };
 
@@ -408,7 +404,7 @@ og.Entity.prototype.setAltitude = function(altitude) {
  * @public
  * @returns {og.math.Vector3}
  */
-og.Entity.prototype.getCartesian = function() {
+og.Entity.prototype.getCartesian = function () {
     return this._cartesian;
 };
 
@@ -417,7 +413,7 @@ og.Entity.prototype.getCartesian = function() {
  * @public
  * @param {og.Billboard} billboard - Billboard image.
  */
-og.Entity.prototype.setBillboard = function(billboard) {
+og.Entity.prototype.setBillboard = function (billboard) {
     if (this.billboard) {
         this.billboard.remove();
     }
@@ -434,7 +430,7 @@ og.Entity.prototype.setBillboard = function(billboard) {
  * @public
  * @param {og.Label} label - Text label.
  */
-og.Entity.prototype.setLabel = function(label) {
+og.Entity.prototype.setLabel = function (label) {
     if (this.label) {
         this.label.remove();
     }
@@ -451,7 +447,7 @@ og.Entity.prototype.setLabel = function(label) {
  * @public
  * @param {og.BaseShape} shape - Shape object.
  */
-og.Entity.prototype.setShape = function(shape) {
+og.Entity.prototype.setShape = function (shape) {
     if (this.shape) {
         this.shape.remove();
     }
@@ -484,7 +480,7 @@ og.Entity.prototype.setPolyline = function (polyline) {
  * @public
  * @param {og.PointCloud} pointCLoud - PointCloud object.
  */
-og.Entity.prototype.setPointCloud = function(pointCloud) {
+og.Entity.prototype.setPointCloud = function (pointCloud) {
     if (this.pointCloud) {
         this.pointCloud.remove();
     }
@@ -500,7 +496,7 @@ og.Entity.prototype.setPointCloud = function(pointCloud) {
  * @public
  * @param {og.Geometry} geometry - Geometry object.
  */
-og.Entity.prototype.setGeometry = function(geometry) {
+og.Entity.prototype.setGeometry = function (geometry) {
     if (this.geometry) {
         this.geometry.remove();
     }
@@ -516,7 +512,7 @@ og.Entity.prototype.setGeometry = function(geometry) {
  * @public
  * @param {og.Entity} entity - Child entity.
  */
-og.Entity.prototype.appendChild = function(entity) {
+og.Entity.prototype.appendChild = function (entity) {
     entity._entityCollection = this._entityCollection;
     entity._pickingColor = this._pickingColor;
     entity.parent = this;
@@ -528,7 +524,7 @@ og.Entity.prototype.appendChild = function(entity) {
  * Appends entity items(billboard, label etc.) picking color.
  * @public
  */
-og.Entity.prototype.setPickingColor = function() {
+og.Entity.prototype.setPickingColor = function () {
 
     var c = this._pickingColor;
 
@@ -553,7 +549,7 @@ og.Entity.prototype.setPickingColor = function() {
  * Return geodethic extent.
  * @returns {og.Extent}
  */
-og.Entity.prototype.getExtent = function() {
+og.Entity.prototype.getExtent = function () {
     var c = this._lonlat,
         res = new og.Extent(new og.LonLat(c.lon, c.lat), new og.LonLat(c.lon, c.lat)),
         sw = res.southWest,
@@ -567,7 +563,7 @@ og.Entity.prototype.getExtent = function() {
         if (e.northEast.lat > ne.lat) ne.lat = e.northEast.lat;
     }
 
-    if(this.geometry) {
+    if (this.geometry) {
         var e = this.geometry.getExtent();
         if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
         if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
