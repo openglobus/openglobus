@@ -256,7 +256,7 @@ og.control.MouseNavigation.prototype.onMouseRightButtonClick = function (e) {
 
 og.control.MouseNavigation.prototype.onMouseRightButtonDown = function (e) {
     var cam = this.renderer.activeCamera;
-    if (this.renderer.events.mouseState.moving) {
+    if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
         this.renderer.controlsBag.scaleRot = 1;
         var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * og.math.RADIANS;
         if (l > 0.007) l = 0.007;
