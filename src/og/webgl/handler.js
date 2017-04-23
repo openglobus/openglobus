@@ -24,11 +24,18 @@ goog.require('og.Stack');
 og.webgl.Handler = function (id, params) {
 
     /**
-     * Application timer.
+     * Application default timer.
      * @public
      * @type {og.Clock}
      */
-    this.clock = new og.Clock();
+    this.defaultClock = new og.Clock();
+
+    /**
+     * Custom timers.
+     * @public
+     * @type{og.Clock[]}
+     */
+    this.clocks = [];
 
     /**
      * Draw frame time in milliseconds.
@@ -290,11 +297,11 @@ og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     var faces = [[params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
-                 [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
-                 [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
-                 [params.ny, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
-                 [params.pz, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
-                 [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
+    [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+    [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+    [params.ny, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+    [params.pz, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+    [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
 
     var imageCanvas = new og.ImageCanvas();
     imageCanvas.fillEmpty();
@@ -602,7 +609,11 @@ og.webgl.Handler.prototype.drawFrame = function () {
     this.deltaTime = now - this._lastAnimationFrameTime;
     this._lastAnimationFrameTime = now;
 
-    this.clock._tick(this.deltaTime);
+    this.defaultClock._tick(this.deltaTime);
+
+    for (var i = 0; i < this.clocks.length; i++) {
+        this.clocks[i]._tick(this.deltaTime);
+    }
 
     /** Canvas resize checking */
     var canvas = this.canvas;
@@ -633,7 +644,7 @@ og.webgl.Handler.prototype.start = function () {
     if (!this._requestAnimationFrameId && this._initialized) {
         var d = new Date();
         this._lastAnimationFrameTime = d.getTime();
-        this.clock.setDate(d);
+        this.defaultClock.setDate(d);
         this._animationFrameCallback();
     }
 };

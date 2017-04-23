@@ -88,7 +88,7 @@ og.control.Sun.prototype.oninit = function () {
 
 og.control.Sun.prototype._draw = function () {
 
-    this._currDate = this.renderer.handler.clock.currentDate;
+    this._currDate = this.renderer.handler.defaultClock.currentDate;
     var cam = this.renderer.activeCamera;
     if (cam.getHeight() < 4650000) {
         this._lightOn = true;
