@@ -114,6 +114,19 @@ og.LonLat.prototype.set = function (lon, lat, height) {
 };
 
 /**
+ * Copy coordinates.
+ * @public
+ * @param {og.LonLat} [lonLat] - Coordinates to copy.
+ * @returns {og.LonLat}
+ */
+og.LonLat.prototype.copy = function (lonLat) {
+    this.lon = lonLat.lon;
+    this.lat = lonLat.lat ;
+    this.height = lonLat.height;
+    return this;
+};
+
+/**
  * Clone the coordiante.
  * @public
  * @returns {og.LonLat}

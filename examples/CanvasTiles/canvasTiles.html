@@ -39,8 +39,13 @@
                 ctx.stroke();
 
                 //Draw text
+                if(material.segment.tileZoom > 14){
+                    size = "26";
+                } else {
+                    size = "32";
+                }
                 ctx.fillStyle = 'black';
-                ctx.font = 'normal 32px Verdana';
+                ctx.font = 'normal ' + size + 'px Verdana';
                 ctx.textAlign = 'center';
                 ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
 
@@ -61,7 +66,6 @@
             "target": "globus",
             "name": "Earth",
             "controls": controls,
-            "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
             "layers": [osm, tg]
         });

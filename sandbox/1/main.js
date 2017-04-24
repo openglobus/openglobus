@@ -273,7 +273,41 @@ function main3() {
     });
 
     globus.planet.viewExtent(osm.getExtent());
+};
+
+
+function main4(){
+            var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        var tracks = [
+            og.entity({
+                'polyline': {
+                    'path': [[0, 0, 0], [0, 10000000000, 0]],
+                    'thickness': 15,
+                    'color': [1, 1, 0, 1]
+                }
+            })];
+
+        var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
+            'entities': tracks
+        });
+
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "layers": [osm, arcsAndOrbits]
+        });
 }
+
 /*
 <div style="
     position: absolute;

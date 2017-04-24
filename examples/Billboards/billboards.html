@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,14 +66,13 @@
             isBaseLayer: true,
             url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
             visibility: true,
-            attribution: '�2014 MapQuest - Portions �2014 "Map data � <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+            attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
 
         globus = new og.Globus({
             "target": "globus",
             "name": "Earth",
-            "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
             "layers": [sat]
         });
