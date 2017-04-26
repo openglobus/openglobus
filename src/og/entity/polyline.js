@@ -633,7 +633,7 @@ og.Polyline.prototype._createData = function (path, isLonLat) {
     this._orderData = [];
     this._indexData = [];
 
-    var p0, p1;
+    var p0, p1, p2;
 
     if (isLonLat) {
         p0 = ell.lonLatToCartesian(path[0]);
@@ -652,6 +652,7 @@ og.Polyline.prototype._createData = function (path, isLonLat) {
         if (isLonLat) {
             p0 = ell.lonLatToCartesian(path[i]);
             p1 = ell.lonLatToCartesian(path[i + 1]);
+            this._path3v[i] = p0;
         } else {
             p0 = path[i];
             p1 = path[i + 1];
@@ -671,10 +672,14 @@ og.Polyline.prototype._createData = function (path, isLonLat) {
         prevY = p0.y;
         prevZ = p0.z;
 
-        var p2 = path[i + 2];
         var nextX, nextY, nextZ;
 
+        p2 = path[i + 2];
+
         if (p2) {
+            if (isLonLat) {
+                p2 = ell.lonLatToCartesian(path[i + 2]);
+            }
             nextX = p2.x;
             nextY = p2.y;
             nextZ = p2.z;
@@ -690,6 +695,10 @@ og.Polyline.prototype._createData = function (path, isLonLat) {
         this._mainData.push(p1.x, p1.y, p1.z, p0.x, p0.y, p0.z, nextX, nextY, nextZ);
 
         this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
+    }
+
+    if (isLonLat) {
+        this._path3v.push(p1);
     }
 
     this._changedBuffers[og.Polyline.MAIN_BUFFER] = true;

@@ -135,7 +135,7 @@ og.Ellipsoid.prototype.getSurfaceHeight3v = function (coord, h) {
 };
 
 /**
- * Returns the distance from one point to another(using haversine formula).
+ * Returns the distance from one point to another(using haversine formula) on the great circle.
  * @param   {og.LonLat} lonLat1 - Longitude/latitude of source point.
  * @param   {og.LonLat} lonLat2 - Longitude/latitude of destination point.
  * @return {number} Distance between points.
@@ -149,7 +149,7 @@ og.Ellipsoid.prototype.getGreatCircleDistance = function (lonLat1, lonLat2) {
 };
 
 /**
- * Returns the midpoint between two points.
+ * Returns the midpoint between two points on the great circle.
  * @param   {og.LonLat} lonLat1 - Longitude/latitude of first point.
  * @param   {og.LonLat} lonLat2 - Longitude/latitude of second point.
  * @return {og.LonLat} Midpoint between points.
@@ -173,7 +173,7 @@ og.Ellipsoid.prototype.getMiddlePointOnGreatCircle = function (lonLat1, lonLat2)
 };
 
 /**
- * Returns the point at given fraction between two points.
+ * Returns the point at given fraction between two points on the great circle.
  * @param   {og.LonLat} lonLat1 - Longitude/Latitude of source point.
  * @param   {og.LonLat} lonLat2 - Longitude/Latitude of destination point.
  * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).

@@ -275,48 +275,60 @@ function main3() {
     globus.planet.viewExtent(osm.getExtent());
 };
 
+function createFlightPath(p0, p1, d, maxHeight) {
+    var res = new Array(d);
 
-function main4(){
-            var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
-            isBaseLayer: true,
-            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
-        });
+    for (var i = 0; i <= d; i++) {
+        var h = i / d,
+            k = (h * 2.0 - 1.0);
+        var pi = og.ellipsoid.wgs84.getIntermediatePointOnGreatCircle(p0, p1, h);
+        pi.height = -maxHeight * k * k + maxHeight;
+        res[i] = pi;
+    }
+    return res;
+};
 
-        var tracks = [
-            og.entity({
-                'polyline': {
-                    'path': [og.math.vector3(0, 0, 0), og.math.vector3(0, 100000000, 0)],
-                    'thickness': 15,
-                    'color': [1, 1, 0, 1]
-                }
-            })];
+function main4() {
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: true,
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    });
 
-        var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
-            'entities': tracks
-        });
+    var tracks = [
+        og.entity({
+            'polyline': {
+                'pathLonLat': createFlightPath(new og.LonLat(-76.93277, 38.74844), new og.LonLat(2.83354, 48.92592), 64, 1000000),
+                'thickness': 3,
+                'color': [0, 0, 1, 1]
+            }
+        })];
+
+    var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
+        'entities': tracks
+    });
 
 
-        globus = new og.Globus({
-            "target": "globus",
-            "name": "Earth",
-            "layers": [osm, arcsAndOrbits],
-            "controls":[
-                og.control.mouseNavigation(),
-                og.control.keyboardNavigation(),
-                //og.control.toggleWireframe(),
-                og.control.earthCoordinates({ center: false }),
-                og.control.layerSwitcher(),
-                og.control.zoomControl(),
-                og.control.touchNavigation(),
-                new og.control.Sun(),
-                og.control.showFps()
-            ]
-        });
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "layers": [osm, arcsAndOrbits],
+        "controls": [
+            og.control.mouseNavigation(),
+            og.control.keyboardNavigation(),
+            //og.control.toggleWireframe(),
+            og.control.earthCoordinates({ center: false }),
+            og.control.layerSwitcher(),
+            og.control.zoomControl(),
+            og.control.touchNavigation(),
+            new og.control.Sun(),
+            og.control.showFps()
+        ]
+    });
 }
 
 /*
