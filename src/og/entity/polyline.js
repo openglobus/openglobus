@@ -112,7 +112,7 @@ og.Polyline = function (options) {
     if (options.pathLonLat) {
         this.setPathLonLat(options.pathLonLat);
     } else if (options.path) {
-        this.setPath(options.path);
+        this.setPath3v(options.path);
     }
 };
 
@@ -235,7 +235,7 @@ og.Polyline.prototype.getVisibility = function () {
  */
 og.Polyline.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
-    if (this._pathLonLat) {
+    if (this._pathLonLat.length) {
         this._createData(this._pathLonLat, true);
     } else {
         this._createData(this._path3v);

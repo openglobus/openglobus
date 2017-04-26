@@ -228,7 +228,7 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
         //...pointCloud, shape, model etc.
         //
 
-        if (entity.lineString) {
+        if (entity.polyline) {
             this._entityCollectionAlways.add(entity);
         }
 
@@ -437,7 +437,7 @@ og.layer.Vector.prototype.setEntities = function (entities) {
         ei._vectorLayer = this;
         ei._vectorLayerIndex = i;
 
-        if (ei.lineString || ei.pointCloud) {
+        if (ei.polyline || ei.pointCloud) {
             this._entityCollectionAlways.add(ei);
         } else if (ei.billboard || ei.label || ei.shape) {
             entitiesForTree.push(ei);

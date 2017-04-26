@@ -290,7 +290,7 @@ function main4(){
         var tracks = [
             og.entity({
                 'polyline': {
-                    'path': [[0, 0, 0], [0, 10000000000, 0]],
+                    'path': [og.math.vector3(0, 0, 0), og.math.vector3(0, 100000000, 0)],
                     'thickness': 15,
                     'color': [1, 1, 0, 1]
                 }
@@ -304,7 +304,18 @@ function main4(){
         globus = new og.Globus({
             "target": "globus",
             "name": "Earth",
-            "layers": [osm, arcsAndOrbits]
+            "layers": [osm, arcsAndOrbits],
+            "controls":[
+                og.control.mouseNavigation(),
+                og.control.keyboardNavigation(),
+                //og.control.toggleWireframe(),
+                og.control.earthCoordinates({ center: false }),
+                og.control.layerSwitcher(),
+                og.control.zoomControl(),
+                og.control.touchNavigation(),
+                new og.control.Sun(),
+                og.control.showFps()
+            ]
         });
 }
 
