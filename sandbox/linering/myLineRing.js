@@ -295,9 +295,9 @@ my.LineRing.prototype.initialization = function () {
                     float d2 = dot(perp, start2);\
                     float seg = dot(perp, start1) - d2;\
                     float prl = seg - dot(perp, end1) + d2;\
-                    /*if(prl == 0.0){\
+                    if(prl == 0.0){\
                         return start1;\
-                    }*/\
+                    }\
                     float u = seg / prl;\
                     return start1 + u * (end1 - start1);\
                 }\
@@ -336,8 +336,8 @@ my.LineRing.prototype.initialization = function () {
                     vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
-                    if(dirNext == dirPrev){\
-                        m = sCurrent + normalPrev * d;\
+                    if(dotNP == 1.0){\
+                        m = sCurrent - normalPrev * d;\
                     }else{\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
@@ -369,10 +369,10 @@ my.LineRing.prototype.initialization = function () {
 
     var pathArr = [
         [
-            [-0, 50],
-            [-100, 100],
-            [-0,-100],
-            [-270, 200]
+            [0, 0],
+            [100, 0],
+            [100,0],
+            [100,-100]
         ]
     ];
 
@@ -383,7 +383,7 @@ my.LineRing.prototype.initialization = function () {
         _lineThicknessMask = [],
         _lineVertices2 = [];
 
-    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 50, new og.math.Vector4(0, 0, 0, 0), 0,
+    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 10, new og.math.Vector4(0, 0, 0, 0), 0,
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
         _lineVertices2);
 

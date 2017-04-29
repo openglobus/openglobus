@@ -55,9 +55,9 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     float d2 = dot(perp, start2);\
                     float seg = dot(perp, start1) - d2;\
                     float prl = seg - dot(perp, end1) + d2;\
-                    /*if(prl == 0.0){\
+                    if(prl == 0.0){\
                         return start1;\
-                    }*/\
+                    }\
                     float u = seg / prl;\
                     return start1 + u * (end1 - start1);\
                 }\
@@ -94,8 +94,8 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
-                    if(dirNext == dirPrev){\
-                        m = sCurrent + normalPrev * d;\
+                    if(dotNP == 1.0){\
+                        m = sCurrent - normalPrev * d;\
                     }else{\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
@@ -111,7 +111,7 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                             }else if(occw == 2.0){\
                                 m = sCurrent + normalPrev * d;\
                             }\
-                        } else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
+                        }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
                             m = sCurrent + normalNext * d;\
                         }\
                     }\
