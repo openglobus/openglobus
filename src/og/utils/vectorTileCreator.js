@@ -94,7 +94,7 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
-                    if(dotNP == 1.0){\
+                    if(dotNP > 0.999991){\
                         m = sCurrent - normalPrev * d;\
                     }else{\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
