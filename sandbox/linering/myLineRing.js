@@ -341,25 +341,20 @@ my.LineRing.prototype.initialization = function () {
                     }else{\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
-                    }\
-                    \
-                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
-                        float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
-                        float occw = order * ccw;\
-                        if(occw == -1.0){\
-                            m = sCurrent + normalPrev * d;\
-                        }else if(occw == 1.0){\
+                        \
+                        if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
+                            float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
+                            if(occw == -1.0){\
+                                m = sCurrent + normalPrev * d;\
+                            }else if(occw == 1.0){\
+                                m = sCurrent + normalNext * d;\
+                            }else if(occw == -2.0){\
+                                m = sCurrent + normalNext * d;\
+                            }else if(occw == 2.0){\
+                                m = sCurrent + normalPrev * d;\
+                            }\
+                        }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
                             m = sCurrent + normalNext * d;\
-                        }else if(occw == -2.0){\
-                            m = sCurrent + normalNext * d;\
-                        }else if(occw == 2.0){\
-                            m = sCurrent + normalPrev * d;\
-                        }\
-                    }else{\
-                        float minDist = min(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
-                        if(distance(sCurrent, m) > minDist){\
-                            m = getIntersection( sPrev, sPrev + normalPrev * d,\
-                                sCurrent + normalNext * d, sNext + normalNext * d );\
                         }\
                     }\
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
@@ -374,9 +369,10 @@ my.LineRing.prototype.initialization = function () {
 
     var pathArr = [
         [
-            [0, 0],
-            [-100, 0],
-            [0,200]
+            [-0, 50],
+            [-100, 100],
+            [-0,-100],
+            [-270, 200]
         ]
     ];
 
@@ -387,7 +383,7 @@ my.LineRing.prototype.initialization = function () {
         _lineThicknessMask = [],
         _lineVertices2 = [];
 
-    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 1), new og.math.Vector3(1, 0, 0), 20, new og.math.Vector4(0, 0, 0, 0), 0,
+    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 50, new og.math.Vector4(0, 0, 0, 0), 0,
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
         _lineVertices2);
 

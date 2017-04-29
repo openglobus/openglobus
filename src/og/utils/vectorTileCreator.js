@@ -23,38 +23,18 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
     //Line
     this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileLineRasterization", {
         uniforms: {
-            'viewport': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'thicknessOutline': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'alpha': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'extentParams': {
-                type: og.shaderProgram.types.VEC4
-            }
+            'viewport': { type: og.shaderProgram.types.VEC2 },
+            'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
+            'alpha': { type: og.shaderProgram.types.FLOAT },
+            'extentParams': { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
-            'prev': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'current': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'next': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'order': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'color': {
-                type: og.shaderProgram.types.VEC4
-            },
-            'thickness': {
-                type: og.shaderProgram.types.FLOAT
-            }
+            'prev': { type: og.shaderProgram.types.VEC2 },
+            'current': { type: og.shaderProgram.types.VEC2 },
+            'next': { type: og.shaderProgram.types.VEC2 },
+            'order': { type: og.shaderProgram.types.FLOAT },
+            'color': { type: og.shaderProgram.types.VEC4 },
+            'thickness': { type: og.shaderProgram.types.FLOAT }
         },
         vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
@@ -74,7 +54,11 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     vec2 perp = vec2(-dir.y, dir.x);\
                     float d2 = dot(perp, start2);\
                     float seg = dot(perp, start1) - d2;\
-                    float u = seg / (seg - dot(perp, end1) + d2);\
+                    float prl = seg - dot(perp, end1) + d2;\
+                    /*if(prl == 0.0){\
+                        return start1;\
+                    }*/\
+                    float u = seg / prl;\
                     return start1 + u * (end1 - start1);\
                 }\
                 \
@@ -103,32 +87,32 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                          sPrev = proj(_prev);\
                     vec2 dirNext = normalize(sNext - sCurrent);\
                     vec2 dirPrev = normalize(sPrev - sCurrent);\
+                    float dotNP = dot(dirNext, dirPrev);\
+                    \
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
                     vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
-                    float dotNP = dot(dirNext, dirPrev);\
-                    \
-                    m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
-                            sCurrent + normalNext * d, sNext + normalNext * d );\
-                    \
-                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
-                        float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
-                        float occw = order * ccw;\
-                        if(occw == -1.0){\
-                            m = sCurrent + normalPrev * d;\
-                        }else if(occw == 1.0){\
-                            m = sCurrent + normalNext * d;\
-                        }else if(occw == -2.0){\
-                            m = sCurrent + normalNext * d;\
-                        }else if(occw == 2.0){\
-                            m = sCurrent + normalPrev * d;\
-                        }\
+                    if(dirNext == dirPrev){\
+                        m = sCurrent + normalPrev * d;\
                     }else{\
-                        float maxDist = max(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
-                        if(distance(sCurrent, m) > maxDist){\
-                            m = sCurrent + maxDist * normalize(m - sCurrent);\
+                        m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
+                            sCurrent + normalNext * d, sNext + normalNext * d );\
+                        \
+                        if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
+                            float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
+                            if(occw == -1.0){\
+                                m = sCurrent + normalPrev * d;\
+                            }else if(occw == 1.0){\
+                                m = sCurrent + normalNext * d;\
+                            }else if(occw == -2.0){\
+                                m = sCurrent + normalNext * d;\
+                            }else if(occw == 2.0){\
+                                m = sCurrent + normalPrev * d;\
+                            }\
+                        } else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
+                            m = sCurrent + normalNext * d;\
                         }\
                     }\
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
@@ -144,17 +128,11 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
     //Polygon
     this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTilePolygonRasterization", {
         uniforms: {
-            'extentParams': {
-                type: og.shaderProgram.types.VEC4
-            }
+            'extentParams': { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
-            'coordinates': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'colors': {
-                type: og.shaderProgram.types.VEC4
-            }
+            'coordinates': { type: og.shaderProgram.types.VEC2 },
+            'colors': { type: og.shaderProgram.types.VEC4 }
         },
         vertexShader: 'attribute vec2 coordinates; \
                       attribute vec4 colors; \
