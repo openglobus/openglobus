@@ -288,6 +288,32 @@ function createFlightPath(p0, p1, d, maxHeight) {
     return res;
 };
 
+var track;
+
+function loadTrack() {
+    $.getJSON("track1.json", function (data) {
+        var pathLonLat = [];
+        var f = data.features;
+        for (var i = 0; i < f.length; i++) {
+            var fi = f[i],
+                g = fi.geometry;
+            if (g.type.toLowerCase() == "linestring") {
+                for (var j = 0; j < g.coordinates; j++) {
+                    pathLonLat.push(new og.LonLat(g[j][0], g[j][1], g[j][2]));
+                }
+            }
+        }
+
+        track = new og.Entity({
+            'polyline': {
+                'pathLonLat': pathLonLat,
+                'thickness': 3,
+                'color': "white"
+            }
+        })
+    });
+};
+
 function main4() {
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
@@ -299,14 +325,30 @@ function main4() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
-    var tracks = [
-        og.entity({
-            'polyline': {
-                'pathLonLat': createFlightPath(new og.LonLat(-76.93277, 38.74844), new og.LonLat(2.83354, 48.92592), 64, 1000000),
-                'thickness': 3,
-                'color': [0, 0, 1, 1]
-            }
-        })];
+
+    var data = [
+        [og.lonLat(38.04923, 55.8842), og.lonLat(170.59682, 69.78397), 64, 1000000, 2, "yellow"]
+    ];
+
+    var tracks = [];
+
+    // for (var i = 0; i < data.length; i++) {
+    //     var startPoint = data[i][0],
+    //         endPoint = data[i][1],
+    //         count = data[i][2],
+    //         height = data[i][3],
+    //         thickness = data[i][4],
+    //         color = data[i][5];
+
+    //     tracks.push(
+    //         og.entity({
+    //             'polyline': {
+    //                 'pathLonLat': createFlightPath(startPoint, endPoint, count, height),
+    //                 'thickness': thickness,
+    //                 'color': color
+    //             }
+    //         }));
+    // }
 
     var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
         'entities': tracks

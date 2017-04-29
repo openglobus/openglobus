@@ -281,6 +281,17 @@ og.math.Vector2.prototype.mulA = function (vec) {
 };
 
 /**
+ * Multiply current vector object to another and returns new vector instance.
+ * @public
+ * @param {og.math.Vector2} vec - Multiply vector.
+ * @returns {og.math.Vector2}
+ */
+og.math.Vector2.prototype.mul = function (vec) {
+    return new og.math.Vector2(this.x * vec.x, this.y * vec.y);
+};
+
+
+/**
  * Divide current vector's components to another. Results stores in the current vector object.
  * @public
  * @param {og.math.Vector2}

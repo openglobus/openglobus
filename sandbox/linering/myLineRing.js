@@ -9,37 +9,104 @@ goog.require('og.Label');
 goog.require('og.LonLat');
 goog.require('og.Extent');
 
+var extentParams = og.math.vector4(-180, -90, 0.0555556, 0.011111112);
+var viewport = og.math.vector2(1, 1);
+
+function vertCall(index) {
+    return vert(vPrev(index), vCurr(index), vNext(index), order(index), 10);
+};
+
+function vPrev(index) {
+    return og.math.vector2(lineRing._lineVertices[index * 2], lineRing._lineVertices[index * 2 + 1])
+};
+function vCurr(index) {
+    index = index * 2 + 8;
+    return og.math.vector2(lineRing._lineVertices[index], lineRing._lineVertices[index + 1])
+};
+function vNext(index) {
+    index = index * 2 + 16;
+    return og.math.vector2(lineRing._lineVertices[index], lineRing._lineVertices[index + 1])
+};
+
+function order(index) {
+    return lineRing._lineOrders[index];
+};
+
 function getIntersection(start1, end1, start2, end2) {
-    if (!start1.equal(start2)) {
-        var dir = end2.sub(start2);
-        var perp = new og.math.Vector2(-dir.y, dir.x);
-        var d2 = perp.dot(start2);
-        var seg = perp.dot(start1) - d2;
-        var u = seg / (seg - perp.dot(end1) + d2);
-        return start1.add(end1.sub(start1).scale(u));
+    if (start1.equal(start2)) {
+        return start1;
     }
-    return start1;
-}
+    var dir = end2.sub(start2);
+    var perp = new og.math.Vector2(-dir.y, dir.x);
+    var d2 = perp.dot(start2);
+    var seg = perp.dot(start1) - d2;
+    var prl = (seg - perp.dot(end1) + d2);
+    // if (prl == 0.0) {
+    //     return start1;
+    // }
+    var u = seg / prl;
+    return start1.add(end1.sub(start1).scale(u));
 
-function test0(order) {
-    thickness = 20;
-    current = og.math.vector2(100, 300), prev = og.math.vector2(700, 300), next = og.math.vector2(700, 300);
-    dirNext = next.sub(current).normalize(), dirPrev = next.sub(current).normalize();
-    normalNext = og.math.vector2(-dirNext.y, dirNext.x).normalize();
-    normalPrev = og.math.vector2(dirPrev.y, -dirPrev.x).normalize();
-    d = thickness * Math.sign(order);
-    //vec2 m = getIntersection( current + normalPrev * d, prev + normalPrev * d,
-    //    current + normalNext * d, next + normalNext * d );
-    m = getIntersection(current.add(normalPrev.scaleTo(d)), prev.add(normalPrev.scaleTo(d)),
-        current.add(normalNext.scaleTo(d)), next.add(normalNext.scaleTo(d)));
+};
 
-    ccw = Math.sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
-    if (ccw == 0.0) ccw = 1.0;
-}
+function proj(coordinates) {
+    // var x = -1.0 + coordinates.x - extentParams.x * extentParams.z * 1.0,
+    //     y = -1.0 + coordinates.y - extentParams.y * extentParams.w * -1.0;
+    // return new og.math.Vector2(x, y);
+    return coordinates.clone();
+};
+
+function vert(prev, current, next, order, thickness) {
+    var _next = next.clone();
+    var _prev = prev.clone();
+    var sOrder = 1.0;
+    if (prev.equal(current)) {
+        if (next.equal(current)) {
+            _next = current.add(og.math.Vector2(1.0, 0.0));
+            _prev = current.sub(next);
+        } else {
+            _prev = current.add(current.sub(next).normalize());
+        }
+    }
+    if (next.equal(current)) {
+        _next = current.add(current.sub(_prev).normalize());
+    }
+
+    var sNext = proj(_next),
+        sCurrent = proj(current),
+        sPrev = proj(_prev);
+    var dirNext = sNext.sub(sCurrent).normalize();
+    var dirPrev = sPrev.sub(sCurrent).normalize();
+    var dotNP = dirNext.dot(dirPrev);
+    var normalNext = og.math.vector2(-dirNext.y, dirNext.x).normalize();
+    var normalPrev = og.math.vector2(dirPrev.y, -dirPrev.x).normalize();
+    var d = og.math.vector2(1 / viewport.x, 1 / viewport.y).scale((thickness + 0.0) * 0.5 * Math.sign(sOrder * order));
+    var m = getIntersection(sCurrent.add(normalPrev.mul(d)), sPrev.add(normalPrev.mul(d)),
+        sCurrent.add(normalNext.mul(d)), sNext.add(normalNext.mul(d)));
+
+    if (dotNP > 0.5 && dirNext.add(dirPrev).dot(m.sub(sCurrent)) < 0.0) {
+        var ccw = Math.sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
+        var occw = order * ccw;
+        if (occw == -1.0) {
+            m = sCurrent.add(normalPrev.mul(d));
+        } else if (occw == 1.0) {
+            m = sCurrent.add(normalNext.mul(d));
+        } else if (occw == -2.0) {
+            m = sCurrent.add(normalNext.mul(d));
+        } else if (occw == 2.0) {
+            m = sCurrent.add(normalPrev.mul(d));
+        }
+    } else {
+        var maxDist = Math.max(sCurrent.distance(sNext), sCurrent.distance(sPrev));
+        if (sCurrent.distance(m) > maxDist) {
+            m = sCurrent.add(m.sub(sCurrent).normalize().scale(maxDist));
+        }
+    }
+    return new og.math.Vector4(m.x, m.y, 0.0, 1.0);
+};
 
 my.LineRing = function (name) {
     og.inheritance.base(this, name);
-    this.thickness = 5;
 
     this._lineVertices = [];
     this._lineOrders = [];
@@ -50,42 +117,128 @@ my.LineRing = function (name) {
 
 og.inheritance.extend(my.LineRing, og.scene.RenderNode);
 
-function appendLineRingData(pathArr, color, thickness, outVertices, outOrders, outIndexes, outColors, outThickness) {
+var appendLineStringData = function (pathArr, color, pickingColor, thickness, strokeColor, strokeSize,
+    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, outThicknessMask,
+    outVertices2) {
     var index = 0;
 
     if (outIndexes.length > 0) {
         index = outIndexes[outIndexes.length - 5] + 9;
         outIndexes.push(index, index);
+    } else {
+        outIndexes.push(0, 0);
     }
 
     var t = thickness,
-        c = color;
+        c = [color.x, color.y, color.z, color.w],
+        s = strokeSize,
+        sc = [strokeColor.x, strokeColor.y, strokeColor.z, strokeColor.w],
+        p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
+
+    for (var j = 0; j < pathArr.length; j++) {
+        path = pathArr[j];
+        var startIndex = index;
+        var last = [path[0][0] + path[0][0] - path[1][0], path[0][1] + path[0][1] - path[1][1]];
+        outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        //outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outOrders.push(1, -1, 2, -2);
+
+        outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
+        outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+        outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            //outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outOrders.push(1, -1, 2, -2);
+            outThickness.push(t, t, t, t);
+            outStrokes.push(s, s, s, s);
+            outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
+            outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+            outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
+            outIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first = [path[path.length - 1][0] + path[path.length - 1][0] - path[path.length - 2][0], path[path.length - 1][1] + path[path.length - 1][1] - path[path.length - 2][1]];
+        outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        //outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outOrders.push(1, -1, 2, -2);
+        outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
+        outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+        outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
+
+        if (j < pathArr.length - 1) {
+            index += 8;
+            outIndexes.push(index, index);
+        }
+    }
+};
+
+var appendLineRingData = function (pathArr, color, pickingColor, thickness, strokeColor, strokeSize,
+    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, outThicknessMask,
+    outVertices2) {
+    var index = 0;
+
+    if (outIndexes.length > 0) {
+        index = outIndexes[outIndexes.length - 5] + 9;
+        outIndexes.push(index, index);
+    } else {
+        outIndexes.push(0, 0);
+    }
+
+    var t = thickness,
+        c = [color.x, color.y, color.z, color.w],
+        s = strokeSize,
+        sc = [strokeColor.x, strokeColor.y, strokeColor.z, strokeColor.w],
+        p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
 
     for (var j = 0; j < pathArr.length; j++) {
         path = pathArr[j];
         var startIndex = index;
         var last = path[path.length - 1];
-        var prev = last;
         outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         outOrders.push(1, -1, 2, -2);
 
         outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+        outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
 
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
+            outStrokes.push(s, s, s, s);
+            outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
             outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+            outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+            outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
             outIndexes.push(index++, index++, index++, index++);
         }
 
         var first = path[0];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
+        outStrokes.push(s, s, s, s);
+        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+        outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+        outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
         outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
 
         if (j < pathArr.length - 1) {
@@ -106,40 +259,22 @@ my.LineRing.prototype.initialization = function () {
 
     this._drawType = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-    this.renderer.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("lineRing", {
+
+    //Line
+    this.renderer.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileLineRasterization", {
         uniforms: {
-            'viewport': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'thicknessOutline': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'alpha': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'extentParams': {
-                type: og.shaderProgram.types.VEC4
-            }
+            'viewport': { type: og.shaderProgram.types.VEC2 },
+            'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
+            'alpha': { type: og.shaderProgram.types.FLOAT },
+            'extentParams': { type: og.shaderProgram.types.VEC4 }
         },
         attributes: {
-            'prev': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'current': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'next': {
-                type: og.shaderProgram.types.VEC2
-            },
-            'order': {
-                type: og.shaderProgram.types.FLOAT
-            },
-            'color': {
-                type: og.shaderProgram.types.VEC4
-            },
-            'thickness': {
-                type: og.shaderProgram.types.FLOAT
-            }
+            'prev': { type: og.shaderProgram.types.VEC2 },
+            'current': { type: og.shaderProgram.types.VEC2 },
+            'next': { type: og.shaderProgram.types.VEC2 },
+            'order': { type: og.shaderProgram.types.FLOAT },
+            'color': { type: og.shaderProgram.types.VEC4 },
+            'thickness': { type: og.shaderProgram.types.FLOAT }
         },
         vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
@@ -154,16 +289,23 @@ my.LineRing.prototype.initialization = function () {
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
                     if(start1 == start2) return start1;\
+                    \
                     vec2 dir = end2 - start2;\
                     vec2 perp = vec2(-dir.y, dir.x);\
                     float d2 = dot(perp, start2);\
                     float seg = dot(perp, start1) - d2;\
-                    float u = seg / (seg - dot(perp, end1) + d2);\
+                    float prl = seg - dot(perp, end1) + d2;\
+                    /*if(prl == 0.0){\
+                        return start1;\
+                    }*/\
+                    float u = seg / prl;\
                     return start1 + u * (end1 - start1);\
                 }\
                 \
                 vec2 proj(vec2 coordinates){\
-                    return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
+                    vec4 _extentParams = extentParams;\
+                    /*return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);*/\
+                    return vec2(coordinates / vec2(512.0));\
                 }\
                 \
                 void main(){\
@@ -187,20 +329,21 @@ my.LineRing.prototype.initialization = function () {
                          sPrev = proj(_prev);\
                     vec2 dirNext = normalize(sNext - sCurrent);\
                     vec2 dirPrev = normalize(sPrev - sCurrent);\
+                    float dotNP = dot(dirNext, dirPrev);\
+                    \
                     vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
                     vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
                     vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
                     \
                     vec2 m;\
-                    float dotNP = dot(dirNext, dirPrev);\
-                    /*if(abs(dotNP) != 1.0){*/\
+                    if(dirNext == dirPrev){\
+                        m = sCurrent + normalPrev * d;\
+                    }else{\
                         m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
                             sCurrent + normalNext * d, sNext + normalNext * d );\
-                    /*} else {*/\
-                        /*m = sCurrent + normalPrev * d;*/\
-                    /*}*/\
+                    }\
                     \
-                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0){\
+                    if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
                         float ccw = sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
                         float occw = order * ccw;\
                         if(occw == -1.0){\
@@ -212,13 +355,13 @@ my.LineRing.prototype.initialization = function () {
                         }else if(occw == 2.0){\
                             m = sCurrent + normalPrev * d;\
                         }\
-                    } else {\
-                        float maxDist = max(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
-                        if(distance(sCurrent, m) > maxDist){\
-                            m = sCurrent + maxDist * normalize(m - sCurrent);\
+                    }else{\
+                        float minDist = min(distance(sCurrent, sNext), distance(sCurrent, sPrev));\
+                        if(distance(sCurrent, m) > minDist){\
+                            m = getIntersection( sPrev, sPrev + normalPrev * d,\
+                                sCurrent + normalNext * d, sNext + normalNext * d );\
                         }\
                     }\
-                    if( dotNP == -1.0 ){  sCurrent + 2.0 * normalize(m - sCurrent); }\
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
                 }',
         fragmentShader: 'precision highp float;\
@@ -232,23 +375,21 @@ my.LineRing.prototype.initialization = function () {
     var pathArr = [
         [
             [0, 0],
-            [10, 0],
-            //[20, 0],
-            [40, 0],
-            [40, -50]
+            [-100, 0],
+            [0,200]
         ]
     ];
 
-    var colors = [
-        [0, 1, 0, 1],
-        [0, 1, 0, 1],
-        [1, 1, 1, 0.3]
-    ];
 
-    var thickness = [8, 4, 12];
+    var _linePickingColors = [],
+        _lineStrokeColors = [],
+        _lineStrokes = [],
+        _lineThicknessMask = [],
+        _lineVertices2 = [];
 
-    appendLineRingData([pathArr[0]], colors[0], thickness[0],
-        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, this._lineThickness);
+    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 1), new og.math.Vector3(1, 0, 0), 20, new og.math.Vector4(0, 0, 0, 0), 0,
+        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
+        _lineVertices2);
 
     var h = this.renderer.handler;
     this._lineOrdersBuffer = h.createArrayBuffer(new Float32Array(this._lineOrders), 1, this._lineOrders.length / 2);
@@ -263,7 +404,7 @@ my.LineRing.prototype.frame = function () {
 
     var rn = this;
     var r = rn.renderer;
-    var sh = r.handler.shaderPrograms.lineRing;
+    var sh = r.handler.shaderPrograms.vectorTileLineRasterization;
     var p = sh._program;
     var gl = r.handler.gl,
         sha = p.attributes,
@@ -305,7 +446,7 @@ my.LineRing.prototype.frame = function () {
     // //Antialiase pass
     // gl.uniform1f(shu.thicknessOutline._pName, 2);
     // gl.uniform1f(shu.alpha._pName, 0.54);
-     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
     // gl.drawElements(this._drawType, this._lineIndexesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
     //
