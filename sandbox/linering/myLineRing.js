@@ -140,7 +140,7 @@ var appendLineStringData = function (pathArr, color, pickingColor, thickness, st
         var startIndex = index;
         var last = [path[0][0] + path[0][0] - path[1][0], path[0][1] + path[0][1] - path[1][1]];
         outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-        //outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         outOrders.push(1, -1, 2, -2);
 
         outThickness.push(t, t, t, t);
@@ -153,7 +153,7 @@ var appendLineStringData = function (pathArr, color, pickingColor, thickness, st
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-            //outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
@@ -166,7 +166,7 @@ var appendLineStringData = function (pathArr, color, pickingColor, thickness, st
 
         var first = [path[path.length - 1][0] + path[path.length - 1][0] - path[path.length - 2][0], path[path.length - 1][1] + path[path.length - 1][1] - path[path.length - 2][1]];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-        //outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
@@ -174,6 +174,7 @@ var appendLineStringData = function (pathArr, color, pickingColor, thickness, st
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
         outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
         outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
+        outIndexes.push(index - 1, index - 1, index - 1, index - 1);
 
         if (j < pathArr.length - 1) {
             index += 8;
@@ -369,10 +370,16 @@ my.LineRing.prototype.initialization = function () {
 
     var pathArr = [
         [
-            [0,0],
-            [100, 100],
-            [-100,-100]
+            [0,10],
+            [200, 170],
+            [-100, -100]
+        ],
+        [
+            [-200, -10],
+            [-10, 70],
+            [300, 300]
         ]
+
     ];
 
 
@@ -383,6 +390,11 @@ my.LineRing.prototype.initialization = function () {
         _lineVertices2 = [];
 
     appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 50, new og.math.Vector4(0, 0, 0, 0), 0,
+        this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
+        _lineVertices2);
+
+
+    appendLineStringData([pathArr[1]], new og.math.Vector4(1, 0, 0, 0.5), new og.math.Vector3(1, 1, 0), 25, new og.math.Vector4(0, 0, 0, 0), 0,
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
         _lineVertices2);
 
