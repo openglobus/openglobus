@@ -102,7 +102,7 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
 
     for (var j = 0; j < pathArr.length; j++) {
-        path = pathArr[j];
+        var path = pathArr[j];
         var startIndex = index;
         var last = path[path.length - 1];
         var prev = last;
@@ -134,8 +134,6 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         var first = path[0];
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-        //lon = og.mercator.forward_lon(first[0]);
-        //lat = og.mercator.forward_lat(first[1]);
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
