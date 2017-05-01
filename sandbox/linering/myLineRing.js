@@ -289,14 +289,12 @@ my.LineRing.prototype.initialization = function () {
                 varying vec4 vColor;\
                 \
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
-                    if(start1 == start2) return start1;\
-                    \
                     vec2 dir = end2 - start2;\
                     vec2 perp = vec2(-dir.y, dir.x);\
                     float d2 = dot(perp, start2);\
                     float seg = dot(perp, start1) - d2;\
                     float prl = seg - dot(perp, end1) + d2;\
-                    if(prl == 0.0){\
+                    if(prl > -0.01 && prl < 0.01){\
                         return start1;\
                     }\
                     float u = seg / prl;\
@@ -378,7 +376,12 @@ my.LineRing.prototype.initialization = function () {
             [-200, -10],
             [-10, 70],
             [300, 300]
+        ],
+        [
+            [300, 300],
+            [-300, 10]
         ]
+
 
     ];
 
@@ -389,12 +392,16 @@ my.LineRing.prototype.initialization = function () {
         _lineThicknessMask = [],
         _lineVertices2 = [];
 
-    appendLineStringData([pathArr[0]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 50, new og.math.Vector4(0, 0, 0, 0), 0,
+    appendLineStringData([pathArr[0], pathArr[1]], new og.math.Vector4(1, 1, 1, 0.5), new og.math.Vector3(1, 0, 0), 50, new og.math.Vector4(0, 0, 0, 0), 0,
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
         _lineVertices2);
 
 
-    appendLineStringData([pathArr[1]], new og.math.Vector4(1, 0, 0, 0.5), new og.math.Vector3(1, 1, 0), 25, new og.math.Vector4(0, 0, 0, 0), 0,
+    // appendLineStringData([pathArr[1]], new og.math.Vector4(1, 0, 0, 0.5), new og.math.Vector3(1, 1, 0), 25, new og.math.Vector4(0, 0, 0, 0), 0,
+    //     this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
+    //     _lineVertices2);
+
+    appendLineStringData([pathArr[2]], new og.math.Vector4(0, 0, 1, 1), new og.math.Vector3(1, 1, 1), 8, new og.math.Vector4(0, 0, 0, 0), 0,
         this._lineVertices, this._lineOrders, this._lineIndexes, this._lineColors, _linePickingColors, this._lineThickness, _lineStrokeColors, _lineStrokes, _lineThicknessMask,
         _lineVertices2);
 
