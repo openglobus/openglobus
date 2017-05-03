@@ -380,10 +380,7 @@ og.math.Vector2.prototype.normalize = function () {
  * @returns {Array.<number,number>}
  */
 og.math.Vector2.prototype.toVec = function () {
-    var x = new og.math.GLArray(2);
-    x[0] = this.x;
-    x[1] = this.y;
-    return x;
+    return [this.x, this.y];
 };
 
 /**

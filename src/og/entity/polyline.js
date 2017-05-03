@@ -119,9 +119,11 @@ og.Polyline = function (options) {
     //create path
     if (options.pathLonLat) {
         this.setPathLonLat(options.pathLonLat);
-    } else if (options.pathCartesian) {
+    } else if (options.path3v) {
         this.setPath3v(options.path3v);
     }
+
+    this._refresh();
 };
 
 og.Polyline.VERTICES_BUFFER = 0;
@@ -159,9 +161,20 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
 
         var last;
         if (isClosed) {
-            last = path[path.length - 1]
+            last = path[path.length - 1];
+            if (last.constructor === Array) {
+                last = new og.math.Vector3(last[0], last[1], last[2]);
+            }
         } else {
-            last = new og.math.Vector3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
+            var p0 = path[0],
+                p1 = path[1];
+            if (p0.constructor === Array) {
+                p0 = new og.math.Vector3(p0[0], p0[1], p0[2]);
+            }
+            if (p1.constructor === Array) {
+                p1 = new og.math.Vector3(p1[0], p1[1], p1[2]);
+            }
+            last = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
         }
 
         outVertices.push(last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z);
@@ -169,6 +182,9 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
 
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
+            if (cur.constructor === Array) {
+                cur = new og.math.Vector3(cur[0], cur[1], cur[2]);
+            }
             if (ellipsoid) {
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
                 outTransformedPathLonLat.push(lonLat);
@@ -182,11 +198,20 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
         var first;
         if (isClosed) {
             first = path[0];
+            if (first.constructor === Array) {
+                first = new og.math.Vector3(first[0], first[1], first[2]);
+            }
             outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
         } else {
-            var l1 = path.length - 1;
-            first = new og.math.Vector3(path[l1].x + path[l1].x - path[l1 - 1].x, path[l1].y + path[l1].y - path[l1 - 1].y,
-                path[l1].z + path[l1].z - path[l1 - 1].z);
+            var p0 = path[path.length - 1],
+                p1 = path[path.length - 2];
+            if (p0.constructor === Array) {
+                p0 = new og.math.Vector3(p0[0], p0[1], p0[2]);
+            }
+            if (p1.constructor === Array) {
+                p1 = new og.math.Vector3(p1[0], p1[1], p1[2]);
+            }
+            first = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             outIndexes.push(index - 1, index - 1, index - 1, index - 1);
         }
 
@@ -626,7 +651,7 @@ og.Polyline.prototype.setPathLonLat = function (pathLonLat, forceEqual) {
             this._changedBuffers[og.Polyline.INDEX_BUFFER] = true;
         }
     } else {
-        this._pathLonLat = [].pathLonLat;
+        this._pathLonLat = [].concat(pathLonLat);
     }
 };
 
@@ -646,12 +671,12 @@ og.Polyline.prototype.setPath3v = function (path3v, forceEqual) {
             this._changedBuffers[og.Polyline.INDEX_BUFFER] = true;
         }
     } else {
-        this._path3v = [].path3v;
+        this._path3v = [].concat(path3v);
     }
 };
 
 og.Polyline.prototype.draw = function () {
-    if (this.visibility) {
+    if (this.visibility && this._path3v.length) {
 
         this._update();
 
@@ -674,7 +699,7 @@ og.Polyline.prototype.draw = function () {
         gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
 
         if (r.isMultiFramebufferCompatible()) {
-            gl.uniform4fv(shu.pickingColor._pName, this._pickingColor.toVec());
+            gl.uniform3fv(shu.pickingColor._pName, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
         }
 
         gl.uniform4fv(shu.color._pName, this.color.toVec());
@@ -689,16 +714,16 @@ og.Polyline.prototype.draw = function () {
         gl.vertexAttribPointer(sha.current._pName, v.itemSize, gl.FLOAT, false, 12, 48);
         gl.vertexAttribPointer(sha.next._pName, v.itemSize, gl.FLOAT, false, 12, 96);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._lineOrdersBuffer);
-        gl.vertexAttribPointer(sha.order._pName, this._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
+        gl.vertexAttribPointer(sha.order._pName, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
     }
 };
 
 og.Polyline.prototype.drawPicking = function () {
-    if (this.visibility) {
+    if (this.visibility && this._path3v.length) {
 
         var rn = this._renderNode;
         var r = rn.renderer;
@@ -740,8 +765,20 @@ og.Polyline.prototype.drawPicking = function () {
 };
 
 /**
+ * Refresh buffers.
+ * @protected
+ */
+og.Polyline.prototype._refresh = function () {
+    var i = this._changedBuffers.length;
+    while (i--) {
+        this._changedBuffers[i] = true;
+    }
+};
+
+
+/**
  * Updates render buffers.
- * @private
+ * @protected
  */
 og.Polyline.prototype._update = function () {
     if (this._renderNode) {
@@ -757,7 +794,7 @@ og.Polyline.prototype._update = function () {
 
 /**
  * Clear GL buffers.
- * @private
+ * @protected
  */
 og.Polyline.prototype._deleteBuffers = function () {
     if (this._renderNode) {

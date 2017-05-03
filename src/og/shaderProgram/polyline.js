@@ -140,7 +140,7 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 }',
             fragmentShader:
-            '#extension GL_EXT_draw_buffers : require\n\
+                '#extension GL_EXT_draw_buffers : require\n\
                 precision highp float;\n\
                 uniform vec3 pickingColor;\
                 uniform vec2 uFloatParams;\
@@ -151,7 +151,7 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                     vec3 look = vPos - uCamPos;\
                     float lookLength = length(look);\
                     float a = vColor.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));\
-                    gl_FragData[0] = vec4(color.rgb, a);\
+                    gl_FragData[0] = vec4(vColor.rgb, a);\
                     gl_FragData[1] = vec4(pickingColor, 1.0);\
                 }'
         });

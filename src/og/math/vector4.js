@@ -115,12 +115,7 @@ og.math.Vector4.prototype.copy = function (v) {
  * @returns {Array.<number,number,number,number>}
  */
 og.math.Vector4.prototype.toVec = function () {
-    var x = new og.math.GLArray(4);
-    x[0] = this.x;
-    x[1] = this.y;
-    x[2] = this.z;
-    x[3] = this.w;
-    return x;
+    return [this.x, this.y, this.z, this.w];
 };
 
 /**
@@ -214,9 +209,9 @@ og.math.Vector4.prototype.scaleTo = function (scale) {
 og.math.Vector4.prototype.getStep = function (edge) {
     return new og.math.Vector4(
         this.x < edge ? 0.0 : 1.0,
-		this.y < edge ? 0.0 : 1.0,
-		this.z < edge ? 0.0 : 1.0,
-		this.w < edge ? 0.0 : 1.0
+        this.y < edge ? 0.0 : 1.0,
+        this.z < edge ? 0.0 : 1.0,
+        this.w < edge ? 0.0 : 1.0
     );
 };
 
