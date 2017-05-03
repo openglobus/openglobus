@@ -10,7 +10,8 @@ goog.require('og.Extent');
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {og.math.Vector4} [options.color] - RGBA color.
- * @param {boolean} [options.visibility] - Polyline visibility. True default.
+ * @param {Boolean} [options.visibility] - Polyline visibility. True default.
+ * @param {Boolean} [options.isRing] - Polyline geometry ring type identificator.
  * @param {Array.<og.LonLat>} [options.pathLonLat] - Polyline geodetic coordinates array.
  * @param {Array.<Array.<number,number,number>>} [options.path] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
  */
@@ -48,6 +49,13 @@ og.Polyline = function (options) {
     this.visibility = (options.visibility != undefined ? options.visibility : true);
 
     /**
+     * Polyline geometry ring type identificator.
+     * @protected
+     * @type {Boolean}
+     */
+    this._closedLine = options.closedLine || false;
+
+    /**
      * Polyline cartesian coordinates.
      * @private
      * @type {Array.<og.math.Vector3>}
@@ -69,19 +77,19 @@ og.Polyline = function (options) {
     this._pathLonLatMerc = [];
 
     /**
-     *  Polyline geodetic extent.
+     * Polyline geodetic extent.
      * @protected
      * @type {og.Extent}
      */
     this._extent = new og.Extent();
 
-    this._mainData = null;
-    this._orderData = null;
-    this._indexData = null;
+    this._vertices = [];
+    this._orders = [];
+    this._indexes = [];
 
-    this._mainBuffer = null;
-    this._orderBuffer = null;
-    this._indexBuffer = null;
+    this._verticesBuffer = null;
+    this._ordersBuffer = null;
+    this._indexesBuffer = null;
 
     this._pickingColor = [0, 0, 0];
 
@@ -103,7 +111,7 @@ og.Polyline = function (options) {
     this._handlerIndex = -1;
 
     this._buffersUpdateCallbacks = [];
-    this._buffersUpdateCallbacks[og.Polyline.MAIN_BUFFER] = this._createMainBuffer;
+    this._buffersUpdateCallbacks[og.Polyline.VERTICES_BUFFER] = this._createVerticesBuffer;
     this._buffersUpdateCallbacks[og.Polyline.INDEX_BUFFER] = this._createIndexBuffer;
 
     this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
@@ -111,37 +119,333 @@ og.Polyline = function (options) {
     //create path
     if (options.pathLonLat) {
         this.setPathLonLat(options.pathLonLat);
-    } else if (options.path) {
-        this.setPath3v(options.path);
+    } else if (options.pathCartesian) {
+        this.setPath3v(options.path3v);
     }
 };
 
-og.Polyline.MAIN_BUFFER = 0;
+og.Polyline.VERTICES_BUFFER = 0;
 og.Polyline.INDEX_BUFFER = 1;
 
 og.Polyline.__staticId = 0;
+
+/**
+ * Appends to the line arrays new data from cartesian coordinates.
+ * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
+ * @param {Boolean} closedLine - Identificator for the closed line data creation.
+ * @param {og.Ellipsoid} ellipsoid - Ellipsoid parameter to convert cartesian coordinates to the ellipsoid geodetic coordinates.
+ * @param {Number[]} - Out vertices data array.
+ * @param {Number[]} - Out vertices order data array.
+ * @param {Number[]} - Out vertices indexe data array.
+ * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+ * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+ * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+ * @static
+ */
+og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrders, outIndexes,
+    ellipsoid, outTransformedPathLonLat, outTransformedPathMerc) {
+    var index = 0;
+
+    if (outIndexes.length > 0) {
+        index = outIndexes[outIndexes.length - 5] + 9;
+        outIndexes.push(index, index);
+    } else {
+        outIndexes.push(0, 0);
+    }
+
+    for (var j = 0; j < path3v.length; j++) {
+        var path = path3v[j];
+        var startIndex = index;
+
+        var last;
+        if (isClosed) {
+            last = path[path.length - 1]
+        } else {
+            last = new og.math.Vector3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
+        }
+
+        outVertices.push(last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z);
+        outOrders.push(1, -1, 2, -2);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            if (ellipsoid) {
+                var lonLat = ellipsoid.cartesianToLonLat(cur);
+                outTransformedPathLonLat.push(lonLat);
+                outTransformedPathMerc.push(lonLat.forwardMercator());
+            }
+            outVertices.push(cur.x, cur.y, cur.z, cur.x, cur.y, cur.z, cur.x, cur.y, cur.z, cur.x, cur.y, cur.z);
+            outOrders.push(1, -1, 2, -2);
+            outIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first;
+        if (isClosed) {
+            first = path[0];
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            var l1 = path.length - 1;
+            first = new og.math.Vector3(path[l1].x + path[l1].x - path[l1 - 1].x, path[l1].y + path[l1].y - path[l1 - 1].y,
+                path[l1].z + path[l1].z - path[l1 - 1].z);
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
+
+        outVertices.push(first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z);
+        outOrders.push(1, -1, 2, -2);
+
+        if (j < path3v.length - 1) {
+            index += 8;
+            outIndexes.push(index, index);
+        }
+    }
+};
+
+/**
+ * Appends to the line arrays new data from geodetic coordinates.
+ * @param {Array.<Array.<number, number, number>>} pathLonLat - Line geodetic coordinates path array.
+ * @param {Boolean} closedLine - Identificator for the closed line data creation.
+ * @param {og.Ellipsoid} ellipsoid - Ellipsoid parameter to convert cartesian coordinates to the ellipsoid geodetic coordinates.
+ * @param {Number[]} - Out vertices data array.
+ * @param {Number[]} - Out vertices order data array.
+ * @param {Number[]} - Out vertices indexe data array.
+ * @param {og.Ellipsoid} - Ellipsoid to coordinates transformation.
+ * @param {Array.<Array.<Number, Number, Number>>} - Cartesian coordinates out array.
+ * @param {Array.<Array.<og.LonLat>>} - Mercator coordinates out array.
+ * @static
+ */
+og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, outOrders, outIndexes,
+    ellipsoid, outTransformedPathCartesian, outTransformedPathMerc) {
+    var index = 0;
+
+    if (outIndexes.length > 0) {
+        index = outIndexes[outIndexes.length - 5] + 9;
+        outIndexes.push(index, index);
+    } else {
+        outIndexes.push(0, 0);
+    }
+
+    for (var j = 0; j < pathLonLat.length; j++) {
+        var path = pathLonLat[j];
+        var startIndex = index;
+
+        var last;
+        if (isClosed) {
+            last = ellipsoid.lonLatToCartesian(path[path.length - 1]);
+        } else {
+            var p0 = ellipsoid.lonLatToCartesian(path[0]),
+                p1 = ellipsoid.lonLatToCartesian(path[1]);
+            last = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+        }
+
+        outVertices.push(last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z);
+        outOrders.push(1, -1, 2, -2);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i],
+                cartesian = ellipsoid.lonLatToCartesian(cur);
+            outTransformedPathCartesian.push(cartesian);
+            outTransformedPathMerc.push(cur.forwardMercator());
+
+            outVertices.push(cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z,
+                cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z);
+            outOrders.push(1, -1, 2, -2);
+            outIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first;
+        if (isClosed) {
+            first = ellipsoid.lonLatToCartesian(path[0]);
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            var p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
+                p1 = ellipsoid.lonLatToCartesian(path[path.length - 2]);
+            first = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
+
+        outVertices.push(first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z);
+        outOrders.push(1, -1, 2, -2);
+
+        if (j < pathLonLat.length - 1) {
+            index += 8;
+            outIndexes.push(index, index);
+        }
+    }
+};
+
+/**
+ * @protected
+ */
+og.Polyline.prototype._setEqualPath3v = function (path3v) {
+
+    var v = this._vertices,
+        l = this._pathLonLat,
+        m = this._pathLonLatMerc,
+        k = 0;
+
+    var ellipsoid = this._renderNode.ellipsoid;
+
+    for (var j = 0; j < path3v.length; j++) {
+        var path = path3v[j];
+
+        var last;
+        if (this._closedLine) {
+            last = path[path.length - 1]
+        } else {
+            last = new og.math.Vector3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
+        }
+
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            if (ellipsoid) {
+                var lonLat = ellipsoid.cartesianToLonLat(cur);
+                l[i] = lonLat;
+                m[i] = lonLat.forwardMercator();
+            }
+            v[k++] = cur.x;
+            v[k++] = cur.y;
+            v[k++] = cur.z;
+            v[k++] = cur.x;
+            v[k++] = cur.y;
+            v[k++] = cur.z;
+            v[k++] = cur.x;
+            v[k++] = cur.y;
+            v[k++] = cur.z;
+            v[k++] = cur.x;
+            v[k++] = cur.y;
+            v[k++] = cur.z;
+        }
+
+        var first;
+        if (this._closedLine) {
+            first = path[0];
+        } else {
+            var l1 = path.length - 1;
+            first = new og.math.Vector3(path[l1].x + path[l1].x - path[l1 - 1].x, path[l1].y + path[l1].y - path[l1 - 1].y,
+                path[l1].z + path[l1].z - path[l1 - 1].z);
+        }
+
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+    }
+};
+
+/**
+ * @protected
+ */
+og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
+
+    var v = this._vertices,
+        l = this._pathLonLat,
+        m = this._pathLonLatMerc,
+        c = this._path3v,
+        k = 0;
+
+    var ellipsoid = this._renderNode.ellipsoid;
+
+    for (var j = 0; j < pathLonLat.length; j++) {
+        var path = pathLonLat[j];
+
+        var last;
+        if (this._closedLine) {
+            last = ellipsoid.lonLatToCartesian(path[path.length - 1]);
+        } else {
+            var p0 = ellipsoid.lonLatToCartesian(path[0]),
+                p1 = ellipsoid.lonLatToCartesian(path[1]);
+            last = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+        }
+
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+        v[k++] = last.x;
+        v[k++] = last.y;
+        v[k++] = last.z;
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            cartesian = ellipsoid.lonLatToCartesian(cur);
+            c[i] = cartesian;
+            m[i] = cur.forwardMercator();
+            l[i] = cur;
+            v[k++] = cartesian.x;
+            v[k++] = cartesian.y;
+            v[k++] = cartesian.z;
+            v[k++] = cartesian.x;
+            v[k++] = cartesian.y;
+            v[k++] = cartesian.z;
+            v[k++] = cartesian.x;
+            v[k++] = cartesian.y;
+            v[k++] = cartesian.z;
+            v[k++] = cartesian.x;
+            v[k++] = cartesian.y;
+            v[k++] = cartesian.z;
+        }
+
+        var first;
+        if (this._closedLine) {
+            first = ellipsoid.lonLatToCartesian(path[0]);
+        } else {
+            var p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
+                p1 = ellipsoid.lonLatToCartesian(path[path.length - 2]);
+            first = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+        }
+
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+        v[k++] = first.x;
+        v[k++] = first.y;
+        v[k++] = first.z;
+    }
+};
 
 /**
  * Clear Polyline object data.
  * @public
  */
 og.Polyline.prototype.clear = function () {
-    this._path3v.length = 0;
-    this._path3v = [];
-
-    this._pathLonLat.length = 0;
-    this._pathLonLat = [];
-
-    this._pathLonLatMerc.length = 0;
-    this._pathLonLatMerc = [];
-
-    this._mainData.length = 0;
-    this._orderData.length = 0;
-    this._indexData.length = 0;
-
-    this._mainData = null;
-    this._orderData = null;
-    this._indexData = null;
+    this._vertices.length = 0;
+    this._orders.length = 0;
+    this._indexes.length = 0;
+    this._vertices = [];
+    this._orders = [];
+    this._indexes = [];
 
     this._deleteBuffers();
 };
@@ -236,11 +540,43 @@ og.Polyline.prototype.getVisibility = function () {
 og.Polyline.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     if (this._pathLonLat.length) {
-        this._createData(this._pathLonLat, true);
+        this._createDataLonLat(this._pathLonLat);
     } else {
-        this._createData(this._path3v);
+        this._createData3v(this._path3v);
     }
 };
+
+/**
+ * @protected
+ */
+og.Polyline.prototype._clearData = function () {
+    this._vertices.length = 0;
+    this._orders.length = 0;
+    this._indexes.length = 0;
+
+    this._vertices = [];
+    this._orders = [];
+    this._indexes = [];
+};
+
+/**
+ * @protected
+ */
+og.Polyline.prototype._createData3v = function (path3v) {
+    this._clearData();
+    og.Polyline.appendLineData3v(path3v, this._closedLine, this._vertices, this._orders, this._indexes,
+        this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc);
+};
+
+/**
+ * @protected
+ */
+og.Polyline.prototype._createDataLonLat = function (pathLonlat) {
+    this._clearData();
+    og.Polyline.appendLineDataLonLat(pathLonlat, this._closedLine, this._vertices, this._orders, this._indexes,
+        this._renderNode.ellipsoid, this._path3v, this._pathLonLatMerc);
+};
+
 
 /**
  * Removes from entity.
@@ -248,6 +584,7 @@ og.Polyline.prototype.setRenderNode = function (renderNode) {
  */
 og.Polyline.prototype.remove = function () {
     this._entity = null;
+    this.clear();
     this._handler && this._handler.remove(this);
 };
 
@@ -273,103 +610,23 @@ og.Polyline.prototype.getPathLonLat = function () {
     return this._pathLonLat;
 };
 
-og.Polyline.prototype.setPathLonLat = function (pathLonLat) {
+/**
+ * Sets Polyline geodetic coordinates.
+ * @public
+ * @param {Array.<Array.<number,number,number>>} path - Polyline path cartesian coordinates.
+ */
+og.Polyline.prototype.setPathLonLat = function (pathLonLat, forceEqual) {
     if (this._renderNode && this._renderNode.ellipsoid) {
-        var ell = this._renderNode.ellipsoid;
-        var thisPath = this._path3v;
-        if (pathLonLat.length === thisPath.length) {
-
-            var p0 = ell.lonLatToCartesian(pathLonLat[0]),
-                p1 = ell.lonLatToCartesian(pathLonLat[1]);
-
-            var prevX = p0.x + p0.x - p1.x,
-                prevY = p0.y + p0.y - p1.y,
-                prevZ = p0.z + p0.z - p1.z;
-
-            var len = pathLonLat.length - 1;
-            var md = this._mainData;
-
-            for (var i = 0, j = 0; i < len; i++ , j += 36) {
-
-                p0 = ell.lonLatToCartesian(pathLonLat[i]);
-                p1 = ell.lonLatToCartesian(pathLonLat[i + 1]);
-
-                this._pathLonLat[i] = p0.clone();
-                if (Math.abs(p0.lat) < og.mercator.MAX_LAT) {
-                    this._pathLonLatMerc[i] = p0.forwardMercator();
-                }
-
-                md[j] = p0.x;
-                md[j + 1] = p0.y;
-                md[j + 2] = p0.z;
-                md[j + 3] = prevX;
-                md[j + 4] = prevY;
-                md[j + 5] = prevZ;
-                md[j + 6] = p1.x;
-                md[j + 7] = p1.y;
-                md[j + 8] = p1.z;
-
-                md[j + 9] = p0.x;
-                md[j + 10] = p0.y;
-                md[j + 11] = p0.z;
-                md[j + 12] = prevX;
-                md[j + 13] = prevY;
-                md[j + 14] = prevZ;
-                md[j + 15] = p1.x;
-                md[j + 16] = p1.y;
-                md[j + 17] = p1.z;
-
-                prevX = p0.x;
-                prevY = p0.y;
-                prevZ = p0.z;
-
-                thisPath[i].set(prevX, prevY, prevZ);
-
-                var p2 = ell.lonLatToCartesian(pathLonLat[i + 2]);
-                var nextX, nextY, nextZ;
-
-                if (p2) {
-                    nextX = p2.x;
-                    nextY = p2.y;
-                    nextZ = p2.z;
-                } else {
-                    nextX = p1.x + p1.x - p0.x;
-                    nextY = p1.y + p1.y - p0.y;
-                    nextZ = p1.z + p1.z - p0.z;
-                }
-
-                md[j + 18] = p1.x;
-                md[j + 19] = p1.y;
-                md[j + 20] = p1.z;
-                md[j + 21] = p0.x;
-                md[j + 22] = p0.y;
-                md[j + 23] = p0.z;
-                md[j + 24] = nextX;
-                md[j + 25] = nextY;
-                md[j + 26] = nextZ;
-
-                md[j + 27] = p1.x;
-                md[j + 28] = p1.y;
-                md[j + 29] = p1.z;
-                md[j + 30] = p0.x;
-                md[j + 31] = p0.y;
-                md[j + 32] = p0.z;
-                md[j + 33] = nextX;
-                md[j + 34] = nextY;
-                md[j + 35] = nextZ;
-            }
-
-            this._pathLonLat[len].copy(pathLonLat[len]);
-
-            this._changedBuffers[og.Polyline.MAIN_BUFFER] = true;
-
+        if (forceEqual) {
+            this._setEqualPathLonLat(pathLonLat);
+            this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
         } else {
-            this._createData(pathLonLat, true);
+            this._createDataLonLat(pathLonLat);
+            this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
+            this._changedBuffers[og.Polyline.INDEX_BUFFER] = true;
         }
     } else {
-        for (var i = 0; i < pathLonLat.length; i++) {
-            this._pathLonLat[i] = pathLonLat[i].clone();
-        }
+        this._pathLonLat = [].pathLonLat;
     }
 };
 
@@ -378,335 +635,23 @@ og.Polyline.prototype.setPathLonLat = function (pathLonLat) {
  * @public
  * @param {Array.<Array.<number,number,number>>} path - Polyline path cartesian coordinates.
  */
-og.Polyline.prototype.setPath3v = function (path3v) {
+og.Polyline.prototype.setPath3v = function (path3v, forceEqual) {
     if (this._renderNode) {
-        var ell = this._renderNode.ellipsoid;
-        var thisPath = this._path3v;
-        if (path3v.length === thisPath.length) {
-
-            var p0 = path3v[0],
-                p1 = path3v[1];
-
-            var prevX = p0.x + p0.x - p1.x,
-                prevY = p0.y + p0.y - p1.y,
-                prevZ = p0.z + p0.z - p1.z;
-
-            var len = path3v.length - 1;
-            var md = this._mainData;
-
-            for (var i = 0, j = 0; i < len; i++ , j += 36) {
-
-                p0 = path3v[i];
-                p1 = path3v[i + 1];
-
-                if (ell) {
-                    var lonlat = ell.cartesianToLonLat(p0);
-                    this._pathLonLat[i] = lonlat;
-                    if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
-                        this._pathLonLatMerc[i] = lonlat.forwardMercator();
-                    }
-                }
-
-                md[j] = p0.x;
-                md[j + 1] = p0.y;
-                md[j + 2] = p0.z;
-                md[j + 3] = prevX;
-                md[j + 4] = prevY;
-                md[j + 5] = prevZ;
-                md[j + 6] = p1.x;
-                md[j + 7] = p1.y;
-                md[j + 8] = p1.z;
-
-                md[j + 9] = p0.x;
-                md[j + 10] = p0.y;
-                md[j + 11] = p0.z;
-                md[j + 12] = prevX;
-                md[j + 13] = prevY;
-                md[j + 14] = prevZ;
-                md[j + 15] = p1.x;
-                md[j + 16] = p1.y;
-                md[j + 17] = p1.z;
-
-                prevX = p0.x;
-                prevY = p0.y;
-                prevZ = p0.z;
-
-                thisPath[i].set(prevX, prevY, prevZ);
-
-                var p2 = path3v[i + 2];
-                var nextX, nextY, nextZ;
-
-                if (p2) {
-                    nextX = p2.x;
-                    nextY = p2.y;
-                    nextZ = p2.z;
-                } else {
-                    nextX = p1.x + p1.x - p0.x;
-                    nextY = p1.y + p1.y - p0.y;
-                    nextZ = p1.z + p1.z - p0.z;
-                }
-
-                md[j + 18] = p1.x;
-                md[j + 19] = p1.y;
-                md[j + 20] = p1.z;
-                md[j + 21] = p0.x;
-                md[j + 22] = p0.y;
-                md[j + 23] = p0.z;
-                md[j + 24] = nextX;
-                md[j + 25] = nextY;
-                md[j + 26] = nextZ;
-
-                md[j + 27] = p1.x;
-                md[j + 28] = p1.y;
-                md[j + 29] = p1.z;
-                md[j + 30] = p0.x;
-                md[j + 31] = p0.y;
-                md[j + 32] = p0.z;
-                md[j + 33] = nextX;
-                md[j + 34] = nextY;
-                md[j + 35] = nextZ;
-            }
-
-            this._path3v[len].copy(path3v[len]);
-
-            if (ell) {
-                var lonlat = ell.cartesianToLonLat(path3v[len]);
-                this._pathLonLat[i] = lonlat;
-                if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
-                    this._pathLonLatMerc[i] = lonlat.forwardMercator();
-                }
-            }
-
-            this._changedBuffers[og.Polyline.MAIN_BUFFER] = true;
+        if (forceEqual) {
+            this._setEqualPath3v(pathLonLat);
+            this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
         } else {
-            this._createData(path3v);
+            this._createData3v(path3v);
+            this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
+            this._changedBuffers[og.Polyline.INDEX_BUFFER] = true;
         }
     } else {
-        for (var i = 0; i < path3v.length; i++) {
-            this._path3v[i] = path3v[i].clone();
-        }
+        this._path3v = [].path3v;
     }
-};
-
-/**
- * Sets Polyline specific point cartesian coordinates.
- * @public
- * @param {number} index - Specific point index.
- * @param {og.math.Vector3} point - New cartesian coordintes.
- */
-og.Polyline.prototype.setPoint3v = function (index, point) {
-    var len = this._path3v.length;
-    if (index >= 0 && index < len && this._renderNode) {
-
-        var p0, p1,
-            prevX, prevY, prevZ,
-            nextX, nextY, nextZ;
-        var x = point.x, y = point.y, z = point.z;
-        var md = this._mainData;
-
-        var p = this._path3v[index];
-        p.x = x;
-        p.y = y;
-        p.z = z;
-
-        var ell = this._renderNode.ellipsoid;
-        if (ell) {
-            var lonlat = ell.cartesianToLonLat(p);
-            this._pathLonLat[i] = lonlat;
-            if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
-                this._pathLonLatMerc[i] = lonlat.forwardMercator();
-            }
-        }
-
-        var s = index * 36;
-
-        if (index === 0 || index === 1) {
-            var p0 = this._path3v[0],
-                p1 = this._path3v[1];
-            prevX = p0.x + p0.x - p1.x;
-            prevY = p0.y + p0.y - p1.y;
-            prevZ = p0.z + p0.z - p1.z;
-            md[3] = prevX;
-            md[4] = prevY;
-            md[5] = prevZ;
-            md[12] = prevX;
-            md[13] = prevY;
-            md[14] = prevZ;
-        }
-
-        if (index == len - 2) {
-            var p0 = this._path3v[len - 2],
-                p1 = this._path3v[len - 1];
-            nextX = p1.x + p1.x - p0.x;
-            nextY = p1.y + p1.y - p0.y;
-            nextZ = p1.z + p1.z - p0.z;
-            md[s + 24] = nextX;
-            md[s + 25] = nextY;
-            md[s + 26] = nextZ;
-            md[s + 33] = nextX;
-            md[s + 34] = nextY;
-            md[s + 35] = nextZ;
-        } else if (index === len - 1) {
-            var p0 = this._path3v[len - 2],
-                p1 = this._path3v[len - 1];
-            nextX = p1.x + p1.x - p0.x;
-            nextY = p1.y + p1.y - p0.y;
-            nextZ = p1.z + p1.z - p0.z;
-            md[s - 12] = nextX;
-            md[s - 11] = nextY;
-            md[s - 10] = nextZ;
-            md[s - 3] = nextX;
-            md[s - 2] = nextY;
-            md[s - 1] = nextZ;
-        }
-
-        //forward
-        var f = [0, 21, 39];
-        for (var i = 0; i < 3; i++) {
-            var si = s + f[i];
-            if (si < md.length) {
-                md[si] = x;
-                md[si + 1] = y;
-                md[si + 2] = z;
-                md[si + 9] = x;
-                md[si + 10] = y;
-                md[si + 11] = z;
-            } else {
-                break;
-            }
-        }
-
-        //backward
-        var b = [-18, -30, -48];
-        for (var i = 0; i < 3; i++) {
-            var si = s + b[i];
-            if (si >= 0) {
-                md[si] = x;
-                md[si + 1] = y;
-                md[si + 2] = z;
-                md[si + 9] = x;
-                md[si + 10] = y;
-                md[si + 11] = z;
-            } else {
-                break;
-            }
-        }
-
-        this._changedBuffers[og.Polyline.MAIN_BUFFER] = true;
-    }
-};
-
-/**
- * Returns specific Polyline point cartesian coordinates by index.
- * @public
- * @param {number} index - Spectific point index.
- * @return {og.math.Vector3} Linrstring point coordinate.
- */
-og.Polyline.prototype.getPoint = function (index) {
-    return this._path3v[index];
-};
-
-/**
- * @todo
- */
-og.Polyline.prototype.removePoint = function (index) {
-
-};
-
-/**
- * @todo
- */
-og.Polyline.prototype.insertPoint = function (index, point) {
-
-};
-
-/**
- * Creates line string data by the current cartesian coordinates.
- * @private
- */
-og.Polyline.prototype._createData = function (path, isLonLat) {
-
-    var ell = this._renderNode.ellipsoid;
-    var len = path.length - 1;
-
-    this._mainData = [];
-    this._orderData = [];
-    this._indexData = [];
-
-    var p0, p1, p2;
-
-    if (isLonLat) {
-        p0 = ell.lonLatToCartesian(path[0]);
-        p1 = ell.lonLatToCartesian(path[1]);
-    } else {
-        p0 = path[0];
-        p1 = path[1];
-    }
-
-    var prevX = p0.x + p0.x - p1.x,
-        prevY = p0.y + p0.y - p1.y,
-        prevZ = p0.z + p0.z - p1.z;
-
-    for (var i = 0, j = 0; i < len; i++) {
-
-        if (isLonLat) {
-            p0 = ell.lonLatToCartesian(path[i]);
-            p1 = ell.lonLatToCartesian(path[i + 1]);
-            this._path3v[i] = p0;
-        } else {
-            p0 = path[i];
-            p1 = path[i + 1];
-            if (ell) {
-                var lonlat = ell.cartesianToLonLat(this._path3v[i]);
-                this._pathLonLat[i] = lonlat;
-                if (Math.abs(lonlat.lat) < og.mercator.MAX_LAT) {
-                    this._pathLonLatMerc[i] = lonlat.forwardMercator();
-                }
-            }
-        }
-
-        this._mainData.push(p0.x, p0.y, p0.z, prevX, prevY, prevZ, p1.x, p1.y, p1.z);
-        this._mainData.push(p0.x, p0.y, p0.z, prevX, prevY, prevZ, p1.x, p1.y, p1.z);
-
-        prevX = p0.x;
-        prevY = p0.y;
-        prevZ = p0.z;
-
-        var nextX, nextY, nextZ;
-
-        p2 = path[i + 2];
-
-        if (p2) {
-            if (isLonLat) {
-                p2 = ell.lonLatToCartesian(path[i + 2]);
-            }
-            nextX = p2.x;
-            nextY = p2.y;
-            nextZ = p2.z;
-            this._indexData.push(j, ++j, ++j, ++j, j, j, ++j);
-        } else {
-            nextX = p1.x + p1.x - p0.x;
-            nextY = p1.y + p1.y - p0.y;
-            nextZ = p1.z + p1.z - p0.z;
-            this._indexData.push(j, ++j, ++j, ++j);
-        }
-
-        this._mainData.push(p1.x, p1.y, p1.z, p0.x, p0.y, p0.z, nextX, nextY, nextZ);
-        this._mainData.push(p1.x, p1.y, p1.z, p0.x, p0.y, p0.z, nextX, nextY, nextZ);
-
-        this._orderData.push(-1, 1, -1, -1, 1, -1, 1, 1);
-    }
-
-    if (isLonLat) {
-        this._path3v.push(p1);
-    }
-
-    this._changedBuffers[og.Polyline.MAIN_BUFFER] = true;
-    this._changedBuffers[og.Polyline.INDEX_BUFFER] = true;
 };
 
 og.Polyline.prototype.draw = function () {
-    if (this.visibility && this._path3v.length) {
+    if (this.visibility) {
 
         this._update();
 
@@ -720,36 +665,40 @@ og.Polyline.prototype.draw = function () {
 
         sh.activate();
 
+        gl.enable(gl.BLEND);
+        gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.disable(gl.CULL_FACE);
+
         gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
         gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
 
+        if (r.isMultiFramebufferCompatible()) {
+            gl.uniform4fv(shu.pickingColor._pName, this._pickingColor.toVec());
+        }
+
+        gl.uniform4fv(shu.color._pName, this.color.toVec());
+        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
-        gl.uniform4fv(shu.color._pName, [this.color.x, this.color.y, this.color.z, this.color.w]);
 
-        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        var v = this._verticesBuffer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, v);
+        gl.vertexAttribPointer(sha.prev._pName, v.itemSize, gl.FLOAT, false, 12, 0);
+        gl.vertexAttribPointer(sha.current._pName, v.itemSize, gl.FLOAT, false, 12, 48);
+        gl.vertexAttribPointer(sha.next._pName, v.itemSize, gl.FLOAT, false, 12, 96);
 
-        r._drawBuffersExtension && gl.uniform3fv(shu.pickingColor._pName, this._pickingColor);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._lineOrdersBuffer);
+        gl.vertexAttribPointer(sha.order._pName, this._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-        var mb = this._mainBuffer;
-        gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-        gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 36, 0);
-        gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 36, 12);
-        gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 36, 24);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
-        gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.disable(gl.CULL_FACE);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.CULL_FACE);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
     }
 };
 
 og.Polyline.prototype.drawPicking = function () {
-    if (this.visibility && this._path3v.length) {
+    if (this.visibility) {
 
         var rn = this._renderNode;
         var r = rn.renderer;
@@ -761,29 +710,32 @@ og.Polyline.prototype.drawPicking = function () {
 
         sh.activate();
 
+        gl.disable(gl.BLEND);
+        gl.disable(gl.CULL_FACE);
+
         gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
         gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
 
+        gl.uniform4fv(shu.color._pName, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
+        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
         gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
         gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
-        gl.uniform4fv(shu.color._pName, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
 
-        gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        var v = this._verticesBuffer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, v);
+        gl.vertexAttribPointer(sha.prev._pName, v.itemSize, gl.FLOAT, false, 12, 0);
+        gl.vertexAttribPointer(sha.current._pName, v.itemSize, gl.FLOAT, false, 12, 48);
+        gl.vertexAttribPointer(sha.next._pName, v.itemSize, gl.FLOAT, false, 12, 96);
 
-        var mb = this._mainBuffer;
-        gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-        gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 36, 0);
-        gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 36, 12);
-        gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 36, 24);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
+        gl.vertexAttribPointer(sha.order._pName, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._orderBuffer);
-        gl.vertexAttribPointer(sha.order._pName, this._orderBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-        gl.disable(gl.CULL_FACE);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         gl.enable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
     }
 };
 
@@ -804,30 +756,32 @@ og.Polyline.prototype._update = function () {
 };
 
 /**
- * Clear gl buffers.
+ * Clear GL buffers.
  * @private
  */
 og.Polyline.prototype._deleteBuffers = function () {
-    var r = this._renderNode.renderer,
-        gl = r.handler.gl;
+    if (this._renderNode) {
+        var r = this._renderNode.renderer,
+            gl = r.handler.gl;
 
-    gl.deleteBuffer(this._mainBuffer);
-    gl.deleteBuffer(this._orderBuffer);
-    gl.deleteBuffer(this._indexBuffer);
+        gl.deleteBuffer(this._verticesBuffer);
+        gl.deleteBuffer(this._ordersBuffer);
+        gl.deleteBuffer(this._indexesBuffer);
 
-    this._mainBuffer = null;
-    this._orderBuffer = null;
-    this._indexBuffer = null;
+        this._verticesBuffer = null;
+        this._ordersBuffer = null;
+        this._indexesBuffer = null;
+    }
 };
 
 /**
  * Creates gl main data buffer.
  * @private
  */
-og.Polyline.prototype._createMainBuffer = function () {
+og.Polyline.prototype._createVerticesBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._mainBuffer);
-    this._mainBuffer = h.createArrayBuffer(new Float32Array(this._mainData), 3, (this._mainData.length) / 9);
+    this._verticesBuffer = h.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
 };
 
 /**
@@ -838,8 +792,8 @@ og.Polyline.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._orderBuffer);
     h.gl.deleteBuffer(this._indexBuffer);
-    this._orderBuffer = h.createArrayBuffer(new Float32Array(this._orderData), 2, (this._orderData.length) / 2);
-    this._indexBuffer = h.createElementArrayBuffer(new Uint16Array(this._indexData), 1, this._indexData.length);
+    this._ordersBuffer = h.createArrayBuffer(new Float32Array(this._orders), 1, this._orders.length / 2);
+    this._indexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._indexes), 1, this._indexes.length);
 };
 
 og.Polyline.prototype.getExtent = function () {
