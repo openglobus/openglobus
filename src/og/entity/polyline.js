@@ -11,7 +11,7 @@ goog.require('og.Extent');
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {og.math.Vector4} [options.color] - RGBA color.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
- * @param {Boolean} [options.isRing] - Polyline geometry ring type identificator.
+ * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
  * @param {Array.<og.LonLat>} [options.pathLonLat] - Polyline geodetic coordinates array.
  * @param {Array.<Array.<number,number,number>>} [options.path] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
  */
@@ -53,7 +53,7 @@ og.Polyline = function (options) {
      * @protected
      * @type {Boolean}
      */
-    this._closedLine = options.closedLine || false;
+    this._closedLine = options.isClosed || false;
 
     /**
      * Polyline cartesian coordinates.

@@ -54,10 +54,10 @@ my.Polyline.prototype.initialization = function () {
 
 
     this.ec = new og.EntityCollection();
-    var s = 10000;
+    var s = 15000;
     var ex = new og.Entity({
         polyline: {
-            path3v: [[[0, 1000, 0], [s / 3, 0, 0], [s * 2 / 3, 1000, 0], [s, 3000, 0]]],
+            path3v: [[[0, 100, 0], [s / 3, 0, 0], [s * 2 / 3, 100, 0], [0, 300, 0]]],
             thickness: 15,
             color: [1, 0, 0, 1]
         }

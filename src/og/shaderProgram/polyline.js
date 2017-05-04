@@ -43,19 +43,6 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                 \
                 const float NEAR = -1.0;\
                 \
-                vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){\
-                    vec2 dir = end2 - start2;\
-                    vec2 perp = vec2(-dir.y, dir.x);\
-                    float d2 = dot(perp, start2);\
-                    float seg = dot(perp, start1) - d2;\
-                    float prl = seg - dot(perp, end1) + d2;\
-                    if(prl > -1.0 && prl < 1.0){\
-                        return start1;\
-                    }\
-                    float u = seg / prl;\
-                    return start1 + u * (end1 - start1);\
-                }\
-                \
                 vec2 project(vec4 p){\
                     return (0.5 * p.xyz / p.w + 0.5).xy * viewport;\
                 }\
@@ -118,8 +105,8 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                     if(dotNP >= 0.99991){\
                         m = sCurrent - normalPrev * d;\
                     }else{\
-                        m = getIntersection( sCurrent + normalPrev * d, sPrev + normalPrev * d,\
-                            sCurrent + normalNext * d, sNext + normalNext * d );\
+                        vec2 dir = normalPrev + normalNext;\
+                        m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);\
                         \
                         if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
                             float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
