@@ -134,19 +134,23 @@ og.Polyline.__staticId = 0;
 /**
  * Appends to the line arrays new data from cartesian coordinates.
  * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
- * @param {Boolean} closedLine - Identificator for the closed line data creation.
- * @param {og.Ellipsoid} ellipsoid - Ellipsoid parameter to convert cartesian coordinates to the ellipsoid geodetic coordinates.
- * @param {Number[]} - Out vertices data array.
- * @param {Number[]} - Out vertices order data array.
- * @param {Number[]} - Out vertices indexe data array.
+ * @param {Boolean} isClosed - Identificator for the closed line data creation.
+ * @param {Number[]} outVertices - Out vertices data array.
+ * @param {Number[]} outOrders - Out vertices orders data array.
+ * @param {Number[]} outIndexes - Out vertices indexes data array.
  * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
  * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
  * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+ * @param {og.Extent} outExtent - Geodetic line extent.
  * @static
  */
 og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrders, outIndexes,
-    ellipsoid, outTransformedPathLonLat, outTransformedPathMerc) {
+    ellipsoid, outTransformedPathLonLat, outTransformedPathMerc, outExtent) {
     var index = 0;
+    if (outExtent) {
+        outExtent.southWest.set(180, 90);
+        outExtent.northEast.set(-180, -90);
+    }
 
     if (outIndexes.length > 0) {
         index = outIndexes[outIndexes.length - 5] + 9;
@@ -189,6 +193,15 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
                 outTransformedPathLonLat.push(lonLat);
                 outTransformedPathMerc.push(lonLat.forwardMercator());
+
+                if (lonLat.lon < outExtent.southWest.lon)
+                    outExtent.southWest.lon = lonLat.lon;
+                if (lonLat.lat < outExtent.southWest.lat)
+                    outExtent.southWest.lat = lonLat.lat;
+                if (lonLat.lon > outExtent.northEast.lon)
+                    outExtent.northEast.lon = lonLat.lon;
+                if (lonLat.lat > outExtent.northEast.lat)
+                    outExtent.northEast.lat = lonLat.lat;
             }
             outVertices.push(cur.x, cur.y, cur.z, cur.x, cur.y, cur.z, cur.x, cur.y, cur.z, cur.x, cur.y, cur.z);
             outOrders.push(1, -1, 2, -2);
@@ -228,19 +241,23 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
 /**
  * Appends to the line arrays new data from geodetic coordinates.
  * @param {Array.<Array.<number, number, number>>} pathLonLat - Line geodetic coordinates path array.
- * @param {Boolean} closedLine - Identificator for the closed line data creation.
- * @param {og.Ellipsoid} ellipsoid - Ellipsoid parameter to convert cartesian coordinates to the ellipsoid geodetic coordinates.
- * @param {Number[]} - Out vertices data array.
- * @param {Number[]} - Out vertices order data array.
- * @param {Number[]} - Out vertices indexe data array.
- * @param {og.Ellipsoid} - Ellipsoid to coordinates transformation.
- * @param {Array.<Array.<Number, Number, Number>>} - Cartesian coordinates out array.
- * @param {Array.<Array.<og.LonLat>>} - Mercator coordinates out array.
+ * @param {Boolean} isClosed - Identificator for the closed line data creation.
+ * @param {Number[]} outVertices - Out vertices data array.
+ * @param {Number[]} outOrders - Out vertices orders data array.
+ * @param {Number[]} outIndexes - Out indexes data array.
+ * @param {og.Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
+ * @param {Array.<Array.<Number, Number, Number>>} outTransformedPathCartesian - Cartesian coordinates out array.
+ * @param {Array.<Array.<og.LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
+ * @param {og.Extent} outExtent - Geodetic line extent.
  * @static
  */
 og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, outOrders, outIndexes,
-    ellipsoid, outTransformedPathCartesian, outTransformedPathMerc) {
+    ellipsoid, outTransformedPathCartesian, outTransformedPathMerc, outExtent) {
     var index = 0;
+    if (outExtent) {
+        outExtent.southWest.set(180, 90);
+        outExtent.northEast.set(-180, -90);
+    }
 
     if (outIndexes.length > 0) {
         index = outIndexes[outIndexes.length - 5] + 9;
@@ -275,6 +292,15 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
                 cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z);
             outOrders.push(1, -1, 2, -2);
             outIndexes.push(index++, index++, index++, index++);
+
+            if (cur.lon < outExtent.southWest.lon)
+                outExtent.southWest.lon = cur.lon;
+            if (cur.lat < outExtent.southWest.lat)
+                outExtent.southWest.lat = cur.lat;
+            if (cur.lon > outExtent.northEast.lon)
+                outExtent.northEast.lon = cur.lon;
+            if (cur.lat > outExtent.northEast.lat)
+                outExtent.northEast.lat = cur.lat;
         }
 
         var first;
@@ -299,9 +325,15 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
 };
 
 /**
+ * Sets polyline path with cartesian coordinates.
  * @protected
+ * @param {pg.math.Vector3[]} path3v - Cartesian coordinates.
  */
 og.Polyline.prototype._setEqualPath3v = function (path3v) {
+
+    var extent = this._extent;
+    extent.southWest.set(180, 90);
+    extent.northEast.set(-180, -90);
 
     var v = this._vertices,
         l = this._pathLonLat,
@@ -339,6 +371,15 @@ og.Polyline.prototype._setEqualPath3v = function (path3v) {
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
                 l[i] = lonLat;
                 m[i] = lonLat.forwardMercator();
+
+                if (lonLat.lon < extent.southWest.lon)
+                    extent.southWest.lon = lonLat.lon;
+                if (lonLat.lat < extent.southWest.lat)
+                    extent.southWest.lat = lonLat.lat;
+                if (lonLat.lon > extent.northEast.lon)
+                    extent.northEast.lon = lonLat.lon;
+                if (lonLat.lat > extent.northEast.lat)
+                    extent.northEast.lat = lonLat.lat;
             }
             v[k++] = cur.x;
             v[k++] = cur.y;
@@ -379,10 +420,16 @@ og.Polyline.prototype._setEqualPath3v = function (path3v) {
 };
 
 /**
+ * Sets polyline with geodetic coordinates. 
  * @protected
+ * @param {og.LonLat[]} pathLonLat - Geodetic polyline path coordinates.
  */
 og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
 
+    var extent = this._extent;
+    extent.southWest.set(180, 90);
+    extent.northEast.set(-180, -90);
+    
     var v = this._vertices,
         l = this._pathLonLat,
         m = this._pathLonLatMerc,
@@ -434,6 +481,15 @@ og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
             v[k++] = cartesian.x;
             v[k++] = cartesian.y;
             v[k++] = cartesian.z;
+
+            if (cur.lon < extent.southWest.lon)
+                extent.southWest.lon = cur.lon;
+            if (cur.lat < extent.southWest.lat)
+                extent.southWest.lat = cur.lat;
+            if (cur.lon > extent.northEast.lon)
+                extent.northEast.lon = cur.lon;
+            if (cur.lat > extent.northEast.lat)
+                extent.northEast.lat = cur.lat;
         }
 
         var first;
@@ -458,6 +514,28 @@ og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
         v[k++] = first.y;
         v[k++] = first.z;
     }
+};
+
+/**
+ * Adds a new cartesian point in the end of the path.
+ * @public
+ * @param {og.math.Vector3} point3v - New coordinate.
+ * @param {number} [multiLineIndex=0] - Path part index, first by default.
+ */
+og.Polyline.prototype.addPoint3v = function (point3v, multiLineIndex) {
+    multiLineIndex = multiLineIndex || 0;
+
+};
+
+/**
+ * Adds a new geodetic point in the end of the path.
+ * @public
+ * @param {og.LonLat} lonlat - New coordinate.
+ * @param {number} [multiLineIndex=0] - Path part index, first by default.
+ */
+og.Polyline.prototype.addPointLonLat = function (lonLat, multiLineIndex) {
+    multiLineIndex = multiLineIndex || 0;
+
 };
 
 /**
@@ -590,7 +668,7 @@ og.Polyline.prototype._clearData = function () {
 og.Polyline.prototype._createData3v = function (path3v) {
     this._clearData();
     og.Polyline.appendLineData3v(path3v, this._closedLine, this._vertices, this._orders, this._indexes,
-        this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc);
+        this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc, this._extent);
 };
 
 /**
@@ -599,7 +677,7 @@ og.Polyline.prototype._createData3v = function (path3v) {
 og.Polyline.prototype._createDataLonLat = function (pathLonlat) {
     this._clearData();
     og.Polyline.appendLineDataLonLat(pathLonlat, this._closedLine, this._vertices, this._orders, this._indexes,
-        this._renderNode.ellipsoid, this._path3v, this._pathLonLatMerc);
+        this._renderNode.ellipsoid, this._path3v, this._pathLonLatMerc, this._extent);
 };
 
 

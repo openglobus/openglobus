@@ -33,7 +33,6 @@ og.GeometryHandler = function (layer) {
     this._lineThickness = [];
     this._lineStrokes = [];
     this._lineStrokeColors = [];
-    this._lineThicknessMask = [];
 
     //Buffers
     this._polyVerticesBufferMerc = null;
@@ -45,7 +44,6 @@ og.GeometryHandler = function (layer) {
     this._lineColorsBuffer = null;
     this._linePickingColorsBuffer = null;
     this._lineThicknessBuffer = null;
-    this._lineThicknessMaskBuffer = null;
     this._lineStrokesBuffer = null;
     this._lineStrokeColorsBuffer = null;
     this._lineOrdersBuffer = null;
@@ -84,7 +82,7 @@ og.GeometryHandler.POLYPICKINGCOLORS_BUFFER = 10;
 og.GeometryHandler.LINEPICKINGCOLORS_BUFFER = 11;
 
 og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, thickness, strokeColor, strokeSize,
-    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, outThicknessMask, 
+    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, 
     outVertices2) {
     var index = 0;
 
@@ -112,7 +110,6 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
 
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
-        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
         outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
         outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
@@ -124,7 +121,6 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
-            outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
             outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
             outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
             outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
@@ -137,7 +133,6 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         outOrders.push(1, -1, 2, -2);
         outThickness.push(t, t, t, t);
         outStrokes.push(s, s, s, s);
-        outThicknessMask.push(1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0);
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
         outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
         outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
@@ -215,7 +210,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                 geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
                 this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask, geometry._lineVerticesMerc);
+                this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
 
             geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
             geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
@@ -258,7 +253,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
                     this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, this._lineThicknessMask, geometry._lineVerticesMerc);
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
             }
 
             geometry._polyVerticesMerc = vertices;
@@ -321,7 +316,6 @@ og.GeometryHandler.prototype.remove = function (geometry) {
         this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
         this._lineThickness.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
         this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
-        this._lineThicknessMask.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
         this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
         di = geometry._lineVerticesLength * 0.5;
         for (var i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
@@ -647,9 +641,6 @@ og.GeometryHandler.prototype.createLineThicknessBuffer = function () {
     var h = this._handler;
     h.gl.deleteBuffer(this._lineThicknessBuffer);
     this._lineThicknessBuffer = h.createArrayBuffer(new Float32Array(this._lineThickness), 1, this._lineThickness.length);
-
-    h.gl.deleteBuffer(this._lineThicknessMaskBuffer);
-    this._lineThicknessMaskBuffer = h.createArrayBuffer(new Float32Array(this._lineThicknessMask), 4, this._lineThicknessMask.length / 4);
 };
 
 og.GeometryHandler.prototype.createLineStrokesBuffer = function () {

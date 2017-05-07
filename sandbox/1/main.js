@@ -334,23 +334,23 @@ function main4() {
 
     var tracks = [];
 
-    // for (var i = 0; i < data.length; i++) {
-    //     var startPoint = data[i][0],
-    //         endPoint = data[i][1],
-    //         count = data[i][2],
-    //         height = data[i][3],
-    //         thickness = data[i][4],
-    //         color = data[i][5];
+    for (var i = 0; i < data.length; i++) {
+        var startPoint = data[i][0],
+            endPoint = data[i][1],
+            count = data[i][2],
+            height = data[i][3],
+            thickness = data[i][4],
+            color = data[i][5];
 
-    //     tracks.push(
-    //         og.entity({
-    //             'polyline': {
-    //                 'pathLonLat': createFlightPath(startPoint, endPoint, count, height),
-    //                 'thickness': thickness,
-    //                 'color': color
-    //             }
-    //         }));
-    // }
+        tracks.push(
+            og.entity({
+                'polyline': {
+                    'pathLonLat': [createFlightPath(startPoint, endPoint, count, height)],
+                    'thickness': thickness,
+                    'color': color
+                }
+            }));
+    }
 
     var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
         'entities': tracks
@@ -364,7 +364,6 @@ function main4() {
         "controls": [
             og.control.mouseNavigation(),
             og.control.keyboardNavigation(),
-            //og.control.toggleWireframe(),
             og.control.earthCoordinates({ center: false }),
             og.control.layerSwitcher(),
             og.control.zoomControl(),
