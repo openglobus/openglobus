@@ -300,15 +300,15 @@ function loadTrack() {
             var fi = f[i],
                 g = fi.geometry;
             if (g.type.toLowerCase() == "linestring") {
-                for (var j = 0; j < g.coordinates; j++) {
-                    pathLonLat.push(new og.LonLat(g[j][0], g[j][1], g[j][2]));
+                for (var j = 0; j < g.coordinates.length; j++) {
+                    pathLonLat.push(new og.LonLat(g.coordinates[j][0], g.coordinates[j][1], g.coordinates[j][2]));
                 }
             }
         }
 
         track = new og.Entity({
             'polyline': {
-                'pathLonLat': pathLonLat,
+                'pathLonLat': [pathLonLat],
                 'thickness': 3,
                 'color': "white"
             }
@@ -334,33 +334,36 @@ function main4() {
 
     var tracks = [];
 
-    for (var i = 0; i < data.length; i++) {
-        var startPoint = data[i][0],
-            endPoint = data[i][1],
-            count = data[i][2],
-            height = data[i][3],
-            thickness = data[i][4],
-            color = data[i][5];
+    // for (var i = 0; i < data.length; i++) {
+    //     var startPoint = data[i][0],
+    //         endPoint = data[i][1],
+    //         count = data[i][2],
+    //         height = data[i][3],
+    //         thickness = data[i][4],
+    //         color = data[i][5];
 
-        tracks.push(
-            og.entity({
-                'polyline': {
-                    'pathLonLat': [createFlightPath(startPoint, endPoint, count, height)],
-                    'thickness': thickness,
-                    'color': color
-                }
-            }));
-    }
+    //     tracks.push(
+    //         og.entity({
+    //             'polyline': {
+    //                 'pathLonLat': [createFlightPath(startPoint, endPoint, count, height)],
+    //                 'thickness': thickness,
+    //                 'color': color
+    //             }
+    //         }));
+    // }
 
-    var arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
+    arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
         'entities': tracks
     });
 
 
+    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
+    
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "layers": [osm, arcsAndOrbits],
+        "terrain": terrain,
         "controls": [
             og.control.mouseNavigation(),
             og.control.keyboardNavigation(),
