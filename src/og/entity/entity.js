@@ -550,9 +550,15 @@ og.Entity.prototype.setPickingColor = function () {
  * @returns {og.Extent}
  */
 og.Entity.prototype.getExtent = function () {
-    var c = this._lonlat,
-        res = new og.Extent(new og.LonLat(c.lon, c.lat), new og.LonLat(c.lon, c.lat)),
-        sw = res.southWest,
+    var res;
+    if (this.billboard || this.label) {
+        res = new og.Extent(new og.LonLat(c.lon, c.lat), new og.LonLat(c.lon, c.lat));
+    } else {
+        var c = this._lonlat;
+        res = new og.Extent(new og.LonLat(180.0, 90.0), new og.LonLat(-180.0, -90.0));
+    }
+
+    var sw = res.southWest,
         ne = res.northEast;
 
     if (this.polyline) {

@@ -293,6 +293,7 @@ function createFlightPath(p0, p1, d, maxHeight) {
 var track;
 
 function loadTrack() {
+
     $.getJSON("track1.json", function (data) {
         var pathLonLat = [];
         var f = data.features;
@@ -312,11 +313,18 @@ function loadTrack() {
                 'thickness': 3,
                 'color': "white"
             }
-        })
+        });
+
+        arcsAndOrbits.add(track);
+        globus.planet.flyExtent(track.getExtent());
     });
 };
 
 function main4() {
+    arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
+        'entities': tracks
+    });
+
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
         shininess: 20,
@@ -352,13 +360,9 @@ function main4() {
     //         }));
     // }
 
-    arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
-        'entities': tracks
-    });
-
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-    
+
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",

@@ -67,6 +67,7 @@ og.Geometry.POINT = 1;
 og.Geometry.LINESTRING = 2;
 og.Geometry.POLYGON = 3;
 og.Geometry.MULTIPOLYGON = 4;
+og.Geometry.MULTILINESTRING = 5;
 
 og.Geometry.getType = function (typeStr) {
     return og.Geometry[typeStr.toUpperCase()];
@@ -137,6 +138,8 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
                 }
             }
         }
+    } else if (t === og.Geometry.MULTILINESTRING) {
+        //...
     } else {
         res.southWest.lon = res.southWest.lat = res.northEast.lon = res.northEast.lat = 0.0;
         outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);

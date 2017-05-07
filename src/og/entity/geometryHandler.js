@@ -81,8 +81,8 @@ og.GeometryHandler.LINESTROKECOLORS_BUFFER = 9;
 og.GeometryHandler.POLYPICKINGCOLORS_BUFFER = 10;
 og.GeometryHandler.LINEPICKINGCOLORS_BUFFER = 11;
 
-og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, thickness, strokeColor, strokeSize,
-    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes, 
+og.GeometryHandler.appendLineData = function (pathArr, isClosed, color, pickingColor, thickness, strokeColor, strokeSize,
+    outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes,
     outVertices2) {
     var index = 0;
 
@@ -102,8 +102,14 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
     for (var j = 0; j < pathArr.length; j++) {
         var path = pathArr[j];
         var startIndex = index;
-        var last = path[path.length - 1];
-        var prev = last;
+        var last;
+        if (isClosed) {
+            last = path[path.length - 1];
+        } else {
+            var p0 = path[0],
+                p1 = path[1];
+            last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1], p0[2] + p0[2] - p1[2]];
+        }
         outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
         outOrders.push(1, -1, 2, -2);
@@ -127,7 +133,16 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
             outIndexes.push(index++, index++, index++, index++);
         }
 
-        var first = path[0];
+        var first;
+        if (isClosed) {
+            first = path[0];
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            var p0 = path[path.length - 1],
+                p1 = path[path.length - 2];
+            first = new og.math.Vector3(p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1], p0[2] + p0[2] - p1[2]);
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
         outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
         outOrders.push(1, -1, 2, -2);
@@ -136,7 +151,6 @@ og.GeometryHandler.appendLineRingData = function (pathArr, color, pickingColor, 
         outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
         outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
         outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
-        outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
 
         if (j < pathArr.length - 1) {
             index += 8;
@@ -206,7 +220,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._lineColorsHandlerIndex = this._lineColors.length;
             geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-            og.GeometryHandler.appendLineRingData(ci,
+            og.GeometryHandler.appendLineData(ci, true,
                 geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                 geometry._style.strokeColor, geometry._style.strokeWidth,
                 this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
@@ -249,7 +263,7 @@ og.GeometryHandler.prototype.add = function (geometry) {
 
                 vertices.push.apply(vertices, data.vertices);
 
-                og.GeometryHandler.appendLineRingData(ci,
+                og.GeometryHandler.appendLineData(ci, true,
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
                     this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
@@ -280,6 +294,10 @@ og.GeometryHandler.prototype.add = function (geometry) {
             geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
             geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
             geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+        } else if (geometry._type === og.Geometry.LINESTRING) {
+            //...
+        } else if (geometry._type === og.Geometry.MULTILINESTRING) {
+            //...
         }
 
         //Refresh visibility
