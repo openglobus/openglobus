@@ -285,14 +285,14 @@ og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
             ec[i]._animatedOpacity && ec[i].labelHandler.draw();
         }
 
-        //Z-buffer offset
-        gl.polygonOffset(0, 0);
-
-        //polylins pass
+        //polyline pass
         i = ec.length;
         while (i--) {
             ec[i]._animatedOpacity && ec[i].polylineHandler.draw();
         }
+
+        //Z-buffer offset
+        gl.polygonOffset(0, 0);
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
