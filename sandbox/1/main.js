@@ -321,6 +321,70 @@ function loadTrack() {
 };
 
 function main4() {
+
+    var orbit = [];
+    var p = new og.math.Vector3(0, 0, 6378137.0 + 3000000.0);
+    var q = og.math.Quaternion.axisAngleToQuat(og.math.vector3(1, 1, 0).normalize(), 1.0 * og.math.RADIANS);
+
+    var orbit2 = [];
+    var p2 = new og.math.Vector3(0, 0, 6378137.0 + 5000000.0);
+    var q2 = og.math.Quaternion.axisAngleToQuat(og.math.vector3(-0.1, 1, 0.1).normalize(), 1.0 * og.math.RADIANS);
+
+    for (var i = 0; i < 360; i++) {
+        p = q.mulVec3(p);
+        orbit.push(p);
+
+        p2 = q2.mulVec3(p2);
+        orbit2.push(p2);
+    }
+
+    var grid = [];
+    //meridians
+    for (var i = -180; i < 180; i += 10) {
+        var mer = [];
+        for (var j = -90; j <= 90; j++) {
+            mer.push(og.lonLat(i, j, 20000));
+        }
+        grid.push(mer);
+    }
+
+    //parallels
+    for (var i = -90; i < 90; i += 10) {
+        var mer = [];
+        for (var j = -180; j <= 180; j++) {
+            mer.push(og.lonLat(j, i, 20000));
+        }
+        grid.push(mer);
+    }
+
+    var tracks = [];
+
+    tracks.push(
+        og.entity({
+            'polyline': {
+                'pathLonLat': grid,
+                'thickness': 1,
+                'color': "rgba(68, 157, 205, 0.92)"
+            }
+        }),
+        og.entity({
+            'polyline': {
+                'path3v': [orbit],
+                'thickness': 5.5,
+                'color': "#39b739",
+                'isClosed': true
+            }
+        }),
+        og.entity({
+            'polyline': {
+                'path3v': [orbit2],
+                'thickness': 2.5,
+                'color': "#ff3b3b",
+                'isClosed': true
+            }
+        })
+    );
+
     arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
         'entities': tracks
     });
@@ -334,31 +398,6 @@ function main4() {
         visibility: true,
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
-
-
-    var data = [
-        [og.lonLat(38.04923, 55.8842), og.lonLat(170.59682, 69.78397), 64, 1000000, 2, "yellow"]
-    ];
-
-    var tracks = [];
-
-    // for (var i = 0; i < data.length; i++) {
-    //     var startPoint = data[i][0],
-    //         endPoint = data[i][1],
-    //         count = data[i][2],
-    //         height = data[i][3],
-    //         thickness = data[i][4],
-    //         color = data[i][5];
-
-    //     tracks.push(
-    //         og.entity({
-    //             'polyline': {
-    //                 'pathLonLat': [createFlightPath(startPoint, endPoint, count, height)],
-    //                 'thickness': thickness,
-    //                 'color': color
-    //             }
-    //         }));
-    // }
 
 
     var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");

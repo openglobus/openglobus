@@ -31,7 +31,7 @@ og.control.Sun = function (options) {
      */
     //this._isCameraSunlight = false;
 
-    this.offsetVertical = options.offsetVertical || 5000000;
+    this.offsetVertical = options.offsetVertical || -5000000;
 
     this.offsetHorizontal = options.offsetHorizontal || 5000000;
 

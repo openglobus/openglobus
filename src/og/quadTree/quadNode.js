@@ -66,7 +66,7 @@ og.quadTree.QuadNode.prototype.createChildrenNodes = function () {
         new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
 
     nd[og.quadTree.SE] = new og.quadTree.QuadNode(this.SegmentPrototype, p, og.quadTree.SE, this, id, z,
-         new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
+        new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
 };
 
 og.quadTree.QuadNode.prototype.createBounds = function () {
@@ -135,7 +135,7 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
                 }
 
                 vi_y = t_i0 + 1,
-                vi_x = t_j0 + 1;
+                    vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
                     coords_rb = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
@@ -179,15 +179,15 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
-og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis) {
+og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
     if (height < 3000000.0) {
         if (altVis) {
-            this.renderNode();
+            this.renderNode(onlyTerrain);
         } else {
             this.state = og.quadTree.NOTRENDERING;
         }
     } else {
-        this.renderNode();
+        this.renderNode(onlyTerrain);
     }
 };
 
@@ -222,7 +222,6 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
             var inside;
 
-            //Because first wgs segments collected it cant be changed to lonLat.
             if (Math.abs(cam._lonLat.lat) <= og.mercator.MAX_LAT &&
                 seg._projection.id === og.proj.EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
@@ -241,21 +240,28 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         this._cameraInside = true;
     }
 
-    var inFrustum = cam.frustum.containsSphere(seg.bsphere) > 0,
-        altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-            og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
+    var inFrustum = cam.frustum.containsSphere(seg.bsphere),
+        underBottom = false;
 
-    if (inFrustum || this._cameraInside) {
+    if (cam._lonLat.height < 10000.0) {
+        underBottom = false;
+    }
+
+    var onlyTerrain = !inFrustum && underBottom;
+
+    var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
+        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
+
+    if (inFrustum || onlyTerrain || this._cameraInside) {
         if (seg.tileZoom <= 1 && seg.normalMapReady) {
             this.traverseNodes();
         } else if (seg.acceptForRendering(cam)) {
-            this.prepareForRendering(cam._lonLat.height, altVis);
+            this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
         } else {
             if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes();
-            }
-            else {
-                this.prepareForRendering(cam._lonLat.height, altVis);
+            } else {
+                this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
             }
         }
     } else {
@@ -271,9 +277,10 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
  * When the node is visible in frustum than begins to rendering.
  * @public
  */
-og.quadTree.QuadNode.prototype.renderNode = function () {
+og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
 
-    this.state = og.quadTree.RENDERING;
+    this.state = og.quadTree.NOTRENDERING;
+
     var seg = this.planetSegment;
 
     //Create ellipsoid(without elevation) vertices and normals.
@@ -286,6 +293,12 @@ og.quadTree.QuadNode.prototype.renderNode = function () {
         seg.loadTerrain();
         this.whileTerrainLoading();
     }
+
+    if (onlyTerrain) {
+        return;
+    }
+
+    this.state = og.quadTree.RENDERING;
 
     //Create normal map texture.
     if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
@@ -371,7 +384,7 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
         return og.quadTree.W;
     }
-        //Poles and mercator nodes common side.
+    //Poles and mercator nodes common side.
     else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
         return og.quadTree.N;
     } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {

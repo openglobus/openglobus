@@ -293,7 +293,7 @@ og.scene.RenderNode.prototype.drawEntityCollections = function (ec) {
 
         //Z-buffer offset
         gl.polygonOffset(0, 0);
-
+        
         gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.enable(gl.CULL_FACE);
 

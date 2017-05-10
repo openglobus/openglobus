@@ -87,7 +87,7 @@ og.Frustum.prototype.containsPoint = function (point) {
     var d;
     for (var p = 0; p < 6; p++) {
         d = point.dotArr(this._f[p]) + this._f[p][3];
-        if ( d <= 0 )
+        if (d <= 0)
             return false;
     }
     return true;
@@ -100,13 +100,14 @@ og.Frustum.prototype.containsPoint = function (point) {
  * @returns {boolean}
  */
 og.Frustum.prototype.containsSphere = function (sphere) {
-    var d;
-    for( var p = 0; p < 6; p++ ) {
-        d = sphere.center.dotArr(this._f[p]) + this._f[p][3];
-        if( d <= -sphere.radius )
-            return -1;
-    }
-    return d + sphere.radius;
+    var r = -sphere.radius;
+    if (sphere.center.dotArr(this._f[0]) + this._f[0][3] <= r) return false;
+    if (sphere.center.dotArr(this._f[1]) + this._f[1][3] <= r) return false;
+    if (sphere.center.dotArr(this._f[2]) + this._f[2][3] <= r) return false;
+    if (sphere.center.dotArr(this._f[3]) + this._f[3][3] <= r) return false;
+    if (sphere.center.dotArr(this._f[4]) + this._f[4][3] <= r) return false;
+    if (sphere.center.dotArr(this._f[5]) + this._f[5][3] <= r) return false;
+    return true;
 };
 
 /**
@@ -118,19 +119,19 @@ og.Frustum.prototype.containsSphere = function (sphere) {
 og.Frustum.prototype.containsBox = function (box) {
     var result = true, cout, cin;
 
-    for(var i=0; i < 6; i++) {
-        cout=0; cin=0;
-        for (var k = 0; k < 8 && (cin==0 || cout==0); k++) {
+    for (var i = 0; i < 6; i++) {
+        cout = 0; cin = 0;
+        for (var k = 0; k < 8 && (cin == 0 || cout == 0); k++) {
             var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
             if (d < 0)
                 cout++;
             else
-				cin++;
+                cin++;
         }
-        if (cin==0)
-			return false;
-        else if (cout>0)
+        if (cin == 0)
+            return false;
+        else if (cout > 0)
             result = true;
     }
-    return(result);
+    return (result);
 };
