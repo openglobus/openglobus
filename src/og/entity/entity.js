@@ -551,10 +551,10 @@ og.Entity.prototype.setPickingColor = function () {
  */
 og.Entity.prototype.getExtent = function () {
     var res;
+    var c = this._lonlat;
     if (this.billboard || this.label) {
         res = new og.Extent(new og.LonLat(c.lon, c.lat), new og.LonLat(c.lon, c.lat));
     } else {
-        var c = this._lonlat;
         res = new og.Extent(new og.LonLat(180.0, 90.0), new og.LonLat(-180.0, -90.0));
     }
 

@@ -322,22 +322,29 @@ function loadTrack() {
 
 function main4() {
 
-    var orbit = [];
+    //
+    // Orbit circles
+    //
+    var size = 5.0;
+    var greenOrbit = [];
     var p = new og.math.Vector3(0, 0, 6378137.0 + 3000000.0);
-    var q = og.math.Quaternion.axisAngleToQuat(og.math.vector3(1, 1, 0).normalize(), 1.0 * og.math.RADIANS);
+    var q = og.math.Quaternion.axisAngleToQuat(og.math.vector3(1, 1, 0).normalize(), size * og.math.RADIANS);
 
-    var orbit2 = [];
+    var redOrbit = [];
     var p2 = new og.math.Vector3(0, 0, 6378137.0 + 5000000.0);
-    var q2 = og.math.Quaternion.axisAngleToQuat(og.math.vector3(-0.1, 1, 0.1).normalize(), 1.0 * og.math.RADIANS);
+    var q2 = og.math.Quaternion.axisAngleToQuat(og.math.vector3(-0.1, 1, 0.1).normalize(), size * og.math.RADIANS);
 
-    for (var i = 0; i < 360; i++) {
+    for (var i = 0; i < 360; i += size) {
         p = q.mulVec3(p);
-        orbit.push(p);
+        greenOrbit.push(p);
 
         p2 = q2.mulVec3(p2);
-        orbit2.push(p2);
+        redOrbit.push(p2);
     }
 
+    //
+    // Geodetic grid
+    //
     var grid = [];
     //meridians
     for (var i = -180; i < 180; i += 10) {
@@ -352,41 +359,34 @@ function main4() {
     for (var i = -90; i < 90; i += 10) {
         var mer = [];
         for (var j = -180; j <= 180; j++) {
-            mer.push(og.lonLat(j, i, 20000));
+            mer.push(new og.LonLat(j, i, 20000));
         }
         grid.push(mer);
     }
 
-    var tracks = [];
-
-    tracks.push(
-        og.entity({
+    var collection = new og.layer.Vector("Collection", {
+        'entities':
+        [{
             'polyline': {
                 'pathLonLat': grid,
                 'thickness': 1,
                 'color': "rgba(68, 157, 205, 0.92)"
             }
-        }),
-        og.entity({
+        }, {
             'polyline': {
-                'path3v': [orbit],
+                'path3v': [greenOrbit],
                 'thickness': 5.5,
                 'color': "#39b739",
                 'isClosed': true
             }
-        }),
-        og.entity({
+        }, {
             'polyline': {
-                'path3v': [orbit2],
+                'path3v': [redOrbit],
                 'thickness': 2.5,
                 'color': "#ff3b3b",
                 'isClosed': true
             }
-        })
-    );
-
-    arcsAndOrbits = new og.layer.Vector("ArcsAndOrbits", {
-        'entities': tracks
+        }]
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -399,24 +399,11 @@ function main4() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
-
-    var terrain = new og.terrainProvider.TerrainProvider("OpenGlobus");
-
-    globus = new og.Globus({
+    var globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
-        "layers": [osm, arcsAndOrbits],
-        "terrain": terrain,
-        "controls": [
-            og.control.mouseNavigation(),
-            og.control.keyboardNavigation(),
-            og.control.earthCoordinates({ center: false }),
-            og.control.layerSwitcher(),
-            og.control.zoomControl(),
-            og.control.touchNavigation(),
-            new og.control.Sun(),
-            og.control.showFps()
-        ]
+        "layers": [osm, collection],
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus")
     });
 }
 

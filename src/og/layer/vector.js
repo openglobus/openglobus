@@ -88,7 +88,7 @@ og.layer.Vector = function (name, options) {
      * Stored entities.
      * @private
      */
-    this._entities = options.entities ? [].concat(options.entities) : [];
+    this._entities = og.layer.Vector._entitiesConstructor(options.entities || []);
 
     this._entityCollectionAlways = new og.EntityCollection({
         'pickingEnabled': this._pickingEnabled
@@ -149,6 +149,25 @@ og.layer.Vector.EVENT_NAMES = [
  */
 og.layer.vector = function (name, options) {
     return new og.layer.Vector(name, options);
+};
+
+/**
+ * Creates entity instance array.
+ * @static
+ * @param {og.Entities[] || Object[]} entities - Entity array.
+ * @returns {og.Entity[]} - Entity object array.
+ */
+og.layer.Vector._entitiesConstructor = function (entities) {
+    var res = [];
+    for (var i = 0; i < entities.length; i++) {
+        var ei = entities[i];
+        if (ei instanceof og.Entity) {
+            res.push(ei);
+        } else {
+            res.push(new og.Entity(ei));
+        }
+    }
+    return res;
 };
 
 og.layer.Vector.prototype._bindPicking = function () {
@@ -710,7 +729,7 @@ og.layer.Vector.prototype.applyMaterial = function (material) {
 og.layer.Vector.prototype.clearMaterial = function (material) {
     if (material.isReady) {
         var gl = material.segment.handler.gl;
-        
+
         material.isReady = false;
         material.pickingReady = false;
 
