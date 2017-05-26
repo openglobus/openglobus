@@ -32,10 +32,10 @@ og.webgl.Handler = function (id, params) {
 
     /**
      * Custom timers.
-     * @public
+     * @protected
      * @type{og.Clock[]}
      */
-    this.clocks = [];
+    this._clocks = [];
 
     /**
      * Draw frame time in milliseconds.
@@ -611,8 +611,8 @@ og.webgl.Handler.prototype.drawFrame = function () {
 
     this.defaultClock._tick(this.deltaTime);
 
-    for (var i = 0; i < this.clocks.length; i++) {
-        this.clocks[i]._tick(this.deltaTime);
+    for (var i = 0; i < this._clocks.length; i++) {
+        this._clocks[i]._tick(this.deltaTime);
     }
 
     /** Canvas resize checking */
@@ -766,3 +766,31 @@ og.webgl.Handler.prototype.destroy = function () {
 
     this._initialized = false;
 };
+
+og.webgl.Handler.prototype.addClock = function (clock) {
+    if (!clock.__handler) {
+        clock.__handler = this;
+        this._clocks.push(clock);
+    }
+};
+
+og.webgl.Handler.prototype.addClocks = function (clockArr) {
+    for (var i = 0; i < clockArr.length; i++) {
+        this.addClock(clockArr[i]);
+    }
+};
+
+og.webgl.Handler.prototype.removeClock = function (clock) {
+    if (clock.__handler) {
+        var c = this._clocks;
+        var i = c.length;
+        while (i--) {
+            if (c[i].equal(clock)) {
+                clock.__handler = null;
+                c.splice(i, 1);
+                break;
+            }
+        }
+    }
+};
+

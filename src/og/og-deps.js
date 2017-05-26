@@ -11,7 +11,7 @@ goog.addDependency('../../../og/src/og/bv/bv.js', ['og.bv'], ['og.Extent', 'og.L
 goog.addDependency('../../../og/src/og/bv/sphere.js', ['og.bv.Sphere'], ['og.bv', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/camera/camera.js', ['og.Camera'], ['og.Events', 'og.Frustum', 'og.math', 'og.math.Matrix4', 'og.math.Pixel', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/camera/planetCamera.js', ['og.PlanetCamera'], ['og.Camera', 'og.idle', 'og.inheritance', 'og.math.Vector3'], false);
-goog.addDependency('../../../og/src/og/clock.js', ['og.Clock'], ['og.jd'], false);
+goog.addDependency('../../../og/src/og/clock.js', ['og.Clock'], ['og.Events', 'og.jd'], false);
 goog.addDependency('../../../og/src/og/console.js', ['og.Console'], [], false);
 goog.addDependency('../../../og/src/og/control/baseControl.js', ['og.control.BaseControl'], [], false);
 goog.addDependency('../../../og/src/og/control/earthCoordinates.js', ['og.control.EarthCoordinates'], ['og.control.BaseControl', 'og.inheritance', 'og.mercator', 'og.planetSegment'], false);

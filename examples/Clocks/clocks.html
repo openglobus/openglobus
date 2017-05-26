@@ -1,0 +1,195 @@
+﻿<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<style>
+    .clockDiv {
+        padding: 12px 7px 7px 7px;
+    }
+    
+    .clocksContainer {
+        position: absolute;
+        background-color: white;
+    }
+    
+    .tlabel {
+        text-align: right;
+    }
+    
+    td {
+        width: 80px;
+    }
+</style>
+
+<body>
+    <div id="globus" style="width:100%;height:70%"></div>
+    <div class="clocksContainer">
+        <div class="clockDiv">
+            <table>
+                <caption><b>Default Clock</b></caption>
+                <tr>
+                    <td style="width:30px;"><input id="chkDef" type="radio" name="sun" checked/></td>
+                    <td id="dateDef">12.12.2003</td>
+                    <td id="timeDef">12:22:43</td>
+                    <td><input type="number" value="1.0" id="multDef" style="width:80px;" /></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="clockDiv">
+            <table>
+                <caption><b>First deep-space EVA</b></caption>
+                <tr>
+                    <td style="width:30px;"><input id="chkA" type="radio" name="sun" /></td>
+                    <td id="dateA">12.12.2003</td>
+                    <td id="timeA">12:22:43</td>
+                    <td><input type="number" value="0" id="multA" style="width:80px;" /></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="clockDiv">
+            <table>
+                <caption><b>Vostok 1</b></caption>
+                <tr>
+                    <td style="width:30px;"><input id="chkB" type="radio" name="sun" /></td>
+                    <td id="dateB">12.12.2003</td>
+                    <td id="timeB">12:22:43</td>
+                    <td><input type="number" value="10" id="multB" style="width:80px;" /></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="clockDiv">
+            <table>
+                <caption><b>Back to the 1885</b></caption>
+                <tr>
+                    <td style="width:30px;"><input id="chkC" type="radio" name="sun" /></td>
+                    <td id="dateC">12.12.2003</td>
+                    <td id="timeC">12:22:43</td>
+                    <td><input type="number" value="-31104000" id="multC" style="width:80px;" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function getDateStr(date) {
+            var d = date.getDate(),
+                m = (date.getMonth() + 1),
+                y = date.getFullYear();
+            return (d < 10 ? "0" + d : d) + "." + (m < 10 ? "0" + m : m) + "." + (y);
+
+        };
+
+        function getTimeStr(date) {
+            var h = date.getHours(),
+                m = date.getMinutes(),
+                s = date.getSeconds();
+            return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        };
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "layers": [osm],
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus")
+        });
+
+        var clockA = new og.Clock({
+            'name': "First deep-space EVA",
+            'currentDate': og.jd.DateToUTC(new Date(Date.UTC(1971, 7, 5, 16, 10, 0))),
+            'multiplier': 0
+        });
+
+        var clockB = new og.Clock({
+            'name': "Vostok 1",
+            'startDate': og.jd.DateToUTC(new Date(Date.UTC(1961, 3, 12, 6, 7, 0))),
+            'endDate': og.jd.DateToUTC(new Date(Date.UTC(1961, 3, 12, 7, 55, 0))),
+            'multiplier': 2
+        });
+
+        var clockC = new og.Clock({
+            'name': "Back to the Future",
+            'startDate': og.jd.DateToUTC(new Date(1885, 8, 2)),
+            'endDate': og.jd.DateToUTC(new Date(1985, 8, 2)),
+            'multiplier': -31104000
+        });
+
+        globus.renderer.handler.addClocks([clockA, clockB, clockC]);
+
+        globus.renderer.handler.defaultClock.events.on("tick", function () {
+            var date = og.jd.UTCtoDate(globus.renderer.handler.defaultClock.currentDate);
+            document.getElementById("dateDef").innerHTML = getDateStr(date);
+            document.getElementById("timeDef").innerHTML = getTimeStr(date);
+        });
+
+        clockA.events.on("tick", function () {
+            var date = og.jd.UTCtoDate(clockA.currentDate);
+            document.getElementById("dateA").innerHTML = getDateStr(date);
+            document.getElementById("timeA").innerHTML = getTimeStr(date);
+        });
+
+        clockB.events.on("tick", function () {
+            var date = og.jd.UTCtoDate(clockB.currentDate);
+            document.getElementById("dateB").innerHTML = getDateStr(date);
+            document.getElementById("timeB").innerHTML = getTimeStr(date);
+        });
+
+        clockC.events.on("tick", function () {
+            var date = og.jd.UTCtoDate(clockC.currentDate);
+            document.getElementById("dateC").innerHTML = getDateStr(date);
+            document.getElementById("timeC").innerHTML = getTimeStr(date);
+        });
+
+        document.getElementById("multA").addEventListener("change", function (e) {
+            clockA.multiplier = parseFloat(this.value);
+        });
+
+        document.getElementById("multB").addEventListener("change", function (e) {
+            clockB.multiplier = parseFloat(this.value);
+        });
+
+        document.getElementById("multC").addEventListener("change", function (e) {
+            clockC.multiplier = parseFloat(this.value);
+        });
+
+        document.getElementById("multDef").addEventListener("change", function (e) {
+            globus.renderer.handler.defaultClock.multiplier = parseFloat(this.value);
+        });
+
+        var sunControl = globus.renderer.controls[4];
+
+        var radios = document.getElementsByName("sun");
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].addEventListener("change", function () {
+                var c;
+                if (this.id == "chkA") {
+                    sunControl.bindClock(clockA);
+                } else if (this.id == "chkB") {
+                    sunControl.bindClock(clockB);
+                } else if (this.id == "chkC") {
+                    sunControl.bindClock(clockC);
+                } else if (this.id == "chkDef") {
+                    sunControl.bindClock(globus.renderer.handler.defaultClock);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

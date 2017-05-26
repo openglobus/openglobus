@@ -56,6 +56,8 @@ og.control.Sun = function (options) {
      */
     this._prevDate = 0;
 
+    this._clockPtr = null;
+
     this._lightOn = false;
 };
 
@@ -84,11 +86,18 @@ og.control.Sun.prototype.oninit = function () {
     this.renderer.events.on("charkeypress", og.input.KEY_L, function () {
         that.planet.lightEnabled = !that.planet.lightEnabled;
     });
+
+    if (!this._clockPtr)
+        this._clockPtr = this.renderer.handler.defaultClock;
+};
+
+og.control.Sun.prototype.bindClock = function (clock) {
+    this._clockPtr = clock;
 };
 
 og.control.Sun.prototype._draw = function () {
 
-    this._currDate = this.renderer.handler.defaultClock.currentDate;
+    this._currDate = this._clockPtr.currentDate;
     var cam = this.renderer.activeCamera;
     if (cam.getHeight() < 4650000) {
         this._lightOn = true;

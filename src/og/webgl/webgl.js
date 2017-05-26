@@ -28,7 +28,8 @@ og.webgl.getExtension = function (gl, name) {
 og.webgl.getContext = function (canvas, contextAttributes) {
     var ctx;
     try {
-        ctx = canvas.getContext("experimental-webgl", contextAttributes);
+        ctx = canvas.getContext("webgl", contextAttributes) ||
+            canvas.getContext("experimental-webgl", contextAttributes);
         ctx.canvas = canvas;
     }
     catch (ex) {
