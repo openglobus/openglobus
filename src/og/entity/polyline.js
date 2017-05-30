@@ -682,7 +682,7 @@ og.Polyline.prototype._createDataLonLat = function (pathLonlat) {
 
 
 /**
- * Removes from entity.
+ * Removes from an entity.
  * @public
  */
 og.Polyline.prototype.remove = function () {
@@ -698,7 +698,16 @@ og.Polyline.prototype.setPickingColor3v = function (color) {
 };
 
 /**
- * Returns Polyline path cartesian coordinates.
+ * Returns polyline geodetic extent.
+ * @public
+ * @returns {og.Extent} - Geodetic extent
+ */
+og.Polyline.prototype.getExtent = function () {
+    return this._extent.clone();
+};
+
+/**
+ * Returns path cartesian coordinates.
  * @return {Array.<og.math.Vector3>} Polyline path.
  */
 og.Polyline.prototype.getPath3v = function () {
@@ -706,7 +715,7 @@ og.Polyline.prototype.getPath3v = function () {
 };
 
 /**
- * Returns Polyline geodetic path coordinates.
+ * Returns geodetic path coordinates.
  * @return {Array.<og.LonLat>} Polyline path.
  */
 og.Polyline.prototype.getPathLonLat = function () {
@@ -714,7 +723,7 @@ og.Polyline.prototype.getPathLonLat = function () {
 };
 
 /**
- * Sets Polyline geodetic coordinates.
+ * Sets geodetic coordinates.
  * @public
  * @param {Array.<Array.<number,number,number>>} path - Polyline path cartesian coordinates.
  */
@@ -741,7 +750,7 @@ og.Polyline.prototype.setPathLonLat = function (pathLonLat, forceEqual) {
 og.Polyline.prototype.setPath3v = function (path3v, forceEqual) {
     if (this._renderNode) {
         if (forceEqual) {
-            this._setEqualPath3v(pathLonLat);
+            this._setEqualPath3v(path3v);
             this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
         } else {
             this._createData3v(path3v);
@@ -891,17 +900,17 @@ og.Polyline.prototype._deleteBuffers = function () {
 
 /**
  * Creates gl main data buffer.
- * @private
+ * @protected
  */
 og.Polyline.prototype._createVerticesBuffer = function () {
     var h = this._renderNode.renderer.handler;
-    h.gl.deleteBuffer(this._mainBuffer);
+    h.gl.deleteBuffer(this._verticesBuffer);
     this._verticesBuffer = h.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
 };
 
 /**
- * Creates gl main daya index buffer.
- * @private
+ * Creates gl index and order buffer.
+ * @protected
  */
 og.Polyline.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
@@ -909,8 +918,4 @@ og.Polyline.prototype._createIndexBuffer = function () {
     h.gl.deleteBuffer(this._indexBuffer);
     this._ordersBuffer = h.createArrayBuffer(new Float32Array(this._orders), 1, this._orders.length / 2);
     this._indexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._indexes), 1, this._indexes.length);
-};
-
-og.Polyline.prototype.getExtent = function () {
-    return this._extent.clone();
 };

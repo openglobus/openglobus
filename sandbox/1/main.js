@@ -320,22 +320,39 @@ function loadTrack() {
     });
 };
 
-function getDateStr(date) {
-    var d = date.getDate(),
-        m = (date.getMonth() + 1),
-        y = date.getFullYear();
-    return (d < 10 ? "0" + d : d) + "." + (m < 10 ? "0" + m : m) + "." + (y);
-
-};
-
-function getTimeStr(date) {
-    var h = date.getHours(),
-        m = date.getMinutes(),
-        s = date.getSeconds();
-    return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-};
 
 function main4() {
+
+    size = 6.0;
+    greenCoords = [];
+    p = new og.math.Vector3(0, 0, 6378137.0 + 3000000.0);
+    greenAround = og.math.vector3(1, 0, 0).normalize();
+    q = og.math.Quaternion.axisAngleToQuat(greenAround, size * og.math.RADIANS);
+
+    redOrbit = [];
+    p2 = new og.math.Vector3(0, 0, 6378137.0 + 5000000.0);
+    startR = og.math.vector3(0, 1, 0).normalize();
+    q2 = og.math.Quaternion.axisAngleToQuat(startR, size * og.math.RADIANS);
+
+    for (var i = 0; i < 360; i += size) {
+        p = q.mulVec3(p);
+        greenCoords.push(p);
+    }
+
+
+    greenOrbit = new og.Entity({
+        'polyline': {
+            'path3v': [greenCoords],
+            'thickness': 5.5,
+            'color': "#39b739",
+            'isClosed': true
+        }
+    });
+
+
+    var collection = new og.layer.Vector("Collection", {
+        'entities': [greenOrbit]
+    });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
@@ -347,76 +364,27 @@ function main4() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
-    globus = new og.Globus({
+    var globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
-        "layers": [osm],
+        "layers": [osm, collection],
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus")
     });
 
-    var clockA = new og.Clock({ 'name': "First deep-space EVA", 'currentDate': og.jd.DateToUTC(new Date(Date.UTC(1971, 7, 5, 16, 10, 0))), 'multiplier': 0 });
-    var clockB = new og.Clock({ 'name': "Vostok 1", 'startDate': og.jd.DateToUTC(new Date(Date.UTC(1961, 3, 12, 6, 7, 0))), 'endDate': og.jd.DateToUTC(new Date(Date.UTC(1961, 3, 12, 7, 55, 0))), 'multiplier': 2 });
-    var clockC = new og.Clock({ 'name': "Back to the Future", 'startDate': og.jd.DateToUTC(new Date(1885, 8, 2)), 'endDate': og.jd.DateToUTC(new Date(1985, 8, 2)), 'multiplier': -31104000 });
+    setTimeout(function () {
 
-    globus.renderer.handler.addClocks([clockA, clockB, clockC]);
-
-    globus.renderer.handler.defaultClock.events.on("tick", function () {
-        var date = og.jd.UTCtoDate(globus.renderer.handler.defaultClock.currentDate);
-        document.getElementById("dateDef").innerHTML = getDateStr(date);
-        document.getElementById("timeDef").innerHTML = getTimeStr(date);
-    });
-
-    clockA.events.on("tick", function () {
-        var date = og.jd.UTCtoDate(clockA.currentDate);
-        document.getElementById("dateA").innerHTML = getDateStr(date);
-        document.getElementById("timeA").innerHTML = getTimeStr(date);
-    });
-
-    clockB.events.on("tick", function () {
-        var date = og.jd.UTCtoDate(clockB.currentDate);
-        document.getElementById("dateB").innerHTML = getDateStr(date);
-        document.getElementById("timeB").innerHTML = getTimeStr(date);
-    });
-
-    clockC.events.on("tick", function () {
-        var date = og.jd.UTCtoDate(clockC.currentDate);
-        document.getElementById("dateC").innerHTML = getDateStr(date);
-        document.getElementById("timeC").innerHTML = getTimeStr(date);
-    });
-
-    document.getElementById("multA").addEventListener("change", function (e) {
-        clockA.multiplier = parseFloat(this.value);
-    });
-
-    document.getElementById("multB").addEventListener("change", function (e) {
-        clockB.multiplier = parseFloat(this.value);
-    });
-
-    document.getElementById("multC").addEventListener("change", function (e) {
-        clockC.multiplier = parseFloat(this.value);
-    });
-
-    document.getElementById("multDef").addEventListener("change", function (e) {
-        globus.renderer.handler.defaultClock.multiplier = parseFloat(this.value);
-    });
-
-    var sunControl = globus.renderer.controls[4];
-    var radios = document.getElementsByName("sun");
-    for (var i = 0; i < radios.length; i++) {
-        radios[i].addEventListener("change", function () {
-            var c;
-            if (this.id == "chkA") {
-                sunControl.bindClock(clockA);
-            } else if (this.id == "chkB") {
-                sunControl.bindClock(clockB);
-            } else if (this.id == "chkC") {
-                sunControl.bindClock(clockC);
-            } else if (this.id == "chkDef") {
-                sunControl.bindClock(globus.renderer.handler.defaultClock);
-            }
-        });
-    }
+    }, 1000);
 };
+
+function test() {
+    greenCoords = [];
+    
+    for (var i = 0; i < 360; i += size) {
+        p2 = q2.mulVec3(p2);
+        greenCoords.push(p2);
+    }
+    greenOrbit.polyline.setPath3v([greenCoords], true);
+}
 
 /*
 <div style="
