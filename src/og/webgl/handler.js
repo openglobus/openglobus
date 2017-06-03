@@ -579,6 +579,24 @@ og.webgl.Handler.prototype.setSize = function (w, h) {
 };
 
 /**
+ * Returns context screen width.
+ * @public
+ * @returns {number}
+ */
+og.webgl.Handler.prototype.getWidth = function () {
+    return this.canvas.width;
+};
+
+/**
+ * Returns context screen height.
+ * @public
+ * @returns {number}
+ */
+og.webgl.Handler.prototype.getHeight = function () {
+    return this.canvas.height;
+};
+
+/**
  * Returns canvas aspect ratio.
  * @public
  * @returns {number}

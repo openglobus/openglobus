@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+    <script src="polyline2d.js"></script>
+</head>
+
+<body>
+    <canvas id="myCanvas" style="width: 100%; height: 100%; display: block"></canvas>
+    <script>
+
+	var polyline2d = new Polyline2d();
+
+        var handler = new og.webgl.Handler("myCanvas", { autoActivate:true, alpha: false });
+
+        var renderer = new og.Renderer(handler, { autoActivate:true });
+        renderer.addRenderNode(polyline2d);
+        renderer.addControls([
+            og.control.simpleNavigation({ 'speed': 0.3 }),
+            og.control.showFps()
+        ]);
+        renderer.activeCamera.set(og.math.vector3(5, 5, 5), og.math.Vector3.ZERO).update();
+
+    </script>
+</body>
+
+</html>

@@ -40,14 +40,6 @@
             attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
-        //var kos = new og.layer.XYZ("Kosmosnimki", {
-        //    isBaseLayer: true,
-        //    specular: [0.0003, 0.00012, 0.00001],
-        //    shininess: 20,
-        //    diffuse: [0.89, 0.9, 0.83],
-        //    url: "http://maps.kosmosnimki.ru/TileService.ashx?Request=gettile&apikey=L5VW1QBBHJ&layerName=4F9F7CCCCBBC4BD08469F58C02F17AE4&crs=epsg:3857&z={z}&x={x}&y={y}"
-        //});
-
         var controls = [
             og.control.mouseNavigation(),
             og.control.touchNavigation(),
@@ -60,7 +52,6 @@
             "target": "globus",
             "name": "Earth",
             "controls": controls,
-            "skybox": og.scene.defaultSkyBox(),
             "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
             "layers": [osm, sat]
         });

@@ -11,6 +11,7 @@ goog.require('og.webgl.MultiFramebuffer');
  * Represents high level WebGL context interface that starts WebGL handler works real time.
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler context.
+ * @param {Object} [params] - Renderer parameters:
  * @fires og.RendererEvents#draw
  * @fires og.RendererEvents#resize
  * @fires og.RendererEvents#mousemove
@@ -39,7 +40,9 @@ goog.require('og.webgl.MultiFramebuffer');
  * @fires og.RendererEvents#touchleave
  * @fires og.RendererEvents#touchenter
  */
-og.Renderer = function (handler) {
+og.Renderer = function (handler, params) {
+
+    params = params || {};
 
     /**
      * Div element with WebGL canvas.
@@ -149,6 +152,11 @@ og.Renderer = function (handler) {
      * @private
      */
     this._fnScreenFrame = null;
+
+    if (params.autoActivate) {
+        this.initialize();
+        this.start();
+    }
 };
 
 /**
