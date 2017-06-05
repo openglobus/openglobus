@@ -417,7 +417,7 @@ my.LineRing.prototype.initialization = function () {
         ]
     ];
 
-    pathArr[0] = result;
+    //pathArr[0] = result;
 
     appendLineData([pathArr[0]], false, this._lineVertices, this._lineOrders, this._lineIndexes);
 
