@@ -1,13 +1,34 @@
 var Polyline3d = function () {
     og.inheritance.base(this, "polyline3d");
 
-    this.thickness = 15;
+    this.thickness = 5;
     this.color = [1, 1, 1, 0.7];
-    this.path = [[
-            [0, 0, 0],
-            [100, 100, 100],
-            [0, 100, 0]
-        ]];
+    this.path = [];
+
+    function _f(x, z) {
+        return 4 * Math.sin(Math.sqrt(x * x + z * z)) / Math.sqrt(x * x + z * z) * 100;
+    };
+
+    var constants = {
+        xMin: -9, // RANGE RELATED
+        xMax: 9, // RANGE RELATED
+        yMin: -9, // RANGE RELATED
+        yMax: 9, // RANGE RELATED
+        xDelta: 0.2, // RANGE RELATED
+        yDelta: 0.2, // RANGE RELATED
+        dTheta: 0.05,
+        surfaceScale: 24
+    };
+
+    for (var x = constants.xMin; x <= constants.xMax; x += constants.xDelta) {
+        var segX = [],
+            segZ = [];
+        for (var z = constants.yMin; z <= constants.yMax; z += constants.yDelta) {
+            segX.push([x * 100, _f(x, z), z * 100]);
+            segZ.push([z * 100, _f(x, z), x * 100]);
+        }
+        this.path.push(segX, segZ);
+    }
 
     this._verticesBuffer = null;
     this._ordersBuffer = null;
@@ -17,21 +38,21 @@ var Polyline3d = function () {
 
         //Initialize shader program
         this.renderer.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("polyline3d", {
-        uniforms: {
-            'viewport': { type: og.shaderProgram.types.VEC2 },
-            'proj': { type: og.shaderProgram.types.MAT4 },
-            'view': { type: og.shaderProgram.types.MAT4 },
-            'viewport': { type: og.shaderProgram.types.VEC2 },
-            'color': { type: og.shaderProgram.types.VEC4 },
-            'thickness': { type: og.shaderProgram.types.FLOAT }
-        },
-        attributes: {
-            'prev': { type: og.shaderProgram.types.VEC3 },
-            'current': { type: og.shaderProgram.types.VEC3 },
-            'next': { type: og.shaderProgram.types.VEC3 },
-            'order': { type: og.shaderProgram.types.FLOAT }
-        },
-        vertexShader: 'attribute vec3 prev;\
+            uniforms: {
+                'viewport': { type: og.shaderProgram.types.VEC2 },
+                'proj': { type: og.shaderProgram.types.MAT4 },
+                'view': { type: og.shaderProgram.types.MAT4 },
+                'viewport': { type: og.shaderProgram.types.VEC2 },
+                'color': { type: og.shaderProgram.types.VEC4 },
+                'thickness': { type: og.shaderProgram.types.FLOAT }
+            },
+            attributes: {
+                'prev': { type: og.shaderProgram.types.VEC3 },
+                'current': { type: og.shaderProgram.types.VEC3 },
+                'next': { type: og.shaderProgram.types.VEC3 },
+                'order': { type: og.shaderProgram.types.FLOAT }
+            },
+            vertexShader: 'attribute vec3 prev;\
                 attribute vec3 current;\
                 attribute vec3 next;\
                 attribute float order;\
@@ -127,12 +148,12 @@ var Polyline3d = function () {
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);\
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 }',
-        fragmentShader: 'precision highp float;\
+            fragmentShader: 'precision highp float;\
                 uniform vec4 color;\
                 void main() {\
                     gl_FragColor = color;\
                 }'
-    }));
+        }));
 
         this.createBuffers();
     };

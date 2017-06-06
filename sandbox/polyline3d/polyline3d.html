@@ -16,15 +16,13 @@
         var handler = new og.webgl.Handler("myCanvas", { autoActivate: true, alpha: false });
 
         var renderer = new og.Renderer(handler, { autoActivate: true });
-        renderer.addRenderNode(polyline3);
+        renderer.addRenderNodes([polyline3, new og.scene.Axes(1000)]);
         renderer.addControls([
-            og.control.simpleNavigation({ 'speed': 0.3 }),
+            og.control.simpleNavigation({ 'speed': 5.0 }),
             og.control.showFps()
         ]);
-        renderer.activeCamera.eye.x = 139.78950005325692;
-        renderer.activeCamera.eye.y = 134.6316551663209;
-        renderer.activeCamera.eye.z = 1337.487396725346;
-        renderer.activeCamera.refresh();
+
+        renderer.activeCamera.set(new og.math.Vector3(905.0, 1674.0, 2262.0), og.math.Vector3.ZERO).update();
     </script>
 </body>
 
