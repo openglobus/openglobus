@@ -31,21 +31,21 @@ goog.require('og.Events');
  * @fires og.EntityCollection#mousemove
  * @fires og.EntityCollection#mouseenter
  * @fires og.EntityCollection#mouseleave
- * @fires og.EntityCollection#mouselbuttonclick
- * @fires og.EntityCollection#mouserbuttonclick
- * @fires og.EntityCollection#mousembuttonclick
- * @fires og.EntityCollection#mouselbuttondoubleclick
- * @fires og.EntityCollection#mouserbuttondoubleclick
- * @fires og.EntityCollection#mousembuttondoubleclick
- * @fires og.EntityCollection#mouselbuttonup
- * @fires og.EntityCollection#mouserbuttonup
- * @fires og.EntityCollection#mousembuttonup
- * @fires og.EntityCollection#mouselbuttondown
- * @fires og.EntityCollection#mouserbuttondown
- * @fires og.EntityCollection#mousembuttondown
- * @fires og.EntityCollection#mouselbuttonhold
- * @fires og.EntityCollection#mouserbuttonhold
- * @fires og.EntityCollection#mousembuttonhold
+ * @fires og.EntityCollection#lclick
+ * @fires og.EntityCollection#rclick
+ * @fires og.EntityCollection#mclick
+ * @fires og.EntityCollection#ldblclick
+ * @fires og.EntityCollection#rdblclick
+ * @fires og.EntityCollection#mdblclick
+ * @fires og.EntityCollection#lup
+ * @fires og.EntityCollection#rup
+ * @fires og.EntityCollection#mup
+ * @fires og.EntityCollection#ldown
+ * @fires og.EntityCollection#rdown
+ * @fires og.EntityCollection#mdown
+ * @fires og.EntityCollection#lhold
+ * @fires og.EntityCollection#rhold
+ * @fires og.EntityCollection#mhold
  * @fires og.EntityCollection#mousewheel
  * @fires og.EntityCollection#touchmove
  * @fires og.EntityCollection#touchstart
@@ -240,93 +240,93 @@ og.EntityCollection.EVENT_NAMES = [
 
         /**
          * Mouse left button clicked.
-         * @event og.EntityCollection#mouselbuttonclick
+         * @event og.EntityCollection#lclick
          */
-        "mouselbuttonclick",
+        "lclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.EntityCollection#mouserbuttonclick
+         * @event og.EntityCollection#rclick
          */
-        "mouserbuttonclick",
+        "rclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.EntityCollection#mousembuttonclick
+         * @event og.EntityCollection#mclick
          */
-        "mousembuttonclick",
+        "mclick",
 
         /**
          * Mouse left button double click.
-         * @event og.EntityCollection#mouselbuttondoubleclick
+         * @event og.EntityCollection#ldblclick
          */
-        "mouselbuttondoubleclick",
+        "ldblclick",
 
         /**
          * Mouse right button double click.
-         * @event og.EntityCollection#mouserbuttondoubleclick
+         * @event og.EntityCollection#rdblclick
          */
-        "mouserbuttondoubleclick",
+        "rdblclick",
 
         /**
          * Mouse middle button double click.
-         * @event og.EntityCollection#mousembuttondoubleclick
+         * @event og.EntityCollection#mdblclick
          */
-        "mousembuttondoubleclick",
+        "mdblclick",
 
         /**
          * Mouse left button up(stop pressing).
-         * @event og.EntityCollection#mouselbuttonup
+         * @event og.EntityCollection#lup
          */
-        "mouselbuttonup",
+        "lup",
 
         /**
          * Mouse right button up(stop pressing).
-         * @event og.EntityCollection#mouserbuttonup
+         * @event og.EntityCollection#rup
          */
-        "mouserbuttonup",
+        "rup",
 
         /**
          * Mouse middle button up(stop pressing).
-         * @event og.EntityCollection#mousembuttonup
+         * @event og.EntityCollection#mup
          */
-        "mousembuttonup",
+        "mup",
 
         /**
          * Mouse left button is just pressed down(start pressing).
-         * @event og.EntityCollection#mouselbuttondown
+         * @event og.EntityCollection#ldown
          */
-        "mouselbuttondown",
+        "ldown",
 
         /**
          * Mouse right button is just pressed down(start pressing).
-         * @event og.EntityCollection#mouserbuttondown
+         * @event og.EntityCollection#rdown
          */
-        "mouserbuttondown",
+        "rdown",
 
         /**
          * Mouse middle button is just pressed down(start pressing).
-         * @event og.EntityCollection#mousembuttondown
+         * @event og.EntityCollection#mdown
          */
-        "mousembuttondown",
+        "mdown",
 
         /**
          * Mouse left button is pressing.
-         * @event og.EntityCollection#mouselbuttonhold
+         * @event og.EntityCollection#lhold
          */
-        "mouselbuttonhold",
+        "lhold",
 
         /**
          * Mouse right button is pressing.
-         * @event og.EntityCollection#mouserbuttonhold
+         * @event og.EntityCollection#rhold
          */
-        "mouserbuttonhold",
+        "rhold",
 
         /**
          * Mouse middle button is pressing.
-         * @event og.EntityCollection#mousembuttonhold
+         * @event og.EntityCollection#mhold
          */
-        "mousembuttonhold",
+        "mhold",
 
         /**
          * Mouse wheel is rotated.

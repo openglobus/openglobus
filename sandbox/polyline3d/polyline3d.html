@@ -16,9 +16,9 @@
         var handler = new og.webgl.Handler("myCanvas", { autoActivate: true, alpha: false });
 
         var renderer = new og.Renderer(handler, { autoActivate: true });
-        renderer.addRenderNodes([polyline3, new og.scene.Axes(1000)]);
+        renderer.addRenderNode(polyline3);
         renderer.addControls([
-            og.control.simpleNavigation({ 'speed': 5.0 }),
+            og.control.simpleNavigation({ 'speed': 12.0 }),
             og.control.showFps()
         ]);
 

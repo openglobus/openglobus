@@ -10,22 +10,21 @@ var Polyline3d = function () {
     };
 
     var constants = {
-        xMin: -9, // RANGE RELATED
-        xMax: 9, // RANGE RELATED
-        yMin: -9, // RANGE RELATED
-        yMax: 9, // RANGE RELATED
-        xDelta: 0.2, // RANGE RELATED
-        yDelta: 0.2, // RANGE RELATED
-        dTheta: 0.05,
-        surfaceScale: 24
+        xMin: -9,
+        xMax: 9,
+        yMin: -9,
+        yMax: 9,
+        xDelta: 0.2,
+        yDelta: 0.2,
+        surfaceScale: 100
     };
 
     for (var x = constants.xMin; x <= constants.xMax; x += constants.xDelta) {
         var segX = [],
             segZ = [];
         for (var z = constants.yMin; z <= constants.yMax; z += constants.yDelta) {
-            segX.push([x * 100, _f(x, z), z * 100]);
-            segZ.push([z * 100, _f(x, z), x * 100]);
+            segX.push([x * constants.surfaceScale, _f(x, z), z * constants.surfaceScale]);
+            segZ.push([z * constants.surfaceScale, _f(x, z), x * constants.surfaceScale]);
         }
         this.path.push(segX, segZ);
     }

@@ -44,14 +44,14 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
                     }
                 }
             });
-            e.events.on('mouselbuttondown', function (ms) {
+            e.events.on('ldown', function (ms) {
                 if (that.active && that._cornerIndex != -1) {
                     that._catchCorner = true;
                     globus.planet.renderer.controls[0].active = false;
                 }
             });
 
-            e.events.on('mouselbuttonup', function (ms) {
+            e.events.on('lup', function (ms) {
                 if (that.active) {
                     that._catchCorner = false;
                     globus.planet.renderer.controls[0].active = true;

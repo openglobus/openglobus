@@ -68,7 +68,7 @@
                 e.pickingObject.geometry.setFillColor(1, 0, 0, 0.4);
                 e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0);
             });
-            countries.events.on("mouselbuttonclick", function (e) {
+            countries.events.on("lclick", function (e) {
                 globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
             });
             countries.events.on("touchstart", function (e) {

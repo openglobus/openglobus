@@ -20,7 +20,7 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        osm.events.on("mouselbuttonclick", function () {
+        osm.events.on("lclick", function () {
             osm.setZIndex(++maxZIndex);
         });
 
@@ -36,7 +36,7 @@
             attribution: '2014 MapQuest - Portions 2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
-        sat.events.on("mouselbuttonclick", function () {
+        sat.events.on("lclick", function () {
             sat.setZIndex(++maxZIndex);
         });
 
@@ -52,7 +52,7 @@
             opacity: 1.0
         });
 
-        img.events.on("mouselbuttonclick", function () {
+        img.events.on("lclick", function () {
             img.setZIndex(++maxZIndex);
         });
 

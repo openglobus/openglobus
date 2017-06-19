@@ -512,50 +512,50 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     entityCollection.events.on("mouseleave", function (e) {
         ve.dispatch(ve.mouseleave, e);
     });
-    entityCollection.events.on("mouselbuttonclick", function (e) {
-        ve.dispatch(ve.mouselbuttonclick, e);
+    entityCollection.events.on("lclick", function (e) {
+        ve.dispatch(ve.lclick, e);
     });
-    entityCollection.events.on("mouserbuttonclick", function (e) {
-        ve.dispatch(ve.mouserbuttonclick, e);
+    entityCollection.events.on("rclick", function (e) {
+        ve.dispatch(ve.rclick, e);
     });
-    entityCollection.events.on("mousembuttonclick", function (e) {
-        ve.dispatch(ve.mousembuttonclick, e);
+    entityCollection.events.on("mclick", function (e) {
+        ve.dispatch(ve.mclick, e);
     });
-    entityCollection.events.on("mouselbuttondoubleclick", function (e) {
-        ve.dispatch(ve.mouselbuttondoubleclick, e);
+    entityCollection.events.on("ldblclick", function (e) {
+        ve.dispatch(ve.ldblclick, e);
     });
-    entityCollection.events.on("mouserbuttondoubleclick", function (e) {
-        ve.dispatch(ve.mouserbuttondoubleclick, e);
+    entityCollection.events.on("rdblclick", function (e) {
+        ve.dispatch(ve.rdblclick, e);
     });
-    entityCollection.events.on("mousembuttondoubleclick", function (e) {
-        ve.dispatch(ve.mousembuttondoubleclick, e);
+    entityCollection.events.on("mdblclick", function (e) {
+        ve.dispatch(ve.mdblclick, e);
     });
-    entityCollection.events.on("mouselbuttonup", function (e) {
-        ve.dispatch(ve.mouselbuttonup, e);
+    entityCollection.events.on("lup", function (e) {
+        ve.dispatch(ve.lup, e);
     });
-    entityCollection.events.on("mouserbuttonup", function (e) {
-        ve.dispatch(ve.mouserbuttonup, e);
+    entityCollection.events.on("rup", function (e) {
+        ve.dispatch(ve.rup, e);
     });
-    entityCollection.events.on("mousembuttonup", function (e) {
-        ve.dispatch(ve.mousembuttonup, e);
+    entityCollection.events.on("mup", function (e) {
+        ve.dispatch(ve.mup, e);
     });
-    entityCollection.events.on("mouselbuttondown", function (e) {
-        ve.dispatch(ve.mouselbuttondown, e);
+    entityCollection.events.on("ldown", function (e) {
+        ve.dispatch(ve.ldown, e);
     });
-    entityCollection.events.on("mouserbuttondown", function (e) {
-        ve.dispatch(ve.mouserbuttondown, e);
+    entityCollection.events.on("rdown", function (e) {
+        ve.dispatch(ve.rdown, e);
     });
-    entityCollection.events.on("mousembuttondown", function (e) {
-        ve.dispatch(ve.mousembuttondown, e);
+    entityCollection.events.on("mdown", function (e) {
+        ve.dispatch(ve.mdown, e);
     });
-    entityCollection.events.on("mouselbuttonhold", function (e) {
-        ve.dispatch(ve.mouselbuttonhold, e);
+    entityCollection.events.on("lhold", function (e) {
+        ve.dispatch(ve.lhold, e);
     });
-    entityCollection.events.on("mouserbuttonhold", function (e) {
-        ve.dispatch(ve.mouserbuttonhold, e);
+    entityCollection.events.on("rhold", function (e) {
+        ve.dispatch(ve.rhold, e);
     });
-    entityCollection.events.on("mousembuttonhold", function (e) {
-        ve.dispatch(ve.mousembuttonhold, e);
+    entityCollection.events.on("mhold", function (e) {
+        ve.dispatch(ve.mhold, e);
     });
     entityCollection.events.on("mousewheel", function (e) {
         ve.dispatch(ve.mousewheel, e);

@@ -3,7 +3,7 @@ var Polyline2d = function () {
 
     this.thickness = 15;
     this.color = [1, 1, 1, 0.7];
-    this.path = [[[0, 0], [200, 0], [300, 100], [0, 100], [0, 200], [-200, 200], [300, 150], [50, -50], [50, -200]]];
+    this.path = [[[-100, -50], [1, 2], [200, 15]]];
 
     this._verticesBuffer = null;
     this._ordersBuffer = null;
@@ -103,7 +103,7 @@ var Polyline2d = function () {
             orders = [],
             indexes = [];
 
-        Polyline2d.createLineData(this.path, true, vertices, orders, indexes);
+        Polyline2d.createLineData(this.path, vertices, orders, indexes);
 
         var h = this.renderer.handler;
 
@@ -152,7 +152,7 @@ var Polyline2d = function () {
 
 og.inheritance.extend(Polyline2d, og.scene.RenderNode);
 
-Polyline2d.createLineData = function (pathArr, isClosed, outVertices, outOrders, outIndexes) {
+Polyline2d.createLineData = function (pathArr, outVertices, outOrders, outIndexes) {
     var index = 0;
 
     outIndexes.push(0, 0);
@@ -182,5 +182,4 @@ Polyline2d.createLineData = function (pathArr, isClosed, outVertices, outOrders,
         }
     }
 };
-
 

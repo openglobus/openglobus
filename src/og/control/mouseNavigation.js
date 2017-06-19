@@ -125,23 +125,23 @@ og.control.MouseNavigation.getMovePointsFromPixelTerrain = function (cam, planet
 
 og.control.MouseNavigation.prototype.onactivate = function () {
     this.renderer.events.on("mousewheel", this.onMouseWheel, this);
-    this.renderer.events.on("mouselbuttonhold", this.onMouseLeftButtonDown, this);
-    this.renderer.events.on("mouserbuttonhold", this.onMouseRightButtonDown, this);
-    this.renderer.events.on("mouselbuttondown", this.onMouseLeftButtonClick, this);
-    this.renderer.events.on("mouselbuttonup", this.onMouseLeftButtonUp, this);
-    this.renderer.events.on("mouserbuttondown", this.onMouseRightButtonClick, this);
-    this.renderer.events.on("mouselbuttondoubleclick", this.onMouseLeftButtonDoubleClick, this);
+    this.renderer.events.on("lhold", this.onMouseLeftButtonDown, this);
+    this.renderer.events.on("rhold", this.onMouseRightButtonDown, this);
+    this.renderer.events.on("ldown", this.onMouseLeftButtonClick, this);
+    this.renderer.events.on("lup", this.onMouseLeftButtonUp, this);
+    this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
+    this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
     this.renderer.events.on("draw", this.onDraw, this);
 };
 
 og.control.MouseNavigation.prototype.ondeactivate = function () {
     this.renderer.events.off("mousewheel", this.onMouseWheel);
-    this.renderer.events.off("mouselbuttonhold", this.onMouseLeftButtonDown);
-    this.renderer.events.off("mouserbuttonhold", this.onMouseRightButtonDown);
-    this.renderer.events.off("mouselbuttondown", this.onMouseLeftButtonClick);
-    this.renderer.events.off("mouselbuttonup", this.onMouseLeftButtonUp);
-    this.renderer.events.off("mouserbuttondown", this.onMouseRightButtonClick);
-    this.renderer.events.off("mouselbuttondoubleclick", this.onMouseLeftButtonDoubleClick);
+    this.renderer.events.off("lhold", this.onMouseLeftButtonDown);
+    this.renderer.events.off("rhold", this.onMouseRightButtonDown);
+    this.renderer.events.off("ldown", this.onMouseLeftButtonClick);
+    this.renderer.events.off("lup", this.onMouseLeftButtonUp);
+    this.renderer.events.off("rdown", this.onMouseRightButtonClick);
+    this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
     this.renderer.events.off("draw", this.onDraw);
 };
 

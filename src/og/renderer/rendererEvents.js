@@ -191,93 +191,93 @@ og.RendererEvents.EVENT_NAMES = [
 
         /**
          * Mouse left button clicked.
-         * @event og.RendererEvents#mouselbuttonclick
+         * @event og.RendererEvents#lclick
          */
-        "mouselbuttonclick",
+        "lclick",
 
         /**
          * Mouse right button clicked.
-         * @event og.RendererEvents#mouserbuttonclick
+         * @event og.RendererEvents#rclick
          */
-        "mouserbuttonclick",
+        "rclick",
 
         /**
          * Mouse middle button clicked.
-         * @event og.RendererEvents#mousembuttonclick
+         * @event og.RendererEvents#mclick
          */
-        "mousembuttonclick",
+        "mclick",
 
         /**
          * Mouse left button double click.
-         * @event og.RendererEvents#mouselbuttondoubleclick
+         * @event og.RendererEvents#ldblclick
          */
-        "mouselbuttondoubleclick",
+        "ldblclick",
 
         /**
          * Mouse right button double click.
-         * @event og.RendererEvents#mouserbuttondoubleclick
+         * @event og.RendererEvents#rdblclick
          */
-        "mouserbuttondoubleclick",
+        "rdblclick",
 
         /**
          * Mouse middle button double click.
-         * @event og.RendererEvents#mousembuttondoubleclick
+         * @event og.RendererEvents#mdblclick
          */
-        "mousembuttondoubleclick",
+        "mdblclick",
 
         /**
          * Mouse left button up(stop pressing).
-         * @event og.RendererEvents#mouselbuttonup
+         * @event og.RendererEvents#lup
          */
-        "mouselbuttonup",
+        "lup",
 
         /**
          * Mouse right button up(stop pressing).
-         * @event og.RendererEvents#mouserbuttonup
+         * @event og.RendererEvents#rup
          */
-        "mouserbuttonup",
+        "rup",
 
         /**
          * Mouse middle button up(stop pressing).
-         * @event og.RendererEvents#mousembuttonup
+         * @event og.RendererEvents#mup
          */
-        "mousembuttonup",
+        "mup",
 
         /**
          * Mouse left button is just pressed down(start pressing).
-         * @event og.RendererEvents#mouselbuttondown
+         * @event og.RendererEvents#ldown
          */
-        "mouselbuttondown",
+        "ldown",
 
         /**
          * Mouse right button is just pressed down(start pressing).
-         * @event og.RendererEvents#mouserbuttondown
+         * @event og.RendererEvents#rdown
          */
-        "mouserbuttondown",
+        "rdown",
 
         /**
          * Mouse middle button is just pressed down(start pressing).
-         * @event og.RendererEvents#mousembuttondown
+         * @event og.RendererEvents#mdown
          */
-        "mousembuttondown",
+        "mdown",
 
         /**
          * Mouse left button is pressing.
-         * @event og.RendererEvents#mouselbuttonhold
+         * @event og.RendererEvents#lhold
          */
-        "mouselbuttonhold",
+        "lhold",
 
         /**
          * Mouse right button is pressing.
-         * @event og.RendererEvents#mouserbuttonhold
+         * @event og.RendererEvents#rhold
          */
-        "mouserbuttonhold",
+        "rhold",
 
         /**
          * Mouse middle button is pressing.
-         * @event og.RendererEvents#mousembuttonhold
+         * @event og.RendererEvents#mhold
          */
-        "mousembuttonhold",
+        "mhold",
 
         /**
          * Mouse wheel is rotated.
@@ -669,27 +669,27 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.leftButtonClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouselbuttonclick, ms);
+            pe.dispatch(pe.lclick, ms);
         }
-        ce(this.mouselbuttonclick, ms);
+        ce(this.lclick, ms);
         ms.leftButtonClick = false;
     }
 
     if (ms.rightButtonClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouserbuttonclick, ms);
+            pe.dispatch(pe.rclick, ms);
         }
-        ce(this.mouserbuttonclick, ms);
+        ce(this.rclick, ms);
         ms.rightButtonClick = false;
     }
 
     if (ms.middleButtonClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mousembuttonclick, ms);
+            pe.dispatch(pe.mclick, ms);
         }
-        ce(this.mousembuttonclick, ms);
+        ce(this.mclick, ms);
         ms.middleButtonClick = false;
     }
 
@@ -697,16 +697,16 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
         if (ms.leftButtonHold) {
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mouselbuttonhold, ms);
+                pe.dispatch(pe.lhold, ms);
             }
-            ce(this.mouselbuttonhold, ms);
+            ce(this.lhold, ms);
         } else {
             ms.leftButtonHold = true;
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mouselbuttondown, ms);
+                pe.dispatch(pe.ldown, ms);
             }
-            ce(this.mouselbuttondown, ms);
+            ce(this.ldown, ms);
         }
     }
 
@@ -714,16 +714,16 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
         if (ms.rightButtonHold) {
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mouserbuttonhold, ms);
+                pe.dispatch(pe.rhold, ms);
             }
-            ce(this.mouserbuttonhold, ms);
+            ce(this.rhold, ms);
         } else {
             ms.rightButtonHold = true;
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mouserbuttondown, ms);
+                pe.dispatch(pe.rdown, ms);
             }
-            ce(this.mouserbuttondown, ms);
+            ce(this.rdown, ms);
         }
     }
 
@@ -731,25 +731,25 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
         if (ms.middleButtonHold) {
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mousembuttonhold, ms);
+                pe.dispatch(pe.mhold, ms);
             }
-            ce(this.mousembuttonhold, ms);
+            ce(this.mhold, ms);
         } else {
             ms.middleButtonHold = true;
             if (po) {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-                pe.dispatch(pe.mousembuttondown, ms);
+                pe.dispatch(pe.mdown, ms);
             }
-            ce(this.mousembuttondown, ms);
+            ce(this.mdown, ms);
         }
     }
 
     if (ms.leftButtonUp) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouselbuttonup, ms);
+            pe.dispatch(pe.lup, ms);
         }
-        ce(this.mouselbuttonup, ms);
+        ce(this.lup, ms);
         ms.leftButtonUp = false;
         ms.leftButtonHold = false;
     }
@@ -757,9 +757,9 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.rightButtonUp) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouserbuttonup, ms);
+            pe.dispatch(pe.rup, ms);
         }
-        ce(this.mouserbuttonup, ms);
+        ce(this.rup, ms);
         ms.rightButtonUp = false;
         ms.rightButtonHold = false;
     }
@@ -767,9 +767,9 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.middleButtonUp) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mousembuttonup, ms);
+            pe.dispatch(pe.mup, ms);
         }
-        ce(this.mousembuttonup, ms);
+        ce(this.mup, ms);
         ms.middleButtonUp = false;
         ms.middleButtonHold = false;
     }
@@ -777,27 +777,27 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.leftButtonDoubleClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouselbuttondoubleclick, ms);
+            pe.dispatch(pe.ldblclick, ms);
         }
-        ce(this.mouselbuttondoubleclick, ms);
+        ce(this.ldblclick, ms);
         ms.leftButtonDoubleClick = false;
     }
 
     if (ms.rightButtonDoubleClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mouserbuttondoubleclick, ms);
+            pe.dispatch(pe.rdblclick, ms);
         }
-        ce(this.mouserbuttondoubleclick, ms);
+        ce(this.rdblclick, ms);
         ms.rightButtonDoubleClick = false;
     }
 
     if (ms.middleButtonDoubleClick) {
         if (po) {
             pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
-            pe.dispatch(pe.mousembuttondoubleclick, ms);
+            pe.dispatch(pe.mdblclick, ms);
         }
-        ce(this.mousembuttondoubleclick, ms);
+        ce(this.mdblclick, ms);
         ms.middleButtonDoubleClick = false;
     }
 

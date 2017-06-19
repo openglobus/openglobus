@@ -16,21 +16,21 @@ goog.require('og.webgl.MultiFramebuffer');
  * @fires og.RendererEvents#resize
  * @fires og.RendererEvents#mousemove
  * @fires og.RendererEvents#mousestop
- * @fires og.RendererEvents#mouselbuttonclick
- * @fires og.RendererEvents#mouserbuttonclick
- * @fires og.RendererEvents#mousembuttonclick
- * @fires og.RendererEvents#mouselbuttondoubleclick
- * @fires og.RendererEvents#mouserbuttondoubleclick
- * @fires og.RendererEvents#mousembuttondoubleclick
- * @fires og.RendererEvents#mouselbuttonup
- * @fires og.RendererEvents#mouserbuttonup
- * @fires og.RendererEvents#mousembuttonup
- * @fires og.RendererEvents#mouselbuttondown
- * @fires og.RendererEvents#mouserbuttondown
- * @fires og.RendererEvents#mousembuttondown
- * @fires og.RendererEvents#mouselbuttonhold
- * @fires og.RendererEvents#mouserbuttonhold
- * @fires og.RendererEvents#mousembuttonhold
+ * @fires og.RendererEvents#lclick
+ * @fires og.RendererEvents#rclick
+ * @fires og.RendererEvents#mclick
+ * @fires og.RendererEvents#ldblclick
+ * @fires og.RendererEvents#rdblclick
+ * @fires og.RendererEvents#mdblclick
+ * @fires og.RendererEvents#lup
+ * @fires og.RendererEvents#rup
+ * @fires og.RendererEvents#mup
+ * @fires og.RendererEvents#ldown
+ * @fires og.RendererEvents#rdown
+ * @fires og.RendererEvents#mdown
+ * @fires og.RendererEvents#lhold
+ * @fires og.RendererEvents#rhold
+ * @fires og.RendererEvents#mhold
  * @fires og.RendererEvents#mousewheel
  * @fires og.RendererEvents#touchstart
  * @fires og.RendererEvents#touchend

@@ -38,21 +38,21 @@ og.layer.MAXIMUM_OVERLAYS = 8;
  * @fires og.layer.Vector#mousemove
  * @fires og.layer.Vector#mouseenter
  * @fires og.layer.Vector#mouseleave
- * @fires og.layer.Vector#mouselbuttonclick
- * @fires og.layer.Vector#mouserbuttonclick
- * @fires og.layer.Vector#mousembuttonclick
- * @fires og.layer.Vector#mouselbuttondoubleclick
- * @fires og.layer.Vector#mouserbuttondoubleclick
- * @fires og.layer.Vector#mousembuttondoubleclick
- * @fires og.layer.Vector#mouselbuttonup
- * @fires og.layer.Vector#mouserbuttonup
- * @fires og.layer.Vector#mousembuttonup
- * @fires og.layer.Vector#mouselbuttondown
- * @fires og.layer.Vector#mouserbuttondown
- * @fires og.layer.Vector#mousembuttondown
- * @fires og.layer.Vector#mouselbuttonhold
- * @fires og.layer.Vector#mouserbuttonhold
- * @fires og.layer.Vector#mousembuttonhold
+ * @fires og.layer.Vector#lclick
+ * @fires og.layer.Vector#rclick
+ * @fires og.layer.Vector#mclick
+ * @fires og.layer.Vector#ldblclick
+ * @fires og.layer.Vector#rdblclick
+ * @fires og.layer.Vector#mdblclick
+ * @fires og.layer.Vector#lup
+ * @fires og.layer.Vector#rup
+ * @fires og.layer.Vector#mup
+ * @fires og.layer.Vector#ldown
+ * @fires og.layer.Vector#rdown
+ * @fires og.layer.Vector#mdown
+ * @fires og.layer.Vector#lhold
+ * @fires og.layer.Vector#rhold
+ * @fires og.layer.Vector#mhold
  * @fires og.layer.Vector#mousewheel
  * @fires og.layer.Vector#touchmove
  * @fires og.layer.Vector#touchstart
@@ -231,93 +231,93 @@ og.layer.Layer.EVENT_NAMES = [
 
     /**
      * Mouse left button clicked.
-     * @event og.layer.Layer#mouselbuttonclick
+     * @event og.layer.Layer#lclick
      */
-    "mouselbuttonclick",
+    "lclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Layer#mouserbuttonclick
+     * @event og.layer.Layer#rclick
      */
-    "mouserbuttonclick",
+    "rclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Layer#mousembuttonclick
+     * @event og.layer.Layer#mclick
      */
-    "mousembuttonclick",
+    "mclick",
 
     /**
      * Mouse left button double click.
-     * @event og.layer.Layer#mouselbuttondoubleclick
+     * @event og.layer.Layer#ldblclick
      */
-    "mouselbuttondoubleclick",
+    "ldblclick",
 
     /**
      * Mouse right button double click.
-     * @event og.layer.Layer#mouserbuttondoubleclick
+     * @event og.layer.Layer#rdblclick
      */
-    "mouserbuttondoubleclick",
+    "rdblclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.layer.Layer#mousembuttondoubleclick
+     * @event og.layer.Layer#mdblclick
      */
-    "mousembuttondoubleclick",
+    "mdblclick",
 
     /**
      * Mouse left button up(stop pressing).
-     * @event og.layer.Layer#mouselbuttonup
+     * @event og.layer.Layer#lup
      */
-    "mouselbuttonup",
+    "lup",
 
     /**
      * Mouse right button up(stop pressing).
-     * @event og.layer.Layer#mouserbuttonup
+     * @event og.layer.Layer#rup
      */
-    "mouserbuttonup",
+    "rup",
 
     /**
      * Mouse middle button up(stop pressing).
-     * @event og.layer.Layer#mousembuttonup
+     * @event og.layer.Layer#mup
      */
-    "mousembuttonup",
+    "mup",
 
     /**
      * Mouse left button is just pressed down(start pressing).
-     * @event og.layer.Layer#mouselbuttondown
+     * @event og.layer.Layer#ldown
      */
-    "mouselbuttondown",
+    "ldown",
 
     /**
      * Mouse right button is just pressed down(start pressing).
-     * @event og.layer.Layer#mouserbuttondown
+     * @event og.layer.Layer#rdown
      */
-    "mouserbuttondown",
+    "rdown",
 
     /**
      * Mouse middle button is just pressed down(start pressing).
-     * @event og.layer.Layer#mousembuttondown
+     * @event og.layer.Layer#mdown
      */
-    "mousembuttondown",
+    "mdown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.layer.Layer#mouselbuttonhold
+     * @event og.layer.Layer#lhold
      */
-    "mouselbuttonhold",
+    "lhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.layer.Layer#mouserbuttonhold
+     * @event og.layer.Layer#rhold
      */
-    "mouserbuttonhold",
+    "rhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.layer.Layer#mousembuttonhold
+     * @event og.layer.Layer#mhold
      */
-    "mousembuttonhold",
+    "mhold",
 
     /**
      * Mouse wheel is rotated.
