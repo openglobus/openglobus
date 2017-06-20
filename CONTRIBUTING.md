@@ -6,6 +6,7 @@ Contributing to OpenGlobus
 3. [Improving Documentation](#improving-documentation)
 
 ## Contributing Code
+Everyone is welcome to contribute to OpenGlobus!
 +
 + TODO Code style, simplicity and performance.
 +
