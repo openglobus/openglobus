@@ -364,7 +364,7 @@ function main4() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
-    var globus = new og.Globus({
+    globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "layers": [osm, collection],

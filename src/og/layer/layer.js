@@ -511,6 +511,20 @@ og.layer.Layer.prototype.getZIndex = function () {
 };
 
 /**
+ * Set zIndex to the maximal value depend on other layers on the planet.
+ * @public
+ */
+og.layer.Layer.prototype.bringToFront = function () {
+    if (this._planet) {
+        var vl = this._planet.visibleTileLayers;
+        var l = vl[vl.length - 1];
+        if (!l.isEqual(this)) {
+            this.setZIndex(l.getZIndex() + 1);
+        }
+    }
+};
+
+/**
  * Returns true if the layer is a base.
  * @public
  * @returns {boolean}
