@@ -152,21 +152,6 @@ og.quadTree.QuadNode.prototype.createBounds = function () {
     }
 };
 
-og.quadTree.QuadNode.prototype.reloadTerrain = function () {
-
-    this.planetSegment.ready = false;
-    this.planetSegment.deleteBuffers();
-    this.planetSegment.deleteElevations();
-
-    if (this.getState() === og.quadTree.WALKTHROUGH) {
-        this.planetSegment.loadTerrain();
-    }
-
-    for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].reloadTerrain();
-    }
-};
-
 og.quadTree.QuadNode.prototype.getState = function () {
     //return this.planetSegment.getNodeState();
     var pn = this.parentNode;
@@ -217,7 +202,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 
         this._cameraInside = false;
 
-        //Search the node which camera is flying over.
+        //Search a node which the camera is flying over.
         if (this.parentNode._cameraInside) {
 
             var inside;
@@ -274,7 +259,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
 };
 
 /**
- * When the node is visible in frustum than begins to rendering.
+ * When a node is visible in frustum than begins to render it.
  * @public
  */
 og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
@@ -290,8 +275,8 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
 
     //Create and load terrain data.
     if (!seg.terrainReady) {
+        this.whileTerrainLoading() &&
         seg.loadTerrain();
-        this.whileTerrainLoading();
     }
 
     if (onlyTerrain) {
@@ -436,8 +421,15 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
-    var pn = this;
+    //Looking for ready terrain nodes under
+    
+    //
+    // TODO
+    //
 
+    var pn = this;    
+
+    //Looking for ready terrain above
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
         pn = pn.parentNode;
     }
@@ -587,6 +579,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             }
         }
     }
+
+    return true;
 };
 
 /**

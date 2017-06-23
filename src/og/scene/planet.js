@@ -509,7 +509,11 @@ og.scene.Planet.prototype.setBaseLayer = function (layer) {
 og.scene.Planet.prototype.setHeightFactor = function (factor) {
     if (this._heightFactor !== factor) {
         this._heightFactor = factor;
-        this._quadTree.reloadTerrain();
+        var n = this._quadTree.nodes;
+        this._quadTree.nodes = [];
+        for (var i = 0; i < n.length; i++) {
+            n[i].destroyBranches();
+        }
     }
 };
 
@@ -901,7 +905,7 @@ og.scene.Planet.prototype._renderScreenNodesPASS = function () {
     if (this.lightEnabled) {
         h.shaderPrograms.drawnode_screen_wl.activate();
         sh = h.shaderPrograms.drawnode_screen_wl._program,
-        shu = sh.uniforms;
+            shu = sh.uniforms;
 
         gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
 
