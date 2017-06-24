@@ -371,6 +371,8 @@ function main4() {
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus")
     });
 
+    globus.planet.addControl(new og.control.ToggleWireframe());
+
     setTimeout(function () {
 
     }, 1000);

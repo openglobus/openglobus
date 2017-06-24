@@ -268,15 +268,16 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
 
     var seg = this.planetSegment;
 
-    //Create ellipsoid(without elevation) vertices and normals.
-    if (!seg.ready) {
-        seg.createPlainSegment();
-    }
+    // if (!seg.initialized) {
+    //     seg.initializePlainSegment();
+    // }
 
     //Create and load terrain data.
     if (!seg.terrainReady) {
-        this.whileTerrainLoading() &&
-        seg.loadTerrain();
+        //if true proceed to load
+        if (this.whileTerrainLoading()) {
+            seg.loadTerrain();
+        }
     }
 
     if (onlyTerrain) {
@@ -421,13 +422,36 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
 og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
-    //Looking for ready terrain nodes under
-    
-    //
-    // TODO
-    //
+    var seg = this.planetSegment;
 
-    var pn = this;    
+    if (!seg.ready) {
+        seg.createPlainSegment();
+    }
+
+    // //Looking for terrain nodes under
+    // var n = this.nodes;
+    // if (n.length) {
+    //     var tgs = this.planetSegment.gridSize;
+    //     var tempVertices = new Array(tgs);
+    //     for (var i = 0; i < n.length; i++) {
+    //         var gs = n[i].planetSegment.gridSize;
+    //         n[i].planetSegment.tempVertices;
+    //     }
+    //     this.planetSegment.tempVertices = tempVertices;
+
+    //     if (n.length == 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
+    //         n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
+    //     ) {
+    //         this.appliedTerrainNodeId = this.nodeId;
+    //         this.planetSegment.terrainReady = true;
+    //         this.planetSegment.terrainExists = true;
+    //         this.planetSegment.terrainIsLoading = false;
+    //     }
+    // }
+
+    // return true;
+
+    var pn = this;
 
     //Looking for ready terrain above
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
@@ -436,19 +460,18 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
     if (pn.planetSegment.terrainReady) {
 
-        var dZ2 = 2 << (this.planetSegment.tileZoom - pn.planetSegment.tileZoom - 1);
-        var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-            offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
+        var dZ2 = 2 << (seg.tileZoom - pn.planetSegment.tileZoom - 1);
+        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
+            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
 
-        var seg = this.planetSegment,
-            pseg = pn.planetSegment;
+        var pseg = pn.planetSegment;
 
         if (pn.planetSegment.terrainExists) {
             if (this.appliedTerrainNodeId != pn.nodeId) {
 
                 var gridSize = pn.planetSegment.gridSize / dZ2;
 
-                var tempVertices = [];
+                var tempVertices;
 
                 seg.deleteBuffers();
                 seg.refreshIndexesBuffer = true;
@@ -506,6 +529,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
                     var coords = new og.math.Vector3();
                     var vo = og.quadTree.QuadNode._vertOrder;
+
+                    tempVertices = new Array(3 * vo.length);
 
                     for (var i = 0; i < vo.length; i++) {
                         var vi_y = vo[i].y + t_i0,
@@ -576,6 +601,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     pns.createPlainSegment();
                 }
                 pns.loadTerrain();
+                return false;
             }
         }
     }
@@ -594,7 +620,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
  * @return{Array.<number>} Triangle coordinates array from the source array.
  */
 og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
-    var res = [];
+    var res = new Array((i0 + size + 1) * (j0 + size + 1));
     var vInd = 0;
     for (var i = i0; i <= i0 + size; i++) {
         for (var j = j0; j <= j0 + size; j++) {

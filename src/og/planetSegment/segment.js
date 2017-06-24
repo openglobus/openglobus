@@ -93,6 +93,12 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this.ready = false;
 
     /**
+     * Segment is ready to create plain vertices.
+     * @type {boolean}
+     */
+    this.initialized = false;
+
+    /**
      * Normal map is allready made.
      * @type {boolean}
      */
@@ -422,6 +428,8 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
         this.normalMapVertices = normalMapVertices;
         this.terrainVertices.length = 0;
         this.terrainVertices = terrainVertices;
+        this.tempVertices.length = 0;
+        this.tempVertices = terrainVertices;
 
         this.terrainReady = true;
         this.terrainIsLoading = false;
@@ -831,7 +839,7 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
 };
 
-og.planetSegment.Segment.prototype.createPlainSegment = function () {
+og.planetSegment.Segment.prototype.initializePlainSegment = function () {
     var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
     var n = this.node;
     n.sideSize[0] = gridSize;
@@ -839,8 +847,15 @@ og.planetSegment.Segment.prototype.createPlainSegment = function () {
     n.sideSize[2] = gridSize;
     n.sideSize[3] = gridSize;
     this.gridSize = gridSize;
-    this.createPlainVertices(gridSize);
-    this.createCoordsBuffers(this.plainVertices, gridSize);
+    this.initialized = true;
+};
+
+og.planetSegment.Segment.prototype.createPlainSegment = function () {
+    if (this.initialized) {
+        this.initializePlainSegment();
+    }
+    this.createPlainVertices(this.gridSize);
+    this.createCoordsBuffers(this.plainVertices, this.gridSize);
     this.ready = true;
 };
 
