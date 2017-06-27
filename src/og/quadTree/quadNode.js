@@ -268,10 +268,6 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
 
     var seg = this.planetSegment;
 
-    // if (!seg.initialized) {
-    //     seg.initializePlainSegment();
-    // }
-
     //Create and load terrain data.
     if (!seg.terrainReady) {
         //if true proceed to load
@@ -424,36 +420,116 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
     var seg = this.planetSegment;
 
+    //Looking for terrain nodes under
+    var n = this.nodes;
+
+    if (seg.tileZoom >= this.planet.terrainProvider.minZoom && n.length === 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
+        n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
+    ) {
+        var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX,
+            ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+
+        seg.initializePlainSegment();
+
+        var fgs = this.planet.terrainProvider.fileGridSize;
+        var dg = Math.max(fgs / seg.gridSize, 1),
+            gs = Math.max(fgs, seg.gridSize) + 1;
+        var ind = 0,
+            nmInd = 0;
+
+        var gs3 = gs * gs * 3,
+            sgs3 = seg.gridSize * seg.gridSize * 3;
+
+        var hgsOne = 0.5 * (gs - 1) + 1;
+
+        seg.terrainVertices && (seg.terrainVertices.length = 0);
+        seg.normalMapVertices && (seg.normalMapVertices.length = 0);
+
+        seg.terrainVertices = new Array(sgs3);
+        seg.normalMapVertices = new Array(gs3);
+
+        seg.normalMapNormals && (seg.normalMapNormals.length = 0);
+        seg.normalMapNormals = new Float32Array(gs3);
+
+        var verts = seg.terrainVertices,
+            nmVerts = seg.normalMapVertices,
+            nmNorms = seg.normalMapNormals;
+
+        for (var i = 0; i < gs; i++) {
+
+            var ni = Math.floor(i / hgsOne),
+                ii = i % hgsOne + ni;
+
+            for (var j = 0; j < gs; j++) {
+
+                var nj = Math.floor(j / hgsOne);
+                var n = this.nodes[2 * ni + nj];
+
+                var nii = ii * 2,
+                    njj = (j % hgsOne + nj) * 2;
+
+                var n_index = 3 * (nii * gs + njj);
+
+                var n_nmVerts = n.planetSegment.normalMapVertices,
+                    n_nmNorms = n.planetSegment.normalMapNormals;
+
+                var x = n_nmVerts[n_index],
+                    y = n_nmVerts[n_index + 1],
+                    z = n_nmVerts[n_index + 2];
+
+                nmVerts[nmInd] = x;
+                nmNorms[nmInd++] = n_nmNorms[n_index];
+
+                nmVerts[nmInd] = y;
+                nmNorms[nmInd++] = n_nmNorms[n_index + 1];
+
+                nmVerts[nmInd] = z;
+                nmNorms[nmInd++] = n_nmNorms[n_index + 2];
+
+                if (i % dg == 0 && j % dg == 0) {
+                    verts[ind++] = x;
+                    verts[ind++] = y;
+                    verts[ind++] = z;
+
+                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                }
+            }
+        }
+
+        if (seg.planet.lightEnabled) {
+            seg.planet.normalMapCreator.queue(seg);
+        }
+
+        seg.createCoordsBuffers(seg.terrainVertices, seg.gridSize);
+        seg.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+
+        this.appliedTerrainNodeId = this.nodeId;
+        seg.terrainReady = true;
+        seg.terrainExists = true;
+        seg.terrainIsLoading = false;
+
+        seg.ready = true;
+
+        var e = seg._extent;
+        seg._globalTextureCoordinates[0] = (e.southWest.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[1] = (og.mercator.POLE - e.northEast.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[2] = (e.northEast.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[3] = (og.mercator.POLE - e.southWest.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
+
+        return false;
+    }
+
+
+    //Looking for ready terrain above
+
     if (!seg.ready) {
         seg.createPlainSegment();
     }
 
-    // //Looking for terrain nodes under
-    // var n = this.nodes;
-    // if (n.length) {
-    //     var tgs = this.planetSegment.gridSize;
-    //     var tempVertices = new Array(tgs);
-    //     for (var i = 0; i < n.length; i++) {
-    //         var gs = n[i].planetSegment.gridSize;
-    //         n[i].planetSegment.tempVertices;
-    //     }
-    //     this.planetSegment.tempVertices = tempVertices;
-
-    //     if (n.length == 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
-    //         n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
-    //     ) {
-    //         this.appliedTerrainNodeId = this.nodeId;
-    //         this.planetSegment.terrainReady = true;
-    //         this.planetSegment.terrainExists = true;
-    //         this.planetSegment.terrainIsLoading = false;
-    //     }
-    // }
-
-    // return true;
-
     var pn = this;
 
-    //Looking for ready terrain above
     while (pn.parentNode && !pn.planetSegment.terrainReady) {
         pn = pn.parentNode;
     }
@@ -601,7 +677,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     pns.createPlainSegment();
                 }
                 pns.loadTerrain();
-                return false;
             }
         }
     }

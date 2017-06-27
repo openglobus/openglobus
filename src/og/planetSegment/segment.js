@@ -279,8 +279,8 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
         var fileGridSize_one = fileGridSize + 1;
         var gs = tgs + 1;
         var hf = this.planet._heightFactor;
-        var terrainVertices = [];
-        var normalMapVertices = [];
+        var terrainVertices = new Array(gs * gs * 3);
+        var normalMapVertices = new Array(fileGridSize_one * fileGridSize_one * 3);
 
         var nmvInd = 0;
         var vInd = 0;
@@ -711,6 +711,7 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
  */
 og.planetSegment.Segment.prototype.clearSegment = function () {
     this.ready = false;
+    this.initialized = false;
     this.deleteBuffers();
     this.deleteMaterials();
     this.deleteElevations();
@@ -851,9 +852,7 @@ og.planetSegment.Segment.prototype.initializePlainSegment = function () {
 };
 
 og.planetSegment.Segment.prototype.createPlainSegment = function () {
-    if (this.initialized) {
-        this.initializePlainSegment();
-    }
+    this.initializePlainSegment();
     this.createPlainVertices(this.gridSize);
     this.createCoordsBuffers(this.plainVertices, this.gridSize);
     this.ready = true;
