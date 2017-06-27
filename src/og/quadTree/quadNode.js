@@ -423,6 +423,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
     //Looking for terrain nodes under
     var n = this.nodes;
 
+    //Maybe better to replace this code to the Segment module?
     if (seg.tileZoom >= this.planet.terrainProvider.minZoom && n.length === 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
         n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
     ) {
