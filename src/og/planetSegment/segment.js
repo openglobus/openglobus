@@ -128,15 +128,15 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
-    this.plainIndexes = [];
-    this.plainVertices = [];
+    this.plainIndexes = null;
+    this.plainVertices = null;
     this.plainNormals = null;
-    this.terrainVertices = [];
-    this.tempVertices = [];
+    this.terrainVertices = null;
+    this.tempVertices = null;
 
     this.normalMapTexture = null;
     this.normalMapTextureBias = new Float32Array(3);
-    this.normalMapVertices = [];
+    this.normalMapVertices = null;
     this.normalMapNormals = null;
 
     this.vertexNormalBuffer = null;
@@ -261,175 +261,207 @@ og.planetSegment.Segment.prototype.loadTerrain = function () {
         }
     } else {
         this.terrainReady = true;
-        this.planet.normalMapCreator.queue(this);
+        if (!this._inTheQueue) {
+            this.planet.normalMapCreator.queue(this);
+        }
+    }
+};
+
+function _terrainWorker(elevations, this_plainVertices, this_plainNormals,
+    this_normalMapVertices, this_nornmalMapNormals, heightFactor, fileGridSize, gridSize) {
+
+    var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+
+    fileGridSize = fileGridSize || (Math.sqrt(elevations.length) - 1);
+
+    var fileGridSize_one = fileGridSize + 1,
+        tgs = gridSize,
+        dg = fileGridSize / tgs,
+        gs = tgs + 1,
+        hf = heightFactor;
+
+    var nmvInd = 0;
+    var vInd = 0;
+
+    var terrainVertices = new Float32Array(gs * gs * 3);
+    var normalMapNormals = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
+    var normalMapVertices = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
+
+    var nv = this_normalMapVertices,
+        nn = this_nornmalMapNormals;
+
+    if (fileGridSize >= tgs) {
+        for (var i = 0; i < fileGridSize_one; i++) {
+            for (var j = 0; j < fileGridSize_one; j++) {
+                var hInd0 = i * fileGridSize_one + j;
+                var vInd0 = hInd0 * 3;
+                var h0 = hf * elevations[hInd0];
+                var v0 = new og.math.Vector3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
+                normalMapVertices[vInd0] = v0.x;
+                normalMapVertices[vInd0 + 1] = v0.y;
+                normalMapVertices[vInd0 + 2] = v0.z;
+
+                if (i % dg == 0 && j % dg == 0) {
+                    terrainVertices[vInd++] = v0.x;
+                    terrainVertices[vInd++] = v0.y;
+                    terrainVertices[vInd++] = v0.z;
+
+                    if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                    if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                    if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                }
+
+                if (i != fileGridSize && j != fileGridSize) {
+                    var hInd1 = i * fileGridSize_one + j + 1;
+                    var vInd1 = hInd1 * 3;
+                    var h1 = hf * elevations[hInd1];
+                    var v1 = new og.math.Vector3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
+                    normalMapVertices[vInd1] = v1.x;
+                    normalMapVertices[vInd1 + 1] = v1.y;
+                    normalMapVertices[vInd1 + 2] = v1.z;
+
+                    var hInd2 = (i + 1) * fileGridSize_one + j;
+                    var vInd2 = hInd2 * 3;
+                    var h2 = hf * elevations[hInd2];
+                    var v2 = new og.math.Vector3(
+                        nv[vInd2] + h2 * nn[vInd2],
+                        nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
+                        nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
+                    normalMapVertices[vInd2] = v2.x;
+                    normalMapVertices[vInd2 + 1] = v2.y;
+                    normalMapVertices[vInd2 + 2] = v2.z;
+
+                    var hInd3 = (i + 1) * fileGridSize_one + (j + 1);
+                    var vInd3 = hInd3 * 3;
+                    var h3 = hf * elevations[hInd3];
+                    var v3 = new og.math.Vector3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
+                    normalMapVertices[vInd3] = v3.x;
+                    normalMapVertices[vInd3 + 1] = v3.y;
+                    normalMapVertices[vInd3 + 2] = v3.z;
+
+                    var e10 = og.math.Vector3.sub(v1, v0),
+                        e20 = og.math.Vector3.sub(v2, v0),
+                        e30 = og.math.Vector3.sub(v3, v0);
+                    var sw = e20.cross(e30);
+                    var ne = e30.cross(e10);
+                    var n0 = og.math.Vector3.add(ne, sw);
+
+                    normalMapNormals[vInd0] += n0.x;
+                    normalMapNormals[vInd0 + 1] += n0.y;
+                    normalMapNormals[vInd0 + 2] += n0.z;
+
+                    normalMapNormals[vInd1] += ne.x;
+                    normalMapNormals[vInd1 + 1] += ne.y;
+                    normalMapNormals[vInd1 + 2] += ne.z;
+
+                    normalMapNormals[vInd2] += sw.x;
+                    normalMapNormals[vInd2 + 1] += sw.y;
+                    normalMapNormals[vInd2 + 2] += sw.z;
+
+                    normalMapNormals[vInd3] += n0.x;
+                    normalMapNormals[vInd3 + 1] += n0.y;
+                    normalMapNormals[vInd3 + 2] += n0.z;
+                }
+            }
+        }
+
+    } else {
+
+        var plain_verts = this_plainVertices;
+        var plainNormals = this_plainNormals;
+
+        var oneSize = tgs / fileGridSize;
+        var h, inside_i, inside_j, v_i, v_j;
+
+        for (var i = 0; i < gs; i++) {
+            if (i == gs - 1) {
+                inside_i = oneSize;
+                v_i = Math.floor(i / oneSize) - 1;
+            } else {
+                inside_i = i % oneSize;
+                v_i = Math.floor(i / oneSize);
+            }
+
+            for (var j = 0; j < gs; j++) {
+                if (j == gs - 1) {
+                    inside_j = oneSize;
+                    v_j = Math.floor(j / oneSize) - 1;
+                } else {
+                    inside_j = j % oneSize;
+                    v_j = Math.floor(j / oneSize);
+                }
+
+                var hvlt = elevations[v_i * fileGridSize_one + v_j],
+                    hvrt = elevations[v_i * fileGridSize_one + v_j + 1],
+                    hvlb = elevations[(v_i + 1) * fileGridSize_one + v_j],
+                    hvrb = elevations[(v_i + 1) * fileGridSize_one + v_j + 1];
+
+                if (inside_i + inside_j < oneSize) {
+                    h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
+                } else {
+                    h = hf * (hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
+                }
+
+                var x = plain_verts[vInd] + h * plainNormals[vInd],
+                    y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                    z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+
+                terrainVertices[vInd] = x;
+                terrainVertices[vInd + 1] = y;
+                terrainVertices[vInd + 2] = z;
+
+                vInd += 3;
+
+                if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+
+            }
+        }
+
+        normalMapNormals = this_plainNormals;
+    }
+
+    return {
+        'normalMapNormals': normalMapNormals,
+        'normalMapVertices': normalMapVertices,
+        'terrainVertices': terrainVertices,
+        'bounds': [xmin, xmax, ymin, ymax, zmin, zmax]
     }
 };
 
 /**
  * Terrain obtained from server.
- * @param {Array.<number>} elevation - Elevation data.
+ * @param {Float32Array} elevations - Elevation data.
  */
 og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
 
-        var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX, ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+        this.planet._terrainWorker.make(this, elevations, function (e) {
+            console.log("segmment done");
+        });
+
         var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
-        var fileGridSize = this.planet.terrainProvider.fileGridSize || (Math.sqrt(elevations.length) - 1);
-        var fileGridSize_one = fileGridSize + 1;
-        var gs = tgs + 1;
-        var hf = this.planet._heightFactor;
-        var terrainVertices = new Array(gs * gs * 3);
-        var normalMapVertices = new Array(fileGridSize_one * fileGridSize_one * 3);
 
-        var nmvInd = 0;
-        var vInd = 0;
-        var dg = this.planet.terrainProvider.fileGridSize / tgs;
-
-        var normalMapNormals = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
-
-        var nv = this.normalMapVertices,
-            nn = this.normalMapNormals;
-
-        if (fileGridSize >= tgs) {
-            for (var i = 0; i < fileGridSize_one; i++) {
-                for (var j = 0; j < fileGridSize_one; j++) {
-                    var hInd0 = i * fileGridSize_one + j;
-                    var vInd0 = hInd0 * 3;
-                    var h0 = hf * elevations[hInd0];
-                    var v0 = new og.math.Vector3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
-                    normalMapVertices[vInd0] = v0.x;
-                    normalMapVertices[vInd0 + 1] = v0.y;
-                    normalMapVertices[vInd0 + 2] = v0.z;
-
-                    if (i % dg == 0 && j % dg == 0) {
-                        terrainVertices[vInd++] = v0.x;
-                        terrainVertices[vInd++] = v0.y;
-                        terrainVertices[vInd++] = v0.z;
-
-                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
-                    }
-
-                    if (i != fileGridSize && j != fileGridSize) {
-                        var hInd1 = i * fileGridSize_one + j + 1;
-                        var vInd1 = hInd1 * 3;
-                        var h1 = hf * elevations[hInd1];
-                        var v1 = new og.math.Vector3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
-                        normalMapVertices[vInd1] = v1.x;
-                        normalMapVertices[vInd1 + 1] = v1.y;
-                        normalMapVertices[vInd1 + 2] = v1.z;
-
-                        var hInd2 = (i + 1) * fileGridSize_one + j;
-                        var vInd2 = hInd2 * 3;
-                        var h2 = hf * elevations[hInd2];
-                        var v2 = new og.math.Vector3(
-                            nv[vInd2] + h2 * nn[vInd2],
-                            nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
-                            nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
-                        normalMapVertices[vInd2] = v2.x;
-                        normalMapVertices[vInd2 + 1] = v2.y;
-                        normalMapVertices[vInd2 + 2] = v2.z;
-
-                        var hInd3 = (i + 1) * fileGridSize_one + (j + 1);
-                        var vInd3 = hInd3 * 3;
-                        var h3 = hf * elevations[hInd3];
-                        var v3 = new og.math.Vector3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
-                        normalMapVertices[vInd3] = v3.x;
-                        normalMapVertices[vInd3 + 1] = v3.y;
-                        normalMapVertices[vInd3 + 2] = v3.z;
-
-                        var e10 = og.math.Vector3.sub(v1, v0),
-                            e20 = og.math.Vector3.sub(v2, v0),
-                            e30 = og.math.Vector3.sub(v3, v0);
-                        var sw = e20.cross(e30);
-                        var ne = e30.cross(e10);
-                        var n0 = og.math.Vector3.add(ne, sw);
-
-                        normalMapNormals[vInd0] += n0.x;
-                        normalMapNormals[vInd0 + 1] += n0.y;
-                        normalMapNormals[vInd0 + 2] += n0.z;
-
-                        normalMapNormals[vInd1] += ne.x;
-                        normalMapNormals[vInd1 + 1] += ne.y;
-                        normalMapNormals[vInd1 + 2] += ne.z;
-
-                        normalMapNormals[vInd2] += sw.x;
-                        normalMapNormals[vInd2 + 1] += sw.y;
-                        normalMapNormals[vInd2 + 2] += sw.z;
-
-                        normalMapNormals[vInd3] += n0.x;
-                        normalMapNormals[vInd3 + 1] += n0.y;
-                        normalMapNormals[vInd3 + 2] += n0.z;
-                    }
-                }
-            }
-
-        } else {
-
-            var plain_verts = this.plainVertices;
-            var plainNormals = this.plainNormals;
-
-            var oneSize = tgs / fileGridSize;
-            var h, inside_i, inside_j, v_i, v_j;
-
-            for (var i = 0; i < gs; i++) {
-                if (i == gs - 1) {
-                    inside_i = oneSize;
-                    v_i = Math.floor(i / oneSize) - 1;
-                } else {
-                    inside_i = i % oneSize;
-                    v_i = Math.floor(i / oneSize);
-                }
-
-                for (var j = 0; j < gs; j++) {
-                    if (j == gs - 1) {
-                        inside_j = oneSize;
-                        v_j = Math.floor(j / oneSize) - 1;
-                    } else {
-                        inside_j = j % oneSize;
-                        v_j = Math.floor(j / oneSize);
-                    }
-
-                    var hvlt = elevations[v_i * fileGridSize_one + v_j],
-                        hvrt = elevations[v_i * fileGridSize_one + v_j + 1],
-                        hvlb = elevations[(v_i + 1) * fileGridSize_one + v_j],
-                        hvrb = elevations[(v_i + 1) * fileGridSize_one + v_j + 1];
-
-                    if (inside_i + inside_j < oneSize) {
-                        h = hf * (hvlt + og.math.slice(inside_j / oneSize, hvrt, hvlt) + og.math.slice(inside_i / oneSize, hvlb, hvlt));
-                    } else {
-                        h = hf * (hvrb + og.math.slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + og.math.slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
-                    }
-
-                    var x = plain_verts[vInd] + h * plainNormals[vInd],
-                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
-
-                    terrainVertices[vInd] = x;
-                    terrainVertices[vInd + 1] = y;
-                    terrainVertices[vInd + 2] = z;
-
-                    vInd += 3;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-
-                }
-            }
-
-            normalMapNormals = this.plainNormals;
-        }
+        var d = _terrainWorker(elevations,
+            this.plainVertices, this.plainNormals,
+            this.normalMapVertices, this.normalMapNormals,
+            this.planet._heightFactor,
+            this.planet.terrainProvider.fileGridSize,
+            tgs);
 
         this.terrainExists = true;
-        this.normalMapNormals = normalMapNormals;
-        this.normalMapVertices = normalMapVertices;
-        this.terrainVertices.length = 0;
-        this.terrainVertices = terrainVertices;
-        this.tempVertices.length = 0;
-        this.tempVertices = terrainVertices;
+
+        this.normalMapNormals = null;
+        this.normalMapVertices = null;
+        this.terrainVertices = null;
+        this.tempVertices = null;
+
+        this.normalMapNormals = d.normalMapNormals;
+        this.normalMapVertices = d.normalMapVertices;
+        this.terrainVertices = d.terrainVertices;
+        this.tempVertices = d.terrainVertices;
 
         this.terrainReady = true;
         this.terrainIsLoading = false;
@@ -438,12 +470,11 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
             this.planet.normalMapCreator.queue(this);
         }
 
-        this.createCoordsBuffers(terrainVertices, tgs);
-        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+        this.createCoordsBuffers(this.terrainVertices, tgs);
+        this.bsphere.setFromBounds(d.bounds);
         this.gridSize = tgs;
         this.node.appliedTerrainNodeId = this.node.nodeId;
     }
-    elevations.length = 0;
 };
 
 /**
@@ -458,7 +489,7 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
             this.node.appliedTerrainNodeId = this.node.nodeId;
             this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
 
-            if (this.planet.lightEnabled) {
+            if (this.planet.lightEnabled && !this._inTheQueue) {
                 this.planet.normalMapCreator.queue(this);
             }
 
@@ -495,15 +526,15 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                 return;
             }
 
-            var size = this.planet.terrainProvider.fileGridSize;
-            var s1 = size + 1;
-            var i_b = size - i_a;
-
             var seg_a = this.normalMapNormals,
                 seg_b = ns.normalMapNormals;
 
             if (!seg_a || !seg_b)
                 return;
+
+            var size = this.planet.terrainProvider.fileGridSize;
+            var s1 = size + 1;
+            var i_b = size - i_a;
 
             if (this.tileZoom === ns.tileZoom) {
                 //there is only one neighbor on the side
@@ -688,12 +719,14 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
     this.terrainExists = false;
     this.terrainReady = false;
     this.terrainIsLoading = false;
-    this.normalMapVertices.length = 0;
+
+    this.normalMapVertices = null;
     this.normalMapNormals = null;
-    this.tempVertices.length = 0;
-    this.terrainVertices.length = 0;
-    this.plainVertices.length = 0;
+    this.tempVertices = null;
+    this.terrainVertices = null;
+    this.plainVertices = null;
     this.plainNormals = null;
+
     if (this.normalMapReady) {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
@@ -798,9 +831,7 @@ og.planetSegment.Segment.prototype.createCoordsBuffers = function (vertices, gri
     h.gl.deleteBuffer(this.vertexPositionBuffer);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
     this.vertexTextureCoordBuffer = h.createArrayBuffer(og.PlanetSegmentHelper.textureCoordsTable[gridSize], 2, gsgs);
-    var a = new Float32Array(vertices);
-    this.vertexPositionBuffer = h.createArrayBuffer(a, 3, gsgs);
-    a = null;
+    this.vertexPositionBuffer = h.createArrayBuffer(vertices, 3, gsgs);
 };
 
 og.planetSegment.Segment.prototype._addViewExtent = function () {
@@ -872,9 +903,13 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
     var ind = 0,
         nmInd = 0;
 
+    var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+    this.plainNormals = new Float32Array(gridSize3);
+    this.plainVertices = new Float32Array(gridSize3);
+
     var gs3 = gs * gs * 3;
-    this.plainNormals = new Float32Array(gs3);
     this.normalMapNormals = new Float32Array(gs3);
+    this.normalMapVertices = new Float32Array(gs3);
 
     var verts = this.plainVertices,
         norms = this.plainNormals,

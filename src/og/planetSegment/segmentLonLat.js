@@ -110,6 +110,7 @@ og.planetSegment.SegmentLonLat.prototype.createPlainVertices = function (gridSiz
     var r2 = this.planet.ellipsoid._invRadii2;
 
     this.plainNormals = new Float32Array((gridSize + 1) * (gridSize + 1) * 3);
+    this.plainVertices = new Float32Array((gridSize + 1) * (gridSize + 1) * 3);
 
     var norms = this.plainNormals;
     var verts = this.plainVertices;
@@ -133,9 +134,10 @@ og.planetSegment.SegmentLonLat.prototype.createPlainVertices = function (gridSiz
     }
     this.normalMapVertices = verts;
     this.normalMapNormals = norms;
-    this.normalMapTexture = this.planet.transparentTexture;
     this.terrainVertices = verts;
     this.tempVertices = verts;
+
+    this.normalMapTexture = this.planet.transparentTexture;
 
     this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360.0;
     this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180.0;
