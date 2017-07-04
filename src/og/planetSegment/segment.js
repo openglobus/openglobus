@@ -439,32 +439,31 @@ og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     if (this.ready && this.terrainIsLoading) {
 
         this.planet._terrainWorker.make(this, elevations, function (data) {
+            if (this.ready) {
+                this.normalMapNormals = null;
+                this.normalMapVertices = null;
+                this.terrainVertices = null;
+                this.tempVertices = null;
 
-            var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+                this.normalMapNormals = data.normalMapNormals;
+                this.normalMapVertices = data.normalMapVertices;
+                this.terrainVertices = data.terrainVertices;
+                this.tempVertices = data.terrainVertices;
 
-            this.terrainExists = true;
+                this.terrainReady = true;
+                this.terrainIsLoading = false;
 
-            this.normalMapNormals = null;
-            this.normalMapVertices = null;
-            this.terrainVertices = null;
-            this.tempVertices = null;
+                if (this.planet.lightEnabled) {
+                    this.planet.normalMapCreator.queue(this);
+                }
 
-            this.normalMapNormals = data.normalMapNormals;
-            this.normalMapVertices = data.normalMapVertices;
-            this.terrainVertices = data.terrainVertices;
-            this.tempVertices = data.terrainVertices;
-
-            this.terrainReady = true;
-            this.terrainIsLoading = false;
-
-            if (this.planet.lightEnabled) {
-                this.planet.normalMapCreator.queue(this);
+                var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+                this.createCoordsBuffers(this.terrainVertices, tgs);
+                this.bsphere.setFromBounds(data.bounds);
+                this.gridSize = tgs;
+                this.terrainExists = true;
+                this.node.appliedTerrainNodeId = this.node.nodeId;
             }
-
-            this.createCoordsBuffers(this.terrainVertices, tgs);
-            this.bsphere.setFromBounds(data.bounds);
-            this.gridSize = tgs;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
         });
     }
 };

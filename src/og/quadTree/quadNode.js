@@ -501,7 +501,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
 
         if (seg.planet.lightEnabled) {
-            //seg.planet.normalMapCreator.queue(seg);
             seg.createNormalMapTexture();
         }
 
@@ -630,8 +629,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                         tempVertices[i3 + 1] = coords.y;
                         tempVertices[i3 + 2] = coords.z;
                     }
-
-                    bigOne.length = 0;
                 }
 
                 seg.createCoordsBuffers(tempVertices, seg.gridSize);
