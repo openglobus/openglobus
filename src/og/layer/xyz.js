@@ -116,9 +116,7 @@ og.layer.xyz = function (name, options) {
 og.layer.XYZ.prototype.abortLoading = function () {
     var that = this;
     this._pendingsQueue.each(function (q) {
-        if (q[i]) {
-            that.abortMaterialLoading(q[i]);
-        }
+        q && that.abortMaterialLoading(q)
     });
     //this._pendingsQueue = [];
     this._pendingsQueue.clear();

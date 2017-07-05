@@ -86,7 +86,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype._whilePendings = function () {
 
 og.planetSegment.NormalMapCreatorQueue.prototype.abort = function () {
     this._pendingsQueue.each(function (s) {
-        s._inTheQueue = false;
+        s && (s._inTheQueue = false);
     });
     this._pendingsQueue.clear();
 };

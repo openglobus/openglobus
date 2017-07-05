@@ -141,9 +141,7 @@ og.terrainProvider.TerrainProvider.EVENT_NAMES = [
  */
 og.terrainProvider.TerrainProvider.prototype.abortLoading = function () {
     this._pendingsQueue.each(function (s) {
-        if (s[i]) {
-            s[i].terrainIsLoading = false;
-        }
+        s && (s.terrainIsLoading = false);
     });
     //this._pendingsQueue.length = 0;
     this._pendingsQueue.clear();

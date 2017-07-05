@@ -1211,6 +1211,9 @@ og.scene.Planet.prototype.memClear = function () {
     this.terrainLock.lock(this._memKey);
     this.normalMapCreator.lock(this._memKey);
 
+    this.normalMapCreator.abort();
+    this.terrainProvider.abortLoading();    
+
     this._quadTree.clearTree();
     this._quadTreeNorth.clearTree();
     this._quadTreeSouth.clearTree();
