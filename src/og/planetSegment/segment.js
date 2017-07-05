@@ -640,7 +640,7 @@ og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
                 nbs && nbs.planetSegment && nbs.planetSegment.terrainIsLoading ||
                 nbw && nbw.planetSegment && nbw.planetSegment.terrainIsLoading) {
                 if (!this._inTheQueue) {
-                    this.planet.normalMapCreator.shift(this);
+                    this.planet.normalMapCreator.queue(this);
                 }
                 return;
             }

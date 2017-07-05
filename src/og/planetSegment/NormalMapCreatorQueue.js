@@ -11,7 +11,7 @@ og.planetSegment.NormalMapCreatorQueue = function (width, height) {
     this._lock = new og.idle.Lock();
 
     this._counter = 0;
-    this._pendingsQueue = [];//new og.QueueArray();
+    this._pendingsQueue = new og.QueueArray(1024);
 };
 
 og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMapCreator);
@@ -20,7 +20,7 @@ og.inheritance.extend(og.planetSegment.NormalMapCreatorQueue, og.utils.NormalMap
  * Set activity off
  * @public
  */
-og.planetSegment.NormalMapCreatorQueue.prototype.lock = function(key){
+og.planetSegment.NormalMapCreatorQueue.prototype.lock = function (key) {
     this._lock.lock(key);
 };
 
@@ -28,7 +28,7 @@ og.planetSegment.NormalMapCreatorQueue.prototype.lock = function(key){
  * Set activity on
  * @public
  */
-og.planetSegment.NormalMapCreatorQueue.prototype.free = function(key){
+og.planetSegment.NormalMapCreatorQueue.prototype.free = function (key) {
     this._lock.free(key);
 };
 
@@ -82,4 +82,11 @@ og.planetSegment.NormalMapCreatorQueue.prototype._whilePendings = function () {
         seg._inTheQueue = false;
     }
     return null;
+};
+
+og.planetSegment.NormalMapCreatorQueue.prototype.abort = function () {
+    this._pendingsQueue.each(function (s) {
+        s._inTheQueue = false;
+    });
+    this._pendingsQueue.clear();
 };
