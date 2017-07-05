@@ -396,7 +396,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var maxZ = this.planet.terrainProvider.maxZoom;
 
     if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
-        seg.planet.normalMapCreator.shift(seg);
+        seg.planet.normalMapCreator.queue(seg);
     } else if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
@@ -410,7 +410,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
                 pns.createPlainSegment();
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
-                pns.planet.normalMapCreator.shift(pns);
+                pns.planet.normalMapCreator.queue(pns);
             }
         }
     }
