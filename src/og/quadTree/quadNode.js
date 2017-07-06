@@ -396,7 +396,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var maxZ = this.planet.terrainProvider.maxZoom;
 
     if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
-        seg.planet.normalMapCreator.queue(seg);
+        seg.planet.normalMapCreator.shift(seg);
     } else if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
