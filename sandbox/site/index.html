@@ -1,12 +1,12 @@
 ﻿<html>
 <head>
-    <title>OpenGlobus - a JavaScript library for interactive 3d maps</title>
-    <meta property="og:title" content="OpenGlobus - a JavaScript library for interactive 3d maps">
-    <meta property="og:description" content="OpenGlobus is a javascript library designed to display interactive 3d planets with map tiles, imagery and vector data, markers and 3d objects.">
+    <title>OpenGlobus - a JavaScript library for interactive 3D maps</title>
+    <meta property="og:title" content="OpenGlobus - a JavaScript library for interactive 3D maps">
+    <meta property="og:description" content="OpenGlobus is a javascript library designed to display interactive 3D maps and planets with map tiles, imagery and vector data, markers and 3D objects.">
     <meta property="og:image" content="http://www.openglobus.org/favicon.png">
 
     <meta itemprop="name" content="OpenGLobus">
-    <meta itemprop="description" content="OpenGlobus is a javascript library designed to display interactive 3d planets with map tiles, imagery and vector data, markers and 3d objects.">
+    <meta itemprop="description" content="OpenGlobus is a javascript library designed to display interactive 3D maps and planets with map tiles, imagery and vector data, markers and 3D objects.">
     <meta itemprop="image" content="http://www.openglobus.org/favicon.png">
 
     <meta charset="utf-8">
@@ -62,7 +62,7 @@
     <div class="container">
         <div class="announcement">Nov 02, 2016 @ <a href="http://www.openglobus.org">openglobus.org</a>, site created!</div>
         <p style="margin-bottom:25px">
-        Welcome to the OpenGlobus overview page! OpenGlobus is a javascript library designed to display interactive 3d planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.
+        Welcome to the OpenGlobus overview page! OpenGlobus is a javascript library designed to display interactive 3D maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.
         </p>
         <div id="globus" style="height:300px; border: 1px solid #ccc; margin-bottom:50px;"></div>
         <p>Here we create a globe in the <code>'globus'</code> div with useful controls, tile layer of OpenStreetMap tiles, and then add a marker with some label:</p>
@@ -90,7 +90,6 @@
         "target": "globus",
         "name": "Earth",
         "controls": controls,
-        "skybox": og.scene.defaultSkyBox(),
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm],
         "autoActivated": true
@@ -180,7 +179,7 @@
     </div>
 
     <div class="bottomcontainer">
-        <div class="container"><div style="float:left">(c) 2017 <a href="mgevlich@gmail.com">Michael Gevlich</a></div></div>
+        <div class="container"><div style="float:left">(c) 2017 OpenGlobus Contributors</div></div>
     </div>
 </body>
 </html>

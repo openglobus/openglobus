@@ -84,7 +84,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
      * @public
      * @number
      */
-    this.MAX_LOADING_TILES = options.MAX_LOADING_TILES || 4;
+    this.MAX_LOADING_TILES = options.MAX_LOADING_TILES || 5;
 
     /**
      * Events handler.
@@ -106,7 +106,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
      * @protected
      * @type {Array.<og.planetSegment.Segment>}
      */
-    this._pendingsQueue = [];//new og.QueueArray();
+    this._pendingsQueue = new og.QueueArray(1024);
 
     /**
      * Rewrites elevation storage url query.
@@ -122,16 +122,16 @@ og.terrainProvider.TerrainProvider = function (name, options) {
 og.inheritance.extend(og.terrainProvider.TerrainProvider, og.terrainProvider.EmptyTerrainProvider);
 
 og.terrainProvider.TerrainProvider.EVENT_NAMES = [
-     /**
-     * Triggered when current elevation tile has loaded but before rendereing.
-     * @event og.terrainProvider.TerrainProvider#load
-     */
+    /**
+    * Triggered when current elevation tile has loaded but before rendereing.
+    * @event og.terrainProvider.TerrainProvider#load
+    */
     "load",
 
-     /**
-     * Triggered when all elevation tiles have loaded or loading has stopped.
-     * @event og.terrainProvider.TerrainProvider#loadend
-     */
+    /**
+    * Triggered when all elevation tiles have loaded or loading has stopped.
+    * @event og.terrainProvider.TerrainProvider#loadend
+    */
     "loadend"
 ];
 
@@ -139,8 +139,12 @@ og.terrainProvider.TerrainProvider.EVENT_NAMES = [
  * Stop loading.
  * @public
  */
-og.terrainProvider.TerrainProvider.prototype.abort = function () {
-    this._pendingsQueue.length = 0;
+og.terrainProvider.TerrainProvider.prototype.abortLoading = function () {
+    this._pendingsQueue.each(function (s) {
+        s && (s.terrainIsLoading = false);
+    });
+    //this._pendingsQueue.length = 0;
+    this._pendingsQueue.clear();
 };
 
 /**

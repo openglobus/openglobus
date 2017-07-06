@@ -214,7 +214,7 @@ og.utils.TerrainWorker.prototype.make = function (segment, elevations, callback)
         that._workerQueue.unshift(this);
     };
 
-    var objData = {
+    w.postMessage({
         'elevations': elevations,
         'this_plainVertices': segment.plainVertices,
         'this_plainNormals': segment.plainNormals,
@@ -223,13 +223,11 @@ og.utils.TerrainWorker.prototype.make = function (segment, elevations, callback)
         'heightFactor': segment.planet._heightFactor,
         'fileGridSize': segment.planet.terrainProvider.fileGridSize,
         'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
-    };
-
-    w.postMessage(objData, [
-        objData.elevations.buffer,
-        objData.this_plainVertices.buffer,
-        objData.this_plainNormals.buffer,
-        objData.this_normalMapVertices.buffer,
-        objData.this_normalMapNormals.buffer
+    }, [
+        elevations.buffer,
+        segment.plainVertices.buffer,
+        segment.plainNormals.buffer,
+        segment.normalMapVertices.buffer,
+        segment.normalMapNormals.buffer
     ]);
 };
