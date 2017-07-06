@@ -441,17 +441,16 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             nmInd = 0;
 
         var gs3 = gs * gs * 3,
-            sgs3 = seg.gridSize * seg.gridSize * 3;
+            sgs3 = (seg.gridSize + 1) * (seg.gridSize + 1) * 3;
 
         var hgsOne = 0.5 * (gs - 1) + 1;
 
-        seg.terrainVertices && (seg.terrainVertices.length = 0);
-        seg.normalMapVertices && (seg.normalMapVertices.length = 0);
+        seg.terrainVertices && (seg.terrainVertices = null);
+        seg.normalMapNormals && (seg.normalMapNormals = null);
+        seg.normalMapVertices && (seg.normalMapVertices = null);
 
-        seg.terrainVertices = new Array(sgs3);
-        seg.normalMapVertices = new Array(gs3);
-
-        seg.normalMapNormals && (seg.normalMapNormals.length = 0);
+        seg.terrainVertices = new Float32Array(sgs3);
+        seg.normalMapVertices = new Float32Array(gs3);
         seg.normalMapNormals = new Float32Array(gs3);
 
         var verts = seg.terrainVertices,
@@ -502,7 +501,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
 
         if (seg.planet.lightEnabled) {
-            seg.planet.normalMapCreator.queue(seg);
+            seg.createNormalMapTexture();
         }
 
         seg.createCoordsBuffers(seg.terrainVertices, seg.gridSize);
@@ -609,7 +608,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     var coords = new og.math.Vector3();
                     var vo = og.quadTree.QuadNode._vertOrder;
 
-                    tempVertices = new Array(3 * vo.length);
+                    tempVertices = new Float32Array(3 * vo.length);
 
                     for (var i = 0; i < vo.length; i++) {
                         var vi_y = vo[i].y + t_i0,
@@ -630,8 +629,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                         tempVertices[i3 + 1] = coords.y;
                         tempVertices[i3 + 2] = coords.z;
                     }
-
-                    bigOne.length = 0;
                 }
 
                 seg.createCoordsBuffers(tempVertices, seg.gridSize);
@@ -698,7 +695,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
  * @return{Array.<number>} Triangle coordinates array from the source array.
  */
 og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
-    var res = new Array((i0 + size + 1) * (j0 + size + 1));
+    var res = new Float32Array((i0 + size + 1) * (j0 + size + 1) * 3);
     var vInd = 0;
     for (var i = i0; i <= i0 + size; i++) {
         for (var j = j0; j <= j0 + size; j++) {

@@ -428,17 +428,15 @@ og.math.Vector3.prototype.dotArr = function (arr) {
 /**
  * Gets vectors cross production.
  * @public
- * @param {og.math.Vector3} point3 - Another vector.
+ * @param {og.math.Vector3} v - Another vector.
  * @returns {og.math.Vector3}
  */
-og.math.Vector3.prototype.cross = function (point3) {
-    var res = new og.math.Vector3();
-    res.set(
-        this.y * point3.z - this.z * point3.y,
-        this.z * point3.x - this.x * point3.z,
-        this.x * point3.y - this.y * point3.x
+og.math.Vector3.prototype.cross = function (v) {
+    return new og.math.Vector3(
+        this.y * v.z - this.z * v.y,
+        this.z * v.x - this.x * v.z,
+        this.x * v.y - this.y * v.x
     );
-    return res;
 };
 
 /**

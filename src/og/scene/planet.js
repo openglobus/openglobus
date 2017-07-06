@@ -37,6 +37,7 @@ goog.require('og.ellipsoid.wgs84');
 goog.require('og.utils.GeoImageCreator');
 goog.require('og.utils.VectorTileCreator');
 goog.require('og.idle');
+goog.require('og.utils.TerrainWorker');
 
 /**
  * Main class for rendering planet
@@ -331,6 +332,8 @@ og.scene.Planet = function (name, ellipsoid) {
     this._geoImageCreator = null;
 
     this._vectorTileCreator = null;
+
+    this._terrainWorker = new og.utils.TerrainWorker(20);
 
     /**
      * @protected
