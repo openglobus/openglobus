@@ -1,17 +1,11 @@
 goog.provide('og.QueueArray');
 
 og.QueueArray = function (size) {
-    this._size = size;
-    this._array = new Array(size);
-    this._popIndex = parseInt(size * 0.5);
+    this._size = size || 2048;
+    this._array = new Array(this._size);
+    this._popIndex = parseInt(this._size * 0.5);
     this._shiftIndex = this._popIndex;
     this.length = 0;
-};
-
-og.QueueArray.prototype.each = function (callback) {
-    for (var i = this._shiftIndex + 1; i < this._popIndex + 1; i++) {
-        callback(this._array[i]);
-    }
 };
 
 og.QueueArray.prototype.clear = function () {
