@@ -322,70 +322,137 @@ function loadTrack() {
 
 
 function main4() {
+        var points = [];
 
-    size = 6.0;
-    greenCoords = [];
-    p = new og.math.Vector3(0, 0, 6378137.0 + 3000000.0);
-    greenAround = og.math.vector3(1, 0, 0).normalize();
-    q = og.math.Quaternion.axisAngleToQuat(greenAround, size * og.math.RADIANS);
-
-    redOrbit = [];
-    p2 = new og.math.Vector3(0, 0, 6378137.0 + 5000000.0);
-    startR = og.math.vector3(0, 1, 0).normalize();
-    q2 = og.math.Quaternion.axisAngleToQuat(startR, size * og.math.RADIANS);
-
-    for (var i = 0; i < 360; i += size) {
-        p = q.mulVec3(p);
-        greenCoords.push(p);
-    }
-
-
-    greenOrbit = new og.Entity({
-        'polyline': {
-            'path3v': [greenCoords],
-            'thickness': 5.5,
-            'color': "#39b739",
-            'isClosed': true
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 10; j++) {
+                var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
+                points.push(new og.Entity({
+                    'name': 'Blue Marker',
+                    'lonlat': coords,
+                    'billboard': {
+                        'src': 'marker.png',
+                        'size': [18, 32],
+                        'offset': [0, 16],
+                        'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                    }
+                }));
+            }
         }
-    });
 
+        pointLayer = new og.layer.Vector("pointLayer", {
+            'groundAlign': true,
+            'entities': points,
+            'async': false,
+            'nodeCapacity': points.length
+        });
 
-    var collection = new og.layer.Vector("Collection", {
-        'entities': [greenOrbit]
-    });
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
 
-    var osm = new og.layer.XYZ("OpenStreetMap", {
-        specular: [0.0003, 0.00012, 0.00001],
-        shininess: 20,
-        diffuse: [0.89, 0.9, 0.83],
-        isBaseLayer: true,
-        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        visibility: true,
-        attribution: 'Data @ OpenStreetMap contributors, ODbL'
-    });
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, pointLayer]
+        });
 
-    globus = new og.Globus({
-        "target": "globus",
-        "name": "Earth",
-        "layers": [osm, collection],
-        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus")
-    });
+        globus.planet.camera.set(
+            og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+            og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
+            og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
+        ).update();
 
-    globus.planet.addControl(new og.control.ToggleWireframe());
-
-    setTimeout(function () {
-
-    }, 1000);
+        //Rotate points around the center
+        var center = pointLayer.getExtent().getCenter();
+        var angle = 0.1 * og.math.RADIANS;
+        globus.renderer.events.on("draw", function () {
+            pointLayer.each(function (e) {
+                var c = e.getLonLat();
+                var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
+                var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+                e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
+            });
+        });
 };
 
 function test() {
     greenCoords = [];
-    
+
     for (var i = 0; i < 360; i += size) {
         p2 = q2.mulVec3(p2);
         greenCoords.push(p2);
     }
     greenOrbit.polyline.setPath3v([greenCoords], true);
+}
+
+function main5() {
+       var points = [];
+
+        for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 10; j++) {
+                var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
+                points.push(new og.Entity({
+                    'name': 'Blue Marker',
+                    'lonlat': coords,
+                    'billboard': {
+                        'src': 'marker.png',
+                        'size': [18, 32],
+                        'offset': [0, 16],
+                        'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                    }
+                }));
+            }
+        }
+
+        pointLayer = new og.layer.Vector("pointLayer", {
+            'groundAlign': true,
+            'entities': points,
+            'async': false,
+            'nodeCapacity': points.length
+        });
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, pointLayer]
+        });
+
+        globus.planet.camera.set(
+            og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+            og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
+            og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
+        ).update();
+
+        //Rotate points around the center
+        var center = pointLayer.getExtent().getCenter();
+        var angle = 0.1 * og.math.RADIANS;
+        globus.renderer.events.on("draw", function () {
+            pointLayer.each(function (e) {
+                var c = e.getLonLat();
+                var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
+                var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+                e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
+            });
+        });
 }
 
 /*

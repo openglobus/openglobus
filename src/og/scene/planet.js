@@ -846,13 +846,13 @@ og.scene.Planet.prototype.frame = function () {
 
     this.renderer.activeCamera.prepareFrame();
 
-    //print2d("lbTiles", this.layerLock._lock, 100, 100);
-    //print2d("l1", this.terrainLock._lock, 100, 140);
-    //print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
+    // print2d("lbTiles", this.layerLock._lock, 100, 100);
+    // print2d("l1", this.terrainLock._lock, 100, 140);
+    // print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
 
-    //    print2d("lbTiles", "l:" + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-    //    print2d("t2", "tp: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-    //    print2d("t1", "nmc: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
+    //    print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
+    //    print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
+    //    print2d("t1", "normal: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
 
 
     this.transformLights();
@@ -1210,6 +1210,9 @@ og.scene.Planet.prototype.memClear = function () {
     this.layerLock.lock(this._memKey);
     this.terrainLock.lock(this._memKey);
     this.normalMapCreator.lock(this._memKey);
+
+    this.normalMapCreator.abort();
+    this.terrainProvider.abortLoading();    
 
     this._quadTree.clearTree();
     this._quadTreeNorth.clearTree();

@@ -106,7 +106,7 @@ og.terrainProvider.TerrainProvider = function (name, options) {
      * @protected
      * @type {Array.<og.planetSegment.Segment>}
      */
-    this._pendingsQueue = [];//new og.QueueArray();
+    this._pendingsQueue = new og.QueueArray();
 
     /**
      * Rewrites elevation storage url query.
@@ -298,4 +298,16 @@ og.terrainProvider.TerrainProvider.prototype._whilePendings = function () {
         }
     }
     return null;
+};
+
+/**
+ * Stop loading.
+ * @public
+ */
+og.terrainProvider.TerrainProvider.prototype.abortLoading = function () {
+    this._pendingsQueue.each(function (s) {
+        s && (s.terrainIsLoading = false);
+    });
+    //this._pendingsQueue.length = 0;
+    this._pendingsQueue.clear();
 };

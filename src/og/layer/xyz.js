@@ -61,7 +61,7 @@ og.layer.XYZ = function(name, options) {
      * @protected
      * @type {Array.<og.planetSegment.Material>}
      */
-    this._pendingsQueue = []; //new og.QueueArray();
+    this._pendingsQueue = new og.QueueArray();
 
     /**
      * Rewrites imagery tile url query.
@@ -114,14 +114,12 @@ og.layer.xyz = function(name, options) {
  * @public
  */
 og.layer.XYZ.prototype.abortLoading = function() {
-    var q = this._pendingsQueue;
-    for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
-        if (q._array[i]) {
-            this.abortMaterialLoading(q._array[i]);
-        }
-    }
-    this._pendingsQueue = [];
-    //this._pendingsQueue.clear();
+    var that = this;
+    this._pendingsQueue.each(function (q) {
+        q && that.abortMaterialLoading(q)
+    });
+    //this._pendingsQueue = [];
+    this._pendingsQueue.clear();
 };
 
 /**

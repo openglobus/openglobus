@@ -31,3 +31,9 @@ og.QueueArray.prototype.pop = function () {
     this._popIndex--;
     return res;
 };
+
+og.QueueArray.prototype.each = function (callback) {
+    for (var i = this._shiftIndex + 1; i < this._popIndex + 1; i++) {
+        callback(this._array[i]);
+    }
+};
