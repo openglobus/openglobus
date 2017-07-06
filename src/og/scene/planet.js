@@ -850,9 +850,9 @@ og.scene.Planet.prototype.frame = function () {
     // print2d("l1", this.terrainLock._lock, 100, 140);
     // print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
 
-       print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-       print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-       print2d("t1", "normal: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
+    //    print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
+    //    print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
+    //    print2d("t1", "normal: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
 
 
     this.transformLights();

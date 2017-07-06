@@ -23,20 +23,20 @@ og.control.geoImageDragControl = function (options) {
 
 og.control.GeoImageDragControl.prototype.oninit = function () {
     var that = this;
-    this.planet.events.on('layeradd', function (e) {
+    var p = this.planet;
+    p.events.on('layeradd', function (e) {
         if (e instanceof og.layer.BaseGeoImage) {
             e.events.on('mousemove', function (ms) {
                 if (that.active) {
                     if (that._catchCorner) {
                         var corners = e.getCornersLonLat();
-                        corners[that._cornerIndex] = that.planet.getLonLatFromPixelTerrain(ms, true);
+                        corners[that._cornerIndex] = p.getLonLatFromPixelTerrain(ms, true);
                         e.setCornersLonLat(corners);
                     } else {
                         that._cornerIndex = -1;
                         for (var i = 0; i < e._cornersWgs84.length; i++) {
-                            if (that.planet.ellipsoid.getGreatCircleDistance(e._cornersWgs84[i],
-                                that.planet.getLonLatFromPixelTerrain(ms, true)) / that.planet.getDistanceFromPixel(ms, true)
-                                <= 0.05) {
+                            var ground = p.getLonLatFromPixelTerrain(ms, true)
+                            if (ground && p.ellipsoid.getGreatCircleDistance(e._cornersWgs84[i], ground) / p.getDistanceFromPixel(ms, true) <= 0.05) {
                                 that._cornerIndex = i;
                                 break;
                             }
@@ -47,14 +47,14 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
             e.events.on('ldown', function (ms) {
                 if (that.active && that._cornerIndex != -1) {
                     that._catchCorner = true;
-                    globus.planet.renderer.controls[0].active = false;
+                    p.renderer.controls[0].active = false;
                 }
             });
 
             e.events.on('lup', function (ms) {
                 if (that.active) {
                     that._catchCorner = false;
-                    globus.planet.renderer.controls[0].active = true;
+                    p.renderer.controls[0].active = true;
                 }
             });
         }
