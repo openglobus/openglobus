@@ -410,7 +410,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
                 pns.createPlainSegment();
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
-                pns.planet.normalMapCreator.queue(pns);
+                pns.planet.normalMapCreator.shift(pns);
             }
         }
     }
