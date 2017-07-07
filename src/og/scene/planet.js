@@ -674,6 +674,7 @@ og.scene.Planet.prototype.initialization = function () {
 og.scene.Planet.prototype._preRender = function () {
     this._quadTree.traverseNodes();
     this._quadTree.renderNode();
+    this._quadTree.planetSegment.createNormalMapTexture();
 
     this._quadTreeNorth.traverseNodes();
     this._quadTreeNorth.renderNode();
