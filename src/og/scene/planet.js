@@ -333,7 +333,7 @@ og.scene.Planet = function (name, ellipsoid) {
 
     this._vectorTileCreator = null;
 
-    this._terrainWorker = new og.utils.TerrainWorker(20);
+    this._terrainWorker = new og.utils.TerrainWorker(12);
 
     /**
      * @protected

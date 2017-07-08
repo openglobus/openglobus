@@ -1,12 +1,14 @@
 goog.provide('og.utils.TerrainWorker');
 
 og.utils.TerrainWorker = function (numWorkers) {
-    this._workerQueue = new Array(numWorkers);
+    this._workerQueue = new og.QueueArray(numWorkers);
     var elevationProgramm = new Blob([og.utils.TerrainWorker.SegmentElevationProgramm], { type: 'application/javascript' });
 
     for (var i = 0; i < numWorkers; i++) {
-        this._workerQueue[i] = new Worker(URL.createObjectURL(elevationProgramm));
+        this._workerQueue.push(new Worker(URL.createObjectURL(elevationProgramm)));
     }
+
+    this._pendingQueue = new og.QueueArray(512);
 };
 
 og.utils.TerrainWorker.SegmentElevationProgramm =
@@ -203,31 +205,39 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
              }, [normalMapNormals.buffer, normalMapVertices.buffer, terrainVertices.buffer]);\n\
     }';
 
-og.utils.TerrainWorker.prototype.make = function (segment, elevations, callback) {
+og.utils.TerrainWorker.prototype.make = function (segment, elevations) {
 
-    var that = this;
+    if (this._workerQueue.length) {
+        var that = this;
 
-    var w = this._workerQueue.pop();
+        var w = this._workerQueue.pop();
 
-    w.onmessage = function (e) {
-        callback.call(segment, e.data);
-        that._workerQueue.unshift(this);
-    };
+        w.onmessage = function (e) {
+            segment._terrainWorkerCallback(e.data);
+            that._workerQueue.unshift(this);
+            if (that._pendingQueue.length) {
+                var p = that._pendingQueue.pop();
+                that.make(p.segment, p.elevations)
+            }
+        };
 
-    w.postMessage({
-        'elevations': elevations,
-        'this_plainVertices': segment.plainVertices,
-        'this_plainNormals': segment.plainNormals,
-        'this_normalMapVertices': segment.normalMapVertices,
-        'this_normalMapNormals': segment.normalMapNormals,
-        'heightFactor': segment.planet._heightFactor,
-        'fileGridSize': segment.planet.terrainProvider.fileGridSize,
-        'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
-    }, [
-        elevations.buffer,
-        segment.plainVertices.buffer,
-        segment.plainNormals.buffer,
-        segment.normalMapVertices.buffer,
-        segment.normalMapNormals.buffer
-    ]);
+        w.postMessage({
+            'elevations': elevations,
+            'this_plainVertices': segment.plainVertices,
+            'this_plainNormals': segment.plainNormals,
+            'this_normalMapVertices': segment.normalMapVertices,
+            'this_normalMapNormals': segment.normalMapNormals,
+            'heightFactor': segment.planet._heightFactor,
+            'fileGridSize': segment.planet.terrainProvider.fileGridSize,
+            'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
+        }, [
+                elevations.buffer,
+                segment.plainVertices.buffer,
+                segment.plainNormals.buffer,
+                segment.normalMapVertices.buffer,
+                segment.normalMapNormals.buffer
+            ]);
+    } else {
+        this._pendingQueue.push({ 'segment': segment, 'elevations': elevations });
+    }
 };

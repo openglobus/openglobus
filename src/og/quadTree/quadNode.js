@@ -1,6 +1,5 @@
 goog.provide('og.quadTree.QuadNode');
 
-goog.require('og.planetSegment.Material');
 goog.require('og.Extent');
 goog.require('og.LonLat');
 goog.require('og.quadTree');
