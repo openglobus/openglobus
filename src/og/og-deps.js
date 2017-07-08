@@ -87,7 +87,7 @@ goog.addDependency('../../../og/src/og/proj/epsg3857.js', ['og.proj.EPSG3857'], 
 goog.addDependency('../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'og.proj.METERS_PER_UNIT', 'og.proj.Projection'], [], false);
 goog.addDependency('../../../og/src/og/quadTree/entityCollectionQuadNode.js', ['EntityCollectionQuadNodeWGS84', 'og.quadTree.EntityCollectionQuadNode'], ['og.EntityCollection', 'og.Extent', 'og.LonLat', 'og.bv.Box', 'og.bv.Sphere', 'og.inheritance', 'og.quadTree'], false);
-goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.planetSegment.Material', 'og.proj.EPSG4326', 'og.quadTree'], false);
+goog.addDependency('../../../og/src/og/quadTree/quadNode.js', ['og.quadTree.QuadNode'], ['og.Extent', 'og.LonLat', 'og.mercator', 'og.proj.EPSG4326', 'og.quadTree'], false);
 goog.addDependency('../../../og/src/og/quadTree/quadTree.js', ['og.quadTree'], [], false);
 goog.addDependency('../../../og/src/og/queueArray.js', ['og.QueueArray'], [], false);
 goog.addDependency('../../../og/src/og/rectangle.js', ['og.Rectangle'], [], false);
