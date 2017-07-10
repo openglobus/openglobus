@@ -94,6 +94,8 @@ og.terrainProvider.TerrainProvider = function (name, options) {
     this.events = new og.Events();
     this.events.registerNames(og.terrainProvider.TerrainProvider.EVENT_NAMES);
 
+    this._elevationCache = {};
+
     /**
      * Current loadings counter.
      * @protected
@@ -122,16 +124,16 @@ og.terrainProvider.TerrainProvider = function (name, options) {
 og.inheritance.extend(og.terrainProvider.TerrainProvider, og.terrainProvider.EmptyTerrainProvider);
 
 og.terrainProvider.TerrainProvider.EVENT_NAMES = [
-     /**
-     * Triggered when current elevation tile has loaded but before rendereing.
-     * @event og.terrainProvider.TerrainProvider#load
-     */
+    /**
+    * Triggered when current elevation tile has loaded but before rendereing.
+    * @event og.terrainProvider.TerrainProvider#load
+    */
     "load",
 
-     /**
-     * Triggered when all elevation tiles have loaded or loading has stopped.
-     * @event og.terrainProvider.TerrainProvider#loadend
-     */
+    /**
+    * Triggered when all elevation tiles have loaded or loading has stopped.
+    * @event og.terrainProvider.TerrainProvider#loadend
+    */
     "loadend"
 ];
 
@@ -174,10 +176,15 @@ og.terrainProvider.TerrainProvider.prototype.handleSegmentTerrain = function (se
         segment.terrainReady = false;
         segment.terrainIsLoading = true;
         if (segment._projection.id == og.proj.EPSG3857.id) {
-            if (this._counter >= this.MAX_LOADING_TILES) {
-                this._pendingsQueue.push(segment);
+            var cacheData = this._elevationCache[segment.getTileIndex()];
+            if (cacheData) {
+                this._applyElevationsData(segment, cacheData, true);
             } else {
-                this._exec(segment);
+                if (this._counter >= this.MAX_LOADING_TILES) {
+                    this._pendingsQueue.push(segment);
+                } else {
+                    this._exec(segment);
+                }
             }
         } else {
             //TODO: poles elevation
@@ -243,6 +250,7 @@ og.terrainProvider.TerrainProvider.prototype._exec = function (segment) {
         responseType: this.responseType,
         sender: this,
         success: function (data) {
+            this._elevationCache[segment.getTileIndex()] = data;
             this._applyElevationsData(segment, data);
         },
         error: function () {
@@ -259,7 +267,7 @@ og.terrainProvider.TerrainProvider.prototype._exec = function (segment) {
  * @param {og.planetSegment.Segment} segment
  * @param {*} data
  */
-og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (segment, data) {
+og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (segment, data, skipDeque) {
     if (segment) {
         var elevations = this.getElevations(data);
         var e = this.events.load;
@@ -271,7 +279,7 @@ og.terrainProvider.TerrainProvider.prototype._applyElevationsData = function (se
         }
         segment.applyTerrain(elevations);
     }
-    this._dequeueRequest();
+    !skipDeque && this._dequeueRequest();
 };
 
 og.terrainProvider.TerrainProvider.prototype._dequeueRequest = function () {

@@ -166,6 +166,48 @@ og.webgl.Handler.prototype.createTexture_n = function (image) {
 };
 
 /**
+ * Creates Empty half float texture.
+ * @public
+ * @param {number} width - Empty texture width.
+ * @param {number} height - Empty texture height.
+ * @returns {Object} - WebGL half float texture object.
+ */
+og.webgl.Handler.prototype.createEmptyTexture_hf = function (width, height) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+};
+
+/**
+ * Creates Empty float texture.
+ * @public
+ * @param {number} width - Empty texture width.
+ * @param {number} height - Empty texture height.
+ * @returns {Object} - WebGL float texture object.
+ */
+og.webgl.Handler.prototype.createEmptyTexture_f = function (width, height) {
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+};
+
+/**
  * Creates Empty NEAREST filtered texture.
  * @public
  * @param {number} width - Empty texture width.
@@ -438,6 +480,13 @@ og.webgl.Handler.prototype.initialize = function () {
     this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
     this._params.extensions.push("OES_element_index_uint");
+
+    //this._params.extensions.push('OES_texture_half_float');
+    //this._params.extensions.push('OES_texture_half_float_linear');
+
+    //this._params.extensions.push('OES_texture_float');
+    //this._params.extensions.push('OES_texture_float_linear');
+    
     var i = this._params.extensions.length;
     while (i--) {
         this.initializeExtension(this._params.extensions[i], true);

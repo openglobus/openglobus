@@ -11,6 +11,7 @@ goog.require('og.bv.Sphere');
 goog.require('og.mercator');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG3857');
+goog.require('og.planetSegment.Material');
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
@@ -274,8 +275,9 @@ og.planetSegment.Segment.prototype.loadTerrain = function () {
 og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
-
-        this.planet._terrainWorker.make(this, elevations);
+        var dst = new Float32Array(elevations.length);
+        dst.set(new Float32Array(elevations));
+        this.planet._terrainWorker.make(this, dst);
     }
 };
 
@@ -1254,4 +1256,8 @@ og.planetSegment.Segment.prototype.getExtent = function () {
 og.planetSegment.Segment.prototype.getNodeState = function () {
     var vn = this.planet._visibleNodes[this.node.nodeId];
     return vn && vn.state || og.quadTree.NOTRENDERING;
+};
+
+og.planetSegment.Segment.prototype.getTileIndex = function () {
+    return this.tileZoom + "_" + this.tileX + "_" + this.tileY;
 };

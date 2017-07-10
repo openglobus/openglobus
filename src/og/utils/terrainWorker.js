@@ -207,37 +207,41 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
 
 og.utils.TerrainWorker.prototype.make = function (segment, elevations) {
 
-    if (this._workerQueue.length) {
-        var that = this;
+    if (segment.ready && segment.terrainIsLoading) {
 
-        var w = this._workerQueue.pop();
+        if (this._workerQueue.length) {
 
-        w.onmessage = function (e) {
-            segment._terrainWorkerCallback(e.data);
-            that._workerQueue.unshift(this);
-            if (that._pendingQueue.length) {
-                var p = that._pendingQueue.pop();
-                that.make(p.segment, p.elevations)
-            }
-        };
+            var that = this;
 
-        w.postMessage({
-            'elevations': elevations,
-            'this_plainVertices': segment.plainVertices,
-            'this_plainNormals': segment.plainNormals,
-            'this_normalMapVertices': segment.normalMapVertices,
-            'this_normalMapNormals': segment.normalMapNormals,
-            'heightFactor': segment.planet._heightFactor,
-            'fileGridSize': segment.planet.terrainProvider.fileGridSize,
-            'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
-        }, [
-                elevations.buffer,
-                segment.plainVertices.buffer,
-                segment.plainNormals.buffer,
-                segment.normalMapVertices.buffer,
-                segment.normalMapNormals.buffer
-            ]);
-    } else {
-        this._pendingQueue.push({ 'segment': segment, 'elevations': elevations });
+            var w = this._workerQueue.pop();
+
+            w.onmessage = function (e) {
+                segment._terrainWorkerCallback(e.data);
+                that._workerQueue.unshift(this);
+                if (that._pendingQueue.length) {
+                    var p = that._pendingQueue.pop();
+                    that.make(p.segment, p.elevations)
+                }
+            };
+
+            w.postMessage({
+                'elevations': elevations,
+                'this_plainVertices': segment.plainVertices,
+                'this_plainNormals': segment.plainNormals,
+                'this_normalMapVertices': segment.normalMapVertices,
+                'this_normalMapNormals': segment.normalMapNormals,
+                'heightFactor': segment.planet._heightFactor,
+                'fileGridSize': segment.planet.terrainProvider.fileGridSize,
+                'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
+            }, [
+                    elevations.buffer,
+                    segment.plainVertices.buffer,
+                    segment.plainNormals.buffer,
+                    segment.normalMapVertices.buffer,
+                    segment.normalMapNormals.buffer
+                ]);
+        } else {
+            this._pendingQueue.push({ 'segment': segment, 'elevations': elevations });
+        }
     }
 };
