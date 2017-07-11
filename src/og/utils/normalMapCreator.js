@@ -141,11 +141,13 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     var size = normals.length / 3;
     var gridSize = Math.sqrt(size) - 1;
 
-    var _normalsBuffer = this._handler.createArrayBuffer(normals, 3, size);
+    var h = this._handler;
+    var gl = h.gl;
+
+    var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
     var f = this._framebuffer;
-    var p = this._handler.shaderPrograms.normalMap;
-    var gl = this._handler.gl;
+    var p = h.shaderPrograms.normalMap;
     var sha = p._program.attributes;
 
     p.activate();

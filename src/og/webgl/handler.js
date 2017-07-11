@@ -571,12 +571,13 @@ og.webgl.Handler.prototype.deactivateBlending = function () {
  * @param {Array.<number>} array - Input array.
  * @param {number} itemSize - Array item size.
  * @param {number} numItems - Items quantity.
+ * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
  * @return {Object}
  */
-og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems) {
+og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage) {
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
@@ -589,12 +590,13 @@ og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numIte
  * @param {Array.<number>} array - Input array.
  * @param {number} itemSize - Array item size.
  * @param {number} numItems - Items quantity.
+ * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
  * @return {Object}
  */
-og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems) {
+og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems, usage) {
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;

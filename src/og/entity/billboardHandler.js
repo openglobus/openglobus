@@ -650,8 +650,8 @@ og.BillboardHandler.prototype.setAlignedAxisArr = function (index, alignedAxis) 
 
 og.BillboardHandler.prototype.createPositionBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._positionBuffer);
-    this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionArr), 4, this._positionArr.length / 4);
+    //h.gl.deleteBuffer(this._positionBuffer);
+    this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionArr), 4, this._positionArr.length / 4, h.gl.DYNAMIC_DRAW);
 };
 
 og.BillboardHandler.prototype.createSizeBuffer = function () {
@@ -674,20 +674,20 @@ og.BillboardHandler.prototype.createRgbaBuffer = function () {
 
 og.BillboardHandler.prototype.createRotationBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._rotationBuffer);
-    this._rotationBuffer = h.createArrayBuffer(new Float32Array(this._rotationArr), 1, this._rotationArr.length);
+    //h.gl.deleteBuffer(this._rotationBuffer);
+    this._rotationBuffer = h.createArrayBuffer(new Float32Array(this._rotationArr), 1, this._rotationArr.length, h.gl.DYNAMIC_DRAW);
 };
 
 og.BillboardHandler.prototype.createVertexBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._vertexBuffer);
-    this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 2, this._vertexArr.length / 2);
+    //h.gl.deleteBuffer(this._vertexBuffer);
+    this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 2, this._vertexArr.length / 2, h.gl.DYNAMIC_DRAW);
 };
 
 og.BillboardHandler.prototype.createTexCoordBuffer = function () {
     var h = this._renderer.handler;
-    h.gl.deleteBuffer(this._texCoordBuffer);
-    this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 2, this._texCoordArr.length / 2);
+    //h.gl.deleteBuffer(this._texCoordBuffer);
+    this._texCoordBuffer = h.createArrayBuffer(new Float32Array(this._texCoordArr), 2, this._texCoordArr.length / 2, h.gl.DYNAMIC_DRAW);
 };
 
 og.BillboardHandler.prototype.createAlignedAxisBuffer = function () {
