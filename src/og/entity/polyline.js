@@ -905,7 +905,7 @@ og.Polyline.prototype._deleteBuffers = function () {
 og.Polyline.prototype._createVerticesBuffer = function () {
     var h = this._renderNode.renderer.handler;
     h.gl.deleteBuffer(this._verticesBuffer);
-    this._verticesBuffer = h.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
+    this._verticesBuffer = h.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3, h.gl.DYNAMIC_DRAW);
 };
 
 /**
