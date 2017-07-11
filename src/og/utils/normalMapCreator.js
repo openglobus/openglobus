@@ -32,16 +32,16 @@ og.utils.NormalMapCreator.prototype._init = function () {
         uniforms: {
             s_texture: { type: og.shaderProgram.types.SAMPLER2D }
         },
-        vertexShader: "attribute vec2 a_position; \
-                       attribute vec2 a_texCoord; \
-                      \
-                      varying vec2 blurCoordinates[5]; \
-                      \
-                      void main() { \
+        vertexShader: "attribute vec2 a_position; \n\
+                       attribute vec2 a_texCoord; \n\
+                      \n\
+                      varying vec2 blurCoordinates[5]; \n\
+                      \n\
+                      void main() { \n\
                           vec2 vt = a_position * 0.5 + 0.5;" +
                           (!isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
-                         "gl_Position = vec4(a_position, 0.0, 1.0); \
-                          blurCoordinates[0] = vt; \
+                         "gl_Position = vec4(a_position, 0.0, 1.0); \n\
+                          blurCoordinates[0] = vt; \n\
                           blurCoordinates[1] = vt + "  + (1.0 / this._width * 1.407333) + ";" +
                           "blurCoordinates[2] = vt - " + (1.0 / this._height * 1.407333) + ";" +
                           "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
@@ -49,18 +49,23 @@ og.utils.NormalMapCreator.prototype._init = function () {
                      "}",
         fragmentShader: 
                         "precision highp float;\n\
-                        uniform sampler2D s_texture; \
-                        \
-                        varying vec2 blurCoordinates[5]; \
-                        \
-                        void main() { \
-                            lowp vec4 sum = vec4(0.0); \
-                            sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164; \
-                            sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005; \
-                            sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005; \
-                            sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913; \
-                            sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913; \
-                            gl_FragColor = sum; \
+                        uniform sampler2D s_texture; \n\
+                        \n\
+                        varying vec2 blurCoordinates[5]; \n\
+                        \n\
+                        void main() { \n\
+                            lowp vec4 sum = vec4(0.0); \n\
+                            if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||\n\
+                                blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){\n\
+                                sum = texture2D(s_texture, blurCoordinates[0]);\n\
+                            } else {\n\
+                                sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164; \n\
+                                sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005; \n\
+                                sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005; \n\
+                                sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913; \n\
+                                sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913; \n\
+                            }\n\
+                            gl_FragColor = sum; \n\
                         }"
     });
 
