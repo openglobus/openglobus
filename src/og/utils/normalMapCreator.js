@@ -163,6 +163,8 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
     gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
 
+    gl.deleteBuffer(_normalsBuffer);
+
     f.deactivate();
 };
 
