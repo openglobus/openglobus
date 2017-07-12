@@ -5,6 +5,7 @@ goog.require('og.layer.Layer');
 goog.require('og.quadTree');
 goog.require('og.proj.EPSG3857');
 goog.require('og.utils');
+goog.require('og.QueueArray');
 
 /**
  * Represents an imagery tiles source provider.
@@ -31,7 +32,7 @@ goog.require('og.utils');
  *     attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
  * });
  */
-og.layer.XYZ = function(name, options) {
+og.layer.XYZ = function (name, options) {
     og.inheritance.base(this, name, options);
 
     this.events.registerNames(og.layer.XYZ.EVENT_NAMES);
@@ -49,19 +50,19 @@ og.layer.XYZ = function(name, options) {
      */
     this.url = options.url || "";
 
-    /**
-     * Current loading tiles couter.
-     * @protected
-     * @type {number}
-     */
-    this._counter = 0;
+    // /**
+    //  * Current loading tiles couter.
+    //  * @protected
+    //  * @type {number}
+    //  */
+    // this._counter = 0;
 
-    /**
-     * Tile pending queue that waiting for loading.
-     * @protected
-     * @type {Array.<og.planetSegment.Material>}
-     */
-    this._pendingsQueue = new og.QueueArray();
+    // /**
+    //  * Tile pending queue that waiting for loading.
+    //  * @protected
+    //  * @type {Array.<og.planetSegment.Material>}
+    //  */
+    // this._pendingsQueue = new og.QueueArray();
 
     /**
      * Rewrites imagery tile url query.
@@ -76,14 +77,107 @@ og.layer.XYZ = function(name, options) {
 
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
 
-og.layer.XYZ.__requestsCounter = 0;
+//og.layer.XYZ.__requestsCounter = 0;
 
-/**
- * Maximum loading queries at one time.
- * @const
- * @type {number}
- */
-og.layer.XYZ.MAX_REQUESTS = 7;
+og.layer.XYZ.MAX_IMAGE_POOL_SIZE = 16;
+og.layer.XYZ.imagePool = new og.QueueArray(og.layer.XYZ.MAX_IMAGE_POOL_SIZE);
+og.layer.XYZ.pendingQueue = new og.QueueArray(512);
+(function () {
+    for (var i = 0; i < og.layer.XYZ.MAX_IMAGE_POOL_SIZE; i++) {
+        var image = new Image();
+        image.crossOrigin = '';
+        og.layer.XYZ.imagePool.push(image);
+    }
+})();
+
+og.layer.XYZ.loadImage = function (img, material, layer) {
+
+    material.image = img;
+
+    img.onload = function () {
+        if (material.isLoading) {
+            var e = layer.events.load;
+            if (e.length) {
+                layer.events.dispatch(e, material);
+            }
+            material.applyImage(this);
+        }
+
+        //material.image = null;
+        //this.src = "";
+        og.layer.XYZ.imagePool.unshift(this);
+
+        while (og.layer.XYZ.pendingQueue.length) {
+            var pmat = og.layer.XYZ.pendingQueue.pop();
+            if (pmat.segment.node) {
+                if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
+                    layer.loadMaterial(pmat);
+                    break;
+                } else {
+                    pmat.isLoading = false;
+                }
+            }
+        }
+    };
+
+    img.onerror = function () {
+
+        material.textureNotExists();
+
+        //material.image = null;
+        //this.src = "";
+        og.layer.XYZ.imagePool.unshift(this);
+
+        while (og.layer.XYZ.pendingQueue.length) {
+            var pmat = og.layer.XYZ.pendingQueue.pop();
+            if (pmat.segment.node) {
+                if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
+                    layer.loadMaterial(pmat);
+                    break;
+                } else {
+                    layer.isLoading = false;
+                }
+            }
+        }
+    };
+
+    img.src = layer._getHTTPRequestString(material.segment);
+};
+
+og.layer.XYZ.prototype.loadMaterial = function (material) {
+
+    var seg = material.segment;
+
+    if (this._isBaseLayer) {
+        material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+    } else {
+        material.texture = seg.planet.transparentTexture;
+    }
+
+    if (this._planet.layerLock.isFree()) {
+
+        material.isReady = false;
+        material.isLoading = true;
+
+        if (material.segment._projection.id === og.proj.EPSG3857.id) {
+            if (og.layer.XYZ.imagePool.length) {
+                var img = og.layer.XYZ.imagePool.pop();
+                og.layer.XYZ.loadImage(img, material, this);
+            } else {
+                og.layer.XYZ.pendingQueue.push(material);
+            }
+        } else {
+            material.textureNotExists();
+        }
+    }
+};
+
+// /**
+//  * Maximum loading queries at one time.
+//  * @const
+//  * @type {number}
+//  */
+// og.layer.XYZ.MAX_REQUESTS = 7;
 
 og.layer.XYZ.EVENT_NAMES = [
     /**
@@ -105,7 +199,7 @@ og.layer.XYZ.EVENT_NAMES = [
  * @param {string} name - Layer name.
  * @param {Object} options - Imagery layer options.
  */
-og.layer.xyz = function(name, options) {
+og.layer.xyz = function (name, options) {
     return new og.layer.XYZ(name, options);
 };
 
@@ -113,13 +207,13 @@ og.layer.xyz = function(name, options) {
  * Abort loading tiles.
  * @public
  */
-og.layer.XYZ.prototype.abortLoading = function() {
+og.layer.XYZ.prototype.abortLoading = function () {
     var that = this;
     this._pendingsQueue.each(function (q) {
         q && that.abortMaterialLoading(q)
     });
     //this._pendingsQueue = [];
-    this._pendingsQueue.clear();
+    //this._pendingsQueue.clear();
 };
 
 /**
@@ -127,7 +221,7 @@ og.layer.XYZ.prototype.abortLoading = function() {
  * @public
  * @param {boolean} visibility - Layer visibility.
  */
-og.layer.XYZ.prototype.setVisibility = function(visibility) {
+og.layer.XYZ.prototype.setVisibility = function (visibility) {
     if (visibility != this._visibility) {
         this._visibility = visibility;
         if (this._isBaseLayer && visibility) {
@@ -148,40 +242,40 @@ og.layer.XYZ.prototype.setVisibility = function(visibility) {
  * http://b.tile.openstreetmap.org/{z}/{x}/{y}.png
  * where {z}, {x} and {y} - replaces by current tile values.
  */
-og.layer.XYZ.prototype.setUrl = function(url) {
+og.layer.XYZ.prototype.setUrl = function (url) {
     this.url = url;
 };
 
-/**
- * Start to load tile material.
- * @public
- * @virtual
- * @param {og.planetSegment.Material} mateial
- */
-og.layer.XYZ.prototype.loadMaterial = function(material) {
+// /**
+//  * Start to load tile material.
+//  * @public
+//  * @virtual
+//  * @param {og.planetSegment.Material} mateial
+//  */
+// og.layer.XYZ.prototype.loadMaterial = function(material) {
 
-    var seg = material.segment;
+//     var seg = material.segment;
 
-    if (this._isBaseLayer) {
-        material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
-    } else {
-        material.texture = seg.planet.transparentTexture;
-    }
+//     if (this._isBaseLayer) {
+//         material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+//     } else {
+//         material.texture = seg.planet.transparentTexture;
+//     }
 
-    if (this._planet.layerLock.isFree()) {
-        material.isReady = false;
-        material.isLoading = true;
-        if (material.segment._projection.id === og.proj.EPSG3857.id) {
-            if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
-                this._pendingsQueue.push(material);
-            } else {
-                this._exec(material);
-            }
-        } else {
-            material.textureNotExists();
-        }
-    }
-};
+//     if (this._planet.layerLock.isFree()) {
+//         material.isReady = false;
+//         material.isLoading = true;
+//         if (material.segment._projection.id === og.proj.EPSG3857.id) {
+//             if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this._counter) {
+//                 this._pendingsQueue.push(material);
+//             } else {
+//                 this._exec(material);
+//             }
+//         } else {
+//             material.textureNotExists();
+//         }
+//     }
+// };
 
 /**
  * Creates query url.
@@ -189,7 +283,7 @@ og.layer.XYZ.prototype.loadMaterial = function(material) {
  * @virtual
  * @param {og.planetSegment.Segment}
  */
-og.layer.XYZ.prototype._createUrl = function(segment) {
+og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
         "x": segment.tileX.toString(),
         "y": segment.tileY.toString(),
@@ -200,10 +294,11 @@ og.layer.XYZ.prototype._createUrl = function(segment) {
 /**
  * Returns actual url query string.
  * @protected
+ * @virtual
  * @param {og.planetSegment.Segment} segment - Segment that loads image data.
  * @returns {string}
  */
-og.layer.XYZ.prototype._getHTTPRequestString = function(segment) {
+og.layer.XYZ.prototype._getHTTPRequestString = function (segment) {
     var url = this._createUrl(segment);
     return this._urlRewriteCallback ? this._urlRewriteCallback(segment, url) : url;
 };
@@ -213,92 +308,93 @@ og.layer.XYZ.prototype._getHTTPRequestString = function(segment) {
  * @public
  * @param {og.layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
  */
-og.layer.XYZ.prototype.setUrlRewriteCallback = function(ur) {
+og.layer.XYZ.prototype.setUrlRewriteCallback = function (ur) {
     this._urlRewriteCallback = ur;
 };
 
-/**
- * Loads material image and apply it to the planet segment.
- * @protected
- * @param {og.planetSegment.Material} material - Loads material image.
- */
-og.layer.XYZ.prototype._exec = function(material) {
-    og.layer.XYZ.__requestsCounter++;
-    this._counter++;
+// /**
+//  * Loads material image and apply it to the planet segment.
+//  * @protected
+//  * @param {og.planetSegment.Material} material - Loads material image.
+//  */
+// og.layer.XYZ.prototype._exec = function(material) {
+//     og.layer.XYZ.__requestsCounter++;
+//     this._counter++;
 
-    material.image = new Image();
-    material.image.crossOrigin = '';
+//     material.image = new Image();
+//     material.image.crossOrigin = '';
 
-    var that = this;
-    material.image.onload = function() {
-        that._counter--;
-        og.layer.XYZ.__requestsCounter--;
+//     var that = this;
+//     material.image.onload = function() {
+//         that._counter--;
+//         og.layer.XYZ.__requestsCounter--;
 
-        if (material.isLoading) {
-            var e = that.events.load;
-            if (e.length) {
-                that.events.dispatch(e, material);
-            }
-            material.applyImage(this);
-        }
-        that._dequeueRequest();
-    };
+//         if (material.isLoading) {
+//             var e = that.events.load;
+//             if (e.length) {
+//                 that.events.dispatch(e, material);
+//             }
+//             material.applyImage(this);
+//         }
+//         that._dequeueRequest();
+//     };
 
-    material.image.onerror = function() {
-        if (material.isLoading && material.image) {
-            that._counter--;
-            og.layer.XYZ.__requestsCounter--;
-            material.textureNotExists.call(material);
-        }
-        that._dequeueRequest();
-    };
+//     material.image.onerror = function() {
+//         if (material.isLoading && material.image) {
+//             that._counter--;
+//             og.layer.XYZ.__requestsCounter--;
+//             material.textureNotExists.call(material);
+//         }
+//         that._dequeueRequest();
+//     };
 
-    material.image.src = this._getHTTPRequestString(material.segment);
-};
+//     material.image.src = this._getHTTPRequestString(material.segment);
+// };
 
 /**
  * Abort exact material loading.
  * @public
  * @param {og.planetSegment.Material} material - Segment material.
  */
-og.layer.XYZ.prototype.abortMaterialLoading = function(material) {
+og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
     if (material.isLoading && material.image) {
         material.image.src = "";
-        this._counter--;
-        og.layer.XYZ.__requestsCounter--;
-        this._dequeueRequest();
+        material.image = null;
+        //this._counter--;
+        //og.layer.XYZ.__requestsCounter--;
+        //this._dequeueRequest();
     }
     material.isLoading = false;
     material.isReady = false;
 };
 
-og.layer.XYZ.prototype._dequeueRequest = function() {
-    if (this._pendingsQueue.length) {
-        if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
-            var pmat;
-            if (pmat = this._whilePendings())
-                this._exec.call(this, pmat);
-        }
-    } else if (this._counter === 0) {
-        this.events.dispatch(this.events.loadend);
-    }
-};
+// og.layer.XYZ.prototype._dequeueRequest = function() {
+//     if (this._pendingsQueue.length) {
+//         if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
+//             var pmat;
+//             if (pmat = this._whilePendings())
+//                 this._exec.call(this, pmat);
+//         }
+//     } else if (this._counter === 0) {
+//         this.events.dispatch(this.events.loadend);
+//     }
+// };
 
-og.layer.XYZ.prototype._whilePendings = function() {
-    while (this._pendingsQueue.length) {
-        var pmat = this._pendingsQueue.pop();
-        if (pmat.segment.node) {
-            if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
-                return pmat;
-            }
-            pmat.isLoading = false;
-        }
-    }
-    return null;
-};
+// og.layer.XYZ.prototype._whilePendings = function() {
+//     while (this._pendingsQueue.length) {
+//         var pmat = this._pendingsQueue.pop();
+//         if (pmat.segment.node) {
+//             if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
+//                 return pmat;
+//             }
+//             pmat.isLoading = false;
+//         }
+//     }
+//     return null;
+// };
 
 
-og.layer.XYZ.prototype.applyMaterial = function(material) {
+og.layer.XYZ.prototype.applyMaterial = function (material) {
     if (material.isReady) {
         return [0, 0, 1, 1];
     } else {
@@ -337,7 +433,7 @@ og.layer.XYZ.prototype.applyMaterial = function(material) {
     }
 };
 
-og.layer.XYZ.prototype.clearMaterial = function(material) {
+og.layer.XYZ.prototype.clearMaterial = function (material) {
     if (material.isReady) {
         material.isReady = false;
 
@@ -352,17 +448,17 @@ og.layer.XYZ.prototype.clearMaterial = function(material) {
     material.isLoading = false;
     material.textureExists = false;
 
-    if (material.image) {
-        material.image.onload = null;
-        material.image.src = '';
-        material.image = null;
-    }
+    // if (material.image) {
+    //     material.image.onload = null;
+    //     material.image.src = '';
+    //     material.image = null;
+    // }
 };
 
 /**
  * @protected
  */
-og.layer.XYZ.prototype._correctFullExtent = function() {
+og.layer.XYZ.prototype._correctFullExtent = function () {
     var e = this._extent,
         em = this._extentMerc;
     var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
