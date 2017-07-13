@@ -83,7 +83,9 @@ og.Geometry.getType = function (typeStr) {
 og.Geometry.getExtent = function (geometryObj, outCoordinates) {
     var res = new og.Extent(new og.LonLat(180.0, 90.0), new og.LonLat(-180.0, -90.0));
     var t = og.Geometry.getType(geometryObj.type);
+
     if (t === og.Geometry.POINT) {
+        
         var lon = res.coordinates[0],
             lat = res.coordinates[1];
         res.southWest.lon = lon;
@@ -91,7 +93,9 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
         res.northEast.lon = lon;
         res.northEast.lat = lat;
         outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
+
     } else if (t === og.Geometry.LINESTRING) {
+
         var c = geometryObj.coordinates;
         for (var i = 0; i < c.length; i++) {
             var lon = c[i][0],
@@ -102,7 +106,9 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
             if (lat > res.northEast.lat) res.northEast.lat = lat;
             outCoordinates && (outCoordinates[i] = [lon, lat]);
         }
+
     } else if (t === og.Geometry.POLYGON) {
+
         var c = geometryObj.coordinates;
         for (var i = 0; i < c.length; i++) {
             var ci = c[i];
@@ -118,7 +124,9 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
                 outCoordinates && (outCoordinates[i][j] = [lon, lat]);
             }
         }
+
     } else if (t === og.Geometry.MULTIPOLYGON) {
+
         var p = geometryObj.coordinates;
         for (var i = 0; i < p.length; i++) {
             var pi = p[i];
@@ -138,8 +146,25 @@ og.Geometry.getExtent = function (geometryObj, outCoordinates) {
                 }
             }
         }
+
     } else if (t === og.Geometry.MULTILINESTRING) {
-        //...
+
+        var c = geometryObj.coordinates;
+        for (var i = 0; i < c.length; i++) {
+            var ci = c[i];
+            outCoordinates && (outCoordinates[i] = []);
+            for (var j = 0; j < ci.length; j++) {
+                var cij = ci[j];
+                var lon = cij[0],
+                    lat = cij[1];
+                if (lon < res.southWest.lon) res.southWest.lon = lon;
+                if (lat < res.southWest.lat) res.southWest.lat = lat;
+                if (lon > res.northEast.lon) res.northEast.lon = lon;
+                if (lat > res.northEast.lat) res.northEast.lat = lat;
+                outCoordinates && (outCoordinates[i][j] = [lon, lat]);
+            }
+        }
+
     } else {
         res.southWest.lon = res.southWest.lat = res.northEast.lon = res.northEast.lat = 0.0;
         outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
