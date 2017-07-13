@@ -26,7 +26,7 @@ og.planetSegment.Material.prototype.abortLoading = function() {
 };
 
 og.planetSegment.Material.prototype.applyImage = function(img) {
-    this.image = null;
+    this.image = img;
     this.texture = this.segment.handler.createTexture(img);
     this._updateTexture = null;
     this.appliedNodeId = this.segment.node.nodeId;

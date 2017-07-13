@@ -94,17 +94,10 @@ og.layer.WMS.prototype.loadMaterial = function (material) {
         if (this._planet.layerLock.isFree()) {
             material.isReady = false;
             material.isLoading = true;
-            //if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
-            //    this.pendingsQueue.push(material);
-            //} else {
-            //    this._exec(material);
-            //}
-
-            if (og.layer.XYZ.imagePool.length) {
-                var img = og.layer.XYZ.imagePool.pop();
-                og.layer.XYZ.loadImage(img, material, this);
+            if (og.layer.XYZ.__requestsCounter >= og.layer.XYZ.MAX_REQUESTS && this.counter) {
+                this.pendingsQueue.push(material);
             } else {
-                og.layer.XYZ.pendingQueue.push(material);
+                this._exec(material);
             }
         }
     }
@@ -118,11 +111,11 @@ og.layer.WMS.prototype.loadMaterial = function (material) {
  */
 og.layer.WMS.prototype._createUrl = function (segment) {
     return this.url + "wms?" + "LAYERS=" + this.layers +
-        "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=" + this._version + "&REQUEST=GetMap" +
-        "&SRS=" + segment._projection.code +
-        "&BBOX=" + this._getBbox(segment) +
-        "&WIDTH=" + this.imageWidth +
-        "&HEIGHT=" + this.imageHeight;
+            "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=" + this._version + "&REQUEST=GetMap" +
+            "&SRS=" + segment._projection.code +
+            "&BBOX=" + this._getBbox(segment) +
+            "&WIDTH=" + this.imageWidth +
+            "&HEIGHT=" + this.imageHeight;
 };
 
 og.layer.WMS.prototype.setVersion = function (version) {
