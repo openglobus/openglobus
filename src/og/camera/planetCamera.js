@@ -420,7 +420,7 @@ og.PlanetCamera.prototype.stopFlying = function () {
 
     this.planet.layerLock.free(this._keyLock);
     this.planet.terrainLock.free(this._keyLock);
-    this.planet.normalMapCreator.free(this._keyLock);
+    this.planet._normalMapCreator.free(this._keyLock);
 
     this._flying = false;
     this._framesArr.length = 0;
@@ -489,7 +489,7 @@ og.PlanetCamera.prototype.prepareFrame = function () {
 
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
-        this.planet.normalMapCreator.lock(this._keyLock);
+        this.planet._normalMapCreator.lock(this._keyLock);
 
         //if (c % 20) {
             //this.planet.terrainProvider.active = false;

@@ -282,7 +282,7 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
     this.state = og.quadTree.RENDERING;
 
     //Create normal map texture.
-    if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
+    if (seg.planet.lightEnabled && !(seg.normalMapReady/* || seg.parentNormalMapReady*/)) {
         this.whileNormalMapCreating();
     }
 
@@ -360,11 +360,18 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
         a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
         return og.quadTree.S;
-    } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-        return og.quadTree.E;
-    } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
-        return og.quadTree.W;
+
+        //POLE border
+    } else if (this.planetSegment.tileZoom > 0) {
+        if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+            return og.quadTree.E;
+        } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+            return og.quadTree.E;
+        } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+            return og.quadTree.W;
+        }
     }
+
     //Poles and mercator nodes common side.
     else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
         return og.quadTree.N;
@@ -378,6 +385,11 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
 og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
     var seg = this.planetSegment;
+    var maxZ = this.planet.terrainProvider.maxZoom;
+
+    if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+        seg.planet._normalMapCreator.queue(seg);
+    }
 
     var pn = this;
 
@@ -392,13 +404,10 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     seg.normalMapTextureBias[1] = seg.tileY - pn.planetSegment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1 / dZ2;
 
-    var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
-        seg.planet.normalMapCreator.queue(seg);
-    } else if (seg.tileZoom > maxZ) {
+    if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
-            seg.parentNormalMapReady = true;
+            //seg.parentNormalMapReady = true;
         } else {
             pn = this;
             while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
@@ -409,7 +418,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
                 pns.createPlainSegment();
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
-                pns.planet.normalMapCreator.queue(pns);
+                pns.planet._normalMapCreator.queue(pns);
             }
         }
     }
@@ -500,7 +509,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
 
         if (seg.planet.lightEnabled) {
-            seg.createNormalMapTexture();
+            //seg.createNormalMapTexture();
+            this.planet._normalMapCreator.unshift(seg);
         }
 
         seg.createCoordsBuffers(seg.terrainVertices, seg.gridSize);

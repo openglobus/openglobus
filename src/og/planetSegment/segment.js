@@ -263,7 +263,7 @@ og.planetSegment.Segment.prototype.loadTerrain = function () {
     } else {
         this.terrainReady = true;
         if (!this._inTheQueue) {
-            this.planet.normalMapCreator.queue(this);
+            this.planet._normalMapCreator.queue(this);
         }
     }
 };
@@ -297,7 +297,7 @@ og.planetSegment.Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainIsLoading = false;
 
         if (this.planet.lightEnabled) {
-            this.planet.normalMapCreator.queue(this);
+            this.planet._normalMapCreator.queue(this);
         }
 
         var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
@@ -322,7 +322,7 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
             this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
 
             if (this.planet.lightEnabled && !this._inTheQueue) {
-                this.planet.normalMapCreator.queue(this);
+                this.planet._normalMapCreator.queue(this);
             }
 
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
@@ -341,165 +341,237 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
     }
 };
 
-og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
+// og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
-    var n = this.node.neighbors[side];
-    var ns = n && n.planetSegment;
+//     var n = this.node.neighbors[side];
+//     var ns = n && n.planetSegment;
 
-    if (n && ns) {
+//     if (n && ns) {
 
-        this._appliedNeighborsZoom[side] = ns.tileZoom;
+//         this._appliedNeighborsZoom[side] = ns.tileZoom;
 
-        if (ns.terrainReady && ns.terrainExists) {
+//         if (ns.terrainReady && ns.terrainExists) {
 
-            if (!ns._inTheQueue &&
-                this.tileZoom > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
-                this.planet.normalMapCreator.queue(ns);
-                return;
-            }
+//             if (!ns._inTheQueue &&
+//                 this.tileZoom > ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]]) {
+//                 this.planet.normalMapCreator.queue(ns);
+//                 return;
+//             }
 
-            var seg_a = this.normalMapNormals,
-                seg_b = ns.normalMapNormals;
+//             var seg_a = this.normalMapNormals,
+//                 seg_b = ns.normalMapNormals;
 
-            if (!seg_a || !seg_b)
-                return;
+//             if (!seg_a || !seg_b)
+//                 return;
 
-            var size = this.planet.terrainProvider.fileGridSize;
-            var s1 = size + 1;
-            var i_b = size - i_a;
+//             var size = this.planet.terrainProvider.fileGridSize;
+//             var s1 = size + 1;
+//             var i_b = size - i_a;
 
-            if (this.tileZoom === ns.tileZoom) {
-                //there is only one neighbor on the side
-                if (vert) {
-                    if ((this._extent.getEast() === og.mercator.POLE &&
-                        ns._extent.getWest() === -og.mercator.POLE) ||
-                        (this._extent.getWest() === -og.mercator.POLE &&
-                            ns._extent.getEast() === og.mercator.POLE)) {
-                        //UNKNOWN BUG
-                        //for (var k = 0 ; k <= size; k++) {
-                        //    var vInd_a = (k * s1 + i_a) * 3,
-                        //        vInd_b = (k * s1 + i_b) * 3;
+//             if (this.tileZoom === ns.tileZoom) {
+//                 //there is only one neighbor on the side
+//                 if (vert) {
+//                     if ((this._extent.getEast() === og.mercator.POLE &&
+//                         ns._extent.getWest() === -og.mercator.POLE) ||
+//                         (this._extent.getWest() === -og.mercator.POLE &&
+//                             ns._extent.getEast() === og.mercator.POLE)) {
+//                         //UNKNOWN BUG
+//                         //for (var k = 0 ; k <= size; k++) {
+//                         //    var vInd_a = (k * s1 + i_a) * 3,
+//                         //        vInd_b = (k * s1 + i_b) * 3;
 
-                        //    seg_b[vInd_b] = seg_a[vInd_a];;
-                        //    seg_b[vInd_b + 1] = seg_a[vInd_a + 1];
-                        //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
-                        //}
-                    } else {
-                        for (var k = 0; k <= size; k++) {
-                            var vInd_a = (k * s1 + i_a) * 3,
-                                vInd_b = (k * s1 + i_b) * 3;
+//                         //    seg_b[vInd_b] = seg_a[vInd_a];;
+//                         //    seg_b[vInd_b + 1] = seg_a[vInd_a + 1];
+//                         //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
+//                         //}
+//                     } else {
+//                         for (var k = 0; k <= size; k++) {
+//                             var vInd_a = (k * s1 + i_a) * 3,
+//                                 vInd_b = (k * s1 + i_b) * 3;
 
-                            seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                            seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                            seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                        }
-                    }
-                } else {
-                    for (var k = 0; k <= size; k++) {
-                        var vInd_a = (i_a * s1 + k) * 3,
-                            vInd_b = (i_b * s1 + k) * 3;
+//                             seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+//                             seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+//                             seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+//                         }
+//                     }
+//                 } else {
+//                     for (var k = 0; k <= size; k++) {
+//                         var vInd_a = (i_a * s1 + k) * 3,
+//                             vInd_b = (i_b * s1 + k) * 3;
 
-                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                    }
-                }
-            } else if (this.tileZoom - ns.tileZoom === 1) {
-                //there is only one neighbor on the side
-                var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
-                if (vert) {
-                    if ((this._extent.getEast() === og.mercator.POLE &&
-                        ns._extent.getWest() === -og.mercator.POLE) ||
-                        (this._extent.getWest() === -og.mercator.POLE &&
-                            ns._extent.getEast() === og.mercator.POLE)) {
-                        //UNKNOWN BUG
-                        //for (var k = 0 ; k <= size; k++) {
-                        //    var vInd_a = (k * s1 + i_a) * 3,
-                        //        vInd_b = (k * s1 + i_b) * 3;
+//                         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+//                         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+//                         seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+//                     }
+//                 }
+//             } else if (this.tileZoom - ns.tileZoom === 1) {
+//                 //there is only one neighbor on the side
+//                 var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
+//                 if (vert) {
+//                     if ((this._extent.getEast() === og.mercator.POLE &&
+//                         ns._extent.getWest() === -og.mercator.POLE) ||
+//                         (this._extent.getWest() === -og.mercator.POLE &&
+//                             ns._extent.getEast() === og.mercator.POLE)) {
+//                         //UNKNOWN BUG
+//                         //for (var k = 0 ; k <= size; k++) {
+//                         //    var vInd_a = (k * s1 + i_a) * 3,
+//                         //        vInd_b = (k * s1 + i_b) * 3;
 
-                        //    seg_b[vInd_b] = seg_a[vInd_a];;
-                        //    seg_b[vInd_b + 1] = seg_a[vInd_a + 1];
-                        //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
-                        //}
-                    } else {
-                        for (var k = 0; k <= size; k++) {
-                            var vInd_a = (k * s1 + i_a) * 3,
-                                vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
+//                         //    seg_b[vInd_b] = seg_a[vInd_a];;
+//                         //    seg_b[vInd_b + 1] = seg_a[vInd_a + 1];
+//                         //    seg_b[vInd_b + 2] = seg_a[vInd_a + 2];
+//                         //}
+//                     } else {
+//                         for (var k = 0; k <= size; k++) {
+//                             var vInd_a = (k * s1 + i_a) * 3,
+//                                 vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
 
-                            seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                            seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                            seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                        }
-                    }
-                } else {
-                    for (var k = 0; k <= size; k++) {
-                        var vInd_a = (i_a * s1 + k) * 3,
-                            vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
+//                             seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+//                             seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+//                             seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+//                         }
+//                     }
+//                 } else {
+//                     for (var k = 0; k <= size; k++) {
+//                         var vInd_a = (i_a * s1 + k) * 3,
+//                             vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
 
-                        seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                        seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                        seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-                    }
-                }
-            } else if (this.tileZoom < ns.tileZoom) {
-                //there are one or two neghbors on the side
-                if (!ns._inTheQueue) {
-                    this.planet.normalMapCreator.queue(ns);
-                }
+//                         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
+//                         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
+//                         seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+//                     }
+//                 }
+//             } else if (this.tileZoom < ns.tileZoom) {
+//                 //there are one or two neghbors on the side
+//                 if (!ns._inTheQueue) {
+//                     this.planet.normalMapCreator.queue(ns);
+//                 }
 
-                //this is second small neighbour
-                var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
-                if (n2 && !n2.planetSegment._inTheQueue) {
-                    this.planet.normalMapCreator.queue(n2.planetSegment);
-                }
-            }
+//                 //this is second small neighbour
+//                 var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
+//                 if (n2 && !n2.planetSegment._inTheQueue) {
+//                     this.planet.normalMapCreator.queue(n2.planetSegment);
+//                 }
+//             }
+//         }
+//     }
+// };
+
+// /**
+//  * Creates normal map texture for the segment.
+//  */
+// og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
+
+//     if (!this.planet ||
+//         this.tileZoom > this.planet.terrainProvider.maxZoom ||
+//         !this.normalMapNormals)
+//         return;
+
+//     var nb = this.node.neighbors;
+
+//     if (nb) {
+//         var nbn = nb[og.quadTree.N],
+//             nbe = nb[og.quadTree.E],
+//             nbs = nb[og.quadTree.S],
+//             nbw = nb[og.quadTree.W];
+
+//         // if (this.tileZoom > this.planet.terrainProvider.minZoom) {
+//         //     if (nbn && nbn.planetSegment && nbn.planetSegment.terrainIsLoading ||
+//         //         nbe && nbe.planetSegment && nbe.planetSegment.terrainIsLoading ||
+//         //         nbs && nbs.planetSegment && nbs.planetSegment.terrainIsLoading ||
+//         //         nbw && nbw.planetSegment && nbw.planetSegment.terrainIsLoading) {
+//         //         if (!this._inTheQueue) {
+//         //             this.planet.normalMapCreator.queue(this);
+//         //         }
+//         //         return;
+//         //     }
+//         // }
+
+//         // var gs = this.planet.terrainProvider.fileGridSize;
+//         // this._normalMapEdgeEqualize(og.quadTree.N, 0);
+//         // this._normalMapEdgeEqualize(og.quadTree.S, gs);
+//         // this._normalMapEdgeEqualize(og.quadTree.W, 0, true);
+//         // this._normalMapEdgeEqualize(og.quadTree.E, gs, true);
+
+//         this.normalMapTexture = this.handler.createTexture_l(this.planet.normalMapCreator.draw(this.normalMapNormals));
+
+//         this.normalMapReady = true;
+
+//         this.normalMapTextureBias[0] = 0;
+//         this.normalMapTextureBias[1] = 0;
+//         this.normalMapTextureBias[2] = 1;
+//     }
+// };
+
+function _equalizeNorthBorder(s, b) {
+    if (s.tileZoom === b.tileZoom) {
+
+    } else {
+        if (s.tileZoom < b.tileZoom) {
+            var t = b;
+            t = s;
+            s = b;
+            b = t;
         }
+
+        var dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
+        var offsetX = s.tileX * dZ2 - b.tileX,
+            offsetY = s.tileY * dZ2 - b.tileY;
+
     }
 };
 
-/**
- * Creates normal map texture for the segment.
- */
-og.planetSegment.Segment.prototype.createNormalMapTexture = function () {
+function _equalizeEastBorder(s, b) {
+    if (s.tileZoom === b.tileZoom) {
 
-    if (!this.planet ||
-        this.tileZoom > this.planet.terrainProvider.maxZoom ||
-        !this.normalMapNormals)
-        return;
-
-    var nb = this.node.neighbors;
-
-    if (nb) {
-        var nbn = nb[og.quadTree.N],
-            nbe = nb[og.quadTree.E],
-            nbs = nb[og.quadTree.S],
-            nbw = nb[og.quadTree.W];
-
-        if (this.tileZoom > this.planet.terrainProvider.minZoom) {
-            if (nbn && nbn.planetSegment && nbn.planetSegment.terrainIsLoading ||
-                nbe && nbe.planetSegment && nbe.planetSegment.terrainIsLoading ||
-                nbs && nbs.planetSegment && nbs.planetSegment.terrainIsLoading ||
-                nbw && nbw.planetSegment && nbw.planetSegment.terrainIsLoading) {
-                if (!this._inTheQueue) {
-                    this.planet.normalMapCreator.queue(this);
-                }
-                return;
-            }
+    } else {
+        if (s.tileZoom < b.tileZoom) {
+            var t = b;
+            t = s;
+            s = b;
+            b = t;
         }
 
-        var gs = this.planet.terrainProvider.fileGridSize;
-        this._normalMapEdgeEqualize(og.quadTree.N, 0);
-        this._normalMapEdgeEqualize(og.quadTree.S, gs);
-        this._normalMapEdgeEqualize(og.quadTree.W, 0, true);
-        this._normalMapEdgeEqualize(og.quadTree.E, gs, true);
+        var dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
+        var offsetX = s.tileX * dZ2 - b.tileX,
+            offsetY = s.tileY * dZ2 - b.tileY;
 
-        this.normalMapTexture = this.handler.createTexture_l(this.planet.normalMapCreator.draw(this.normalMapNormals));
+    }
+};
 
-        this.normalMapReady = true;
+function _equalizeSouthBorder(s, b) {
+    if (s.tileZoom === b.tileZoom) {
 
-        this.normalMapTextureBias[0] = 0;
-        this.normalMapTextureBias[1] = 0;
-        this.normalMapTextureBias[2] = 1;
+    } else {
+        if (s.tileZoom < b.tileZoom) {
+            var t = b;
+            t = s;
+            s = b;
+            b = t;
+        }
+
+        var dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
+        var offsetX = s.tileX * dZ2 - b.tileX,
+            offsetY = s.tileY * dZ2 - b.tileY;
+
+    }
+};
+
+function _equalizeWestBorder(s, b) {
+    if (s.tileZoom === b.tileZoom) {
+
+    } else {
+        if (s.tileZoom < b.tileZoom) {
+            var t = b;
+            t = s;
+            s = b;
+            b = t;
+        }
+
+        var dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
+        var offsetX = s.tileX * dZ2 - b.tileX,
+            offsetY = s.tileY * dZ2 - b.tileY;
+
     }
 };
 
@@ -563,7 +635,7 @@ og.planetSegment.Segment.prototype.deleteElevations = function () {
         this.handler.gl.deleteTexture(this.normalMapTexture);
     }
     this.normalMapReady = false;
-    this.parentNormalMapReady = false;
+    //this.parentNormalMapReady = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
     this.normalMapTextureBias[0] = 0;
     this.normalMapTextureBias[1] = 0;
@@ -711,6 +783,7 @@ og.planetSegment.Segment.prototype.initializePlainSegment = function () {
     n.sideSize[2] = gridSize;
     n.sideSize[3] = gridSize;
     this.gridSize = gridSize;
+    this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(128, 128);
     this.initialized = true;
 };
 

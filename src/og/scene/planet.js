@@ -129,12 +129,12 @@ og.scene.Planet = function (name, ellipsoid) {
     this.transparentTexture = null;
     this.defaultTexture = null;
 
-    /**
-     * Object async creates normal map segment textures.
-     * @public
-     * @type {og.planetSegment.NormalMapCreatorQueue}
-     */
-    this.normalMapCreator = null;
+    // /**
+    //  * Object async creates normal map segment textures.
+    //  * @public
+    //  * @type {og.planetSegment.NormalMapCreatorQueue}
+    //  */
+    // this.normalMapCreator = null;
 
     /**
      * Current visible minimal zoom index planet segment.
@@ -332,6 +332,8 @@ og.scene.Planet = function (name, ellipsoid) {
     this._geoImageCreator = null;
 
     this._vectorTileCreator = null;
+
+    this._normalMapCreator = null;
 
     this._terrainWorker = new og.utils.TerrainWorker(12);
 
@@ -634,8 +636,8 @@ og.scene.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     }, this);
 
-    //normal map renderer initialization
-    this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
+    ////normal map renderer initialization
+    ////this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
 
     //temporary initializations
     var that = this;
@@ -667,6 +669,8 @@ og.scene.Planet.prototype.initialization = function () {
 
     this._vectorTileCreator = new og.utils.VectorTileCreator(this);
 
+    this._normalMapCreator = new og.utils.NormalMapCreator(this.renderer.handler);
+
     //Loads first nodes for better viewing if you have started on a lower altitude.
     this._preRender();
 };
@@ -674,7 +678,7 @@ og.scene.Planet.prototype.initialization = function () {
 og.scene.Planet.prototype._preRender = function () {
     this._quadTree.traverseNodes();
     this._quadTree.renderNode();
-    this._quadTree.planetSegment.createNormalMapTexture();
+    //this._quadTree.planetSegment.createNormalMapTexture();
 
     this._quadTreeNorth.traverseNodes();
     this._quadTreeNorth.renderNode();
@@ -851,13 +855,15 @@ og.scene.Planet.prototype.frame = function () {
     // print2d("l1", this.terrainLock._lock, 100, 140);
     // print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
 
-       print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-       print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-       print2d("t1", "normal: " + this.normalMapCreator._counter + ", " + this.normalMapCreator._pendingsQueue.length, 100, 180);
-       print2d("t3", this.maxCurrZoom, 100, 200);
+    print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
+    print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
+    print2d("t1", "normal: " + this._normalMapCreator._queue.length, 100, 180);
+    print2d("t3", this.maxCurrZoom, 100, 200);
 
 
     this.transformLights();
+
+    this._normalMapCreator.frame();
 
     this._fnRendering();
 
@@ -1211,10 +1217,10 @@ og.scene.Planet.prototype.memClear = function () {
 
     this.layerLock.lock(this._memKey);
     this.terrainLock.lock(this._memKey);
-    this.normalMapCreator.lock(this._memKey);
+    this._normalMapCreator.lock(this._memKey);
 
-    this.normalMapCreator.abort();
-    this.terrainProvider.abortLoading();    
+    //this.normalMapCreator.abort();
+    this.terrainProvider.abortLoading();
 
     this._quadTree.clearTree();
     this._quadTreeNorth.clearTree();
@@ -1222,7 +1228,7 @@ og.scene.Planet.prototype.memClear = function () {
 
     this.layerLock.free(this._memKey);
     this.terrainLock.free(this._memKey);
-    this.normalMapCreator.free(this._memKey);
+    this._normalMapCreator.free(this._memKey);
 };
 
 /**

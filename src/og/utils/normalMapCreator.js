@@ -5,15 +5,22 @@ goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
 
-og.utils.NormalMapCreator = function (width, height) {
-    this._handler = null;
+og.utils.NormalMapCreator = function (handler, width, height, maxFrames) {
+    this._handler = handler;
     this._verticesBufferArray = [];
     this._indexBufferArray = [];
     this._positionBuffer = null;
     this._framebuffer = null;
+    this._normalMapVerticesTexture = null;
 
     this._width = width || 128;
     this._height = height || 128;
+
+    this.MAX_FRAMES = maxFrames || 5;
+    this._currentFrame = 0;
+    this._queue = [];
+
+    this._lock = new og.idle.Lock();
 
     this._init();
 };
@@ -39,16 +46,16 @@ og.utils.NormalMapCreator.prototype._init = function () {
                       \n\
                       void main() { \n\
                           vec2 vt = a_position * 0.5 + 0.5;" +
-                          (!isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
-                         "gl_Position = vec4(a_position, 0.0, 1.0); \n\
+        (isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
+        "gl_Position = vec4(a_position, 0.0, 1.0); \n\
                           blurCoordinates[0] = vt; \n\
                           blurCoordinates[1] = vt + "  + (1.0 / this._width * 1.407333) + ";" +
-                          "blurCoordinates[2] = vt - " + (1.0 / this._height * 1.407333) + ";" +
-                          "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
-                          "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
-                     "}",
-        fragmentShader: 
-                        "precision highp float;\n\
+        "blurCoordinates[2] = vt - " + (1.0 / this._height * 1.407333) + ";" +
+        "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
+        "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
+        "}",
+        fragmentShader:
+        "precision highp float;\n\
                         uniform sampler2D s_texture; \n\
                         \n\
                         varying vec2 blurCoordinates[5]; \n\
@@ -84,8 +91,8 @@ og.utils.NormalMapCreator.prototype._init = function () {
                           gl_Position = vec4(a_position, 0, 1); \
                           v_color = normalize(a_normal) * 0.5 + 0.5; \
                       }",
-        fragmentShader: 
-                        "precision highp float;\n\
+        fragmentShader:
+        "precision highp float;\n\
                         \
                         varying vec3 v_color; \
                         \
@@ -94,20 +101,17 @@ og.utils.NormalMapCreator.prototype._init = function () {
                         }"
     });
 
-    //initialize hidden handler
-    this._handler = new og.webgl.Handler(null, {
-        width: this._width,
-        height: this._height,
-        context: { alpha: false, depth: false }
-    });
     this._handler.addShaderProgram(normalMapBlur);
     this._handler.addShaderProgram(normalMap);
-    this._handler.initialize();
-    this._handler.deactivateFaceCulling();
-    this._handler.deactivateDepthTest();
 
     //create hidden handler buffer
-    this._framebuffer = new og.webgl.Framebuffer(this._handler, { useDepth: false });
+    this._framebuffer = new og.webgl.Framebuffer(this._handler, {
+        width: this._width,
+        height: this._height,
+        useDepth: false
+    });
+
+    this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
     //create vertices hasharray for different grid size segments
     for (var p = 1; p <= 6; p++) {
@@ -129,14 +133,14 @@ og.utils.NormalMapCreator.prototype._init = function () {
     //create 2d screen square buffer
     var positions = new Float32Array([
         -1.0, -1.0,
-         1.0, -1.0,
+        1.0, -1.0,
         -1.0, 1.0,
-         1.0, 1.0]);
+        1.0, 1.0]);
 
     this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
 };
 
-og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
+og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals, outTexture) {
 
     var size = normals.length / 3;
     var gridSize = Math.sqrt(size) - 1;
@@ -150,9 +154,9 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
     var p = h.shaderPrograms.normalMap;
     var sha = p._program.attributes;
 
-    p.activate();
+    f.bindOutputTexture(this._normalMapVerticesTexture);
 
-    f.activate();
+    p.activate();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
     gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
@@ -165,28 +169,96 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals) {
 
     gl.deleteBuffer(_normalsBuffer);
 
-    f.deactivate();
+    //
+    // blur pass
+    //
+    f.bindOutputTexture(outTexture);
+
+    p = h.shaderPrograms.normalMapBlur;
+
+    p.activate();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+    gl.vertexAttribPointer(p._program.attributes.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
+    gl.uniform1i(p._program.uniforms.s_texture._pName, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+
 };
 
 og.utils.NormalMapCreator.prototype._drawBlur = function () {
 
-    var gl = this._handler.gl;
-    var p = this._handler.shaderPrograms.normalMapBlur;
-    var sha = p._program.attributes,
-        shu = p._program.uniforms;
-
-    p.activate();
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-    gl.vertexAttribPointer(sha.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.texture);
-    gl.uniform1i(shu.s_texture._pName, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
 };
 
-og.utils.NormalMapCreator.prototype.draw = function (normals) {
-    this._drawNormalMap(normals);
-    this._drawBlur();
-    return this._handler.canvas;
+og.utils.NormalMapCreator.prototype.frame = function () {
+
+    if (this._queue.length) {
+        var h = this._handler,
+            gl = h.gl;
+
+        var f = this._framebuffer.activate();
+
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+
+        var deltaTime = 0,
+            startTime = window.performance.now();
+
+        var width = this._width,
+            height = this._height;
+
+        while (this._queue.length && deltaTime < 0.25) {
+            var segment = this._queue.shift();
+            if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING) {
+
+                this._drawNormalMap(segment.normalMapNormals, segment.normalMapTexturePtr);
+
+                segment.normalMapTexture = segment.normalMapTexturePtr;
+                segment.normalMapReady = true;
+
+                segment.normalMapTextureBias[0] = 0;
+                segment.normalMapTextureBias[1] = 0;
+                segment.normalMapTextureBias[2] = 1;
+            }
+            segment._inTheQueue = false;
+            deltaTime = window.performance.now() - startTime;
+        }
+
+        gl.disable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+
+        f.deactivate();
+    }
+};
+
+og.utils.NormalMapCreator.prototype.queue = function (segment) {
+    segment._inTheQueue = true;
+    this._queue.push(segment);
+};
+
+og.utils.NormalMapCreator.prototype.unshift = function (segment) {
+    segment._inTheQueue = true;
+    this._queue.unshift(segment);
+};
+
+og.utils.NormalMapCreator.prototype.remove = function (segment) {
+    //...
+};
+
+/**
+ * Set activity off
+ * @public
+ */
+og.utils.NormalMapCreator.prototype.lock = function (key) {
+    this._lock.lock(key);
+};
+
+/**
+ * Set activity on
+ * @public
+ */
+og.utils.NormalMapCreator.prototype.free = function (key) {
+    this._lock.free(key);
 };
