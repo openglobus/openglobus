@@ -322,65 +322,65 @@ function loadTrack() {
 
 
 function main4() {
-        var points = [];
+    var points = [];
 
-        for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < 10; j++) {
-                var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
-                points.push(new og.Entity({
-                    'name': 'Blue Marker',
-                    'lonlat': coords,
-                    'billboard': {
-                        'src': 'marker.png',
-                        'size': [18, 32],
-                        'offset': [0, 16],
-                        'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
-                    }
-                }));
-            }
+    for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 10; j++) {
+            var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
+            points.push(new og.Entity({
+                'name': 'Blue Marker',
+                'lonlat': coords,
+                'billboard': {
+                    'src': 'marker.png',
+                    'size': [18, 32],
+                    'offset': [0, 16],
+                    'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                }
+            }));
         }
+    }
 
-        pointLayer = new og.layer.Vector("pointLayer", {
-            'groundAlign': true,
-            'entities': points,
-            'async': false,
-            'nodeCapacity': points.length
+    pointLayer = new og.layer.Vector("pointLayer", {
+        'groundAlign': true,
+        'entities': points,
+        'async': false,
+        'nodeCapacity': points.length
+    });
+
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: true,
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    });
+
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        "layers": [osm, pointLayer]
+    });
+
+    globus.planet.camera.set(
+        og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+        og.math.vector3(659636.5271477876, 4594887.354101415, 4360134.899630442),
+        og.math.vector3(-0.021169661606197245, 0.9366073216983496, -0.3497407187739613)
+    ).update();
+
+    //Rotate points around the center
+    var center = pointLayer.getExtent().getCenter();
+    var angle = 0.1 * og.math.RADIANS;
+    globus.renderer.events.on("draw", function () {
+        pointLayer.each(function (e) {
+            var c = e.getLonLat();
+            var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
+            var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+            e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
         });
-
-        var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
-            isBaseLayer: true,
-            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
-        });
-
-        globus = new og.Globus({
-            "target": "globus",
-            "name": "Earth",
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, pointLayer]
-        });
-
-        globus.planet.camera.set(
-            og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
-            og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
-            og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
-        ).update();
-
-        //Rotate points around the center
-        var center = pointLayer.getExtent().getCenter();
-        var angle = 0.1 * og.math.RADIANS;
-        globus.renderer.events.on("draw", function () {
-            pointLayer.each(function (e) {
-                var c = e.getLonLat();
-                var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
-                var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
-                e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
-            });
-        });
+    });
 };
 
 function test() {
@@ -394,65 +394,77 @@ function test() {
 }
 
 function main5() {
-       var points = [];
+    var points = [];
 
-        for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < 10; j++) {
-                var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
-                points.push(new og.Entity({
-                    'name': 'Blue Marker',
-                    'lonlat': coords,
-                    'billboard': {
-                        'src': 'marker.png',
-                        'size': [18, 32],
-                        'offset': [0, 16],
-                        'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
-                    }
-                }));
-            }
+    for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 10; j++) {
+            var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
+            points.push(new og.Entity({
+                'name': 'Blue Marker',
+                'lonlat': coords,
+                'billboard': {
+                    'src': 'marker.png',
+                    'size': [18, 32],
+                    'offset': [0, 16],
+                    'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
+                }
+            }));
         }
+    }
 
-        pointLayer = new og.layer.Vector("pointLayer", {
-            'groundAlign': true,
-            'entities': points,
-            'async': false,
-            'nodeCapacity': points.length
+    var vector = [
+        new og.Entity({
+            'geometry': {
+                'type': 'MultiLineString',
+                'coordinates': [[[0, 0], [10, 0]], [[10, 10], [5, 5]]]
+            }
+        })
+    ];
+
+
+    pointLayer = new og.layer.Vector("pointLayer", {
+        //'groundAlign': true,
+        'entities': vector,
+        //'async': false,
+        //'nodeCapacity': points.length
+    });
+
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: true,
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    });
+
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        "layers": [osm, pointLayer]
+    });
+
+    // globus.planet.camera.set(
+    //     og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+    //     og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
+    //     og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
+    // ).update();
+
+    //Rotate points around the center
+    var center = pointLayer.getExtent().getCenter();
+    var angle = 0.1 * og.math.RADIANS;
+    globus.renderer.events.on("draw", function () {
+        pointLayer.each(function (e) {
+            var c = e.getLonLat();
+            var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
+            var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+            e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
         });
+    });
 
-        var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
-            isBaseLayer: true,
-            url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
-        });
-
-        globus = new og.Globus({
-            "target": "globus",
-            "name": "Earth",
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, pointLayer]
-        });
-
-        globus.planet.camera.set(
-            og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
-            og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
-            og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
-        ).update();
-
-        //Rotate points around the center
-        var center = pointLayer.getExtent().getCenter();
-        var angle = 0.1 * og.math.RADIANS;
-        globus.renderer.events.on("draw", function () {
-            pointLayer.each(function (e) {
-                var c = e.getLonLat();
-                var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
-                var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
-                e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
-            });
-        });
+    globus.planet.addControl(new og.control.ToggleWireframe());
 }
 
 /*
