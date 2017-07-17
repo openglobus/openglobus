@@ -68,7 +68,7 @@ og.control.ZoomControl.prototype.zoomIn = function () {
 
     this.planet.layerLock.lock(this._keyLock);
     this.planet.terrainLock.lock(this._keyLock);
-    this.planet.normalMapCreator.lock(this._keyLock);
+    this.planet._normalMapCreator.lock(this._keyLock);
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -85,7 +85,7 @@ og.control.ZoomControl.prototype.zoomOut = function () {
 
     this.planet.layerLock.lock(this._keyLock);
     this.planet.terrainLock.lock(this._keyLock);
-    this.planet.normalMapCreator.lock(this._keyLock);
+    this.planet._normalMapCreator.lock(this._keyLock);
 
     this.stepIndex = this.stepsCount;
     this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
@@ -108,7 +108,7 @@ og.control.ZoomControl.prototype._draw = function (e) {
 
             this.planet.layerLock.free(this._keyLock);
             this.planet.terrainLock.free(this._keyLock);
-            this.planet.normalMapCreator.free(this._keyLock);
+            this.planet._normalMapCreator.free(this._keyLock);
 
             this._deactivate = false;
         }

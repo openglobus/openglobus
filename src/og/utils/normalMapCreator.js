@@ -4,6 +4,7 @@ goog.require('og.PlanetSegmentHelper');
 goog.require('og.shaderProgram.ShaderProgram');
 goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
+goog.require('og.QueueArray');
 
 og.utils.NormalMapCreator = function (handler, width, height, maxFrames) {
     this._handler = handler;
@@ -18,7 +19,7 @@ og.utils.NormalMapCreator = function (handler, width, height, maxFrames) {
 
     this.MAX_FRAMES = maxFrames || 5;
     this._currentFrame = 0;
-    this._queue = [];
+    this._queue = new og.QueueArray(1024);
 
     this._lock = new og.idle.Lock();
 
@@ -186,21 +187,16 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals, outTextu
 
 };
 
-og.utils.NormalMapCreator.prototype._drawBlur = function () {
-
-};
-
 og.utils.NormalMapCreator.prototype.frame = function () {
 
     if (this._queue.length) {
         var h = this._handler,
             gl = h.gl;
 
-        var f = this._framebuffer.activate();
+        this._framebuffer.activate();
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
-        gl.disable(gl.BLEND);
 
         var deltaTime = 0,
             startTime = window.performance.now();
@@ -216,7 +212,6 @@ og.utils.NormalMapCreator.prototype.frame = function () {
 
                 segment.normalMapTexture = segment.normalMapTexturePtr;
                 segment.normalMapReady = true;
-
                 segment.normalMapTextureBias[0] = 0;
                 segment.normalMapTextureBias[1] = 0;
                 segment.normalMapTextureBias[2] = 1;
@@ -229,7 +224,7 @@ og.utils.NormalMapCreator.prototype.frame = function () {
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
 
-        f.deactivate();
+        this._framebuffer.deactivate();
     }
 };
 

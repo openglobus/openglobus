@@ -776,15 +776,15 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
 };
 
 og.planetSegment.Segment.prototype.initializePlainSegment = function () {
-    var gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+    var p = this.planet;
     var n = this.node;
-    n.sideSize[0] = gridSize;
-    n.sideSize[1] = gridSize;
-    n.sideSize[2] = gridSize;
-    n.sideSize[3] = gridSize;
-    this.gridSize = gridSize;
-    this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(128, 128);
+    n.sideSize[0] = n.sideSize[1] = 
+    n.sideSize[2] = n.sideSize[3] = 
+    this.gridSize = p.terrainProvider.gridSizeByZoom[this.tileZoom];
     this.initialized = true;
+
+    var nmc = this.planet._normalMapCreator;
+    this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
 };
 
 og.planetSegment.Segment.prototype.createPlainSegment = function () {

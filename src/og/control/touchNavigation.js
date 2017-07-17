@@ -130,7 +130,7 @@ og.control.TouchNavigation.prototype.stopRotation = function () {
     this.qRot.clear();
     this.planet.layerLock.free(this._keyLock);
     this.planet.terrainLock.free(this._keyLock);
-    this.planet.normalMapCreator.free(this._keyLock);
+    this.planet._normalMapCreator.free(this._keyLock);
 };
 
 og.control.TouchNavigation.prototype.onDoubleTouch = function (e) {
@@ -301,10 +301,10 @@ og.control.TouchNavigation.prototype.onDraw = function (e) {
     if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
-        this.planet.normalMapCreator.lock(this._keyLock);
+        this.planet._normalMapCreator.lock(this._keyLock);
     } else {
         this.planet.layerLock.free(this._keyLock);
         this.planet.terrainLock.free(this._keyLock);
-        this.planet.normalMapCreator.free(this._keyLock);
+        this.planet._normalMapCreator.free(this._keyLock);
     }
 };

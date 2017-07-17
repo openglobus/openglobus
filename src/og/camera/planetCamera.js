@@ -491,14 +491,6 @@ og.PlanetCamera.prototype.prepareFrame = function () {
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
-        //if (c % 20) {
-            //this.planet.terrainProvider.active = false;
-        //    this.planet.layersActivity = false;
-        //} else {
-            //this.planet.terrainProvider.active = true;
-        //    this.planet.layersActivity = true;
-        //}
-
         this.eye = this._framesArr[c].eye;
         this._u = this._framesArr[c].u;
         this._v = this._framesArr[c].v;

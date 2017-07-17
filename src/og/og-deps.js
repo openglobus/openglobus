@@ -125,7 +125,7 @@ goog.addDependency('../../../og/src/og/utils/fontAtlas.js', ['og.utils.FontAtlas
 goog.addDependency('../../../og/src/og/utils/fontDetector.js', ['og.FontDetector'], [], false);
 goog.addDependency('../../../og/src/og/utils/geoImageCreator.js', ['og.utils.GeoImageCreator'], ['og.PlanetSegmentHelper', 'og.math', 'og.webgl.Framebuffer'], false);
 goog.addDependency('../../../og/src/og/utils/imagesCacheManager.js', ['og.utils.ImagesCacheManager'], ['og.QueueArray'], false);
-goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.NormalMapCreator'], ['og.PlanetSegmentHelper', 'og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
+goog.addDependency('../../../og/src/og/utils/normalMapCreator.js', ['og.utils.NormalMapCreator'], ['og.PlanetSegmentHelper', 'og.QueueArray', 'og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/polylabel.js', ['og.utils.getPolyCenter'], [], false);
 goog.addDependency('../../../og/src/og/utils/sdfCreator.js', ['og.utils.SDFCreator'], ['og.shaderProgram.ShaderProgram', 'og.webgl.Framebuffer', 'og.webgl.Handler'], false);
 goog.addDependency('../../../og/src/og/utils/terrainWorker.js', ['og.utils.TerrainWorker'], [], false);
