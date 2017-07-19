@@ -141,50 +141,58 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
 };
 
-og.utils.NormalMapCreator.prototype._drawNormalMap = function (normals, outTexture) {
+og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
+    var normals = segment.normalMapNormals;
+    if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING
+        && normals && normals.length) {
 
-    var size = normals.length / 3;
-    var gridSize = Math.sqrt(size) - 1;
+        segment.equalizeBorderNormals();
 
-    var h = this._handler;
-    var gl = h.gl;
+        var outTexture = segment.normalMapTexturePtr;
+        var size = normals.length / 3;
+        var gridSize = Math.sqrt(size) - 1;
 
-    var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
+        var h = this._handler;
+        var gl = h.gl;
 
-    var f = this._framebuffer;
-    var p = h.shaderPrograms.normalMap;
-    var sha = p._program.attributes;
+        var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
-    f.bindOutputTexture(this._normalMapVerticesTexture);
+        var f = this._framebuffer;
+        var p = h.shaderPrograms.normalMap;
+        var sha = p._program.attributes;
 
-    p.activate();
+        f.bindOutputTexture(this._normalMapVerticesTexture);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
-    gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
+        p.activate();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-    gl.vertexAttribPointer(sha.a_normal._pName, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
+        gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-    gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
+        gl.vertexAttribPointer(sha.a_normal._pName, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.deleteBuffer(_normalsBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
 
-    //
-    // blur pass
-    //
-    f.bindOutputTexture(outTexture);
+        gl.deleteBuffer(_normalsBuffer);
 
-    p = h.shaderPrograms.normalMapBlur;
+        //
+        // blur pass
+        //
+        f.bindOutputTexture(outTexture);
 
-    p.activate();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-    gl.vertexAttribPointer(p._program.attributes.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
-    gl.uniform1i(p._program.uniforms.s_texture._pName, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+        p = h.shaderPrograms.normalMapBlur;
 
+        p.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+        gl.vertexAttribPointer(p._program.attributes.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
+        gl.uniform1i(p._program.uniforms.s_texture._pName, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+        return true;
+    }
+    return false;
 };
 
 og.utils.NormalMapCreator.prototype.frame = function () {
@@ -204,14 +212,11 @@ og.utils.NormalMapCreator.prototype.frame = function () {
         var width = this._width,
             height = this._height;
 
-        while (this._queue.length && deltaTime < 0.25) {
+        while (this._lock.isFree() && this._queue.length && deltaTime < 0.25) {
             var segment = this._queue.shift();
-            if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING) {
-
-                this._drawNormalMap(segment.normalMapNormals, segment.normalMapTexturePtr);
-
-                segment.normalMapTexture = segment.normalMapTexturePtr;
+            if (this._drawNormalMap(segment)) {
                 segment.normalMapReady = true;
+                segment.normalMapTexture = segment.normalMapTexturePtr;
                 segment.normalMapTextureBias[0] = 0;
                 segment.normalMapTextureBias[1] = 0;
                 segment.normalMapTextureBias[2] = 1;

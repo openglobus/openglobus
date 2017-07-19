@@ -443,7 +443,7 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, pointLayer]
+        "layers": [pointLayer]
     });
 
     // globus.planet.camera.set(

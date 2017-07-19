@@ -282,7 +282,7 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
     this.state = og.quadTree.RENDERING;
 
     //Create normal map texture.
-    if (seg.planet.lightEnabled && !(seg.normalMapReady/* || seg.parentNormalMapReady*/)) {
+    if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
         this.whileNormalMapCreating();
     }
 
@@ -298,11 +298,16 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
     seg._addViewExtent();
 
     //Finally this node proceed to rendering.
-    this.addToRender(this);
+    this.addToRender();
 };
 
-og.quadTree.QuadNode.prototype.addToRender = function (node) {
-    var nodes = this.planet._renderedNodes;
+/**
+ * Seraching for neighbours and pickup current node to render processing.
+ * @public
+ */
+og.quadTree.QuadNode.prototype.addToRender = function () {
+    var node = this;
+    var nodes = node.planet._renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         var cs = node.getCommonSide(ni);
@@ -407,7 +412,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
 
     if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
-            //seg.parentNormalMapReady = true;
+            seg.parentNormalMapReady = true;
         } else {
             pn = this;
             while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
@@ -553,99 +558,100 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
         var pseg = pn.planetSegment;
 
-        if (pn.planetSegment.terrainExists) {
-            if (this.appliedTerrainNodeId != pn.nodeId) {
+        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId != pn.nodeId) {
 
-                var gridSize = pn.planetSegment.gridSize / dZ2;
+            var gridSize = pn.planetSegment.gridSize / dZ2;
+            var tempVertices;
 
-                var tempVertices;
+            //var fgs = this.planet.terrainProvider.fileGridSize,
+            //fgsZ = fgs / dZ2;
+            //var tempNormalMapNormals;
 
-                seg.deleteBuffers();
-                seg.refreshIndexesBuffer = true;
+            seg.deleteBuffers();
+            seg.refreshIndexesBuffer = true;
 
-                if (gridSize >= 1) {
-                    seg.gridSize = gridSize;
-                    this.sideSize = [gridSize, gridSize, gridSize, gridSize];
+            if (gridSize >= 1) {
+                seg.gridSize = gridSize;
+                this.sideSize = [gridSize, gridSize, gridSize, gridSize];
 
-                    var i0 = gridSize * offsetY;
-                    var j0 = gridSize * offsetX;
+                tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices,
+                    pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
 
-                    tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, gridSize);
+                //tempNormalMapNormals = og.quadTree.getMatrixSubArray(pseg.normalMapNormals,
+                //    fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+            } else {
+                seg.gridSize = og.quadTree.QuadNode._neGridSize;
+                this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
 
-                } else {
-                    seg.gridSize = og.quadTree.QuadNode._neGridSize;
-                    this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
+                var i0 = Math.floor(gridSize * offsetY);
+                var j0 = Math.floor(gridSize * offsetX);
 
-                    var i0 = Math.floor(gridSize * offsetY);
-                    var j0 = Math.floor(gridSize * offsetX);
+                var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                    var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                //v_lt(x,y,z)             vn
+                //    *---------------------------------->*
+                //    |        |        |        |     .  ^
+                //    |        |        |        |   .    |
+                //    |        |        |        | .      |
+                //    *--------*--------*--------*--------*
+                //    |        |        |     .  |        |
+                //    |        |        |   .    |        |
+                //    |        |        |ofX, ofY|        |
+                //  vw*--------*--------*--------*--------*ve
+                //    |        |      . |        |        |
+                //    |        |   .    |        |        |
+                //    |        |.       |        |        |
+                //    *--------*--------*--------*--------*
+                //    |      . |        |        |        |
+                //    |   .    |        |        |        |
+                //    V.       |        |        |        |
+                //    *<----------------------------------*v_rb
+                //                  vs
 
-                    //v_lt(x,y,z)             vn
-                    //    *---------------------------------->*
-                    //    |        |        |        |     .  ^
-                    //    |        |        |        |   .    |
-                    //    |        |        |        | .      |
-                    //    *--------*--------*--------*--------*
-                    //    |        |        |     .  |        |
-                    //    |        |        |   .    |        |
-                    //    |        |        |ofX, ofY|        |
-                    //  vw*--------*--------*--------*--------*ve
-                    //    |        |      . |        |        |
-                    //    |        |   .    |        |        |
-                    //    |        |.       |        |        |
-                    //    *--------*--------*--------*--------*
-                    //    |      . |        |        |        |
-                    //    |   .    |        |        |        |
-                    //    V.       |        |        |        |
-                    //    *<----------------------------------*v_rb
-                    //                  vs
+                var insideSize = 1.0 / gridSize;
 
-                    var insideSize = 1.0 / gridSize;
+                var t_i0 = offsetY - insideSize * i0,
+                    t_j0 = offsetX - insideSize * j0;
 
-                    var t_i0 = offsetY - insideSize * i0,
-                        t_j0 = offsetX - insideSize * j0;
+                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
+                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
 
-                    var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
-                        v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
+                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                    var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                        vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                        ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                        vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                var coords = new og.math.Vector3();
+                var vo = og.quadTree.QuadNode._vertOrder;
 
-                    var coords = new og.math.Vector3();
-                    var vo = og.quadTree.QuadNode._vertOrder;
+                tempVertices = new Float32Array(3 * vo.length);
 
-                    tempVertices = new Float32Array(3 * vo.length);
+                for (var i = 0; i < vo.length; i++) {
+                    var vi_y = vo[i].y + t_i0,
+                        vi_x = vo[i].x + t_j0;
 
-                    for (var i = 0; i < vo.length; i++) {
-                        var vi_y = vo[i].y + t_i0,
-                            vi_x = vo[i].x + t_j0;
+                    var vi_x_is = vi_x * gridSize,
+                        vi_y_is = vi_y * gridSize;
 
-                        var vi_x_is = vi_x * gridSize,
-                            vi_y_is = vi_y * gridSize;
-
-                        if (vi_y + vi_x < insideSize) {
-                            coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
-                        } else {
-                            coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
-                        }
-
-                        var i3 = i * 3;
-
-                        tempVertices[i3] = coords.x;
-                        tempVertices[i3 + 1] = coords.y;
-                        tempVertices[i3 + 2] = coords.z;
+                    if (vi_y + vi_x < insideSize) {
+                        coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
+                    } else {
+                        coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                     }
+
+                    var i3 = i * 3;
+
+                    tempVertices[i3] = coords.x;
+                    tempVertices[i3 + 1] = coords.y;
+                    tempVertices[i3 + 2] = coords.z;
                 }
-
-                seg.createCoordsBuffers(tempVertices, seg.gridSize);
-
-                //seg.tempVertices is useful for earth point calculation(see planetSegment object)
-                seg.tempVertices = tempVertices;
-                this.appliedTerrainNodeId = pn.nodeId;
             }
+
+            seg.createCoordsBuffers(tempVertices, seg.gridSize);
+
+            //seg.tempVertices is useful for earth point calculation(see planetSegment object)
+            seg.tempVertices = tempVertices;
+            this.appliedTerrainNodeId = pn.nodeId;
         }
 
         var maxZ = this.planet.terrainProvider.maxZoom;
