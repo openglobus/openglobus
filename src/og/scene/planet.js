@@ -32,12 +32,12 @@ goog.require('og.webgl.Framebuffer');
 goog.require('og.mercator');
 goog.require('og.proj.EPSG4326');
 goog.require('og.ImageCanvas');
-goog.require('og.planetSegment.NormalMapCreatorQueue');
 goog.require('og.ellipsoid.wgs84');
 goog.require('og.utils.GeoImageCreator');
 goog.require('og.utils.VectorTileCreator');
 goog.require('og.idle');
 goog.require('og.utils.TerrainWorker');
+goog.require('og.utils.NormalMapCreator');
 
 /**
  * Main class for rendering planet
@@ -128,13 +128,6 @@ og.scene.Planet = function (name, ellipsoid) {
     this.emptyTexture = null;
     this.transparentTexture = null;
     this.defaultTexture = null;
-
-    // /**
-    //  * Object async creates normal map segment textures.
-    //  * @public
-    //  * @type {og.planetSegment.NormalMapCreatorQueue}
-    //  */
-    // this.normalMapCreator = null;
 
     /**
      * Current visible minimal zoom index planet segment.
@@ -636,9 +629,6 @@ og.scene.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     }, this);
 
-    ////normal map renderer initialization
-    ////this.normalMapCreator = new og.planetSegment.NormalMapCreatorQueue(128, 128);
-
     //temporary initializations
     var that = this;
     //this.renderer.events.on("charkeypress", og.input.KEY_C, function () { that.memClear(); });
@@ -871,12 +861,8 @@ og.scene.Planet.prototype.frame = function () {
     this._geoImageCreator.frame();
 
     //free memory
-    var that = this;
     if (this._createdNodesCount > og.scene.Planet.MAX_NODES) {
-        setTimeout(function () {
-            that.memClear();
-        }, 0);
-        that._createdNodesCount = 0;
+        this.memClear();
     }
 };
 
@@ -1214,21 +1200,25 @@ og.scene.Planet.prototype._frustumEntityCollectionPickingCallback = function () 
  * @public
  */
 og.scene.Planet.prototype.memClear = function () {
-
     this.layerLock.lock(this._memKey);
     this.terrainLock.lock(this._memKey);
     this._normalMapCreator.lock(this._memKey);
 
-    //this.normalMapCreator.abort();
+    this._normalMapCreator.clear();
     this.terrainProvider.abortLoading();
 
-    this._quadTree.clearTree();
-    this._quadTreeNorth.clearTree();
-    this._quadTreeSouth.clearTree();
+    var that = this;
+    setTimeout(function () {
+        that._quadTree.clearTree();
+        that._quadTreeNorth.clearTree();
+        that._quadTreeSouth.clearTree();
 
-    this.layerLock.free(this._memKey);
-    this.terrainLock.free(this._memKey);
-    this._normalMapCreator.free(this._memKey);
+        that.layerLock.free(that._memKey);
+        that.terrainLock.free(that._memKey);
+        that._normalMapCreator.free(that._memKey);
+    }, 0);
+
+    this._createdNodesCount = 0;
 };
 
 /**

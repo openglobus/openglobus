@@ -663,23 +663,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 if (pn.planetSegment.terrainExists) {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
-                } else {
-                    //TODO see segment.js elevationsNotExists
-                    //seg.terrainExists = false;
-                    //seg.deleteBuffers();
-
-                    //var step = 3 * seg.gridSize;
-                    //var step2 = step * 0.5;
-                    //var lb = step * (seg.gridSize + 1);
-                    //var ml = step2 * (seg.gridSize + 1);
-
-                    //var v = seg.terrainVertices;
-                    //seg.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                    //        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                    //        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                    //seg.createCoordsBuffers(seg.terrainVertices, 2);
-                    //seg.gridSize = 2;
                 }
             } else {
                 pn = this;

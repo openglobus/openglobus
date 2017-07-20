@@ -144,29 +144,29 @@ og.utils.NormalMapCreator.prototype._init = function () {
 og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING) {
         var res = true;
-        var maxZ = segment.planet.terrainProvider.maxZoom;
-        if (segment.tileZoom > maxZ) {
-            var pn = segment.node;
-            while (pn.planetSegment.tileZoom > maxZ) {
-                pn = pn.parentNode;
-            }
+        // var maxZ = segment.planet.terrainProvider.maxZoom;
+        // if (segment.tileZoom > maxZ) {
+        //     var pn = segment.node;
+        //     while (pn.planetSegment.tileZoom > maxZ) {
+        //         pn = pn.parentNode;
+        //     }
 
-            var pnn = segment.node.neighbors;
-            var newNeighbors = [null, null, null, null];
-            for (var i = 0; i < pnn.length; i++) {
-                var pnni = pnn[i];
-                while (pnni && pnni.planetSegment && pnni.planetSegment.tileZoom > maxZ) {
-                    pnni = pnni.parentNode;
-                }
-                if (pnni && pnni.planetSegment && pn.nodeId != pnni.nodeId) {
-                    newNeighbors[i] = pnni;
-                }
-            }
+        //     var pnn = segment.node.neighbors;
+        //     var newNeighbors = [null, null, null, null];
+        //     for (var i = 0; i < pnn.length; i++) {
+        //         var pnni = pnn[i];
+        //         while (pnni && pnni.planetSegment && pnni.planetSegment.tileZoom > maxZ) {
+        //             pnni = pnni.parentNode;
+        //         }
+        //         if (pnni && pnni.planetSegment && pn.nodeId != pnni.nodeId) {
+        //             newNeighbors[i] = pnni;
+        //         }
+        //     }
 
-            segment = pn.planetSegment;
-            segment.node.neighbors = newNeighbors;
-            res = false;
-        }
+        //     segment = pn.planetSegment;
+        //     segment.node.neighbors = newNeighbors;
+        //     res = false;
+        // }
 
         var normals = segment.normalMapNormals;
 
@@ -273,6 +273,13 @@ og.utils.NormalMapCreator.prototype.unshift = function (segment) {
 
 og.utils.NormalMapCreator.prototype.remove = function (segment) {
     //...
+};
+
+og.utils.NormalMapCreator.prototype.clear = function () {
+    while (this._queue.length) {
+        var s = this._queue.pop();
+        s._inTheQueue = false;
+    }
 };
 
 /**
