@@ -392,7 +392,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var seg = this.planetSegment;
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+    if (/*seg.tileZoom <= maxZ && */!seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
         seg.planet._normalMapCreator.queue(seg);
     }
 
@@ -414,7 +414,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
         if (pn.planetSegment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
         } else {
-            pn = this;
+            /*pn = this;
             while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
                 pn = pn.parentNode;
             }
@@ -424,7 +424,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
                 pns.planet._normalMapCreator.queue(pns);
-            }
+            }*/
         }
     }
 };
@@ -514,7 +514,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
 
         if (seg.planet.lightEnabled) {
-            //seg.createNormalMapTexture();
             this.planet._normalMapCreator.unshift(seg);
         }
 

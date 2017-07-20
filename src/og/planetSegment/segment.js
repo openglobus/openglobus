@@ -348,20 +348,21 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
 
     if (n && ns && ns.terrainReady && ns.terrainExists && ns.tileZoom <= this.planet.terrainProvider.maxZoom) {
 
-        this._appliedNeighborsZoom[side] = ns.tileZoom;
+        var s = this, b = ns;
 
-        var seg_a = this.normalMapNormals,
-            seg_b = ns.normalMapNormals;
+        s._appliedNeighborsZoom[side] = b.tileZoom;
+
+        var seg_a = s.normalMapNormals,
+            seg_b = b.normalMapNormals;
 
         if (!(seg_a && seg_b)) return;
 
-        var size = this.planet.terrainProvider.fileGridSize;
+        var size = s.planet.terrainProvider.fileGridSize;
+        i_a *= size;
         var s1 = size + 1;
         var i_b = size - i_a;
 
-        //console.log(this.tileZoom + ", " + ns.tileZoom);
-
-        if (this.tileZoom === ns.tileZoom) {
+        if (s.tileZoom === b.tileZoom) {
             //there is only one neighbor on the side
             if (vert) {
                 for (var k = 0; k < s1; k++) {
@@ -383,13 +384,11 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                 }
             }
 
-            if (!ns._inTheQueue && ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] != this.tileZoom) {
-                this.planet._normalMapCreator.queue(ns);
+            if (!b._inTheQueue && b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] != this.tileZoom) {
+                this.planet._normalMapCreator.queue(b);
             }
 
         } else {
-            var s = this, b = ns;
-
             var s_edge, b_edge;
 
             if (i_a) {
@@ -450,44 +449,10 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                 this.planet._normalMapCreator.queue(ns);
             }*/
         }
-        //else if (this.tileZoom - ns.tileZoom === 1) {
-        // //there is only one neighbor on the side
-        // var offset = og.quadTree.NOPSORD[side][this.node.partId] * size * 0.5;
-        // if (vert) {
-        //     for (var k = 0; k < s1; k++) {
-        //         var vInd_a = (k * s1 + i_a) * 3,
-        //             vInd_b = ((Math.floor(k * 0.5) + offset) * s1 + i_b) * 3;
-
-        //         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-        //         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-        //         seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-        //     }
-        // } else {
-        //     for (var k = 0; k < s1; k++) {
-        //         var vInd_a = (i_a * s1 + k) * 3,
-        //             vInd_b = (i_b * s1 + Math.floor(k * 0.5) + offset) * 3;
-
-        //         seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-        //         seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-        //         seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
-        //     }
-        // }
-        //} else if (this.tileZoom < ns.tileZoom) {
-        // //there are one or two neghbors on the side
-        // if (!ns._inTheQueue) {
-        //     this.planet._normalMapCreator.queue(ns);
-        // }
-
-        // //this is second small neighbour
-        // var n2 = n.parentNode.nodes[og.quadTree.NOPS[side][this.node.partId]];
-        // if (n2 && !n2.planetSegment._inTheQueue) {
-        //     this.planet._normalMapCreator.queue(n2.planetSegment);
-        // }
     }
 };
 
 og.planetSegment.Segment.prototype.equalizeBorderNormals = function () {
-
     if (this.planet) {
 
         var nb = this.node.neighbors;
@@ -498,24 +463,10 @@ og.planetSegment.Segment.prototype.equalizeBorderNormals = function () {
                 nbs = nb[og.quadTree.S],
                 nbw = nb[og.quadTree.W];
 
-            // if (this.tileZoom > this.planet.terrainProvider.minZoom) {
-            //     if (nbn && nbn.planetSegment && nbn.planetSegment.terrainIsLoading ||
-            //         nbe && nbe.planetSegment && nbe.planetSegment.terrainIsLoading ||
-            //         nbs && nbs.planetSegment && nbs.planetSegment.terrainIsLoading ||
-            //         nbw && nbw.planetSegment && nbw.planetSegment.terrainIsLoading) {
-            //         if (!this._inTheQueue) {
-            //             this.planet._normalMapCreator.queue(this);
-            //         }
-            //         return;
-            //     }
-            // }
-
-            var gs = this.planet.terrainProvider.fileGridSize;
-
             this._normalMapEdgeEqualize(og.quadTree.N, 0);
-            this._normalMapEdgeEqualize(og.quadTree.S, gs);
+            this._normalMapEdgeEqualize(og.quadTree.S, 1);
             this._normalMapEdgeEqualize(og.quadTree.W, 0, true);
-            this._normalMapEdgeEqualize(og.quadTree.E, gs, true);
+            this._normalMapEdgeEqualize(og.quadTree.E, 1, true);
         }
     }
 };
