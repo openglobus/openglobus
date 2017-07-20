@@ -345,8 +345,10 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
 
     var n = this.node.neighbors[side];
     var ns = n && n.planetSegment;
+    var maxZ = this.planet.terrainProvider.maxZoom,
+        minZ = this.planet.terrainProvider.minZoom;
 
-    if (n && ns && ns.terrainReady && ns.terrainExists && ns.tileZoom <= this.planet.terrainProvider.maxZoom) {
+    if (n && ns && ns.terrainReady && ns.terrainExists && ns.tileZoom <= maxZ && ns.tileZoom >= minZ) {
 
         var s = this, b = ns;
 

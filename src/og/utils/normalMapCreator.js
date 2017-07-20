@@ -155,13 +155,11 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
             var newNeighbors = [null, null, null, null];
             for (var i = 0; i < pnn.length; i++) {
                 var pnni = pnn[i];
-                if (pnni) {
-                    while (pnni.planetSegment.tileZoom > maxZ) {
-                        pnni = pnni.parentNode;
-                    }
-                    if (pn.nodeId != pnni.nodeId) {
-                        newNeighbors[i] = pnni;
-                    }
+                while (pnni && pnni.planetSegment && pnni.planetSegment.tileZoom > maxZ) {
+                    pnni = pnni.parentNode;
+                }
+                if (pnni && pnni.planetSegment && pn.nodeId != pnni.nodeId) {
+                    newNeighbors[i] = pnni;
                 }
             }
 
@@ -174,7 +172,8 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
 
         if (normals && normals.length) {
 
-            segment.equalizeBorderNormals();
+            if (segment.tileZoom >= segment.planet.terrainProvider.minZoom)
+                segment.equalizeBorderNormals();
 
             var outTexture = segment.normalMapTexturePtr;
             var size = normals.length / 3;
