@@ -392,7 +392,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var seg = this.planetSegment;
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (/*seg.tileZoom <= maxZ && */!seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+    if (seg.terrainExists && !seg._inTheQueue) {
         seg.planet._normalMapCreator.queue(seg);
     }
 
@@ -409,12 +409,11 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     seg.normalMapTextureBias[1] = seg.tileY - pn.planetSegment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1 / dZ2;
 
-
     if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
         } else {
-            /*pn = this;
+            pn = this;
             while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
                 pn = pn.parentNode;
             }
@@ -424,7 +423,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
                 pns.loadTerrain();
             } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
                 pns.planet._normalMapCreator.queue(pns);
-            }*/
+            }
         }
     }
 };
@@ -557,7 +556,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
         var pseg = pn.planetSegment;
 
-        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId != pn.nodeId) {
+        if (pseg.tileZoom >= pseg.planet.terrainProvider.minZoom && this.appliedTerrainNodeId != pn.nodeId) {
 
             var gridSize = pn.planetSegment.gridSize / dZ2;
             var tempVertices;
@@ -661,7 +660,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
                 if (pn.planetSegment.terrainExists) {
-                    seg.terrainExists = true;
+                    //seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
                 }
             } else {

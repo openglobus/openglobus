@@ -18,19 +18,27 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
             this.x = x;\n\
             this.y = y;\n\
             this.z = z;\n\
-            this.sub = function(v) {\n\
-                return new Vector3(this.x - v.x, this.y - v.y, this.z - v.z);\n\
-            };\n\
-            this.add = function(v) {\n\
-                return new Vector3(this.x + v.x, this.y + v.y, this.z + v.z);\n\
-            };\n\
-            this.cross = function(v) {\n\
-                return new Vector3(\n\
-                    this.y * v.z - this.z * v.y,\n\
-                    this.z * v.x - this.x * v.z,\n\
-                    this.x * v.y - this.y * v.x\n\
-                );\n\
-            };\n\
+        };\n\
+        Vector3.prototype.sub = function(v) {\n\
+            return new Vector3(this.x - v.x, this.y - v.y, this.z - v.z);\n\
+        };\n\
+        Vector3.prototype.add = function(v) {\n\
+            return new Vector3(this.x + v.x, this.y + v.y, this.z + v.z);\n\
+        };\n\
+        Vector3.prototype.cross = function(v) {\n\
+            return new Vector3(\n\
+                this.y * v.z - this.z * v.y,\n\
+                this.z * v.x - this.x * v.z,\n\
+                this.x * v.y - this.y * v.x\n\
+            );\n\
+        };\n\
+        Vector3.prototype.normalize = function(v) {\n\
+            var x = this.x, y = this.y, z = this.z;\n\
+            var length = 1.0 / Math.sqrt(x * x + y * y + z * z);\n\
+            this.x = x * length;\n\
+            this.y = y * length;\n\
+            this.z = z * length;\n\
+            return this;\n\
         };\n\
         \n\
         var slice = function (t, h1, h0) {\n\
@@ -118,9 +126,9 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
                         var e10 = v1.sub(v0),\n\
                             e20 = v2.sub(v0),\n\
                             e30 = v3.sub(v0);\n\
-                        var sw = e20.cross(e30);\n\
-                        var ne = e30.cross(e10);\n\
-                        var n0 = ne.add(sw);\n\
+                        var sw = e20.cross(e30).normalize();\n\
+                        var ne = e30.cross(e10).normalize();\n\
+                        var n0 = ne.add(sw).normalize();\n\
 \n\
                         normalMapNormals[vInd0] += n0.x;\n\
                         normalMapNormals[vInd0 + 1] += n0.y;\n\
