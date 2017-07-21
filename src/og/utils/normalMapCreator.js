@@ -146,7 +146,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING
         && normals && normals.length) {
 
-        segment.equalizeBorderNormals();
+        //segment.equalizeBorderNormals();
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
@@ -245,6 +245,13 @@ og.utils.NormalMapCreator.prototype.unshift = function (segment) {
 
 og.utils.NormalMapCreator.prototype.remove = function (segment) {
     //...
+};
+
+og.utils.NormalMapCreator.prototype.clear = function () {
+    while (this._queue.length) {
+        var s = this._queue.pop();
+        s._inTheQueue = false;
+    }
 };
 
 /**
