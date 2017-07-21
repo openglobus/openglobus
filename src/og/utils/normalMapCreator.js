@@ -146,7 +146,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING
         && normals && normals.length) {
 
-        //segment.equalizeBorderNormals();
+        segment.equalizeBorderNormals();
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;

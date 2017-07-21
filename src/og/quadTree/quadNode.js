@@ -563,9 +563,9 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             var gridSize = pn.planetSegment.gridSize / dZ2;
             var tempVertices;
 
-            //var fgs = this.planet.terrainProvider.fileGridSize,
-            //fgsZ = fgs / dZ2;
-            //var tempNormalMapNormals;
+            var fgs = this.planet.terrainProvider.fileGridSize,
+            fgsZ = fgs / dZ2;
+            var tempNormalMapNormals;
 
             seg.deleteBuffers();
             seg.refreshIndexesBuffer = true;
@@ -577,8 +577,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices,
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
 
-                //tempNormalMapNormals = og.quadTree.getMatrixSubArray(pseg.normalMapNormals,
-                //    fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                tempNormalMapNormals = og.quadTree.getMatrixSubArray(pseg.normalMapNormals,
+                   fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
             } else {
                 seg.gridSize = og.quadTree.QuadNode._neGridSize;
                 this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
@@ -587,26 +587,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 var j0 = Math.floor(gridSize * offsetX);
 
                 var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
-
-                //v_lt(x,y,z)             vn
-                //    *---------------------------------->*
-                //    |        |        |        |     .  ^
-                //    |        |        |        |   .    |
-                //    |        |        |        | .      |
-                //    *--------*--------*--------*--------*
-                //    |        |        |     .  |        |
-                //    |        |        |   .    |        |
-                //    |        |        |ofX, ofY|        |
-                //  vw*--------*--------*--------*--------*ve
-                //    |        |      . |        |        |
-                //    |        |   .    |        |        |
-                //    |        |.       |        |        |
-                //    *--------*--------*--------*--------*
-                //    |      . |        |        |        |
-                //    |   .    |        |        |        |
-                //    V.       |        |        |        |
-                //    *<----------------------------------*v_rb
-                //                  vs
 
                 var insideSize = 1.0 / gridSize;
 
@@ -664,23 +644,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 if (pn.planetSegment.terrainExists) {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
-                } else {
-                    //TODO see segment.js elevationsNotExists
-                    //seg.terrainExists = false;
-                    //seg.deleteBuffers();
-
-                    //var step = 3 * seg.gridSize;
-                    //var step2 = step * 0.5;
-                    //var lb = step * (seg.gridSize + 1);
-                    //var ml = step2 * (seg.gridSize + 1);
-
-                    //var v = seg.terrainVertices;
-                    //seg.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                    //        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                    //        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                    //seg.createCoordsBuffers(seg.terrainVertices, 2);
-                    //seg.gridSize = 2;
+                    seg.normalMapNormals = tempNormalMapNormals;
                 }
             } else {
                 pn = this;
@@ -756,8 +720,8 @@ og.quadTree.QuadNode.prototype.destroy = function () {
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
     if (cls) {
-        this.planetSegment.clearSegment();
-        this.appliedTerrainNodeId = -1;
+        //this.planetSegment.clearSegment();
+        //this.appliedTerrainNodeId = -1;
     }
 
     var nodesToRemove = [];
@@ -765,6 +729,7 @@ og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
         nodesToRemove[i] = this.nodes[i];
     }
 
+    this.nodes.neighbors = [null, null, null, null];
     this.nodes.length = 0;
     this.nodes = [];
 
