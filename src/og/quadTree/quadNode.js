@@ -392,7 +392,7 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     var seg = this.planetSegment;
     var maxZ = this.planet.terrainProvider.maxZoom;
 
-    if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+    if (seg.terrainExists && !seg._inTheQueue) {
         seg.planet._normalMapCreator.queue(seg);
     }
 
@@ -408,7 +408,6 @@ og.quadTree.QuadNode.prototype.whileNormalMapCreating = function () {
     seg.normalMapTextureBias[0] = seg.tileX - pn.planetSegment.tileX * dZ2;
     seg.normalMapTextureBias[1] = seg.tileY - pn.planetSegment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1 / dZ2;
-
 
     if (seg.tileZoom > maxZ) {
         if (pn.planetSegment.tileZoom === maxZ) {
@@ -514,7 +513,6 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
         }
 
         if (seg.planet.lightEnabled) {
-            //seg.createNormalMapTexture();
             this.planet._normalMapCreator.unshift(seg);
         }
 
@@ -558,7 +556,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
 
         var pseg = pn.planetSegment;
 
-        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId != pn.nodeId) {
+        if (pseg.tileZoom >= pseg.planet.terrainProvider.minZoom && this.appliedTerrainNodeId != pn.nodeId) {
 
             var gridSize = pn.planetSegment.gridSize / dZ2;
             var tempVertices;
@@ -662,25 +660,8 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
                 if (pn.planetSegment.terrainExists) {
-                    seg.terrainExists = true;
+                    //seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
-                } else {
-                    //TODO see segment.js elevationsNotExists
-                    //seg.terrainExists = false;
-                    //seg.deleteBuffers();
-
-                    //var step = 3 * seg.gridSize;
-                    //var step2 = step * 0.5;
-                    //var lb = step * (seg.gridSize + 1);
-                    //var ml = step2 * (seg.gridSize + 1);
-
-                    //var v = seg.terrainVertices;
-                    //seg.terrainVertices = [v[0], v[1], v[2], v[step2], v[step2 + 1], v[step2 + 2], v[step], v[step + 1], v[step + 2],
-                    //        v[ml], v[ml + 1], v[ml + 2], v[ml + step2], v[ml + step2 + 1], v[ml + step2 + 2], v[ml + step], v[ml + step + 1], v[ml + step + 2],
-                    //        v[lb], v[lb + 1], v[lb + 2], v[lb + step2], v[lb + step2 + 1], v[lb + step2 + 2], v[lb + step], v[lb + step + 1], v[lb + step + 2]];
-
-                    //seg.createCoordsBuffers(seg.terrainVertices, 2);
-                    //seg.gridSize = 2;
                 }
             } else {
                 pn = this;
