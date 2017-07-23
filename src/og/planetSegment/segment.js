@@ -275,9 +275,7 @@ og.planetSegment.Segment.prototype.loadTerrain = function () {
 og.planetSegment.Segment.prototype.elevationsExists = function (elevations) {
     //terrain exists
     if (this.ready && this.terrainIsLoading) {
-        var dst = new Float32Array(elevations.length);
-        dst.set(new Float32Array(elevations));
-        this.planet._terrainWorker.make(this, dst);
+        this.planet._terrainWorker.make(this, elevations);
     }
 };
 
@@ -295,6 +293,7 @@ og.planetSegment.Segment.prototype._terrainWorkerCallback = function (data) {
 
         this.terrainReady = true;
         this.terrainIsLoading = false;
+        this.parentNormalMapReady = true;
 
         if (!this.normalMapTexturePtr) {
             var nmc = this.planet._normalMapCreator;
@@ -351,13 +350,11 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
     var n = this.node.neighbors[side];
     var ns = n && n.planetSegment;
 
-    if (n && ns && ns.terrainReady && ns.terrainExists && ns.tileZoom <= this.planet.terrainProvider.maxZoom) {
+    if (n && ns && ns.terrainReady && ns.terrainExists &&
+        ns.tileZoom <= this.planet.terrainProvider.maxZoom &&
+        this._appliedNeighborsZoom[side] !== ns.tileZoom) {
 
         var s = this, b = ns;
-
-        if (s._appliedNeighborsZoom[side] === s.tileZoom) {
-            return;
-        }
 
         s._appliedNeighborsZoom[side] = b.tileZoom;
 
@@ -375,6 +372,8 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
 
         //console.log(s.tileZoom + "(" + s_gs + ")" + ", " + b.tileZoom + "(" + b_gs + ")");
 
+        var nx, ny, nz, q;
+
         if (s.tileZoom === b.tileZoom) {
 
             var i_b = s_gs1 - i_a;
@@ -384,25 +383,37 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     var vInd_a = (k * s_gs + i_a) * 3,
                         vInd_b = (k * s_gs + i_b) * 3;
 
-                    seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                    seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                    seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    nx = seg_a[vInd_a] + seg_b[vInd_b];
+                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+
+                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             } else {
                 for (var k = 0; k < s_gs; k++) {
                     var vInd_a = (i_a * s_gs + k) * 3,
                         vInd_b = (i_b * s_gs + k) * 3;
 
-                    seg_b[vInd_b] = (seg_a[vInd_a] += seg_b[vInd_b]);
-                    seg_b[vInd_b + 1] = (seg_a[vInd_a + 1] += seg_b[vInd_b + 1]);
-                    seg_b[vInd_b + 2] = (seg_a[vInd_a + 2] += seg_b[vInd_b + 2]);
+                    nx = seg_a[vInd_a] + seg_b[vInd_b];
+                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+
+                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             }
 
             if (!b._inTheQueue && b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] !== s.tileZoom) {
                 this.planet._normalMapCreator.queue(b);
-                b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] = s.tileZoom;
             }
+            b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] = s.tileZoom;
 
         } else {
             var s_edge, b_edge;
@@ -438,9 +449,15 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     var kk = Math.round(k * dZ2);
                     var b_ind = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
 
-                    s_nm[s_ind] = (b_nm[b_ind] += s_nm[s_ind]);
-                    s_nm[s_ind + 1] = (b_nm[b_ind + 1] += s_nm[s_ind + 1]);
-                    s_nm[s_ind + 2] = (b_nm[b_ind + 2] += s_nm[s_ind + 2]);
+                    nx = seg_a[vInd_a] + seg_b[vInd_b];
+                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+
+                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             } else {
                 var offsetX = s.tileX * dZ2 - b.tileX;
@@ -450,9 +467,15 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     var kk = Math.round(k * dZ2);
                     var b_ind = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
 
-                    s_nm[s_ind] = (b_nm[b_ind] += s_nm[s_ind]);
-                    s_nm[s_ind + 1] = (b_nm[b_ind + 1] += s_nm[s_ind + 1]);
-                    s_nm[s_ind + 2] = (b_nm[b_ind + 2] += s_nm[s_ind + 2]);
+                    nx = seg_a[vInd_a] + seg_b[vInd_b];
+                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+
+                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+
+                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             }
 
@@ -460,15 +483,6 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                 this.planet._normalMapCreator.queue(ns);
             }*/
         }
-    }
-};
-
-og.planetSegment.Segment.prototype.equalizeBorderNormals = function () {
-    if (this.planet) {
-        this._normalMapEdgeEqualize(og.quadTree.N, 0);
-        this._normalMapEdgeEqualize(og.quadTree.S, 1);
-        this._normalMapEdgeEqualize(og.quadTree.W, 0, true);
-        this._normalMapEdgeEqualize(og.quadTree.E, 1, true);
     }
 };
 

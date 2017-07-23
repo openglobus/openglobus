@@ -23,14 +23,19 @@ og.quadTree.WALKTHROUGH = 2;
  */
 og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
 
+og.quadTree.NEIGHBOUR = [[-1, -1, og.quadTree.NW, og.quadTree.NE],
+                         [og.quadTree.NE, -1, og.quadTree.SE, -1],
+                         [og.quadTree.SW, og.quadTree.SE, -1, -1],
+                         [-1, og.quadTree.NW, -1, og.quadTree.SW]];
+
 /**
- * Neighbor's oposite side. For example oposite side
- * on the east neighbor side is: [E][NW] = SW
+ * Neighbor's oposite part. For example oposite side
+ * on the east neighbor side is: [S][SE] = NE
  */
-og.quadTree.NOPS = [[og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
-                    [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
-                    [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
-                    [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE]];
+og.quadTree.OPPART = [[og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
+                      [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
+                      [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
+                      [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW]];
 
 /**
  * Neighbos's opside array order. For example NW node

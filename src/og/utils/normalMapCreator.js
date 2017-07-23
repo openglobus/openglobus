@@ -146,7 +146,10 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING
         && normals && normals.length) {
 
-        segment.equalizeBorderNormals();
+        segment._normalMapEdgeEqualize(og.quadTree.N, 0);
+        segment._normalMapEdgeEqualize(og.quadTree.S, 1);
+        segment._normalMapEdgeEqualize(og.quadTree.W, 0, true);
+        segment._normalMapEdgeEqualize(og.quadTree.E, 1, true);
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
@@ -214,7 +217,7 @@ og.utils.NormalMapCreator.prototype.frame = function () {
 
         while (this._lock.isFree() && this._queue.length && deltaTime < 0.25) {
             var segment = this._queue.shift();
-            if (this._drawNormalMap(segment)) {
+            if (segment.terrainReady && this._drawNormalMap(segment)) {
                 segment.normalMapReady = true;
                 segment.normalMapTexture = segment.normalMapTexturePtr;
                 segment.normalMapTextureBias[0] = 0;

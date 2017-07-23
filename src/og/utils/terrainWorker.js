@@ -51,12 +51,12 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
             this_normalMapVertices = e.data.this_normalMapVertices,\n\
             this_normalMapNormals = e.data.this_normalMapNormals,\n\
             heightFactor =  e.data.heightFactor,\n\
-            fileGridSize = e.data.fileGridSize,\n\
+            //fileGridSize = e.data.fileGridSize,\n\
             gridSize = e.data.gridSize;\n\
         \n\
         var xmin = 549755748352, xmax = -549755748352, ymin = 549755748352, ymax = -549755748352, zmin = 549755748352, zmax = -549755748352;\n\
 \n\
-        fileGridSize = fileGridSize || (Math.sqrt(elevations.length) - 1);\n\
+        fileGridSize = Math.sqrt(elevations.length) - 1;\n\
 \n\
         var fileGridSize_one = fileGridSize + 1,\n\
             tgs = gridSize,\n\
@@ -217,6 +217,9 @@ og.utils.TerrainWorker.prototype.make = function (segment, elevations) {
 
     if (segment.ready && segment.terrainIsLoading) {
 
+        var _elevations = new Float32Array(elevations.length);
+        _elevations.set(elevations);
+
         if (this._workerQueue.length) {
 
             var that = this;
@@ -233,23 +236,22 @@ og.utils.TerrainWorker.prototype.make = function (segment, elevations) {
             };
 
             w.postMessage({
-                'elevations': elevations,
+                'elevations': _elevations,
                 'this_plainVertices': segment.plainVertices,
                 'this_plainNormals': segment.plainNormals,
                 'this_normalMapVertices': segment.normalMapVertices,
                 'this_normalMapNormals': segment.normalMapNormals,
                 'heightFactor': segment.planet._heightFactor,
-                'fileGridSize': segment.planet.terrainProvider.fileGridSize,
                 'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
             }, [
-                    elevations.buffer,
+                    _elevations.buffer,
                     segment.plainVertices.buffer,
                     segment.plainNormals.buffer,
                     segment.normalMapVertices.buffer,
                     segment.normalMapNormals.buffer
                 ]);
         } else {
-            this._pendingQueue.push({ 'segment': segment, 'elevations': elevations });
+            this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
         }
     }
 };

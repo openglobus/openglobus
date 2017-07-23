@@ -163,6 +163,36 @@ og.quadTree.QuadNode.prototype.getState = function () {
     return this.state;
 };
 
+/**
+ * Returns the same deep existent neighbour node.
+ * @public
+ * @param {Number} side - Neighbour side index e.g. og.quadTree.N, og.quadTree.W etc.
+ * @returns {og.quadTree.QuadNode}
+ */
+og.quadTree.QuadNode.prototype.getEqualNeighbor = function (side) {
+    var pn = this;
+    var part = og.quadTree.NEIGHBOUR[side][pn.partId];
+    if (part !== -1) {
+        return pn.parentNode.nodes[part];
+    } else {
+        var pathId = [];
+        while (pn.parentNode) {
+            pathId.push(pn.partId);
+            part = og.quadTree.NEIGHBOUR[side][pn.partId];
+            pn = pn.parentNode;
+            if (part !== -1) {
+                var i = pathId.length;
+                side = og.quadTree.OPSIDE[side];
+                while (i--) {
+                    var part = og.quadTree.OPPART[side][pathId[i]];
+                    pn = pn.nodes[part];
+                }
+                return pn;
+            }
+        }
+    }
+};
+
 og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
     if (height < 3000000.0) {
         if (altVis) {
@@ -192,6 +222,11 @@ og.quadTree.QuadNode.prototype.isBrother = function (node) {
 
 og.quadTree.QuadNode.prototype.renderTree = function () {
     this.state = og.quadTree.WALKTHROUGH;
+
+    this.neighbors[0] = null;
+    this.neighbors[1] = null;
+    this.neighbors[2] = null;
+    this.neighbors[3] = null;
 
     var cam = this.planet.renderer.activeCamera,
         seg = this.planetSegment,
@@ -282,7 +317,7 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
     this.state = og.quadTree.RENDERING;
 
     //Create normal map texture.
-    if (seg.planet.lightEnabled && !(seg.normalMapReady || seg.parentNormalMapReady)) {
+    if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
     }
 
@@ -564,7 +599,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
             var tempVertices;
 
             var fgs = this.planet.terrainProvider.fileGridSize,
-            fgsZ = fgs / dZ2;
+                fgsZ = fgs / dZ2;
             var tempNormalMapNormals;
 
             seg.deleteBuffers();
@@ -578,7 +613,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
 
                 tempNormalMapNormals = og.quadTree.getMatrixSubArray(pseg.normalMapNormals,
-                   fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                    fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
             } else {
                 seg.gridSize = og.quadTree.QuadNode._neGridSize;
                 this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
@@ -648,7 +683,7 @@ og.quadTree.QuadNode.prototype.whileTerrainLoading = function () {
                 }
             } else {
                 pn = this;
-                while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
+                while (pn.parentNode && pn.planetSegment.tileZoom !== maxZ) {
                     pn = pn.parentNode;
                 }
                 var pns = pn.planetSegment;

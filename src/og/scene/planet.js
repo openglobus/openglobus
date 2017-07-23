@@ -848,7 +848,7 @@ og.scene.Planet.prototype.frame = function () {
     this.baseLayer && print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
     print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
     print2d("t1", "normal: " + this._normalMapCreator._queue.length, 100, 180);
-    print2d("t3", this.maxCurrZoom, 100, 200);
+    print2d("t3", this.minCurrZoom + ", " + this.maxCurrZoom, 100, 200);
 
 
     this.transformLights();
