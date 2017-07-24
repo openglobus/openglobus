@@ -465,6 +465,12 @@ function main5() {
     });
 
     globus.planet.addControl(new og.control.ToggleWireframe());
+
+    globus.planet.camera.set(
+        og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
+        og.math.vector3(659636.5271477876, 4594887.354101415, 4360134.899630442),
+        og.math.vector3(-0.021169661606197245, 0.9366073216983496, -0.3497407187739613)
+    ).update();
 }
 
 /*

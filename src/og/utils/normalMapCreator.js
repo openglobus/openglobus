@@ -198,6 +198,31 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     return false;
 };
 
+og.utils.NormalMapCreator.prototype.drawSingle = function (segment) {
+    var h = this._handler,
+        gl = h.gl;
+
+    this._framebuffer.activate();
+
+    gl.disable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+
+    if (segment.terrainReady && this._drawNormalMap(segment)) {
+        segment.normalMapReady = true;
+        segment.normalMapTexture = segment.normalMapTexturePtr;
+        segment.normalMapTextureBias[0] = 0;
+        segment.normalMapTextureBias[1] = 0;
+        segment.normalMapTextureBias[2] = 1;
+    }
+    segment._inTheQueue = false;
+
+    gl.disable(gl.BLEND);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+
+    this._framebuffer.deactivate();
+};
+
 og.utils.NormalMapCreator.prototype.frame = function () {
 
     if (this._queue.length) {
