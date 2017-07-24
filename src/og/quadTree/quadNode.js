@@ -183,7 +183,7 @@ og.quadTree.QuadNode.prototype.getEqualNeighbor = function (side) {
             if (part !== -1) {
                 var i = pathId.length;
                 side = og.quadTree.OPSIDE[side];
-                while (i--) {
+                while (pn && i--) {
                     var part = og.quadTree.OPPART[side][pathId[i]];
                     pn = pn.nodes[part];
                 }

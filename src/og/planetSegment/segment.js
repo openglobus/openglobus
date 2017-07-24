@@ -347,11 +347,20 @@ og.planetSegment.Segment.prototype.elevationsNotExists = function () {
 
 og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
-    var n = this.node.neighbors[side];
+    var nn = this.node.neighbors;
+    var n = nn[side];
+    var maxZ = this.planet.terrainProvider.maxZoom;
+
+    if (this.tileZoom === maxZ) {
+        if (!(nn[0] || nn[1] || nn[2] || nn[3])) {
+            n = this.node.getEqualNeighbor(side);
+        }
+    }
+
     var ns = n && n.planetSegment;
 
     if (n && ns && ns.terrainReady && ns.terrainExists &&
-        ns.tileZoom <= this.planet.terrainProvider.maxZoom &&
+        ns.tileZoom <= maxZ &&
         this._appliedNeighborsZoom[side] !== ns.tileZoom) {
 
         var s = this, b = ns;
@@ -369,8 +378,6 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
             b_gs1 = b_gs - 1;
 
         i_a *= s_gs1;
-
-        //console.log(s.tileZoom + "(" + s_gs + ")" + ", " + b.tileZoom + "(" + b_gs + ")");
 
         var nx, ny, nz, q;
 
@@ -427,6 +434,10 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
             }
 
             if (s.tileZoom < b.tileZoom) {
+                if (!b._inTheQueue && b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] !== s.tileZoom) {
+                    this.planet._normalMapCreator.queue(b);
+                }
+                b._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] = s.tileZoom;
                 side = og.quadTree.OPSIDE[side];
                 var t = b;
                 t = s;
@@ -478,10 +489,6 @@ og.planetSegment.Segment.prototype._normalMapEdgeEqualize = function (side, i_a,
                     seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             }
-
-            /*if (!ns._inTheQueue && ns._appliedNeighborsZoom[og.quadTree.OPSIDE[side]] != s.tileZoom) {
-                this.planet._normalMapCreator.queue(ns);
-            }*/
         }
     }
 };
