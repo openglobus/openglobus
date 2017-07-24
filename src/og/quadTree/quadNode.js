@@ -205,14 +205,14 @@ og.quadTree.QuadNode.prototype.prepareForRendering = function (height, altVis, o
     }
 };
 
-og.quadTree.QuadNode.prototype.traverseNodes = function () {
+og.quadTree.QuadNode.prototype.traverseNodes = function (maxZoom) {
     if (!this.nodes.length) {
         this.createChildrenNodes();
     }
-    this.nodes[og.quadTree.NW].renderTree();
-    this.nodes[og.quadTree.NE].renderTree();
-    this.nodes[og.quadTree.SW].renderTree();
-    this.nodes[og.quadTree.SE].renderTree();
+    this.nodes[og.quadTree.NW].renderTree(maxZoom);
+    this.nodes[og.quadTree.NE].renderTree(maxZoom);
+    this.nodes[og.quadTree.SW].renderTree(maxZoom);
+    this.nodes[og.quadTree.SE].renderTree(maxZoom);
 };
 
 og.quadTree.QuadNode.prototype.isBrother = function (node) {
@@ -220,7 +220,7 @@ og.quadTree.QuadNode.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
-og.quadTree.QuadNode.prototype.renderTree = function () {
+og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
     this.state = og.quadTree.WALKTHROUGH;
 
     this.neighbors[0] = null;
@@ -231,6 +231,7 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
     var cam = this.planet.renderer.activeCamera,
         seg = this.planetSegment,
         planet = this.planet;
+
 
     if (this.parentNode) {
 
@@ -272,13 +273,15 @@ og.quadTree.QuadNode.prototype.renderTree = function () {
         og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
-        if (seg.tileZoom <= 1 && seg.normalMapReady) {
-            this.traverseNodes();
-        } else if (seg.acceptForRendering(cam)) {
+        if (seg.tileZoom === maxZoom) {
+            this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
+        } else if (seg.tileZoom <= 1 && seg.normalMapReady) {
+            this.traverseNodes(maxZoom);
+        } else if (!maxZoom && seg.acceptForRendering(cam)) {
             this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
         } else {
             if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
-                this.traverseNodes();
+                this.traverseNodes(maxZoom);
             } else {
                 this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
             }

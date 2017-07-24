@@ -31,7 +31,7 @@ goog.require('og.utils');
  *     attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
  * });
  */
-og.layer.XYZ = function(name, options) {
+og.layer.XYZ = function (name, options) {
     og.inheritance.base(this, name, options);
 
     this.events.registerNames(og.layer.XYZ.EVENT_NAMES);
@@ -62,6 +62,8 @@ og.layer.XYZ = function(name, options) {
      * @type {Array.<og.planetSegment.Material>}
      */
     this._pendingsQueue = new og.QueueArray();
+
+    this._s = ['a', 'b', 'c'];
 
     /**
      * Rewrites imagery tile url query.
@@ -105,7 +107,7 @@ og.layer.XYZ.EVENT_NAMES = [
  * @param {string} name - Layer name.
  * @param {Object} options - Imagery layer options.
  */
-og.layer.xyz = function(name, options) {
+og.layer.xyz = function (name, options) {
     return new og.layer.XYZ(name, options);
 };
 
@@ -113,7 +115,7 @@ og.layer.xyz = function(name, options) {
  * Abort loading tiles.
  * @public
  */
-og.layer.XYZ.prototype.abortLoading = function() {
+og.layer.XYZ.prototype.abortLoading = function () {
     var that = this;
     this._pendingsQueue.each(function (q) {
         q && that.abortMaterialLoading(q)
@@ -127,7 +129,7 @@ og.layer.XYZ.prototype.abortLoading = function() {
  * @public
  * @param {boolean} visibility - Layer visibility.
  */
-og.layer.XYZ.prototype.setVisibility = function(visibility) {
+og.layer.XYZ.prototype.setVisibility = function (visibility) {
     if (visibility != this._visibility) {
         this._visibility = visibility;
         if (this._isBaseLayer && visibility) {
@@ -145,10 +147,10 @@ og.layer.XYZ.prototype.setVisibility = function(visibility) {
  * @public
  * @param {string} url - Url template.
  * @example
- * http://b.tile.openstreetmap.org/{z}/{x}/{y}.png
- * where {z}, {x} and {y} - replaces by current tile values.
+ * http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+ * where {z}, {x} and {y} - replaces by current tile values, {s} - random domen.
  */
-og.layer.XYZ.prototype.setUrl = function(url) {
+og.layer.XYZ.prototype.setUrl = function (url) {
     this.url = url;
 };
 
@@ -158,7 +160,7 @@ og.layer.XYZ.prototype.setUrl = function(url) {
  * @virtual
  * @param {og.planetSegment.Material} mateial
  */
-og.layer.XYZ.prototype.loadMaterial = function(material) {
+og.layer.XYZ.prototype.loadMaterial = function (material) {
 
     var seg = material.segment;
 
@@ -189,8 +191,9 @@ og.layer.XYZ.prototype.loadMaterial = function(material) {
  * @virtual
  * @param {og.planetSegment.Segment}
  */
-og.layer.XYZ.prototype._createUrl = function(segment) {
+og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
+        "s": this._s[this._counter % this._s.length],
         "x": segment.tileX.toString(),
         "y": segment.tileY.toString(),
         "z": segment.tileZoom.toString()
@@ -203,7 +206,7 @@ og.layer.XYZ.prototype._createUrl = function(segment) {
  * @param {og.planetSegment.Segment} segment - Segment that loads image data.
  * @returns {string}
  */
-og.layer.XYZ.prototype._getHTTPRequestString = function(segment) {
+og.layer.XYZ.prototype._getHTTPRequestString = function (segment) {
     var url = this._createUrl(segment);
     return this._urlRewriteCallback ? this._urlRewriteCallback(segment, url) : url;
 };
@@ -213,7 +216,7 @@ og.layer.XYZ.prototype._getHTTPRequestString = function(segment) {
  * @public
  * @param {og.layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
  */
-og.layer.XYZ.prototype.setUrlRewriteCallback = function(ur) {
+og.layer.XYZ.prototype.setUrlRewriteCallback = function (ur) {
     this._urlRewriteCallback = ur;
 };
 
@@ -222,7 +225,7 @@ og.layer.XYZ.prototype.setUrlRewriteCallback = function(ur) {
  * @protected
  * @param {og.planetSegment.Material} material - Loads material image.
  */
-og.layer.XYZ.prototype._exec = function(material) {
+og.layer.XYZ.prototype._exec = function (material) {
     og.layer.XYZ.__requestsCounter++;
     this._counter++;
 
@@ -230,7 +233,7 @@ og.layer.XYZ.prototype._exec = function(material) {
     material.image.crossOrigin = '';
 
     var that = this;
-    material.image.onload = function() {
+    material.image.onload = function () {
         that._counter--;
         og.layer.XYZ.__requestsCounter--;
 
@@ -244,7 +247,7 @@ og.layer.XYZ.prototype._exec = function(material) {
         that._dequeueRequest();
     };
 
-    material.image.onerror = function() {
+    material.image.onerror = function () {
         if (material.isLoading && material.image) {
             that._counter--;
             og.layer.XYZ.__requestsCounter--;
@@ -261,7 +264,7 @@ og.layer.XYZ.prototype._exec = function(material) {
  * @public
  * @param {og.planetSegment.Material} material - Segment material.
  */
-og.layer.XYZ.prototype.abortMaterialLoading = function(material) {
+og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
     if (material.isLoading && material.image) {
         material.image.src = "";
         this._counter--;
@@ -272,7 +275,7 @@ og.layer.XYZ.prototype.abortMaterialLoading = function(material) {
     material.isReady = false;
 };
 
-og.layer.XYZ.prototype._dequeueRequest = function() {
+og.layer.XYZ.prototype._dequeueRequest = function () {
     if (this._pendingsQueue.length) {
         if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
             var pmat;
@@ -284,7 +287,7 @@ og.layer.XYZ.prototype._dequeueRequest = function() {
     }
 };
 
-og.layer.XYZ.prototype._whilePendings = function() {
+og.layer.XYZ.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         var pmat = this._pendingsQueue.pop();
         if (pmat.segment.node) {
@@ -298,7 +301,7 @@ og.layer.XYZ.prototype._whilePendings = function() {
 };
 
 
-og.layer.XYZ.prototype.applyMaterial = function(material) {
+og.layer.XYZ.prototype.applyMaterial = function (material) {
     if (material.isReady) {
         return [0, 0, 1, 1];
     } else {
@@ -337,7 +340,7 @@ og.layer.XYZ.prototype.applyMaterial = function(material) {
     }
 };
 
-og.layer.XYZ.prototype.clearMaterial = function(material) {
+og.layer.XYZ.prototype.clearMaterial = function (material) {
     if (material.isReady) {
         material.isReady = false;
 
@@ -362,7 +365,7 @@ og.layer.XYZ.prototype.clearMaterial = function(material) {
 /**
  * @protected
  */
-og.layer.XYZ.prototype._correctFullExtent = function() {
+og.layer.XYZ.prototype._correctFullExtent = function () {
     var e = this._extent,
         em = this._extentMerc;
     var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;

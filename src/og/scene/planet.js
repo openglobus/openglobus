@@ -825,7 +825,32 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
 
     this._quadTreeNorth.renderTree();
     this._quadTreeSouth.renderTree();
+
+
     this._quadTree.renderTree();
+
+    if (this.renderer.activeCamera.slope > 0.8 && this.renderer.activeCamera._lonLat.height < 850000) {
+        this.minCurrZoom = this.maxCurrZoom;
+        
+        var temp = this._renderedNodes;
+        this._renderedNodes = [];
+
+        for (var i = 0; i < temp.length; i++) {
+            var ri = temp[i];
+            if (ri.planetSegment.tileZoom === this.maxCurrZoom) {
+                this._renderedNodes.push(ri);
+            }
+        }
+
+        for (var i = 0; i < temp.length; i++) {
+            var ri = temp[i];
+            if (ri.planetSegment.tileZoom < this.maxCurrZoom) {
+                ri.renderTree(this.maxCurrZoom);
+            } else {
+                this._renderedNodes.push(ri);
+            }
+        }
+    }
 };
 
 /**
@@ -845,10 +870,11 @@ og.scene.Planet.prototype.frame = function () {
     // print2d("l1", this.terrainLock._lock, 100, 140);
     // print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
 
-    this.baseLayer && print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-    print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-    print2d("t1", "normal: " + this._normalMapCreator._queue.length, 100, 180);
+    // this.baseLayer && print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
+    // print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
+    // print2d("t1", "normal: " + this._normalMapCreator._queue.length, 100, 180);
     print2d("t3", this.minCurrZoom + ", " + this.maxCurrZoom, 100, 200);
+    print2d("t1", this.camera.slope, 100, 100);
 
 
     this.transformLights();

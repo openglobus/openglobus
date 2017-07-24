@@ -137,6 +137,8 @@ og.Camera = function (renderer, options) {
      */
     this._v = new og.math.Vector3(1, 0, 0); //n x u - UP
 
+    this.slope = 0;
+
     /**
      * Camera forward vector.
      * @protected

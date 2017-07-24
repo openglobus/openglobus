@@ -73,6 +73,8 @@ og.PlanetCamera = function (planet, options) {
      */
     this._insideSegment = null;
 
+    this.slope = 0;
+
     /**
      * Coordinates that depends on what segment class we are fling over.
      * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.QuadNode
@@ -134,6 +136,8 @@ og.PlanetCamera.prototype.update = function () {
     this._normalMatrix = this._viewMatrix.toMatrix3();
 
     this.updateGeodeticPosition();
+
+    this.slope = this._n.dot(this.eye.normal());
 
     this.events.dispatch(this.events.viewchange, this);
 };

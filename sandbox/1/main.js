@@ -434,7 +434,7 @@ function main5() {
         shininess: 20,
         diffuse: [0.89, 0.9, 0.83],
         isBaseLayer: true,
-        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
@@ -443,7 +443,7 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [pointLayer]
+        "layers": [pointLayer, osm]
     });
 
     // globus.planet.camera.set(

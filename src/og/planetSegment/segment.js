@@ -211,7 +211,7 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
     var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
         ray = new og.math.Ray(xyz, xyz.negateTo());
 
-    if (verts.length) {
+    if (verts && verts.length) {
         var ind_v0 = ((size + 1) * indY + indX) * 3;
         var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
 
