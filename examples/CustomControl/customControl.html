@@ -29,8 +29,8 @@
 
             function parseLonLat(val) {
                 var parts = val.match(/([+-]?\d+\.\d+).+?([+-]?\d+\.\d+)/);
-                if (parts) return new og_LonLat(parts[2], parts[1]);
-                return new og_LonLat();
+                if (parts) return new og.LonLat(parts[2], parts[1]);
+                return new og.LonLat();
             };
 
             function getUrlVars() {
