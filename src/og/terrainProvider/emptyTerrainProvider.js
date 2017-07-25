@@ -58,3 +58,10 @@ og.terrainProvider.EmptyTerrainProvider.prototype.handleSegmentTerrain = functio
     segment.terrainReady = true;
     segment.terrainExists = true;
 };
+
+/**
+ * Abstract function
+ * @public
+ * @abstract
+ */
+og.terrainProvider.EmptyTerrainProvider.prototype.abortLoading = function () { };
