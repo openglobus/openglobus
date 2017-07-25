@@ -28,53 +28,25 @@
             og.inheritance.base(this, options);
 
             function parseLonLat(val) {
+                val = val.toLowerCase();
+                parts = val.split(" ");
 
-                if (val.indexOf('N') == -1 && val.indexOf('S') == -1 &&
-                    val.indexOf('W') == -1 && val.indexOf('E') == -1) {
-                    return val.split(',');
-                }
+                var res = new og.LonLat();
 
-                var parts = val.split(/[°'"]+/).join(' ').split(/[^\w\S]+/);
-
-                var directions = [];
-                var coords = [];
-                var dd = 0;
-                var pow = 0;
-
-                for (i in parts) {
-
-                    // we end on a direction
-                    if (isNaN(parts[i])) {
-
-                        var _float = parseFloat(parts[i]);
-
-                        var direction = parts[i];
-
-                        if (!isNaN(_float)) {
-                            dd += (_float / Math.pow(60, pow++));
-                            direction = parts[i].replace(_float, '');
-                        }
-
-                        direction = direction[0];
-
-                        if (direction == 'S' || direction == 'W')
-                            dd *= -1;
-
-                        directions[directions.length] = direction;
-                        coords[coords.length] = dd;
-                        dd = pow = 0;
-                    } else {
-                        dd += (parseFloat(parts[i]) / Math.pow(60, pow++));
+                for (var i = 0; i < parts.length; i++) {
+                    var pi = parts[i];
+                    if (pi[0] === 'n') {
+                        res.lat = parseFloat(pi.substr(1, pi.length - 1));
+                    } else if (pi[0] === 'e') {
+                        res.lon = parseFloat(pi.substr(1, pi.length - 1));
+                    } else if (pi[0] === 's') {
+                        res.lat = -1.0 * parseFloat(pi.substr(1, pi.length - 1));
+                    } else if (pi[0] === 'w') {
+                        res.lon = -1.0 * parseFloat(pi.substr(1, pi.length - 1));
                     }
                 }
 
-                if (directions[0] == 'W' || directions[0] == 'E') {
-                    var tmp = coords[0];
-                    coords[0] = coords[1];
-                    coords[1] = tmp;
-                }
-
-                return new og.LonLat(coords[0], coords[1]);
+                return res;
             };
 
             function getUrlVars() {
@@ -86,18 +58,15 @@
                 return vars;
             }
 
-            this.fly = function (lonlat) {
-                this.planet.flyLonLat(lonlat);
-            };
-
             this.onadd = function () {
                 var lonlatEl = document.createElement("input");
                 lonlatEl.type = "text";
                 lonlatEl.placeholder = "Enter coordinates";
+                var that = this;
                 lonlatEl.addEventListener("keyup", function (event) {
                     event.preventDefault();
                     if (event.keyCode == 13) {
-                        globus.planet.flyLonLat(parseLonLat(this.value));
+                        that.planet.flyLonLat(parseLonLat(this.value));
                     }
                 });
 
@@ -114,7 +83,7 @@
 
                     e = new og.math.Vector3(parseFloat(e[0]), parseFloat(e[1]), parseFloat(e[2]));
                     f = new og.math.Vector3(parseFloat(f[0]), parseFloat(f[1]), parseFloat(f[2]));
-                    u = new og.math.Vector3(parseFloat(u[0]), parseFloat(u[0]), parseFloat(u[0]));
+                    u = new og.math.Vector3(parseFloat(u[0]), parseFloat(u[1]), parseFloat(u[2]));
 
                     globus.planet.camera.set(e, e.sub(f), u);
                     globus.planet.camera.update();
