@@ -28,25 +28,9 @@
             og.inheritance.base(this, options);
 
             function parseLonLat(val) {
-                val = val.toLowerCase();
-                parts = val.split(" ");
-
-                var res = new og.LonLat();
-
-                for (var i = 0; i < parts.length; i++) {
-                    var pi = parts[i];
-                    if (pi[0] === 'n') {
-                        res.lat = parseFloat(pi.substr(1, pi.length - 1));
-                    } else if (pi[0] === 'e') {
-                        res.lon = parseFloat(pi.substr(1, pi.length - 1));
-                    } else if (pi[0] === 's') {
-                        res.lat = -1.0 * parseFloat(pi.substr(1, pi.length - 1));
-                    } else if (pi[0] === 'w') {
-                        res.lon = -1.0 * parseFloat(pi.substr(1, pi.length - 1));
-                    }
-                }
-
-                return res;
+                var parts = val.match(/([+-]?\d+\.\d+).+?([+-]?\d+\.\d+)/);
+                if (parts) return new og_LonLat(parts[2], parts[1]);
+                return new og_LonLat();
             };
 
             function getUrlVars() {
