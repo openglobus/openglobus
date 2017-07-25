@@ -239,7 +239,7 @@ og.layer.XYZ.prototype._exec = function (material) {
 
         if (material.isLoading) {
             var e = that.events.load;
-            if (e.length) {
+            if (e.handlers.length) {
                 that.events.dispatch(e, material);
             }
             material.applyImage(this);

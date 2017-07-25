@@ -165,7 +165,7 @@ og.layer.CanvasTiles.prototype._exec = function(material) {
          */
         setTimeout(function() {
             var e = that.events.load;
-            if (e.length) {
+            if (e.handlers.length) {
                 that.events.dispatch(e, material);
             }
             that.drawTile(material,

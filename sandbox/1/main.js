@@ -473,6 +473,135 @@ function main5() {
     ).update();
 }
 
+function main6() {
+    var CustomControl = function (options) {
+        og.inheritance.base(this, options);
+
+        function parseLonLat(val) {
+
+            if (val.indexOf('N') == -1 && val.indexOf('S') == -1 &&
+                val.indexOf('W') == -1 && val.indexOf('E') == -1) {
+                return val.split(',');
+            }
+
+            var parts = val.split(/[°'"]+/).join(' ').split(/[^\w\S]+/);
+
+            var directions = [];
+            var coords = [];
+            var dd = 0;
+            var pow = 0;
+
+            for (i in parts) {
+
+                // we end on a direction
+                if (isNaN(parts[i])) {
+
+                    var _float = parseFloat(parts[i]);
+
+                    var direction = parts[i];
+
+                    if (!isNaN(_float)) {
+                        dd += (_float / Math.pow(60, pow++));
+                        direction = parts[i].replace(_float, '');
+                    }
+
+                    direction = direction[0];
+
+                    if (direction == 'S' || direction == 'W')
+                        dd *= -1;
+
+                    directions[directions.length] = direction;
+                    coords[coords.length] = dd;
+                    dd = pow = 0;
+                } else {
+                    dd += (parseFloat(parts[i]) / Math.pow(60, pow++));
+                }
+            }
+
+            if (directions[0] == 'W' || directions[0] == 'E') {
+                var tmp = coords[0];
+                coords[0] = coords[1];
+                coords[1] = tmp;
+            }
+
+            return new og.LonLat(coords[0], coords[1]);
+        };
+
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
+                function (m, key, value) {
+                    vars[key] = value;
+                });
+            return vars;
+        }
+
+        this.fly = function (lonlat) {
+            this.planet.flyLonLat(lonlat);
+        };
+
+        this.onadd = function () {
+            var lonlatEl = document.createElement("input");
+            lonlatEl.type = "text";
+            lonlatEl.placeholder = "Enter coordinates";
+            lonlatEl.addEventListener("keyup", function (event) {
+                event.preventDefault();
+                if (event.keyCode == 13) {
+                    globus.planet.flyLonLat(parseLonLat(this.value));
+                }
+            });
+
+            this.renderer.div.appendChild(lonlatEl);
+        };
+
+        this.oninit = function () {
+            var params = document.URL.split('?');
+            if (params[1]) {
+                var urlVars = getUrlVars(params[1]);
+                var e = urlVars.e.split(','),
+                    f = urlVars.f.split(','),
+                    u = urlVars.u.split(',');
+
+                e = new og.math.Vector3(parseFloat(e[0]), parseFloat(e[1]), parseFloat(e[2]));
+                f = new og.math.Vector3(parseFloat(f[0]), parseFloat(f[1]), parseFloat(f[2]));
+                u = new og.math.Vector3(parseFloat(u[0]), parseFloat(u[0]), parseFloat(u[0]));
+
+                globus.planet.camera.set(e, e.sub(f), u);
+                globus.planet.camera.update();
+            }
+
+            this.planet.camera.events.on("moveend", function (c) {
+                var splits = document.URL.split('?');
+                var cameraStr = "e=" + c.eye.x.toFixed(5) + "," + c.eye.y.toFixed(5) + "," + c.eye.z.toFixed(5) +
+                    "&f=" + c.getForward().x.toFixed(5) + "," + c.getForward().y.toFixed(5) + "," + c.getForward().z.toFixed(5) +
+                    "&u=" + c.getUp().x.toFixed(5) + "," + c.getUp().y.toFixed(5) + "," + c.getUp().z.toFixed(5);
+                history.replaceState("", "", splits[0] + "?" + cameraStr);
+            });
+        };
+    };
+
+    og.inheritance.extend(CustomControl, og.control.BaseControl);
+
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: true,
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    });
+
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        "layers": [osm]
+    });
+
+    globus.planet.addControl(new CustomControl);
+}
+
 /*
 <div style="
     position: absolute;

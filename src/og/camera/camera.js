@@ -146,6 +146,12 @@ og.Camera = function (renderer, options) {
      */
     this._n = new og.math.Vector3(0, 0, 1); //eye - look - FORWARD
 
+    this._pu = this._u;
+    this._pv = this._v;
+    this._pn = this._n;
+    this._peye = this.eye;
+    this._moved = false;
+
     this._tanViewAngle_hrad = 0;
     this._tanViewAngle_hradOneByHeight = 0;
 
@@ -154,10 +160,16 @@ og.Camera = function (renderer, options) {
 
 og.Camera.EVENT_NAMES = [
     /**
-     * Every camera updates event.
+     * When camera has been updated.
      * @event og.Camera#viewchange
      */
-    "viewchange"
+    "viewchange",
+
+    /**
+     * Camera is stopped.
+     * @event og.Camera#moveend
+     */
+    "moveend"
 ];
 
 og.Camera.defaultOptions = {
@@ -174,11 +186,41 @@ og.Camera.defaultOptions = {
  * @protected
  */
 og.Camera.prototype._setViewMatrix = function () {
-    var u = this._u, v = this._v, n = this._n, eye = this.eye;
+    var u = this._u,
+        v = this._v,
+        n = this._n,
+        eye = this.eye;
+
     this._viewMatrix.set([u.x, v.x, n.x, 0,
-                        u.y, v.y, n.y, 0,
-                        u.z, v.z, n.z, 0,
-                       -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
+    u.y, v.y, n.y, 0,
+    u.z, v.z, n.z, 0,
+    -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
+};
+
+og.Camera.prototype.checkMoveEnd = function () {
+    var u = this._u,
+        v = this._v,
+        n = this._n,
+        eye = this.eye;
+
+    if (this.events.moveend.handlers.length) {
+        if (this._peye.equal(eye) &&
+            this._pu.equal(u) &&
+            this._pv.equal(v) &&
+            this._pn.equal(n)) {
+            if (this._moved) {
+                this.events.dispatch(this.events.moveend, this);
+            }
+            this._moved = false;
+        } else {
+            this._moved = true;
+        }
+    }
+
+    this._pu = u;
+    this._pv = v;
+    this._pn = n;
+    this._peye = eye;
 };
 
 /**

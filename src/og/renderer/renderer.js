@@ -373,6 +373,9 @@ og.Renderer.prototype.addRenderNodes = function (nodesArr) {
  * @public
  */
 og.Renderer.prototype.draw = function () {
+
+    this.activeCamera.checkMoveEnd();
+    
     var e = this.events;
     e.handleEvents();
     e.dispatch(e.draw, this);
