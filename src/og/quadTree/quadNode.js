@@ -391,35 +391,30 @@ og.quadTree.QuadNode.prototype.getCommonSide = function (node) {
     var POLE = og.mercator.POLE,
         MAX_LAT = og.mercator.MAX_LAT;
 
-    if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return og.quadTree.E;
-    } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return og.quadTree.W;
-    } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return og.quadTree.N;
-    } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return og.quadTree.S;
-
-        //POLE border
-    } else if (this.planetSegment.tileZoom > 0) {
-        if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+    if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
+        if (a_ne_lon === b_sw_lon) {
             return og.quadTree.E;
-        } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-            return og.quadTree.E;
-        } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+        } else if (a_sw_lon === b_ne_lon) {
             return og.quadTree.W;
+        } else if (this.planetSegment.tileZoom > 0) {
+            if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+                return og.quadTree.E;
+            } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+                return og.quadTree.E;
+            } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+                return og.quadTree.W;
+            }
         }
-    }
-
-    //Poles and mercator nodes common side.
-    else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-        return og.quadTree.N;
-    } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-        return og.quadTree.S;
+    } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
+        if (a_ne_lat === b_sw_lat) {
+            return og.quadTree.N;
+        } else if (a_sw_lat === b_ne_lat) {
+            return og.quadTree.S;
+        } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
+            return og.quadTree.N;
+        } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
+            return og.quadTree.S;
+        }
     }
 
     return -1;

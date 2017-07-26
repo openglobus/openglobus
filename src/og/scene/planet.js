@@ -304,7 +304,7 @@ og.scene.Planet = function (name, ellipsoid) {
      * @public
      * @type {number}
      */
-    this.RATIO_LOD = 1.12;
+    this.RATIO_LOD = 1.1;
 
     this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
     this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
