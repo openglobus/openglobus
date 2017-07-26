@@ -139,12 +139,13 @@ og.control.EarthCoordinates.prototype.oninit = function () {
     this.renderer.div.appendChild(centerDiv);
 
     if (this._center) {
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
         centerDiv.style.display = "block";
     } else {
         this.renderer.events.on("mousemove", this._onMouseMove, this);
         centerDiv.style.display = "none";
     }
+
 };
 
 /**
@@ -157,7 +158,7 @@ og.control.EarthCoordinates.prototype.setCenter = function (center) {
         this._center = center;
         if (center) {
             this.renderer.events.off("mousemove", this._onMouseMove);
-            this.renderer.events.on("draw", this._draw, this);
+            this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
             centerDiv.style.display = "block";
         } else {
             this.renderer.events.off("draw", this._draw);
@@ -176,15 +177,11 @@ og.control.EarthCoordinates.prototype._showPosition = function () {
     }
 };
 
-og.control.EarthCoordinates.prototype._draw = function () {
+og.control.EarthCoordinates.prototype._grabCoordinates = function () {
     var r = this.renderer;
     var ts = r.events.touchState;
-    if (r.controlsBag.scaleRot <= 0 &&
-        !r.activeCamera._flying ||
-        ts.moving && ts.sys.touches.length === 1) {
-        this.position = this.planet.getLonLatFromPixelTerrain(r.handler.getCenter());
-        this._showPosition();
-    }
+    this.position = this.planet.getLonLatFromPixelTerrain(r.handler.getCenter());
+    this._showPosition();
 };
 
 og.control.EarthCoordinates.prototype._onMouseMove = function () {
