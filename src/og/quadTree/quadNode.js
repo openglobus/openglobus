@@ -325,7 +325,7 @@ og.quadTree.QuadNode.prototype.renderNode = function (onlyTerrain) {
     }
 
     //Calculate minimal and maximal zoom index on the screen
-    if (seg.tileZoom > this.planet.maxCurrZoom) {
+    if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
         this.planet.maxCurrZoom = seg.tileZoom;
     }
 

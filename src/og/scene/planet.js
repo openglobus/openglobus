@@ -349,7 +349,7 @@ og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
  * @type {number}
  * @default
  */
-og.scene.Planet.MAX_NODES = 120;
+og.scene.Planet.MAX_NODES = 150;
 
 og.scene.Planet.EVENT_NAMES = [
     /**
@@ -829,7 +829,7 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
 
     this._quadTree.renderTree();
 
-    if (this.renderer.activeCamera.slope > 0.8 && this.renderer.activeCamera._lonLat.height < 850000) {
+    if (this.renderer.activeCamera.slope > 0.68 && this.renderer.activeCamera._lonLat.height < 850000) {
         this.minCurrZoom = this.maxCurrZoom;
 
         var temp = this._renderedNodes;
