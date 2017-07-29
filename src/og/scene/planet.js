@@ -218,7 +218,14 @@ og.scene.Planet = function (name, ellipsoid) {
     this._heightFactor = 1.0;
 
     /**
-     * Precomputed indexes buffer array for differrent grid size segments.
+     * Precomputed indexes array for differrent grid size segments.
+     * @protected
+     * @type {Array.<Array.<number>>}
+     */
+    this._indexesCache = [];
+
+    /**
+     * Precomputed indexes buffers for differrent grid size segments.
      * @protected
      * @type {Array.<Array.<number>>}
      */
@@ -571,21 +578,30 @@ og.scene.Planet.prototype.initialization = function () {
     //Iniytialize indexes buffers cache. It takes ~120mb RAM!
     for (var i = 0; i <= TABLESIZE; i++) {
         var c = Math.pow(2, i);
-        !this._indexesBuffers[c] && (this._indexesBuffers[c] = []);
+        !this._indexesCache[c] && (this._indexesCache[c] = []);
         for (var j = 0; j <= TABLESIZE; j++) {
             var w = Math.pow(2, j);
-            !this._indexesBuffers[c][w] && (this._indexesBuffers[c][w] = []);
+            !this._indexesCache[c][w] && (this._indexesCache[c][w] = []);
             for (var k = 0; k <= TABLESIZE; k++) {
                 var n = Math.pow(2, k);
-                !this._indexesBuffers[c][w][n] && (this._indexesBuffers[c][w][n] = []);
+                !this._indexesCache[c][w][n] && (this._indexesCache[c][w][n] = []);
                 for (var m = 0; m <= TABLESIZE; m++) {
                     var e = Math.pow(2, m);
-                    !this._indexesBuffers[c][w][n][e] && (this._indexesBuffers[c][w][n][e] = []);
+                    !this._indexesCache[c][w][n][e] && (this._indexesCache[c][w][n][e] = []);
                     for (var q = 0; q <= TABLESIZE; q++) {
                         var s = Math.pow(2, q);
-                        !this._indexesBuffers[c][w][n][e][s] && (this._indexesBuffers[c][w][n][e][s] = []);
+                        
+                        //!this._indexesCache[c][w][n][e][s] && (this._indexesCache[c][w][n][e][s] = []);
+
                         var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
-                        this._indexesBuffers[c][w][n][e][s] = this.renderer.handler.createElementArrayBuffer(indexes, 1, indexes.length);
+
+                        var buffer = null;
+                        buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+
+                        this._indexesCache[c][w][n][e][s] = {
+                            'indexes':indexes,
+                            'buffer': buffer
+                        };
                     }
                 }
             }
@@ -829,6 +845,7 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
 
     this._quadTree.renderTree();
 
+    //TODO: needs optimization
     if (this.renderer.activeCamera.slope > 0.68 && this.renderer.activeCamera._lonLat.height < 850000) {
         this.minCurrZoom = this.maxCurrZoom;
 

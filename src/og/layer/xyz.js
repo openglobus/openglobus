@@ -14,12 +14,15 @@ goog.require('og.utils');
  * @param {Object} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
+ * @param {Array.<string>} [options.subdomains=['a','b','c']] - Subdomains of the tile service.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
+ * @param {og.layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
  * @fires og.layer.XYZ#load
  * @fires og.layer.XYZ#loadend
  *
@@ -63,7 +66,15 @@ og.layer.XYZ = function (name, options) {
      */
     this._pendingsQueue = new og.QueueArray();
 
-    this._s = ['a', 'b', 'c'];
+    /**
+     * @protected
+     */
+    this._s = options.subdomains || ['a', 'b', 'c'];
+
+    /**
+     * @protected
+     */
+    this._crossOrigin = (options.crossOrigin == undefined ? '' : options.crossOrigin);
 
     /**
      * Rewrites imagery tile url query.
@@ -73,7 +84,7 @@ og.layer.XYZ = function (name, options) {
      * @param {string} url - Created url.
      * @returns {string} - Url query string.
      */
-    this._urlRewriteCallback = null;
+    this._urlRewriteCallback = options.urlRewrite || null;
 };
 
 og.inheritance.extend(og.layer.XYZ, og.layer.Layer);
@@ -230,7 +241,7 @@ og.layer.XYZ.prototype._exec = function (material) {
     this._counter++;
 
     material.image = new Image();
-    material.image.crossOrigin = '';
+    material.image.crossOrigin = this._crossOrigin;
 
     var that = this;
     material.image.onload = function () {

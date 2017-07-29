@@ -914,6 +914,8 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
 
         if (notEmpty || !isOverlay) {
 
+            var _indexBuffer = this._getIndexBuffer();
+
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
@@ -941,7 +943,10 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            sh.drawIndexBuffer(p.drawMode, this._getIndexBuffer());
+
+            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
 
@@ -1005,7 +1010,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             slice.layers = [];
         }
 
-        this._indexBuffer = this._getIndexBuffer();
+        var _indexBuffer = this._getIndexBuffer();
 
         while (li) {
             if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
@@ -1089,7 +1094,10 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            sh.drawIndexBuffer(p.drawMode, this._indexBuffer);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            //sh.drawIndexBuffer(p.drawMode, this._indexBuffer);
         }
     }
 
@@ -1151,7 +1159,10 @@ og.planetSegment.Segment.prototype._colorPickingRendering = function (sh, layerS
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            sh.drawIndexBuffer(p.drawMode, this._indexBuffer);
+
+            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
 
@@ -1206,7 +1217,10 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
             gl.vertexAttribPointer(sha.aVertexPosition._pName, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            sh.drawIndexBuffer(p.drawMode, this._indexBuffer);
+
+            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
 
@@ -1219,7 +1233,11 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
 
 og.planetSegment.Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSize;
-    return this.planet._indexesBuffers[this.gridSize][s[0]][s[1]][s[2]][s[3]];
+    var cache = this.planet._indexesCache[this.gridSize][s[0]][s[1]][s[2]][s[3]];
+    if (!cache.buffer) {
+        cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(cache.indexes, 1);
+    }
+    return cache.buffer;
 };
 
 og.planetSegment.Segment.prototype._collectRenderNodes = function () {
