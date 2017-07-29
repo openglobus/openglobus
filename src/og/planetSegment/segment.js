@@ -150,6 +150,8 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 
     this._renderingSlices = [];
+
+    this._indexBuffer = null;
 };
 
 /**
@@ -914,8 +916,6 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
 
         if (notEmpty || !isOverlay) {
 
-            var _indexBuffer = this._getIndexBuffer();
-
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias._pName, this.normalMapTextureBias);
@@ -944,7 +944,7 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
+            var _indexBuffer = this._getIndexBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
             gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
@@ -1010,7 +1010,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             slice.layers = [];
         }
 
-        var _indexBuffer = this._getIndexBuffer();
+        this._indexBuffer = this._getIndexBuffer();
 
         while (li) {
             if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
@@ -1095,9 +1095,8 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-            //sh.drawIndexBuffer(p.drawMode, this._indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
 
@@ -1160,16 +1159,10 @@ og.planetSegment.Segment.prototype._colorPickingRendering = function (sh, layerS
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
-
-    this.node.hasNeighbor[0] = false;
-    this.node.hasNeighbor[1] = false;
-    this.node.hasNeighbor[2] = false;
-    this.node.hasNeighbor[3] = false;
 };
 
 og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
@@ -1218,16 +1211,10 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord._pName, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            //sh.drawIndexBuffer(p.drawMode, _indexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
-
-    this.node.hasNeighbor[0] = false;
-    this.node.hasNeighbor[1] = false;
-    this.node.hasNeighbor[2] = false;
-    this.node.hasNeighbor[3] = false;
 };
 
 
