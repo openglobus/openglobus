@@ -590,16 +590,19 @@ og.scene.Planet.prototype.initialization = function () {
                     !this._indexesCache[c][w][n][e] && (this._indexesCache[c][w][n][e] = []);
                     for (var q = 0; q <= TABLESIZE; q++) {
                         var s = Math.pow(2, q);
-                        
+
                         //!this._indexesCache[c][w][n][e][s] && (this._indexesCache[c][w][n][e][s] = []);
 
                         var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
 
                         var buffer = null;
-                        buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+
+                        if (c === w && c === n && c === e && c === s) {
+                            buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                        }
 
                         this._indexesCache[c][w][n][e][s] = {
-                            'indexes':indexes,
+                            'indexes': indexes,
                             'buffer': buffer
                         };
                     }
@@ -675,7 +678,7 @@ og.scene.Planet.prototype.initialization = function () {
 
     this._vectorTileCreator = new og.utils.VectorTileCreator(this);
 
-    this._normalMapCreator = new og.utils.NormalMapCreator(this.renderer.handler);
+    this._normalMapCreator = new og.utils.NormalMapCreator(this);
 
     //Loads first nodes for better viewing if you have started on a lower altitude.
     this._preRender();

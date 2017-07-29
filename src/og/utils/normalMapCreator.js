@@ -6,8 +6,9 @@ goog.require('og.webgl.Handler');
 goog.require('og.webgl.Framebuffer');
 goog.require('og.QueueArray');
 
-og.utils.NormalMapCreator = function (handler, width, height, maxFrames) {
-    this._handler = handler;
+og.utils.NormalMapCreator = function (planet, width, height, maxFrames) {
+    this._planet = planet;
+    this._handler = planet.renderer.handler;
     this._verticesBufferArray = [];
     this._indexBufferArray = [];
     this._positionBuffer = null;
@@ -127,8 +128,9 @@ og.utils.NormalMapCreator.prototype._init = function () {
         }
 
         this._verticesBufferArray[gs] = this._handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
-        var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
-        this._indexBufferArray[gs] = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
+        //var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
+        //this._indexBufferArray[gs] = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
+        this._indexBufferArray[gs] = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
     }
 
     //create 2d screen square buffer
