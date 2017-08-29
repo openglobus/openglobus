@@ -325,6 +325,18 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
     }
 
     var ec = this._entityCollection;
+
+    if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+
+        this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+        
+        if (Math.abs(this._lonlat.lat) < og.mercator.MAX_LAT) {
+            this._lonlatMerc = this._lonlat.forwardMercator();
+        } else {
+            this._lonlatMerc = null;
+        }
+    }
+
     ec && ec.events.dispatch(ec.events.entitymove, this);
 };
 

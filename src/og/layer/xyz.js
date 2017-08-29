@@ -204,7 +204,7 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
  */
 og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
-        "s": this._s[this._counter % this._s.length],
+        "s": this._s[Math.abs(this._counter) % this._s.length],
         "x": segment.tileX.toString(),
         "y": segment.tileY.toString(),
         "z": segment.tileZoom.toString()

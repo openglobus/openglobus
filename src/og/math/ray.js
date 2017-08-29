@@ -177,8 +177,10 @@ og.math.Ray.prototype.hitPlane = function (v0, v1, v2, res) {
  * @returns {og.math.Vector3}
  */
 og.math.Ray.prototype.hitSphere = function (sphere) {
-    var r = sphere.radius, c = sphere.center,
-        o = this.origin, d = this.direction;
+    var r = sphere.radius, 
+        c = sphere.center,
+        o = this.origin, 
+        d = this.direction;
     var vpc = og.math.Vector3.sub(c, o);
     if (vpc.dot(d) < 0) {
         var l = vpc.length();

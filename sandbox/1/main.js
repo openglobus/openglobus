@@ -394,39 +394,27 @@ function test() {
 }
 
 function main5() {
-    var points = [];
 
-    for (var i = 0; i < 10; i++) {
-        for (var j = 0; j < 10; j++) {
-            var coords = new og.LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
-            points.push(new og.Entity({
-                'name': 'Blue Marker',
-                'lonlat': coords,
-                'billboard': {
-                    'src': 'marker.png',
-                    'size': [18, 32],
-                    'offset': [0, 16],
-                    'alignedAxis': og.ellipsoid.wgs84.lonLatToCartesian(coords).normalize()
-                }
-            }));
-        }
-    }
-
-    var vector = [
-        new og.Entity({
-            'geometry': {
-                'type': 'MultiLineString',
-                'coordinates': [[[0, 0], [10, 0]], [[10, 10], [5, 5]]]
+    pointLayer = new og.layer.Vector("points", {
+        'groundAlign': true,
+        'entities': [{
+            'name': 'Blue Marker',
+            'lonlat': [8.19, 46.73],
+            'billboard': {
+                'src': 'marker.png',
+                'size': [29, 48],
+                'offset': [0, 24]
             }
-        })
-    ];
-
-
-    pointLayer = new og.layer.Vector("pointLayer", {
-        //'groundAlign': true,
-        'entities': vector,
-        //'async': false,
-        //'nodeCapacity': points.length
+        }, {
+            'name': 'label',
+            'lonlat': [8.25, 46.74],
+            'label': {
+                'text': 'Touch me',
+                'size': [35],
+                'outlineColor': "rgba(0,0,0,.5)"
+            }
+        }],
+        'async': false
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -434,7 +422,7 @@ function main5() {
         shininess: 20,
         diffuse: [0.89, 0.9, 0.83],
         isBaseLayer: true,
-        url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
@@ -443,34 +431,46 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [pointLayer, osm]
+        "layers": [osm, pointLayer]
     });
 
-    // globus.planet.camera.set(
-    //     og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
-    //     og.math.vector3( 659636.5271477876, 4594887.354101415, 4360134.899630442), 
-    //     og.math.vector3( -0.021169661606197245,  0.9366073216983496,  -0.3497407187739613)
-    // ).update();
+    var pickingObject = null;
+    var startClick = new og.math.Vector2(),
+        startPos;
 
-    //Rotate points around the center
-    var center = pointLayer.getExtent().getCenter();
-    var angle = 0.1 * og.math.RADIANS;
-    globus.renderer.events.on("draw", function () {
-        pointLayer.each(function (e) {
-            var c = e.getLonLat();
-            var rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon;
-            var rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
-            e.setLonLat(new og.LonLat(rotatedLon, rotatedLat));
-        });
+    pointLayer.events.on("mouseenter", function (e) {
+        globus.planet.renderer.handler.gl.canvas.style.cursor = "pointer";
     });
 
-    globus.planet.addControl(new og.control.ToggleWireframe());
+    pointLayer.events.on("mouseleave", function (e) {
+        globus.planet.renderer.handler.gl.canvas.style.cursor = "default";
+    });
 
-    globus.planet.camera.set(
-        og.math.vector3(661450.7541234301, 4599837.003890677, 4373015.90391755),
-        og.math.vector3(659636.5271477876, 4594887.354101415, 4360134.899630442),
-        og.math.vector3(-0.021169661606197245, 0.9366073216983496, -0.3497407187739613)
-    ).update();
+    pointLayer.events.on("ldown", function (e) {
+        globus.planet.renderer.controls[0].deactivate();
+
+        startClick.set(e.x, e.y);
+        pickingObject = e.pickingObject;
+        startPos = globus.planet.getPixelFromCartesian(pickingObject.getCartesian());
+    });
+
+    pointLayer.events.on("lup", function (e) {
+        globus.planet.renderer.controls[0].activate();
+        pickingObject = null;
+    });
+
+    globus.planet.renderer.events.on("mousemove", function (e) {
+        if (pickingObject) {
+            var d = og.math.vector2(e.x, e.y).sub(startClick);
+            var endPos = startPos.add(d);
+            var coords = globus.planet.getCartesianFromPixelTerrain(endPos);
+            if (coords) {
+                pickingObject.setCartesian3v(coords);
+            }
+        }
+    });
+
+    globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 }
 
 /*

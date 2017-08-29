@@ -593,7 +593,7 @@ og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
 
         //Merc nodes
         this._secondPASS = [];
-        this._entityCollectionsTree.collectRenderCollections(p._visibleNodes, outArr);
+        this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
         var i = this._secondPASS.length;
         while (i--) {
             this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
@@ -601,7 +601,7 @@ og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
 
         //North nodes
         this._secondPASS = [];
-        this._entityCollectionsTreeNorth.collectRenderCollections(p._visibleNodesNorth, outArr);
+        this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
         i = this._secondPASS.length;
         while (i--) {
             this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
@@ -609,7 +609,7 @@ og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
 
         //South nodes
         this._secondPASS = [];
-        this._entityCollectionsTreeSouth.collectRenderCollections(p._visibleNodesSouth, outArr);
+        this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
         i = this._secondPASS.length;
         while (i--) {
             this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);

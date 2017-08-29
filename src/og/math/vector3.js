@@ -241,6 +241,16 @@ og.math.Vector3.prototype.isZero = function () {
 };
 
 /**
+ * Get projection of the first vector to the second.
+ * @static
+ * @param {og.math.Vector3} a - Project vector.
+ * @returns {og.math.Vector3}
+ */
+og.math.Vector3.prototype.projToVec = function (a) {
+    return a.scaleTo(a.dot(this) / a.dot(a));
+};
+
+/**
  * Compares with vector. Returns true if it equals another.
  * @public
  * @param {og.math.Vector3} p - Vector to compare.

@@ -220,6 +220,8 @@ og.quadTree.QuadNode.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
+QQQ = false;
+
 og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
     this.state = og.quadTree.WALKTHROUGH;
 
@@ -239,9 +241,7 @@ og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
 
         //Search a node which the camera is flying over.
         if (this.parentNode._cameraInside) {
-
             var inside;
-
             if (Math.abs(cam._lonLat.lat) <= og.mercator.MAX_LAT &&
                 seg._projection.id === og.proj.EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
@@ -263,27 +263,37 @@ og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
     var inFrustum = cam.frustum.containsSphere(seg.bsphere),
         underBottom = false;
 
-    if (cam._lonLat.height < 10000.0) {
+    var h = cam._lonLat.height;
+
+    if (h < 10000.0) {
         underBottom = false;
     }
 
     var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)
+        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(h)
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
-        if (seg.tileZoom === maxZoom) {
-            this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
-        } else if (seg.tileZoom <= 1 && seg.normalMapReady) {
+        if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(maxZoom);
-        } else if (!maxZoom && seg.acceptForRendering(cam)) {
-            this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
+        } else if (seg.tileZoom === maxZoom || !maxZoom && seg.acceptForRendering(cam)) {
+
+            if (QQQ) {
+                if (/*this._cameraInside && */seg.tileZoom > 4) {
+                    var pns = this.parentNode.parentNode.parentNode.parentNode.planetSegment;
+                    !pns.ready && pns.createPlainSegment();
+                    !(pns.terrainReady || pns.terrainIsLoading) && pns.loadTerrain();
+                }
+            }
+
+            this.prepareForRendering(h, altVis, onlyTerrain);
+
         } else {
             if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes(maxZoom);
             } else {
-                this.prepareForRendering(cam._lonLat.height, altVis, onlyTerrain);
+                this.prepareForRendering(h, altVis, onlyTerrain);
             }
         }
     } else {
@@ -752,10 +762,10 @@ og.quadTree.QuadNode.prototype.destroy = function () {
 
 og.quadTree.QuadNode.prototype.destroyBranches = function (cls) {
 
-    if (cls) {
-        //this.planetSegment.clearSegment();
-        //this.appliedTerrainNodeId = -1;
-    }
+    //if (cls) {
+    //this.planetSegment.clearSegment();
+    //this.appliedTerrainNodeId = -1;
+    //}
 
     var nodesToRemove = [];
     for (var i = 0; i < this.nodes.length; i++) {

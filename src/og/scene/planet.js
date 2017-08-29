@@ -356,7 +356,7 @@ og.inheritance.extend(og.scene.Planet, og.scene.RenderNode);
  * @type {number}
  * @default
  */
-og.scene.Planet.MAX_NODES = 150;
+og.scene.Planet.MAX_NODES = 250;
 
 og.scene.Planet.EVENT_NAMES = [
     /**
@@ -879,10 +879,10 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
  */
 og.scene.Planet.prototype.frame = function () {
 
+    this._collectRenderNodes();
+
     //Here is the planet node dispatches a draw event before rendering begins.
     this.events.dispatch(this.events.draw, this);
-
-    this._collectRenderNodes();
 
     this.renderer.activeCamera.prepareFrame();
 

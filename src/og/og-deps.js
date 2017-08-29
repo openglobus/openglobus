@@ -66,11 +66,13 @@ goog.addDependency('../../../og/src/og/light/lightSource.js', ['og.LightSource']
 goog.addDependency('../../../og/src/og/lock.js', ['og.idle'], [], false);
 goog.addDependency('../../../og/src/og/lonlat.js', ['og.LonLat'], ['og.mercator'], false);
 goog.addDependency('../../../og/src/og/math/coder.js', ['og.math.coder'], ['og.math', 'og.math.Vector4'], false);
-goog.addDependency('../../../og/src/og/math/line.js', ['og.math.Line'], ['og.math.Vector2'], false);
+goog.addDependency('../../../og/src/og/math/line2.js', ['og.math.Line2'], ['og.math.Vector2'], false);
+goog.addDependency('../../../og/src/og/math/line3.js', ['og.math.Line3'], ['og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/math/math.js', ['og.math'], [], false);
 goog.addDependency('../../../og/src/og/math/matrix3.js', ['og.math.Matrix3'], ['og.math', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/math/matrix4.js', ['og.math.Matrix4'], ['og.math', 'og.math.Matrix3', 'og.math.Vector3', 'og.math.Vector4'], false);
 goog.addDependency('../../../og/src/og/math/pixel.js', ['og.math.Pixel'], [], false);
+goog.addDependency('../../../og/src/og/math/plane.js', ['og.math.Plane'], ['og.math.Line3', 'og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/math/quaternion.js', ['og.math.Quaternion'], ['og.math', 'og.math.Matrix4'], false);
 goog.addDependency('../../../og/src/og/math/ray.js', ['og.math.Ray'], ['og.math.Vector3'], false);
 goog.addDependency('../../../og/src/og/math/vector2.js', ['og.math.Vector2'], ['og.math.Vector3'], false);
