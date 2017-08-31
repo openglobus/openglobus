@@ -395,35 +395,41 @@ function test() {
 
 function main5() {
 
+    var center = og.lonLat(8.19, 46.73);
+    var grid = [];
+
+    var size = 0.26;
+    var cell = 0.005;
+
+    var vert = [];
+    for (var i = 0; i < size; i += cell) {
+        var par = [],
+            mer = [];
+        for (var j = 0; j < size; j += cell) {
+            par.push(new og.LonLat(center.lon + j - size / 2, center.lat + i - size / 2));
+            mer.push(new og.LonLat(center.lon + i - size / 2, center.lat + j - size / 2));
+        }
+        grid.push(par);
+        grid.push(mer);
+    }
+
+    polylineEntity = new og.Entity({
+        'polyline': {
+            'pathLonLat': grid,
+            'thickness': 3,
+            'color': "#39b739",
+            'isClosed': false
+        }
+    });
+
     pointLayer = new og.layer.Vector("points", {
         'groundAlign': true,
-        'entities': [{
-            'name': 'Blue Marker',
-            'lonlat': [8.19, 46.73],
-            'billboard': {
-                'src': 'marker.png',
-                'size': [29, 48],
-                'offset': [0, 24]
-            }
-        }, {
-            'name': 'label',
-            'lonlat': [8.25, 46.74],
-            'label': {
-                'text': 'Touch me',
-                'size': [35],
-                'outlineColor': "rgba(0,0,0,.5)"
-            }
-        }, {
-            'name': 'Track',
-            'polyline': {
-                'pathLonLat': [[[8.12153, 46.72], [8.196, 46.72], [8.166, 46.75], [8.25, 46.74]]],
-                'thickness': 3,
-                'color': "#39b739",
-                'isClosed': false
-            }
-        }],
+        'entities': [
+            polylineEntity
+        ],
         'async': false
     });
+
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
@@ -443,8 +449,7 @@ function main5() {
     });
 
     var pickingObject = null;
-    var startClick = new og.math.Vector2(),
-        startPos;
+    var startPos, endPos;
 
     pointLayer.events.on("mouseenter", function (e) {
         globus.planet.renderer.handler.gl.canvas.style.cursor = "pointer";
@@ -457,23 +462,39 @@ function main5() {
     pointLayer.events.on("ldown", function (e) {
         globus.planet.renderer.controls[0].deactivate();
 
-        startClick.set(e.x, e.y);
+        startPos = globus.planet.getLonLatFromPixelTerrain(e);
         pickingObject = e.pickingObject;
-        startPos = globus.planet.getPixelFromCartesian(pickingObject.getCartesian());
     });
 
     pointLayer.events.on("lup", function (e) {
         globus.planet.renderer.controls[0].activate();
+        center.lon += endPos.lon - startPos.lon;
+        center.lat += endPos.lat - startPos.lat;
         pickingObject = null;
     });
 
     globus.planet.renderer.events.on("mousemove", function (e) {
         if (pickingObject) {
-            var d = og.math.vector2(e.x, e.y).sub(startClick);
-            var endPos = startPos.add(d);
-            var coords = globus.planet.getCartesianFromPixelTerrain(endPos);
-            if (coords) {
-                pickingObject.setCartesian3v(coords);
+            endPos = globus.planet.getLonLatFromPixelTerrain(e);
+            if (endPos) {
+                dlon = endPos.lon - startPos.lon;
+                dlat = endPos.lat - startPos.lat;
+
+                grid = [];
+
+                for (var i = 0; i < size; i += cell) {
+                    var par = [],
+                        mer = [];
+                    for (var j = 0; j < size; j += cell) {
+                        par.push(new og.LonLat(center.lon + dlon + j - size / 2, center.lat + dlat + i - size / 2));
+                        mer.push(new og.LonLat(center.lon + dlon + i - size / 2, center.lat + dlat + j - size / 2));
+                    }
+                    grid.push(par);
+                    grid.push(mer);
+                }
+
+                polylineEntity.polyline.setPathLonLat(grid, true);
+
             }
         }
     });

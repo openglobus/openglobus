@@ -27,6 +27,8 @@ og.Polyline = function (options) {
      */
     this.id = og.Polyline.__staticId++;
 
+    this.altitude = 0.0;
+
     /**
      * Polyline thickness in screen pixels.
      * @public

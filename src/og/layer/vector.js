@@ -605,7 +605,7 @@ og.layer.Vector.prototype._collectPolylineCollectionPASS = function (outArr) {
                                 var cart = p._path3v[c_j][c_j_h];
                                 var res = new og.math.Vector3();
                                 seg.getTerrainPoint(res, cart, ll);
-                                p.setPoint3v(res.addA(res.normal().scale(0.5)), c_j_h, c_j, true);
+                                p.setPoint3v(res.addA(res.normal().scale(p.altitude + 1.0)), c_j_h, c_j, true);
                                 break;
                             }
                         }
