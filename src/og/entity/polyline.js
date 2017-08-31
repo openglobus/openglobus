@@ -12,8 +12,8 @@ goog.require('og.Extent');
  * @param {og.math.Vector4} [options.color] - RGBA color.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
- * @param {Array.<og.LonLat>} [options.pathLonLat] - Polyline geodetic coordinates array.
- * @param {Array.<Array.<number,number,number>>} [options.path] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
+ * @param {Array.<Array.<number,number,number>>} [options.pathLonLat] - Polyline geodetic coordinates array.
+ * @param {Array.<Array.<number,number,number>>} [options.path3v] - LinesString cartesian coordinates array. Like path:[[0,0,0], [1,1,1],...]
  */
 og.Polyline = function (options) {
 
@@ -161,6 +161,10 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
 
     for (var j = 0; j < path3v.length; j++) {
         var path = path3v[j];
+
+        outTransformedPathLonLat[j] = [];
+        outTransformedPathMerc[j] = [];
+
         var startIndex = index;
 
         var last;
@@ -191,8 +195,8 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
             }
             if (ellipsoid) {
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
-                outTransformedPathLonLat.push(lonLat);
-                outTransformedPathMerc.push(lonLat.forwardMercator());
+                outTransformedPathLonLat[j].push(lonLat);
+                outTransformedPathMerc[j].push(lonLat.forwardMercator());
 
                 if (lonLat.lon < outExtent.southWest.lon)
                     outExtent.southWest.lon = lonLat.lon;
@@ -270,12 +274,33 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
         var path = pathLonLat[j];
         var startIndex = index;
 
+        outTransformedPathCartesian[j] = [];
+        outTransformedPathMerc[j] = [];
+
         var last;
         if (isClosed) {
-            last = ellipsoid.lonLatToCartesian(path[path.length - 1]);
+            var pp = path[path.length - 1];
+            if (pp instanceof Array) {
+                last = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                last = ellipsoid.lonLatToCartesian(pp);
+            }
         } else {
-            var p0 = ellipsoid.lonLatToCartesian(path[0]),
-                p1 = ellipsoid.lonLatToCartesian(path[1]);
+            var p0, p1;
+            var pp = path[0];
+            if (pp instanceof Array) {
+                p0 = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                p0 = ellipsoid.lonLatToCartesian(pp);
+            }
+
+            pp = path[1];
+            if (pp instanceof Array) {
+                p1 = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                p1 = ellipsoid.lonLatToCartesian(pp);
+            }
+
             last = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
         }
 
@@ -283,10 +308,14 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
         outOrders.push(1, -1, 2, -2);
 
         for (var i = 0; i < path.length; i++) {
-            var cur = path[i],
-                cartesian = ellipsoid.lonLatToCartesian(cur);
-            outTransformedPathCartesian.push(cartesian);
-            outTransformedPathMerc.push(cur.forwardMercator());
+            var cur = path[i];
+            if (cur instanceof Array) {
+                cur = new og.LonLat(cur[0], cur[1], cur[2]);
+            }
+
+            var cartesian = ellipsoid.lonLatToCartesian(cur);
+            outTransformedPathCartesian[j].push(cartesian);
+            outTransformedPathMerc[j].push(cur.forwardMercator());
 
             outVertices.push(cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z,
                 cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z);
@@ -305,11 +334,29 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
 
         var first;
         if (isClosed) {
-            first = ellipsoid.lonLatToCartesian(path[0]);
+            var pp = path[0];
+            if (pp instanceof Array) {
+                first = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                first = ellipsoid.lonLatToCartesian(pp);
+            }
             outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
         } else {
-            var p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
-                p1 = ellipsoid.lonLatToCartesian(path[path.length - 2]);
+            var pp;
+            var p0, p1;
+            pp = path[path.length - 1];
+            if (pp instanceof Array) {
+                p0 = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                p0 = ellipsoid.lonLatToCartesian(pp);
+            }
+
+            pp = path[path.length - 2];
+            if (pp instanceof Array) {
+                p1 = ellipsoid.lonLatToCartesian(new og.LonLat(pp[0], pp[1], pp[2]));
+            } else {
+                p1 = ellipsoid.lonLatToCartesian(pp);
+            }
             first = new og.math.Vector3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             outIndexes.push(index - 1, index - 1, index - 1, index - 1);
         }
@@ -369,8 +416,8 @@ og.Polyline.prototype._setEqualPath3v = function (path3v) {
             var cur = path[i];
             if (ellipsoid) {
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
-                l[i] = lonLat;
-                m[i] = lonLat.forwardMercator();
+                l[j][i] = lonLat;
+                m[j][i] = lonLat.forwardMercator();
 
                 if (lonLat.lon < extent.southWest.lon)
                     extent.southWest.lon = lonLat.lon;
@@ -429,7 +476,7 @@ og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
     var extent = this._extent;
     extent.southWest.set(180, 90);
     extent.northEast.set(-180, -90);
-    
+
     var v = this._vertices,
         l = this._pathLonLat,
         m = this._pathLonLatMerc,
@@ -466,9 +513,9 @@ og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
         for (var i = 0; i < path.length; i++) {
             var cur = path[i];
             cartesian = ellipsoid.lonLatToCartesian(cur);
-            c[i] = cartesian;
-            m[i] = cur.forwardMercator();
-            l[i] = cur;
+            c[j][i] = cartesian;
+            m[j][i] = cur.forwardMercator();
+            l[j][i] = cur;
             v[k++] = cartesian.x;
             v[k++] = cartesian.y;
             v[k++] = cartesian.z;
@@ -513,6 +560,104 @@ og.Polyline.prototype._setEqualPathLonLat = function (pathLonLat) {
         v[k++] = first.x;
         v[k++] = first.y;
         v[k++] = first.z;
+    }
+};
+
+og.Polyline.prototype.setPoint3v = function (coordinates, index, segmentIndex, forceLonLat) {
+    segmentIndex = segmentIndex || 0;
+    if (this._renderNode) {
+        var v = this._vertices,
+            l = this._pathLonLat,
+            m = this._pathLonLatMerc,
+            k = 0, kk = 0;
+
+        for (var i = 0; i < segmentIndex; i++) {
+            kk += this._path3v[i].length * 12 + 24;
+        }
+
+        var path = this._path3v[segmentIndex];
+
+        path[index].x = coordinates.x;
+        path[index].y = coordinates.y;
+        path[index].z = coordinates.z;
+
+        if (index === 0 || index === 1) {
+            var last;
+            if (this._closedLine) {
+                last = path[path.length - 1]
+            } else {
+                last = new og.math.Vector3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
+            }
+
+            k = kk;
+
+            v[k] = last.x;
+            v[k + 1] = last.y;
+            v[k + 2] = last.z;
+            v[k + 3] = last.x;
+            v[k + 4] = last.y;
+            v[k + 5] = last.z;
+            v[k + 6] = last.x;
+            v[k + 7] = last.y;
+            v[k + 8] = last.z;
+            v[k + 9] = last.x;
+            v[k + 10] = last.y;
+            v[k + 11] = last.z;
+        }
+
+        if (!forceLonLat && this._renderNode.ellipsoid) {
+            var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
+            l[segmentIndex][index] = lonLat;
+            m[segmentIndex][index] = lonLat.forwardMercator();
+        }
+
+        k = kk + index * 12 + 12;
+
+        v[k] = coordinates.x;
+        v[k + 1] = coordinates.y;
+        v[k + 2] = coordinates.z;
+        v[k + 3] = coordinates.x;
+        v[k + 4] = coordinates.y;
+        v[k + 5] = coordinates.z;
+        v[k + 6] = coordinates.x;
+        v[k + 7] = coordinates.y;
+        v[k + 8] = coordinates.z;
+        v[k + 9] = coordinates.x;
+        v[k + 10] = coordinates.y;
+        v[k + 11] = coordinates.z;
+
+        if (index === path.length - 1 || index === path.length - 2) {
+            var first;
+            if (this._closedLine) {
+                first = path[0];
+            } else {
+                var l1 = path.length - 1;
+                first = new og.math.Vector3(path[l1].x + path[l1].x - path[l1 - 1].x, path[l1].y + path[l1].y - path[l1 - 1].y,
+                    path[l1].z + path[l1].z - path[l1 - 1].z);
+            }
+
+            k = kk + path.length * 12 + 12;
+
+            v[k] = first.x;
+            v[k + 1] = first.y;
+            v[k + 2] = first.z;
+            v[k + 3] = first.x;
+            v[k + 4] = first.y;
+            v[k + 5] = first.z;
+            v[k + 6] = first.x;
+            v[k + 7] = first.y;
+            v[k + 8] = first.z;
+            v[k + 9] = first.x;
+            v[k + 10] = first.y;
+            v[k + 11] = first.z;
+        }
+
+        this._changedBuffers[og.Polyline.VERTICES_BUFFER] = true;
+    } else {
+        var path = this._path3v[segmentIndex];
+        path[index].x = coordinates.x;
+        path[index].y = coordinates.y;
+        path[index].z = coordinates.z;
     }
 };
 

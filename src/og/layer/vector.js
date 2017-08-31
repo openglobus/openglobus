@@ -90,10 +90,10 @@ og.layer.Vector = function (name, options) {
      */
     this._entities = og.layer.Vector._entitiesConstructor(options.entities || []);
 
-    this._entityCollectionAlways = new og.EntityCollection({
+    this._polylineEntityCollection = new og.EntityCollection({
         'pickingEnabled': this._pickingEnabled
     });
-    this._bindEventsDefault(this._entityCollectionAlways);
+    this._bindEventsDefault(this._polylineEntityCollection);
 
     this._geometryHandler = new og.GeometryHandler(this);
 
@@ -181,7 +181,7 @@ og.layer.Vector.prototype._bindPicking = function () {
 og.layer.Vector.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
     this._geometryHandler.assignHandler(planet.renderer.handler);
-    this._entityCollectionAlways.addTo(planet, true);
+    this._polylineEntityCollection.addTo(planet, true);
     this.setEntities(this._entities);
     return this;
 };
@@ -248,7 +248,7 @@ og.layer.Vector.prototype.add = function (entity, rightNow) {
         //
 
         if (entity.polyline) {
-            this._entityCollectionAlways.add(entity);
+            this._polylineEntityCollection.add(entity);
         }
 
         if (entity.geometry) {
@@ -361,7 +361,7 @@ og.layer.Vector.prototype.removeEntity = function (entity) {
 og.layer.Vector.prototype.setPickingEnabled = function (enable) {
     this._pickingEnabled = enable;
 
-    this._entityCollectionAlways.setPickingEnabled(enable);
+    this._polylineEntityCollection.setPickingEnabled(enable);
 
     this._entityCollectionsTree.traverseTree(function (ec) {
         ec.setPickingEnabled(enable);
@@ -456,8 +456,8 @@ og.layer.Vector.prototype.setEntities = function (entities) {
         ei._vectorLayer = this;
         ei._vectorLayerIndex = i;
 
-        if (ei.polyline || ei.pointCloud) {
-            this._entityCollectionAlways.add(ei);
+        if (ei.polyline) {
+            this._polylineEntityCollection.add(ei);
         } else if (ei.billboard || ei.label || ei.shape) {
             entitiesForTree.push(ei);
         }
@@ -580,6 +580,42 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
     });
 };
 
+og.layer.Vector.prototype._collectPolylineCollectionPASS = function (outArr) {
+    outArr.push(this._polylineEntityCollection);
+    if (this.groundAlign) {
+
+        var nodes = this._planet._renderedNodes;
+        var visibleExtent = this._planet.getViewExtent();
+        var e = this._polylineEntityCollection._entities;
+        var e_i = e.length;
+
+        while (e_i--) {
+            var p = e[e_i].polyline;
+            if (visibleExtent.overlaps(p._extent)) {
+                var coords = p._pathLonLatMerc;
+                var c_j = coords.length;
+                while (c_j--) {
+                    var c_j_h = coords[c_j].length;
+                    while (c_j_h--) {
+                        var ll = coords[c_j][c_j_h];
+                        var n_k = nodes.length;
+                        while (n_k--) {
+                            var seg = nodes[n_k].planetSegment;
+                            if (seg._extent.isInside(ll)) {
+                                var cart = p._path3v[c_j][c_j_h];
+                                var res = new og.math.Vector3();
+                                seg.getTerrainPoint(res, cart, ll);
+                                p.setPoint3v(res.addA(res.normal().scale(0.5)), c_j_h, c_j, true);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
 og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
     var p = this._planet;
 
@@ -589,7 +625,8 @@ og.layer.Vector.prototype.collectVisibleCollections = function (outArr) {
         this._renderingNodesNorth = {};
         this._renderingNodesSouth = {};
 
-        outArr.push(this._entityCollectionAlways);
+        //Common collection first
+        this._collectPolylineCollectionPASS(outArr);
 
         //Merc nodes
         this._secondPASS = [];

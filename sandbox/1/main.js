@@ -413,6 +413,14 @@ function main5() {
                 'size': [35],
                 'outlineColor': "rgba(0,0,0,.5)"
             }
+        }, {
+            'name': 'Track',
+            'polyline': {
+                'pathLonLat': [[[8.12153, 46.72], [8.196, 46.72], [8.166, 46.75], [8.25, 46.74]]],
+                'thickness': 3,
+                'color': "#39b739",
+                'isClosed': false
+            }
         }],
         'async': false
     });
@@ -471,6 +479,7 @@ function main5() {
     });
 
     globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+
 }
 
 /*
