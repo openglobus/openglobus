@@ -395,34 +395,38 @@ function test() {
 
 function main5() {
 
-    var center = og.lonLat(8.19, 46.73);
-    var grid = [];
+    function createGrid(center) {
+        var grid = [];
 
-    var size = 0.26;
-    var cell = 0.005;
+        var size = 0.26;
+        var cell = 0.005;
 
-    var vert = [];
-    for (var i = 0; i < size; i += cell) {
-        var par = [],
-            mer = [];
-        for (var j = 0; j < size; j += cell) {
-            par.push(new og.LonLat(center.lon + j - size / 2, center.lat + i - size / 2));
-            mer.push(new og.LonLat(center.lon + i - size / 2, center.lat + j - size / 2));
+        var vert = [];
+        for (var i = 0; i < size; i += cell) {
+            var par = [],
+                mer = [];
+            for (var j = 0; j < size; j += cell) {
+                par.push(new og.LonLat(center.lon + j - size / 2, center.lat + i - size / 2));
+                mer.push(new og.LonLat(center.lon + i - size / 2, center.lat + j - size / 2));
+            }
+            grid.push(par);
+            grid.push(mer);
         }
-        grid.push(par);
-        grid.push(mer);
-    }
+        return grid;
+    };
 
-    polylineEntity = new og.Entity({
+    var center = og.lonLat(8.19, 46.73);    
+
+    var polylineEntity = new og.Entity({
         'polyline': {
-            'pathLonLat': grid,
+            'pathLonLat': createGrid(center),
             'thickness': 3,
-            'color': "#39b739",
+            'color': "rgba(68, 157, 205, 0.92)",
             'isClosed': false
         }
     });
 
-    pointLayer = new og.layer.Vector("points", {
+    var pointLayer = new og.layer.Vector("points", {
         'groundAlign': true,
         'entities': [
             polylineEntity
@@ -479,28 +483,13 @@ function main5() {
             if (endPos) {
                 dlon = endPos.lon - startPos.lon;
                 dlat = endPos.lat - startPos.lat;
-
-                grid = [];
-
-                for (var i = 0; i < size; i += cell) {
-                    var par = [],
-                        mer = [];
-                    for (var j = 0; j < size; j += cell) {
-                        par.push(new og.LonLat(center.lon + dlon + j - size / 2, center.lat + dlat + i - size / 2));
-                        mer.push(new og.LonLat(center.lon + dlon + i - size / 2, center.lat + dlat + j - size / 2));
-                    }
-                    grid.push(par);
-                    grid.push(mer);
-                }
-
+                var grid = createGrid(new og.LonLat(center.lon + dlon, center.lat + dlat));
                 polylineEntity.polyline.setPathLonLat(grid, true);
-
             }
         }
     });
 
     globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
-
 }
 
 /*
