@@ -30,11 +30,12 @@ goog.require('og.Geometry');
  * @param {*} [options.Polyline] - Polyline options(see {@link og.Polyline}).
  * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
- * @param {Object} [properties] - Entity custom properties.
+ * @param {*} [options.properties] - Entity custom properties.
  */
-og.Entity = function (options, properties) {
+og.Entity = function (options) {
 
     options = options || {};
+    options.properties = options.properties || {};
 
     /**
      * Unic identifier.
@@ -48,7 +49,7 @@ og.Entity = function (options, properties) {
      * @public
      * @type {Object}
      */
-    this.properties = properties || {};
+    this.properties = options.properties || {};
 
     /**
      * Entity name.
@@ -329,7 +330,7 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
     if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
 
         this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
-        
+
         if (Math.abs(this._lonlat.lat) < og.mercator.MAX_LAT) {
             this._lonlatMerc = this._lonlat.forwardMercator();
         } else {

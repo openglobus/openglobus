@@ -701,6 +701,17 @@ og.Polyline.prototype.clear = function () {
 };
 
 /**
+ * Sets Polyline color.
+ * @public
+ * @param {String} htmlColor - HTML color.
+ * @param {number} opacity - Opacity.
+ */
+og.Polyline.prototype.setColorHTML = function (htmlColor, opacity) {
+    this.color = og.utils.htmlColorToRgba(htmlColor);
+    opacity && (this.color.w = opacity);
+};
+
+/**
  * Sets Polyline RGBA color.
  * @public
  * @param {number} r - Red color.
@@ -807,6 +818,14 @@ og.Polyline.prototype._clearData = function () {
     this._vertices = [];
     this._orders = [];
     this._indexes = [];
+
+    this._path3v.length = 0;
+    this._pathLonLat.length = 0;
+    this._pathLonLatMerc.length = 0;
+
+    this._path3v = [];
+    this._pathLonLat = [];
+    this._pathLonLatMerc = [];
 };
 
 /**
@@ -1061,8 +1080,8 @@ og.Polyline.prototype._createVerticesBuffer = function () {
  */
 og.Polyline.prototype._createIndexBuffer = function () {
     var h = this._renderNode.renderer.handler;
-    h.gl.deleteBuffer(this._orderBuffer);
-    h.gl.deleteBuffer(this._indexBuffer);
+    h.gl.deleteBuffer(this._ordersBuffer);
+    h.gl.deleteBuffer(this._indexesBuffer);
     this._ordersBuffer = h.createArrayBuffer(new Float32Array(this._orders), 1, this._orders.length / 2);
     this._indexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._indexes), 1, this._indexes.length);
 };
