@@ -395,52 +395,43 @@ function test() {
 
 function main5() {
 
-    var colors = ["red", "green", "yellow", "#5F429A", "#FA5858", "#00FFFF", "purple", "magenta", "lime"];
+    function createGrid(center) {
+        var grid = [];
 
-    var p0 = new og.Entity({
-        'lonlat': [9.96, 53.58],
-        'billboard': {
-            'src': 'marker.png',
-            'size': [29, 48],
-            'offset': [0, 24]
-        },
-        'properties': {
-            'name': "0",
-            'id': null
+        var size = 0.26;
+        var cell = 0.005;
+
+        var vert = [];
+        for (var i = 0; i < size; i += cell) {
+            var par = [],
+                mer = [];
+            for (var j = 0; j < size; j += cell) {
+                par.push(new og.LonLat(center.lon + j - size / 2, center.lat + i - size / 2));
+                mer.push(new og.LonLat(center.lon + i - size / 2, center.lat + j - size / 2));
+            }
+            grid.push(par);
+            grid.push(mer);
         }
-    });
+        return grid;
+    };
 
-    var p1 = new og.Entity({
-        'lonlat': [9.958, 53.583],
-        'billboard': {
-            'src': 'marker.png',
-            'size': [29, 48],
-            'offset': [0, 24]
-        },
-        'properties': {
-            'name': "1",
-            'id': null
-        }
-    });
+    var center = og.lonLat(8.19, 46.73);    
 
-    var markers = new og.layer.Vector("markers", {
-        'groundAlign': true,
-        'entities': [p0, p1],
-        'async': false
-    });
-
-    var trackEntity = new og.Entity({
+    var polylineEntity = new og.Entity({
         'polyline': {
-            'pathLonLat': [],
-            'thickness': 4.5,
-            'color': "#5F429A",
+            'pathLonLat': createGrid(center),
+            'thickness': 3,
+            'color': "rgba(68, 157, 205, 0.92)",
             'isClosed': false
         }
     });
 
-    var track = new og.layer.Vector("Track", {
+    var pointLayer = new og.layer.Vector("points", {
         'groundAlign': true,
-        'entities': [trackEntity]
+        'entities': [
+            polylineEntity
+        ],
+        'async': false
     });
 
 
@@ -458,123 +449,48 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, markers, track]
+        "layers": [osm, pointLayer]
     });
 
-
-    globus.planet.viewExtentArr([9.1, 53.6, 11.09, 53.4]);
-
-
-    var xhr1, xhr2, colorIndex = 0;
-
-    function _loadTrack(po) {
-        if (xhr1) {
-            xhr1.abort();
-        }
-        if (xhr2) {
-            xhr2.abort();
-        }
-
-        xhr1 = og.ajax.request("http://hpkeller.de:8888/Osm2poService?cmd=fv&lon=" + po.getLonLat().lon +
-            "&lat=" + po.getLonLat().lat + "&format=geojson",
-            {
-                'responseType': "json",
-                'success': function (e) {
-                    xhr1 = null;
-                    po.properties.id = e.properties.id;
-
-                    xhr2 = og.ajax.request("http://hpkeller.de:8888/Osm2poService?cmd=fr&source=" + p0.properties.id +
-                        "&target=" + p1.properties.id + "&format=geojson",
-                        {
-                            'responseType': "json",
-                            'success': function (e) {
-                                xhr2 = null;
-                                var pathLonLat = [];
-                                var features = e.features;
-                                for (var i = 0; i < features.length; i++) {
-                                    var fig = features[i].geometry;
-                                    var t = fig.type.toLowerCase();
-                                    if (t === "linestring") {
-                                        pathLonLat.push(fig.coordinates);
-                                    } else if (t === "multilinestring") {
-                                        pathLonLat.push.apply(fig.coordinates);
-                                    }
-                                }
-                                trackEntity.polyline.setPathLonLat(pathLonLat);
-                                trackEntity.polyline.setColorHTML(colors[colorIndex++]);
-                            },
-                            'error': function (e) {
-                                console.log(e);
-                                xhr2 = null;
-                            }
-                        });
-                }
-            });
-    };
-
     var pickingObject = null;
-    var startClick = new og.math.Vector2(),
-        startPos;
+    var startPos, endPos;
 
-    markers.events.on("mouseenter", function (e) {
+    pointLayer.events.on("mouseenter", function (e) {
         globus.planet.renderer.handler.gl.canvas.style.cursor = "pointer";
     });
 
-    markers.events.on("mouseleave", function (e) {
+    pointLayer.events.on("mouseleave", function (e) {
         globus.planet.renderer.handler.gl.canvas.style.cursor = "default";
     });
 
-    markers.events.on("ldown", function (e) {
+    pointLayer.events.on("ldown", function (e) {
         globus.planet.renderer.controls[0].deactivate();
 
-        startClick.set(e.x, e.y);
+        startPos = globus.planet.getLonLatFromPixelTerrain(e);
         pickingObject = e.pickingObject;
-        startPos = globus.planet.getPixelFromCartesian(pickingObject.getCartesian());
     });
 
-    markers.events.on("lup", function (e) {
+    pointLayer.events.on("lup", function (e) {
         globus.planet.renderer.controls[0].activate();
-        pickingObject && _loadTrack(pickingObject);
+        center.lon += endPos.lon - startPos.lon;
+        center.lat += endPos.lat - startPos.lat;
         pickingObject = null;
     });
 
     globus.planet.renderer.events.on("mousemove", function (e) {
         if (pickingObject) {
-            var d = og.math.vector2(e.x, e.y).sub(startClick);
-            var endPos = startPos.add(d);
-            var coords = globus.planet.getCartesianFromPixelTerrain(endPos);
-            if (coords) {
-                pickingObject.setCartesian3v(coords);
+            endPos = globus.planet.getLonLatFromPixelTerrain(e);
+            if (endPos) {
+                dlon = endPos.lon - startPos.lon;
+                dlat = endPos.lat - startPos.lat;
+                var grid = createGrid(new og.LonLat(center.lon + dlon, center.lat + dlat));
+                polylineEntity.polyline.setPathLonLat(grid, true);
             }
         }
     });
 
-    //
-    //initial identification
-    //
-    og.ajax.request("http://hpkeller.de:8888/Osm2poService?cmd=fv&lon=" + p0.getLonLat().lon +
-        "&lat=" + p0.getLonLat().lat + "&format=geojson",
-        {
-            'responseType': "json",
-            'success': function (e) {
-                p0.properties.id = e.properties.id;
-            }
-        });
+    globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
-    og.ajax.request("http://hpkeller.de:8888/Osm2poService?cmd=fv&lon=" + p1.getLonLat().lon +
-        "&lat=" + p1.getLonLat().lat + "&format=geojson",
-        {
-            'responseType': "json",
-            'success': function (e) {
-                p1.properties.id = e.properties.id;
-            }
-        });
-
-    // globus.planet.renderer.events.on("mousestop", function (e) {
-    //     if (pickingObject) {
-    //         _loadTrack(pickingObject);
-    //     }
-    // });
 }
 
 // function testRequest() {

@@ -615,7 +615,7 @@ og.Polyline.prototype.setPoint3v = function (coordinates, index, segmentIndex, f
             var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
             l[segmentIndex][index] = lonLat;
             m[segmentIndex][index] = lonLat.forwardMercator();
-            
+
             //
             // Apply new extent(TODO: think about optimization)
             //
@@ -625,7 +625,7 @@ og.Polyline.prototype.setPoint3v = function (coordinates, index, segmentIndex, f
             for (var i = 0; i < l.length; i++) {
                 var pi = l[i];
                 for (var j = 0; j < pi.length; j++) {
-                    var lon = pi[j].lon, 
+                    var lon = pi[j].lon,
                         lat = pi[j].lat;
                     if (lon > extent.northEast.lon)
                         extent.northEast.lon = lon;
@@ -827,9 +827,9 @@ og.Polyline.prototype.getVisibility = function () {
 og.Polyline.prototype.setRenderNode = function (renderNode) {
     this._renderNode = renderNode;
     if (this._pathLonLat.length) {
-        this._createDataLonLat(this._pathLonLat);
+        this._createDataLonLat([].concat(this._pathLonLat));
     } else {
-        this._createData3v(this._path3v);
+        this._createData3v([].concat(this._path3v));
     }
 };
 
