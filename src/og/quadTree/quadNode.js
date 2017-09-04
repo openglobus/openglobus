@@ -220,8 +220,6 @@ og.quadTree.QuadNode.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
-QQQ = false;
-
 og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
     this.state = og.quadTree.WALKTHROUGH;
 
@@ -265,9 +263,9 @@ og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
 
     var h = cam._lonLat.height;
 
-    if (h < 10000.0) {
-        underBottom = false;
-    }
+    // if (h < 10000.0) {
+    //     underBottom = true;
+    // }
 
     var onlyTerrain = !inFrustum && underBottom;
 
@@ -278,17 +276,7 @@ og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(maxZoom);
         } else if (seg.tileZoom === maxZoom || !maxZoom && seg.acceptForRendering(cam)) {
-
-            if (QQQ) {
-                if (/*this._cameraInside && */seg.tileZoom > 4) {
-                    var pns = this.parentNode.parentNode.parentNode.parentNode.planetSegment;
-                    !pns.ready && pns.createPlainSegment();
-                    !(pns.terrainReady || pns.terrainIsLoading) && pns.loadTerrain();
-                }
-            }
-
             this.prepareForRendering(h, altVis, onlyTerrain);
-
         } else {
             if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
                 this.traverseNodes(maxZoom);
@@ -300,7 +288,7 @@ og.quadTree.QuadNode.prototype.renderTree = function (maxZoom) {
         this.state = og.quadTree.NOTRENDERING;
     }
 
-    if (inFrustum && altVis) {
+    if (inFrustum && (altVis || h > 10000.0)) {
         seg._collectRenderNodes();
     }
 };

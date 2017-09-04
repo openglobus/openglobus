@@ -147,7 +147,7 @@ og.Polyline.__staticId = 0;
  * @static
  */
 og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrders, outIndexes,
-    ellipsoid, outTransformedPathLonLat, outTransformedPathMerc, outExtent) {
+    ellipsoid, outTransformedPathLonLat, outPath3v, outTransformedPathMerc, outExtent) {
     var index = 0;
     if (outExtent) {
         outExtent.southWest.set(180, 90);
@@ -166,6 +166,7 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
 
         outTransformedPathLonLat[j] = [];
         outTransformedPathMerc[j] = [];
+        outPath3v[j] = [];
 
         var startIndex = index;
 
@@ -198,6 +199,7 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
             if (ellipsoid) {
                 var lonLat = ellipsoid.cartesianToLonLat(cur);
                 outTransformedPathLonLat[j].push(lonLat);
+                outPath3v[j].push(cur);
                 outTransformedPathMerc[j].push(lonLat.forwardMercator());
 
                 if (lonLat.lon < outExtent.southWest.lon)
@@ -258,7 +260,7 @@ og.Polyline.appendLineData3v = function (path3v, isClosed, outVertices, outOrder
  * @static
  */
 og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, outOrders, outIndexes,
-    ellipsoid, outTransformedPathCartesian, outTransformedPathMerc, outExtent) {
+    ellipsoid, outTransformedPathCartesian, outPathLonLat, outTransformedPathMerc, outExtent) {
     var index = 0;
     if (outExtent) {
         outExtent.southWest.set(180, 90);
@@ -278,6 +280,7 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
 
         outTransformedPathCartesian[j] = [];
         outTransformedPathMerc[j] = [];
+        outPathLonLat[j] = [];
 
         var last;
         if (isClosed) {
@@ -317,6 +320,7 @@ og.Polyline.appendLineDataLonLat = function (pathLonLat, isClosed, outVertices, 
 
             var cartesian = ellipsoid.lonLatToCartesian(cur);
             outTransformedPathCartesian[j].push(cartesian);
+            outPathLonLat[j].push(cur);
             outTransformedPathMerc[j].push(cur.forwardMercator());
 
             outVertices.push(cartesian.x, cartesian.y, cartesian.z, cartesian.x, cartesian.y, cartesian.z,
@@ -611,6 +615,28 @@ og.Polyline.prototype.setPoint3v = function (coordinates, index, segmentIndex, f
             var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
             l[segmentIndex][index] = lonLat;
             m[segmentIndex][index] = lonLat.forwardMercator();
+            
+            //
+            // Apply new extent(TODO: think about optimization)
+            //
+            var extent = this._extent;
+            extent.southWest.set(180, 90);
+            extent.northEast.set(-180, -90);
+            for (var i = 0; i < l.length; i++) {
+                var pi = l[i];
+                for (var j = 0; j < pi.length; j++) {
+                    var lon = pi[j].lon, 
+                        lat = pi[j].lat;
+                    if (lon > extent.northEast.lon)
+                        extent.northEast.lon = lon;
+                    if (lat > extent.northEast.lat)
+                        extent.northEast.lat = lat;
+                    if (lon < extent.southWest.lon)
+                        extent.southWest.lon = lon;
+                    if (lat < extent.southWest.lat)
+                        extent.southWest.lat = lat;
+                }
+            }
         }
 
         k = kk + index * 12 + 12;
@@ -834,7 +860,7 @@ og.Polyline.prototype._clearData = function () {
 og.Polyline.prototype._createData3v = function (path3v) {
     this._clearData();
     og.Polyline.appendLineData3v(path3v, this._closedLine, this._vertices, this._orders, this._indexes,
-        this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc, this._extent);
+        this._renderNode.ellipsoid, this._pathLonLat, this._path3v, this._pathLonLatMerc, this._extent);
 };
 
 /**
@@ -843,7 +869,7 @@ og.Polyline.prototype._createData3v = function (path3v) {
 og.Polyline.prototype._createDataLonLat = function (pathLonlat) {
     this._clearData();
     og.Polyline.appendLineDataLonLat(pathLonlat, this._closedLine, this._vertices, this._orders, this._indexes,
-        this._renderNode.ellipsoid, this._path3v, this._pathLonLatMerc, this._extent);
+        this._renderNode.ellipsoid, this._path3v, this._pathLonLat, this._pathLonLatMerc, this._extent);
 };
 
 

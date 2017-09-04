@@ -82,7 +82,7 @@ og.layer.Vector = function (name, options) {
      * Manimal tree node depth index.
      * @private
      */
-    this._minDepth = options.minDepth || 5;
+    this._minDepth = options.minDepth || 1;
 
     /**
      * Stored entities.

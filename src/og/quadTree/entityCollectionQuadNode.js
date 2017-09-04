@@ -215,10 +215,14 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
     var p = this.layer._planet;
     var cam = p.renderer.activeCamera;
 
-    if (this.count > 0 && cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height) &&
+    var altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
+        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+
+    if (this.count > 0 && altVis &&
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
+
         var cn = this.childrenNodes;
+
         if (this.entityCollection) {
             this.renderCollection(outArr, visibleNodes, renderingNodeId);
         } else if (cn.length) {
@@ -227,6 +231,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
             cn[og.quadTree.SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
             cn[og.quadTree.SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
         }
+
     }
 };
 
