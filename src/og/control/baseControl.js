@@ -34,10 +34,10 @@ og.control.BaseControl = function (options) {
 
     /**
      * Control activity.
-     * @public
+     * @protected
      * @type {Boolean}
      */
-    this.active = options.active || false;
+    this._active = options.active || false;
 };
 
 /**
@@ -88,7 +88,7 @@ og.control.BaseControl.prototype.addTo = function (renderer) {
         if (this.autoActivate) {
             this.oninit && this.oninit();
             this._initialized = true;
-            this.active = true;
+            this._active = true;
         }
     }
 };
@@ -100,7 +100,7 @@ og.control.BaseControl.prototype.addTo = function (renderer) {
 og.control.BaseControl.prototype.remove = function () {
     this.onremove && this.onremove();
     this.renderer = null;
-    this.active = false;
+    this._active = false;
     this._initialized = false;
 };
 
@@ -109,7 +109,7 @@ og.control.BaseControl.prototype.remove = function () {
  * @public
  */
 og.control.BaseControl.prototype.activate = function () {
-    this.active = true;
+    this._active = true;
     this.onactivate && this.onactivate();
 };
 
@@ -118,6 +118,14 @@ og.control.BaseControl.prototype.activate = function () {
  * @public
  */
 og.control.BaseControl.prototype.deactivate = function () {
-    this.active = false;
+    this._active = false;
     this.ondeactivate && this.ondeactivate();
+};
+
+/**
+ * Is control active.
+ * @public
+ */
+og.control.BaseControl.prototype.isActive = function () {
+    return this._active;
 };

@@ -27,7 +27,7 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
     p.events.on('layeradd', function (e) {
         if (e instanceof og.layer.BaseGeoImage) {
             e.events.on('mousemove', function (ms) {
-                if (that.active) {
+                if (that._active) {
                     if (that._catchCorner) {
                         var corners = e.getCornersLonLat();
                         corners[that._cornerIndex] = p.getLonLatFromPixelTerrain(ms, true);
@@ -45,16 +45,16 @@ og.control.GeoImageDragControl.prototype.oninit = function () {
                 }
             });
             e.events.on('ldown', function (ms) {
-                if (that.active && that._cornerIndex != -1) {
+                if (that._active && that._cornerIndex != -1) {
                     that._catchCorner = true;
-                    p.renderer.controls[0].active = false;
+                    p.renderer.controls[0]._active = false;
                 }
             });
 
             e.events.on('lup', function (ms) {
-                if (that.active) {
+                if (that._active) {
                     that._catchCorner = false;
-                    p.renderer.controls[0].active = true;
+                    p.renderer.controls[0]._active = true;
                 }
             });
         }
