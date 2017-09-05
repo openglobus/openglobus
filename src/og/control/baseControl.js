@@ -6,7 +6,6 @@ goog.provide('og.control.BaseControl');
  * @class
  * @param {Object} [options] - Control activation options:
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
- * @param {Boolean} [options.active] - Control activity.
  */
 og.control.BaseControl = function (options) {
     options = options || {};
@@ -37,7 +36,7 @@ og.control.BaseControl = function (options) {
      * @protected
      * @type {Boolean}
      */
-    this._active = options.active || false;
+    this._active = false;
 };
 
 /**

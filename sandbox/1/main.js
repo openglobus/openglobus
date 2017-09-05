@@ -415,7 +415,7 @@ function main5() {
         return grid;
     };
 
-    var center = og.lonLat(8.19, 46.73);    
+    var center = og.lonLat(8.19, 46.73);
 
     var polylineEntity = new og.Entity({
         'polyline': {
@@ -449,7 +449,10 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, pointLayer]
+        "layers": [osm, pointLayer],
+        "sun": {
+            "active": false
+        }
     });
 
     var pickingObject = null;

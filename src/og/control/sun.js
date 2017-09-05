@@ -60,7 +60,7 @@ og.control.Sun = function (options) {
 
     this._lightOn = false;
 
-    this._stopped = false;
+    this._stopped = options.stopped || false;
 };
 
 og.inheritance.extend(og.control.Sun, og.control.BaseControl);
@@ -95,10 +95,6 @@ og.control.Sun.prototype.oninit = function () {
 
 og.control.Sun.prototype.stop = function () {
     this._stopped = true;
-};
-
-og.control.Sun.prototype.ondeactivate = function () {
-
 };
 
 og.control.Sun.prototype.onactivate = function () {

@@ -121,17 +121,26 @@ og.Globus = function (options) {
 
     this.renderer.addRenderNode(this.planet);
 
+    var _sunControl;
+
     //Add controls
     if (options.controls) {
-        this.planet.addControls(options.controls)
+        this.planet.addControls(options.controls);
     } else {
+        var _sunControl = new og.control.Sun();
         this.planet.addControls([
             new og.control.MouseNavigation(),
             new og.control.TouchNavigation(),
             new og.control.ZoomControl(),
             new og.control.EarthCoordinates(),
-            new og.control.Sun()
+            _sunControl
         ]);
+    }
+
+    if (_sunControl && options.sun) {
+        if (options.sun.active != undefined && !options.sun.active) {
+            _sunControl.deactivate();
+        }
     }
 
     if (options.layers) {
