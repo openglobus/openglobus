@@ -121,25 +121,36 @@ og.Globus = function (options) {
 
     this.renderer.addRenderNode(this.planet);
 
-    var _sunControl;
+    this.sun;
 
     //Add controls
     if (options.controls) {
         this.planet.addControls(options.controls);
     } else {
-        var _sunControl = new og.control.Sun();
         this.planet.addControls([
             new og.control.MouseNavigation(),
             new og.control.TouchNavigation(),
             new og.control.ZoomControl(),
-            new og.control.EarthCoordinates(),
-            _sunControl
+            new og.control.EarthCoordinates()
         ]);
     }
 
-    if (_sunControl && options.sun) {
+    var _controls = this.renderer.controls;
+    for (var i = 0; i < _controls.length; i++) {
+        if (_controls[i] instanceof og.control.Sun) {
+            this.sun = _controls[i];
+            break;
+        }
+    }
+
+    if (!this.sun) {
+        this.sun = new og.control.Sun();
+        this.planet.addControl(this.sun);
+    }
+
+    if (options.sun) {
         if (options.sun.active != undefined && !options.sun.active) {
-            _sunControl.deactivate();
+            this.sun.deactivate();
         }
     }
 
