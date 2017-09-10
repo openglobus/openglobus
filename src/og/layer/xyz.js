@@ -131,7 +131,6 @@ og.layer.XYZ.prototype.abortLoading = function () {
     this._pendingsQueue.each(function (q) {
         q && that.abortMaterialLoading(q)
     });
-    //this._pendingsQueue = [];
     this._pendingsQueue.clear();
 };
 
@@ -204,7 +203,7 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
  */
 og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
-        "s": this._s[Math.abs(this._counter) % this._s.length],
+        "s": this._s[Math.floor(Math.random() * this._s.length)],
         "x": segment.tileX.toString(),
         "y": segment.tileY.toString(),
         "z": segment.tileZoom.toString()
@@ -244,24 +243,28 @@ og.layer.XYZ.prototype._exec = function (material) {
     material.image.crossOrigin = this._crossOrigin;
 
     var that = this;
-    material.image.onload = function () {
+    material.image.onload = function (e) {
         that._counter--;
         og.layer.XYZ.__requestsCounter--;
 
         if (material.isLoading) {
             var e = that.events.load;
             if (e.handlers.length) {
-                that.events.dispatch(e, material);
+                that.events.dispatch(this, material);
             }
+            this.onerror = null;
+            this.onload = null;
             material.applyImage(this);
         }
         that._dequeueRequest();
     };
 
-    material.image.onerror = function () {
+    material.image.onerror = function (e) {
+        that._counter--;
+        og.layer.XYZ.__requestsCounter--;
+        this.onerror = null;
+        this.onload = null;
         if (material.isLoading && material.image) {
-            that._counter--;
-            og.layer.XYZ.__requestsCounter--;
             material.textureNotExists.call(material);
         }
         that._dequeueRequest();
@@ -278,12 +281,11 @@ og.layer.XYZ.prototype._exec = function (material) {
 og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
     if (material.isLoading && material.image) {
         material.image.src = "";
-        this._counter--;
-        og.layer.XYZ.__requestsCounter--;
+        material.image.__og_canceled = true;
+        material.image = null;
+    } else {
         this._dequeueRequest();
     }
-    material.isLoading = false;
-    material.isReady = false;
 };
 
 og.layer.XYZ.prototype._dequeueRequest = function () {
@@ -354,23 +356,22 @@ og.layer.XYZ.prototype.applyMaterial = function (material) {
 og.layer.XYZ.prototype.clearMaterial = function (material) {
     if (material.isReady) {
         material.isReady = false;
-
         !material.texture.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
-
         material.texture = null;
+    } else {
+        this.abortMaterialLoading(material);
     }
 
-    this.abortMaterialLoading(material);
-
-    material.isLoading = false;
     material.textureExists = false;
 
     if (material.image) {
         material.image.onload = null;
+        material.image.onerror = null;
         material.image.src = '';
         material.image = null;
     }
+
 };
 
 /**
