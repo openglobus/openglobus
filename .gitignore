@@ -6,6 +6,7 @@ Release
 
 Debug
 
+node_modules
 *.opensdf
 
 *.sdf

@@ -74,7 +74,7 @@ og.layer.XYZ = function (name, options) {
     /**
      * @protected
      */
-    this._crossOrigin = (options.crossOrigin == undefined ? '' : options.crossOrigin);
+    this._crossOrigin = options.crossOrigin === undefined ? '' : options.crossOrigin;
 
     /**
      * Rewrites imagery tile url query.
@@ -117,6 +117,7 @@ og.layer.XYZ.EVENT_NAMES = [
  * @function
  * @param {string} name - Layer name.
  * @param {Object} options - Imagery layer options.
+ * @return {og.layer.XYZ} - {@link og.layer.XYZ} instance
  */
 og.layer.xyz = function (name, options) {
     return new og.layer.XYZ(name, options);
@@ -129,7 +130,7 @@ og.layer.xyz = function (name, options) {
 og.layer.XYZ.prototype.abortLoading = function () {
     var that = this;
     this._pendingsQueue.each(function (q) {
-        q && that.abortMaterialLoading(q)
+        q && that.abortMaterialLoading(q);
     });
     this._pendingsQueue.clear();
 };
@@ -140,7 +141,7 @@ og.layer.XYZ.prototype.abortLoading = function () {
  * @param {boolean} visibility - Layer visibility.
  */
 og.layer.XYZ.prototype.setVisibility = function (visibility) {
-    if (visibility != this._visibility) {
+    if (visibility !== this._visibility) {
         this._visibility = visibility;
         if (this._isBaseLayer && visibility) {
             this._planet.setBaseLayer(this);
@@ -168,7 +169,7 @@ og.layer.XYZ.prototype.setUrl = function (url) {
  * Start to load tile material.
  * @public
  * @virtual
- * @param {og.planetSegment.Material} mateial
+ * @param {og.planetSegment.Material} material - Loads current material.
  */
 og.layer.XYZ.prototype.loadMaterial = function (material) {
 
@@ -199,7 +200,8 @@ og.layer.XYZ.prototype.loadMaterial = function (material) {
  * Creates query url.
  * @protected
  * @virtual
- * @param {og.planetSegment.Segment}
+ * @param {og.planetSegment.Segment} segment - Creates specific url for current segment.
+ * @returns {String} - Returns url string.
  */
 og.layer.XYZ.prototype._createUrl = function (segment) {
     return og.utils.stringTemplate(this.url, {
@@ -214,7 +216,7 @@ og.layer.XYZ.prototype._createUrl = function (segment) {
  * Returns actual url query string.
  * @protected
  * @param {og.planetSegment.Segment} segment - Segment that loads image data.
- * @returns {string}
+ * @returns {string} - Url string.
  */
 og.layer.XYZ.prototype._getHTTPRequestString = function (segment) {
     var url = this._createUrl(segment);
@@ -243,7 +245,7 @@ og.layer.XYZ.prototype._exec = function (material) {
     material.image.crossOrigin = this._crossOrigin;
 
     var that = this;
-    material.image.onload = function (e) {
+    material.image.onload = function (evt) {
         that._counter--;
         og.layer.XYZ.__requestsCounter--;
 
@@ -259,7 +261,7 @@ og.layer.XYZ.prototype._exec = function (material) {
         that._dequeueRequest();
     };
 
-    material.image.onerror = function (e) {
+    material.image.onerror = function (evt) {
         that._counter--;
         og.layer.XYZ.__requestsCounter--;
         this.onerror = null;
@@ -291,8 +293,8 @@ og.layer.XYZ.prototype.abortMaterialLoading = function (material) {
 og.layer.XYZ.prototype._dequeueRequest = function () {
     if (this._pendingsQueue.length) {
         if (og.layer.XYZ.__requestsCounter < og.layer.XYZ.MAX_REQUESTS) {
-            var pmat;
-            if (pmat = this._whilePendings())
+            var pmat = this._whilePendings();
+            if (pmat)
                 this._exec.call(this, pmat);
         }
     } else if (this._counter === 0) {

@@ -1,0 +1,25 @@
+{
+  "name": "og",
+  "version": "1.0.0",
+  "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
+  "main": "og.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenGlobus/OpenGlobus.git"
+  },
+  "author": "Zemledelec",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OpenGlobus/OpenGlobus/issues"
+  },
+  "homepage": "https://github.com/OpenGlobus/OpenGlobus#readme",
+  "dependencies": {
+    "eslint-config-defaults": "^9.0.0"
+  }
+}
