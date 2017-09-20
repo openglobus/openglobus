@@ -9,6 +9,10 @@ goog.require('og.proj.EPSG4326');
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
  * @extends {og.planetSegment.Segment}
+ * @param {og.quadNode.QuadNode} node - Quad tree segment node.
+ * @param {og.scene.Planet} planet - Scene planet.
+ * @param {Number} tileZoom - Segment tile zoom index.
+ * @param {og.Extent} extent - Segment WGS84 extent.
  */
 og.planetSegment.SegmentLonLat = function (node, planet, tileZoom, extent) {
     this._isNorth = false;

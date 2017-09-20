@@ -759,7 +759,7 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
             nmVerts[nmInd] = v.z;
             nmNorms[nmInd++] = nzl;
 
-            if (i % dg == 0 && j % dg == 0) {
+            if (i % dg === 0 && j % dg === 0) {
                 verts[ind] = v.x;
                 norms[ind++] = nxl;
 
@@ -786,12 +786,12 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
  * Gets material by layer object.
  * @public
  * @param {og.layer.Layer} layer - Layer object.
- * @returns {og.planetSegment.Material}
+ * @returns {og.planetSegment.Material} - Segment material.
  */
 og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
-        if (m[i].layer == layer) {
+        if (m[i].layer === layer) {
             return m[i];
         }
     }
@@ -801,12 +801,12 @@ og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
  * Gets material by layer name.
  * @public
  * @param {string} name - Layer name.
- * @returns {og.planetSegment.Material}
+ * @returns {og.planetSegment.Material} - Segment material.
  */
 og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
     var m = this.materials;
     for (var i = 0; i < m.length; i++) {
-        if (m[i].layer.name == name) {
+        if (m[i].layer.name === name) {
             return m[i];
         }
     }
@@ -1192,7 +1192,7 @@ og.planetSegment.Segment.prototype._heightPickingRendering = function (sh, layer
 
         var notEmpty = false;
 
-        for (var n = 0; n < slice.layers.length; n++) {
+        for (n = 0; n < slice.layers.length; n++) {
             notEmpty = true;
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);

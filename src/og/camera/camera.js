@@ -278,7 +278,7 @@ og.Camera.prototype.getBackward = function () {
  * Clone camera instance to another one.
  * @public
  * @virtual
- * @returns {og.Camera}
+ * @returns {og.Camera} - Cloned camera instance.
  */
 og.Camera.prototype.clone = function () {
     var newcam = new og.Camera();
@@ -334,7 +334,7 @@ og.Camera.prototype.setAspectRatio = function (aspect) {
 /**
  * Returns aspect ratio.
  * @public
- * @returns {number}
+ * @returns {number} - Aspect ratio.
  */
 og.Camera.prototype.getAspectRatio = function () {
     return this._aspect;
@@ -353,7 +353,7 @@ og.Camera.prototype.setFar = function (distance) {
 /**
  * Gets far distance.
  * @public
- * @returns {number}
+ * @returns {number} - Far plane distance.
  */
 og.Camera.prototype.getFar = function () {
     return this._farDist;
@@ -372,7 +372,7 @@ og.Camera.prototype.setNear = function (distance) {
 /**
  * Gets near distance.
  * @public
- * @returns {number}
+ * @returns {number} - Near plane distance.
  */
 og.Camera.prototype.getNear = function () {
     return this._nearDist;
@@ -413,6 +413,7 @@ og.Camera.prototype.setViewAngle = function (angle) {
  * @param {og.math.Vector3} eye - Camera position.
  * @param {og.math.Vector3} look - Look point.
  * @param {og.math.Vector3} up - Camera up vector.
+ * @returns {og.Camera} - This camera.
  */
 og.Camera.prototype.set = function (eye, look, up) {
     this.eye.x = eye.x;
@@ -501,6 +502,7 @@ og.Camera.prototype.yaw = function (angle) {
  * @public
  * @param {number} x - Scren X coordinate.
  * @param {number} y - Scren Y coordinate.
+ * @returns {og.math.Vector3} - Direction vector.
  */
 og.Camera.prototype.unproject = function (x, y) {
     var c = this.renderer.handler.gl.canvas,
@@ -520,7 +522,7 @@ og.Camera.prototype.unproject = function (x, y) {
  * Gets projected 3d point to the 2d screen coordiantes.
  * @public
  * @param {og.math.Vector3} v - Cartesian 3d coordiantes.
- * @returns {og.math.Vector2}
+ * @returns {og.math.Vector2} - Screen point coordinates.
  */
 og.Camera.prototype.project = function (v) {
     var r = this._projectionViewMatrix.mulVec4(v.toVector4()),
@@ -579,7 +581,7 @@ og.Camera.prototype.rotateVertical = function (angle, center) {
  * Gets 3d size factor. Uses in LOD distance calculation.
  * @public
  * @param {og.math.Vector3} p - Far point.
- * @returns {number}
+ * @returns {number} - Size factor.
  */
 og.Camera.prototype.projectedSize = function (p) {
     return this.eye.distance(p) * this._tanViewAngle_hrad;
@@ -588,7 +590,7 @@ og.Camera.prototype.projectedSize = function (p) {
 /**
  * Returns normal matrix.
  * @public
- * @type {og.math.Matrix3}
+ * @returns {og.math.Matrix3} - Normal matrix.
  */
 og.Camera.prototype.getNormalMatrix = function () {
     return this._normalMatrix;
@@ -597,7 +599,7 @@ og.Camera.prototype.getNormalMatrix = function () {
 /**
  * Returns projection matrix.
  * @public
- * @type {og.math.Matrix4}
+ * @returns {og.math.Matrix4} - Projection matrix.
  */
 og.Camera.prototype.getProjectionMatrix = function () {
     return this._projectionMatrix;
@@ -606,7 +608,7 @@ og.Camera.prototype.getProjectionMatrix = function () {
 /**
  * Returns model matrix.
  * @public
- * @type {og.math.Matrix4}
+ * @returns {og.math.Matrix4} - View matrix.
  */
 og.Camera.prototype.getViewMatrix = function () {
     return this._viewMatrix;
@@ -615,7 +617,7 @@ og.Camera.prototype.getViewMatrix = function () {
 /**
  * Returns projection and model matrix product.
  * @public
- * @type {og.math.Matrix4}
+ * @return {og.math.Matrix4} - Projection-view matrix.
  */
 og.Camera.prototype.getProjectionViewMatrix = function () {
     return this._projectionViewMatrix;
@@ -624,7 +626,7 @@ og.Camera.prototype.getProjectionViewMatrix = function () {
 /**
  * Returns inverse projection and model matrix product.
  * @public
- * @type {og.math.Matrix4}
+ * @returns {og.math.Matrix4} - Inversed projection-view matrix.
  */
 og.Camera.prototype.getInverseProjecttionViewMatrix = function () {
     return this._inverseProjectionViewMatrix;

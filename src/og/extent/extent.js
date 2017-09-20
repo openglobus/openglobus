@@ -81,6 +81,25 @@ og.Extent.createByCoordinates = function (arr) {
 };
 
 /**
+ * Creates bound extent instance by coordinate array.
+ * @static
+ * @param {Array.<Array<number,number>>} arr - Coordinate array.
+ * @return {og.Extent} Extent object.
+ */
+og.Extent.createByCoordinatesArr = function (arr) {
+    var lonmin = og.math.MAX, lonmax = og.math.MIN,
+        latmin = og.math.MAX, latmax = og.math.MIN;
+    for (var i = 0; i < arr.length; i++) {
+        var vi = arr[i];
+        if (vi[0] < lonmin) lonmin = vi[0];
+        if (vi[0] > lonmax) lonmax = vi[0];
+        if (vi[1] < latmin) latmin = vi[1];
+        if (vi[1] > latmax) latmax = vi[1];
+    }
+    return new og.Extent(new og.LonLat(lonmin, latmin), new og.LonLat(lonmax, latmax));
+};
+
+/**
  * Creates extent by meractor grid tile coordinates.
  * @static
  * @param {number} x

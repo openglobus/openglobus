@@ -75,7 +75,7 @@ og.ajax.Xhr = function (xhr) {
     this.abort = function () {
         _xhr.aborted = true;
         _xhr.abort();
-    }
+    };
 };
 
 og.ajax.defaultParams = {
@@ -88,7 +88,7 @@ og.ajax.defaultParams = {
 
 og.ajax.createXMLHttp = function () {
     var xhr = null;
-    if (typeof (XMLHttpRequest) != undefined) {
+    if (typeof XMLHttpRequest !== undefined) {
         xhr = new XMLHttpRequest;
         return xhr;
     } else if (window.ActiveXObject) {
@@ -98,6 +98,7 @@ og.ajax.createXMLHttp = function () {
                 xhr = new ActiveXObject(ieXMLHttpVersions[i]);
                 return xhr;
             } catch (e) {
+                console.log('error: og.ajax.createXMLHttp creation filed.');
             }
         }
     }
@@ -122,24 +123,45 @@ og.ajax.request = function (url, params) {
 
     params = params || {};
 
-    var p = {};
+    var p = {}, i;
 
-    for (var i in og.ajax.defaultParams) {
+    for (i in og.ajax.defaultParams) {
         p[i] = og.ajax.defaultParams[i];
     }
 
-    for (var i in params) {
+    for (i in params) {
         p[i] = params[i];
     }
+
+    p.data = params.data;
 
     var xhr = og.ajax.createXMLHttp();
 
     var customXhr = new og.ajax.Xhr(xhr);
 
-    xhr.open(p.type, url, p.async);
+    var body = null, d;
 
     if (p.type === og.ajax.Method.Post) {
+        if (p.data) {
+            body = "";
+            for (key in p.data) {
+                d = p.data[key];
+                body += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
+            }
+            body = body.slice(0, -1);
+        }
+        xhr.open(p.type, url, p.async);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    } else if (p.data) {
+        var tail = "?";
+        for (key in p.data) {
+            d = p.data[key];
+            tail += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
+        }
+        tail = tail.slice(0, -1);
+        xhr.open(p.type, url + tail, p.async);
+    } else {
+        xhr.open(p.type, url, p.async);
     }
 
     if (p.async)
@@ -182,7 +204,7 @@ og.ajax.request = function (url, params) {
         }
     };
 
-    xhr.send(params.data || og.ajax.defaultParams.data);
+    xhr.send(body);
 
     return customXhr;
 };

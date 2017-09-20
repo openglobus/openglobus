@@ -36,6 +36,7 @@
     float: left;
     position: relative;
     background-color: black;
+    user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -khtml-user-select: none;

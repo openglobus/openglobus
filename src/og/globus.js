@@ -68,10 +68,10 @@ og.Globus = function (options) {
     this.div = document.getElementById(options.target);
     this.div.appendChild(_canvas);
     this.div.classList.add("ogViewport");
-    function _disableWheel() { return false; };
-    function _enableWheel() { return true; };
-    this.div.onmouseenter = function () { document.onmousewheel = _disableWheel };
-    this.div.onmouseleave = function () { document.onmousewheel = _enableWheel };
+    function _disableWheel() { return false; }
+    function _enableWheel() { return true; }
+    this.div.onmouseenter = function () { document.onmousewheel = _disableWheel; };
+    this.div.onmouseleave = function () { document.onmousewheel = _enableWheel; };
 
     //WegGL handler creation
     var _handler = new og.webgl.Handler(_canvasId, { 'alpha': false, 'antialias': false });
@@ -149,7 +149,7 @@ og.Globus = function (options) {
     }
 
     if (options.sun) {
-        if (options.sun.active != undefined && !options.sun.active) {
+        if (options.sun.active !== undefined && !options.sun.active) {
             this.sun.deactivate();
         }
     }
@@ -172,7 +172,7 @@ og.Globus = function (options) {
     /**
      * Starts screen brightness fading in effect by the duration time.
      * @public
-     * @param {number} - fadein duration time.
+     * @param {number} duration - fadein duration time.
      */
     this.fadeIn = function (duration) {
         clearInterval(stopHandler);
@@ -195,7 +195,7 @@ og.Globus = function (options) {
     /**
      * Starts screen brightness fading out effect by the duration time.
      * @public
-     * @param {number} - Fadeout duration time.
+     * @param {number} duration - Fadeout duration time.
      */
     this.fadeOut = function (duration) {
         clearInterval(stopHandler);
@@ -234,8 +234,8 @@ og.Globus.PLANET_NAME_PREFIX = "globus_planet_";
  * Returns true if the object pointer is undefined.
  * @function
  * @param {Object} obj - Object pointer.
- * @returns {boolean}
+ * @returns {boolean} Returns true if object is undefined.
  */
 function isUndefined(obj) {
     return obj === void 0;
-};
+}

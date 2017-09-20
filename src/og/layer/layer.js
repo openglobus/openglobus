@@ -70,7 +70,7 @@ og.layer.Layer = function (name, options) {
      */
     this.name = name || "noname";
 
-    this.displayInLayerSwitcher = options.displayInLayerSwitcher != undefined ? options.displayInLayerSwitcher : true;
+    this.displayInLayerSwitcher = options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
 
     /**
      * Layer global opacity.
@@ -150,7 +150,7 @@ og.layer.Layer = function (name, options) {
      * @protected
      * @type {boolean}
      */
-    this._visibility = options.visibility != undefined ? options.visibility : true;
+    this._visibility = options.visibility !== undefined ? options.visibility : true;
 
     /**
      * Height over the ground.
@@ -368,7 +368,7 @@ og.layer.__layersCounter = 0;
  * Returns true if a layer has imagery tiles.
  * @public
  * @virtual
- * @returns {boolean}
+ * @returns {boolean} - Imagery tiles flag.
  */
 og.layer.Layer.prototype.hasImageryTiles = function () {
     return true;
@@ -378,7 +378,7 @@ og.layer.Layer.prototype.hasImageryTiles = function () {
 /**
  * Gets layer identifier.
  * @public
- * @returns {string}
+ * @returns {string} - Layer object id.
  */
 og.layer.Layer.prototype.getID = function () {
     return this._id;
@@ -387,18 +387,18 @@ og.layer.Layer.prototype.getID = function () {
 /**
  * Compares layers instances.
  * @public
- * @param {og.layer.Layer} layer
+ * @param {og.layer.Layer} layer - Layer instance to compare.
  * @returns {boolean} - Returns true if the layers is the same instance of the input.
  */
 og.layer.Layer.prototype.isEqual = function (layer) {
-    return layer._id == this._id;
+    return layer._id === this._id;
 };
 
 /**
  * Assign the planet.
  * @protected
  * @virtual
- * @param {og.scene.Planet} planet- Planet render node.
+ * @param {og.scene.Planet} planet - Planet render node.
  */
 og.layer.Layer.prototype._assignPlanet = function (planet) {
     planet.layers.push(this);
@@ -425,7 +425,7 @@ og.layer.Layer.prototype._bindPicking = function () {
 /**
  * Adds layer to the planet.
  * @public
- * @param {og.scene.Planet}
+ * @param {og.scene.Planet} planet - Adds layer to the planet.
  */
 og.layer.Layer.prototype.addTo = function (planet) {
     this._assignPlanet(planet);
@@ -434,13 +434,14 @@ og.layer.Layer.prototype.addTo = function (planet) {
 /**
  * Removes from planet.
  * @public
+ * @returns {og.layer.Layer} -This layer.
  */
 og.layer.Layer.prototype.remove = function () {
     var p = this._planet;
     if (p) {
         var lid = this._id;
         for (var i = 0; i < p.layers.length; i++) {
-            if (p.layers[i]._id == lid) {
+            if (p.layers[i]._id === lid) {
                 p.renderer.clearPickingColor(this);
                 p.layers.splice(i, 1);
                 p.updateVisibleLayers();
@@ -527,7 +528,7 @@ og.layer.Layer.prototype.bringToFront = function () {
 /**
  * Returns true if the layer is a base.
  * @public
- * @returns {boolean}
+ * @returns {boolean} - Base layer flag.
  */
 og.layer.Layer.prototype.isBaseLayer = function () {
     return this._isBaseLayer;
@@ -555,7 +556,7 @@ og.layer.Layer.prototype.setBaseLayer = function (flag) {
  * @param {boolean} visibility - Layer visibility.
  */
 og.layer.Layer.prototype.setVisibility = function (visibility) {
-    if (visibility != this._visibility) {
+    if (visibility !== this._visibility) {
         this._visibility = visibility;
         if (this._isBaseLayer && visibility) {
             this._planet.setBaseLayer(this);
@@ -568,7 +569,7 @@ og.layer.Layer.prototype.setVisibility = function (visibility) {
 /**
  * Gets layer visibility.
  * @public
- * @returns {boolean}
+ * @returns {boolean} - Layer visibility.
  */
 og.layer.Layer.prototype.getVisibility = function () {
     return this._visibility;
@@ -596,7 +597,7 @@ og.layer.Layer.prototype.setExtent = function (extent) {
 /**
  * Gets layer extent.
  * @public
- * @return {og.Extent}
+ * @return {og.Extent} - Layer geodetic extent.
  */
 og.layer.Layer.prototype.getExtent = function () {
     return this._extent;

@@ -61,7 +61,7 @@ og.layer.Vector = function (name, options) {
      * @public
      * @type {boolean}
      */
-    this.async = options.async != undefined ? options.async : true;
+    this.async = options.async !== undefined ? options.async : true;
 
     /**
      * Vector data ground align flag.
@@ -76,7 +76,7 @@ og.layer.Vector = function (name, options) {
      */
     this._nodeCapacity = options.nodeCapacity || 30;
 
-    this._pickingEnabled = options.pickingEnabled != undefined ? options.pickingEnabled : true;
+    this._pickingEnabled = options.pickingEnabled !== undefined ? options.pickingEnabled : true;
 
     /**
      * Manimal tree node depth index.
@@ -688,7 +688,7 @@ og.layer.Vector.prototype._execDeferredNode = function (node) {
  * Start to load tile material.
  * @public
  * @virtual
- * @param {og.planetSegment.Material} mateial
+ * @param {og.planetSegment.Material} material - Current material.
  */
 og.layer.Vector.prototype.loadMaterial = function (material) {
 
@@ -770,7 +770,7 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
         material.isReady = false;
         material.pickingReady = false;
 
-        var t = material.texture
+        var t = material.texture;
         material.texture = null;
         t && !t.default && gl.deleteTexture(t);
 

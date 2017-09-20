@@ -182,7 +182,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
                     height = this._height;
                 }
 
-                texture = texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
+                texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
 
                 f.setSize(width, height);
 
