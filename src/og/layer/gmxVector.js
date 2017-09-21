@@ -56,7 +56,7 @@ og.layer.GmxVector = function (name, options) {
 
     this._gmxProperties = null;
 
-    this._checkVersionPath = "Layer/CheckVersion.ashx";
+    this._tileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
     this.events.registerNames(og.layer.GmxVector.EVENT_NAMES);
 };
@@ -152,7 +152,7 @@ og.layer.GmxVector.prototype._checkVersion = function () {
     var layers = [{ "Name": this._layerId, "Version": -1 }];
     var zoom = p.maxCurrZoom;
     var that = this;
-    og.ajax.request(this.hostUrl + this._checkVersionPath, {
+    og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
         'type': "POST",
         'responseType': "json",
         'data': {
@@ -160,7 +160,8 @@ og.layer.GmxVector.prototype._checkVersion = function () {
             'bbox': bbox,
             'srs': "3857",
             'layers': layers,
-            'zoom': zoom
+            'zoom': zoom,
+            'ftc': "osm"
         },
         'success': function (data) {
             that._checkVersionSuccess(data);
@@ -171,7 +172,21 @@ og.layer.GmxVector.prototype._checkVersion = function () {
     });
 };
 
-og.layer.GmxVector.prototype._checkVersionSuccess = function(data){
+og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {
+    console.log("1. Collect tiles");
+    console.log("2. Proceed to tileSender");
+    var rn = this._planet._renderedNodes;
+    for (var i = 0; i < rn.length; i++) {
+        var seg = rn[i].planetSegment;
+        var url = og.utils.stringTemplate(this._tileSenderUrl, {
+            "id": this._layerId,
+            "x": seg.tileX.toString(),
+            "y": seg.tileY.toString(),
+            "z": seg.tileZoom.toString(),
+            "v": -1
+        });
+        console.log(url);
+    }
 
 };
 
@@ -196,6 +211,16 @@ og.layer.GmxVector.prototype.loadMaterial = function (material) {
         material.isReady = false;
         material.isLoading = true;
 
+        // var url = og.utils.stringTemplate(this._tileSenderUrl, {
+        //     "id": this._layerId,
+        //     "x": seg.tileX.toString(),
+        //     "y": seg.tileY.toString(),
+        //     "z": seg.tileZoom.toString(),
+        //     "v": -1
+        // });
+
+        console.log(seg.tileX + "," + seg.tileY + ", " + seg.tileZoom);
+        //
         //
         // TODO: Get to the observer or something like this._planet._vectorTileCreator.add(material);
         //
