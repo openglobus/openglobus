@@ -1,1 +1,1 @@
-"e:\my projects\closure-library\closure\bin\build\depswriter.py" --root_with_prefix="../src/og/ ../../../og/src/og/" > "e:\og\src\og\og-deps.js"
+"..\node_modules\google-closure-library\closure\bin\build\depswriter.py" --root_with_prefix="../src/og/ ../../../../../../og/src/og/" > "..\src\og\og-deps.js"
