@@ -13,7 +13,7 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
 1. Clone repositiory.
 2. Run **npm install** in the repo folder.
 3. Bind openglobus repo folder with http server virtual directory. 
-4. Now you can open sandbox example <virtual directory name>/sandbox/1/index.html (or create your own) in a browser, and change sources.
+4. Now you can open sandbox example --virtual directory name--/sandbox/1/index.html (or create your own) in a browser, and change sources.
   
 ### Build
 
