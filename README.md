@@ -18,5 +18,5 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
 ### Build
 
 1. Development steps has to be made.
-2. When you adds js module with goog.provide and require always run **/build/makedeps.bat** to create **/src/og/og-deps.js** script. Now you can see changes you've made.
+2. When you adds js module with goog.provide and require always run **/build/makedeps.bat** to modify **/src/og/og-deps.js** script. Now you can see changes you've made.
 3. Run **/build/build.bat** to create **/buid/og.js** build. BTW: check **/build/all.js** out to add your module in the neccessary assemblage.
