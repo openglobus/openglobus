@@ -11,12 +11,12 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
 ### Development
 
 1. Clone repositiory.
-2. Run npm install in the repo folder.
+2. Run **npm install** in the repo folder.
 3. Bind openglobus repo folder with http server virtual directory. 
-4. Now you can open <virtual directory name>/sandbox/1/index.html in browser, and change sources.
+4. Now you can open sandbox example <virtual directory name>/sandbox/1/index.html (or create your own) in a browser, and change sources.
   
 ### Build
 
 1. Development steps has to be made.
-2. When you adds js module with goog.provide and require always run /build/makedeps.bat to create /src/og/og-deps.js script. Now you can see changes you've made.
-3. Run /build/build.bat to create /buid/og.js build. BTW: check /build/all.js out to add your module in the neccessary assemblage.
+2. When you adds js module with goog.provide and require always run **/build/makedeps.bat** to create **/src/og/og-deps.js** script. Now you can see changes you've made.
+3. Run **/build/build.bat** to create **/buid/og.js** build. BTW: check **/build/all.js** out to add your module in the neccessary assemblage.
