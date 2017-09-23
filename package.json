@@ -1,25 +1,42 @@
 {
   "name": "og",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
-  "main": "og.js",
+  "main": "build/og.js",
+  "style": "buils/og.css",
   "directories": {
     "example": "examples"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./build/build.bat",
+    "deps": "./build/makedeps.bat",
+    "lint": "./buid/og-eslint.bat",
+    "release": "./build/makedeps.bat; ./build/build.bat"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenGlobus/OpenGlobus.git"
   },
   "author": "Zemledelec",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/OpenGlobus/OpenGlobus/issues"
+    "url": "https://github.com/OpenGlobus/OpenGlobus/issues",
+    "email": "mgevlich@gmail.com"
   },
   "homepage": "https://github.com/OpenGlobus/OpenGlobus#readme",
   "dependencies": {
+    "google-closure-library": "^3.3.12"
+  },
+  "devDependencies": {
+    "eslint": "^4.0.0",
     "eslint-config-defaults": "^9.0.0"
-  }
+  },
+  "keywords": [
+    "map",
+    "3D",
+    "webgl",
+    "globe",
+    "og"
+  ]
 }
