@@ -8,11 +8,7 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./build/build.bat",
-    "deps": "./build/makedeps.bat",
-    "lint": "./buid/og-eslint.bat",
-    "release": "./build/makedeps.bat; ./build/build.bat"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
