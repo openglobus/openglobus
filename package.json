@@ -20,7 +20,7 @@
     "url": "https://github.com/OpenGlobus/OpenGlobus/issues",
     "email": "mgevlich@gmail.com"
   },
-  "homepage": "https://github.com/OpenGlobus/OpenGlobus#readme",
+  "homepage": "http://www.openglobus.org",
   "dependencies": {
     "google-closure-library": "^20170910.0.0"
   },
