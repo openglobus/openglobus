@@ -26,7 +26,9 @@
   },
   "devDependencies": {
     "eslint": "^4.0.0",
-    "eslint-config-defaults": "^9.0.0"
+    "eslint-config-defaults": "^9.0.0",
+    "eslint-plugin-react": "^7.3.0",
+    "babel-eslint": "^8.0.0"
   },
   "keywords": [
     "map",
