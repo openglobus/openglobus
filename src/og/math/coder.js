@@ -9,18 +9,11 @@ goog.require('og.math.Vector4');
  * @param {nummer} f - 32 bit float value.
  * @returns {og.math.Vector4}
  */
-og.math.coder.encodeFloatToRGBA = function (f) {
-    var F = Math.abs(f);
-    var s = og.math.step(0.0, -f);
-    var e = Math.floor(og.math.log2(F));
-    var m = (og.math.exp2(-e) * F);
-    e = Math.floor(og.math.log2(F) + 127.0) + Math.floor(og.math.log2(m));
-    return new og.math.Vector4(
-		128.0 * s + Math.floor(e * 0.5),
-		128.0 * og.math.mod(e, 2.0) + og.math.mod(Math.floor(m * 128.0), 128.0),
-        Math.floor(og.math.mod(Math.floor(m * 32768), 256)),
-        Math.floor(8388608.0 * og.math.mod(m, 0.000030517578125))
-	);
+og.math.coder.encodeFloatToRGBA = function (v) {
+    var enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;	
+    enc  = og.math.frac ( enc );
+    enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );	
+    return enc;
 };
 
 /**

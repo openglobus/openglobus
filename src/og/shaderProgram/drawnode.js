@@ -64,17 +64,11 @@ og.shaderProgram.drawnode_nl = function () {
                 vec2 s = step(bottomLeft, v) - step(topRight, v);\
                 return s.x * s.y;\
             }\
-            vec3 encode32(highp float f) {\
-                float F = abs(f);\
-                float s = step(0.0,-f);\
-                float e = floor(log2(F));\
-                float m = exp2(- e) * F;\
-                e = floor(log2(F) + 127.0) + floor(log2(m));\
-                vec3 rgb;\
-                rgb[0] = 128.0 * s  + floor(e*exp2(-1.0));\
-                rgb[1] = 128.0 * mod(e,2.0) + mod(floor(m*128.0),128.0);\
-                rgb[2] = floor(mod(floor(m*exp2(23.0 -8.0)),exp2(8.0)));\
-                return rgb / 255.0;\
+            vec3 encode32(highp float v) {\
+                vec4 enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;\
+                enc  = fract ( enc );\
+                enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );\
+                return enc.xyz;\
             }\
             const vec2 BOTTOMLEFT = vec2(0.0);\
             const vec2 TOPRIGHT = vec2(1.0);\
@@ -361,17 +355,11 @@ og.shaderProgram.drawnode_heightPicking = function () {
                 vec2 s = step(bottomLeft, v) - step(topRight, v);\
                 return s.x * s.y;\
             }\
-            vec3 encode32(highp float f) {\
-                float F = abs(f);\
-                float s = step(0.0,-f);\
-                float e = floor(log2(F));\
-                float m = exp2(- e) * F;\
-                e = floor(log2(F) + 127.0) + floor(log2(m));\
-                vec3 rgb;\
-                rgb[0] = 128.0 * s  + floor(e*exp2(-1.0));\
-                rgb[1] = 128.0 * mod(e,2.0) + mod(floor(m*128.0),128.0);\
-                rgb[2] = floor(mod(floor(m*exp2(23.0 -8.0)),exp2(8.0)));\
-                return rgb / 255.0;\
+            vec3 encode32(highp float v) {\
+                vec4 enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;\n\
+                enc  = fract ( enc );\
+                enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );\
+                return enc.xyz;\
             }\
             const vec2 BOTTOMLEFT = vec2(0.0);\
             const vec2 TOPRIGHT = vec2(1.0);\

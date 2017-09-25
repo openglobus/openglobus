@@ -65,7 +65,7 @@ og.Clock = function (params) {
      * @public
      * @type {number}
      */
-    this.multiplier = params.multiplier != undefined ? params.multiplier : 1.0;
+    this.multiplier = params.multiplier !== undefined ? params.multiplier : 1.0;
 
     /**
      * Animation frame delta time.
@@ -109,7 +109,7 @@ og.Clock.prototype.setDate = function (date) {
 /**
  * Returns current application date.
  * @public
- * @returns {Object}
+ * @returns {Date} - Current date.
  */
 og.Clock.prototype.getDate = function () {
     return og.jd.UTCtoDate(this.currentDate);
@@ -146,6 +146,7 @@ og.Clock.prototype._tick = function (dt) {
 
 /**
  * @public
+ * @param {og.Clock} clock - Clock instance to compare.
  * @returns {boolean} - Returns true if a clock is the same instance.
  */
 og.Clock.prototype.equal = function (clock) {
