@@ -6,7 +6,7 @@
 
 Check out the [hosted examples](http://www.openglobus.org/examples.html), or the [API documentation](http://www.openglobus.org/api/).
 
-## Wanna do somethin special? Follow next.
+## Get Started
 
 ### Development
 
