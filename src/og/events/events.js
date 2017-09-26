@@ -52,8 +52,9 @@ og.Events.prototype.registerNames = function (eventNames) {
 /**
  * Returns true if event callback has stamped.
  * @protected
- * @param {Object} obj - Function.
- * @return {boolean}
+ * @param {Object} name - Event identifier.
+ * @param {Object} obj - Event callback.
+ * @return {boolean} -
  */
 og.Events.prototype._stamp = function (name, obj) {
 
@@ -102,7 +103,7 @@ og.Events.prototype.off = function (name, callback) {
             }
         }
 
-        if (indexToRemove != -1) {
+        if (indexToRemove !== -1) {
             h.splice(indexToRemove, 1);
             this._stampCache[st] = undefined;
             delete this._stampCache[st];

@@ -6,21 +6,20 @@ goog.require('og.math.Vector4');
 /**
  * Encode 32 bit float value to the RGBA vector.
  * @function
- * @param {nummer} f - 32 bit float value.
- * @returns {og.math.Vector4}
+ * @param {nummer} v - 32 bit float value.
+ * @returns {og.math.Vector4} - RGBA vector value.
  */
 og.math.coder.encodeFloatToRGBA = function (v) {
-    var enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;	
-    enc  = og.math.frac ( enc );
-    enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );	
-    return enc;
+    var enc = new og.math.Vector4(1.0 * v % 1, 255.0 * v % 1, 65025.0 * v  % 1, 160581375.0 * v % 1);
+    var yzww = new og.math.Vector4(enc.y / 255, enc.z / 255, enc.w / 255, 0);
+    return enc.subA(yzww);
 };
 
 /**
  * Decode RGBA vector to 32 bit float value.
  * @function
  * @param {og.math.Vector4} rgba - RGBA encoded 32 bit float value.
- * @returns {number}
+ * @returns {number} - Float value.
  */
 og.math.coder.decodeFloatFromRGBA = function (rgba) {
     var s = 1.0 - og.math.step(128.0, rgba.x) * 2.0;
@@ -33,7 +32,7 @@ og.math.coder.decodeFloatFromRGBA = function (rgba) {
  * Separate 63 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
- * @returns {Array.<number,number>}
+ * @returns {Array.<number,number>} Encoded array.
  */
 og.math.coder.doubleToTwoFloats = function (value) {
     var high, low;

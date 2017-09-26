@@ -13,6 +13,121 @@ goog.require('og.GeometryHandler');
 goog.require('og.ajax');
 
 
+og.CheckVersion = (function () {
+
+    var CheckVersion = function (planet) {
+
+        this._layerVersions = {};
+
+        this._layerEvents = {};
+
+        this.hostUrl = "//maps.kosmosnimki.ru/";
+
+        this._layers = [];
+
+        this._addLayer = function (layer) {
+            this._layers.push(layer);
+        };
+
+        this._removeLayer = function (layer) {
+            var i = this._layers.length;
+            while (i--) {
+                if (layer.isEqual(this._layers[i])) {
+                    this._layers.splice(i, 1);
+                    return;
+                }
+            }
+        };
+
+        planet.events.on("layeradd", function (l) {
+            if (l instanceof og.layer.GmxVector) {
+                var id = l._layerId;
+                if (l._visibility) {
+                    this._addLayer(layerId);
+                }
+
+                var f = function (l) {
+                    if (l._visibility) {
+                        this._addLayer(l);
+                    } else {
+                        this._removeLayer(l);
+                    }
+                };
+
+                this._layerEvents[l._id]["visibilitychange"] = f;
+                l.events.on("visibilitychange", f, this);
+            }
+        }, this);
+
+        planet.events.on("layerremove", function (l) {
+            if (l instanceof og.layer.GmxVector) {
+                this._removeLayer(l);
+                l.events.off("visibilitychange", this._layerEvents[l._id]["visibilitychange"]);
+                this._layerEvents[l._id] = {};
+            }
+        }, this);
+
+        planet.camera.events.on("moveend", function () {
+            this.request();
+        }, this);
+
+        this._checkVersionSuccess = function (data) {
+
+        };
+
+        this.request = function (extent) {
+            var e = planet._viewExtentMerc,
+                zoom = planet.maxCurrZoom;
+
+            var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
+
+            var layers = [];
+            for (var i = 0; i < this._layers.length; i++) {
+                var layerId = this._layers[i]._layerId;
+                layers.push({ "Name": layerId, "Version": this._layerVersions[layerId] || -1 });
+            }
+
+            var that = this;
+            og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+                'type': "POST",
+                'responseType': "json",
+                'data': {
+                    'WrapStyle': "None",
+                    'bbox': bbox,
+                    'srs': "3857",
+                    'layers': layers,
+                    'zoom': zoom,
+                    'ftc': "osm"
+                },
+                'success': function (data) {
+                    that._checkVersionSuccess(data);
+                },
+                'error': function (err) {
+                    console.log(err);
+                }
+            });
+        };
+
+    };
+
+    var instance;
+
+    function createInstance() {
+        var object = new CheckVersion();
+        return object;
+    }
+
+    return {
+        getInstance: function () {
+            if (!instance) {
+                instance = createInstance();
+            }
+            return instance;
+        }
+    };
+})();
+
+
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
@@ -146,30 +261,30 @@ og.layer.GmxVector.prototype._initialize = function () {
 };
 
 og.layer.GmxVector.prototype._checkVersion = function () {
-    var p = this._planet;
-    var e = p._viewExtentMerc;
-    var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
-    var layers = [{ "Name": this._layerId, "Version": -1 }];
-    var zoom = p.maxCurrZoom;
-    var that = this;
-    og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
-        'type': "POST",
-        'responseType': "json",
-        'data': {
-            'WrapStyle': "None",
-            'bbox': bbox,
-            'srs': "3857",
-            'layers': layers,
-            'zoom': zoom,
-            'ftc': "osm"
-        },
-        'success': function (data) {
-            that._checkVersionSuccess(data);
-        },
-        'error': function (err) {
-            console.log(err);
-        }
-    });
+    // var p = this._planet;
+    // var e = p._viewExtentMerc;
+    // var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
+    // var layers = [{ "Name": this._layerId, "Version": -1 }];
+    // var zoom = p.maxCurrZoom;
+    // var that = this;
+    // og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+    //     'type': "POST",
+    //     'responseType': "json",
+    //     'data': {
+    //         'WrapStyle': "None",
+    //         'bbox': bbox,
+    //         'srs': "3857",
+    //         'layers': layers,
+    //         'zoom': zoom,
+    //         'ftc': "osm"
+    //     },
+    //     'success': function (data) {
+    //         that._checkVersionSuccess(data);
+    //     },
+    //     'error': function (err) {
+    //         console.log(err);
+    //     }
+    // });
 };
 
 og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {

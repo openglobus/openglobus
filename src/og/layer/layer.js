@@ -486,7 +486,7 @@ og.layer.Layer.prototype.setHeight = function (height) {
 /**
  * Gets layer height.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 og.layer.Layer.prototype.getHeight = function () {
     return this._height;
@@ -505,7 +505,7 @@ og.layer.Layer.prototype.setZIndex = function (zIndex) {
 /**
  * Gets z-index.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 og.layer.Layer.prototype.getZIndex = function () {
     return this._zIndex;

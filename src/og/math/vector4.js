@@ -228,3 +228,13 @@ og.math.Vector4.prototype.getFrac = function (v) {
         og.math.frac(v.w)
     );
 };
+
+/**
+ * Gets vectors dot production.
+ * @public
+ * @param {og.math.Vector4} v - Another vector.
+ * @returns {number} - Dot product.
+ */
+og.math.Vector4.prototype.dot = function (v) {
+    return v.x * this.x + v.y * this.y + v.z * this.z + v.w * this.w;
+};

@@ -59,6 +59,7 @@ og.shaderProgram.drawnode_nl = function () {
             uniform int samplerCount;\
             varying vec2 vTextureCoord;\
             varying float range;\
+            const float oneBy255 = 1.0 / 255.0;\
             /* return 1 if v inside the box, return 0 otherwise */\
             float insideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {\
                 vec2 s = step(bottomLeft, v) - step(topRight, v);\
@@ -67,7 +68,7 @@ og.shaderProgram.drawnode_nl = function () {
             vec3 encode32(highp float v) {\
                 vec4 enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;\
                 enc  = fract ( enc );\
-                enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );\
+                enc -= enc.yzww * vec4 (oneBy255, oneBy255, oneBy255, 0.0 );\
                 return enc.xyz;\
             }\
             const vec2 BOTTOMLEFT = vec2(0.0);\
@@ -350,6 +351,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             uniform int samplerCount;\
             varying vec2 vTextureCoord;\
             varying float range;\
+            const float oneBy255 = 1.0 / 255.0;\
             /* return 1 if v inside the box, return 0 otherwise */\
             float insideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {\
                 vec2 s = step(bottomLeft, v) - step(topRight, v);\
@@ -358,7 +360,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
             vec3 encode32(highp float v) {\
                 vec4 enc = vec4 ( 1.0, 255.0, 65025.0, 160581375.0) * v;\n\
                 enc  = fract ( enc );\
-                enc -= enc.yzww * vec4 (1.0/255.0, 1.0/255.0, 1.0/255.0, 0.0 );\
+                enc -= enc.yzww * vec4 (oneBy255, oneBy255, oneBy255, 0.0 );\
                 return enc.xyz;\
             }\
             const vec2 BOTTOMLEFT = vec2(0.0);\
