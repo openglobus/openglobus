@@ -412,11 +412,21 @@ function main5() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
+    var yan = new og.layer.XYZ("Yandex", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: false,
+        url: "//vec03.maps.yandex.net/tiles?l=map&v=17.09.21-1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+        visibility: false,
+    });
+
+    
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, pointLayer],
+        "layers": [osm, yan, pointLayer],
         "sun": {
             "active": false
         }

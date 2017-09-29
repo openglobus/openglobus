@@ -171,7 +171,7 @@ og.layer.GmxVector = function (name, options) {
 
     this._gmxProperties = null;
 
-    this._tileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
+    this._tileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
     this.events.registerNames(og.layer.GmxVector.EVENT_NAMES);
 };

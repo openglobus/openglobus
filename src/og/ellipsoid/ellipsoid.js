@@ -36,7 +36,7 @@ og.Ellipsoid = function (equatorialSize, polarSize) {
 /**
  * Gets ellipsoid equatorial size.
  * @public
- * @retuens {number}
+ * @returns {number} -
  */
 og.Ellipsoid.prototype.getEquatorialSize = function () {
     return this._a;
@@ -45,7 +45,7 @@ og.Ellipsoid.prototype.getEquatorialSize = function () {
 /**
  * Gets ellipsoid polar size.
  * @public
- * @retuens {number}
+ * @returns {number} -
  */
 og.Ellipsoid.prototype.getPolarSize = function () {
     return this._b;
@@ -55,7 +55,7 @@ og.Ellipsoid.prototype.getPolarSize = function () {
  * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
  * @public
  * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.Ellipsoid.prototype.lonLatToCartesian = function (lonlat) {
     var latrad = og.math.RADIANS * lonlat.lat,
@@ -76,7 +76,7 @@ og.Ellipsoid.prototype.lonLatToCartesian = function (lonlat) {
  * Gets Wgs84 geodetic coordiantes from cartesian ECEF.
  * @public
  * @param {og.math.Vector3} cartesian - Cartesian coordinates.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 og.Ellipsoid.prototype.cartesianToLonLat = function (cartesian) {
     var x = cartesian.z, y = cartesian.x, z = cartesian.y;
@@ -111,7 +111,7 @@ og.Ellipsoid.prototype.cartesianToLonLat = function (cartesian) {
  * Gets ellipsoid surface normal.
  * @public
  * @param {og.math.Vector3} coord - Spatial coordiantes.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.Ellipsoid.prototype.getSurfaceNormal3v = function (coord) {
     var r2 = this._invRadii2;
@@ -125,7 +125,7 @@ og.Ellipsoid.prototype.getSurfaceNormal3v = function (coord) {
  * @public
  * @param {og.math.Vector3} coord - Spatial ellipsoid coordiantes.
  * @param {number} h - Height this spatial coordinates.
- * @return {og.math.Vector3}
+ * @return {og.math.Vector3} -
  */
 og.Ellipsoid.prototype.getSurfaceHeight3v = function (coord, h) {
     var r2 = this._invRadii2;
@@ -320,7 +320,7 @@ og.Ellipsoid.prototype.intersection = function (p1, brng1, p2, brng2) {
  * @public
  * @param {og.math.Vector3} origin - Ray origin point.
  * @param {og.math.Vector3} direction - Ray direction.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.Ellipsoid.prototype.hitRay = function (origin, direction) {
 
