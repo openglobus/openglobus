@@ -1,4 +1,5 @@
 goog.provide('og.layer.GmxVector');
+goog.provide('og.layer.GmxVector.CheckVersion');
 
 goog.require('og.EntityCollection');
 goog.require('og.Entity');
@@ -11,122 +12,6 @@ goog.require('og.QueueArray');
 goog.require('og.Geometry');
 goog.require('og.GeometryHandler');
 goog.require('og.ajax');
-
-
-og.CheckVersion = (function () {
-
-    var CheckVersion = function (planet) {
-
-        this._layerVersions = {};
-
-        this._layerEvents = {};
-
-        this.hostUrl = "//maps.kosmosnimki.ru/";
-
-        this._layers = [];
-
-        this._addLayer = function (layer) {
-            this._layers.push(layer);
-        };
-
-        this._removeLayer = function (layer) {
-            var i = this._layers.length;
-            while (i--) {
-                if (layer.isEqual(this._layers[i])) {
-                    this._layers.splice(i, 1);
-                    return;
-                }
-            }
-        };
-
-        planet.events.on("layeradd", function (l) {
-            if (l instanceof og.layer.GmxVector) {
-                var id = l._layerId;
-                if (l._visibility) {
-                    this._addLayer(layerId);
-                }
-
-                var f = function (l) {
-                    if (l._visibility) {
-                        this._addLayer(l);
-                    } else {
-                        this._removeLayer(l);
-                    }
-                };
-
-                this._layerEvents[l._id]["visibilitychange"] = f;
-                l.events.on("visibilitychange", f, this);
-            }
-        }, this);
-
-        planet.events.on("layerremove", function (l) {
-            if (l instanceof og.layer.GmxVector) {
-                this._removeLayer(l);
-                l.events.off("visibilitychange", this._layerEvents[l._id]["visibilitychange"]);
-                this._layerEvents[l._id] = {};
-            }
-        }, this);
-
-        planet.camera.events.on("moveend", function () {
-            this.request();
-        }, this);
-
-        this._checkVersionSuccess = function (data) {
-
-        };
-
-        this.request = function (extent) {
-            var e = planet._viewExtentMerc,
-                zoom = planet.maxCurrZoom;
-
-            var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
-
-            var layers = [];
-            for (var i = 0; i < this._layers.length; i++) {
-                var layerId = this._layers[i]._layerId;
-                layers.push({ "Name": layerId, "Version": this._layerVersions[layerId] || -1 });
-            }
-
-            var that = this;
-            og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
-                'type': "POST",
-                'responseType': "json",
-                'data': {
-                    'WrapStyle': "None",
-                    'bbox': bbox,
-                    'srs': "3857",
-                    'layers': layers,
-                    'zoom': zoom,
-                    'ftc': "osm"
-                },
-                'success': function (data) {
-                    that._checkVersionSuccess(data);
-                },
-                'error': function (err) {
-                    console.log(err);
-                }
-            });
-        };
-
-    };
-
-    var instance;
-
-    function createInstance() {
-        var object = new CheckVersion();
-        return object;
-    }
-
-    return {
-        getInstance: function () {
-            if (!instance) {
-                instance = createInstance();
-            }
-            return instance;
-        }
-    };
-})();
-
 
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
@@ -165,8 +50,6 @@ og.layer.GmxVector = function (name, options) {
 
     this.hostUrl = options.hostUrl || "//maps.kosmosnimki.ru/";
 
-    this._mapId = options.mapId;
-
     this._layerId = options.layerId;
 
     this._gmxProperties = null;
@@ -204,6 +87,108 @@ og.layer.GmxVector.EVENT_NAMES = [
     "entityremove"
 ];
 
+og.layer.GmxVector.CheckVersion = function (planet) {
+
+    this._layerVersions = {};
+
+    this._layerEvents = {};
+
+    this.hostUrl = "//maps.kosmosnimki.ru/";
+
+    this._layers = [];
+
+
+    this._addLayer = function (layer) {
+        this._layers.push(layer);
+    };
+
+    this._removeLayer = function (layer) {
+        var i = this._layers.length;
+        while (i--) {
+            if (layer.isEqual(this._layers[i])) {
+                this._layers.splice(i, 1);
+                return;
+            }
+        }
+    };
+
+    planet.events.on("layeradd", function (l) {
+        if (l instanceof og.layer.GmxVector) {
+            if (l._visibility) {
+                this._addLayer(l);
+            }
+
+            var f = function (l) {
+                if (l._visibility) {
+                    this._addLayer(l);
+                } else {
+                    this._removeLayer(l);
+                }
+            };
+
+            if (!this._layerEvents[l._id])
+                this._layerEvents[l._id] = {};
+            this._layerEvents[l._id]["visibilitychange"] = f;
+            l.events.on("visibilitychange", f, this);
+        }
+    }, this);
+
+    planet.events.on("layerremove", function (l) {
+        if (l instanceof og.layer.GmxVector) {
+            this._removeLayer(l);
+            l.events.off("visibilitychange", this._layerEvents[l._id]["visibilitychange"]);
+            this._layerEvents[l._id] = {};
+        }
+    }, this);
+
+    planet.camera.events.on("moveend", function () {
+        this._request();
+    }, this);
+
+    this._checkVersionSuccess = function (data) {
+        console.log(data);
+    };
+
+    this._request = function () {
+        if (this._layers.length) {
+            var e = planet._viewExtentMerc,
+                zoom = planet.maxCurrZoom;
+
+            var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
+
+            var layers = [],
+                _layersOrder = [];
+            for (var i = 0; i < this._layers.length; i++) {
+                var li = this._layers[i];
+                if (li._extentMerc.overlaps(e)) {
+                    _layersOrder.push(li);
+                    layers.push({ "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 });
+                }
+            }
+
+            var that = this;
+            og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+                'type': "POST",
+                'responseType': "json",
+                'data': {
+                    'WrapStyle': "None",
+                    'bbox': bbox,
+                    'srs': "3857",
+                    'layers': layers,
+                    'zoom': zoom,
+                    'ftc': "osm"
+                },
+                'success': function (data) {
+                    that._checkVersionSuccess(data, _layersOrder);
+                },
+                'error': function (err) {
+                    console.log(err);
+                }
+            });
+        }
+    };
+};
+
 /**
  * Vector layer {@link og.layer.GmxVector} object factory.
  * @static
@@ -222,6 +207,12 @@ og.layer.gmxVector = function (name, options) {
  * @return {og.layer.GmxVector} - Returns og.layer.GmxVector instance.
  */
 og.layer.GmxVector.prototype.addTo = function (planet) {
+
+    //Bind checkVersion to the planet
+    if (!planet._gmxCheckVersion) {
+        planet._gmxCheckVersion = new og.layer.GmxVector.CheckVersion(planet);
+    }
+
     this._assignPlanet(planet);
     this._initialize();
     return this;
@@ -287,23 +278,23 @@ og.layer.GmxVector.prototype._checkVersion = function () {
     // });
 };
 
-og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {
-    console.log("1. Collect tiles");
-    console.log("2. Proceed to tileSender");
-    var rn = this._planet._renderedNodes;
-    for (var i = 0; i < rn.length; i++) {
-        var seg = rn[i].planetSegment;
-        var url = og.utils.stringTemplate(this._tileSenderUrl, {
-            "id": this._layerId,
-            "x": seg.tileX.toString(),
-            "y": seg.tileY.toString(),
-            "z": seg.tileZoom.toString(),
-            "v": -1
-        });
-        console.log(url);
-    }
+// og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {
+//     console.log("1. Collect tiles");
+//     console.log("2. Proceed to tileSender");
+//     var rn = this._planet._renderedNodes;
+//     for (var i = 0; i < rn.length; i++) {
+//         var seg = rn[i].planetSegment;
+//         var url = og.utils.stringTemplate(this._tileSenderUrl, {
+//             "id": this._layerId,
+//             "x": seg.tileX.toString(),
+//             "y": seg.tileY.toString(),
+//             "z": seg.tileZoom.toString(),
+//             "v": -1
+//         });
+//         console.log(url);
+//     }
 
-};
+// };
 
 
 /**

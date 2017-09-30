@@ -1434,7 +1434,7 @@ og.scene.Planet.prototype.viewExtentArr = function (extentArr) {
 /**
  * Gets current viewing geographical extent.
  * @public
- * @returns {og.Extent}
+ * @returns {og.Extent} -
  */
 og.scene.Planet.prototype.getViewExtent = function () {
     if (this._viewExtentMerc) {

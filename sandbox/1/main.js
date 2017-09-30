@@ -396,11 +396,13 @@ function test() {
 
 function main5() {
 
-    var pointLayer = new og.layer.GmxVector("gmxLayer", {
-        'mapId': "7CA7D890F0CD45B59CA8D5F3F6EEBA96",
+    var l1 = new og.layer.GmxVector("gmxLayer-1", {
         'layerId': "04C2806DB65747258EC2AC328CD0CEDF"
     });
 
+    var l2 = new og.layer.GmxVector("gmxLayer-2", {
+        'layerId': "ACBB0FF7DFA24127A5A87921350A96B6"
+    });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
@@ -412,21 +414,21 @@ function main5() {
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
     });
 
-    var yan = new og.layer.XYZ("Yandex", {
-        specular: [0.0003, 0.00012, 0.00001],
-        shininess: 20,
-        diffuse: [0.89, 0.9, 0.83],
-        isBaseLayer: false,
-        url: "//vec03.maps.yandex.net/tiles?l=map&v=17.09.21-1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
-        visibility: false,
-    });
+    //var yan = new og.layer.XYZ("Yandex", {
+    //    specular: [0.0003, 0.00012, 0.00001],
+    //    shininess: 20,
+    //    diffuse: [0.89, 0.9, 0.83],
+    //    isBaseLayer: false,
+    //    url: "//vec03.maps.yandex.net/tiles?l=map&v=17.09.21-1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU",
+    //    visibility: false,
+    //});
 
     
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, yan, pointLayer],
+        "layers": [osm, l1, l2],
         "sun": {
             "active": false
         }

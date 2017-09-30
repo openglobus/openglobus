@@ -58,7 +58,7 @@ goog.addDependency('../../../../../../og/src/og/layer/canvasTiles.js', ['og.laye
 goog.addDependency('../../../../../../og/src/og/layer/geoImage.js', ['og.layer.GeoImage'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
 goog.addDependency('../../../../../../og/src/og/layer/geoTexture2d.js', ['og.layer.GeoTexture2d'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
 goog.addDependency('../../../../../../og/src/og/layer/geoVideo.js', ['og.layer.GeoVideo'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
-goog.addDependency('../../../../../../og/src/og/layer/gmxVector.js', ['og.layer.GmxVector'], ['og.Entity', 'og.EntityCollection', 'og.Geometry', 'og.GeometryHandler', 'og.LonLat', 'og.QueueArray', 'og.ajax', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
+goog.addDependency('../../../../../../og/src/og/layer/gmxVector.js', ['og.layer.GmxVector', 'og.layer.GmxVector.CheckVersion'], ['og.Entity', 'og.EntityCollection', 'og.Geometry', 'og.GeometryHandler', 'og.LonLat', 'og.QueueArray', 'og.ajax', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.Extent', 'og.QueueArray', 'og.mercator', 'og.utils'], false);
 goog.addDependency('../../../../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.GeometryHandler', 'og.LonLat', 'og.QueueArray', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);
