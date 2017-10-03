@@ -145,7 +145,7 @@ og.layer.GmxVector.CheckVersion = function (planet) {
         this._request();
     }, this);
 
-    this._checkVersionSuccess = function (data) {
+    this._checkVersionSuccess = function (data, layersOrder) {
         console.log(data);
     };
 
