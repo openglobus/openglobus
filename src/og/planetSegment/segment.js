@@ -79,6 +79,8 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
      */
     this.tileY = null;
 
+    this.tileIndex = "";
+
     this._assignTileIndexes();
 
     /**
@@ -157,7 +159,7 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 /**
  * Returns that segment good for rendering with camera by current RATIO_LOD.
  * @public
- * @returns {boolean}
+ * @returns {boolean} -
  */
 og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
     var sphere = this.bsphere;
@@ -693,6 +695,7 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+    this.tileIndex = this.tileX + "_" + this.tileY + "_" + tileZoom;
 };
 
 og.planetSegment.Segment.prototype.initializePlainSegment = function () {
