@@ -54,6 +54,8 @@ og.layer.GmxVector = function (name, options) {
 
     this._gmxProperties = null;
 
+    this._tileVersions = {};
+
     this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
     this.events.registerNames(og.layer.GmxVector.EVENT_NAMES);
@@ -154,7 +156,7 @@ og.layer.GmxVector.CheckVersion = function (planet) {
     this._checkVersionSuccess = function (data, layersOrder) {
         var res = data.Result;
         for (var i = 0; i < layersOrder.length; i++) {
-            layersOrder[i]._manageTiles(res[i]);
+            layersOrder[i]._checkVersionSuccess(res[i]);
         }
     };
 
@@ -257,8 +259,32 @@ og.layer.GmxVector.prototype._initialize = function () {
     });
 };
 
-og.layer.GmxVector.prototype._manageTiles = function (prop) {
-    console.log(prop);
+og.layer.GmxVector.prototype._checkVersionSuccess = function (prop) {
+    var to = prop.tilesOrder,
+        ts = prop.tiles;
+    var toSize = to.length;
+
+    var _X = to.indexOf("X"),
+        _Y = to.indexOf("Y"),
+        _Z = to.indexOf("Z"),
+        _V = to.indexOf("V");
+
+    var tv = this._tileVersions;
+    for (var i = 0; i < ts.length; i += toSize) {
+        var x = ts[i + _X],
+            y = ts[i + _Y],
+            z = ts[i + _Z],
+            v = ts[i + _V];
+        var tileIndex = og.layer.getTileIndex(x, y, z);
+        if (tv[tileIndex] !== v) {
+            this._tileVersions[tileIndex] = v;
+            this._manageTile(x, y, z, v);
+        }
+    }
+};
+
+og.layer.GmxVector.prototype._manageTile = function (x, y, z, v) {
+    console.log("man: " + this._layerId + ": " + x + "," + y + "," + z + "," + v);
 };
 
 // og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {

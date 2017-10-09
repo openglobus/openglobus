@@ -70,8 +70,8 @@ og.planetSegment.SegmentLonLat.prototype._assignTileIndexes = function () {
         //south pole
         this.tileY = Math.round((og.mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
     }
-    
-    this.tileIndex = this.tileX + "_" + this.tileY + "_" + tileZoom;    
+
+    this.tileIndex = og.layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
 og.planetSegment.SegmentLonLat.prototype._addViewExtent = function () {

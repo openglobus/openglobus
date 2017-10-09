@@ -695,7 +695,7 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     var pole = og.mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
-    this.tileIndex = this.tileX + "_" + this.tileY + "_" + tileZoom;
+    this.tileIndex = og.layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
 og.planetSegment.Segment.prototype.initializePlainSegment = function () {

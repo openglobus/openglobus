@@ -192,6 +192,10 @@ og.layer.Layer = function (name, options) {
     this.events.registerNames(og.layer.Layer.EVENT_NAMES);
 };
 
+og.layer.getTileIndex = function (x, y, z) {
+    return x + "_" + y + "_" + z;
+};
+
 og.layer.Layer.EVENT_NAMES = [
     /**
      * Triggered when layer visibilty chanched.
