@@ -99,8 +99,7 @@ og.layer.GmxVector.CheckVersion = function (planet) {
 
     this._layers = [];
 
-    this._isFree = true;
-
+    this._r = null;
 
     this._addLayer = function (layer) {
         this._layers.push(layer);
@@ -161,8 +160,10 @@ og.layer.GmxVector.CheckVersion = function (planet) {
     };
 
     this._request = function () {
-        if (this._layers.length && this._isFree) {
-            this._isFree = false;
+        if (this._layers.length) {
+
+            this._r && this._r.abort();
+
             var e = planet._viewExtentMerc,
                 zoom = planet.maxCurrZoom;
 
@@ -179,7 +180,7 @@ og.layer.GmxVector.CheckVersion = function (planet) {
             }
 
             var that = this;
-            og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+            this._r = og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
                 'type': "POST",
                 'responseType': "json",
                 'data': {
@@ -191,11 +192,11 @@ og.layer.GmxVector.CheckVersion = function (planet) {
                     'ftc': "osm"
                 },
                 'success': function (data) {
-                    that._isFree = true;
+                    that._r = null;
                     that._checkVersionSuccess(data, _layersOrder);
                 },
                 'error': function (err) {
-                    that._isFree = true;
+                    that._r = null;
                     console.log(err);
                 }
             });
@@ -278,13 +279,29 @@ og.layer.GmxVector.prototype._checkVersionSuccess = function (prop) {
         var tileIndex = og.layer.getTileIndex(x, y, z);
         if (tv[tileIndex] !== v) {
             this._tileVersions[tileIndex] = v;
-            this._manageTile(x, y, z, v);
+            this._getTile(x, y, z, v);
         }
     }
 };
 
-og.layer.GmxVector.prototype._manageTile = function (x, y, z, v) {
-    console.log("man: " + this._layerId + ": " + x + "," + y + "," + z + "," + v);
+og.layer.GmxVector.prototype._getTile = function (x, y, z, v) {
+    var url = og.utils.stringTemplate(this._tileSenderUrlTemplate, {
+        "id": this._layerId,
+        "x": x.toString(), "y": y.toString(), "z": z.toString(),
+        "v": v.toString()
+    });
+
+    og.ajax.request(url, {
+        'type': "GET",
+        'responseType': "text",
+        'success': function (dataStr) {
+            var data = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.lastIndexOf('}') + 1));
+            console.log(data);
+        },
+        'error': function (err) {
+            console.log(err);
+        }
+    });
 };
 
 // og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {
