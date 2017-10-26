@@ -270,7 +270,7 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
     var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        og.quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(h)
+        og.quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(h);
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
@@ -296,6 +296,7 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
 /**
  * When a node is visible in frustum than begins to render it.
  * @public
+ * @param {Boolean} onlyTerrain - It means that loads only terrain for this node.
  */
 og.quadTree.Node.prototype.renderNode = function (onlyTerrain) {
 
@@ -347,7 +348,7 @@ og.quadTree.Node.prototype.addToRender = function () {
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         var cs = node.getCommonSide(ni);
-        if (cs != -1) {
+        if (cs !== -1) {
             var opcs = og.quadTree.OPSIDE[cs];
 
             node.neighbors[cs] = ni;
@@ -446,7 +447,7 @@ og.quadTree.Node.prototype.whileNormalMapCreating = function () {
             seg.parentNormalMapReady = true;
         } else {
             pn = this;
-            while (pn.parentNode && pn.planetSegment.tileZoom != maxZ) {
+            while (pn.parentNode && pn.planetSegment.tileZoom !== maxZ) {
                 pn = pn.parentNode;
             }
             var pns = pn.planetSegment;
@@ -532,7 +533,7 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
                 nmVerts[nmInd] = z;
                 nmNorms[nmInd++] = n_nmNorms[n_index + 2];
 
-                if (i % dg == 0 && j % dg == 0) {
+                if (i % dg === 0 && j % dg === 0) {
                     verts[ind++] = x;
                     verts[ind++] = y;
                     verts[ind++] = z;
@@ -589,7 +590,7 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
 
         var pseg = pn.planetSegment;
 
-        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId != pn.nodeId) {
+        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId !== pn.nodeId) {
 
             var gridSize = pn.planetSegment.gridSize / dZ2;
             var tempVertices;
@@ -750,8 +751,10 @@ og.quadTree.Node.prototype.destroy = function () {
 
 og.quadTree.Node.prototype.destroyBranches = function (cls) {
 
-    var nodesToRemove = [];
-    for (var i = 0; i < this.nodes.length; i++) {
+    var nodesToRemove = [],
+        i;
+
+    for (i = 0; i < this.nodes.length; i++) {
         nodesToRemove[i] = this.nodes[i];
     }
 
@@ -759,7 +762,7 @@ og.quadTree.Node.prototype.destroyBranches = function (cls) {
     this.nodes.length = 0;
     this.nodes = [];
 
-    for (var i = 0; i < nodesToRemove.length; i++) {
+    for (i = 0; i < nodesToRemove.length; i++) {
         nodesToRemove[i].destroyBranches(false);
         nodesToRemove[i].destroy();
         nodesToRemove[i] = null;

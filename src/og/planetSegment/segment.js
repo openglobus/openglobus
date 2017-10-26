@@ -190,7 +190,7 @@ og.planetSegment.Segment.prototype.isEntityInside = function (e) {
  * @param {og.math.Vector3} res - Result cartesian coordiantes on the terrain.
  * @param {og.math.Vector3} xyz - Cartesian object position.
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
- * @returns {number}
+ * @returns {number} -
  */
 og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
     var ne = this._extent.northEast,
@@ -228,18 +228,18 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
             v2 = new og.math.Vector3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
         var d = ray.hitTriangle(v0, v1, v2, res);
-        if (d == og.math.Ray.INSIDE) {
+        if (d === og.math.Ray.INSIDE) {
             return xyz.distance(res);
         }
 
         var v3 = new og.math.Vector3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
         d = ray.hitTriangle(v1, v3, v2, res);
-        if (d == og.math.Ray.INSIDE) {
+        if (d === og.math.Ray.INSIDE) {
             return xyz.distance(res);
         }
 
-        if (d == og.math.Ray.AWAY) {
+        if (d === og.math.Ray.AWAY) {
             return -xyz.distance(res);
         }
 
@@ -254,7 +254,7 @@ og.planetSegment.Segment.prototype.getTerrainPoint = function (res, xyz, insideS
  * Project wgs86 to segment native projection.
  * @public
  * @param {og.LonLat} lonlat - Coordinates to project.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 og.planetSegment.Segment.prototype.projectNative = function (lonlat) {
     return lonlat.forwardMercator();

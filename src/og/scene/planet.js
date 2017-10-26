@@ -472,7 +472,7 @@ og.scene.Planet.prototype.removeLayer = function (layer) {
 /**
  *
  * @protected
- * @param {og.layer.Layer} layer
+ * @param {og.layer.Layer} layer - Material layer.
  */
 og.scene.Planet.prototype._clearLayerMaterial = function (layer) {
     var lid = layer._id;
@@ -655,10 +655,6 @@ og.scene.Planet.prototype.initialization = function () {
         this._viewChanged = true;
     }, this);
 
-    //temporary initializations
-    var that = this;
-    //this.renderer.events.on("charkeypress", og.input.KEY_C, function () { that.memClear(); });
-
     this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
     //load Earth night glowing texture
@@ -706,8 +702,8 @@ og.scene.Planet.prototype._preRender = function () {
 /**
  * Creates default textures first for nirth pole and whole globe and second for south pole.
  * @public
- * @param{Object} param0
- * @param{Object} param1
+ * @param{Object} param0 -
+ * @param{Object} param1 - 
  */
 og.scene.Planet.prototype.createDefaultTextures = function (param0, param1) {
     this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
@@ -859,17 +855,19 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
     if (this.renderer.activeCamera.slope > 0.68 && this.renderer.activeCamera._lonLat.height < 850000) {
         this.minCurrZoom = this.maxCurrZoom;
 
-        var temp = this._renderedNodes;
+        var temp = this._renderedNodes,
+            i;
+
         this._renderedNodes = [];
 
-        for (var i = 0; i < temp.length; i++) {
+        for (i = 0; i < temp.length; i++) {
             var ri = temp[i];
             if (ri.planetSegment.tileZoom === this.maxCurrZoom) {
                 this._renderedNodes.push(ri);
             }
         }
 
-        for (var i = 0; i < temp.length; i++) {
+        for (i = 0; i < temp.length; i++) {
             var ri = temp[i];
             if (ri.planetSegment.tileZoom < this.maxCurrZoom) {
                 ri.renderTree(this.maxCurrZoom);
@@ -1279,7 +1277,7 @@ og.scene.Planet.prototype.memClear = function () {
  * If the ray doesn't hit ellipsoit returns null.
  * @public
  * @param {og.math.Ray} ray - Ray 3d.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.scene.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
     return this.ellipsoid.hitRay(ray.origin, ray.direction);
@@ -1289,6 +1287,7 @@ og.scene.Planet.prototype.getRayIntersectionEllipsoid = function (ray) {
  * Returns 2d screen coordanates projection point to the planet ellipsoid 3d coordinates.
  * @public
  * @param {og.math.Pixel} px - 2D sreen coordinates.
+ * @returns {og.math.Vector3} -
  */
 og.scene.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
     var cam = this.renderer.activeCamera;
@@ -1299,7 +1298,7 @@ og.scene.Planet.prototype.getCartesianFromPixelEllipsoid = function (px) {
  * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
  * @public
  * @param {og.math.Pixel} px - 2D screen coordinates.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 og.scene.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
@@ -1313,7 +1312,8 @@ og.scene.Planet.prototype.getLonLatFromPixelEllipsoid = function (px) {
  * Returns 3d cartesian coordinates on the relief planet by mouse cursor
  * position or null if mouse cursor is outside the planet.
  * @public
- * @returns {og.math.Vector3}
+ * @param {Boolean} [force=false] - Force framebuffer rendering.
+ * @returns {og.math.Vector3} -
  */
 og.scene.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
     var ms = this.renderer.events.mouseState;
@@ -1329,7 +1329,8 @@ og.scene.Planet.prototype.getCartesianFromMouseTerrain = function (force) {
  * position or null if input coordinates is outside the planet.
  * @public
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
- * @returns {og.math.Vector3}
+ * @param {Boolean} [force=false] - Force framebuffer rendering.
+ * @returns {og.math.Vector3} -
  */
 og.scene.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
     var distance = this.getDistanceFromPixel(px, force);
@@ -1345,7 +1346,8 @@ og.scene.Planet.prototype.getCartesianFromPixelTerrain = function (px, force) {
  * position or null if input coordinates is outside the planet.
  * @public
  * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
- * @returns {og.LonLat}
+ * @param {Boolean} [force=false] - Force framebuffer rendering.
+ * @returns {og.LonLat} -
  */
 og.scene.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
     var coords = this.getCartesianFromPixelTerrain(px, force);
@@ -1359,7 +1361,7 @@ og.scene.Planet.prototype.getLonLatFromPixelTerrain = function (px, force) {
  * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
  * @public
  * @param {og.math.Vector3} coords - Cartesian coordinates.
- * @returns {og.math.Vector2}
+ * @returns {og.math.Vector2} -
  */
 og.scene.Planet.prototype.getPixelFromCartesian = function (coords) {
     return this.renderer.activeCamera.project(coords);
@@ -1369,7 +1371,7 @@ og.scene.Planet.prototype.getPixelFromCartesian = function (coords) {
  * Returns projected 2d screen coordinates by geographical coordinates.
  * @public
  * @param {og.LonLat} lonlat - Geographical coordinates.
- * @returns {og.math.Vector2}
+ * @returns {og.math.Vector2} -
  */
 og.scene.Planet.prototype.getPixelFromLonLat = function (lonlat) {
     var coords = this.ellipsoid.lonLatToCartesian(lonlat);
@@ -1382,8 +1384,8 @@ og.scene.Planet.prototype.getPixelFromLonLat = function (lonlat) {
  * Returns distance from active camera to the the planet ellipsoid
  * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
  * @public
- * @param {og.math.Vector2} px
- * @returns {number}
+ * @param {og.math.Vector2} px - Screen coordinates.
+ * @returns {number} -
  */
 og.scene.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
     var coords = this.getCartesianFromPixelEllipsoid(px);
@@ -1396,8 +1398,9 @@ og.scene.Planet.prototype.getDistanceFromPixelEllipsoid = function (px) {
  * If screen coordinates inside the planet but relief is not exists in the
  * point than function returns distance to the planet ellipsoid.
  * @public
- * @param {og.math.Vector2} px
- * @returns {number}
+ * @param {og.math.Vector2} px - Screen coordinates.
+ * @param {Boolean} [force=false] - Force framebuffer rendering.
+ * @returns {number} -
  */
 og.scene.Planet.prototype.getDistanceFromPixel = function (px, force) {
     if (this._viewChanged || force) {
