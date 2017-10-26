@@ -317,7 +317,10 @@ og.layer.GmxVector.prototype._handleTileData = function (x, y, z, v, data) {
     this._tileItemsCache[tileIndex] = {
         'items': items,
         'bbox': data.bbox,
-        'isGeneralized': data.isGeneralized
+        'isGeneralized': data.isGeneralized,
+        'x': x,
+        'y': y,
+        'z': z
     };
 
     for (var i = 0; i < items.length; i++) {
@@ -409,14 +412,34 @@ og.layer.GmxVector.prototype.loadMaterial = function (material) {
         material.isReady = false;
         material.isLoading = true;
 
-        console.log(this._layerId + ": " + seg.tileIndex);
+        var data = this._getTileData(seg);
 
-        if (this._tileItemsCache[seg.tileIndex]) {
-
+        if (data) {
+            console.log("draw geometry of " + (data.x + "_" + data.y + "_" + data.z) + " in tile " + seg.tileIndex);
         } else {
-
+            //this._pendingQueue.push(material);
+            console.log("pending for " + seg.tileIndex);
         }
     }
+};
+
+
+og.layer.GmxVector.prototype._getTileData = function (seg) {
+    var tc = this._tileItemsCache;
+    var data = tc[seg.tileIndex];
+    if (data) {
+        return data;
+    } else {
+        var pn = this._planet._quadTreeNodesCacheMerc[seg.tileIndex].parentNode;
+        while (pn) {
+            var ptc = tc[pn.planetSegment.tileIndex];
+            if (ptc && !ptc.isGeneralized) {
+                return ptc;
+            }
+            pn = pn.parentNode;
+        }
+    }
+    return null;
 };
 
 og.layer.GmxVector.prototype.getGmxProperties = function () {
