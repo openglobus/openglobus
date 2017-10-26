@@ -16,12 +16,16 @@ goog.require('og.planetSegment.Material');
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
+ * @param {og.quadTree.Node} node - Segment node.
+ * @param {og.scene.Planet} planet - Current planet scene.
+ * @param {Number} tileZoom - Zoom index.
+ * @param {og.Extent} extent - Segment extent.
  */
 og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 
     /**
      * Quad tree node of the segment.
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this.node = node;
 

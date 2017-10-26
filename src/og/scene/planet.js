@@ -9,7 +9,7 @@ goog.require('og.math.Vector3');
 goog.require('og.math.Vector2');
 goog.require('og.math.coder');
 goog.require('og.quadTree');
-goog.require('og.quadTree.QuadNode');
+goog.require('og.quadTree.Node');
 goog.require('og.bv.Sphere');
 goog.require('og.PlanetCamera');
 goog.require('og.shaderProgram.drawnode_nl');
@@ -163,37 +163,37 @@ og.scene.Planet = function (name, ellipsoid) {
     this._createdNodesCount = 0;
 
     /**
-     * Planet's segments collected for the rendering frame.
+     * Planet's segments collected for rendering frame.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._renderedNodes = [];
 
     /**
      * Created nodes cache
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._quadTreeNodesCacheMerc = {};
 
     /**
      * Current visible mercator segments tree nodes array.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._visibleNodes = {};
 
     /**
      * Current visible north pole nodes tree nodes array.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._visibleNodesNorth = {};
 
     /**
      * Current visible south pole nodes tree nodes array.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._visibleNodesSouth = {};
 
@@ -260,21 +260,21 @@ og.scene.Planet = function (name, ellipsoid) {
     /**
      * Mercator grid tree.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._quadTree = null;
 
     /**
      * North grid tree.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._quadTreeNorth = null;
 
     /**
      * South grid tree.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._quadTreeSouth = null;
 
@@ -634,9 +634,9 @@ og.scene.Planet.prototype.initialization = function () {
     });
 
     //Creating quad trees nodes
-    this._quadTree = new og.quadTree.QuadNode(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-    this._quadTreeNorth = new og.quadTree.QuadNode(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
-    this._quadTreeSouth = new og.quadTree.QuadNode(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
+    this._quadTree = new og.quadTree.Node(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+    this._quadTreeNorth = new og.quadTree.Node(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
+    this._quadTreeSouth = new og.quadTree.Node(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
 
     this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 

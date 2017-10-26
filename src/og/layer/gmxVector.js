@@ -356,7 +356,7 @@ og.layer.GmxVector.castType = {
     },
 
     "boolean": function (v) {
-        if (str == null)
+        if (str === null)
             return false;
         if (typeof str === 'boolean') {
             if (str === true)

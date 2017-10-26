@@ -69,7 +69,7 @@ og.PlanetCamera = function (planet, options) {
     /**
      * Quad node that camera flies over.
      * @protected
-     * @type {og.quadTree.QuadNode}
+     * @type {og.quadTree.Node}
      */
     this._insideSegment = null;
 
@@ -77,7 +77,7 @@ og.PlanetCamera = function (planet, options) {
 
     /**
      * Coordinates that depends on what segment class we are fling over.
-     * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.QuadNode
+     * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.Node
      * @protected
      * @type {og.LonLat}
      */
