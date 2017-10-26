@@ -170,6 +170,13 @@ og.scene.Planet = function (name, ellipsoid) {
     this._renderedNodes = [];
 
     /**
+     * Created nodes cache
+     * @protected
+     * @type {og.quadTree.QuadNode}
+     */
+    this._quadTreeNodesCacheMerc = {};
+
+    /**
      * Current visible mercator segments tree nodes array.
      * @protected
      * @type {og.quadTree.QuadNode}
@@ -413,7 +420,7 @@ og.scene.Planet.prototype.addControls = function (cArr) {
  * Return layer by it name
  * @param {string} name - Name of the layer. og.layer.Layer.prototype.name
  * @public
- * @returns {og.layer.Layer}
+ * @returns {og.layer.Layer} -
  */
 og.scene.Planet.prototype.getLayerByName = function (name) {
     var i = this.layers.length;

@@ -30,7 +30,7 @@ og.quadTree.QuadNode = function (segmentPrototype, planet, partId, parent, id, t
     this.neighbors = [null, null, null, null];
     this.SegmentPrototype = segmentPrototype;
     this.planetSegment = new segmentPrototype(this, planet, tileZoom, extent);
-
+    
     /**
      * @private
      */
@@ -167,7 +167,7 @@ og.quadTree.QuadNode.prototype.getState = function () {
  * Returns the same deep existent neighbour node.
  * @public
  * @param {Number} side - Neighbour side index e.g. og.quadTree.N, og.quadTree.W etc.
- * @returns {og.quadTree.QuadNode}
+ * @returns {og.quadTree.QuadNode} -
  */
 og.quadTree.QuadNode.prototype.getEqualNeighbor = function (side) {
     var pn = this;
@@ -184,7 +184,7 @@ og.quadTree.QuadNode.prototype.getEqualNeighbor = function (side) {
                 var i = pathId.length;
                 side = og.quadTree.OPSIDE[side];
                 while (pn && i--) {
-                    var part = og.quadTree.OPPART[side][pathId[i]];
+                    part = og.quadTree.OPPART[side][pathId[i]];
                     pn = pn.nodes[part];
                 }
                 return pn;

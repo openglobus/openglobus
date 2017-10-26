@@ -233,3 +233,8 @@ og.planetSegment.SegmentLonLat.prototype.getNodeState = function () {
     }
     return vn && vn.state || og.quadTree.NOTRENDERING;
 };
+
+
+og.planetSegment.SegmentLonLat.prototype._freeCache = function () {
+    //empty for a time
+};

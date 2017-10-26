@@ -577,10 +577,20 @@ og.planetSegment.Segment.prototype.clearSegment = function () {
 };
 
 /**
+ * Removes cache record.
+ */
+og.planetSegment.Segment.prototype._freeCache = function () {
+    this.planet._quadTreeNodesCacheMerc[this.tileIndex] = null;
+    delete this.planet._quadTreeNodesCacheMerc[this.tileIndex];
+};
+
+/**
  * Clear and destroy all segment data.
  */
 og.planetSegment.Segment.prototype.destroySegment = function () {
 
+    this._freeCache();
+    
     this.clearSegment();
 
     var i = this._renderingSlices.length;
@@ -696,6 +706,7 @@ og.planetSegment.Segment.prototype._assignTileIndexes = function () {
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
     this.tileIndex = og.layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+    this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
 };
 
 og.planetSegment.Segment.prototype.initializePlainSegment = function () {

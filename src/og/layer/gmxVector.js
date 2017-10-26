@@ -52,11 +52,15 @@ og.layer.GmxVector = function (name, options) {
 
     this._layerId = options.layerId;
 
+    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
+
     this._gmxProperties = null;
 
-    this._tileVersions = {};
+    this._itemCache = {};
 
-    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
+    this._tileItemsCache = {};
+
+    this._tileVersions = {};
 
     this.events.registerNames(og.layer.GmxVector.EVENT_NAMES);
 };
@@ -291,12 +295,13 @@ og.layer.GmxVector.prototype._getTile = function (x, y, z, v) {
         "v": v.toString()
     });
 
+    var that = this;
     og.ajax.request(url, {
         'type': "GET",
         'responseType': "text",
         'success': function (dataStr) {
             var data = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.lastIndexOf('}') + 1));
-            console.log(data);
+            that._handleTileData(x, y, z, v, data);
         },
         'error': function (err) {
             console.log(err);
@@ -304,24 +309,85 @@ og.layer.GmxVector.prototype._getTile = function (x, y, z, v) {
     });
 };
 
-// og.layer.GmxVector.prototype._checkVersionSuccess = function (data) {
-//     console.log("1. Collect tiles");
-//     console.log("2. Proceed to tileSender");
-//     var rn = this._planet._renderedNodes;
-//     for (var i = 0; i < rn.length; i++) {
-//         var seg = rn[i].planetSegment;
-//         var url = og.utils.stringTemplate(this._tileSenderUrl, {
-//             "id": this._layerId,
-//             "x": seg.tileX.toString(),
-//             "y": seg.tileY.toString(),
-//             "z": seg.tileZoom.toString(),
-//             "v": -1
-//         });
-//         console.log(url);
-//     }
+og.layer.GmxVector.prototype._handleTileData = function (x, y, z, v, data) {
+    var items = data.values;
 
-// };
+    var tileIndex = og.layer.getTileIndex(x, y, z);
 
+    this._tileItemsCache[tileIndex] = {
+        'items': items,
+        'bbox': data.bbox,
+        'isGeneralized': data.isGeneralized
+    };
+
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        /* 0 - gmx_id */
+        this._itemCache[item[0]] = this._getAttributes(item);
+    }
+};
+
+og.layer.GmxVector.castType = {
+    "string": function (v) {
+        return v.toString();
+    },
+
+    "date": function (v) {
+        return new Date(v * 1000);
+    },
+
+    "datetime": function (v) {
+        return new Date(v * 1000);
+    },
+
+    "time": function (v) {
+        return parseInt(v);
+    },
+
+    "integer": function (v) {
+        return parseInt(v);
+    },
+
+    "float": function (v) {
+        return parseFloat(v);
+    },
+
+    "boolean": function (v) {
+        if (str == null)
+            return false;
+        if (typeof str === 'boolean') {
+            if (str === true)
+                return true;
+            return false;
+        }
+        if (typeof str === 'string') {
+            if (str === "")
+                return false;
+            str = str.replace(/^\s+|\s+$/g, '');
+            if (str.toLowerCase() === 'true' || str.toLowerCase() === 'yes')
+                return true;
+            str = str.replace(/,/g, '.');
+            str = str.replace(/^\s*\-\s*/g, '-');
+        }
+        if (!isNaN(str))
+            return parseFloat(str) !== 0;
+        return false;
+    }
+};
+
+og.layer.GmxVector.prototype._getAttributes = function (item) {
+    var res = {},
+        prop = this._gmxProperties;
+
+    var attrs = prop.attributes,
+        types = prop.attrTypes;
+
+    for (var i = 0; i < attrs.length; i++) {
+        res[attrs[i]] = og.layer.GmxVector.castType[type](value);
+    }
+
+    return res;
+};
 
 /**
  * Start to load tile material.
@@ -343,20 +409,18 @@ og.layer.GmxVector.prototype.loadMaterial = function (material) {
         material.isReady = false;
         material.isLoading = true;
 
-        // var url = og.utils.stringTemplate(this._tileSenderUrl, {
-        //     "id": this._layerId,
-        //     "x": seg.tileX.toString(),
-        //     "y": seg.tileY.toString(),
-        //     "z": seg.tileZoom.toString(),
-        //     "v": -1
-        // });
-
         console.log(this._layerId + ": " + seg.tileIndex);
-        //
-        //
-        // TODO: Get to the observer or something like this._planet._vectorTileCreator.add(material);
-        //
+
+        if (this._tileItemsCache[seg.tileIndex]) {
+
+        } else {
+
+        }
     }
+};
+
+og.layer.GmxVector.prototype.getGmxProperties = function () {
+    return this._gmxProperties;
 };
 
 /**
