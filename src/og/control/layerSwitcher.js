@@ -77,8 +77,7 @@ og.control.LayerSwitcher.prototype.addSwitcher = function (type, obj, container,
     lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
 
     obj._removeCallback = function () {
-        container.removeChild(inp);
-        container.removeChild(lbl);
+        container.removeChild(lineDiv);
     }
 
     lineDiv.appendChild(center);

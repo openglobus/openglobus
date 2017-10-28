@@ -312,6 +312,33 @@ og.layer.GmxVector.prototype._initialize = function () {
         that.setExtent(og.Geometry.getExtent(data.geometry));
         p._gmxCheckVersion.update();
     });
+
+    var _drawCallback = function () {
+        that._drawCallback()
+    };
+
+    p.events.on("draw", _drawCallback);
+
+    var _removeCallback = function () {
+        that._planet.events.off("draw", _drawCallback);
+        that._planet.events.off("remove", _removeCallback);
+    };
+
+    this.events.on("remove", _removeCallback);
+    this.events.on("visibilitychange", function (e) {
+        if (e._planet) {
+            if (e.getVisibility()) {
+                e._planet.events.on("draw", _drawCallback);
+            } else {
+                that._planet.events.off("draw", _drawCallback);
+            }
+        }
+    });
+};
+
+
+og.layer.GmxVector.prototype._drawCallback = function () {
+
 };
 
 og.layer.GmxVector.prototype._checkVersionSuccess = function (prop) {
