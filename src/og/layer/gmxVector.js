@@ -58,9 +58,18 @@ og.layer.GmxVector = function (name, options) {
 
     this._itemCache = {};
 
-    this._tileItemsCache = {};
+    this._tileDataCache = {};
 
     this._tileVersions = {};
+
+    this._itemZIndexCounter = 0;
+
+    this._style = options.style || {};
+    this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.4));
+    this._style.lineColor = og.utils.createColorRGBA(this._style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
+    this._style.strokeColor = og.utils.createColorRGBA(this._style.strokeColor, new og.math.Vector4(1, 1, 1, 0.95));
+    this._style.lineWidth = this._style.lineWidth || 3;
+    this._style.strokeWidth = this._style.strokeWidth || 0;
 
     this.events.registerNames(og.layer.GmxVector.EVENT_NAMES);
 };
@@ -208,6 +217,47 @@ og.layer.GmxVector.CheckVersion = function (planet) {
     };
 };
 
+
+/**
+ * Represents geomixer item. Stores item attributes.
+ * @class
+ */
+og.layer.GmxVector.Item = function (id, options) {
+    options = options || {};
+
+    this.id = id;
+    this.attributes = options.attributes || {};
+    this.version = options.version || -1;
+
+    this._layer = null;
+    this._style = options.style || {};
+};
+
+og.layer.GmxVector.Item.prototype.addTo = function (layer) {
+    layer.addItem(this);
+};
+
+
+/**
+ * Represents geomixer vector tile data. Stores tile geometries and rendering data.
+ * @class
+ */
+og.layer.GmxVector.TileData = function (data, x, y, z, v) {
+    this.isGeneralized = data.isGeneralized;
+    this.bbox = data.bbox;
+    this.version = v;
+    this.items = data.values;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+};
+
+og.layer.GmxVector.TileData.prototype.setData = function (data) {
+    this.isGeneralized = data.isGeneralized;
+    this.bbox = data.bbox;
+    this.items = data.values;
+};
+
 /**
  * Vector layer {@link og.layer.GmxVector} object factory.
  * @static
@@ -309,55 +359,86 @@ og.layer.GmxVector.prototype._getTile = function (x, y, z, v) {
     });
 };
 
+og.layer.GmxVector.prototype.addItem = function (item) {
+    if (!item._layer) {
+        this._itemCache[item.id] = item;
+        item._layer = this;
+        if (this._planet) {
+            this._planet.renderer.assignPickingColor(item);
+        }
+    }
+};
+
 og.layer.GmxVector.prototype._handleTileData = function (x, y, z, v, data) {
-    var items = data.values;
-
-    var tileIndex = og.layer.getTileIndex(x, y, z);
-
-    this._tileItemsCache[tileIndex] = {
-        'items': items,
-        'bbox': data.bbox,
-        'isGeneralized': data.isGeneralized,
-        'x': x,
-        'y': y,
-        'z': z
-    };
+    var items = data.values,
+        style = this._style;
 
     for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        /* 0 - gmx_id */
-        this._itemCache[item[0]] = this._getAttributes(item);
+
+        var item = items[i],
+            gmxId = item[0];
+
+        var cacheItem = this._itemCache[gmxId];
+
+        if (!cacheItem) {
+            this.addItem(new og.layer.GmxVector.Item(gmxId, {
+                'attributes': this._getAttributes(item),
+                'version': v,
+                'style': {
+                    'fillColor': style.fillColor,
+                    'lineColor': style.lineColor,
+                    'strokeColor': style.strokeColor,
+                    'lineWidth': style.lineWidth,
+                    'strokeWidth': style.strokeWidth,
+                    'zIndex': this._itemZIndexCounter++
+                }
+            }));
+        } else if (cacheItem.version !== v) {
+            cacheItem.version = v;
+            cacheItem.attributes = this._getAttributes(item);
+        }
+    }
+
+    var tileIndex = og.layer.getTileIndex(x, y, z),
+        cacheTileData = this._tileDataCache[tileIndex];
+
+    if (!cacheTileData) {
+        this._tileDataCache[tileIndex] = new og.layer.GmxVector.TileData(data, x, y, z, v);
+    } else if (cacheTileData.version !== v) {
+        cacheTileData.version = v;
+        cacheTileData.setData(data);
     }
 };
 
 og.layer.GmxVector.castType = {
     "string": function (v) {
-        return v.toString();
+        return v != null ? v.toString() : v;
     },
 
     "date": function (v) {
-        return new Date(v * 1000);
+        return v != null ? new Date(v * 1000) : v;
     },
 
     "datetime": function (v) {
-        return new Date(v * 1000);
+        return v != null ? new Date(v * 1000) : v;
     },
 
     "time": function (v) {
-        return parseInt(v);
+        return v != null ? parseInt(v) : v;
     },
 
     "integer": function (v) {
-        return parseInt(v);
+        return v != null ? parseInt(v) : v;
     },
 
     "float": function (v) {
-        return parseFloat(v);
+        return v != null ? parseFloat(v) : v;
     },
 
-    "boolean": function (v) {
+    "boolean": function (str) {
         if (str === null)
-            return false;
+            return str;
+
         if (typeof str === 'boolean') {
             if (str === true)
                 return true;
@@ -386,7 +467,7 @@ og.layer.GmxVector.prototype._getAttributes = function (item) {
         types = prop.attrTypes;
 
     for (var i = 0; i < attrs.length; i++) {
-        res[attrs[i]] = og.layer.GmxVector.castType[type](value);
+        res[attrs[i]] = og.layer.GmxVector.castType[types[i]](item[i + 1]);
     }
 
     return res;
@@ -425,7 +506,7 @@ og.layer.GmxVector.prototype.loadMaterial = function (material) {
 
 
 og.layer.GmxVector.prototype._getTileData = function (seg) {
-    var tc = this._tileItemsCache;
+    var tc = this._tileDataCache;
     var data = tc[seg.tileIndex];
     if (data) {
         return data;
