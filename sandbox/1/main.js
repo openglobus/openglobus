@@ -22,7 +22,7 @@ goog.require('og.layer.GeoImage');
 goog.require('og.layer.GeoTexture2d');
 goog.require('og.layer.GeoVideo');
 goog.require('og.control.GeoImageDragControl');
-goog.require('og.layer.GmxVector');
+goog.require('og.gmx.VectorLayer');
 
 function start() {
 
@@ -396,11 +396,11 @@ function test() {
 
 function main5() {
 
-    var l1 = new og.layer.GmxVector("gmxLayer-1", {
+    var l1 = new og.gmx.VectorLayer("gmxLayer-1", {
         'layerId': "04C2806DB65747258EC2AC328CD0CEDF"
     });
 
-    var l2 = new og.layer.GmxVector("gmxLayer-2", {
+    var l2 = new og.gmx.VectorLayer("gmxLayer-2", {
         'layerId': "ACBB0FF7DFA24127A5A87921350A96B6"
     });
 

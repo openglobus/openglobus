@@ -58,7 +58,6 @@ goog.addDependency('../../../../../../og/src/og/layer/canvasTiles.js', ['og.laye
 goog.addDependency('../../../../../../og/src/og/layer/geoImage.js', ['og.layer.GeoImage'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
 goog.addDependency('../../../../../../og/src/og/layer/geoTexture2d.js', ['og.layer.GeoTexture2d'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
 goog.addDependency('../../../../../../og/src/og/layer/geoVideo.js', ['og.layer.GeoVideo'], ['og.inheritance', 'og.layer.BaseGeoImage'], false);
-goog.addDependency('../../../../../../og/src/og/layer/gmxVector.js', ['og.layer.GmxVector', 'og.layer.GmxVector.CheckVersion'], ['og.Entity', 'og.EntityCollection', 'og.Geometry', 'og.GeometryHandler', 'og.LonLat', 'og.QueueArray', 'og.ajax', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../../../../og/src/og/layer/layer.js', ['og.layer', 'og.layer.Layer'], ['og.Events', 'og.Extent', 'og.QueueArray', 'og.mercator', 'og.utils'], false);
 goog.addDependency('../../../../../../og/src/og/layer/vector.js', ['og.layer.Vector'], ['og.Entity', 'og.EntityCollection', 'og.GeometryHandler', 'og.LonLat', 'og.QueueArray', 'og.inheritance', 'og.math', 'og.quadTree', 'og.quadTree.EntityCollectionQuadNode'], false);
 goog.addDependency('../../../../../../og/src/og/layer/wms.js', ['og.layer.WMS'], ['og.inheritance', 'og.layer.XYZ'], false);
@@ -85,6 +84,11 @@ goog.addDependency('../../../../../../og/src/og/planetSegment/material.js', ['og
 goog.addDependency('../../../../../../og/src/og/planetSegment/planetSegmentHelper.js', ['og.PlanetSegmentHelper'], ['og.quadTree'], false);
 goog.addDependency('../../../../../../og/src/og/planetSegment/segment.js', ['og.planetSegment', 'og.planetSegment.Segment'], ['og.Extent', 'og.LonLat', 'og.PlanetSegmentHelper', 'og.bv.Box', 'og.bv.Sphere', 'og.layer', 'og.math', 'og.math.Vector3', 'og.mercator', 'og.planetSegment.Material', 'og.proj.EPSG3857'], false);
 goog.addDependency('../../../../../../og/src/og/planetSegment/segmentLonLat.js', ['og.planetSegment.SegmentLonLat'], ['og.LonLat', 'og.inheritance', 'og.planetSegment.Segment', 'og.proj.EPSG4326'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxCheckVersion.js', ['og.gmx.CheckVersion'], ['og.ajax'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxItem.js', ['og.gmx.Item'], [], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileData.js', ['og.gmx.TileData'], [], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVector.js', ['og.gmx.VectorLayer'], ['og.ajax', 'og.gmx.CheckVersion', 'og.gmx.Item', 'og.gmx.TileData', 'og.gmx.VectorTileCreator', 'og.inheritance', 'og.layer.Layer', 'og.utils'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVectorTileCreator.js', ['og.gmx.VectorTileCreator'], ['og.inheritance', 'og.utils.VectorTileCreator'], false);
 goog.addDependency('../../../../../../og/src/og/proj/epsg3857.js', ['og.proj.EPSG3857'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../../../../og/src/og/proj/proj.js', ['og.Units', 'og.proj', 'og.proj.METERS_PER_UNIT', 'og.proj.Projection'], [], false);

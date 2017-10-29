@@ -373,3 +373,52 @@ og.utils.xmlToJson = function (xml) {
     }
     return obj;
 };
+
+og.utils.castType = {
+    "string": function (v) {
+        return v != null ? v.toString() : v;
+    },
+
+    "date": function (v) {
+        return v != null ? new Date(v * 1000) : v;
+    },
+
+    "datetime": function (v) {
+        return v != null ? new Date(v * 1000) : v;
+    },
+
+    "time": function (v) {
+        return v != null ? parseInt(v) : v;
+    },
+
+    "integer": function (v) {
+        return v != null ? parseInt(v) : v;
+    },
+
+    "float": function (v) {
+        return v != null ? parseFloat(v) : v;
+    },
+
+    "boolean": function (str) {
+        if (str === null)
+            return str;
+
+        if (typeof str === 'boolean') {
+            if (str === true)
+                return true;
+            return false;
+        }
+        if (typeof str === 'string') {
+            if (str === "")
+                return false;
+            str = str.replace(/^\s+|\s+$/g, '');
+            if (str.toLowerCase() === 'true' || str.toLowerCase() === 'yes')
+                return true;
+            str = str.replace(/,/g, '.');
+            str = str.replace(/^\s*\-\s*/g, '-');
+        }
+        if (!isNaN(str))
+            return parseFloat(str) !== 0;
+        return false;
+    }
+};

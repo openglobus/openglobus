@@ -21,22 +21,23 @@ og.utils.VectorTileCreator = function (planet, maxFrames, width, height) {
 og.utils.VectorTileCreator.prototype._initialize = function () {
 
     //Line
-    this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileLineRasterization", {
-        uniforms: {
-            'viewport': { type: og.shaderProgram.types.VEC2 },
-            'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
-            'alpha': { type: og.shaderProgram.types.FLOAT },
-            'extentParams': { type: og.shaderProgram.types.VEC4 }
-        },
-        attributes: {
-            'prev': { type: og.shaderProgram.types.VEC2 },
-            'current': { type: og.shaderProgram.types.VEC2 },
-            'next': { type: og.shaderProgram.types.VEC2 },
-            'order': { type: og.shaderProgram.types.FLOAT },
-            'color': { type: og.shaderProgram.types.VEC4 },
-            'thickness': { type: og.shaderProgram.types.FLOAT }
-        },
-        vertexShader: 'attribute vec2 prev;\
+    if (!this._handler.shaderPrograms.vectorTileLineRasterization) {
+        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileLineRasterization", {
+            uniforms: {
+                'viewport': { type: og.shaderProgram.types.VEC2 },
+                'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
+                'alpha': { type: og.shaderProgram.types.FLOAT },
+                'extentParams': { type: og.shaderProgram.types.VEC4 }
+            },
+            attributes: {
+                'prev': { type: og.shaderProgram.types.VEC2 },
+                'current': { type: og.shaderProgram.types.VEC2 },
+                'next': { type: og.shaderProgram.types.VEC2 },
+                'order': { type: og.shaderProgram.types.FLOAT },
+                'color': { type: og.shaderProgram.types.VEC4 },
+                'thickness': { type: og.shaderProgram.types.FLOAT }
+            },
+            vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
                 attribute vec2 next;\
                 attribute float order;\
@@ -102,24 +103,26 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                     }\
                     gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
                 }',
-        fragmentShader: 'precision highp float;\
+            fragmentShader: 'precision highp float;\
                 uniform float alpha;\
                 varying vec4 vColor;\
                 void main() {\
                     gl_FragColor = vec4(vColor.rgb, alpha * vColor.a);\
                 }'
-    }));
+        }));
+    }
 
     //Polygon
-    this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTilePolygonRasterization", {
-        uniforms: {
-            'extentParams': { type: og.shaderProgram.types.VEC4 }
-        },
-        attributes: {
-            'coordinates': { type: og.shaderProgram.types.VEC2 },
-            'colors': { type: og.shaderProgram.types.VEC4 }
-        },
-        vertexShader: 'attribute vec2 coordinates; \
+    if (!this._handler.shaderPrograms.vectorTilePolygonRasterization) {
+        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTilePolygonRasterization", {
+            uniforms: {
+                'extentParams': { type: og.shaderProgram.types.VEC4 }
+            },
+            attributes: {
+                'coordinates': { type: og.shaderProgram.types.VEC2 },
+                'colors': { type: og.shaderProgram.types.VEC4 }
+            },
+            vertexShader: 'attribute vec2 coordinates; \
                       attribute vec4 colors; \
                       uniform vec4 extentParams; \
                       varying vec4 color;\
@@ -127,12 +130,13 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
                           color = colors;\
                           gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
                       }',
-        fragmentShader: 'precision highp float;\
+            fragmentShader: 'precision highp float;\
                         varying vec4 color;\
                         void main () {  \
                             gl_FragColor = color; \
                         }'
-    }));
+        }));
+    }
 
     this._framebuffer = new og.webgl.Framebuffer(this._handler, {
         width: this._width,
