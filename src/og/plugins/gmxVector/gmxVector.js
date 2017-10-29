@@ -249,10 +249,13 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
         material.isReady = false;
         material.isLoading = true;
 
-        var data = this._getTileData(seg);
+        var tileData = this._getTileData(seg);
 
-        if (data) {
-            console.log("draw geometry of " + (data.x + "_" + data.y + "_" + data.z) + " in tile " + seg.tileIndex);
+        if (tileData) {
+            this._planet._gmxVectorTileCreator.add({
+                'material': material,
+                'tileData': tileData
+            });
         } else {
             //this._pendingQueue.push(material);
             console.log("pending for " + seg.tileIndex);
