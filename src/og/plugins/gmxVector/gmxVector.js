@@ -40,6 +40,8 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._filteredItems = {};
 
+    this._renderingVersion = 0;
+
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.4));
     this._style.lineColor = og.utils.createColorRGBA(this._style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
@@ -141,6 +143,23 @@ og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {
 
 og.gmx.VectorLayer.prototype.setFilter = function (filterCallback) {
     this._filterCallback = filterCallback;
+    this.updateFilter();
+};
+
+og.gmx.VectorLayer.prototype.getItemVisibility = function (item) {
+    if (!layer._filterCallback) {
+        return true;
+    }
+    var visibility = this._filteredItems[item.id];
+    if (visibility == null) {
+        visibility = this._filteredItems[item.id] = this._filterCallback[item.id](item);
+    }
+    return visibility;
+};
+
+og.gmx.VectorLayer.prototype.updateFilter = function () {
+    this._filteredItems = {};
+    this._filterUpdateVersion++;
 };
 
 og.gmx.VectorLayer.prototype._getTile = function (x, y, z, v) {
@@ -208,10 +227,11 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData = this._tileDataCache[tileIndex];
 
     if (!cacheTileData) {
-        this._tileDataCache[tileIndex] = new og.gmx.TileData(data, x, y, z, v);
+        this._tileDataCache[tileIndex] = new og.gmx.TileData(data, x, y, z, v, this._renderingVersion);
     } else if (cacheTileData.version !== v) {
         cacheTileData.version = v;
         cacheTileData.setData(data);
+        cacheTileData.isReady = false;
     }
 };
 

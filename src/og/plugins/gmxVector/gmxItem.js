@@ -23,3 +23,7 @@ og.gmx.Item = function (id, options) {
 og.gmx.Item.prototype.addTo = function (layer) {
     layer.addItem(this);
 };
+
+og.gmx.Item.prototype.setStyle = function(style){
+
+};

@@ -51,9 +51,29 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
             startTime = window.performance.now();
 
         while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
+
             var tileData = this._queue.shift();
             var material = tileData.material;
+            var layer = material.layer;
+
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
+
+                if (!tileData.isReady || tileData.renderingVersion !== layer._renderingVersion) {
+                    //Prepare for rendering:
+                    //Filter items and collect geometries buffers
+                    var items = tileData.items;
+
+                    for (var i = 0; i < items.length; i++) {
+                        var gmxId = items[i][0];
+                        var itemVisibility = layer.getItemVisibility(layer._itemCache[gmxId]);
+                        //
+                        //...
+                        //
+                    }
+
+                    tileData.renderingVersion = layer._renderingVersion;                    
+                    tileData.isReady = true;
+                }
 
                 if (material.segment.tileZoom <= 2) {
                     width = width2;

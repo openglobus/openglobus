@@ -12,7 +12,7 @@ goog.provide('og.gmx.TileData');
  * @param {Number} z - Tile zoom level. 
  * @param {Number} v - Tile version. 
  */
-og.gmx.TileData = function (data, x, y, z, v) {
+og.gmx.TileData = function (data, x, y, z, v, renderingVersion) {
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
     this.version = v;
@@ -20,6 +20,8 @@ og.gmx.TileData = function (data, x, y, z, v) {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.isReady = false;
+    this.renderingVersion = renderingVersion;
 };
 
 og.gmx.TileData.prototype.setData = function (data) {
