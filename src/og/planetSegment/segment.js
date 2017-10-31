@@ -11,7 +11,6 @@ goog.require('og.bv.Sphere');
 goog.require('og.mercator');
 goog.require('og.LonLat');
 goog.require('og.proj.EPSG3857');
-goog.require('og.planetSegment.Material');
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
@@ -876,8 +875,9 @@ og.planetSegment.Segment.prototype._multiRendering = function (sh, layerSlice, d
             if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
                 notEmpty = true;
                 var m = pm[li._id];
+
                 if (!m) {
-                    m = pm[li._id] = new og.planetSegment.Material(this, li);
+                    m = pm[li._id] = li.createMaterial(this);
                 }
 
                 var n4 = n * 4,
@@ -1035,7 +1035,7 @@ og.planetSegment.Segment.prototype._screenRendering = function (sh, layerSlice, 
                 notEmpty = true;
                 var m = pm[li._id];
                 if (!m) {
-                    m = pm[li._id] = new og.planetSegment.Material(this, li);
+                    m = pm[li._id] = li.createMaterial(this);
                 }
 
                 slice.layers.push(li);

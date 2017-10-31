@@ -147,7 +147,7 @@ og.gmx.VectorLayer.prototype.setFilter = function (filterCallback) {
 };
 
 og.gmx.VectorLayer.prototype.getItemVisibility = function (item) {
-    if (!layer._filterCallback) {
+    if (!this._filterCallback) {
         return true;
     }
     var visibility = this._filteredItems[item.id];

@@ -52,8 +52,9 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
         while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
 
-            var tileData = this._queue.shift();
-            var material = tileData.material;
+            var q = this._queue.shift();
+            var tileData = q.tileData,
+                material = q.material;
             var layer = material.layer;
 
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {

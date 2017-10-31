@@ -1,4 +1,4 @@
-goog.provide('og.layer');
+goog.provide('og.layer')
 goog.provide('og.layer.Layer');
 
 goog.require('og.Events');
@@ -6,6 +6,8 @@ goog.require('og.QueueArray');
 goog.require('og.mercator');
 goog.require('og.Extent');
 goog.require('og.utils');
+goog.require('og.layer.Material');
+
 
 /**
  * @const
@@ -628,4 +630,8 @@ og.layer.Layer.prototype._correctFullExtent = function () {
     //if (e.southWest.lon === -180.0) {
     //    em.southWest.lon = -ENLARGE_MERCATOR_LON;
     //}
+};
+
+og.layer.Layer.prototype.createMaterial = function (segment) {
+    return new og.layer.Material(segment, this);
 };

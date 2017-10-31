@@ -1,6 +1,6 @@
-goog.provide('og.planetSegment.Material');
+goog.provide('og.layer.Material');
 
-og.planetSegment.Material = function (segment, layer) {
+og.layer.Material = function (segment, layer) {
     this.segment = segment;
     this.layer = layer;
     this.isReady = false;
@@ -17,15 +17,15 @@ og.planetSegment.Material = function (segment, layer) {
     this.pickingReady = false;
 };
 
-og.planetSegment.Material.prototype.assignLayer = function (layer) {
+og.layer.Material.prototype.assignLayer = function (layer) {
     this.layer = layer;
 };
 
-og.planetSegment.Material.prototype.abortLoading = function () {
+og.layer.Material.prototype.abortLoading = function () {
     this.layer.abortMaterialLoading(this);
 };
 
-og.planetSegment.Material.prototype.applyImage = function (img) {
+og.layer.Material.prototype.applyImage = function (img) {
     if (this.segment.ready) {
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
@@ -38,7 +38,7 @@ og.planetSegment.Material.prototype.applyImage = function (img) {
     }
 };
 
-og.planetSegment.Material.prototype.applyTexture = function (texture, pickingMask) {
+og.layer.Material.prototype.applyTexture = function (texture, pickingMask) {
 
     this.texture = texture;
     this._updateTexture = null;
@@ -53,11 +53,11 @@ og.planetSegment.Material.prototype.applyTexture = function (texture, pickingMas
     this.appliedNodeId = this.segment.node.nodeId;
 };
 
-og.planetSegment.Material.prototype.textureNotExists = function () {
+og.layer.Material.prototype.textureNotExists = function () {
     this.isLoading = true;
     this.textureExists = false;
 };
 
-og.planetSegment.Material.prototype.clear = function () {
+og.layer.Material.prototype.clear = function () {
     this.layer.clearMaterial(this);
 };
