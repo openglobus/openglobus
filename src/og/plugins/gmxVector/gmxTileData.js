@@ -1,5 +1,7 @@
 goog.provide('og.gmx.TileData');
 
+goog.require('og.gmx.TileItem');
+
 /**
  * Represents geomixer vector tile data. Stores tile geometries and rendering data.
  * @class
@@ -10,22 +12,31 @@ goog.provide('og.gmx.TileData');
  * @param {Number} x - Tile index for X. 
  * @param {Number} y - Tile index for Y. 
  * @param {Number} z - Tile zoom level. 
- * @param {Number} v - Tile version. 
+ * @param {Number} v - Tile version.
  */
-og.gmx.TileData = function (data, x, y, z, v, renderingVersion) {
+og.gmx.TileData = function (layer, data, x, y, z, v) {    
+    this._layer = layer;
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
     this.version = v;
-    this.items = data.values;
+    this.items = this.convertToTileItems(data.values);
     this.x = x;
     this.y = y;
     this.z = z;
-    this.isReady = false;
-    this.renderingVersion = renderingVersion;
+};
+
+og.gmx.TileData.prototype.convertToTileItems = function (items) {
+    var l = items.length;
+    var res = new Array(l);
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        res[i] = new og.gmx.TileItem(this._layer._itemCache[item[0]], item[item.length - 1]);
+    }
+    return res;
 };
 
 og.gmx.TileData.prototype.setData = function (data) {
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
-    this.items = data.values;
+    this.items = this.convertToTileItems(data.values);
 };

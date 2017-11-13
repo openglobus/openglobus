@@ -40,7 +40,9 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._filteredItems = {};
 
-    this._renderingVersion = 0;
+    this._styleCallback = null;
+
+    this._styledItems = {}
 
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.4));
@@ -159,7 +161,26 @@ og.gmx.VectorLayer.prototype.getItemVisibility = function (item) {
 
 og.gmx.VectorLayer.prototype.updateFilter = function () {
     this._filteredItems = {};
-    this._filterUpdateVersion++;
+};
+
+og.gmx.VectorLayer.prototype.setStyleHook = function (styleCallback) {
+    this._styleCallback = styleCallback;
+    this.updateStyle();
+};
+
+og.gmx.VectorLayer.prototype.getItemStyle = function (item) {
+    if (!this._styleCallback) {
+        return item._style;
+    }
+    var style = this._styledItems[item.id];
+    if (style == null) {
+        style = this._styledItems[item.id] = this._styleCallback[item.id](item);
+    }
+    return style;
+};
+
+og.gmx.VectorLayer.prototype.updateStyle = function () {
+    this._styledItems = {};
 };
 
 og.gmx.VectorLayer.prototype._getTile = function (x, y, z, v) {
@@ -227,7 +248,7 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData = this._tileDataCache[tileIndex];
 
     if (!cacheTileData) {
-        this._tileDataCache[tileIndex] = new og.gmx.TileData(data, x, y, z, v, this._renderingVersion);
+        this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data, x, y, z, v);
     } else if (cacheTileData.version !== v) {
         cacheTileData.version = v;
         cacheTileData.setData(data);

@@ -18,6 +18,8 @@ og.gmx.Item = function (id, options) {
 
     this._layer = null;
     this._style = options.style || {};
+
+    this._pickingColor = null;
 };
 
 og.gmx.Item.prototype.addTo = function (layer) {
@@ -25,5 +27,5 @@ og.gmx.Item.prototype.addTo = function (layer) {
 };
 
 og.gmx.Item.prototype.setStyle = function(style){
-
+    //...
 };

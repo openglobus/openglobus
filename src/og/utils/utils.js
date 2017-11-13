@@ -24,7 +24,7 @@ og.utils.isString = function (s) {
 /**
  * Synchronous text file loading. Returns file text.
  * @param {string} fileUrl - File name path.
- * @returns {string}
+ * @returns {string} -
  */
 og.utils.readTextFile = function (fileUrl) {
     var res = "";
@@ -43,7 +43,7 @@ og.utils.readTextFile = function (fileUrl) {
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector4}
+ * @returns {og.math.Vector4} -
  */
 og.utils.htmlColorToRgba = function (htmlColor, opacity) {
     var hColor = og.utils.colorTable[htmlColor];
@@ -51,7 +51,7 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
         htmlColor = hColor;
     }
 
-    if (htmlColor[0] == "#") {
+    if (htmlColor[0] === "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
         var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
@@ -71,7 +71,7 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
  * Convert html color string to the RGB number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.utils.htmlColorToRgb = function (htmlColor) {
     var hColor = og.utils.colorTable[htmlColor];
@@ -96,6 +96,8 @@ og.utils.htmlColorToRgb = function (htmlColor) {
  * Replace template substrings between '{' and '}' tokens.
  * @param {string} template - String with templates in "{" and "}"
  * @param {Object} params - Template named object with subsrtings.
+ * @returns {string} -
+ * 
  * @example <caption>Example from og.terrainProvider that replaces tile indexes in url:</caption>
  * var substrings = {
  *       "x": 12,
@@ -217,7 +219,7 @@ og.utils.createLonLat = function (l, def) {
  * Finds an item in a sorted array.
  * @param {Array} ar The sorted array to search.
  * @param {Object} el The item to find in the array.
- * @param {og.utils.binarySearch~compare_fn} comparator The function to use to compare the item to
+ * @param {og.utils.binarySearch~compare_fn} compare_fn comparator The function to use to compare the item to
  *        elements in the array.
  * @returns {Number} a negative number  if a is less than b; 0 if a is equal to b;a positive number of a is greater than b.
  *
@@ -265,7 +267,7 @@ og.utils.binaryInsert = function (ar, el, compare_fn) {
  * @param {og.math.Vector2} end1 - First line second coordinate.
  * @param {og.math.Vector2} start2 - Second line first coordinate.
  * @param {og.math.Vector2} end2 - Second line second coordinate.
- * @param {boolean} [isSegments] - Lines are segments.
+ * @param {boolean} [isSegment] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
 og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegment) {
@@ -301,7 +303,7 @@ og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegmen
  * @param {og.math.Vector2} end1 - First line second coordinate.
  * @param {og.math.Vector2} start2 - Second line first coordinate.
  * @param {og.math.Vector2} end2 - Second line second coordinate.
- * @param {boolean} [isSegments] - Lines are segments.
+ * @param {boolean} [isSegment] - Lines are segments.
  * @return {og.math.Vector2} - Intersection coordinate.
  */
 og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegment) {
@@ -341,7 +343,7 @@ og.utils.xmlToJson = function (xml) {
     // Create the return object
     var obj = {};
 
-    if (xml.nodeType == 1) { // element
+    if (xml.nodeType === 1) { // element
         // do attributes
         if (xml.attributes.length > 0) {
             obj["@attributes"] = {};
@@ -350,7 +352,7 @@ og.utils.xmlToJson = function (xml) {
                 obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
             }
         }
-    } else if (xml.nodeType == 3) { // text
+    } else if (xml.nodeType === 3) { // text
         obj = xml.nodeValue;
     }
 
