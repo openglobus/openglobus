@@ -11,14 +11,181 @@ og.gmx.VectorTileCreator = function (planet, maxFrames, width, height) {
 
 og.inheritance.extend(og.gmx.VectorTileCreator, og.utils.VectorTileCreator);
 
+og.gmx.VectorTileCreator.appendLineData = function (pathArr, isClosed, outVertices, outOrders, outIndexes) {
+    var index = 0;
+
+    if (outIndexes.length > 0) {
+        index = outIndexes[outIndexes.length - 5] + 9;
+        outIndexes.push(index, index);
+    } else {
+        outIndexes.push(0, 0);
+    }
+
+    for (var j = 0; j < pathArr.length; j++) {
+        var path = pathArr[j];
+        var startIndex = index;
+        var last;
+        if (isClosed) {
+            last = path[path.length - 1];
+        } else {
+            var p0 = path[0],
+                p1 = path[1];
+            last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
+        }
+        outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+        outOrders.push(1, -1, 2, -2);
+
+        for (var i = 0; i < path.length; i++) {
+            var cur = path[i];
+            outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+            outOrders.push(1, -1, 2, -2);
+            outIndexes.push(index++, index++, index++, index++);
+        }
+
+        var first;
+        if (isClosed) {
+            first = path[0];
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            var p0 = path[path.length - 1],
+                p1 = path[path.length - 2];
+            first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
+        outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+        outOrders.push(1, -1, 2, -2);
+
+        if (j < pathArr.length - 1) {
+            index += 8;
+            outIndexes.push(index, index);
+        }
+    }
+};
+
+og.gmx.VectorTileCreator.prototype._initialize = function () {
+
+    //Line
+    if (!this._handler.shaderPrograms.gmxVectorTileLineRasterization) {
+        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("gmxVectorTileLineRasterization", {
+            uniforms: {
+                'viewport': { type: og.shaderProgram.types.VEC2 },
+                'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
+                'alpha': { type: og.shaderProgram.types.FLOAT },
+                'extentParams': { type: og.shaderProgram.types.VEC4 },
+                'color': { type: og.shaderProgram.types.VEC4 },
+                'thickness': { type: og.shaderProgram.types.FLOAT }
+            },
+            attributes: {
+                'prev': { type: og.shaderProgram.types.VEC2 },
+                'current': { type: og.shaderProgram.types.VEC2 },
+                'next': { type: og.shaderProgram.types.VEC2 },
+                'order': { type: og.shaderProgram.types.FLOAT }
+            },
+            vertexShader: 'attribute vec2 prev;\
+                    attribute vec2 current;\
+                    attribute vec2 next;\
+                    attribute float order;\
+                    uniform float thickness;\
+                    uniform float thicknessOutline;\
+                    uniform vec2 viewport;\
+                    uniform vec4 extentParams;\
+                    \
+                    vec2 proj(vec2 coordinates){\
+                        return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
+                    }\
+                    \
+                    void main(){\
+                        vec2 _next = next;\
+                        vec2 _prev = prev;\
+                        if(prev == current){\
+                            if(next == current){\
+                                _next = current + vec2(1.0, 0.0);\
+                                _prev = current - next;\
+                            }else{\
+                                _prev = current + normalize(current - next);\
+                            }\
+                        }\
+                        if(next == current){\
+                            _next = current + normalize(current - _prev);\
+                        }\
+                        \
+                        vec2 sNext = proj(_next),\
+                             sCurrent = proj(current),\
+                             sPrev = proj(_prev);\
+                        vec2 dirNext = normalize(sNext - sCurrent);\
+                        vec2 dirPrev = normalize(sPrev - sCurrent);\
+                        float dotNP = dot(dirNext, dirPrev);\
+                        \
+                        vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
+                        vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
+                        vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
+                        \
+                        vec2 m;\
+                        if(dotNP >= 0.99991){\
+                            m = sCurrent - normalPrev * d;\
+                        }else{\
+                            vec2 dir = normalPrev + normalNext;\
+                            m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);\
+                            \
+                            if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
+                                float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
+                                if(occw == -1.0){\
+                                    m = sCurrent + normalPrev * d;\
+                                }else if(occw == 1.0){\
+                                    m = sCurrent + normalNext * d;\
+                                }else if(occw == -2.0){\
+                                    m = sCurrent + normalNext * d;\
+                                }else if(occw == 2.0){\
+                                    m = sCurrent + normalPrev * d;\
+                                }\
+                            }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
+                                m = sCurrent + normalNext * d;\
+                            }\
+                        }\
+                        gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
+                    }',
+            fragmentShader: 'precision highp float;\
+                    uniform float alpha;\
+                    uniform vec4 color;\
+                    void main() {\
+                        gl_FragColor = vec4(color.rgb, alpha * color.a);\
+                    }'
+        }));
+    }
+
+    //Polygon
+    if (!this._handler.shaderPrograms.gmxVectorTilePolygonRasterization) {
+        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("gmxVectorTilePolygonRasterization", {
+            uniforms: {
+                'extentParams': { type: og.shaderProgram.types.VEC4 },
+                'color': { type: og.shaderProgram.types.VEC4 }                
+            },
+            attributes: {
+                'coordinates': { type: og.shaderProgram.types.VEC2 }
+            },
+            vertexShader: 'attribute vec2 coordinates; \
+                          uniform vec4 extentParams; \
+                          void main() { \
+                              gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
+                          }',
+            fragmentShader: 'precision highp float;\
+                            uniform vec4 color;\
+                            void main () {  \
+                                gl_FragColor = color; \
+                            }'
+        }));
+    }
+
+    this._framebuffer = new og.webgl.Framebuffer(this._handler, {
+        width: this._width,
+        height: this._height,
+        useDepth: false
+    });
+};
+
 og.gmx.VectorTileCreator.prototype.add = function (data) {
     this._queue.push(data);
 };
-
-og.gmx.VectorTileCreator.prototype.remove = function (material) {
-    //...
-};
-
 
 og.gmx.VectorTileCreator.prototype.frame = function () {
 
@@ -32,8 +199,8 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var hLine = h.shaderPrograms.vectorTileLineRasterization,
-            hPoly = h.shaderPrograms.vectorTilePolygonRasterization;
+        var hLine = h.shaderPrograms.gmxVectorTileLineRasterization,
+            hPoly = h.shaderPrograms.gmxVectorTilePolygonRasterization;
 
         var width, height;
 
@@ -97,8 +264,10 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                     var item = items[i];
                     if (layer.getItemVisibility(itemCache[item.id])) {
 
+                        var style = layer.getItemStyle(item);
+
                         //create buffers if needed
-                        item.update(h);
+                        item.createBuffers(h);
 
                         hPoly.activate();
                         var sh = hPoly._program;
@@ -113,9 +282,8 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.bindBuffer(gl.ARRAY_BUFFER, item._polyVerticesBufferMerc);
                         gl.vertexAttribPointer(sha.coordinates._pName, item._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._polyColorsBuffer);
-                        gl.vertexAttribPointer(sha.colors._pName, item._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
+                        gl.uniform4fv(shu.color._pName, style.color);
+                            
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, item._polyIndexesBuffer);
 
                         gl.drawElements(gl.TRIANGLES, item._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
@@ -123,9 +291,8 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         //polygon picking
                         f.bindOutputTexture(pickingMask);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._polyPickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.colors._pName, item._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
+                        gl.uniform4fv(shu.color._pName, item._pickingColor);
+                        
                         gl.drawElements(gl.TRIANGLES, item._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         hLine.activate();
@@ -153,11 +320,9 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, item._lineIndexesBuffer);
 
                         //PASS - stroke
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._lineStrokesBuffer);
-                        gl.vertexAttribPointer(sha.thickness._pName, item._lineStrokesBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._lineStrokeColorsBuffer);
-                        gl.vertexAttribPointer(sha.color._pName, item._lineStrokeColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.uniform1fv(shu.thickness._pName, style.thickness);
+                        
+                        gl.uniform4fv(sha.color._pName, style.strokeColor);
 
                         //Antialias pass
                         gl.uniform1f(shu.thicknessOutline._pName, 2);
@@ -170,11 +335,9 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //PASS - inside line
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._lineThicknessBuffer);
-                        gl.vertexAttribPointer(sha.thickness._pName, item._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._lineColorsBuffer);
-                        gl.vertexAttribPointer(sha.color._pName, item._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.uniform1fv(shu.thickness._pName, style.thickness);
+                        
+                        gl.uniform4fv(sha.color._pName, style.lineColor);
 
                         //Antialias pass
                         gl.uniform1f(shu.thicknessOutline._pName, 2);
@@ -187,12 +350,12 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
 
+                        //picking pass
                         f.bindOutputTexture(pickingMask);
 
                         gl.uniform1f(shu.thicknessOutline._pName, 8);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._linePickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.color._pName, item._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.uniform4fv(sha.color._pName, item._pickingColor);
                         gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                     }
@@ -203,14 +366,14 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
             } else {
                 material.isLoading = false;
             }
+
+            deltaTime = window.performance.now() - startTime;
         }
 
-        deltaTime = window.performance.now() - startTime;
+        gl.disable(gl.BLEND);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+    
+        f.deactivate();    
     }
-
-    gl.disable(gl.BLEND);
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-
-    f.deactivate();
 };
