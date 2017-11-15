@@ -496,8 +496,18 @@ og.math.Vector3.prototype.normalize = function () {
  * Converts vector to a number array.
  * @public
  * @returns {Array.<number,number,number>}
+ * @deprecated
  */
 og.math.Vector3.prototype.toVec = function () {
+    return [this.x, this.y, this.z];
+};
+
+/**
+ * Converts vector to a number array.
+ * @public
+ * @returns {Array.<number,number,number>}
+ */
+og.math.Vector3.prototype.toArray = function () {
     return [this.x, this.y, this.z];
 };
 

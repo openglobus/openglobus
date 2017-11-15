@@ -113,8 +113,19 @@ og.math.Vector4.prototype.copy = function (v) {
  * Converts vector to a number array.
  * @public
  * @returns {Array.<number,number,number,number>}
+ * @deprecated
  */
 og.math.Vector4.prototype.toVec = function () {
+    return [this.x, this.y, this.z, this.w];
+};
+
+
+/**
+ * Converts vector to a number array.
+ * @public
+ * @returns {Array.<number,number,number,number>}
+ */
+og.math.Vector4.prototype.toArray = function () {
     return [this.x, this.y, this.z, this.w];
 };
 

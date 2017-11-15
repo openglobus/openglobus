@@ -158,7 +158,7 @@ og.gmx.VectorTileCreator.prototype._initialize = function () {
         this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("gmxVectorTilePolygonRasterization", {
             uniforms: {
                 'extentParams': { type: og.shaderProgram.types.VEC4 },
-                'color': { type: og.shaderProgram.types.VEC4 }                
+                'color': { type: og.shaderProgram.types.VEC4 }
             },
             attributes: {
                 'coordinates': { type: og.shaderProgram.types.VEC2 }
@@ -253,21 +253,22 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 //draw vectors
-                var items = tileData.items,
-                    itemCache = layer._itemCache;
+                var tItems = tileData.items;
 
-                items.sort(function (a, b) {
-                    return layer.getItemStyle(a).zIndex - layer.getItemStyle(b).zIndex || a.id - b.id;
+                tItems.sort(function (a, b) {
+                    return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
                 });
 
-                for (var i = 0; i < items.length; i++) {
-                    var item = items[i];
-                    if (layer.getItemVisibility(itemCache[item.id])) {
+                for (var i = 0; i < tItems.length; i++) {
+                    var ti = tItems[i];
+                    if (layer.getItemVisibility(ti.item)) {
 
-                        var style = layer.getItemStyle(item);
+                        var style = layer.getItemStyle(ti.item);
+
+                        var pickingColor = [ti.item._pickingColor.x / 255, ti.item._pickingColor.y / 255, ti.item._pickingColor.z / 255, 1.0];
 
                         //create buffers if needed
-                        item.createBuffers(h);
+                        ti.createBuffers(h);
 
                         hPoly.activate();
                         var sh = hPoly._program;
@@ -279,21 +280,21 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         gl.uniform4fv(shu.extentParams._pName, extentParams);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._polyVerticesBufferMerc);
-                        gl.vertexAttribPointer(sha.coordinates._pName, item._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
+                        gl.vertexAttribPointer(sha.coordinates._pName, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
-                        gl.uniform4fv(shu.color._pName, style.color);
-                            
-                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, item._polyIndexesBuffer);
+                        gl.uniform4fv(shu.color._pName, style.fillColor.toArray());
 
-                        gl.drawElements(gl.TRIANGLES, item._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
+
+                        gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //polygon picking
                         f.bindOutputTexture(pickingMask);
 
-                        gl.uniform4fv(shu.color._pName, item._pickingColor);
-                        
-                        gl.drawElements(gl.TRIANGLES, item._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.uniform4fv(shu.color._pName, pickingColor);
+
+                        gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         hLine.activate();
                         sh = hLine._program;
@@ -307,47 +308,47 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.uniform4fv(shu.extentParams._pName, extentParams);
 
                         //vertex
-                        var mb = item._lineVerticesBufferMerc;
+                        var mb = ti._lineVerticesBufferMerc;
                         gl.bindBuffer(gl.ARRAY_BUFFER, mb);
                         gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
                         gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
                         gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
 
                         //order
-                        gl.bindBuffer(gl.ARRAY_BUFFER, item._lineOrdersBuffer);
-                        gl.vertexAttribPointer(sha.order._pName, item._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, ti._lineOrdersBuffer);
+                        gl.vertexAttribPointer(sha.order._pName, ti._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, item._lineIndexesBuffer);
+                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._lineIndexesBuffer);
 
                         //PASS - stroke
-                        gl.uniform1fv(shu.thickness._pName, style.thickness);
-                        
-                        gl.uniform4fv(sha.color._pName, style.strokeColor);
+                        gl.uniform1f(shu.thickness._pName, style.strokeWidth);
+
+                        gl.uniform4fv(shu.color._pName, style.strokeColor.toArray());
 
                         //Antialias pass
                         gl.uniform1f(shu.thicknessOutline._pName, 2);
                         gl.uniform1f(shu.alpha._pName, 0.54);
-                        gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         //
                         //Aliased pass
                         gl.uniform1f(shu.thicknessOutline._pName, 1);
                         gl.uniform1f(shu.alpha._pName, 1.0);
-                        gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //PASS - inside line
-                        gl.uniform1fv(shu.thickness._pName, style.thickness);
-                        
-                        gl.uniform4fv(sha.color._pName, style.lineColor);
+                        gl.uniform1f(shu.thickness._pName, style.lineWidth);
+
+                        gl.uniform4fv(shu.color._pName, style.lineColor.toArray());
 
                         //Antialias pass
                         gl.uniform1f(shu.thicknessOutline._pName, 2);
                         gl.uniform1f(shu.alpha._pName, 0.54);
-                        gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         //
                         //Aliased pass
                         gl.uniform1f(shu.thicknessOutline._pName, 1);
                         gl.uniform1f(shu.alpha._pName, 1.0);
-                        gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
 
                         //picking pass
@@ -355,8 +356,8 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         gl.uniform1f(shu.thicknessOutline._pName, 8);
 
-                        gl.uniform4fv(sha.color._pName, item._pickingColor);
-                        gl.drawElements(gl.TRIANGLE_STRIP, item._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.uniform4fv(shu.color._pName, pickingColor);
+                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                     }
                 }
@@ -373,7 +374,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
         gl.disable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-    
-        f.deactivate();    
+
+        f.deactivate();
     }
 };
