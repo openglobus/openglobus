@@ -42,7 +42,9 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._styleCallback = null;
 
-    this._styledItems = {}
+    this._styledItems = {};
+
+    this._pendingMaterials = [];
 
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.57));
@@ -248,11 +250,24 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData = this._tileDataCache[tileIndex];
 
     if (!cacheTileData) {
-        this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data, x, y, z, v);
+        cacheTileData = this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data, x, y, z, v);
     } else if (cacheTileData.version !== v) {
         cacheTileData.version = v;
         cacheTileData.setData(data);
         cacheTileData.isReady = false;
+    }
+
+    var i = this._pendingMaterials.length;
+    while (i--) {
+        var pmi = this._pendingMaterials[i];
+        var tileData = this._getTileData(pmi.segment);
+        if (tileData) {
+            this._planet._gmxVectorTileCreator.add({
+                'material': pmi,
+                'tileData': cacheTileData
+            });
+            this._pendingMaterials.splice(i, 1);
+        }
     }
 };
 
@@ -280,6 +295,11 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
 
     var seg = material.segment;
 
+    if (seg._projection.id !== og.proj.EPSG3857.id) {
+        material.textureNotExists();
+        return;
+    }
+
     if (this._isBaseLayer) {
         material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
     } else {
@@ -298,8 +318,7 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
                 'tileData': tileData
             });
         } else {
-            //this._pendingQueue.push(material);
-            console.log("pending for " + seg.tileIndex);
+            this._pendingMaterials.push(material);
         }
     }
 };
