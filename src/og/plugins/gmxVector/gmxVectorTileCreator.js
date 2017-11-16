@@ -268,11 +268,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         var pickingColor = [ti.item._pickingColor.x / 255, ti.item._pickingColor.y / 255, ti.item._pickingColor.z / 255, 1.0];
 
                         //create buffers if needed
-                        var p = material.segment.node;
-                        while(p.planetSegment.tileZoom !== tileData.z){
-                            p = p.parentNode;
-                        }
-                        ti.createBuffers(h, p.planetSegment._extent);
+                        ti.createBuffers(h, tileData.extent);
 
                         hPoly.activate();
                         var sh = hPoly._program;

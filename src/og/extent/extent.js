@@ -3,6 +3,7 @@ goog.provide('og.extent');
 
 goog.require('og.LonLat');
 goog.require('og.math');
+goog.require('og.mercator');
 
 /**
  * Represents geographical coordinates extent.
@@ -107,14 +108,16 @@ og.Extent.createByCoordinatesArr = function (arr) {
  * @param {number} z
  * @returns {og.Extent}
  */
-og.Extent.fromTile = function (x, y, z) {
+og.Extent.fromTile = function (x, y, z, width, height) {
+    width = width || og.mercator.POLE_DOUBLE;
+    height = height || og.mercator.POLE_DOUBLE;
     var H = Math.pow(2, z),
         W = Math.pow(2, z),
-        lnSize = 360 / W,
-        ltSize = 180.0 / H;
+        lnSize = width / W,
+        ltSize = height / H;
 
-    var left = -180.0 + x * lnSize,
-        top = 90 - y * ltSize,
+    var left = -width * 0.5 + x * lnSize,
+        top = height * 0.5 - y * ltSize,
         bottom = top - ltSize,
         right = left + lnSize;
 
@@ -154,7 +157,7 @@ og.Extent.prototype.isInside = function (lonlat) {
     var sw = this.southWest,
         ne = this.northEast;
     return lonlat.lon >= sw.lon && lonlat.lon <= ne.lon &&
-           lonlat.lat >= sw.lat && lonlat.lat <= ne.lat;
+        lonlat.lat >= sw.lat && lonlat.lat <= ne.lat;
 };
 
 /**
@@ -167,7 +170,7 @@ og.Extent.prototype.overlaps = function (e) {
     var sw = this.southWest,
         ne = this.northEast;
     return sw.lon <= e.northEast.lon && ne.lon >= e.southWest.lon &&
-           sw.lat <= e.northEast.lat && ne.lat >= e.southWest.lat;
+        sw.lat <= e.northEast.lat && ne.lat >= e.southWest.lat;
 };
 
 /**
@@ -296,9 +299,9 @@ og.Extent.prototype.getCartesianBounds = function (ellipsoid) {
         ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
 
     var v = [new og.LonLat(this.southWest.lon, this.southWest.lat),
-        new og.LonLat(this.southWest.lon, this.northEast.lat),
-        new og.LonLat(this.northEast.lon, this.northEast.lat),
-        new og.LonLat(this.northEast.lon, this.southWest.lat)];
+    new og.LonLat(this.southWest.lon, this.northEast.lat),
+    new og.LonLat(this.northEast.lon, this.northEast.lat),
+    new og.LonLat(this.northEast.lon, this.southWest.lat)];
 
     for (var i = 0; i < v.length; i++) {
         var coord = ellipsoid.lonLatToCartesian(v[i]);

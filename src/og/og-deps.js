@@ -44,7 +44,7 @@ goog.addDependency('../../../../../../og/src/og/entity/polyline.js', ['og.Polyli
 goog.addDependency('../../../../../../og/src/og/entity/polylineHandler.js', ['og.PolylineHandler'], ['og.shaderProgram.polyline'], false);
 goog.addDependency('../../../../../../og/src/og/entity/shapeHandler.js', ['og.ShapeHandler'], ['og.shaderProgram.shape_nl', 'og.shaderProgram.shape_wl', 'og.shape.BaseShape', 'og.shape.Sphere'], false);
 goog.addDependency('../../../../../../og/src/og/events/events.js', ['og.Events'], ['og.utils'], false);
-goog.addDependency('../../../../../../og/src/og/extent/extent.js', ['og.Extent', 'og.extent'], ['og.LonLat', 'og.math'], false);
+goog.addDependency('../../../../../../og/src/og/extent/extent.js', ['og.Extent', 'og.extent'], ['og.LonLat', 'og.math', 'og.mercator'], false);
 goog.addDependency('../../../../../../og/src/og/frustum.js', ['og.Frustum'], [], false);
 goog.addDependency('../../../../../../og/src/og/globus.js', ['og.Globus'], ['og.Renderer', 'og.control.EarthCoordinates', 'og.control.MouseNavigation', 'og.control.Sun', 'og.control.TouchNavigation', 'og.control.ZoomControl', 'og.ellipsoid.wgs84', 'og.scene.Planet', 'og.scene.PlanetAtmosphere', 'og.terrainProvider.EmptyTerrainProvider', 'og.webgl.Handler'], false);
 goog.addDependency('../../../../../../og/src/og/imageCanvas/imageCanvas.js', ['og.ImageCanvas'], [], false);
@@ -86,7 +86,7 @@ goog.addDependency('../../../../../../og/src/og/planetSegment/segment.js', ['og.
 goog.addDependency('../../../../../../og/src/og/planetSegment/segmentLonLat.js', ['og.planetSegment.SegmentLonLat'], ['og.LonLat', 'og.inheritance', 'og.planetSegment.Segment', 'og.proj.EPSG4326'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxCheckVersion.js', ['og.gmx.CheckVersion'], ['og.ajax'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxItem.js', ['og.gmx.Item'], [], false);
-goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileData.js', ['og.gmx.TileData'], ['og.gmx.TileItem'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileData.js', ['og.gmx.TileData'], ['og.Extent', 'og.gmx.TileItem'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileItem.js', ['og.gmx.TileItem'], ['og.mercator'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVector.js', ['og.gmx.VectorLayer'], ['og.ajax', 'og.gmx.CheckVersion', 'og.gmx.Item', 'og.gmx.TileData', 'og.gmx.VectorTileCreator', 'og.inheritance', 'og.layer.Layer', 'og.utils'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVectorTileCreator.js', ['og.gmx.VectorTileCreator'], ['og.inheritance', 'og.utils.VectorTileCreator'], false);
