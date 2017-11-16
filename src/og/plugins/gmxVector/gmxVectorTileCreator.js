@@ -268,7 +268,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         var pickingColor = [ti.item._pickingColor.x / 255, ti.item._pickingColor.y / 255, ti.item._pickingColor.z / 255, 1.0];
 
                         //create buffers if needed
-                        ti.createBuffers(h);
+                        ti.createBuffers(h, tileData.bbox);
 
                         hPoly.activate();
                         var sh = hPoly._program;

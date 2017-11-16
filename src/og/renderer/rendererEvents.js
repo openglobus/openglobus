@@ -622,7 +622,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                 var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                 if (po) {
                     //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
-                    var pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                    var pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     ms.pickingObject = po;
                     pe.dispatch(pe.mouseleave, ms);
                     ts.pickingObject = po;
@@ -636,7 +636,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
                     var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     if (po) {
                         //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
-                        var pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                        var pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                         ms.pickingObject = po;
                         pe.dispatch(pe.mouseleave, ms);
                         ts.pickingObject = po;
@@ -646,7 +646,7 @@ og.RendererEvents.prototype.entityPickingEvents = function () {
 
                 if (co) {
                     //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
-                    var ce = co.events || co._entityCollection && co._entityCollection.events || co._vectorLayer.events;
+                    var ce = co.events || co._entityCollection && co._entityCollection.events || co._layer.events;
                     ms.pickingObject = co;
                     ce.dispatch(ce.mouseenter, ms);
                     ts.pickingObject = co;
@@ -668,7 +668,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.lclick, ms);
         }
         ce(this.lclick, ms);
@@ -677,7 +677,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.rclick, ms);
         }
         ce(this.rclick, ms);
@@ -686,7 +686,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.mclick, ms);
         }
         ce(this.mclick, ms);
@@ -696,14 +696,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.leftButtonDown) {
         if (ms.leftButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.lhold, ms);
             }
             ce(this.lhold, ms);
         } else {
             ms.leftButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.ldown, ms);
             }
             ce(this.ldown, ms);
@@ -713,14 +713,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.rightButtonDown) {
         if (ms.rightButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.rhold, ms);
             }
             ce(this.rhold, ms);
         } else {
             ms.rightButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.rdown, ms);
             }
             ce(this.rdown, ms);
@@ -730,14 +730,14 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
     if (ms.middleButtonDown) {
         if (ms.middleButtonHold) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mhold, ms);
             }
             ce(this.mhold, ms);
         } else {
             ms.middleButtonHold = true;
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mdown, ms);
             }
             ce(this.mdown, ms);
@@ -746,7 +746,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.lup, ms);
         }
         ce(this.lup, ms);
@@ -756,7 +756,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.rup, ms);
         }
         ce(this.rup, ms);
@@ -766,7 +766,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonUp) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.mup, ms);
         }
         ce(this.mup, ms);
@@ -776,7 +776,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.leftButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.ldblclick, ms);
         }
         ce(this.ldblclick, ms);
@@ -785,7 +785,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.rightButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.rdblclick, ms);
         }
         ce(this.rdblclick, ms);
@@ -794,7 +794,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.middleButtonDoubleClick) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.mdblclick, ms);
         }
         ce(this.mdblclick, ms);
@@ -803,7 +803,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.wheelDelta) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.mousewheel, ms);
         }
         ce(this.mousewheel, ms);
@@ -812,7 +812,7 @@ og.RendererEvents.prototype.handleMouseEvents = function () {
 
     if (ms.moving) {
         if (po) {
-            pe = po.events || po._entityCollection && po._entityCollection.events || po._vectorLayer.events;
+            pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
             pe.dispatch(pe.mousemove, ms);
         }
         ce(this.mousemove, ms);
@@ -851,7 +851,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
         var co = o[c[0] + "_" + c[1] + "_" + c[2]];
         tpo = ts.pickingObject = co;
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
             tpe.dispatch(tpe.touchstart, ts);
         }
         ce(this.touchstart, ts);
@@ -860,7 +860,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.doubleTouch) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
             tpe.dispatch(tpe.doubletouch, ts);
         }
         ce(this.doubletouch, ts);
@@ -869,7 +869,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.touchEnd) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
             tpe.dispatch(tpe.touchend, ts);
         }
         ce(this.touchend, ts);
@@ -880,7 +880,7 @@ og.RendererEvents.prototype.handleTouchEvents = function () {
 
     if (ts.moving) {
         if (tpo) {
-            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._vectorLayer.events;
+            tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
             tpe.dispatch(tpe.touchmove, ts);
         }
         ce(this.touchmove, ts);

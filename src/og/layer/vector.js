@@ -235,9 +235,9 @@ og.layer.Vector.prototype._fitExtent = function (entity) {
  * @returns {og.layer.Vector} - Returns this layer.
  */
 og.layer.Vector.prototype.add = function (entity, rightNow) {
-    if (!(entity._vectorLayer || entity._entityCollection)) {
-        entity._vectorLayer = this;
-        entity._vectorLayerIndex = this._entities.length;
+    if (!(entity._layer || entity._entityCollection)) {
+        entity._layer = this;
+        entity._layerIndex = this._entities.length;
         this._entities.push(entity);
 
 
@@ -303,11 +303,11 @@ og.layer.Vector.prototype.addEntities = function (entities, rightNow) {
  * @returns {og.layer.Vector} - Returns this layer.
  */
 og.layer.Vector.prototype.removeEntity = function (entity) {
-    if (entity._vectorLayer && this.isEqual(entity._vectorLayer)) {
-        this._entities.splice(entity._vectorLayerIndex, 1);
-        this._reindexEntitiesArray(entity._vectorLayerIndex);
-        entity._vectorLayer = null;
-        entity._vectorLayerIndex = -1;
+    if (entity._layer && this.isEqual(entity._layer)) {
+        this._entities.splice(entity._layerIndex, 1);
+        this._reindexEntitiesArray(entity._layerIndex);
+        entity._layer = null;
+        entity._layerIndex = -1;
 
         if (entity._entityCollection) {
             entity._entityCollection._removeEntitySilent(entity);
@@ -382,7 +382,7 @@ og.layer.Vector.prototype.setPickingEnabled = function (enable) {
 og.layer.Vector.prototype._reindexEntitiesArray = function (startIndex) {
     var e = this._entities;
     for (var i = startIndex; i < e.length; i++) {
-        e[i]._vectorLayerIndex = i;
+        e[i]._layerIndex = i;
     }
 };
 
@@ -453,8 +453,8 @@ og.layer.Vector.prototype.setEntities = function (entities) {
     for (var i = 0; i < entities.length; i++) {
         var ei = entities[i];
 
-        ei._vectorLayer = this;
-        ei._vectorLayerIndex = i;
+        ei._layer = this;
+        ei._layerIndex = i;
 
         if (ei.polyline) {
             this._polylineEntityCollection.add(ei);

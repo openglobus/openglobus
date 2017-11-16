@@ -126,14 +126,14 @@ og.Entity = function (options) {
      * @protected
      * @type {og.layer.Vector}
      */
-    this._vectorLayer = null;
+    this._layer = null;
 
     /**
      * Assigned vector layer entity array index.
      * @protected
      * @type {number}
      */
-    this._vectorLayerIndex = -1;
+    this._layerIndex = -1;
 
     /**
      * Picking color.
@@ -247,7 +247,7 @@ og.Entity.prototype.addTo = function (collection, rightNow) {
  * @public
  */
 og.Entity.prototype.remove = function () {
-    this._vectorLayer && this._vectorLayer.removeEntity(this);
+    this._layer && this._layer.removeEntity(this);
     this._entityCollection && this._entityCollection.removeEntity(this);
 };
 
@@ -516,7 +516,7 @@ og.Entity.prototype.setGeometry = function (geometry) {
     this.geometry = geometry;
     this.geometry._entity = this;
     this.geometry.setVisibility(this._visibility);
-    this._vectorLayer && this._vectorLayer.add(this);
+    this._layer && this._layer.add(this);
     return geometry;
 };
 

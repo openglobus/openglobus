@@ -45,10 +45,10 @@ og.gmx.VectorLayer = function (name, options) {
     this._styledItems = {}
 
     this._style = options.style || {};
-    this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.4));
+    this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.57));
     this._style.lineColor = og.utils.createColorRGBA(this._style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
     this._style.strokeColor = og.utils.createColorRGBA(this._style.strokeColor, new og.math.Vector4(1, 1, 1, 0.95));
-    this._style.lineWidth = this._style.lineWidth || 3;
+    this._style.lineWidth = this._style.lineWidth || 10;
     this._style.strokeWidth = this._style.strokeWidth || 0;
 
     this.events.registerNames(og.gmx.VectorLayer.EVENT_NAMES);
