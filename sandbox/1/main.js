@@ -404,6 +404,10 @@ function main5() {
         'layerId': "ACBB0FF7DFA24127A5A87921350A96B6"
     });
 
+    var l3 = new og.gmx.VectorLayer("house_my", {
+        'layerId': "24FE35D1E6DA492D82001721E0D79C17"
+    });
+
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
         shininess: 20,
@@ -428,7 +432,7 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, l1, l2],
+        "layers": [osm, l1, l2, l3],
         "sun": {
             "active": false
         }
