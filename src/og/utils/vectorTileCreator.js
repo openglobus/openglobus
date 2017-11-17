@@ -178,7 +178,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
             var material = this._queue.shift();
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
-                if (material.segment.tileZoom <= 2) {
+                if (material.segment.tileZoom <= 3) {
                     width = width2;
                     height = height2;
                 } else {

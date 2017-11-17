@@ -44,13 +44,11 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._styledItems = {};
 
-    this._pendingMaterials = [];
-
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.57));
     this._style.lineColor = og.utils.createColorRGBA(this._style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
     this._style.strokeColor = og.utils.createColorRGBA(this._style.strokeColor, new og.math.Vector4(1, 1, 1, 0.95));
-    this._style.lineWidth = this._style.lineWidth || 8;
+    this._style.lineWidth = this._style.lineWidth || 5;
     this._style.strokeWidth = this._style.strokeWidth || 0;
 
     this.events.registerNames(og.gmx.VectorLayer.EVENT_NAMES);
@@ -256,19 +254,6 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData.setData(data);
         cacheTileData.isReady = false;
     }
-
-    var i = this._pendingMaterials.length;
-    while (i--) {
-        var pmi = this._pendingMaterials[i];
-        var tileData = this._getTileData(pmi.segment);
-        if (tileData) {
-            this._planet._gmxVectorTileCreator.add({
-                'material': pmi,
-                'tileData': cacheTileData
-            });
-            this._pendingMaterials.splice(i, 1);
-        }
-    }
 };
 
 og.gmx.VectorLayer.prototype._getAttributes = function (item) {
@@ -307,18 +292,14 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
     }
 
     if (this._planet.layerLock.isFree()) {
-        material.isReady = false;
-        material.isLoading = true;
-
         var tileData = this._getTileData(seg);
-
         if (tileData) {
+            material.isReady = false;
+            material.isLoading = true;
             this._planet._gmxVectorTileCreator.add({
                 'material': material,
                 'tileData': tileData
             });
-        } else {
-            this._pendingMaterials.push(material);
         }
     }
 };
@@ -333,7 +314,7 @@ og.gmx.VectorLayer.prototype._getTileData = function (seg) {
         var pn = this._planet._quadTreeNodesCacheMerc[seg.tileIndex].parentNode;
         while (pn) {
             var ptc = tc[pn.planetSegment.tileIndex];
-            if (ptc && !ptc.isGeneralized) {
+            if (ptc) {
                 return ptc;
             }
             pn = pn.parentNode;

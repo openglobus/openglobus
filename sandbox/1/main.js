@@ -396,16 +396,55 @@ function test() {
 
 function main5() {
 
+    var cnv = document.createElement("canvas");
+    var ctx = cnv.getContext("2d");
+    cnv.width = 256;
+    cnv.height = 256;
+
+    var tg = new og.layer.CanvasTiles("Tile grid", {
+        visibility: false,
+        isBaseLayer: false,
+        zIndex: 100,
+        drawTile: function (material, applyCanvas) {
+            //Clear canvas
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+            //Draw border
+            ctx.beginPath();
+            ctx.rect(0, 0, cnv.width, cnv.height);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            //Draw text
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+
+            //Draw canvas tile
+            applyCanvas(cnv);
+        }
+    });
+
+
     var l1 = new og.gmx.VectorLayer("gmxLayer-1", {
-        'layerId': "04C2806DB65747258EC2AC328CD0CEDF"
+        'layerId': "3BCCB0F1ACFB4A56BAC87ECA31ADA199",
+        'visibility': false
     });
 
     var l2 = new og.gmx.VectorLayer("gmxLayer-2", {
-        'layerId': "ACBB0FF7DFA24127A5A87921350A96B6"
+        'layerId': "035A32EDA95D4D2BBBF6E44AF3FA21DD"
     });
 
     var l3 = new og.gmx.VectorLayer("house_my", {
-        'layerId': "24FE35D1E6DA492D82001721E0D79C17"
+        'layerId': "24FE35D1E6DA492D82001721E0D79C17",
+        'visibility': false
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -427,19 +466,19 @@ function main5() {
     //    visibility: false,
     //});
 
-    
+
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, l1, l2, l3],
+        "layers": [osm, l1, l2, l3, tg],
         "sun": {
             "active": false
         }
     });
 
     globus.planet.addControl(og.control.layerSwitcher());
-    
+
 }
 
 /*
