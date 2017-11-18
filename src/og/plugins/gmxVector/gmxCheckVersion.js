@@ -72,6 +72,10 @@ og.gmx.CheckVersion = function (planet) {
         }
     };
 
+    this.getLayers = function () {
+        return this._layers;
+    };
+
     this._request = function () {
         if (this._layers.length) {
 

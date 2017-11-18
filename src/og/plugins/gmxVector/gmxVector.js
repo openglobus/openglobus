@@ -20,6 +20,8 @@ og.gmx.VectorLayer = function (name, options) {
 
     og.inheritance.base(this, name, options);
 
+    this.isVector = true;
+
     this.hostUrl = options.hostUrl || "//maps.kosmosnimki.ru/";
 
     this._layerId = options.layerId;
@@ -59,7 +61,9 @@ og.gmx.VectorLayer = function (name, options) {
 
 og.inheritance.extend(og.gmx.VectorLayer, og.layer.Layer);
 
-og.gmx.VectorLayer.EVENT_NAMES = [];
+og.gmx.VectorLayer.EVENT_NAMES = [
+    "draw"
+];
 
 /**
  * Vector layer {@link og.gmx.VectorLayer} object factory.
@@ -420,7 +424,6 @@ og.gmx.VectorLayer.prototype.clearMaterial = function (material) {
     material.textureExists = false;
 };
 
-
 og.gmx.VectorLayer.prototype._refreshRecursevely = function (item, treeNode) {
     var lid = this._id;
     for (var i = 0; i < treeNode.nodes.length; i++) {
@@ -443,44 +446,35 @@ og.gmx.VectorLayer.prototype._refreshRecursevely = function (item, treeNode) {
     }
 };
 
-// og.gmx.VectorLayer.prototype._refreshRecursevelyExt = function (extent, treeNode) {
-//     var lid = this._layer._id;
-//     for (var i = 0; i < treeNode.nodes.length; i++) {
-//         var ni = treeNode.nodes[i];
-//         if (extent.overlaps(ni.planetSegment.getExtentLonLat())) {
-//             this._refreshRecursevelyExt(extent, ni);
-//             var m = ni.planetSegment.materials[lid];
-//             if (m && m.isReady) {
-//                 m.layer.clearMaterial(m);
-//             }
-//         }
-//     }
-// };
-
 og.gmx.VectorLayer.prototype._refreshPlanetNode = function (treeNode) {
-    var i = 0;
-
-    // var e = this._removeGeometryExtentArr;
-    // for (i = 0; i < e.length; i++) {
-    //     this._refreshRecursevelyExt(e[i], treeNode);
-    // }
-
-    var g = this._updatedGeometryArr;
-    for (i = 0; i < g.length; i++) {
-        this._refreshRecursevely(g[i], treeNode);
+    for (var i = 0, items = this._updatedItemArr; i < items.length; i++) {
+        this._refreshRecursevely(items[i], treeNode);
     }
 };
 
 og.gmx.VectorLayer.prototype._updatePlanet = function () {
-    if (this._planet) {
-        this._refreshPlanetNode(this._planet._quadTree);
+    if (this._updatedItemArr.length) {
+        if (this._planet) {
+            this._refreshPlanetNode(this._planet._quadTree);
+        }
+        this._updatedItemArr.length = 0;
+        this._updatedItemArr = [];
+        this._updatedItems = {};
     }
-    this._updatedItemArr.length = 0;
-    this._updatedItemArr = [];
-    this._updatedItems = {};
-
-    // this._removeGeometryExtentArr.length = 0;
-    // this._removeGeometryExtentArr = [];
-    // this._removeGeometryExtents = {};
 };
 
+og.gmx.VectorLayer.prototype.updateItems = function (items) {
+    for (var i = 0; i < items.length; i++) {
+        this.updateItem(items[i]);
+    }
+};
+
+og.gmx.VectorLayer.prototype.updateItem = function (item) {
+    this._updatedItemArr.push(item);
+    this._updatedItems[item.id] = item;
+};
+
+og.gmx.VectorLayer.prototype.update = function () {
+    this._updatePlanet();
+    this.events.dispatch(this.events.draw, this);
+};

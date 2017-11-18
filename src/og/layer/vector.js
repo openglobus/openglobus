@@ -47,6 +47,8 @@ og.layer.Vector = function (name, options) {
 
     this.events.registerNames(og.layer.Vector.EVENT_NAMES);
 
+    this.isVector = true;
+
     /**
      * First index - near distance to the entity, after that entity becomes full scale.
      * Second index - far distance to the entity, when entity becomes zero scale.
@@ -193,7 +195,6 @@ og.layer.Vector.prototype.addTo = function (planet) {
  * @returns {boolean}
  */
 og.layer.Vector.prototype.hasImageryTiles = function () {
-    //TODO: check for polygons
     return true;
 };
 
@@ -791,4 +792,11 @@ og.layer.Vector.prototype.clearMaterial = function (material) {
 
     material.isLoading = false;
     material.textureExists = false;
+};
+
+
+og.layer.Vector.prototype.update = function () {
+    this._geometryHandler.update();
+    this.collectVisibleCollections(this._planet._frustumEntityCollections);
+    this.events.dispatch(this.events.draw, this);
 };

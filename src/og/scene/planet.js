@@ -767,7 +767,7 @@ og.scene.Planet.prototype.updateVisibleLayers = function () {
                 this.visibleTileLayers.push(li);
             }
 
-            if (li instanceof og.layer.Vector) {
+            if (li.isVector) {
                 this.visibleVectorLayers.push(li);
             }
 
@@ -1225,10 +1225,7 @@ og.scene.Planet.prototype._renderVectorLayersPASS = function () {
 
     var i = this.visibleVectorLayers.length;
     while (i--) {
-        var vi = this.visibleVectorLayers[i];
-        vi._geometryHandler.update();
-        vi.collectVisibleCollections(this._frustumEntityCollections);
-        vi.events.dispatch(vi.events.draw, vi);
+        this.visibleVectorLayers[i].update();
     }
 
     //3d entities(billnoards, labesl, shapes etc.) rendering
