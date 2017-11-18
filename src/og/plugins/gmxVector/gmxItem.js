@@ -20,6 +20,8 @@ og.gmx.Item = function (id, options) {
     this._style = options.style || {};
 
     this._pickingColor = null;
+
+    this._renderedBounds = null;
 };
 
 og.gmx.Item.prototype.addTo = function (layer) {

@@ -254,6 +254,10 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData.setData(data);
         cacheTileData.isReady = false;
     }
+
+    for (var i = 0; i < cacheTileData.items.length; i++) {
+        cacheTileData.items[i].createBuffers(this._planet.renderer.handler, cacheTileData.extent);
+    }
 };
 
 og.gmx.VectorLayer.prototype._getAttributes = function (item) {

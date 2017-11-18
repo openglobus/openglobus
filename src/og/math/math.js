@@ -11,6 +11,8 @@ og.math.Y = 1;
 og.math.Z = 2;
 og.math.W = 3;
 
+og.MAX_FLOAT = Number.MAX_VALUE || 1.7976931348623157e+308;
+
 /** @const */
 og.math.LOG2 = Math.log(2);
 /** @const */

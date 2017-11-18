@@ -267,9 +267,6 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         var pickingColor = [ti.item._pickingColor.x / 255, ti.item._pickingColor.y / 255, ti.item._pickingColor.z / 255, 1.0];
 
-                        //create buffers if needed
-                        ti.createBuffers(h, tileData.extent);
-
                         hPoly.activate();
                         var sh = hPoly._program;
                         var sha = sh.attributes,
@@ -279,23 +276,20 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         f.bindOutputTexture(texture);
 
                         gl.uniform4fv(shu.extentParams._pName, extentParams);
-
+                        gl.uniform4fv(shu.color._pName, style.fillColor.toArray());
+                        
                         gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
                         gl.vertexAttribPointer(sha.coordinates._pName, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
-                        gl.uniform4fv(shu.color._pName, style.fillColor.toArray());
-
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
-
                         gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //polygon picking
                         f.bindOutputTexture(pickingMask);
-
                         gl.uniform4fv(shu.color._pName, pickingColor);
-
                         gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
+                        //Outline
                         hLine.activate();
                         sh = hLine._program;
                         sha = sh.attributes;
@@ -304,7 +298,6 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         f.bindOutputTexture(texture);
 
                         gl.uniform2fv(shu.viewport._pName, [width, height]);
-
                         gl.uniform4fv(shu.extentParams._pName, extentParams);
 
                         //vertex
@@ -322,7 +315,6 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         //PASS - stroke
                         gl.uniform1f(shu.thickness._pName, style.strokeWidth);
-
                         gl.uniform4fv(shu.color._pName, style.strokeColor.toArray());
 
                         //Antialias pass
@@ -337,7 +329,6 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         //PASS - inside line
                         gl.uniform1f(shu.thickness._pName, style.lineWidth);
-
                         gl.uniform4fv(shu.color._pName, style.lineColor.toArray());
 
                         //Antialias pass
@@ -350,12 +341,10 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.uniform1f(shu.alpha._pName, 1.0);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-
                         //picking pass
                         f.bindOutputTexture(pickingMask);
 
                         gl.uniform1f(shu.thicknessOutline._pName, 8);
-
                         gl.uniform4fv(shu.color._pName, pickingColor);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
