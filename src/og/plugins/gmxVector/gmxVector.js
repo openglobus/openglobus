@@ -44,6 +44,9 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._styledItems = {};
 
+    this._updatedItemArr = [];
+    this._updatedItems = {};
+
     this._style = options.style || {};
     this._style.fillColor = og.utils.createColorRGBA(this._style.fillColor, new og.math.Vector4(0.19, 0.62, 0.85, 0.57));
     this._style.lineColor = og.utils.createColorRGBA(this._style.lineColor, new og.math.Vector4(0.19, 0.62, 0.85, 1));
@@ -415,5 +418,69 @@ og.gmx.VectorLayer.prototype.clearMaterial = function (material) {
 
     material.isLoading = false;
     material.textureExists = false;
+};
+
+
+og.gmx.VectorLayer.prototype._refreshRecursevely = function (item, treeNode) {
+    var lid = this._id;
+    for (var i = 0; i < treeNode.nodes.length; i++) {
+        var ni = treeNode.nodes[i];
+        if (item._extent.overlaps(ni.planetSegment._extent)) {
+            this._refreshRecursevely(item, ni);
+            var m = ni.planetSegment.materials[lid];
+            if (m && m.isReady) {
+                if (m.segment.node.getState() !== og.quadTree.RENDERING) {
+                    m.layer.clearMaterial(m);
+                } else {
+                    m.isReady = false;
+                    m._updateTexture = m.texture;
+                    m._updatePickingMask = m.pickingMask;
+                    //m.pickingReady = m.pickingReady && item._pickingReady;
+                }
+                //item._pickingReady = true;
+            }
+        }
+    }
+};
+
+// og.gmx.VectorLayer.prototype._refreshRecursevelyExt = function (extent, treeNode) {
+//     var lid = this._layer._id;
+//     for (var i = 0; i < treeNode.nodes.length; i++) {
+//         var ni = treeNode.nodes[i];
+//         if (extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+//             this._refreshRecursevelyExt(extent, ni);
+//             var m = ni.planetSegment.materials[lid];
+//             if (m && m.isReady) {
+//                 m.layer.clearMaterial(m);
+//             }
+//         }
+//     }
+// };
+
+og.gmx.VectorLayer.prototype._refreshPlanetNode = function (treeNode) {
+    var i = 0;
+
+    // var e = this._removeGeometryExtentArr;
+    // for (i = 0; i < e.length; i++) {
+    //     this._refreshRecursevelyExt(e[i], treeNode);
+    // }
+
+    var g = this._updatedGeometryArr;
+    for (i = 0; i < g.length; i++) {
+        this._refreshRecursevely(g[i], treeNode);
+    }
+};
+
+og.gmx.VectorLayer.prototype._updatePlanet = function () {
+    if (this._planet) {
+        this._refreshPlanetNode(this._planet._quadTree);
+    }
+    this._updatedItemArr.length = 0;
+    this._updatedItemArr = [];
+    this._updatedItems = {};
+
+    // this._removeGeometryExtentArr.length = 0;
+    // this._removeGeometryExtentArr = [];
+    // this._removeGeometryExtents = {};
 };
 
