@@ -216,7 +216,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
     var cam = p.renderer.activeCamera;
 
     var altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-        og.quadTree.QuadNode.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+        og.quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
 
     if (this.count > 0 && altVis &&
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {

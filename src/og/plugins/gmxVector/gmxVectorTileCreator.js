@@ -202,10 +202,9 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
         var hLine = h.shaderPrograms.gmxVectorTileLineRasterization,
             hPoly = h.shaderPrograms.gmxVectorTilePolygonRasterization;
 
-        var width, height;
-
         var f = this._framebuffer.activate();
 
+        var width, height;
         var width2 = this._width * 2,
             height2 = this._height * 2;
 
@@ -220,6 +219,13 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
+                var layer = material.layer;
+                var tItems = tileData.items;
+
+                tItems.sort(function (a, b) {
+                    return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
+                });
+
                 if (material.segment.tileZoom <= 3) {
                     width = width2;
                     height = height2;
@@ -228,19 +234,11 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                     height = this._height;
                 }
 
-                var layer = material.layer;
-
                 var extent = material.segment.getExtentMerc();
                 var extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
 
                 var texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
-
-                var pickingMask;
-                if (material._updatePickingMask) {
-                    pickingMask = material._updatePickingMask;
-                } else {
-                    pickingMask = h.createEmptyTexture_n(width, height);
-                }
+                var pickingMask = material._updatePickingMask && material._updatePickingMask || h.createEmptyTexture_n(width, height);
 
                 f.setSize(width, height);
 
@@ -253,19 +251,13 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 //draw vectors
-                var tItems = tileData.items;
-
-                tItems.sort(function (a, b) {
-                    return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
-                });
-
                 for (var i = 0; i < tItems.length; i++) {
                     var ti = tItems[i];
                     if (layer.getItemVisibility(ti.item)) {
 
                         var style = layer.getItemStyle(ti.item);
 
-                        var pickingColor = [ti.item._pickingColor.x / 255, ti.item._pickingColor.y / 255, ti.item._pickingColor.z / 255, 1.0];
+                        var pickingColor = [ti.item._pickingColor.x / 255.0, ti.item._pickingColor.y / 255.0, ti.item._pickingColor.z / 255.0, 1.0];
 
                         hPoly.activate();
                         var sh = hPoly._program;
@@ -274,17 +266,15 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
 
                         //polygon
                         f.bindOutputTexture(texture);
-
-                        gl.uniform4fv(shu.extentParams._pName, extentParams);
                         gl.uniform4fv(shu.color._pName, style.fillColor.toArray());
-                        
+                        gl.uniform4fv(shu.extentParams._pName, extentParams);
+
                         gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
                         gl.vertexAttribPointer(sha.coordinates._pName, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
                         gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                        //polygon picking
                         f.bindOutputTexture(pickingMask);
                         gl.uniform4fv(shu.color._pName, pickingColor);
                         gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);

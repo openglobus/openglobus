@@ -439,12 +439,14 @@ function main5() {
     });
 
     var l2 = new og.gmx.VectorLayer("gmxLayer-2", {
-        'layerId': "035A32EDA95D4D2BBBF6E44AF3FA21DD"
+        'layerId': "035A32EDA95D4D2BBBF6E44AF3FA21DD",
+        'visibility': false
     });
 
     var l3 = new og.gmx.VectorLayer("house_my", {
         'layerId': "24FE35D1E6DA492D82001721E0D79C17",
-        'visibility': false
+        'visibility': false,
+        'zIndex': 105
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -466,6 +468,22 @@ function main5() {
     //    visibility: false,
     //});
 
+
+    var uk = new og.layer.Vector("UK", {
+        'visibility': true,
+        'isBaseLayer': false,
+        'zIndex': 101
+    });
+
+    uk.add(new og.Entity({
+        'geometry': {
+            'type': "Polygon",
+            'coordinates': [[[20,-10], [40,-10], [40,10], [20,10]]],
+            'style': {
+                'lineWidth': 12
+            }
+        }
+    }));
 
     globus = new og.Globus({
         "target": "globus",

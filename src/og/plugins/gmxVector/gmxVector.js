@@ -76,6 +76,10 @@ og.gmx.vectorLayer = function (name, options) {
     return new og.gmx.VectorLayer(name, options);
 };
 
+og.gmx.VectorLayer.prototype._bindPicking = function () {
+    this._pickingColor.clear();
+};
+
 /**
  * Adds layer to the planet.
  * @public
@@ -428,7 +432,7 @@ og.gmx.VectorLayer.prototype._refreshRecursevely = function (item, treeNode) {
     var lid = this._id;
     for (var i = 0; i < treeNode.nodes.length; i++) {
         var ni = treeNode.nodes[i];
-        if (item._extent.overlaps(ni.planetSegment._extent)) {
+        if (item._renderedBounds.overlaps(ni.planetSegment._extent)) {
             this._refreshRecursevely(item, ni);
             var m = ni.planetSegment.materials[lid];
             if (m && m.isReady) {
@@ -470,11 +474,17 @@ og.gmx.VectorLayer.prototype.updateItems = function (items) {
 };
 
 og.gmx.VectorLayer.prototype.updateItem = function (item) {
-    this._updatedItemArr.push(item);
-    this._updatedItems[item.id] = item;
+    if (item._extent) {
+        this._updatedItemArr.push(item);
+        this._updatedItems[item.id] = item;
+    }
 };
 
 og.gmx.VectorLayer.prototype.update = function () {
     this._updatePlanet();
     this.events.dispatch(this.events.draw, this);
+};
+
+og.gmx.VectorLayer.prototype.setStyle = function (style) {
+    //...
 };

@@ -29,5 +29,6 @@ og.gmx.Item.prototype.addTo = function (layer) {
 };
 
 og.gmx.Item.prototype.setStyle = function(style){
-    //...
+    this._style = style;
+    this._layer && this._layer.updateItem(this);
 };
