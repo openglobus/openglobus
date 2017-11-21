@@ -6,8 +6,6 @@ og.gmx.CheckVersion = function (planet) {
 
     this._layerVersions = {};
 
-    this._layerEvents = {};
-
     this.hostUrl = "//maps.kosmosnimki.ru/";
 
     this._layers = [];
@@ -33,27 +31,23 @@ og.gmx.CheckVersion = function (planet) {
             if (l._visibility) {
                 this._addLayer(l);
             }
-
-            var f = function (l) {
-                if (l._visibility) {
-                    this._addLayer(l);
-                } else {
-                    this._removeLayer(l);
-                }
-            };
-
-            if (!this._layerEvents[l._id])
-                this._layerEvents[l._id] = {};
-            this._layerEvents[l._id]["visibilitychange"] = f;
-            l.events.on("visibilitychange", f, this);
         }
     }, this);
 
     planet.events.on("layerremove", function (l) {
         if (l instanceof og.gmx.VectorLayer) {
             this._removeLayer(l);
-            l.events.off("visibilitychange", this._layerEvents[l._id]["visibilitychange"]);
-            this._layerEvents[l._id] = {};
+        }
+    }, this);
+
+    planet.events.on("layervisibilitychange", function (l) {
+        if (l instanceof og.gmx.VectorLayer) {
+            if (l._visibility) {
+                this._addLayer(l);
+            } else {
+                this._removeLayer(l);
+            }
+            this._request();
         }
     }, this);
 
@@ -61,21 +55,13 @@ og.gmx.CheckVersion = function (planet) {
         this._request();
     }, this);
 
-    this.update = function () {
-        this._request();
-    };
-
     this._checkVersionSuccess = function (data, layersOrder) {
         var res = data.Result;
         for (var i = 0; i < layersOrder.length; i++) {
             layersOrder[i]._checkVersionSuccess(res[i]);
         }
     };
-
-    this.getLayers = function () {
-        return this._layers;
-    };
-
+    
     this._request = function () {
         if (this._layers.length) {
 
@@ -118,5 +104,13 @@ og.gmx.CheckVersion = function (planet) {
                 }
             });
         }
+    };
+
+    this.getLayers = function () {
+        return this._layers;
+    };
+
+    this.update = function () {
+        this._request();
     };
 };

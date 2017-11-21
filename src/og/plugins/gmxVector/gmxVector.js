@@ -159,6 +159,11 @@ og.gmx.VectorLayer.prototype.setFilter = function (filterCallback) {
     this.updateFilter();
 };
 
+og.gmx.VectorLayer.prototype.removeFilter = function () {
+    this._filterCallback = null;
+    this.updateFilter();
+};
+
 og.gmx.VectorLayer.prototype.getItemVisibility = function (item) {
     if (!this._filterCallback) {
         return true;
@@ -172,6 +177,7 @@ og.gmx.VectorLayer.prototype.getItemVisibility = function (item) {
 
 og.gmx.VectorLayer.prototype.updateFilter = function () {
     this._filteredItems = {};
+    //...TODO
 };
 
 og.gmx.VectorLayer.prototype.setStyleHook = function (styleCallback) {
@@ -192,6 +198,7 @@ og.gmx.VectorLayer.prototype.getItemStyle = function (item) {
 
 og.gmx.VectorLayer.prototype.updateStyle = function () {
     this._styledItems = {};
+    //...TODO
 };
 
 og.gmx.VectorLayer.prototype._getTile = function (x, y, z, v) {
@@ -266,6 +273,7 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
         cacheTileData.isReady = false;
     }
 
+    //TODO: replace it to webworker
     for (var i = 0; i < cacheTileData.items.length; i++) {
         cacheTileData.items[i].createBuffers(this._planet.renderer.handler, cacheTileData.extent);
     }
@@ -486,5 +494,9 @@ og.gmx.VectorLayer.prototype.update = function () {
 };
 
 og.gmx.VectorLayer.prototype.setStyle = function (style) {
+    //...
+};
+
+og.gmx.VectorLayer.prototype.setDateInterval = function (beginDate, endDate) {
     //...
 };
