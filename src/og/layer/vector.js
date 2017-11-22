@@ -731,7 +731,8 @@ og.layer.Vector.prototype.applyMaterial = function (material) {
 
         var mId = this._id;
         var psegm = material;
-        while (pn.parentNode) {
+        var i = 0;
+        while (pn.parentNode && i < 2) {
             if (psegm && psegm.isReady) {
                 notEmpty = true;
                 break;

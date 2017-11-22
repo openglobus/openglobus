@@ -132,7 +132,7 @@ og.math.isPowerOfTwo = function (x) {
  * @param {number} x - Value.
  * @returns {number}
  */
- og.math.nextHighestPowerOfTwo = function (x) {
+og.math.nextHighestPowerOfTwo = function (x) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
         x = x | x >> i;
@@ -314,7 +314,8 @@ og.math.rev = function (x) {
  * @returns {number}
  */
 og.math.norm_lon = function (lon) {
-    return Math.asin(Math.sin(lon * og.math.RADIANS_HALF)) * og.math.DEGREES_DOUBLE;
+    return lon > 180 ? ((lon + 180) % 360) - 180 :
+        lon < -180 ? ((lon - 180) % 360) + 180 : lon;
 };
 
 /**
