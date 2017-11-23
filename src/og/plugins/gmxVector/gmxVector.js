@@ -484,7 +484,7 @@ og.gmx.VectorLayer.prototype.updateItems = function (items) {
 };
 
 og.gmx.VectorLayer.prototype.updateItem = function (item) {
-    if (item._extent) {
+    if (item._renderedBounds) {
         this._updatedItemArr.push(item);
         this._updatedItems[item.id] = item;
     }
