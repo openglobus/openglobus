@@ -6,6 +6,7 @@ goog.require('og.Extent');
 /**
  * Represents geomixer vector tile data. Stores tile geometries and rendering data.
  * @class
+ * @param {og.gmx.VectorLayer} layer - Tile data layer.
  * @param {Object} data - Geomixer vector tile data:
  * @param {Array<Number,Number,Number,Number>} data.bbox - Bounding box.
  * @param {Boolean} data.isGeneralized - Whether tile geometries are simplified.

@@ -212,7 +212,7 @@ og.Renderer.prototype.clearPickingColor = function (obj) {
 /**
  * Get the client width.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 og.Renderer.prototype.getWidth = function () {
     return this.handler.gl.canvas.width;
@@ -221,7 +221,7 @@ og.Renderer.prototype.getWidth = function () {
 /**
  * Get the client height.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 og.Renderer.prototype.getHeight = function () {
     return this.handler.gl.canvas.height;
@@ -230,7 +230,7 @@ og.Renderer.prototype.getHeight = function () {
 /**
  * Get center of the screen
  * @public
- * @returns {og.math.Pixel}
+ * @returns {og.math.Pixel} -
  */
 og.Renderer.prototype.getCenter = function () {
     var cnv = this.handler.gl.canvas;
@@ -256,13 +256,13 @@ og.Renderer.prototype.addControls = function (cArr) {
 };
 
 /**
- * Remove the given control from the renderer.
+ * Remove control from the renderer.
  * @param {og.control.BaseControl} control  - Control.
- * @return {og.control.BaseControl|undefined}
+ * @return {og.control.BaseControl|undefined} -
  */
 og.Renderer.prototype.removeControl = function (control) {
     for (var i = 0; i < this.controls.length; i++) {
-        if (this.controls[i] == control) {
+        if (this.controls[i].isEqual(control)) {
             this.controls.splice(i, 1);
             control.remove();
             return control;
@@ -446,10 +446,10 @@ og.Renderer.prototype._singleframebufferScreenFrame = function () {
 };
 
 /**
- * Get an picking object by screen coordinates
- * @params {number} x - X position
- * @params {number} y - Y position
- * @return {Object} Object
+ * Returns picking object by screen coordinates
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @return {Object} -
  */
 og.Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
@@ -465,7 +465,7 @@ og.Renderer.prototype.getPickingObject = function (x, y) {
 /** 
  * Returns true if 'WEBGL_draw_buffers' extension initialized.
  * @public
- * @returns {Boolean}
+ * @returns {Boolean} -
  */
 og.Renderer.prototype.isMultiFramebufferCompatible = function () {
     return (this._drawBuffersExtension ? true : false);

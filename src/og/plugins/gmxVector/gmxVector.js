@@ -9,10 +9,13 @@ goog.require('og.gmx.CheckVersion');
 goog.require('og.gmx.VectorTileCreator');
 goog.require('og.gmx.TileData');
 goog.require('og.gmx.Item');
+goog.require('og.gmx.Material');
 
 /**
  * TODO: description
  * @class
+ * @param {String} name - Layer user name.
+ * @param {Object} options:
  * @extends {og.layer.Layer}
  */
 og.gmx.VectorLayer = function (name, options) {
@@ -78,6 +81,10 @@ og.gmx.vectorLayer = function (name, options) {
 
 og.gmx.VectorLayer.prototype._bindPicking = function () {
     this._pickingColor.clear();
+};
+
+og.gmx.VectorLayer.prototype.createMaterial = function (segment) {
+    return new og.gmx.Material(segment, this);
 };
 
 /**
@@ -274,7 +281,7 @@ og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
     }
 
     //TODO: replace it to webworker
-    for (var i = 0; i < cacheTileData.items.length; i++) {
+    for (i = 0; i < cacheTileData.items.length; i++) {
         cacheTileData.items[i].createBuffers(this._planet.renderer.handler, cacheTileData.extent);
     }
 };
