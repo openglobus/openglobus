@@ -61,7 +61,7 @@ og.gmx.CheckVersion = function (planet) {
             layersOrder[i]._checkVersionSuccess(res[i]);
         }
     };
-    
+
     this._request = function () {
         if (this._layers.length) {
 
@@ -76,33 +76,35 @@ og.gmx.CheckVersion = function (planet) {
                 _layersOrder = [];
             for (var i = 0; i < this._layers.length; i++) {
                 var li = this._layers[i];
-                if (li._extentMerc.overlaps(e)) {
+                if (li._extentMerc.overlaps(e) && li._gmxProperties) {
                     _layersOrder.push(li);
                     layers.push({ "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 });
                 }
             }
 
-            var that = this;
-            this._r = og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
-                'type': "POST",
-                'responseType': "json",
-                'data': {
-                    'WrapStyle': "None",
-                    'bbox': bbox,
-                    'srs': "3857",
-                    'layers': layers,
-                    'zoom': zoom,
-                    'ftc': "osm"
-                },
-                'success': function (data) {
-                    that._r = null;
-                    that._checkVersionSuccess(data, _layersOrder);
-                },
-                'error': function (err) {
-                    that._r = null;
-                    console.log(err);
-                }
-            });
+            if (layers.length) {
+                var that = this;
+                this._r = og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+                    'type': "POST",
+                    'responseType': "json",
+                    'data': {
+                        'WrapStyle': "None",
+                        'bbox': bbox,
+                        'srs': "3857",
+                        'layers': layers,
+                        'zoom': zoom,
+                        'ftc': "osm"
+                    },
+                    'success': function (data) {
+                        that._r = null;
+                        that._checkVersionSuccess(data, _layersOrder);
+                    },
+                    'error': function (err) {
+                        that._r = null;
+                        console.log(err);
+                    }
+                });
+            }
         }
     };
 

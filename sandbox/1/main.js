@@ -449,6 +449,11 @@ function main5() {
         'zIndex': 105
     });
 
+    var r = new og.gmx.VectorLayer("LANDSAT-8-753", {
+        'layerId': "7E81339914D54801A50DD986FD4333AC",
+        'visibility': false,
+    });
+
     var osm = new og.layer.XYZ("OpenStreetMap", {
         specular: [0.0003, 0.00012, 0.00001],
         shininess: 20,
@@ -489,7 +494,7 @@ function main5() {
         "target": "globus",
         "name": "Earth",
         "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, l1, l2, l3, tg],
+        "layers": [osm, l1, l2, l3, tg, r],
         "sun": {
             "active": false
         }

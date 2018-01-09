@@ -23,9 +23,15 @@ og.gmx.VectorLayer = function (name, options) {
 
     og.inheritance.base(this, name, options);
 
+    // this._isRasterCatalog = options.isRasterCatalog || false;
+
+    // this._RCMinZoomForRasters = options.RCMinZoomForRasters || 0; 
+
     this.isVector = true;
 
     this.hostUrl = options.hostUrl || "//maps.kosmosnimki.ru/";
+
+    this._initialized = false;
 
     this._layerId = options.layerId;
 
@@ -106,7 +112,11 @@ og.gmx.VectorLayer.prototype.addTo = function (planet) {
     }
 
     this._assignPlanet(planet);
-    this._initialize();
+
+    if (this._visibility && !this._initialized) {
+        this._initialize();
+    }
+
     return this;
 };
 
@@ -127,6 +137,9 @@ og.gmx.VectorLayer.getLayerInfo = function (hostUrl, layerId, proceedCallback, e
 };
 
 og.gmx.VectorLayer.prototype._initialize = function () {
+
+    this._initialized = true;
+
     var p = this._planet;
     var that = this;
 
@@ -135,6 +148,21 @@ og.gmx.VectorLayer.prototype._initialize = function () {
         that.setExtent(og.Geometry.getExtent(data.geometry));
         p._gmxCheckVersion.update();
     });
+};
+
+/**
+ * Sets layer visibility.
+ * @public
+ * @virtual
+ * @param {boolean} visibility - Layer visibility.
+ */
+og.gmx.VectorLayer.prototype.setVisibility = function (visibility) {
+
+    og.layer.Layer.prototype.setVisibility.call(this, visibility);
+
+    if (this._visibility && !this._initialized) {
+        this._initialize();
+    }
 };
 
 og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {

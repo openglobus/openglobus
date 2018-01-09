@@ -27,9 +27,10 @@ og.layer.Material.prototype.abortLoading = function () {
 
 og.layer.Material.prototype.applyImage = function (img) {
     if (this.segment.ready) {
+        this._updateTexture = null;
+
         this.image = img;
         this.texture = this.segment.handler.createTexture(img);
-        this._updateTexture = null;
         this.appliedNodeId = this.segment.node.nodeId;
         this.isReady = true;
         this.pickingReady = true;
