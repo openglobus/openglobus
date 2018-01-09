@@ -78,7 +78,12 @@ og.gmx.CheckVersion = function (planet) {
                 var li = this._layers[i];
                 if (li._extentMerc.overlaps(e) && li._gmxProperties) {
                     _layersOrder.push(li);
-                    layers.push({ "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 });
+                    var p = { "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 };
+                    if (li._gmxProperties.Temporal) {
+                        p.dateBegin = li._dateBegin.getTime();
+                        p.dateEnd = li._dateEnd.getTime();
+                    }
+                    layers.push(p);
                 }
             }
 

@@ -39,6 +39,9 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._gmxProperties = null;
 
+    this._dateBegin = options.dateBegin || null;
+    this._dateEnd = options.dateEnd || null;
+
     this._itemCache = {};
 
     this._tileDataCache = {};
@@ -136,6 +139,11 @@ og.gmx.VectorLayer.getLayerInfo = function (hostUrl, layerId, proceedCallback, e
     });
 };
 
+og.gmx.VectorLayer.dateToEpoch = function (date) {
+    var time = date.getTime();
+    return time - time % 86400000;
+};
+
 og.gmx.VectorLayer.prototype._initialize = function () {
 
     this._initialized = true;
@@ -145,6 +153,11 @@ og.gmx.VectorLayer.prototype._initialize = function () {
 
     og.gmx.VectorLayer.getLayerInfo(this.hostUrl, this._layerId, function (data) {
         that._gmxProperties = data.properties;
+        if (data.properties.Temporal) {
+            var currEpoch = og.gmx.VectorLayer.dateToEpoch(new Date());
+            that._beginDate = that._beginDate || new Date(currEpoch);
+            that._endDate = that._endDate || new Date().setTime(currEpoch + 24 * 60 * 60 * 1000);
+        }
         that.setExtent(og.Geometry.getExtent(data.geometry));
         p._gmxCheckVersion.update();
     });
@@ -535,5 +548,7 @@ og.gmx.VectorLayer.prototype.setStyle = function (style) {
 };
 
 og.gmx.VectorLayer.prototype.setDateInterval = function (beginDate, endDate) {
+    this._beginDate = beginDate;
+    this._endDate = endDate;
     //...
 };
