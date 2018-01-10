@@ -39,8 +39,8 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._gmxProperties = null;
 
-    this._dateBegin = options.dateBegin || null;
-    this._dateEnd = options.dateEnd || null;
+    this._beginDate = options.beginDate || null;
+    this._endDate = options.endDate || null;
 
     this._itemCache = {};
 
@@ -154,9 +154,10 @@ og.gmx.VectorLayer.prototype._initialize = function () {
     og.gmx.VectorLayer.getLayerInfo(this.hostUrl, this._layerId, function (data) {
         that._gmxProperties = data.properties;
         if (data.properties.Temporal) {
-            var currEpoch = og.gmx.VectorLayer.dateToEpoch(new Date());
+            var d = new Date();
+            var currEpoch = og.gmx.VectorLayer.dateToEpoch(d);
             that._beginDate = that._beginDate || new Date(currEpoch);
-            that._endDate = that._endDate || new Date().setTime(currEpoch + 24 * 60 * 60 * 1000);
+            that._endDate = that._endDate || new Date(d.setTime(currEpoch + 24 * 60 * 60 * 1000));
         }
         that.setExtent(og.Geometry.getExtent(data.geometry));
         p._gmxCheckVersion.update();

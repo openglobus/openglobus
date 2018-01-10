@@ -80,8 +80,8 @@ og.gmx.CheckVersion = function (planet) {
                     _layersOrder.push(li);
                     var p = { "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 };
                     if (li._gmxProperties.Temporal) {
-                        p.dateBegin = li._dateBegin.getTime();
-                        p.dateEnd = li._dateEnd.getTime();
+                        p.dateBegin = parseInt(li._beginDate.getTime() / 1000);
+                        p.dateEnd = parseInt(li._endDate.getTime() / 1000);
                     }
                     layers.push(p);
                 }
