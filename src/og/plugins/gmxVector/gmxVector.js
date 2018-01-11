@@ -221,7 +221,11 @@ og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {
         var tileIndex = og.layer.getTileIndex(x, y, z);
         if (tv[tileIndex] !== v) {
             this._tileVersions[tileIndex] = v;
-            this._getTile(x, y, z, v);
+            this._getTile({
+                'id': this._layerId,
+                'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
+                'v': v.toString()
+            });
         }
     }
 };
@@ -274,21 +278,13 @@ og.gmx.VectorLayer.prototype.updateStyle = function () {
 };
 
 og.gmx.VectorLayer.__requestsCounter = 0;
-og.gmx.VectorLayer.MAX_REQUESTS = 8;
+og.gmx.VectorLayer.MAX_REQUESTS = 50;
 
-og.gmx.VectorLayer.prototype._getTile = function (x, y, z, v) {
+og.gmx.VectorLayer.prototype._getTile = function (t) {
     if (og.gmx.VectorLayer.__requestsCounter >= og.gmx.VectorLayer.MAX_REQUESTS && this._counter) {
-        this._pendingsQueue.push({
-            'id': this._layerId,
-            'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
-            'v': v.toString()
-        });
+        this._pendingsQueue.push(t);
     } else {
-        this._exec({
-            'id': this._layerId,
-            'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
-            'v': v.toString()
-        });
+        this._exec(t);
     }
 };
 
@@ -346,11 +342,6 @@ og.gmx.VectorLayer.prototype._dequeueRequest = function () {
 og.gmx.VectorLayer.prototype._whilePendings = function () {
     while (this._pendingsQueue.length) {
         return this._pendingsQueue.pop();
-        // if (pmat.segment.node) {
-        //     if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
-        //         return t;
-        //     }
-        // }
     }
 };
 
