@@ -252,7 +252,7 @@ og.layer.XYZ.prototype._exec = function (material) {
         if (material.isLoading) {
             var e = that.events.load;
             if (e.handlers.length) {
-                that.events.dispatch(this, material);
+                that.events.dispatch(e, material);
             }
             this.onerror = null;
             this.onload = null;

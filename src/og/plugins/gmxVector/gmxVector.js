@@ -10,6 +10,7 @@ goog.require('og.gmx.VectorTileCreator');
 goog.require('og.gmx.TileData');
 goog.require('og.gmx.Item');
 goog.require('og.gmx.Material');
+goog.require('og.QueueArray');
 
 /**
  * TODO: description
@@ -22,10 +23,6 @@ og.gmx.VectorLayer = function (name, options) {
     options = options || {};
 
     og.inheritance.base(this, name, options);
-
-    // this._isRasterCatalog = options.isRasterCatalog || false;
-
-    // this._RCMinZoomForRasters = options.RCMinZoomForRasters || 0; 
 
     this.isVector = true;
 
@@ -69,12 +66,38 @@ og.gmx.VectorLayer = function (name, options) {
     this._style.strokeWidth = this._style.strokeWidth || 0;
 
     this.events.registerNames(og.gmx.VectorLayer.EVENT_NAMES);
+
+    /**
+     * Current loading tiles couter.
+     * @protected
+     * @type {number}
+     */
+    this._counter = 0;
+
+    /**
+     * Tile pending queue that waiting for loading.
+     * @protected
+     * @type {Array.<og.planetSegment.Material>}
+     */
+    this._pendingsQueue = new og.QueueArray();
 };
 
 og.inheritance.extend(og.gmx.VectorLayer, og.layer.Layer);
 
 og.gmx.VectorLayer.EVENT_NAMES = [
-    "draw"
+    "draw",
+
+    /**
+     * Triggered when current tile image has loaded before rendereing.
+     * @event og.gmx.VectorLayer#load
+     */
+    "load",
+
+    /**
+     * Triggered when all tiles have loaded or loading has stopped.
+     * @event og.gmx.VectorLayer#loadend
+     */
+    "loadend"
 ];
 
 /**
@@ -250,26 +273,87 @@ og.gmx.VectorLayer.prototype.updateStyle = function () {
     //...TODO
 };
 
+og.gmx.VectorLayer.__requestsCounter = 0;
+og.gmx.VectorLayer.MAX_REQUESTS = 8;
+
 og.gmx.VectorLayer.prototype._getTile = function (x, y, z, v) {
-    var url = og.utils.stringTemplate(this._tileSenderUrlTemplate, {
-        "id": this._layerId,
-        "x": x.toString(), "y": y.toString(), "z": z.toString(),
-        "v": v.toString()
-    });
+    if (og.gmx.VectorLayer.__requestsCounter >= og.gmx.VectorLayer.MAX_REQUESTS && this._counter) {
+        this._pendingsQueue.push({
+            'id': this._layerId,
+            'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
+            'v': v.toString()
+        });
+    } else {
+        this._exec({
+            'id': this._layerId,
+            'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
+            'v': v.toString()
+        });
+    }
+};
+
+og.gmx.VectorLayer.prototype._exec = function (t) {
+
+    var url = og.utils.stringTemplate(this._tileSenderUrlTemplate, t);
+
+    og.gmx.VectorLayer.__requestsCounter++;
+    this._counter++;
 
     var that = this;
-    og.ajax.request(url, {
+    var r = og.ajax.request(url, {
         'type': "GET",
         'responseType': "text",
         'success': function (dataStr) {
+            og.gmx.VectorLayer.__requestsCounter--;
+            that._counter--;
+
             var data = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.lastIndexOf('}') + 1));
-            that._handleTileData(x, y, z, v, data);
+            that._handleTileData(t.x, t.y, t.z, t.v, data);
+
+            var e = that.events.load;
+            if (e.handlers.length) {
+                that.events.dispatch(e, data);
+            }
+
+            that._dequeueRequest();
         },
         'error': function (err) {
+            og.gmx.VectorLayer.__requestsCounter--;
+            that._counter--;
+
             console.log(err);
+
+            that._dequeueRequest();
         }
     });
 };
+
+og.gmx.VectorLayer.prototype._dequeueRequest = function () {
+    if (this._pendingsQueue.length) {
+        if (og.gmx.VectorLayer.__requestsCounter < og.gmx.VectorLayer.MAX_REQUESTS) {
+            var t = this._whilePendings();
+            if (t)
+                this._exec.call(this, t);
+        }
+    } else if (this._counter === 0) {
+        var e = this.events.loadend;
+        if (e.handlers.length) {
+            this.events.dispatch(e);
+        }
+    }
+};
+
+og.gmx.VectorLayer.prototype._whilePendings = function () {
+    while (this._pendingsQueue.length) {
+        return this._pendingsQueue.pop();
+        // if (pmat.segment.node) {
+        //     if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
+        //         return t;
+        //     }
+        // }
+    }
+};
+
 
 og.gmx.VectorLayer.prototype.addItem = function (item) {
     if (!item._layer) {
@@ -548,8 +632,24 @@ og.gmx.VectorLayer.prototype.setStyle = function (style) {
     //...
 };
 
+og.gmx.VectorLayer.prototype.clear = function () {
+    this._itemCache = {};
+    this._tileDataCache = {};
+    this._tileVersions = {};
+};
+
+og.gmx.VectorLayer.prototype.refresh = function () {
+    if (this._gmxProperties) {
+        this.clear();
+        if (this._planet) {
+            this._planet._gmxCheckVersion.update();
+        }
+    }
+};
+
 og.gmx.VectorLayer.prototype.setDateInterval = function (beginDate, endDate) {
     this._beginDate = beginDate;
     this._endDate = endDate;
-    //...
+    // if (this._gmxProperties && this._gmxProperties.Temporal) {
+    // }
 };
