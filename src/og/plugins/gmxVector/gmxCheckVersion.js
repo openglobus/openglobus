@@ -62,6 +62,13 @@ og.gmx.CheckVersion = function (planet) {
         }
     };
 
+    this.abort = function () {
+        if(this._r){
+            this._r.abort();
+            this._r = null;
+        }
+    };
+
     this._request = function () {
         if (this._layers.length) {
 
