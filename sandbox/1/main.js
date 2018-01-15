@@ -452,6 +452,8 @@ function main5() {
     var r = new og.gmx.VectorLayer("LANDSAT-8-753", {
         'layerId': "7E81339914D54801A50DD986FD4333AC",
         'visibility': false,
+        'beginDate': new Date(2016, 3, 3),
+        'endDate':new Date(2016, 3, 29)
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {

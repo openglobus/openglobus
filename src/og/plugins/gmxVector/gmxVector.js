@@ -37,6 +37,7 @@ og.gmx.VectorLayer = function (name, options) {
     this._gmxProperties = null;
 
     this._beginDate = options.beginDate || null;
+    
     this._endDate = options.endDate || null;
 
     this._itemCache = {};
