@@ -75,7 +75,7 @@ og.gmx.CheckVersion = function (planet) {
             this._r && this._r.abort();
 
             var e = planet._viewExtentMerc,
-                zoom = planet.maxCurrZoom;
+                zoom = planet.minCurrZoom;
 
             var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
 
