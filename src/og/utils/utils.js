@@ -236,7 +236,7 @@ og.utils.binarySearch = function (ar, el, compare_fn) {
     var n = ar.length - 1;
     while (m <= n) {
         var k = (n + m) >> 1;
-        var cmp = compare_fn(el, ar[k]);
+        var cmp = compare_fn(el, ar[k], k);
         if (cmp > 0) {
             m = k + 1;
         } else if (cmp < 0) {

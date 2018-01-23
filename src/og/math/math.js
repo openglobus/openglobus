@@ -267,9 +267,9 @@ og.math.slice = function (t, h1, h0) {
 /**
  * Performs a linear interpolation.
  * @function
- * @param {number} t - A value that linearly interpolates between the x parameter and the y parameter.
- * @param {number} h1 - The first value.
- * @param {number} h1 - The second value.
+ * @param {number} t - A value that linearly interpolates between the h0 parameter and the h1 parameter.
+ * @param {number} h1 - End value.
+ * @param {number} h0 - Start value.
  * @returns {number}
  */
 og.math.lerp = function (t, h1, h0) {
