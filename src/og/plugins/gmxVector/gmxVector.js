@@ -37,7 +37,7 @@ og.gmx.VectorLayer = function (name, options) {
     this._gmxProperties = null;
 
     this._beginDate = options.beginDate || null;
-    
+
     this._endDate = options.endDate || null;
 
     this._itemCache = {};
@@ -80,7 +80,7 @@ og.gmx.VectorLayer = function (name, options) {
      * @protected
      * @type {Array.<og.planetSegment.Material>}
      */
-    this._pendingsQueue = new og.QueueArray();
+    this._vecPendingsQueue = new og.QueueArray();
 };
 
 og.inheritance.extend(og.gmx.VectorLayer, og.layer.Layer);
@@ -222,7 +222,7 @@ og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {
         var tileIndex = og.layer.getTileIndex(x, y, z);
         if (tv[tileIndex] !== v) {
             this._tileVersions[tileIndex] = v;
-            this._getTile({
+            this._vecLoadTile({
                 'id': this._layerId,
                 'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
                 'v': v.toString()
@@ -279,17 +279,17 @@ og.gmx.VectorLayer.prototype.updateStyle = function () {
 };
 
 og.gmx.VectorLayer.__requestsCounter = 0;
-og.gmx.VectorLayer.MAX_REQUESTS = 50;
+og.gmx.VectorLayer.MAX_REQUESTS = 15;
 
-og.gmx.VectorLayer.prototype._getTile = function (t) {
+og.gmx.VectorLayer.prototype._vecLoadTile = function (t) {
     if (og.gmx.VectorLayer.__requestsCounter >= og.gmx.VectorLayer.MAX_REQUESTS && this._counter) {
-        this._pendingsQueue.push(t);
+        this._vecPendingsQueue.push(t);
     } else {
-        this._exec(t);
+        this._vecExec(t);
     }
 };
 
-og.gmx.VectorLayer.prototype._exec = function (t) {
+og.gmx.VectorLayer.prototype._vecExec = function (t) {
 
     var url = og.utils.stringTemplate(this._tileSenderUrlTemplate, t);
 
@@ -297,7 +297,7 @@ og.gmx.VectorLayer.prototype._exec = function (t) {
     this._counter++;
 
     var that = this;
-    var r = og.ajax.request(url, {
+    og.ajax.request(url, {
         'type': "GET",
         'responseType': "text",
         'success': function (dataStr) {
@@ -305,14 +305,15 @@ og.gmx.VectorLayer.prototype._exec = function (t) {
             that._counter--;
 
             var data = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.lastIndexOf('}') + 1));
-            that._handleTileData(t.x, t.y, t.z, t.v, data);
+
+            that._handleVectorTileData(t, data);
 
             var e = that.events.load;
             if (e.handlers.length) {
                 that.events.dispatch(e, data);
             }
 
-            that._dequeueRequest();
+            that._vecDequeueRequest();
         },
         'error': function (err) {
             og.gmx.VectorLayer.__requestsCounter--;
@@ -320,15 +321,15 @@ og.gmx.VectorLayer.prototype._exec = function (t) {
 
             console.log(err);
 
-            that._dequeueRequest();
+            that._vecDequeueRequest();
         }
     });
 };
 
-og.gmx.VectorLayer.prototype._dequeueRequest = function () {
-    if (this._pendingsQueue.length) {
+og.gmx.VectorLayer.prototype._vecDequeueRequest = function () {
+    if (this._vecPendingsQueue.length) {
         if (og.gmx.VectorLayer.__requestsCounter < og.gmx.VectorLayer.MAX_REQUESTS) {
-            var t = this._whilePendings();
+            var t = this._vecWhilePendings();
             if (t)
                 this._exec.call(this, t);
         }
@@ -340,9 +341,9 @@ og.gmx.VectorLayer.prototype._dequeueRequest = function () {
     }
 };
 
-og.gmx.VectorLayer.prototype._whilePendings = function () {
-    while (this._pendingsQueue.length) {
-        return this._pendingsQueue.pop();
+og.gmx.VectorLayer.prototype._vecWhilePendings = function () {
+    while (this._vecPendingsQueue.length) {
+        return this._vecPendingsQueue.pop();
     }
 };
 
@@ -357,7 +358,10 @@ og.gmx.VectorLayer.prototype.addItem = function (item) {
     }
 };
 
-og.gmx.VectorLayer.prototype._handleTileData = function (x, y, z, v, data) {
+og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
+    
+    var x = t.x, y = t.y, z = t.z, v = t.v;
+
     var items = data.values,
         style = this._style;
 

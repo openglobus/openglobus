@@ -72,9 +72,9 @@ og.math.EPSILON20 = 1e-20;
  * @function
  * @param {number} n - Produce value.
  * @param {number} base - Base value.
- * @returns {number}
+ * @returns {number} -
  * @example
- * og.math.log(64,2)
+ * og.math.log(64, 2)
  * //returns 6
  */
 og.math.log = function (n, base) {
@@ -87,9 +87,9 @@ og.math.log = function (n, base) {
  * @param {number} number - Input number.
  * @param {number} min - Minimal edge.
  * @param {number} max - Maximal edge.
- * @returns {number}
+ * @returns {number} -
  * @example
- * og.math.clamp(12,1,5)
+ * og.math.clamp(12, 1, 5)
  * //returns 5
  */
 og.math.clamp = function (number, min, max) {
@@ -100,7 +100,7 @@ og.math.clamp = function (number, min, max) {
  * Converts degrees value to radians.
  * @function
  * @param {number} degrees - Degree value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.DEG2RAD = function (degrees) {
     return degrees * og.math.RADIANS;
@@ -110,7 +110,7 @@ og.math.DEG2RAD = function (degrees) {
  * Converts radians value to degrees.
  * @function
  * @param {number} angle - Degree value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.RAD2DEG = function (angle) {
     return angle * og.math.DEGREES;
@@ -119,8 +119,8 @@ og.math.RAD2DEG = function (angle) {
 /**
  * Check the number is a power of two.
  * @function
- * @param {number} x - Value.
- * @returns {boolean}
+ * @param {number} x - Input value.
+ * @returns {boolean} -
  */
 og.math.isPowerOfTwo = function (x) {
     return (x & (x - 1)) == 0;
@@ -129,8 +129,8 @@ og.math.isPowerOfTwo = function (x) {
 /**
  * Returns next value that is power of two.
  * @function
- * @param {number} x - Value.
- * @returns {number}
+ * @param {number} x - Input value.
+ * @returns {number} -
  */
 og.math.nextHighestPowerOfTwo = function (x) {
     --x;
@@ -145,7 +145,7 @@ og.math.nextHighestPowerOfTwo = function (x) {
  * @function
  * @param {number} min - Minimal bound.
  * @param {number} max - Maximal bound.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.randomi = function (min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -156,7 +156,7 @@ og.math.randomi = function (min, max) {
  * @function
  * @param {number} min - Minimal bound.
  * @param {number} max - Maximal bound.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.random = function (min, max) {
     return Math.random() * (max - min) + min;
@@ -169,7 +169,8 @@ og.math.random = function (min, max) {
  * @param {number} m - Minutes.
  * @param {number} s - Seconds.
  * @param {boolean} [p] - Positive flag. False - default.
- */
+ * @returns {number} -
+ **/
 og.math.degToDec = function (d, m, s, p) {
     if (p)
         return d + m / 60.0 + s / 3600.0;
@@ -192,7 +193,7 @@ og.math.mod = function (m, n) {
  * Returns an angle in the range 0 <= angle <= 2Pi which is equivalent to the provided angle.
  * @function
  * @param {number} a - Angle in radians
- * @returns {number}
+ * @returns {number} -
  */
 og.math.zeroTwoPI = function (a) {
     var mod = og.math.mod(a, og.math.TWO_PI);
@@ -205,9 +206,9 @@ og.math.zeroTwoPI = function (a) {
 /**
  * Returns 0.0 if x is smaller then edge and otherwise 1.0.
  * @function
- * @param {number} edge - Edge.
+ * @param {number} edge -
  * @param {number} x - Value to edge.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.step = function (edge, x) {
     return x < edge ? 0.0 : 1.0;
@@ -217,7 +218,7 @@ og.math.step = function (edge, x) {
  * The fract function returns the fractional part of x, i.e. x minus floor(x).
  * @function
  * @param {number} x - Input value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.frac = function (x) {
     return x - Math.floor(x);
@@ -226,8 +227,8 @@ og.math.frac = function (x) {
 /**
  * Returns Math.log(x) / Math.log(2)
  * @function
- * @param {number} x
- * @returns {number}
+ * @param {number} x - Input value.
+ * @returns {number} -
  */
 og.math.log2 = function (x) {
     return Math.log(x) / og.math.LOG2;
@@ -237,7 +238,7 @@ og.math.log2 = function (x) {
  * Returns two power of n.
  * @function
  * @param {number} n - Power value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.exp2 = function (n) {
     return Math.pow(2, n);
@@ -247,7 +248,7 @@ og.math.exp2 = function (n) {
  * Returns two power of integer n.
  * @function
  * @param {number} n - Integer power value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.pow2i = function (n) {
     return 2 << (n - 1);
@@ -255,10 +256,10 @@ og.math.pow2i = function (n) {
 
 /**
  * Returns a slice of linear interpolation t * (h1 - h0)
- * @param {number} t
- * @param {number} h1
- * @param {number} h0
- * @returns {number}
+ * @param {number} t - A value that linearly interpolates between the h0 parameter and the h1 parameter.
+ * @param {number} h1 - End value.
+ * @param {number} h0 - Start value.
+ * @returns {number} -
  */
 og.math.slice = function (t, h1, h0) {
     return t * (h1 - h0);
@@ -270,7 +271,7 @@ og.math.slice = function (t, h1, h0) {
  * @param {number} t - A value that linearly interpolates between the h0 parameter and the h1 parameter.
  * @param {number} h1 - End value.
  * @param {number} h0 - Start value.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.lerp = function (t, h1, h0) {
     return h0 + t * (h1 - h0);
@@ -279,12 +280,12 @@ og.math.lerp = function (t, h1, h0) {
 /**
  * Performs a 3D bezier interpolation.
  * @function
- * @param {number} t
+ * @param {number} t - Interpolation value.
  * @param {og.math.Vector3} p0 - First control point.
  * @param {og.math.Vector3} p1 - Second control point.
  * @param {og.math.Vector3} p2 - Third control point.
  * @param {og.math.Vector3} p3 - Fourth control point.
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.math.bezier = function (t, p0, p1, p2, p3) {
     var u = 1 - t;
@@ -301,7 +302,7 @@ og.math.bezier = function (t, p0, p1, p2, p3) {
  * Clamp angle value within 360.
  * @function
  * @param {number} x - Input angle.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.rev = function (x) {
     return x - Math.floor(x / 360.0) * 360.0;
@@ -311,7 +312,7 @@ og.math.rev = function (x) {
  * Clamp longitude within: -180 to +180 degrees.
  * @function
  * @param {number} lon - Longitude.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.norm_lon = function (lon) {
     return lon > 180 ? ((lon + 180) % 360) - 180 :
@@ -321,8 +322,8 @@ og.math.norm_lon = function (lon) {
 /**
  * Returns an angle in the range -Pi <= angle <= Pi which is equivalent to the provided angle.
  * @function
- * @param {number} a - Angle in radians
- * @returns {number}
+ * @param {number} a - Angle in radians.
+ * @returns {number} -
  */
 og.math.negativePItoPI = function (a) {
     return og.math.zeroTwoPI(a + Math.PI) - Math.PI;
@@ -334,7 +335,7 @@ og.math.negativePItoPI = function (a) {
  * @param {equationCallback} f - Equation. Used in Euler's equation(see og.orbit) solving.
  * @param {number} x0 - First approximation.
  * @param {number} maxIter - Maximum iterations.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.solve_iteration_fixed = function (f, x0, maxIter) {
     var x = 0;
@@ -354,7 +355,7 @@ og.math.solve_iteration_fixed = function (f, x0, maxIter) {
  * @param {number} x0 - First approximation.
  * @param {number} err - Maximal accepted error value.
  * @param {number} maxIter - Maximum iterations.
- * @returns {number}
+ * @returns {number} -
  */
 og.math.solve_iteration = function (f, x0, err, maxIter) {
     maxIter = maxIter || 50;

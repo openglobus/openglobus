@@ -216,6 +216,7 @@ og.Entity = function (options) {
  * @param {*} [options.pointCloud] - Point cloud options.
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
  * @param {*} [properties] - Entity custom properties.
+ * @returns {og.Entity} -
  */
 og.entity = function (options, properties) {
     return new og.Entity(options, properties);
@@ -236,6 +237,7 @@ og.Entity.prototype._createOptionFeature = function (featureName, options) {
  * @public
  * @param {og.EntityCollection|og.layer.Vector} collection - Specified entity collection or vector layer.
  * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
+ * @returns {og.Entity} - This object.
  */
 og.Entity.prototype.addTo = function (collection, rightNow) {
     collection.add(this, rightNow);
@@ -254,7 +256,7 @@ og.Entity.prototype.remove = function () {
 /**
  * Sets the entity visibility.
  * @public
- * @param {boolean} visibilty - Entity visibility.
+ * @param {boolean} visibility - Entity visibility.
  */
 og.Entity.prototype.setVisibility = function (visibility) {
     this._visibility = visibility;
@@ -282,7 +284,7 @@ og.Entity.prototype.setVisibility = function (visibility) {
 /**
  * Returns entity visibility.
  * @public
- * @returns {boolean}
+ * @returns {boolean} -
  */
 og.Entity.prototype.getVisibility = function () {
     return this._visibility;
@@ -291,7 +293,7 @@ og.Entity.prototype.getVisibility = function () {
 /**
  * Sets entity cartesian position.
  * @public
- * @param {og.math.Vector3} position - Cartesian position in 3d space.
+ * @param {og.math.Vector3} cartesian - Cartesian position in 3d space.
  */
 og.Entity.prototype.setCartesian3v = function (cartesian) {
     this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
@@ -344,7 +346,7 @@ og.Entity.prototype.setCartesian = function (x, y, z) {
 /**
  * Sets entity cartesian position without moveentity event dispatching.
  * @protected
- * @param {og.math.Vector3} position - Cartesian position in 3d space.
+ * @param {og.math.Vector3} cartesian - Cartesian position in 3d space.
  */
 og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
 
@@ -371,7 +373,7 @@ og.Entity.prototype._setCartesian3vSilent = function (cartesian) {
 /**
  * Gets entity geodetic coordinates.
  * @public
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 og.Entity.prototype.getLonLat = function () {
     return this._lonlat.clone();
@@ -415,7 +417,7 @@ og.Entity.prototype.setAltitude = function (altitude) {
 /**
  * Returns carteain position.
  * @public
- * @returns {og.math.Vector3}
+ * @returns {og.math.Vector3} -
  */
 og.Entity.prototype.getCartesian = function () {
     return this._cartesian;
@@ -424,7 +426,8 @@ og.Entity.prototype.getCartesian = function () {
 /**
  * Sets entity billboard.
  * @public
- * @param {og.Billboard} billboard - Billboard image.
+ * @param {og.Billboard} billboard - Billboard object.
+ * @returns {og.Billboard} -
  */
 og.Entity.prototype.setBillboard = function (billboard) {
     if (this.billboard) {
@@ -442,6 +445,7 @@ og.Entity.prototype.setBillboard = function (billboard) {
  * Sets entity label.
  * @public
  * @param {og.Label} label - Text label.
+ * @returns {og.Label} -
  */
 og.Entity.prototype.setLabel = function (label) {
     if (this.label) {
@@ -459,6 +463,7 @@ og.Entity.prototype.setLabel = function (label) {
  * Sets entity shape.
  * @public
  * @param {og.BaseShape} shape - Shape object.
+ * @returns {og.Polyline} -
  */
 og.Entity.prototype.setShape = function (shape) {
     if (this.shape) {
@@ -476,6 +481,7 @@ og.Entity.prototype.setShape = function (shape) {
  * Sets entity polyline.
  * @public
  * @param {og.Polyline} polyline - Polyline object.
+ * @returns {og.Polyline} -
  */
 og.Entity.prototype.setPolyline = function (polyline) {
     if (this.polyline) {
@@ -491,7 +497,8 @@ og.Entity.prototype.setPolyline = function (polyline) {
 /**
  * Sets entity pointCloud.
  * @public
- * @param {og.PointCloud} pointCLoud - PointCloud object.
+ * @param {og.PointCloud} pointCloud - PointCloud object.
+ * @returns {og.PointCloud} -
  */
 og.Entity.prototype.setPointCloud = function (pointCloud) {
     if (this.pointCloud) {
@@ -508,6 +515,7 @@ og.Entity.prototype.setPointCloud = function (pointCloud) {
  * Sets entity geometry.
  * @public
  * @param {og.Geometry} geometry - Geometry object.
+ * @returns {og.Geometry} -
  */
 og.Entity.prototype.setGeometry = function (geometry) {
     if (this.geometry) {
@@ -560,7 +568,7 @@ og.Entity.prototype.setPickingColor = function () {
 
 /**
  * Return geodethic extent.
- * @returns {og.Extent}
+ * @returns {og.Extent} -
  */
 og.Entity.prototype.getExtent = function () {
     var res;
