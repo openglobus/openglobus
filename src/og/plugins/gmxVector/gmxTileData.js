@@ -11,39 +11,35 @@ goog.require('og.Extent');
  * @param {Array<Number,Number,Number,Number>} data.bbox - Bounding box.
  * @param {Boolean} data.isGeneralized - Whether tile geometries are simplified.
  * @param {Array<Array<Object>>} data.values - Tile items.
- * @param {Number} x - Tile index for X. 
- * @param {Number} y - Tile index for Y. 
- * @param {Number} z - Tile zoom level. 
- * @param {Number} v - Tile version.
+ * @param {Number} data.x - Tile index for X. 
+ * @param {Number} data.y - Tile index for Y. 
+ * @param {Number} data.z - Tile zoom level. 
+ * @param {Number} data.v - Tile version.
  */
-og.gmx.TileData = function (layer, data, x, y, z, v) {
+og.gmx.TileData = function (layer, data) {
     this._layer = layer;
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
-    this.version = v;
-    this.items = this.convertToTileItems(data.values);
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.extent = this.getTileExtent(data.srs, x, y, z);
+    this.version = data.v;
+    this.x = data.x;
+    this.y = data.y;
+    this.z = data.z;
+    this.extent = og.Extent.fromTile(data.x, data.y, data.z);
+    this.items = [];
 };
 
-og.gmx.TileData.prototype.getTileExtent = function (srs, x, y, z) {
-    return og.Extent.fromTile(x, y, z);
+og.gmx.TileData.prototype.addTileItem = function (item, handler) {
+    this.items.push(item);
 };
 
-og.gmx.TileData.prototype.convertToTileItems = function (items) {
-    var l = items.length;
-    var res = new Array(l);
+og.gmx.TileData.prototype.addTileItems = function(items){
     for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        res[i] = new og.gmx.TileItem(this._layer._itemCache[item[0]], item[item.length - 1]);
+        this.addItem(items[i]);
     }
-    return res;
 };
 
 og.gmx.TileData.prototype.setData = function (data) {
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
-    this.items = this.convertToTileItems(data.values);
+    this.version = data.v;
 };

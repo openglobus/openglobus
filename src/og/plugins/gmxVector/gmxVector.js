@@ -32,7 +32,7 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._layerId = options.layerId;
 
-    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
+    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}&Level={level}&Span={span}';
 
     this._gmxProperties = null;
 
@@ -211,21 +211,26 @@ og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {
     var _X = to.indexOf("X"),
         _Y = to.indexOf("Y"),
         _Z = to.indexOf("Z"),
-        _V = to.indexOf("V");
+        _V = to.indexOf("V"),
+        _LEVEL = to.indexOf("Level"),
+        _SPAN = to.indexOf("Span");
 
     var tv = this._tileVersions;
     for (var i = 0; i < ts.length; i += toSize) {
         var x = ts[i + _X],
             y = ts[i + _Y],
             z = ts[i + _Z],
-            v = ts[i + _V];
+            v = ts[i + _V],
+            level = ts[i + _LEVEL],
+            span = ts[i + _SPAN];
+
         var tileIndex = og.layer.getTileIndex(x, y, z);
         if (tv[tileIndex] !== v) {
             this._tileVersions[tileIndex] = v;
             this._vecLoadTile({
                 'id': this._layerId,
                 'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
-                'v': v.toString()
+                'v': v.toString(), "level": level.toString(), "span": span.toString()
             });
         }
     }
@@ -279,7 +284,7 @@ og.gmx.VectorLayer.prototype.updateStyle = function () {
 };
 
 og.gmx.VectorLayer.__requestsCounter = 0;
-og.gmx.VectorLayer.MAX_REQUESTS = 15;
+og.gmx.VectorLayer.MAX_REQUESTS = 150;
 
 og.gmx.VectorLayer.prototype._vecLoadTile = function (t) {
     if (og.gmx.VectorLayer.__requestsCounter >= og.gmx.VectorLayer.MAX_REQUESTS && this._counter) {
@@ -331,7 +336,7 @@ og.gmx.VectorLayer.prototype._vecDequeueRequest = function () {
         if (og.gmx.VectorLayer.__requestsCounter < og.gmx.VectorLayer.MAX_REQUESTS) {
             var t = this._vecWhilePendings();
             if (t)
-                this._exec.call(this, t);
+                this._vecExec.call(this, t);
         }
     } else if (this._counter === 0) {
         var e = this.events.loadend;
@@ -359,11 +364,23 @@ og.gmx.VectorLayer.prototype.addItem = function (item) {
 };
 
 og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
-    
-    var x = t.x, y = t.y, z = t.z, v = t.v;
 
     var items = data.values,
-        style = this._style;
+        style = this._style,
+        v = data.v;
+
+    var h = this._planet.renderer.handler;
+
+    var tileIndex = og.layer.getTileIndex(t.x, t.y, t.z),
+        cacheTileData = this._tileDataCache[tileIndex];
+
+    if (!cacheTileData) {
+        cacheTileData = this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data);
+    } else if (cacheTileData.version !== data.v) {
+        cacheTileData.setData(data);
+        cacheTileData.items = [];
+        cacheTileData.isReady = false;
+    }
 
     for (var i = 0; i < items.length; i++) {
 
@@ -373,7 +390,8 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
         var cacheItem = this._itemCache[gmxId];
 
         if (!cacheItem) {
-            this.addItem(new og.gmx.Item(gmxId, {
+
+            cacheItem = new og.gmx.Item(gmxId, {
                 'attributes': this._getAttributes(item),
                 'version': v,
                 'style': {
@@ -384,27 +402,18 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
                     'strokeWidth': style.strokeWidth,
                     'zIndex': this._itemZIndexCounter++
                 }
-            }));
+            });
+
+            this.addItem(cacheItem);
+    
         } else if (cacheItem.version !== v) {
             cacheItem.version = v;
             cacheItem.attributes = this._getAttributes(item);
         }
-    }
 
-    var tileIndex = og.layer.getTileIndex(x, y, z),
-        cacheTileData = this._tileDataCache[tileIndex];
-
-    if (!cacheTileData) {
-        cacheTileData = this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data, x, y, z, v);
-    } else if (cacheTileData.version !== v) {
-        cacheTileData.version = v;
-        cacheTileData.setData(data);
-        cacheTileData.isReady = false;
-    }
-
-    //TODO: replace it to webworker
-    for (i = 0; i < cacheTileData.items.length; i++) {
-        cacheTileData.items[i].createBuffers(this._planet.renderer.handler, cacheTileData.extent);
+        var ti = new og.gmx.TileItem(cacheItem, item[item.length - 1]);
+        cacheTileData.addTileItem(ti);
+        ti.createBuffers(h, cacheTileData.extent);
     }
 };
 

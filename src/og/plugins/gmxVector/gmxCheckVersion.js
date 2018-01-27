@@ -63,7 +63,7 @@ og.gmx.CheckVersion = function (planet) {
     };
 
     this.abort = function () {
-        if(this._r){
+        if (this._r) {
             this._r.abort();
             this._r = null;
         }
@@ -85,7 +85,7 @@ og.gmx.CheckVersion = function (planet) {
                 var li = this._layers[i];
                 if (li._extentMerc.overlaps(e) && li._gmxProperties) {
                     _layersOrder.push(li);
-                    var p = { "Name": li._layerId, "Version": this._layerVersions[li._layerId] || -1 };
+                    var p = { "Name": li._layerId, "Version": li._gmxProperties.LayerVersion || -1 };
                     if (li._gmxProperties.Temporal) {
                         p.dateBegin = parseInt(li._beginDate.getTime() / 1000);
                         p.dateEnd = parseInt(li._endDate.getTime() / 1000);

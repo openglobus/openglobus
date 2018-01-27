@@ -449,11 +449,11 @@ function main5() {
         'zIndex': 105
     });
 
-    var r = new og.gmx.VectorLayer("LANDSAT-8-753", {
-        'layerId': "7E81339914D54801A50DD986FD4333AC",
+    var r = new og.gmx.VectorLayer("LANDSAT8", {
+        'layerId': "47A9D4E5E5AE497A8A1A7EA49C7FC336",
         'visibility': false,
-        'beginDate': new Date(2016, 3, 3),
-        'endDate':new Date(2016, 3, 29)
+        'beginDate': new Date(2017, 6, 1),
+        'endDate':new Date(2017, 6, 10)
     });
 
     var osm = new og.layer.XYZ("OpenStreetMap", {
@@ -495,7 +495,7 @@ function main5() {
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
-        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        //"terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
         "layers": [osm, l1, l2, l3, tg, r],
         "sun": {
             "active": false
