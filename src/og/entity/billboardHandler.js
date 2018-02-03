@@ -175,7 +175,7 @@ og.BillboardHandler.prototype.add = function (billboard) {
         this._billboards.push(billboard);
         this._addBillboardToArrays(billboard);
         this.refresh();
-        billboard.setSrc(billboard._src);
+        billboard.setSrc(billboard._src || billboard._image && billboard._image.src);
     }
 };
 

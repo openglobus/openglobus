@@ -891,21 +891,11 @@ og.scene.Planet.prototype.frame = function () {
 
     this.renderer.activeCamera.prepareFrame();
 
-    // print2d("lbTiles", this.layerLock._lock, 100, 100);
-    // print2d("l1", this.terrainLock._lock, 100, 140);
-    // print2d("l2", this.normalMapCreator._lock._lock, 100, 180);
-
-    // this.baseLayer && print2d("lbTiles", "layer: " + og.layer.XYZ.__requestsCounter + ", " + this.baseLayer._pendingsQueue.length + ", " + this.baseLayer._counter, 100, 100);
-    // print2d("t2", "terrain: " + this.terrainProvider._counter + ", " + this.terrainProvider._pendingsQueue.length, 100, 140);
-    // print2d("t1", "normal: " + this._normalMapCreator._queue.length, 100, 180);
-    // print2d("t3", this.minCurrZoom + ", " + this.maxCurrZoom, 100, 200);
-    // print2d("t1", this.camera.slope, 100, 100);
-
-
     this.transformLights();
 
     this._normalMapCreator.frame();
 
+    //Here is the applyMaterial->loadMaterial call
     this._fnRendering();
 
     //Creates geoImages textures.

@@ -353,7 +353,7 @@ og.Renderer.prototype.addRenderNode = function (renderNode) {
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
-        og.console.logWrn("og.Renderer 259 - node name: " + renderNode.name + " allready exists.");
+        og.console.logWrn("og.Renderer(356) - node name: " + renderNode.name + " allready exists.");
     }
 };
 

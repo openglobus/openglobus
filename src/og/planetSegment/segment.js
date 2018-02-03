@@ -800,33 +800,13 @@ og.planetSegment.Segment.prototype.createPlainVertices = function (gridSize) {
 };
 
 /**
- * Gets material by layer object.
+ * Gets specific layer material.
  * @public
  * @param {og.layer.Layer} layer - Layer object.
  * @returns {og.planetSegment.Material} - Segment material.
  */
 og.planetSegment.Segment.prototype.getMaterialByLayer = function (layer) {
-    var m = this.materials;
-    for (var i = 0; i < m.length; i++) {
-        if (m[i].layer === layer) {
-            return m[i];
-        }
-    }
-};
-
-/**
- * Gets material by layer name.
- * @public
- * @param {string} name - Layer name.
- * @returns {og.planetSegment.Material} - Segment material.
- */
-og.planetSegment.Segment.prototype.getMaterialByLayerName = function (name) {
-    var m = this.materials;
-    for (var i = 0; i < m.length; i++) {
-        if (m[i].layer.name === name) {
-            return m[i];
-        }
-    }
+    return this.materials[layer._id];
 };
 
 og.planetSegment.Segment.prototype._getLayerExtentOffset = function (layer) {
