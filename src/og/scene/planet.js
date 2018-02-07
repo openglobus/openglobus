@@ -318,7 +318,7 @@ og.scene.Planet = function (name, ellipsoid) {
      * @public
      * @type {number}
      */
-    this.RATIO_LOD = 1.0;
+    this.RATIO_LOD = 1.12;
 
     this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
     this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
@@ -859,11 +859,16 @@ og.scene.Planet.prototype._collectRenderNodes = function () {
         this._renderedNodes = [];
 
         for (var i = 0; i < temp.length; i++) {
+            var ri = temp[i];
+            if (ri.planetSegment.tileZoom === this.maxCurrZoom) {
+                this._renderedNodes.push(ri);
+            }
+        }
+
+        for (i = 0; i < temp.length; i++) {
             var seg = temp[i].planetSegment;
             if (seg._projection.id === og.proj.EPSG3857.id && seg.tileZoom < this.maxCurrZoom) {
                 seg.node.renderTree(this.maxCurrZoom);
-            } else {
-                this._renderedNodes.push(seg.node);
             }
         }
     }
