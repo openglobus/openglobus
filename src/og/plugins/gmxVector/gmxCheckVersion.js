@@ -71,51 +71,51 @@ og.gmx.CheckVersion = function (planet) {
 
     this._request = function () {
         if (this._layers.length) {
-
             this._r && this._r.abort();
+            var e = planet._viewExtentMerc;
+            
+            if (e) {
+                var zoom = planet.minCurrZoom,
+                    bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
 
-            var e = planet._viewExtentMerc,
-                zoom = planet.minCurrZoom;
-
-            var bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
-
-            var layers = [],
-                _layersOrder = [];
-            for (var i = 0; i < this._layers.length; i++) {
-                var li = this._layers[i];
-                if (li._extentMerc.overlaps(e) && li._gmxProperties) {
-                    _layersOrder.push(li);
-                    var p = { "Name": li._layerId, "Version": li._gmxProperties.LayerVersion || -1 };
-                    if (li._gmxProperties.Temporal) {
-                        p.dateBegin = parseInt(li._beginDate.getTime() / 1000);
-                        p.dateEnd = parseInt(li._endDate.getTime() / 1000);
+                var layers = [],
+                    _layersOrder = [];
+                for (var i = 0; i < this._layers.length; i++) {
+                    var li = this._layers[i];
+                    if (li._extentMerc.overlaps(e) && li._gmxProperties) {
+                        _layersOrder.push(li);
+                        var p = { "Name": li._layerId, "Version": li._gmxProperties.LayerVersion || -1 };
+                        if (li._gmxProperties.Temporal) {
+                            p.dateBegin = parseInt(li._beginDate.getTime() / 1000);
+                            p.dateEnd = parseInt(li._endDate.getTime() / 1000);
+                        }
+                        layers.push(p);
                     }
-                    layers.push(p);
                 }
-            }
 
-            if (layers.length) {
-                var that = this;
-                this._r = og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
-                    'type': "POST",
-                    'responseType': "json",
-                    'data': {
-                        'WrapStyle': "None",
-                        'bbox': bbox,
-                        'srs': "3857",
-                        'layers': layers,
-                        'zoom': zoom,
-                        'ftc': "osm"
-                    },
-                    'success': function (data) {
-                        that._r = null;
-                        that._checkVersionSuccess(data, _layersOrder);
-                    },
-                    'error': function (err) {
-                        that._r = null;
-                        console.log(err);
-                    }
-                });
+                if (layers.length) {
+                    var that = this;
+                    this._r = og.ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
+                        'type': "POST",
+                        'responseType': "json",
+                        'data': {
+                            'WrapStyle': "None",
+                            'bbox': bbox,
+                            'srs': "3857",
+                            'layers': layers,
+                            'zoom': zoom,
+                            'ftc': "osm"
+                        },
+                        'success': function (data) {
+                            that._r = null;
+                            that._checkVersionSuccess(data, _layersOrder);
+                        },
+                        'error': function (err) {
+                            that._r = null;
+                            console.log(err);
+                        }
+                    });
+                }
             }
         }
     };

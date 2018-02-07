@@ -459,6 +459,7 @@ og.layer.Layer.prototype.remove = function () {
             }
         }
     }
+    return this;
 };
 
 /**

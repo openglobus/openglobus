@@ -37,11 +37,9 @@ og.planetSegment.SegmentLonLat.prototype.getTerrainPoint = function (res, xyz) {
 };
 
 og.planetSegment.SegmentLonLat.prototype.acceptForRendering = function (camera) {
-    var sphere = this.bsphere;
-
     var maxPoleZoom;
     var lat = this._extent.northEast.lat;
-    if (lat > 0) {
+    if (this._isNorth) {
         //north pole limits
         var Yz = Math.floor((90.0 - lat) / og.planetSegment.SegmentLonLat._pieceSize);
         maxPoleZoom = Math.floor(Yz / 16) + 7;
@@ -50,9 +48,7 @@ og.planetSegment.SegmentLonLat.prototype.acceptForRendering = function (camera) 
         var Yz = Math.floor((og.mercator.MIN_LAT - lat) / og.planetSegment.SegmentLonLat._pieceSize);
         maxPoleZoom = 12 - Math.floor(Yz / 16);
     }
-
-    return camera.projectedSize(sphere.center) > this.planet.RATIO_LOD * sphere.radius ||
-        this.tileZoom > maxPoleZoom;
+    return og.planetSegment.Segment.prototype.acceptForRendering.call(this, camera) || this.tileZoom >= maxPoleZoom;
 };
 
 og.planetSegment.SegmentLonLat.prototype._assignTileIndexes = function () {
@@ -163,9 +159,9 @@ og.planetSegment.SegmentLonLat.prototype.createBoundsByExtent = function () {
         zmax = og.math.MIN;
 
     var v = [new og.LonLat(extent.southWest.lon, extent.southWest.lat),
-        new og.LonLat(extent.southWest.lon, extent.northEast.lat),
-        new og.LonLat(extent.northEast.lon, extent.northEast.lat),
-        new og.LonLat(extent.northEast.lon, extent.southWest.lat)
+    new og.LonLat(extent.southWest.lon, extent.northEast.lat),
+    new og.LonLat(extent.northEast.lon, extent.northEast.lat),
+    new og.LonLat(extent.northEast.lon, extent.southWest.lat)
     ];
 
     for (var i = 0; i < v.length; i++) {
@@ -217,7 +213,7 @@ og.planetSegment.SegmentLonLat.prototype._getDefaultTexture = function () {
 };
 
 og.planetSegment.SegmentLonLat.prototype.getExtentLonLat = function () {
-        return this._extent;
+    return this._extent;
 };
 
 og.planetSegment.SegmentLonLat.prototype.getExtentMerc = function () {

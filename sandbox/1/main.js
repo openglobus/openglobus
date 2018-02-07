@@ -396,43 +396,6 @@ function test() {
 
 function main5() {
 
-    var cnv = document.createElement("canvas");
-    var ctx = cnv.getContext("2d");
-    cnv.width = 256;
-    cnv.height = 256;
-
-    var tg = new og.layer.CanvasTiles("Tile grid", {
-        visibility: false,
-        isBaseLayer: false,
-        zIndex: 100,
-        drawTile: function (material, applyCanvas) {
-            //Clear canvas
-            ctx.clearRect(0, 0, cnv.width, cnv.height);
-
-            //Draw border
-            ctx.beginPath();
-            ctx.rect(0, 0, cnv.width, cnv.height);
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'black';
-            ctx.stroke();
-
-            //Draw text
-            if (material.segment.tileZoom > 14) {
-                size = "26";
-            } else {
-                size = "32";
-            }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-
-            //Draw canvas tile
-            applyCanvas(cnv);
-        }
-    });
-
-
     var l1 = new og.gmx.VectorLayer("gmxLayer-1", {
         'layerId': "3BCCB0F1ACFB4A56BAC87ECA31ADA199",
         'visibility': false
@@ -492,11 +455,47 @@ function main5() {
         }
     }));
 
+    var cnv = document.createElement("canvas");
+    var ctx = cnv.getContext("2d");
+    cnv.width = 256;
+    cnv.height = 256;
+
+    var tg = new og.layer.CanvasTiles("Tile grid", {
+        visibility: true,
+        isBaseLayer: true,
+        drawTile: function (material, applyCanvas) {
+            //Clear canvas
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+            //Draw border
+            ctx.beginPath();
+            ctx.rect(0, 0, cnv.width, cnv.height);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            //Draw text
+            if(material.segment.tileZoom > 14){
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+
+            //Draw canvas tile
+            applyCanvas(cnv);
+        }
+    });
+
+
     globus = new og.Globus({
         "target": "globus",
         "name": "Earth",
         //"terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-        "layers": [osm, l1, l2, l3, tg, r],
+        "layers": [tg, l1, l2, l3, tg, r],
         "sun": {
             "active": false
         }

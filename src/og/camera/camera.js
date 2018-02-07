@@ -388,11 +388,16 @@ og.Camera.prototype.getNear = function () {
  */
 og.Camera.prototype.setProjectionMatrix = function (angle, aspect, near, far) {
     this._viewAngle = angle;
-    this._tanViewAngle_hrad = Math.tan(angle * og.math.RADIANS_HALF);
-    this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
     this._aspect = aspect;
     this._nearDist = near;
     this._farDist = far;
+
+    this._tanViewAngle_hrad = Math.tan(angle * og.math.RADIANS_HALF);
+    this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
+
+    var c = this.renderer.handler.gl.canvas;
+    this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (this._viewAngle * og.math.RADIANS);
+
     this._projectionMatrix.setPerspective(angle, aspect, near, far);
     this._projectionMatrixPrecise.setPerspective(angle, aspect, 0.1, 10);
 };
@@ -581,10 +586,11 @@ og.Camera.prototype.rotateVertical = function (angle, center) {
  * Gets 3d size factor. Uses in LOD distance calculation.
  * @public
  * @param {og.math.Vector3} p - Far point.
+ * @param {og.math.Vector3} r - Far point.
  * @returns {number} - Size factor.
  */
-og.Camera.prototype.projectedSize = function (p) {
-    return this.eye.distance(p) * this._tanViewAngle_hrad;
+og.Camera.prototype.projectedSize = function (p, r) {
+    return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
 };
 
 /**

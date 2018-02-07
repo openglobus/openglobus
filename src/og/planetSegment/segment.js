@@ -162,12 +162,13 @@ og.planetSegment.Segment = function (node, planet, tileZoom, extent) {
 /**
  * Returns that segment good for rendering with camera by current RATIO_LOD.
  * @public
+ * @param {og.Camera} camera - Camera object.
  * @returns {boolean} -
  */
 og.planetSegment.Segment.prototype.acceptForRendering = function (camera) {
-    var sphere = this.bsphere;
-    return camera.projectedSize(sphere.center) > this.planet.RATIO_LOD * sphere.radius;
+    return  camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet.RATIO_LOD; 
 };
+
 
 /**
  * Returns entity terrain point.

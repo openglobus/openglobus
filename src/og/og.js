@@ -1,7 +1,7 @@
 goog.provide('og');
 
 if (COMPILED) {
-    og.RESOURCES_URL = "http://www.openglobus.org/resources/";
+    og.RESOURCES_URL = "//www.openglobus.org/resources/";
 } else {
     og.RESOURCES_URL = "../../resources/";
 }
