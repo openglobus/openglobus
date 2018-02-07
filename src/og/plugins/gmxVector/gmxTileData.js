@@ -24,15 +24,15 @@ og.gmx.TileData = function (layer, data) {
     this.x = data.x;
     this.y = data.y;
     this.z = data.z;
-    this.extent = og.Extent.fromTile(data.x, data.y, data.z);
+    this.tileExtent = og.Extent.fromTile(data.x, data.y, data.z);
     this.items = [];
 };
 
-og.gmx.TileData.prototype.addTileItem = function (item, handler) {
+og.gmx.TileData.prototype.addTileItem = function (item) {
     this.items.push(item);
 };
 
-og.gmx.TileData.prototype.addTileItems = function(items){
+og.gmx.TileData.prototype.addTileItems = function (items) {
     for (var i = 0; i < items.length; i++) {
         this.addItem(items[i]);
     }

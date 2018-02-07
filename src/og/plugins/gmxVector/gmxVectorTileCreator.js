@@ -214,13 +214,13 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
         while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
 
             var q = this._queue.shift();
-            var tileData = q.tileData,
+            var fromTile = q.fromTile,
                 material = q.material;
 
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
                 var layer = material.layer;
-                var tItems = tileData.items;
+                var tItems = fromTile.items;
 
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;

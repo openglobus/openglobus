@@ -59,12 +59,10 @@ og.gmx.TileItem.prototype._createVertices = function (extent) {
     this._polyVerticesMerc = [];
     this._lineVerticesMerc = [];
 
-    if (!this.item._renderedBounds) {
-        this.item._renderedBounds = new og.Extent(new og.LonLat(og.MAX_FLOAT, og.MAX_FLOAT), new og.LonLat(-og.MAX_FLOAT, -og.MAX_FLOAT));
-    }
+    this.item._extent = new og.Extent(new og.LonLat(og.MAX_FLOAT, og.MAX_FLOAT), new og.LonLat(-og.MAX_FLOAT, -og.MAX_FLOAT));
 
-    var ne = this.item._renderedBounds.northEast,
-        sw = this.item._renderedBounds.southWest;
+    var ne = this.item._extent.northEast,
+        sw = this.item._extent.southWest;
 
     if (geometry.type.toLowerCase() === "polygon") {
         var coordinates = geometry.coordinates;

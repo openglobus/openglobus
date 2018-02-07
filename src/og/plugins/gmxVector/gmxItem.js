@@ -23,11 +23,15 @@ og.gmx.Item = function (id, options) {
 
     this._pickingColor = null;
 
-    this._renderedBounds = null;
+    this._extent = null;
 };
 
 og.gmx.Item.prototype.addTo = function (layer) {
     layer.addItem(this);
+};
+
+og.gmx.Item.prototype.getExtent = function () {
+    return this._extent.clone();
 };
 
 og.gmx.Item.prototype.setStyle = function (style) {
