@@ -8,6 +8,7 @@ goog.require('og.layer.Layer');
 goog.require('og.gmx.CheckVersion');
 goog.require('og.gmx.VectorTileCreator');
 goog.require('og.gmx.TileData');
+goog.provide('og.gmx.TileDataGroup');
 goog.require('og.gmx.Item');
 goog.require('og.gmx.Material');
 goog.require('og.QueueArray');
@@ -32,7 +33,7 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._layerId = options.layerId;
 
-    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}&Level={level}&Span={span}';
+    this._tileSenderUrlTemplate = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
     this._gmxProperties = null;
 
@@ -42,7 +43,7 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._itemCache = {};
 
-    this._tileDataCache = {};
+    this._tileDataGroupCache = {};
 
     this._tileVersions = {};
 
@@ -86,6 +87,10 @@ og.gmx.VectorLayer = function (name, options) {
      */
     this._vecPendingsQueue = new og.QueueArray();
 };
+
+og.gmx.VectorLayer.TileSenderUrlTemporal = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}&Level={level}&Span={span}';
+og.gmx.VectorLayer.TileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
+
 
 og.inheritance.extend(og.gmx.VectorLayer, og.layer.Layer);
 
@@ -201,6 +206,9 @@ og.gmx.VectorLayer.prototype._initialize = function () {
             var currEpoch = og.gmx.VectorLayer.dateToEpoch(d);
             that._beginDate = that._beginDate || new Date(currEpoch);
             that._endDate = that._endDate || new Date(d.setTime(currEpoch + 24 * 60 * 60 * 1000));
+            that._tileSenderUrlTemplate = og.gmx.VectorLayer.TileSenderUrlTemporal;
+        } else {
+            that._tileSenderUrlTemplate = og.gmx.VectorLayer.TileSenderUrl;
         }
         that.setExtent(og.Geometry.getExtent(data.geometry));
         p._gmxCheckVersion.update();
@@ -249,10 +257,10 @@ og.gmx.VectorLayer.prototype._checkVersionSuccess = function (prop) {
             level = ts[i + _LEVEL],
             span = ts[i + _SPAN];
 
-        var tileIndex = og.layer.getTileIndex(x, y, z);
+        var tileIndex = og.layer.getTileIndex(x, y, z, level, span);
         if (tv[tileIndex] !== v) {
             this._tileVersions[tileIndex] = v;
-            this._vecLoadTile({
+            this._vecLoadTileData({
                 'id': this._layerId,
                 'x': x.toString(), 'y': y.toString(), 'z': z.toString(),
                 'v': v.toString(), "level": level.toString(), "span": span.toString()
@@ -308,7 +316,7 @@ og.gmx.VectorLayer.prototype.updateStyle = function () {
     //...TODO
 };
 
-og.gmx.VectorLayer.prototype._vecLoadTile = function (t) {
+og.gmx.VectorLayer.prototype._vecLoadTileData = function (t) {
     if (og.gmx.VectorLayer.__requestsCounter >= og.gmx.VectorLayer.MAX_REQUESTS && this._vecCounter) {
         this._vecPendingsQueue.push(t);
     } else {
@@ -333,7 +341,7 @@ og.gmx.VectorLayer.prototype._vecExec = function (t) {
 
             var data = JSON.parse(dataStr.substring(dataStr.indexOf('{'), dataStr.lastIndexOf('}') + 1));
 
-            that._handleVectorTileData(t, data);
+            that._handleTileData(t, data);
 
             var e = that.events.load;
             if (e.handlers.length) {
@@ -399,7 +407,7 @@ og.gmx.VectorLayer.prototype._getAttributes = function (item) {
     return res;
 };
 
-og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
+og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
 
     var items = data.values,
         style = this._style,
@@ -408,14 +416,16 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
     var h = this._planet.renderer.handler;
 
     var tileIndex = og.layer.getTileIndex(t.x, t.y, t.z),
-        cacheTileData = this._tileDataCache[tileIndex];
+        tileExtent = og.Extent.fromTile(t.x, t.y, t.z),
+        cacheTileDataGroup = this._tileDataGroupCache[tileIndex];
 
-    if (!cacheTileData) {
-        cacheTileData = this._tileDataCache[tileIndex] = new og.gmx.TileData(this, data);
-    } else if (cacheTileData.version !== data.v) {
-        cacheTileData.setData(data);
-        cacheTileData.items = [];
+    if (!cacheTileDataGroup) {
+        cacheTileDataGroup = this._tileDataGroupCache[tileIndex] = new og.gmx.TileDataGroup(this, tileExtent);
     }
+
+    var tileData = new og.gmx.TileData(cacheTileDataGroup, data);
+
+    cacheTileDataGroup.addTileData(tileData);
 
     for (var i = 0; i < items.length; i++) {
 
@@ -425,7 +435,6 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
         var cacheItem = this._itemCache[gmxId];
 
         if (!cacheItem) {
-
             cacheItem = new og.gmx.Item(gmxId, {
                 'attributes': this._getAttributes(item),
                 'version': v,
@@ -447,8 +456,10 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
         }
 
         var ti = new og.gmx.TileItem(cacheItem, item[item.length - 1]);
-        cacheTileData.addTileItem(ti);
-        ti.createBuffers(h, cacheTileData.tileExtent);
+        ti.createBuffers(h, tileExtent);
+
+        tileData.addTileItem(ti);
+        cacheTileDataGroup.addTileItem(ti);
     }
 
     this._tileDataQueue.push(cacheTileData);
@@ -457,8 +468,6 @@ og.gmx.VectorLayer.prototype._handleVectorTileData = function (t, data) {
 };
 
 og.gmx.VectorLayer.prototype._onRefreshNodes = function (p) {
-
-    print2d("l5", `fovy: ${this._planet.camera._fovy}`, 100, 225);
 
     print2d("l4", `_rNodes: ${this._planet._renderedNodes.length}`, 100, 25);
     print2d("l3", `zMinMax: ${this._planet.minCurrZoom}, ${this._planet.maxCurrZoom}`, 100, 50);
@@ -540,7 +549,7 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
 
 
 og.gmx.VectorLayer.prototype._getTileData = function (seg) {
-    var tc = this._tileDataCache;
+    var tc = this._tileDataGroupCache;
     var data = tc[seg.tileIndex];
     if (data) {
         return data;
@@ -714,7 +723,7 @@ og.gmx.VectorLayer.prototype.setStyle = function (style) {
 
 og.gmx.VectorLayer.prototype.clear = function () {
     this._itemCache = {};
-    this._tileDataCache = {};
+    this._tileDataGroupCache = {};
     this._tileVersions = {};
 };
 

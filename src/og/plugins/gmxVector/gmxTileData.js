@@ -6,7 +6,7 @@ goog.require('og.Extent');
 /**
  * Represents geomixer vector tile data. Stores tile geometries and rendering data.
  * @class
- * @param {og.gmx.VectorLayer} layer - Tile data layer.
+ * @param {og.gmx.TileDataGroup} group - Tile data group.
  * @param {Object} data - Geomixer vector tile data:
  * @param {Array<Number,Number,Number,Number>} data.bbox - Bounding box.
  * @param {Boolean} data.isGeneralized - Whether tile geometries are simplified.
@@ -16,15 +16,14 @@ goog.require('og.Extent');
  * @param {Number} data.z - Tile zoom level. 
  * @param {Number} data.v - Tile version.
  */
-og.gmx.TileData = function (layer, data) {
-    this._layer = layer;
+og.gmx.TileData = function (group, data) {
+    this.group = group;
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
     this.version = data.v;
     this.x = data.x;
     this.y = data.y;
     this.z = data.z;
-    this.tileExtent = og.Extent.fromTile(data.x, data.y, data.z);
     this.items = [];
 };
 
