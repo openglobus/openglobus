@@ -220,7 +220,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
             if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
 
                 var layer = material.layer;
-                var tItems = fromTile.items;
+                var tItems = fromTile.tileItemArr;
 
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;

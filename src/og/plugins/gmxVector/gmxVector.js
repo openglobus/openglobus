@@ -71,7 +71,7 @@ og.gmx.VectorLayer = function (name, options) {
 
     this._needRefresh = false;
 
-    this._tileDataQueue = new og.QueueArray();
+    this._tileDataGroupQueue = new og.QueueArray();
 
     /**
      * Current loading tiles couter.
@@ -462,7 +462,7 @@ og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
         cacheTileDataGroup.addTileItem(ti);
     }
 
-    this._tileDataQueue.push(cacheTileData);
+    this._tileDataGroupQueue.push(cacheTileDataGroup);
 
     this._needRefresh = true;
 };
@@ -475,8 +475,8 @@ og.gmx.VectorLayer.prototype._onRefreshNodes = function (p) {
     print2d("l2", `drawing: ${this._planet._gmxVectorTileCreator._queue.length}`, 100, 150);
 
     if (this._needRefresh && this._planet) {
-        while (this._tileDataQueue.length) {
-            var t = this._tileDataQueue.pop();
+        while (this._tileDataGroupQueue.length) {
+            var t = this._tileDataGroupQueue.pop();
             this._refreshRecursevelyExtent(t.tileExtent, this._planet._quadTree);
         }
         this._needRefresh = false;
@@ -534,29 +534,29 @@ og.gmx.VectorLayer.prototype.loadMaterial = function (material) {
     }
 
     if (this._planet.layerLock.isFree()) {
-        var tileData = this._getTileData(seg);
-        if (tileData) {
+        var tileDataGroup = this._getTileDataGroup(seg);
+        if (tileDataGroup) {
             material.isReady = false;
             material.isLoading = true;
-            material.fromTile = tileData;
+            material.fromTile = tileDataGroup;
             this._planet._gmxVectorTileCreator.add({
                 'material': material,
-                'fromTile': tileData
+                'fromTile': tileDataGroup
             });
         }
     }
 };
 
 
-og.gmx.VectorLayer.prototype._getTileData = function (seg) {
-    var tc = this._tileDataGroupCache;
-    var data = tc[seg.tileIndex];
+og.gmx.VectorLayer.prototype._getTileDataGroup = function (seg) {
+    var tgc = this._tileDataGroupCache;
+    var data = tgc[seg.tileIndex];
     if (data) {
         return data;
     } else {
         var pn = this._planet._quadTreeNodesCacheMerc[seg.tileIndex].parentNode;
         while (pn) {
-            var ptc = tc[pn.planetSegment.tileIndex];
+            var ptc = tgc[pn.planetSegment.tileIndex];
             if (ptc) {
                 return ptc;
             }
