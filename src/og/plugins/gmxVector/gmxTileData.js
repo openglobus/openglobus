@@ -6,7 +6,6 @@ goog.require('og.Extent');
 /**
  * Represents geomixer vector tile data. Stores tile geometries and rendering data.
  * @class
- * @param {og.gmx.TileDataGroup} group - Tile data group.
  * @param {Object} data - Geomixer vector tile data:
  * @param {Array<Number,Number,Number,Number>} data.bbox - Bounding box.
  * @param {Boolean} data.isGeneralized - Whether tile geometries are simplified.
@@ -16,29 +15,28 @@ goog.require('og.Extent');
  * @param {Number} data.z - Tile zoom level. 
  * @param {Number} data.v - Tile version.
  */
-og.gmx.TileData = function (group, data) {
-    this.group = group;
+og.gmx.TileData = function (data) {
+    this.group = null;
+    this.groupIndex = -1;
     this.isGeneralized = data.isGeneralized;
     this.bbox = data.bbox;
-    this.version = data.v;
     this.x = data.x;
     this.y = data.y;
     this.z = data.z;
-    this.items = [];
-};
-
-og.gmx.TileData.prototype.addTileItem = function (item) {
-    this.items.push(item);
-};
-
-og.gmx.TileData.prototype.addTileItems = function (items) {
-    for (var i = 0; i < items.length; i++) {
-        this.addItem(items[i]);
-    }
-};
-
-og.gmx.TileData.prototype.setData = function (data) {
-    this.isGeneralized = data.isGeneralized;
-    this.bbox = data.bbox;
     this.version = data.v;
+    this.level = data.level;
+    this.span = data.span;
+    this.tileItems = [];    
+};
+
+og.gmx.TileData.prototype.addTileItem = function (tileItem) {
+    tileItem.tileData = this;
+    tileItem.tileDataIndex = this.tileItems.length;
+    this.tileItems.push(tileItem);
+};
+
+og.gmx.TileData.prototype.addTileItems = function (tileItems) {
+    for (var i = 0; i < tileItems.length; i++) {
+        this.addTileItem(tileItems[i]);
+    }
 };

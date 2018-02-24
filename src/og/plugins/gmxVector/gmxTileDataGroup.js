@@ -5,9 +5,7 @@ goog.provide('og.gmx.TileDataGroup');
  * 
  * @class
  * @param {og.gmx.VectorLayer} layer - Layer.
- * @param {Number} x - Tile index for X. 
- * @param {Number} y - Tile index for Y. 
- * @param {Number} z - Tile zoom level. 
+ * @param {og.Extent} extent - Tile geographical extent.
  */
 og.gmx.TileDataGroup = function (layer, extent) {
     this.layer = layer;
@@ -17,9 +15,25 @@ og.gmx.TileDataGroup = function (layer, extent) {
 };
 
 og.gmx.TileDataGroup.prototype.addTileData = function (tileData) {
+    tileData.group = this;
+    tileData.groupIndex = this.tileDataArr.length;
     this.tileDataArr.push(tileData);
 };
 
-og.gmx.TileDataGroup.prototype.addTileItem = function(tileItem){
+og.gmx.TileDataGroup.prototype.removeTileData = function (tileData) {
+    tileData.group = null;
+    this.tileDataArr.splice(tileData.groupIndex, 1);
+    tileData.groupIndex = -1;
+    this.tileItemArr.length = 0;
+    this.tileItemArr = [];
+    for (var i = 0; i < this.tileDataArr.length; i++) {
+        var ti = this.tileDataArr[i];
+        for (var j = 0; j < ti.tileItems.length; j++) {
+            this.addTileItem(ti.tileItems[j]);
+        }
+    }
+};
+
+og.gmx.TileDataGroup.prototype.addTileItem = function (tileItem) {
     this.tileItemArr.push(tileItem);
 };

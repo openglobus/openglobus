@@ -8,7 +8,7 @@ goog.require('og.layer.Layer');
 goog.require('og.gmx.CheckVersion');
 goog.require('og.gmx.VectorTileCreator');
 goog.require('og.gmx.TileData');
-goog.provide('og.gmx.TileDataGroup');
+goog.require('og.gmx.TileDataGroup');
 goog.require('og.gmx.Item');
 goog.require('og.gmx.Material');
 goog.require('og.QueueArray');
@@ -44,6 +44,8 @@ og.gmx.VectorLayer = function (name, options) {
     this._itemCache = {};
 
     this._tileDataGroupCache = {};
+
+    this._tileDataCache = {};
 
     this._tileVersions = {};
 
@@ -407,6 +409,10 @@ og.gmx.VectorLayer.prototype._getAttributes = function (item) {
     return res;
 };
 
+og.gmx.VectorLayer.prototype.getStyle = function () {
+
+};
+
 og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
 
     var items = data.values,
@@ -423,7 +429,16 @@ og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
         cacheTileDataGroup = this._tileDataGroupCache[tileIndex] = new og.gmx.TileDataGroup(this, tileExtent);
     }
 
-    var tileData = new og.gmx.TileData(cacheTileDataGroup, data);
+    var tileData = new og.gmx.TileData(data),
+        tileDataCacheIndex = og.layer.getTileIndex(tileIndex, t.level, t.span);
+
+    var cacheTileData = this._tileDataCache[tileDataCacheIndex];
+
+    if (cacheTileData) {
+        //Update tile version.Remove it before update.
+        this._tileDataCache[tileDataCacheIndex] = tileData;
+        cacheTileDataGroup.removeTileData(cacheTileData);
+    }
 
     cacheTileDataGroup.addTileData(tileData);
 
@@ -723,6 +738,7 @@ og.gmx.VectorLayer.prototype.setStyle = function (style) {
 
 og.gmx.VectorLayer.prototype.clear = function () {
     this._itemCache = {};
+    this._tileDataCache = {};
     this._tileDataGroupCache = {};
     this._tileVersions = {};
 };

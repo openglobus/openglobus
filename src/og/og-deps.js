@@ -88,8 +88,9 @@ goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxCheckVersio
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxItem.js', ['og.gmx.Item'], ['og.utils'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxMaterial.js', ['og.gmx.Material'], ['og.inheritance'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileData.js', ['og.gmx.TileData'], ['og.Extent', 'og.gmx.TileItem'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileDataGroup.js', ['og.gmx.TileDataGroup'], [], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxTileItem.js', ['og.gmx.TileItem'], ['og.Extent', 'og.math', 'og.mercator'], false);
-goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVector.js', ['og.gmx.VectorLayer'], ['og.QueueArray', 'og.ajax', 'og.gmx.CheckVersion', 'og.gmx.Item', 'og.gmx.Material', 'og.gmx.TileData', 'og.gmx.VectorTileCreator', 'og.inheritance', 'og.layer.Layer', 'og.utils'], false);
+goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVector.js', ['og.gmx.VectorLayer'], ['og.QueueArray', 'og.ajax', 'og.gmx.CheckVersion', 'og.gmx.Item', 'og.gmx.Material', 'og.gmx.TileData', 'og.gmx.TileDataGroup', 'og.gmx.VectorTileCreator', 'og.inheritance', 'og.layer.Layer', 'og.utils'], false);
 goog.addDependency('../../../../../../og/src/og/plugins/gmxVector/gmxVectorTileCreator.js', ['og.gmx.VectorTileCreator'], ['og.inheritance', 'og.utils.VectorTileCreator'], false);
 goog.addDependency('../../../../../../og/src/og/proj/epsg3857.js', ['og.proj.EPSG3857'], ['og.Units', 'og.proj.Projection'], false);
 goog.addDependency('../../../../../../og/src/og/proj/epsg4326.js', ['og.proj.EPSG4326'], ['og.Units', 'og.proj.Projection'], false);

@@ -7,6 +7,9 @@ goog.require('og.math');
 
 og.gmx.TileItem = function (item, geometry) {
 
+    this.tileData = null;
+    this.tileDataIndex = -1;    
+
     this.item = item;
     this.geometry = geometry;
 
