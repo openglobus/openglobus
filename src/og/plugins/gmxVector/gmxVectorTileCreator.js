@@ -238,7 +238,15 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                 var extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
 
                 var texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
-                var pickingMask = material._updatePickingMask && material._updatePickingMask || h.createEmptyTexture_n(width, height);
+
+                var pickingMask;
+                if (layer._pickingEnabled && !material.pickingReady) {
+                    if (material._updatePickingMask) {
+                        pickingMask = material._updatePickingMask;
+                    } else {
+                        pickingMask = h.createEmptyTexture_n(width, height);
+                    }
+                }
 
                 f.setSize(width, height);
 
@@ -255,7 +263,8 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                     var ti = tItems[i];
                     if (layer.getItemVisibility(ti.item)) {
 
-                        var style = layer.getItemStyle(ti.item);
+                        var style = layer.getItemStyle(ti.item),
+                            fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w];
 
                         var pickingColor = [ti.item._pickingColor.x / 255.0, ti.item._pickingColor.y / 255.0, ti.item._pickingColor.z / 255.0, 1.0];
 
@@ -264,9 +273,11 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         var sha = sh.attributes,
                             shu = sh.uniforms;
 
+                        //==============
                         //polygon
+                        //==============
                         f.bindOutputTexture(texture);
-                        gl.uniform4fv(shu.color._pName, style.fillColor.toArray());
+                        gl.uniform4fv(shu.color._pName, fillColor);
                         gl.uniform4fv(shu.extentParams._pName, extentParams);
 
                         gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
@@ -275,11 +286,20 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
                         gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                        f.bindOutputTexture(pickingMask);
-                        gl.uniform4fv(shu.color._pName, pickingColor);
-                        gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        //Polygon picking pass
+                        if (layer._pickingEnabled) {
+                            if (!material.pickingReady) {
+                                f.bindOutputTexture(pickingMask);
+                                gl.uniform4fv(shu.color._pName, pickingColor);
+                                gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                            } else {
+                                pickingMask = material.pickingMask;
+                            }
+                        }
 
+                        //==============
                         //Outline
+                        //==============
                         hLine.activate();
                         sh = hLine._program;
                         sha = sh.attributes;
@@ -331,12 +351,13 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                         gl.uniform1f(shu.alpha._pName, 1.0);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                        //picking pass
-                        f.bindOutputTexture(pickingMask);
-
-                        gl.uniform1f(shu.thicknessOutline._pName, 8);
-                        gl.uniform4fv(shu.color._pName, pickingColor);
-                        gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        //Outline picking pass
+                        if (layer._pickingEnabled && !material.pickingReady) {
+                            f.bindOutputTexture(pickingMask);
+                            gl.uniform1f(shu.thicknessOutline._pName, 8);
+                            gl.uniform4fv(shu.color._pName, pickingColor);
+                            gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        }
 
                     }
                 }

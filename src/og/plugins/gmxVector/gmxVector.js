@@ -29,6 +29,8 @@ og.gmx.VectorLayer = function (name, options) {
 
     this.hostUrl = options.hostUrl || "//maps.kosmosnimki.ru/";
 
+    this._pickingEnabled = options.pickingEnabled !== undefined ? options.pickingEnabled : true;
+
     this._initialized = false;
 
     this._layerId = options.layerId;
@@ -454,9 +456,9 @@ og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
                 'attributes': this._getAttributes(item),
                 'version': v,
                 'style': {
-                    'fillColor': style.fillColor,
-                    'lineColor': style.lineColor,
-                    'strokeColor': style.strokeColor,
+                    'fillColor': style.fillColor.clone(),
+                    'lineColor': style.lineColor.clone(),
+                    'strokeColor': style.strokeColor.clone(),
                     'lineWidth': style.lineWidth,
                     'strokeWidth': style.strokeWidth,
                     'zIndex': this._itemZIndexCounter++
@@ -468,9 +470,13 @@ og.gmx.VectorLayer.prototype._handleTileData = function (t, data) {
         } else if (cacheItem.version !== v) {
             cacheItem.version = v;
             cacheItem.attributes = this._getAttributes(item);
+
+            //TODO: Has to be tested
+            cacheItem._extent = null;
         }
 
         var ti = new og.gmx.TileItem(cacheItem, item[item.length - 1]);
+
         ti.createBuffers(h, tileExtent);
 
         tileData.addTileItem(ti);
@@ -516,7 +522,7 @@ og.gmx.VectorLayer.prototype._refreshRecursevelyExtent = function (extent, treeN
                         m.isReady = false;
                         m._updateTexture = m.texture;
                         m._updatePickingMask = m.pickingMask;
-                        //m.pickingReady = m.pickingReady && item._pickingReady;
+                        m.pickingReady = false;//m.pickingReady && item._pickingReady;
                     }
                     m.isLoading = false;
                     m.fromTile = null;
@@ -671,7 +677,6 @@ og.gmx.VectorLayer.prototype.clearMaterial = function (material) {
 
     material.isLoading = false;
     material.textureExists = false;
-
     material.fromTile = null;
 };
 
@@ -686,12 +691,12 @@ og.gmx.VectorLayer.prototype._refreshRecursevely = function (item, treeNode) {
                 if (m.segment.node.getState() !== og.quadTree.RENDERING) {
                     m.layer.clearMaterial(m);
                 } else {
+                    m.pickingReady = m.pickingReady && item._pickingReady;
                     m.isReady = false;
                     m._updateTexture = m.texture;
                     m._updatePickingMask = m.pickingMask;
-                    //m.pickingReady = m.pickingReady && item._pickingReady;
                 }
-                //item._pickingReady = true;
+                item._pickingReady = true;
             }
         }
     }

@@ -8,7 +8,7 @@ goog.require('og.math');
 og.gmx.TileItem = function (item, geometry) {
 
     this.tileData = null;
-    this.tileDataIndex = -1;    
+    this.tileDataIndex = -1;
 
     this.item = item;
     this.geometry = geometry;
@@ -62,7 +62,9 @@ og.gmx.TileItem.prototype._createVertices = function (extent) {
     this._polyVerticesMerc = [];
     this._lineVerticesMerc = [];
 
-    this.item._extent = new og.Extent(new og.LonLat(og.MAX_FLOAT, og.MAX_FLOAT), new og.LonLat(-og.MAX_FLOAT, -og.MAX_FLOAT));
+    if (!this.item._extent) {
+        this.item._extent = new og.Extent(new og.LonLat(og.MAX_FLOAT, og.MAX_FLOAT), new og.LonLat(-og.MAX_FLOAT, -og.MAX_FLOAT));
+    }
 
     var ne = this.item._extent.northEast,
         sw = this.item._extent.southWest;

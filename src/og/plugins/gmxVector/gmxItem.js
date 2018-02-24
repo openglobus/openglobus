@@ -23,6 +23,8 @@ og.gmx.Item = function (id, options) {
 
     this._pickingColor = null;
 
+    this._pickingReady = false;
+
     this._extent = null;
 };
 
@@ -42,8 +44,24 @@ og.gmx.Item.prototype.setStyle = function (style) {
     this._layer && this._layer.updateItem(this);
 };
 
+og.gmx.Item.prototype.bringToFront = function () {
+    this._pickingReady = false;
+    //
+    //...
+    //
+};
+
+og.gmx.Item.prototype.setZIndex = function (zIndex) {
+    this._pickingReady = false;
+    this._style.zIndex = zIndex;
+    this._layer && this._layer.updateItem(this);
+};
+
 og.gmx.Item.prototype.setFillColor = function (r, g, b, a) {
     var c = this._style.fillColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
@@ -62,6 +80,9 @@ og.gmx.Item.prototype.setFillColorHTML = function (color) {
 
 og.gmx.Item.prototype.setLineColor = function (r, g, b, a) {
     var c = this._style.lineColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
@@ -80,6 +101,9 @@ og.gmx.Item.prototype.setLineColorHTML = function (color) {
 
 og.gmx.Item.prototype.setStrokeColor = function (r, g, b, a) {
     var c = this._style.strokeColor;
+    if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        this._pickingReady = false;
+    }
     c.x = r;
     c.y = g;
     c.z = b;
