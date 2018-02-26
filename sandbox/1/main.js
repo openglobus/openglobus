@@ -98,7 +98,7 @@ function start() {
     //globus.planet.flyLonLat(new og.LonLat(77.02815, 55.78131, 13132244.4));
     globus.fadeIn(700);
 
-    var placesCollection = new og.layer.Vector("Markers", { groundAlign: true });
+    var placesCollection = new og.layer.Vector("Markers", { clampToGround: true });
     globus.planet.addLayer(placesCollection);
 
     eee = og.entity({
@@ -342,7 +342,7 @@ function main4() {
     }
 
     pointLayer = new og.layer.Vector("pointLayer", {
-        'groundAlign': true,
+        'clampToGround': true,
         'entities': points,
         'async': false,
         'nodeCapacity': points.length

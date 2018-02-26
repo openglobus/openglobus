@@ -30,7 +30,7 @@
         "autoActivated": true
     });
 
-    og.layer.vector("Markers", { groundAlign: true })
+    og.layer.vector("Markers", { clampToGround: true })
         .addTo(globus.planet)
         .add(new og.Entity({
             lonlat: [158.186, 52.452],

@@ -30,7 +30,8 @@ goog.require('og.GeometryHandler');
  *      Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.nodeCapacity=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
- * @param {boolean} [options.groundAlign = false] - Vector data align to the ground relief. Like points with zero altitude lay on the ground.
+ * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
+ * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  *
  * @fires og.layer.Vector#entitymove
  * @fires og.layer.Vector#draw
@@ -66,11 +67,18 @@ og.layer.Vector = function (name, options) {
     this.async = options.async !== undefined ? options.async : true;
 
     /**
-     * Vector data ground align flag.
+     * Vector data clamp to ground flag.
      * @public
      * @type {boolean}
      */
-    this.groundAlign = options.groundAlign || false;
+    this.clampToGround = options.clampToGround || false;
+
+    /**
+     * Sets vector data relative to the ground relief.
+     * @public
+     * @type {boolean}
+     */
+    this.relativeToGround = options.relativeToGround || false;
 
     /**
      * Maximum entities quantity in the tree node.
@@ -583,7 +591,8 @@ og.layer.Vector.prototype._bindEventsDefault = function (entityCollection) {
 
 og.layer.Vector.prototype._collectPolylineCollectionPASS = function (outArr) {
     outArr.push(this._polylineEntityCollection);
-    if (this.groundAlign) {
+    if (this.clampToGround || this.relativeToGround) {
+        var rtg = this.relativeToGround;
 
         var nodes = this._planet._renderedNodes;
         var visibleExtent = this._planet.getViewExtent();
@@ -606,7 +615,7 @@ og.layer.Vector.prototype._collectPolylineCollectionPASS = function (outArr) {
                                 var cart = p._path3v[c_j][c_j_h];
                                 var res = new og.math.Vector3();
                                 seg.getTerrainPoint(res, cart, ll);
-                                p.setPoint3v(res.addA(res.normal().scale(p.altitude + 1.0)), c_j_h, c_j, true);
+                                p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude + 1.0)), c_j_h, c_j, true);
                                 break;
                             }
                         }
