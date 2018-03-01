@@ -38,6 +38,7 @@ goog.require('og.utils.VectorTileCreator');
 goog.require('og.idle');
 goog.require('og.utils.TerrainWorker');
 goog.require('og.utils.NormalMapCreator');
+goog.require('og.utils.ImageBitmapLoader');
 
 /**
  * Main class for rendering planet
