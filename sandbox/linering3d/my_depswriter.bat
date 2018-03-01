@@ -1,1 +1,0 @@
-"e:\my projects\closure-library\closure\bin\build\depswriter.py" --root_with_prefix="./ ../../../og/sandbox/linering3d/" > "e:\og\sandbox\linering3d\my-deps.js"

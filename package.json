@@ -25,10 +25,11 @@
     "google-closure-library": "^20170910.0.0"
   },
   "devDependencies": {
+    "babel-eslint": "^8.0.0",
     "eslint": "^4.0.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
-    "babel-eslint": "^8.0.0"
+    "webpack": "^4.0.1"
   },
   "keywords": [
     "map",
