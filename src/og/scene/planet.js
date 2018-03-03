@@ -345,6 +345,8 @@ og.scene.Planet = function (name, ellipsoid) {
 
     this._terrainWorker = new og.utils.TerrainWorker(12);
 
+    this._imageBitmapLoader = new og.utils.ImageBitmapLoader({ 'maxRequests': 20, 'numWorkers': 5 });
+
     /**
      * @protected
      */
