@@ -192,6 +192,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
     if (this._planet.layerLock.isFree() && this._queue.length) {
         var h = this._handler,
             gl = h.gl;
+        var p = this._planet;
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
@@ -211,7 +212,7 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
         var deltaTime = 0,
             startTime = window.performance.now();
 
-        while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
+        while (p.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
 
             var q = this._queue.shift();
             var fromTile = q.fromTile,
@@ -262,6 +263,10 @@ og.gmx.VectorTileCreator.prototype.frame = function () {
                 for (var i = 0; i < tItems.length; i++) {
                     var ti = tItems[i];
                     if (layer.getItemVisibility(ti.item)) {
+
+                        if (layer._gmxProperties.Temporal) {
+                            let sceneTextureOffset = layer.applySceneTexture(ti, material);
+                        }
 
                         var style = layer.getItemStyle(ti.item),
                             fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w];

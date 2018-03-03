@@ -92,6 +92,8 @@ og.gmx.VectorLayer = function (name, options) {
     this._vecPendingsQueue = new og.QueueArray();
 };
 
+
+og.gmx.VectorLayer.TileSenderUrlImagery = '//maps.kosmosnimki.ru/TileSender.ashx?ModeKey=tile&ftc=osm&x={x}8&y={y}&z={z}&srs=3857&LayerName={l}';
 og.gmx.VectorLayer.TileSenderUrlTemporal = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}&Level={level}&Span={span}';
 og.gmx.VectorLayer.TileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
@@ -211,6 +213,7 @@ og.gmx.VectorLayer.prototype._initialize = function () {
             that._beginDate = that._beginDate || new Date(currEpoch);
             that._endDate = that._endDate || new Date(d.setTime(currEpoch + 24 * 60 * 60 * 1000));
             that._tileSenderUrlTemplate = og.gmx.VectorLayer.TileSenderUrlTemporal;
+            that._tileImageryUrlTemplate = og.gmx.VectorLayer.TileSenderUrlImagery;
         } else {
             that._tileSenderUrlTemplate = og.gmx.VectorLayer.TileSenderUrl;
         }
@@ -589,6 +592,63 @@ og.gmx.VectorLayer.prototype._getTileDataGroup = function (seg) {
 
 og.gmx.VectorLayer.prototype.getGmxProperties = function () {
     return this._gmxProperties;
+};
+
+og.gmx.VectorLayer.prototype.applySceneTexture = function (tileItem, material) {
+
+    if (material.sceneIsReady) {
+        return [0, 0, 1, 1];
+    } else {
+
+        if (!material.sceneIsLoading) {
+
+            material.sceneIsLoading = true;
+
+            var url = og.utils.stringTemplate(this._tileImageryUrlTemplate, {
+                'x': tileItem.tileData.x,
+                'y': tileItem.tileData.y,
+                'z': tileItem.tileData.z,
+                'l': tileItem.item.attributes.GMX_RasterCatalogID
+            });
+
+            p._imageBitmapLoader(ti.attributes.GMX_RasterCatalogID, (e) => {
+                if (e.data.ok) {
+                    material.applySceneBitmapImage(e.data.bitmapImage);
+                } else {
+                    material.sceneNotExists();
+                }
+            });
+        }
+
+        var segment = material.segment;
+        var pn = segment.node,
+            notEmpty = false;
+
+        var mId = this._id;
+        var psegm = material;
+        while (pn.parentNode) {
+            if (psegm && psegm.sceneReady) {
+                notEmpty = true;
+                break;
+            }
+            pn = pn.parentNode;
+            psegm = pn.planetSegment.materials[mId];
+        }
+
+        if (notEmpty) {
+            material.sceneTexture = psegm.sceneTexture;
+            var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
+            return [
+                segment.tileX * dZ2 - pn.planetSegment.tileX,
+                segment.tileY * dZ2 - pn.planetSegment.tileY,
+                dZ2,
+                dZ2
+            ];
+        } else {
+            material.sceneTexture = segment.planet.transparentTexture;
+            return [0, 0, 1, 1];
+        }
+    }
 };
 
 /**

@@ -38,6 +38,7 @@ goog.require('og.utils.VectorTileCreator');
 goog.require('og.idle');
 goog.require('og.utils.TerrainWorker');
 goog.require('og.utils.NormalMapCreator');
+goog.require('og.utils.ImageBitmapLoader');
 
 /**
  * Main class for rendering planet
@@ -343,6 +344,8 @@ og.scene.Planet = function (name, ellipsoid) {
     this._normalMapCreator = null;
 
     this._terrainWorker = new og.utils.TerrainWorker(12);
+
+    this._imageBitmapLoader = new og.utils.ImageBitmapLoader({ 'maxRequests': 20, 'numWorkers': 5 });
 
     /**
      * @protected
