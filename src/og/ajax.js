@@ -1,12 +1,14 @@
-goog.provide('og.ajax');
+/**
+ * @module og/ajax
+ */
 
-goog.provide('og.ajax.Xhr');
+'use strict';
 
 /**
  * Ajax parameters.
  * @namespace og.ajax
  */
-og.ajax = {
+const ajax = {
     /**
      * Ajax ready state result.
      * @enum
@@ -60,7 +62,7 @@ og.ajax = {
  * @class
  * @param {Object} xhr - Current ActiveXObject object.
  */
-og.ajax.Xhr = function (xhr) {
+const Xhr = function (xhr) {
     /**
      * ActiveXObject object.
      * @private
@@ -78,15 +80,15 @@ og.ajax.Xhr = function (xhr) {
     };
 };
 
-og.ajax.defaultParams = {
-    type: og.ajax.Method.Get,
-    async: og.ajax.Asynchronous,
+const defaultParams = {
+    type: ajax.Method.Get,
+    async: ajax.Asynchronous,
     data: null,
     sender: null,
     responseType: "text"
 };
 
-og.ajax.createXMLHttp = function () {
+function createXMLHttp() {
     var xhr = null;
     if (typeof XMLHttpRequest !== undefined) {
         xhr = new XMLHttpRequest;
@@ -109,24 +111,24 @@ og.ajax.createXMLHttp = function () {
  * @function
  * @param {string} url - Url path.
  * @param {Object} [params] - Ajax parameters:
- * @param {og.ajax.Method|string} [params.type] - 'POST' or 'GET' ajax method. 'GET' is default.
+ * @param {ajax.Method|string} [params.type] - 'POST' or 'GET' ajax method. 'GET' is default.
  * @param {boolean} [params.async] - Asynchronous ajax flag. True is default.
  * @param {Object} [params.data] - Qery data.
  * @param {Object} [params.sender] - Sender object, that success callback binded with. ActiveXObject is default.
  * @param {string} [params.responseType] - Responce data type. Culd be 'text', 'json', 'jsonp', 'html'. 'text' is default.
- * @param {og.ajax.Xhr~successCallback} [params.success] - The callback that handles the success response.
- * @param {og.ajax.Xhr~errorCallback} [params.error] - The callback that handles the failed response.
- * @param {og.ajax.Xhr~abortCallback} [params.abort] - The callback that handles aborted requests.
- * @returns {og.ajax.Xhr} - Returns object that could be aborted.
+ * @param {ajax.Xhr~successCallback} [params.success] - The callback that handles the success response.
+ * @param {ajax.Xhr~errorCallback} [params.error] - The callback that handles the failed response.
+ * @param {ajax.Xhr~abortCallback} [params.abort] - The callback that handles aborted requests.
+ * @returns {ajax.Xhr} - Returns object that could be aborted.
  */
-og.ajax.request = function (url, params) {
+ajax.request = function (url, params) {
 
     params = params || {};
 
     var p = {}, i;
 
-    for (i in og.ajax.defaultParams) {
-        p[i] = og.ajax.defaultParams[i];
+    for (i in defaultParams) {
+        p[i] = defaultParams[i];
     }
 
     for (i in params) {
@@ -135,13 +137,13 @@ og.ajax.request = function (url, params) {
 
     p.data = params.data;
 
-    var xhr = og.ajax.createXMLHttp();
+    var xhr = createXMLHttp();
 
-    var customXhr = new og.ajax.Xhr(xhr);
+    var customXhr = new Xhr(xhr);
 
     var body = null, d;
 
-    if (p.type === og.ajax.Method.Post) {
+    if (p.type === ajax.Method.Post) {
         if (p.data) {
             body = "";
             for (key in p.data) {
@@ -170,19 +172,19 @@ og.ajax.request = function (url, params) {
     xhr.overrideMimeType("text/plain");
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === og.ajax.ReadyState.Complete) {
-            if (xhr.status === og.ajax.Status.OK) {
+        if (xhr.readyState === ajax.ReadyState.Complete) {
+            if (xhr.status === ajax.Status.OK) {
                 if (params.success)
                     /**
                      * Success callback.
-                     * @callback og.ajax.Xhr~successCallback
+                     * @callback ajax.Xhr~successCallback
                      * @param {Object} Response data
                      */
                     params.success.call(params.sender || customXhr, xhr.response);
             } else if (xhr.aborted) {
                 /**
                  * Abort callback.
-                 * @callback og.ajax.Xhr~abortCallback
+                 * @callback ajax.Xhr~abortCallback
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
@@ -190,7 +192,7 @@ og.ajax.request = function (url, params) {
             } else {
                 /**
                  * Error callback.
-                 * @callback og.ajax.Xhr~errorCallback
+                 * @callback ajax.Xhr~errorCallback
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
@@ -208,3 +210,5 @@ og.ajax.request = function (url, params) {
 
     return customXhr;
 };
+
+export { ajax };
