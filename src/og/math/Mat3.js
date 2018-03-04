@@ -1,13 +1,18 @@
-goog.provide('og.math.Matrix3');
+/**
+ * @module og/math/Mat3
+ */
 
-goog.require('og.math');
-goog.require('og.math.Vector3');
+'use strict';
+
+import { Mat4 } from './Mat4.js';
+import { math } from './math.js';
+import { Vec3 } from './Vec3.js';
 
 /**
  * Class represents a 3x3 matrix.
  * @class
  */
-og.math.Matrix3 = function () {
+const Mat3 = function () {
     /**
      * A 3x3 matrix, indexable as a column-major order array.
      * @public
@@ -17,22 +22,22 @@ og.math.Matrix3 = function () {
 };
 
 /**
- * Matrix3 factory.
+ * Mat3 factory.
  * @static
- * @return {og.math.Matrix3}
+ * @return {og.math.Mat3}
  */
- 
-og.math.matrix3 = function(){
-    return new og.math.Matrix3();
+
+export function mat3() {
+    return new Mat3();
 };
 
 /**
  * Sets column-major order array matrix.
  * @public
  * @param {Array.<number>} m - Matrix array.
- * @returns {og.math.Matrix3}
+ * @returns {og.math.Mat3}
  */
-og.math.Matrix3.prototype.set = function (m) {
+Mat3.prototype.set = function (m) {
     this._m[0] = m[0];
     this._m[1] = m[1];
     this._m[2] = m[2];
@@ -46,12 +51,12 @@ og.math.Matrix3.prototype.set = function (m) {
 };
 
 /**
- * Duplicates a Matrix3 instance.
+ * Duplicates a Mat3 instance.
  * @public
- * @returns {og.math.Matrix3}
+ * @returns {og.math.Mat3}
  */
-og.math.Matrix3.prototype.clone = function () {
-    var res = new og.math.Matrix3();
+Mat3.prototype.clone = function () {
+    var res = new Mat3();
     res.set(this);
     return res;
 };
@@ -59,20 +64,20 @@ og.math.Matrix3.prototype.clone = function () {
 /**
  * Copy matrix.
  * @public
- * @param {og.math.Matrix3} a - Matrix to copy.
- * @returns {og.math.Matrix3}
+ * @param {og.math.Mat3} a - Matrix to copy.
+ * @returns {og.math.Mat3}
  */
-og.math.Matrix3.prototype.copy = function (a) {
+Mat3.prototype.copy = function (a) {
     return this.set(a._m);
 };
 
 /**
  * Creates trasposed matrix from the current.
  * @public
- * @returns {og.math.Matrix3}
+ * @returns {og.math.Mat3}
  */
-og.math.Matrix3.prototype.transposeTo = function () {
-    var res = new og.math.Matrix3();
+Mat3.prototype.transposeTo = function () {
+    var res = new Mat3();
     var m = this._m;
     res._m[0] = m[0]; res._m[1] = m[3]; res._m[2] = m[6];
     res._m[3] = m[1]; res._m[4] = m[4]; res._m[5] = m[7];
@@ -83,9 +88,9 @@ og.math.Matrix3.prototype.transposeTo = function () {
 /**
  * Sets matrix to identity.
  * @public
- * @returns {og.math.Matrix3}
+ * @returns {og.math.Mat3}
  */
-og.math.Matrix3.prototype.setIdentity = function () {
+Mat3.prototype.setIdentity = function () {
     this._m[0] = 1; this._m[1] = 0; this._m[2] = 0;
     this._m[3] = 0; this._m[4] = 1; this._m[5] = 0;
     this._m[6] = 0; this._m[7] = 0; this._m[8] = 1;
@@ -98,10 +103,10 @@ og.math.Matrix3.prototype.setIdentity = function () {
  * @params {og.math.Vector3} p - 3d vector.
  * @returns {og.math.Vector3}
  */
-og.math.Matrix3.prototype.mulVec = function (p) {
+Mat3.prototype.mulVec = function (p) {
     var d = p.x, e = p.y, g = p.z;
     var m = this._m;
-    return new og.math.Vector3(
+    return new Vec3(
         m[0] * d + m[3] * e + m[6] * g,
         m[1] * d + m[4] * e + m[7] * g,
         m[2] * d + m[5] * e + m[8] * g
@@ -113,8 +118,8 @@ og.math.Matrix3.prototype.mulVec = function (p) {
  * @public
  * @returns {og.math.Matrix4}
  */
-og.math.Matrix3.prototype.toMatrix4 = function () {
-    var res = new og.math.Matrix4();
+Mat3.prototype.toMatrix4 = function () {
+    var res = new Mat4();
     var b = res._m;
     var a = this._m;
     b[0] = a[0];
@@ -135,3 +140,5 @@ og.math.Matrix3.prototype.toMatrix4 = function () {
     b[15] = 1;
     return res;
 };
+
+export { Mat3 };
