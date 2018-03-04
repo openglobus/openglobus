@@ -1,27 +1,47 @@
-goog.provide('og.idle');
+/**
+ * @module og/Lock
+ */
 
-og.idle.Lock = function () {
-    this._lock = 0;
+'use strict';
 
-    this.lock = function (key) {
+class Lock {
+    constructor() {
+        this._lock = 0;
+    }
+
+    lock(key) {
         this._lock |= (1 << key._id);
-    };
+    }
 
-    this.free = function (key) {
-        this._lock &= ~( 1 << key._id);
-    };
+    free(key) {
+        this._lock &= ~(1 << key._id);
+    }
 
-    this.isFree = function () {
+    isFree() {
         return this._lock === 0;
-    };
+    }
 
-    this.isLocked = function () {
+    isLocked() {
         return this._lock !== 0;
-    };
+    }
 };
 
-og.idle.Key = function () {
-    this._id = og.idle.Key._staticCounter++;
+class Key {
+
+    static get _staticCounter() {
+        if (!this._counter && this._counter !== 0) {
+            this._counter = 0;
+        }
+        return this._counter;
+    }
+
+    static set _staticCounter(n) {
+        this._counter = n;
+    }
+
+    constructor() {
+        this._id = Key._staticCounter++;
+    }
 };
 
-og.idle.Key._staticCounter = 0;
+export { Lock, Key };

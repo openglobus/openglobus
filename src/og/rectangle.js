@@ -1,4 +1,8 @@
-goog.provide('og.Rectangle');
+/**
+ * @module og/Rectangle
+ */
+
+'use strict';
 
 /**
  * 2D Rectangle class.
@@ -8,91 +12,95 @@ goog.provide('og.Rectangle');
  * @param {number} [right] - Right coordinate. 0 - default.
  * @param {number} [bottom] - Bottom coordinate. 0 - default.
 */
-og.Rectangle = function (left, top, right, bottom) {
+class Rectangle {
+    constructor(left, top, right, bottom) {
+
+        /**
+         * Left coordinate.
+         * @public
+         * @type {number}
+         */
+        this.left = left || 0;
+
+        /**
+         * Right coordinate.
+         * @public
+         * @type {number}
+         */
+        this.right = right || 0;
+
+        /**
+         * Top coordinate.
+         * @public
+         * @type {number}
+         */
+        this.top = top || 0;
+
+        /**
+         * Top coordinate.
+         * @public
+         * @type {number}
+         */
+        this.bottom = bottom || 0;
+    }
 
     /**
-     * Left coordinate.
+     * Clone rectangle object.
+     * @public
+     * @returns {og.Rectangle}
+     */
+    clone() {
+        return new og.Rectangle(this.left, this.top, this.right, this.bottom);
+    }
+
+    /**
+     * Returns rectangle width.
      * @public
      * @type {number}
      */
-    this.left = left || 0;
+    getWidth() {
+        return Math.abs(this.right - this.left);
+    }
 
     /**
-     * Right coordinate.
+     * Returns rectangle height.
      * @public
      * @type {number}
      */
-    this.right = right || 0;
+    getHeight() {
+        return Math.abs(this.bottom - this.top);
+    }
 
     /**
-     * Top coordinate.
+     * Returns rectangle area.
      * @public
      * @type {number}
      */
-    this.top = top || 0;
+    getSquare() {
+        return this.getHeight() * this.getWidth();
+    }
 
     /**
-     * Top coordinate.
+     * Returns rectangle diagonal size.
      * @public
      * @type {number}
      */
-    this.bottom = bottom || 0;
+    getDiagonal() {
+        var w = this.getWidth(),
+            h = this.getHeight();
+        return Math.sqrt(h * h + w * w);
+    }
+
+    /**
+     * Returns true if rectangle fits their size in width and height.
+     * @public
+     * @param {number} width - Width.
+     * @param {number} height - Height.
+     * @type {boolean}
+     */
+    fit(width, height) {
+        return (this.getWidth() == width && this.getHeight() == height);
+    }
 };
 
-/**
- * Clone rectangle object.
- * @public
- * @returns {og.Rectangle}
- */
-og.Rectangle.prototype.clone = function () {
-    return new og.Rectangle(this.left, this.top, this.right, this.bottom);
-};
-
-/**
- * Returns rectangle width.
- * @public
- * @type {number}
- */
-og.Rectangle.prototype.getWidth = function () {
-    return Math.abs(this.right - this.left);
-};
-
-/**
- * Returns rectangle height.
- * @public
- * @type {number}
- */
-og.Rectangle.prototype.getHeight = function () {
-    return Math.abs(this.bottom - this.top);
-};
-
-/**
- * Returns rectangle area.
- * @public
- * @type {number}
- */
-og.Rectangle.prototype.getSquare = function () {
-    return this.getHeight() * this.getWidth();
-};
-
-/**
- * Returns rectangle diagonal size.
- * @public
- * @type {number}
- */
-og.Rectangle.prototype.getDiagonal = function () {
-    var w = this.getWidth(),
-        h = this.getHeight();
-    return Math.sqrt(h * h + w * w);
-};
-
-/**
- * Returns true if rectangle fits their size in width and height.
- * @public
- * @param {number} width - Width.
- * @param {number} height - Height.
- * @type {boolean}
- */
-og.Rectangle.prototype.fit = function (width, height) {
-    return (this.getWidth() == width && this.getHeight() == height);
-};
+export { Rectangle };

@@ -1,9 +1,8 @@
-goog.provide('og.inheritance');
-
 /**
- * JavaScript objects inheritage functions.
- * @namespace og.inheritance
+ * @module og/inheritance
  */
+
+'use strict';
 
 /**
  * Inherit the prototype methods from one constructor into another.
@@ -25,7 +24,7 @@ goog.provide('og.inheritance');
  * @param {!Function} Child - Child class.
  * @param {!Function} Parent - Parent class.
  */
-og.inheritance.extend = function (Child, Parent) {
+export function extend(Child, Parent) {
     var F = function () { };
     F.prototype = Parent.prototype;
     Child.prototype = new F();
@@ -42,7 +41,7 @@ og.inheritance.extend = function (Child, Parent) {
  *
  * See {@link og.inheritance.extend}
  */
-og.inheritance.base = function (me) {
+export function base(me) {
     var caller = arguments.callee.caller;
     caller.superclass.constructor.apply(me, Array.prototype.slice.call(arguments, 1));
 };
