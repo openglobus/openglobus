@@ -1,71 +1,75 @@
-goog.provide('og.math');
+/**
+ * @module og/math
+ */
+
+'use strict';
 
 /** @const */
-og.math.TWO_PI = 2.0 * Math.PI;
+export const TWO_PI = 2.0 * Math.PI;
 
 /** @const */
-og.math.PI_TWO = Math.PI / 2.0;
+export const PI_TWO = Math.PI / 2.0;
 
-og.math.X = 0;
-og.math.Y = 1;
-og.math.Z = 2;
-og.math.W = 3;
+export const X = 0;
+export const Y = 1;
+export const Z = 2;
+export const W = 3;
 
-og.MAX_FLOAT = Number.MAX_VALUE || 1.7976931348623157e+308;
-
-/** @const */
-og.math.LOG2 = Math.log(2);
-/** @const */
-og.math.MAX32 = 2147483647;
-/** @const */
-og.math.MAX = 549755748352;
-/** @const */
-og.math.MIN = -og.math.MAX;
+export const MAX_FLOAT = Number.MAX_VALUE || 1.7976931348623157e+308;
 
 /** @const */
-og.math.RADIANS = Math.PI / 180.0;
+export const LOG2 = Math.log(2);
 /** @const */
-og.math.DEGREES = 180.0 / Math.PI;
+export const MAX32 = 2147483647;
+/** @const */
+export const MAX = 549755748352;
+/** @const */
+export const MIN = -MAX;
 
 /** @const */
-og.math.DEGREES_DOUBLE = 2.0 * og.math.DEGREES;
+export const RADIANS = Math.PI / 180.0;
 /** @const */
-og.math.RADIANS_HALF = 0.5 * og.math.RADIANS;
+export const DEGREES = 180.0 / Math.PI;
 
 /** @const */
-og.math.ARCSECONDS_TO_RADIANS = 0.00000484813681109536;
+export const DEGREES_DOUBLE = 2.0 * DEGREES;
 /** @const */
-og.math.RADIANS_TO_HOURS = 3.8197186342054880584532103209403;
-/** @const */
-og.math.HOURS_TO_RADIANS = 0.26179938779914943653855361527329;
-/** @const */
-og.math.HOURS_TO_DEGREES = 15.0;
-/** @const */
-og.math.DEGREES_TO_HOURS = 1.0 / 15.0;
+export const RADIANS_HALF = 0.5 * RADIANS;
 
 /** @const */
-og.math.SQRT_HALF = Math.sqrt(0.5);
+export const ARCSECONDS_TO_RADIANS = 0.00000484813681109536;
+/** @const */
+export const RADIANS_TO_HOURS = 3.8197186342054880584532103209403;
+/** @const */
+export const HOURS_TO_RADIANS = 0.26179938779914943653855361527329;
+/** @const */
+export const HOURS_TO_DEGREES = 15.0;
+/** @const */
+export const DEGREES_TO_HOURS = 1.0 / 15.0;
 
-og.math.EPSILON1 = 0.1;
-og.math.EPSILON2 = 0.01;
-og.math.EPSILON3 = 0.001;
-og.math.EPSILON4 = 0.0001;
-og.math.EPSILON5 = 0.00001;
-og.math.EPSILON6 = 0.000001;
-og.math.EPSILON7 = 1e-7;
-og.math.EPSILON8 = 1e-8;
-og.math.EPSILON9 = 1e-9;
-og.math.EPSILON10 = 1e-10;
-og.math.EPSILON11 = 1e-11;
-og.math.EPSILON12 = 1e-12;
-og.math.EPSILON13 = 1e-13;
-og.math.EPSILON14 = 1e-14;
-og.math.EPSILON15 = 1e-15;
-og.math.EPSILON16 = 1e-16;
-og.math.EPSILON17 = 1e-17;
-og.math.EPSILON18 = 1e-18;
-og.math.EPSILON19 = 1e-19;
-og.math.EPSILON20 = 1e-20;
+/** @const */
+export const SQRT_HALF = Math.sqrt(0.5);
+
+export const EPSILON1 = 0.1;
+export const EPSILON2 = 0.01;
+export const EPSILON3 = 0.001;
+export const EPSILON4 = 0.0001;
+export const EPSILON5 = 0.00001;
+export const EPSILON6 = 0.000001;
+export const EPSILON7 = 1e-7;
+export const EPSILON8 = 1e-8;
+export const EPSILON9 = 1e-9;
+export const EPSILON10 = 1e-10;
+export const EPSILON11 = 1e-11;
+export const EPSILON12 = 1e-12;
+export const EPSILON13 = 1e-13;
+export const EPSILON14 = 1e-14;
+export const EPSILON15 = 1e-15;
+export const EPSILON16 = 1e-16;
+export const EPSILON17 = 1e-17;
+export const EPSILON18 = 1e-18;
+export const EPSILON19 = 1e-19;
+export const EPSILON20 = 1e-20;
 
 /** 
  * The log function returns the power to which the base value has to be raised to produce n.
@@ -77,7 +81,7 @@ og.math.EPSILON20 = 1e-20;
  * og.math.log(64, 2)
  * //returns 6
  */
-og.math.log = function (n, base) {
+export function log(n, base) {
     return Math.log(n) / Math.log(base);
 };
 
@@ -92,7 +96,7 @@ og.math.log = function (n, base) {
  * og.math.clamp(12, 1, 5)
  * //returns 5
  */
-og.math.clamp = function (number, min, max) {
+export function clamp(number, min, max) {
     return Math.max(min, Math.min(number, max));
 };
 
@@ -102,7 +106,7 @@ og.math.clamp = function (number, min, max) {
  * @param {number} degrees - Degree value.
  * @returns {number} -
  */
-og.math.DEG2RAD = function (degrees) {
+export function DEG2RAD(degrees) {
     return degrees * og.math.RADIANS;
 };
 
@@ -112,7 +116,7 @@ og.math.DEG2RAD = function (degrees) {
  * @param {number} angle - Degree value.
  * @returns {number} -
  */
-og.math.RAD2DEG = function (angle) {
+export function RAD2DEG(angle) {
     return angle * og.math.DEGREES;
 };
 
@@ -122,7 +126,7 @@ og.math.RAD2DEG = function (angle) {
  * @param {number} x - Input value.
  * @returns {boolean} -
  */
-og.math.isPowerOfTwo = function (x) {
+export function isPowerOfTwo(x) {
     return (x & (x - 1)) == 0;
 };
 
@@ -132,7 +136,7 @@ og.math.isPowerOfTwo = function (x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-og.math.nextHighestPowerOfTwo = function (x) {
+export function nextHighestPowerOfTwo(x) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
         x = x | x >> i;
@@ -147,7 +151,7 @@ og.math.nextHighestPowerOfTwo = function (x) {
  * @param {number} max - Maximal bound.
  * @returns {number} -
  */
-og.math.randomi = function (min, max) {
+export function randomi(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 };
 
@@ -158,7 +162,7 @@ og.math.randomi = function (min, max) {
  * @param {number} max - Maximal bound.
  * @returns {number} -
  */
-og.math.random = function (min, max) {
+export function random(min, max) {
     return Math.random() * (max - min) + min;
 };
 
@@ -171,7 +175,7 @@ og.math.random = function (min, max) {
  * @param {boolean} [p] - Positive flag. False - default.
  * @returns {number} -
  **/
-og.math.degToDec = function (d, m, s, p) {
+export function degToDec(d, m, s, p) {
     if (p)
         return d + m / 60.0 + s / 3600.0;
     else
@@ -185,7 +189,7 @@ og.math.degToDec = function (d, m, s, p) {
  * @param {number} n - The divisor.
  * @returns {number} The remainder.
  */
-og.math.mod = function (m, n) {
+export function mod(m, n) {
     return ((m % n) + n) % n;
 };
 
@@ -195,7 +199,7 @@ og.math.mod = function (m, n) {
  * @param {number} a - Angle in radians
  * @returns {number} -
  */
-og.math.zeroTwoPI = function (a) {
+export function zeroTwoPI(a) {
     var mod = og.math.mod(a, og.math.TWO_PI);
     if (Math.abs(mod) < og.math.EPSILON14 && Math.abs(a) > og.math.EPSILON14) {
         return og.math.TWO_PI;
@@ -210,7 +214,7 @@ og.math.zeroTwoPI = function (a) {
  * @param {number} x - Value to edge.
  * @returns {number} -
  */
-og.math.step = function (edge, x) {
+export function step(edge, x) {
     return x < edge ? 0.0 : 1.0;
 };
 
@@ -220,7 +224,7 @@ og.math.step = function (edge, x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-og.math.frac = function (x) {
+export function frac(x) {
     return x - Math.floor(x);
 };
 
@@ -230,7 +234,7 @@ og.math.frac = function (x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-og.math.log2 = function (x) {
+export function log2(x) {
     return Math.log(x) / og.math.LOG2;
 };
 
@@ -240,7 +244,7 @@ og.math.log2 = function (x) {
  * @param {number} n - Power value.
  * @returns {number} -
  */
-og.math.exp2 = function (n) {
+export function exp2(n) {
     return Math.pow(2, n);
 };
 
@@ -250,7 +254,7 @@ og.math.exp2 = function (n) {
  * @param {number} n - Integer power value.
  * @returns {number} -
  */
-og.math.pow2i = function (n) {
+export function pow2i(n) {
     return 2 << (n - 1);
 };
 
@@ -261,7 +265,7 @@ og.math.pow2i = function (n) {
  * @param {number} h0 - Start value.
  * @returns {number} -
  */
-og.math.slice = function (t, h1, h0) {
+export function slice(t, h1, h0) {
     return t * (h1 - h0);
 };
 
@@ -273,7 +277,7 @@ og.math.slice = function (t, h1, h0) {
  * @param {number} h0 - Start value.
  * @returns {number} -
  */
-og.math.lerp = function (t, h1, h0) {
+export function lerp(t, h1, h0) {
     return h0 + t * (h1 - h0);
 };
 
@@ -287,7 +291,7 @@ og.math.lerp = function (t, h1, h0) {
  * @param {og.math.Vector3} p3 - Fourth control point.
  * @returns {og.math.Vector3} -
  */
-og.math.bezier = function (t, p0, p1, p2, p3) {
+export function bezier(t, p0, p1, p2, p3) {
     var u = 1 - t;
     var tt = t * t;
     var uu = u * u;
@@ -304,7 +308,7 @@ og.math.bezier = function (t, p0, p1, p2, p3) {
  * @param {number} x - Input angle.
  * @returns {number} -
  */
-og.math.rev = function (x) {
+export function rev(x) {
     return x - Math.floor(x / 360.0) * 360.0;
 };
 
@@ -314,7 +318,7 @@ og.math.rev = function (x) {
  * @param {number} lon - Longitude.
  * @returns {number} -
  */
-og.math.norm_lon = function (lon) {
+export function norm_lon(lon) {
     return lon > 180 ? ((lon + 180) % 360) - 180 :
         lon < -180 ? ((lon - 180) % 360) + 180 : lon;
 };
@@ -325,7 +329,7 @@ og.math.norm_lon = function (lon) {
  * @param {number} a - Angle in radians.
  * @returns {number} -
  */
-og.math.negativePItoPI = function (a) {
+export function negativePItoPI(a) {
     return og.math.zeroTwoPI(a + Math.PI) - Math.PI;
 };
 
@@ -337,7 +341,7 @@ og.math.negativePItoPI = function (a) {
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-og.math.solve_iteration_fixed = function (f, x0, maxIter) {
+export function solve_iteration_fixed(f, x0, maxIter) {
     var x = 0;
     var x2 = x0;
     for (var i = 0; i < maxIter; i++) {
@@ -357,7 +361,7 @@ og.math.solve_iteration_fixed = function (f, x0, maxIter) {
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-og.math.solve_iteration = function (f, x0, err, maxIter) {
+export function solve_iteration(f, x0, err, maxIter) {
     maxIter = maxIter || 50;
     var x = 0;
     var x2 = x0;

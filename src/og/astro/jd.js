@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { utils } from '../utils/utils';
+import { binarySearch } from '../utils/shared';
 
 /**
  * Seconds in millisecond.
@@ -227,7 +227,7 @@ export function DateToTAI(date) {
 export function UTCtoTAI(jd) {
     var leapSeconds = leapSecondsTable;
 
-    var index = og.utils.binarySearch(leapSeconds, jd, function (a, b) {
+    var index = binarySearch(leapSeconds, jd, function (a, b) {
         return a - b.jd;
     });
 
@@ -257,7 +257,7 @@ export function UTCtoTAI(jd) {
  */
 export function TAItoUTC(tai) {
     var leapSeconds = leapSecondsTable;
-    var index = og.utils.binarySearch(leapSeconds, tai, function (a, b) {
+    var index = binarySearch(leapSeconds, tai, function (a, b) {
         return a - b.jd;
     });
 

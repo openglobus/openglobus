@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { utils } from 'utils/utils.js';
+import { stamp } from 'utils/shared.js';
 
 /**
  * Base events class to handle custom events.
@@ -73,7 +73,7 @@ class Events {
      */
     _stamp = function (name, obj) {
 
-        var ogid = utils.stamp(obj);
+        var ogid = stamp(obj);
 
         var st = name + "_" + this.__id + "_" + ogid;
 

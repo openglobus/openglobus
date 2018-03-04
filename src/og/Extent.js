@@ -1,9 +1,12 @@
-goog.provide('og.Extent');
-goog.provide('og.extent');
+/**
+ * @module og/Extent
+ */
 
-goog.require('og.LonLat');
-goog.require('og.math');
-goog.require('og.mercator');
+'use strict';
+
+import { LonLat } from './LonLat.js';
+import { math } from './math.js';
+import { mercator } from './mercator.js';
 
 /**
  * Represents geographical coordinates extent.
@@ -11,46 +14,35 @@ goog.require('og.mercator');
  * @param {og.LonLat} [sw] - South West extent corner coordiantes.
  * @param {og.LonLat} [ne] - North East extent corner coordiantes.
  */
-og.Extent = function (sw, ne) {
+const Extent = function (sw, ne) {
     /**
      * @public
      */
-    this.southWest = sw || new og.LonLat();
+    this.southWest = sw || new LonLat();
 
     /**
      * @public
      */
-    this.northEast = ne || new og.LonLat();
+    this.northEast = ne || new LonLat();
 };
 
 /**
  * Whole mercator extent.
  * @const
  */
-og.Extent.FULL_MERC = new og.Extent(og.LonLat.SW_MERC, og.LonLat.NE_MERC);
+Extent.FULL_MERC = new Extent(LonLat.SW_MERC, LonLat.NE_MERC);
 
 /**
  * Degrees extent from north mercator limit to north pole.
  * @const
  */
-og.Extent.NORTH_POLE_DEG = new og.Extent(og.LonLat.NW_MERC_DEG, new og.LonLat(180.0, 90.0));
+Extent.NORTH_POLE_DEG = new Extent(LonLat.NW_MERC_DEG, new LonLat(180.0, 90.0));
 
 /**
  * Degrees extent from south pole to south mercator limit.
  * @const
  */
-og.Extent.SOUTH_POLE_DEG = new og.Extent(new og.LonLat(-180.0, -90.0), og.LonLat.SE_MERC_DEG);
-
-/**
- * Creates extent instance.
- * @static
- * @param {og.LonLat} sw - South west(left bottom) extent corner.
- * @param {og.LonLat} ne - North east(right top) extent corner.
- * @return {og.Extent} Extent instance.
- */
-og.extent = function (sw, ne) {
-    return new og.Extent(sw, ne);
-};
+Extent.SOUTH_POLE_DEG = new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG);
 
 /**
  * Creates extent instance from values in array.
@@ -58,8 +50,8 @@ og.extent = function (sw, ne) {
  * @param {Array.<number,number,number,number>} arr - South west and north east longitude and latidudes packed in array.
  * @return {og.Extent} Extent object.
  */
-og.Extent.createFromArray = function (arr) {
-    return new og.Extent(new og.LonLat(arr[0], arr[1]), new og.LonLat(arr[2], arr[3]));
+Extent.createFromArray = function (arr) {
+    return new Extent(new LonLat(arr[0], arr[1]), new LonLat(arr[2], arr[3]));
 };
 
 /**
@@ -68,9 +60,9 @@ og.Extent.createFromArray = function (arr) {
  * @param {Array.<og.LonLat>} arr - Coordinate array.
  * @return {og.Extent} Extent object.
  */
-og.Extent.createByCoordinates = function (arr) {
-    var lonmin = og.math.MAX, lonmax = og.math.MIN,
-        latmin = og.math.MAX, latmax = og.math.MIN;
+Extent.createByCoordinates = function (arr) {
+    var lonmin = math.MAX, lonmax = math.MIN,
+        latmin = math.MAX, latmax = math.MIN;
     for (var i = 0; i < arr.length; i++) {
         var vi = arr[i];
         if (vi.lon < lonmin) lonmin = vi.lon;
@@ -78,7 +70,7 @@ og.Extent.createByCoordinates = function (arr) {
         if (vi.lat < latmin) latmin = vi.lat;
         if (vi.lat > latmax) latmax = vi.lat;
     }
-    return new og.Extent(new og.LonLat(lonmin, latmin), new og.LonLat(lonmax, latmax));
+    return new Extent(new LonLat(lonmin, latmin), new LonLat(lonmax, latmax));
 };
 
 /**
@@ -87,9 +79,9 @@ og.Extent.createByCoordinates = function (arr) {
  * @param {Array.<Array<number,number>>} arr - Coordinate array.
  * @return {og.Extent} Extent object.
  */
-og.Extent.createByCoordinatesArr = function (arr) {
-    var lonmin = og.math.MAX, lonmax = og.math.MIN,
-        latmin = og.math.MAX, latmax = og.math.MIN;
+Extent.createByCoordinatesArr = function (arr) {
+    var lonmin = math.MAX, lonmax = math.MIN,
+        latmin = math.MAX, latmax = math.MIN;
     for (var i = 0; i < arr.length; i++) {
         var vi = arr[i];
         if (vi[0] < lonmin) lonmin = vi[0];
@@ -97,7 +89,7 @@ og.Extent.createByCoordinatesArr = function (arr) {
         if (vi[1] < latmin) latmin = vi[1];
         if (vi[1] > latmax) latmax = vi[1];
     }
-    return new og.Extent(new og.LonLat(lonmin, latmin), new og.LonLat(lonmax, latmax));
+    return new Extent(new LonLat(lonmin, latmin), new LonLat(lonmax, latmax));
 };
 
 /**
@@ -108,9 +100,9 @@ og.Extent.createByCoordinatesArr = function (arr) {
  * @param {number} z
  * @returns {og.Extent}
  */
-og.Extent.fromTile = function (x, y, z, width, height) {
-    width = width || og.mercator.POLE_DOUBLE;
-    height = height || og.mercator.POLE_DOUBLE;
+Extent.fromTile = function (x, y, z, width, height) {
+    width = width || mercator.POLE_DOUBLE;
+    height = height || mercator.POLE_DOUBLE;
     var H = Math.pow(2, z),
         W = Math.pow(2, z),
         lnSize = width / W,
@@ -121,7 +113,7 @@ og.Extent.fromTile = function (x, y, z, width, height) {
         bottom = top - ltSize,
         right = left + lnSize;
 
-    return new og.Extent(new og.LonLat(left, bottom), new og.LonLat(right, top));
+    return new Extent(new LonLat(left, bottom), new LonLat(right, top));
 };
 
 /**
@@ -130,9 +122,9 @@ og.Extent.fromTile = function (x, y, z, width, height) {
  * @param {Array.<og.LonLat>} arr - Coordinate array.
  * @return {og.Extent} Current extent.
  */
-og.Extent.prototype.setByCoordinates = function (arr) {
-    var lonmin = og.math.MAX, lonmax = og.math.MIN,
-        latmin = og.math.MAX, latmax = og.math.MIN;
+Extent.prototype.setByCoordinates = function (arr) {
+    var lonmin = math.MAX, lonmax = math.MIN,
+        latmin = math.MAX, latmax = math.MIN;
     for (var i = 0; i < arr.length; i++) {
         var vi = arr[i];
         if (vi.lon < lonmin) lonmin = vi.lon;
@@ -150,10 +142,10 @@ og.Extent.prototype.setByCoordinates = function (arr) {
 /**
  * Determines if point inside extent.
  * @public
- * @param {og.LonLat} lonlat - Coordinate point.
+ * @param {LonLat} lonlat - Coordinate point.
  * @return {boolean} Returns true if point inside extent.
  */
-og.Extent.prototype.isInside = function (lonlat) {
+Extent.prototype.isInside = function (lonlat) {
     var sw = this.southWest,
         ne = this.northEast;
     return lonlat.lon >= sw.lon && lonlat.lon <= ne.lon &&
@@ -163,10 +155,10 @@ og.Extent.prototype.isInside = function (lonlat) {
 /**
  * Returns true if two extent overlap each other.
  * @public
- * @param {og.Extent} e - Another extent.
+ * @param {Extent} e - Another extent.
  * @return {boolean}
  */
-og.Extent.prototype.overlaps = function (e) {
+Extent.prototype.overlaps = function (e) {
     var sw = this.southWest,
         ne = this.northEast;
     return sw.lon <= e.northEast.lon && ne.lon >= e.southWest.lon &&
@@ -178,7 +170,7 @@ og.Extent.prototype.overlaps = function (e) {
  * @public
  * @return {number} Extent width.
  */
-og.Extent.prototype.getWidth = function () {
+Extent.prototype.getWidth = function () {
     return this.northEast.lon - this.southWest.lon;
 };
 
@@ -187,7 +179,7 @@ og.Extent.prototype.getWidth = function () {
  * @public
  * @return {number} Extent height.
  */
-og.Extent.prototype.getHeight = function () {
+Extent.prototype.getHeight = function () {
     return this.northEast.lat - this.southWest.lat
 };
 
@@ -196,8 +188,8 @@ og.Extent.prototype.getHeight = function () {
  * @public
  * @return {og.Extent} Extent clone.
  */
-og.Extent.prototype.clone = function () {
-    return new og.Extent(this.southWest.clone(), this.northEast.clone());
+Extent.prototype.clone = function () {
+    return new Extent(this.southWest.clone(), this.northEast.clone());
 };
 
 /**
@@ -205,58 +197,58 @@ og.Extent.prototype.clone = function () {
  * @public
  * @return {number} Center coordinate.
  */
-og.Extent.prototype.getCenter = function () {
+Extent.prototype.getCenter = function () {
     var sw = this.southWest, ne = this.northEast;
-    return new og.LonLat(sw.lon + (ne.lon - sw.lon) * 0.5, sw.lat + (ne.lat - sw.lat) * 0.5);
+    return new LonLat(sw.lon + (ne.lon - sw.lon) * 0.5, sw.lat + (ne.lat - sw.lat) * 0.5);
 };
 
 /**
  * @public
  */
-og.Extent.prototype.getNorthWest = function () {
-    return new og.LonLat(this.southWest.lon, this.northEast.lat);
+Extent.prototype.getNorthWest = function () {
+    return new LonLat(this.southWest.lon, this.northEast.lat);
 };
 
 /**
  * @public
  */
-og.Extent.prototype.getNorthEast = function () {
-    return new og.LonLat(this.northEast.lon, this.northEast.lat);
+Extent.prototype.getNorthEast = function () {
+    return new LonLat(this.northEast.lon, this.northEast.lat);
 };
 
-og.Extent.prototype.getSouthWest = function () {
-    return new og.LonLat(this.southWest.lon, this.southWest.lat);
-};
-
-/**
- * @public
- */
-og.Extent.prototype.getSouthEast = function () {
-    return new og.LonLat(this.northEast.lon, this.southWest.lat);
+Extent.prototype.getSouthWest = function () {
+    return new LonLat(this.southWest.lon, this.southWest.lat);
 };
 
 /**
  * @public
  */
-og.Extent.prototype.getNorth = function () {
+Extent.prototype.getSouthEast = function () {
+    return new LonLat(this.northEast.lon, this.southWest.lat);
+};
+
+/**
+ * @public
+ */
+Extent.prototype.getNorth = function () {
     return this.northEast.lat;
 };
 
-og.Extent.prototype.getEast = function () {
+Extent.prototype.getEast = function () {
     return this.northEast.lon;
 };
 
 /**
  * @public
  */
-og.Extent.prototype.getWest = function () {
+Extent.prototype.getWest = function () {
     return this.southWest.lon;
 };
 
 /**
  * @public
  */
-og.Extent.prototype.getSouth = function () {
+Extent.prototype.getSouth = function () {
     return this.southWest.lat;
 };
 
@@ -265,7 +257,7 @@ og.Extent.prototype.getSouth = function () {
  * @param {og.Extent} extent - Extent.
  * @returns {boolean}
  */
-og.Extent.prototype.equals = function (extent) {
+Extent.prototype.equals = function (extent) {
     return this.southWest.lon === extent.southWest.lon && this.southWest.lat === extent.southWest.lat &&
         this.northEast.lon === extent.northEast.lon && this.northEast.lat === extent.northEast.lat;
 };
@@ -275,8 +267,8 @@ og.Extent.prototype.equals = function (extent) {
  * @public
  * @return {og.Extent} New instance of the current extent.
  */
-og.Extent.prototype.forwardMercator = function () {
-    return new og.Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
+Extent.prototype.forwardMercator = function () {
+    return new Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
 };
 
 /**
@@ -284,8 +276,8 @@ og.Extent.prototype.forwardMercator = function () {
  * @public
  * @return {og.Extent} New instance of the current extent.
  */
-og.Extent.prototype.inverseMercator = function () {
-    return new og.Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
+Extent.prototype.inverseMercator = function () {
+    return new Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
 };
 
 /**
@@ -294,14 +286,14 @@ og.Extent.prototype.inverseMercator = function () {
  * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
  * @return {Array.<number,number,number,number,number,number>} Cartesian 3d coordinate array.
  */
-og.Extent.prototype.getCartesianBounds = function (ellipsoid) {
-    var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX,
-        ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+Extent.prototype.getCartesianBounds = function (ellipsoid) {
+    var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+        ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
 
-    var v = [new og.LonLat(this.southWest.lon, this.southWest.lat),
-    new og.LonLat(this.southWest.lon, this.northEast.lat),
-    new og.LonLat(this.northEast.lon, this.northEast.lat),
-    new og.LonLat(this.northEast.lon, this.southWest.lat)];
+    var v = [new LonLat(this.southWest.lon, this.southWest.lat),
+    new LonLat(this.southWest.lon, this.northEast.lat),
+    new LonLat(this.northEast.lon, this.northEast.lat),
+    new LonLat(this.northEast.lon, this.southWest.lat)];
 
     for (var i = 0; i < v.length; i++) {
         var coord = ellipsoid.lonLatToCartesian(v[i]);
@@ -317,6 +309,8 @@ og.Extent.prototype.getCartesianBounds = function (ellipsoid) {
     return [xmin, xmax, ymin, ymax, zmin, zmax];
 };
 
-og.Extent.prototype.toString = function () {
+Extent.prototype.toString = function () {
     return "[" + this.southWest.lon + ", " + this.southWest.lat + ", " + this.northEast.lon + ", " + this.northEast.lat + "]";
 };
+
+export { Extent };

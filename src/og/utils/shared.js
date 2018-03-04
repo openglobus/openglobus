@@ -1,23 +1,27 @@
-goog.provide('og.utils');
+/**
+ * @module og/utils/shared
+ */
 
-goog.require('og.ajax');
-goog.require('og.math.Vector2');
-goog.require('og.math.Vector3');
-goog.require('og.math.Vector4');
-goog.require('og.LonLat');
-goog.require('og.Extent');
-goog.require('og.utils.colorTable');
+'use strict';
 
-og.utils._stampCounter = 0;
-og.utils.stamp = function (obj) {
+import { ajax } from './og/ajax.js';
+import { colorTable }'./colorTable.js';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
+import { Vec2 } from '../math/Vec2.js';
+import { Vec3 } from '../math/Vec3.js';
+import { Vec4 } from '../math/Vec4.js';
+
+let _stampCounter = 0;
+export function stamp(obj) {
     var stamp = obj._openglobus_id;
     if (!stamp) {
-        stamp = obj._openglobus_id = ++og.utils._stampCounter;
+        stamp = obj._openglobus_id = ++_stampCounter;
     }
     return stamp;
 };
 
-og.utils.isString = function (s) {
+export function isString(s) {
     return typeof (s) === 'string' || s instanceof String;
 };
 
@@ -26,10 +30,10 @@ og.utils.isString = function (s) {
  * @param {string} fileUrl - File name path.
  * @returns {string} -
  */
-og.utils.readTextFile = function (fileUrl) {
+export function readTextFile(fileUrl) {
     var res = "";
 
-    og.ajax.request(fileUrl, {
+    ajax.request(fileUrl, {
         async: false,
         success: function (data) {
             res = data;
@@ -43,10 +47,10 @@ og.utils.readTextFile = function (fileUrl) {
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector4} -
+ * @returns {og.math.Vec4} -
  */
-og.utils.htmlColorToRgba = function (htmlColor, opacity) {
-    var hColor = og.utils.colorTable[htmlColor];
+export function htmlColorToRgba(htmlColor, opacity) {
+    var hColor = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
     }
@@ -57,13 +61,13 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new og.math.Vector4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, (opacity == undefined ? 1.0 : opacity));
+        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, (opacity == undefined ? 1.0 : opacity));
     } else {
         if (opacity == undefined) {
             opacity = 1.0;
         }
         var m = htmlColor.split(",");
-        return new og.math.Vector4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
+        return new Vec4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
     }
 };
 
@@ -71,10 +75,10 @@ og.utils.htmlColorToRgba = function (htmlColor, opacity) {
  * Convert html color string to the RGB number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vector3} -
+ * @returns {og.math.Vec3} -
  */
-og.utils.htmlColorToRgb = function (htmlColor) {
-    var hColor = og.utils.colorTable[htmlColor];
+export function htmlColorToRgb(htmlColor) {
+    var hColor = colorTable[htmlColor];
     if (hColor) {
         htmlColor = hColor;
     }
@@ -85,10 +89,10 @@ og.utils.htmlColorToRgb = function (htmlColor) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new og.math.Vector4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255);
+        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255);
     } else {
         var m = htmlColor.split(",");
-        return new og.math.Vector3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
+        return new Vec3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
     }
 };
 
@@ -107,13 +111,13 @@ og.utils.htmlColorToRgb = function (htmlColor) {
  * og.utils.stringTemplate("http://earth3.openglobus.org/{z}/{y}/{x}.ddm", substrins);
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
-og.utils.stringTemplate = function (template, params) {
+export function stringTemplate(template, params) {
     return template.replace(/{[^{}]+}/g, function (key) {
         return params[key.replace(/[{}]+/g, "")] || "";
     });
 };
 
-function print2d(id, text, x, y) {
+export function print2d(id, text, x, y) {
     var el = document.getElementById(id);
     if (!el) {
         el = document.createElement("div");
@@ -126,92 +130,92 @@ function print2d(id, text, x, y) {
     el.style.top = y;
 };
 
-og.utils.defaultString = function (str, def) {
+export function defaultString(str, def) {
     return str ? str.trim().toLowerCase() : def;
 };
 
-og.utils.createVector3 = function (v, def) {
+export function createVector3(v, def) {
     if (v) {
-        if (v instanceof og.math.Vector3) {
+        if (v instanceof Vec3) {
             return v.clone();
         } else if (v instanceof Array) {
-            return og.math.Vector3.fromVec(v);
+            return Vec3.fromVec(v);
         }
     } else if (def) {
         return def;
     }
-    return new og.math.Vector3();
+    return new Vec3();
 };
 
-og.utils.createVector4 = function (v, def) {
+export function createVector4(v, def) {
     if (v) {
-        if (v instanceof og.math.Vector4) {
+        if (v instanceof Vec4) {
             return v.clone();
         } else if (v instanceof Array) {
-            return og.math.Vector4.fromVec(v);
+            return Vec4.fromVec(v);
         }
     } else if (def) {
         return def;
     }
-    return new og.math.Vector4();
+    return new Vec4();
 };
 
-og.utils.createColorRGBA = function (c, def) {
+export function createColorRGBA(c, def) {
     if (c) {
-        if (og.utils.isString(c)) {
-            return og.utils.htmlColorToRgba(c);
+        if (isString(c)) {
+            return htmlColorToRgba(c);
         } else if (c instanceof Array) {
-            return new og.math.Vector4.fromVec(c);
-        } else if (c instanceof og.math.Vector4) {
+            return new Vec4.fromVec(c);
+        } else if (c instanceof Vec4) {
             return c.clone();
         }
     } else if (def) {
         return def;
     }
-    return new og.math.Vector4(1.0, 1.0, 1.0, 1.0);
+    return new Vec4(1.0, 1.0, 1.0, 1.0);
 };
 
-og.utils.createColorRGB = function (c, def) {
+export function createColorRGB(c, def) {
     if (c) {
-        if (og.utils.isString(c)) {
-            return og.utils.htmlColorToRgb(c);
+        if (isString(c)) {
+            return htmlColorToRgb(c);
         } else if (c instanceof Array) {
-            return new og.math.Vector3.fromVec(c);
-        } else if (c instanceof og.math.Vector3) {
+            return new Vec3.fromVec(c);
+        } else if (c instanceof Vec3) {
             return c.clone();
         }
     } else if (def) {
         return def;
     }
-    return new og.math.Vector3(1.0, 1.0, 1.0);
+    return new Vec3(1.0, 1.0, 1.0);
 };
 
-og.utils.createExtent = function (e, def) {
+export function createExtent(e, def) {
     if (e) {
         if (e instanceof Array) {
-            return new og.Extent(
-                og.utils.createLonLat(e[0]),
-                og.utils.createLonLat(e[1]));
-        } else if (e instanceof og.Extent) {
+            return new Extent(
+                createLonLat(e[0]),
+                createLonLat(e[1]));
+        } else if (e instanceof Extent) {
             return e.clone();
         }
     } else if (def) {
         return def;
     }
-    return new og.Extent();
+    return new Extent();
 };
 
-og.utils.createLonLat = function (l, def) {
+export function createLonLat(l, def) {
     if (l) {
         if (l instanceof Array) {
-            return new og.LonLat(l[0], l[1], l[2]);
-        } else if (l instanceof og.LonLat) {
+            return new LonLat(l[0], l[1], l[2]);
+        } else if (l instanceof LonLat) {
             return l.clone();
         }
     } else if (def) {
         return def;
     }
-    return new og.LonLat();
+    return new LonLat();
 };
 
 
@@ -231,7 +235,7 @@ og.utils.createLonLat = function (l, def) {
  * var numbers = [0, 2, 4, 6, 8];
  * var index = og.utils.binarySearch(numbers, 6, comparator); // 3
  */
-og.utils.binarySearch = function (ar, el, compare_fn) {
+export function binarySearch(ar, el, compare_fn) {
     var m = 0;
     var n = ar.length - 1;
     while (m <= n) {
@@ -251,8 +255,8 @@ og.utils.binarySearch = function (ar, el, compare_fn) {
 /**
  * @todo NEEDS TESTING
  */
-og.utils.binaryInsert = function (ar, el, compare_fn) {
-    var i = og.utils.binarySearch(ar, el, compare_fn);
+export function binaryInsert(ar, el, compare_fn) {
+    var i = binarySearch(ar, el, compare_fn);
     if (i < 0) {
         i = ~i;
     }
@@ -263,14 +267,14 @@ og.utils.binaryInsert = function (ar, el, compare_fn) {
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {og.math.Vector2} start1 - First line first coordinate.
- * @param {og.math.Vector2} end1 - First line second coordinate.
- * @param {og.math.Vector2} start2 - Second line first coordinate.
- * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @param {og.math.Vec2} start1 - First line first coordinate.
+ * @param {og.math.Vec2} end1 - First line second coordinate.
+ * @param {og.math.Vec2} start2 - Second line first coordinate.
+ * @param {og.math.Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {og.math.Vector2} - Intersection coordinate.
+ * @return {og.math.Vec2} - Intersection coordinate.
  */
-og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegment) {
+export function getLinesIntersection2v(start1, end1, start2, end2, isSegment) {
     var dir1 = end1.sub(start1);
     var dir2 = end2.sub(start2);
 
@@ -293,22 +297,22 @@ og.utils.getLinesIntersection2v = function (start1, end1, start2, end2, isSegmen
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
-    return new og.math.Vector2(start1.x + u * dir1.x, start1.y + u * dir1.y);
+    return new Vec2(start1.x + u * dir1.x, start1.y + u * dir1.y);
 };
 
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {og.math.Vector2} start1 - First line first coordinate.
- * @param {og.math.Vector2} end1 - First line second coordinate.
- * @param {og.math.Vector2} start2 - Second line first coordinate.
- * @param {og.math.Vector2} end2 - Second line second coordinate.
+ * @param {og.math.Vec2} start1 - First line first coordinate.
+ * @param {og.math.Vec2} end1 - First line second coordinate.
+ * @param {og.math.Vec2} start2 - Second line first coordinate.
+ * @param {og.math.Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {og.math.Vector2} - Intersection coordinate.
+ * @return {og.math.Vec2} - Intersection coordinate.
  */
-og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSegment) {
-    var dir1 = new og.LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
-    var dir2 = new og.LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
+export function getLinesIntersectionLonLat(start1, end1, start2, end2, isSegment) {
+    var dir1 = new LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
+    var dir2 = new LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
 
     var a1 = -dir1.lat;
     var b1 = +dir1.lon;
@@ -329,7 +333,7 @@ og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSe
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
-    return new og.LonLat(start1.lon + u * dir1.lon, start1.lat + u * dir1.lat);
+    return new LonLat(start1.lon + u * dir1.lon, start1.lat + u * dir1.lat);
 };
 
 /**
@@ -338,7 +342,7 @@ og.utils.getLinesIntersectionLonLat = function (start1, end1, start2, end2, isSe
  * @param {Object} xml - Xml object
  * @return {Object} - Json converted object.
  */
-og.utils.xmlToJson = function (xml) {
+export function xmlToJson(xml) {
 
     // Create the return object
     var obj = {};
@@ -376,7 +380,7 @@ og.utils.xmlToJson = function (xml) {
     return obj;
 };
 
-og.utils.castType = {
+export const castType = {
     "string": function (v) {
         return v != null ? v.toString() : v;
     },
