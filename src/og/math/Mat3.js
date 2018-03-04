@@ -5,7 +5,7 @@
 'use strict';
 
 import { Mat4 } from './Mat4.js';
-import { math } from './math.js';
+import { math } from '../math.js';
 import { Vec3 } from './Vec3.js';
 
 /**

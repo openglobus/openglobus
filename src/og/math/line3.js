@@ -1,13 +1,17 @@
-goog.provide('og.math.Line3');
+/**
+ * @module og/math/Line3
+ */
 
-goog.require('og.math.Vector3');
+'use strict';
 
-og.math.Line3 = function (p0, p1) {
-    this.p0 = (p0 ? p0.clone() : new og.math.Vector3());
-    this.p1 = (p1 ? p1.clone() : new og.math.Vector3());
+import { Vec3 } from './Vec3.js');
+
+const Line3 = function (p0, p1) {
+    this.p0 = (p0 ? p0.clone() : new Vec3());
+    this.p1 = (p1 ? p1.clone() : new Vec3());
 };
 
-og.math.Line3.prototype.getSphereIntersection = function (sphere) {
+Line3.prototype.getSphereIntersection = function (sphere) {
     var p0 = this.p0,
         p1 = this.p1;
 
@@ -30,24 +34,22 @@ og.math.Line3.prototype.getSphereIntersection = function (sphere) {
     var D = B * B - 4 * A * C;
 
     if (D < 0) {
-        //return new Point3D[0];
         return null;
     }
 
     var t1 = (-B - Math.Sqrt(D)) / (2.0 * A);
 
-    var solution1 = new og.math.Vector3(
+    var solution1 = new Vec3(
         p0.x * (1 - t1) + t1 * p1.x,
         p0.y * (1 - t1) + t1 * p1.y,
         p0.z * (1 - t1) + t1 * p1.z);
 
     if (D == 0) {
-        //return new Point3D[] { solution1 };
         return solution1;
     }
 
     var t2 = (-B + Math.Sqrt(D)) / (2.0 * A);
-    var solution2 = new og.math.Vector3(
+    var solution2 = new Vec3(
         p0.x * (1 - t2) + t2 * p1.x,
         p0.y * (1 - t2) + t2 * p1.y,
         p0.z * (1 - t2) + t2 * p1.z);
@@ -58,6 +60,7 @@ og.math.Line3.prototype.getSphereIntersection = function (sphere) {
         return [solution1, solution2];
     }
 
-    //return new Point3D[] { solution2, solution1 };
     return [solution2, solution1];
 };
+
+export { Line3 };
