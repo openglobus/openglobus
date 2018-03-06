@@ -4,9 +4,9 @@
 
 'use strict';
 
-import { Mat4 } from './Mat4.js');
-import { math } from '../math.js');
-import { Vec3 } from './Vec3.js');
+import * as math from '../math.js';
+import { Mat4 } from './Mat4.js';
+import { Vec3 } from './Vec3.js';
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.

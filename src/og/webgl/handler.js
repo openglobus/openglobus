@@ -7,7 +7,6 @@
 import { _cons } from '../Console.js';
 import { Clock } from '../Clock.js';
 import { ImageCanvas } from '../ImageCanvas.js';
-import { math } from '../math.js';
 import { ShaderController } from './ShaderController.js';
 import { Stack } from '../Stack.js';
 import { Vec2 } from '../math/Vec2.js';

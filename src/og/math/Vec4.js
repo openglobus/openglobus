@@ -14,7 +14,7 @@ import { Vec3 } from './Vec3.js';
  * @param {number} [z] - Third value.
  * @param {number} [w] - Fourth value.
  */
-oVec4 = function (x, y, z, w) {
+const Vec4 = function (x, y, z, w) {
 
     /**
      * @public
@@ -46,7 +46,7 @@ oVec4 = function (x, y, z, w) {
  * @const
  * @type {og.math.Vec4}
  */
-Vec4.identity = new og.math.Vec4(0, 0, 0, 1);
+Vec4.identity = new Vec4(0, 0, 0, 1);
 
 /**
  * Vector 4d object creator.
@@ -169,7 +169,7 @@ Vec4.prototype.addA = function (v) {
  * @param {og.math.Vec4} v - Subtract vector.
  * @returns {og.math.Vec4}
  */
-oVec4.prototype.subA = function (v) {
+Vec4.prototype.subA = function (v) {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;

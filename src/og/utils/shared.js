@@ -4,8 +4,8 @@
 
 'use strict';
 
-import { ajax } from './og/ajax.js';
-import { colorTable }'./colorTable.js';
+import { ajax } from '../ajax.js';
+import { colorTable } from './colorTable.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 import { Vec2 } from '../math/Vec2.js';

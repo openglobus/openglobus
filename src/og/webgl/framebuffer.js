@@ -71,7 +71,7 @@ class Framebuffer {
         this._initialize();
     }
 
-    destroy = function () {
+    destroy() {
         var gl = this.handler.gl;
         gl.deleteTexture(this.texture);
         gl.deleteFramebuffer(this._fbo);
@@ -88,7 +88,7 @@ class Framebuffer {
      * Framebuffer initialization.
      * @private
      */
-    _initialize = function () {
+    _initialize() {
         var gl = this.handler.gl;
 
         this._fbo = gl.createFramebuffer();

@@ -4,8 +4,8 @@
 
 'use strict';
 
-import { Events } from 'Events.js';
-import { jd } from 'astro/jd.js';
+import { Events } from './Events.js';
+import * as jd from './astro/jd.js';
 
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
@@ -162,7 +162,7 @@ class Clock {
      * @param {Clock} clock - Clock instance to compare.
      * @returns {boolean} - Returns true if a clock is the same instance.
      */
-    equal = function (clock) {
+    equal(clock) {
         return this._id === clock._id;
     }
 };

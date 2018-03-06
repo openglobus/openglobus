@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { math } from '../math.js');
+import * as math from '../math.js');
 import { Vec3 } from './Vec3.js');
 
 class Plane {

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { stamp } from 'utils/shared.js';
+import { stamp } from './utils/shared.js';
 
 /**
  * Base events class to handle custom events.
@@ -71,7 +71,7 @@ class Events {
      * @param {Object} obj - Event callback.
      * @return {boolean} -
      */
-    _stamp = function (name, obj) {
+    _stamp(name, obj) {
 
         var ogid = stamp(obj);
 

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { binarySearch } from '../utils/shared';
+import { binarySearch } from '../utils/shared.js';
 
 /**
  * Seconds in millisecond.

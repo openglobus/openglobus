@@ -1,7 +1,10 @@
-goog.provide('og.math.Mat4');
+/**
+ * @module og/math/Mat4
+ */
+
+'use strict';
 
 import { Mat3 } from './Mat3.js';
-import { math } from './math.js';
 import { Quat } from './Quat.js';
 import { Vec3 } from './Vec3.js';
 import { Vec4 } from './Vec4.js';
@@ -55,7 +58,7 @@ const Mat4 = function () {
  * @static
  * @returns {og.math.Mat4}
  */
-export mat4 = function () {
+export function mat4() {
     return new og.math.Mat4();
 };
 
@@ -65,7 +68,7 @@ export mat4 = function () {
  * @returns {og.math.Mat4}
  */
 Mat4.identity = function () {
-    var res = new og.math.Mat4();
+    var res = new Mat4();
     res._m[0] = 1; res._m[1] = 0; res._m[2] = 0; res._m[3] = 0;
     res._m[4] = 0; res._m[5] = 1; res._m[6] = 0; res._m[7] = 0;
     res._m[8] = 0; res._m[9] = 0; res._m[10] = 1; res._m[11] = 0;

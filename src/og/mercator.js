@@ -41,7 +41,7 @@ export function forward_lon(lon) {
  * @param {number} lat - Degrees geodetic latitude.
  * @returns {number}
  */
-export function forward_lat = function (lat) {
+export function forward_lat(lat) {
     return Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * POLE;
 };
 
@@ -51,7 +51,7 @@ export function forward_lat = function (lat) {
  * @param {number} lon - Mercator longitude.
  * @returns {number}
  */
-export function inverse_lon = function (lon) {
+export function inverse_lon(lon) {
     return 180 * lon / POLE;
 };
 
@@ -61,7 +61,7 @@ export function inverse_lon = function (lon) {
  * @param {number} lon - Mercator latitude.
  * @returns {number}
  */
-export function inverse_lat = function (lat) {
+export function inverse_lat(lat) {
     return 180 / Math.PI * (2 * Math.atan(Math.exp((lat / POLE) * Math.PI)) - Math.PI / 2);
 };
 
@@ -73,7 +73,7 @@ export function inverse_lat = function (lat) {
  * @param {number} zoom - Zoom level.
  * @returns {number}
  */
-export function getTileX = function (lon, zoom) {
+export function getTileX(lon, zoom) {
     return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
 };
 
@@ -85,7 +85,7 @@ export function getTileX = function (lon, zoom) {
  * @param {number} zoom - Zoom level.
  * @returns {number}
  */
-export function getTileY = function (lat, zoom) {
+export function getTileY(lat, zoom) {
     return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
 };
 
@@ -95,7 +95,7 @@ export function getTileY = function (lat, zoom) {
  * @param {Array.<og.LonLat>} lonLatArr - LonLat array to convert.
  * @returns {Array.<og.LonLat>}
  */
-export function forwardArray = function (lonlatArr) {
+export function forwardArray(lonlatArr) {
     var res = [];
     for (var i = 0; i < lonlatArr.length; i++) {
         res.push(lonlatArr[i].forwardMercator());

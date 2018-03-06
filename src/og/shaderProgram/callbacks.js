@@ -11,7 +11,7 @@ import { types } from './types.js';
  =========================*/
 export const callbacks = {
     'u': [],
-    's': []
+    'a': []
 };
 
 callbacks.u[types.MAT4] = function (program, variable) {

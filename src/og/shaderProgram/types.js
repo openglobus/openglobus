@@ -15,6 +15,6 @@ let _declarations = ["FLOAT", "DOUBLE", "BOOL", "INT", "UINT", "VEC2", "VEC3", "
 export const types = {};
 
 (function () {
-    for (let i = 0; i < og.shaderProgram.types._declarations.length; i++)
+    for (let i = 0; i < _declarations.length; i++)
         types[_declarations[i]] = i;
 })();

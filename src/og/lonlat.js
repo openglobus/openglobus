@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { mercator } from './mercator.js';
+import * as mercator from './mercator.js';
 
 /**
  * Represents a geographical point with a certain latitude, longitude and height.

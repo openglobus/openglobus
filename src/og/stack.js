@@ -20,7 +20,7 @@ class Stack {
 
         for (var i = 0; i < size; i++) {
             var n = new Node();
-            n.prev = _current;
+            n.prev = this._current;
             this._current.next = n;
             this._current = n;
         }

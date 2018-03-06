@@ -246,11 +246,11 @@ class Camera {
         return this._u;
     }
 
-    getLeft = function () {
+    getLeft() {
         return this._u.negateTo();
     }
 
-    getForward = function () {
+    getForward() {
         return this._n;
     }
 
