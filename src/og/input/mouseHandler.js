@@ -1,10 +1,14 @@
-goog.provide('og.input.MouseHandler');
+/**
+ * @module og/input/MouseHandler
+ */
 
-og.input.MouseHandler = function (htmlObject) {
+'use strict';
+
+const MouseHandler = function (htmlObject) {
     this._htmlObject = htmlObject;
 };
 
-og.input.MouseHandler.prototype.setEvent = function (event, sender, callback) {
+MouseHandler.prototype.setEvent = function (event, sender, callback) {
     switch (event) {
         case "mousewheel": {
             this._htmlObject.addEventListener('mousewheel', function (evt) {
@@ -46,3 +50,5 @@ og.input.MouseHandler.prototype.setEvent = function (event, sender, callback) {
         } break;
     }
 };
+
+export { MouseHandler };

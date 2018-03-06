@@ -2,6 +2,8 @@
  * @module og/ellipsoid/wgs84
  */
 
+'use strict';
+
 import { Ellipsoid } from './Ellipsoid.js';
 
 /**

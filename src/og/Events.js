@@ -57,7 +57,7 @@ class Events {
      * @public
      * @param {Array.<string>} eventNames - Specified event names list.
      */
-    registerNames = function (eventNames) {
+    registerNames(eventNames) {
         for (var i = 0; i < eventNames.length; i++) {
             this[eventNames[i]] = { "active": true, "handlers": [] };
             this._eventNames.push(eventNames[i]);
@@ -92,7 +92,7 @@ class Events {
      * @param {eventCallback} callback - Event callback function.
      * @param {Object} sender - Event callback function owner. 
      */
-    on = function (name, callback, sender) {
+    on(name, callback, sender) {
         if (this._stamp(name, callback)) {
             this[name] && this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
         }
@@ -104,7 +104,7 @@ class Events {
      * @param {string} name - Event name.
      * @param {eventCallback} callback - Attached  event callback.
      */
-    off = function (name, callback) {
+    off(name, callback) {
         var st = name + "_" + this.__id + "_" + callback._openglobus_id;
         if (callback._openglobus_id && this._stampCache[st]) {
             var h = this[name].handlers;
@@ -132,7 +132,7 @@ class Events {
      * @param {Object} event - Event instance property that created by event name.
      * @param {Object} [obj] - Event object.
      */
-    dispatch = function (event, obj) {
+    dispatch(event, obj) {
         if (event && event.active) {
             var h = event.handlers;
             var i = h.length;
@@ -148,7 +148,7 @@ class Events {
      * Brakes events propagation.
      * @public
      */
-    stopPropagation = function () {
+    stopPropagation() {
         this._stopPropagation = true;
     }
 
@@ -156,7 +156,7 @@ class Events {
      * Removes all events.
      * @public
      */
-    clear = function () {
+    clear() {
         for (var i = 0; i < this._eventNames.length; i++) {
             var e = this[this._eventNames[i]];
             e.handlers.length = 0;

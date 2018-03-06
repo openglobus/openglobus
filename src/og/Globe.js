@@ -2,6 +2,8 @@
  * @module og/Globe
  */
 
+'use strict';
+
 import { EmptyTerrainProvider } from './terrainProvider/EmptyTerrainProvider';
 import { Handler } from './webgl/Handler.js';
 import { Planet } from './scene/Planet.js';

@@ -1,10 +1,14 @@
-goog.provide('og.input.TouchHandler');
+/**
+ * @module og/input/TouchHandler
+ */
 
-og.input.TouchHandler = function (htmlObject) {
+'use strict';
+
+const TouchHandler = function (htmlObject) {
     this._htmlObject = htmlObject;
 };
 
-og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
+TouchHandler.prototype.setEvent = function (event, sender, callback) {
     switch (event) {
         case "touchcancel": {
             this._htmlObject.addEventListener('touchcancel', function (event) {
@@ -49,3 +53,5 @@ og.input.TouchHandler.prototype.setEvent = function (event, sender, callback) {
         } break;
     }
 };
+
+export { TouchHandler };

@@ -95,5 +95,5 @@ export class Console {
     }
 }
 
-export let _cons = new Console();
+export const _cons = new Console();
 

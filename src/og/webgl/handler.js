@@ -1,13 +1,25 @@
-goog.provide('og.webgl.Handler');
+/**
+ * @module og/webgl/Handler
+ */
 
-goog.require('og.webgl');
-goog.require('og.math');
-goog.require('og.webgl.ShaderController');
-goog.require('og.ImageCanvas');
-goog.require('og.math.Pixel');
-goog.require('og.Clock');
-goog.require('og.Console');
-goog.require('og.Stack');
+'use strict';
+
+import { _cons } from '../Console.js';
+import { Clock } from '../Clock.js';
+import { ImageCanvas } from '../ImageCanvas.js';
+import { math } from '../math.js';
+import { ShaderController } from './ShaderController.js';
+import { Stack } from '../Stack.js';
+import { Vec2 } from '../math/Vec2.js';
+
+/**
+ * Maximum texture image size.
+ * @const
+ * @type {number}
+ */
+const MAX_SIZE = 4096;
+
+const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
 /**
  * A WebGL handler for accessing low-level WebGL capabilities.
@@ -21,845 +33,880 @@ goog.require('og.Stack');
  * @param {Object} [param.scontext] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: OES_standard_derivatives, EXT_texture_filter_anisotropic.
  */
-og.webgl.Handler = function (id, params) {
+class Handler {
+    constructor(id, params) {
 
-    /**
-     * Application default timer.
-     * @public
-     * @type {og.Clock}
-     */
-    this.defaultClock = new og.Clock();
+        /**
+         * Application default timer.
+         * @public
+         * @type {og.Clock}
+         */
+        this.defaultClock = new Clock();
 
-    /**
-     * Custom timers.
-     * @protected
-     * @type{og.Clock[]}
-     */
-    this._clocks = [];
+        /**
+         * Custom timers.
+         * @protected
+         * @type{og.Clock[]}
+         */
+        this._clocks = [];
 
-    /**
-     * Draw frame time in milliseconds.
-     * @public
-     * @readonly
-     * @type {number}
-     */
-    this.deltaTime = 0;
+        /**
+         * Draw frame time in milliseconds.
+         * @public
+         * @readonly
+         * @type {number}
+         */
+        this.deltaTime = 0;
 
-    /**
-     * WebGL rendering canvas element.
-     * @public
-     * @type {Object}
-     */
-    this.canvas = null;
+        /**
+         * WebGL rendering canvas element.
+         * @public
+         * @type {Object}
+         */
+        this.canvas = null;
 
-    /**
-     * WebGL context.
-     * @public
-     * @type {Object}
-     */
-    this.gl = null;
+        /**
+         * WebGL context.
+         * @public
+         * @type {Object}
+         */
+        this.gl = null;
 
-    /**
-     * Shader program controller list.
-     * @public
-     * @type {Object.<og.webgl.ShaderController>}
-     */
-    this.shaderPrograms = {};
+        /**
+         * Shader program controller list.
+         * @public
+         * @type {Object.<og.webgl.ShaderController>}
+         */
+        this.shaderPrograms = {};
 
-    /**
-     * Current active shader program controller.
-     * @public
-     * @type {og.webgl.ShaderController}
-     */
-    this.activeShaderProgram = null;
+        /**
+         * Current active shader program controller.
+         * @public
+         * @type {og.webgl.ShaderController}
+         */
+        this.activeShaderProgram = null;
 
-    /**
-     * Handler parameters.
-     * @private
-     * @type {Object}
-     */
-    this._params = params || {};
-    this._params.anisotropy = this._params.anisotropy || 8;
-    var w = this._params.width;
-    if (w > og.webgl.Handler.MAX_SIZE) {
-        w = og.webgl.Handler.MAX_SIZE;
-    }
-    this._params.width = w || 256;
+        /**
+         * Handler parameters.
+         * @private
+         * @type {Object}
+         */
+        this._params = params || {};
+        this._params.anisotropy = this._params.anisotropy || 8;
+        var w = this._params.width;
+        if (w > MAX_SIZE) {
+            w = MAX_SIZE;
+        }
+        this._params.width = w || 256;
 
-    var h = this._params.height;
-    if (h > og.webgl.Handler.MAX_SIZE) {
-        h = og.webgl.Handler.MAX_SIZE;
-    }
-    this._params.height = h || 256;
-    this._params.context = this._params.context || {};
-    this._params.extensions = this._params.extensions || [];
-    this._oneByHeight = 1 / this._params.height;
+        var h = this._params.height;
+        if (h > MAX_SIZE) {
+            h = MAX_SIZE;
+        }
+        this._params.height = h || 256;
+        this._params.context = this._params.context || {};
+        this._params.extensions = this._params.extensions || [];
+        this._oneByHeight = 1 / this._params.height;
 
-    /**
-     * Current WebGL extensions. Becomes here after context initialization.
-     * @public
-     * @type {Object}
-     */
-    this.extensions = {};
+        /**
+         * Current WebGL extensions. Becomes here after context initialization.
+         * @public
+         * @type {Object}
+         */
+        this.extensions = {};
 
-    /**
-     * HTML Canvas object id.
-     * @private
-     * @type {Object}
-     */
-    this._id = id;
+        /**
+         * HTML Canvas object id.
+         * @private
+         * @type {Object}
+         */
+        this._id = id;
 
-    this._lastAnimationFrameTime = 0;
+        this._lastAnimationFrameTime = 0;
 
-    this._initialized = false;
+        this._initialized = false;
 
-    /**
-     * Animation frame function assigned from outside(Ex. from Renderer).
-     * @private
-     * @type {frameCallback}
-     */
-    this._frameCallback = function () { };
+        /**
+         * Animation frame function assigned from outside(Ex. from Renderer).
+         * @private
+         * @type {frameCallback}
+         */
+        this._frameCallback = function () { };
 
-    this.transparentTexture = null;
+        this.transparentTexture = null;
 
-    this.framebufferStack = new og.Stack();
+        this.framebufferStack = new Stack();
 
-    if (params.autoActivate) {
-        this.initialize();
-    }
-};
-
-/**
- * Maximum texture image size.
- * @const
- * @type {number}
- */
-og.webgl.Handler.MAX_SIZE = 4096;
-
-/**
- * Sets animation frame function.
- * @public
- * @param {callback} - Frame callback.
- */
-og.webgl.Handler.prototype.setFrameCallback = function (callback) {
-    callback && (this._frameCallback = callback);
-};
-
-/**
- * Creates NEAREST filter texture.
- * @public
- * @param {Object} image - Image or Canvas object.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createTexture_n = function (image) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates Empty half float texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL half float texture object.
- */
-og.webgl.Handler.prototype.createEmptyTexture_hf = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates Empty float texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL float texture object.
- */
-og.webgl.Handler.prototype.createEmptyTexture_f = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates Empty NEAREST filtered texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createEmptyTexture_n = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates empty LINEAR filtered texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createEmptyTexture_l = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates LINEAR filter texture.
- * @public
- * @param {Object} image - Image or Canvas object.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createTexture_l = function (image) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates MIPMAP filter texture.
- * @public
- * @param {Object} image - Image or Canvas object.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createTexture_mm = function (image) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates ANISOTROPY filter texture.
- * @public
- * @param {Object} image - Image or Canvas object.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createTexture_a = function (image) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-};
-
-/**
- * Creates DEFAULT filter texture, ANISOTROPY is default.
- * @public
- * @param {Object} image - Image or Canvas object.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.createTexture = og.webgl.Handler.prototype.createTexture_a;
-
-/**
- * Creates cube texture.
- * @public
- * @param {Object.<string>} params - Face image urls:
- * @param {string} params.px - Positive X or right image url.
- * @param {string} params.nx - Negative X or left image url.
- * @param {string} params.py - Positive Y or up image url.
- * @param {string} params.ny - Negative Y or bottom image url.
- * @param {string} params.pz - Positive Z or face image url.
- * @param {string} params.nz - Negative Z or back image url.
- * @returns {Object} - WebGL texture object.
- */
-og.webgl.Handler.prototype.loadCubeMapTexture = function (params) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    var faces = [[params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
-    [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
-    [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
-    [params.ny, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
-    [params.pz, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
-    [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
-
-    var imageCanvas = new og.ImageCanvas();
-    imageCanvas.fillEmpty();
-    var emptyImage = imageCanvas.getImage();
-
-    for (var i = 0; i < faces.length; i++) {
-        var face = faces[i][1];
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
+        if (params.autoActivate) {
+            this.initialize();
+        }
     }
 
-    for (var i = 0; i < faces.length; i++) {
-        var face = faces[i][1];
-        var image = new Image();
-        image.crossOrigin = '';
-        image.onload = function (texture, face, image) {
-            return function () {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    /**
+     * The return value is null if the extension is not supported, or an extension object otherwise.
+     * @param {Object} gl - WebGl context pointer.
+     * @param {String} name - Extension name.
+     * @returns {Object}
+     */
+    static getExtension(gl, name) {
+        var i, ext;
+        for (i in vendorPrefixes) {
+            ext = gl.getExtension(vendorPrefixes[i] + name);
+            if (ext) {
+                return ext;
             }
-        }(texture, face, image);
-        image.src = faces[i][0];
+        }
+        return null;
     }
-    return texture;
-};
 
-/**
- * Adds shader program to the handler.
- * @public
- * @param {og.shaderProgram.ShaderProgram} program - Shader program.
- * @param {boolean} [notActivate] - If it's true program will not compile.
- */
-og.webgl.Handler.prototype.addShaderProgram = function (program, notActivate) {
-    if (!this.shaderPrograms[program.name]) {
-        var sc = new og.webgl.ShaderController(this, program);
-        this.shaderPrograms[program.name] = sc;
-        this._initShaderController(sc);
-        if (notActivate)
-            sc._activated = false;
-    } else {
-        !COMPILED && og.console.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
+    /**
+     * Returns a drawing context on the canvas, or null if the context identifier is not supported.
+     * @param {Object} canvas - HTML canvas object.
+     * @params {Object} [contextAttributes] - See canvas.getContext contextAttributes.
+     * @returns {Object}
+     */
+    static getContext(canvas, contextAttributes) {
+        var ctx;
+        try {
+            ctx = canvas.getContext("webgl", contextAttributes) ||
+                canvas.getContext("experimental-webgl", contextAttributes);
+            ctx.canvas = canvas;
+        }
+        catch (ex) {
+            _cons.logErr("exception during the GL context initialization");
+        }
+        if (!ctx) {
+            _cons.logErr("could not initialise WebGL");
+        }
+        return ctx;
     }
-    return program;
-};
 
-/**
- * Removes shader program from handler.
- * @public
- * @param {String} program - Shader program name.
- */
-og.webgl.Handler.prototype.removeShaderProgram = function (name) {
-    this.shaderPrograms[name] && this.shaderPrograms[name].remove();
-};
-
-/**
- * Adds shader programs to the handler.
- * @public
- * @param {Array.<og.shaderProgram.ShaderProgram>} programsArr - Shader program array.
- */
-og.webgl.Handler.prototype.addShaderPrograms = function (programsArr) {
-    for (var i = 0; i < programsArr.length; i++) {
-        this.addShaderProgram(programsArr[i]);
+    /**
+     * Sets animation frame function.
+     * @public
+     * @param {callback} - Frame callback.
+     */
+    setFrameCallback(callback) {
+        callback && (this._frameCallback = callback);
     }
-};
 
-/**
- * Used in addShaderProgram
- * @private
- * @param {og.webgl.ShaderController}
- */
-og.webgl.Handler.prototype._initShaderController = function (sc) {
-    if (this._initialized) {
-        sc.initialize();
-        if (!this.activeShaderProgram) {
-            this.activeShaderProgram = sc;
-            sc.activate();
+    /**
+     * Creates NEAREST filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_n(image) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates Empty half float texture.
+     * @public
+     * @param {number} width - Empty texture width.
+     * @param {number} height - Empty texture height.
+     * @returns {Object} - WebGL half float texture object.
+     */
+    createEmptyTexture_hf(width, height) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates Empty float texture.
+     * @public
+     * @param {number} width - Empty texture width.
+     * @param {number} height - Empty texture height.
+     * @returns {Object} - WebGL float texture object.
+     */
+    createEmptyTexture_f(width, height) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates Empty NEAREST filtered texture.
+     * @public
+     * @param {number} width - Empty texture width.
+     * @param {number} height - Empty texture height.
+     * @returns {Object} - WebGL texture object.
+     */
+    createEmptyTexture_n(width, height) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates empty LINEAR filtered texture.
+     * @public
+     * @param {number} width - Empty texture width.
+     * @param {number} height - Empty texture height.
+     * @returns {Object} - WebGL texture object.
+     */
+    createEmptyTexture_l(width, height) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates LINEAR filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_l(image) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates MIPMAP filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_mm(image) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates ANISOTROPY filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_a(image) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates DEFAULT filter texture, ANISOTROPY is default.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture(image) {
+        return this.createTexture_a(image)
+    }
+
+    /**
+     * Creates cube texture.
+     * @public
+     * @param {Object.<string>} params - Face image urls:
+     * @param {string} params.px - Positive X or right image url.
+     * @param {string} params.nx - Negative X or left image url.
+     * @param {string} params.py - Positive Y or up image url.
+     * @param {string} params.ny - Negative Y or bottom image url.
+     * @param {string} params.pz - Positive Z or face image url.
+     * @param {string} params.nz - Negative Z or back image url.
+     * @returns {Object} - WebGL texture object.
+     */
+    loadCubeMapTexture(params) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        var faces = [[params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
+        [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
+        [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
+        [params.ny, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y],
+        [params.pz, gl.TEXTURE_CUBE_MAP_POSITIVE_Z],
+        [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]];
+
+        var imageCanvas = new ImageCanvas();
+        imageCanvas.fillEmpty();
+        var emptyImage = imageCanvas.getImage();
+
+        for (var i = 0; i < faces.length; i++) {
+            var face = faces[i][1];
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
+        }
+
+        for (var i = 0; i < faces.length; i++) {
+            var face = faces[i][1];
+            var image = new Image();
+            image.crossOrigin = '';
+            image.onload = function (texture, face, image) {
+                return function () {
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                    gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                }
+            }(texture, face, image);
+            image.src = faces[i][0];
+        }
+        return texture;
+    }
+
+    /**
+     * Adds shader program to the handler.
+     * @public
+     * @param {og.shaderProgram.ShaderProgram} program - Shader program.
+     * @param {boolean} [notActivate] - If it's true program will not compile.
+     */
+    addShaderProgram(program, notActivate) {
+        if (!this.shaderPrograms[program.name]) {
+            var sc = new ShaderController(this, program);
+            this.shaderPrograms[program.name] = sc;
+            this._initShaderController(sc);
+            if (notActivate)
+                sc._activated = false;
         } else {
-            sc.deactivate();
-            this.activeShaderProgram._program.enableAttribArrays();
-            this.activeShaderProgram._program.use();
+            !COMPILED && _cons.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
+        }
+        return program;
+    }
+
+    /**
+     * Removes shader program from handler.
+     * @public
+     * @param {String} program - Shader program name.
+     */
+    removeShaderProgram(name) {
+        this.shaderPrograms[name] && this.shaderPrograms[name].remove();
+    };
+
+    /**
+     * Adds shader programs to the handler.
+     * @public
+     * @param {Array.<og.shaderProgram.ShaderProgram>} programsArr - Shader program array.
+     */
+    addShaderPrograms(programsArr) {
+        for (var i = 0; i < programsArr.length; i++) {
+            this.addShaderProgram(programsArr[i]);
         }
     }
-};
 
-/**
- * Used in init function.
- * @private
- */
-og.webgl.Handler.prototype._initShaderPrograms = function () {
-    for (var p in this.shaderPrograms) {
-        this._initShaderController(this.shaderPrograms[p]);
-    }
-};
-
-/**
- * Initialize additional WebGL extensions.
- * @public
- * @param {string} extensionStr - Extension name.
- */
-og.webgl.Handler.prototype.initializeExtension = function (extensionStr, showLog) {
-    if (!(this.extensions && this.extensions[extensionStr])) {
-        var ext = og.webgl.getExtension(this.gl, extensionStr);
-        if (ext) {
-            this.extensions[extensionStr] = ext;
-        } else if (showLog) {
-            !COMPILED && og.console.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
+    /**
+     * Used in addShaderProgram
+     * @private
+     * @param {og.webgl.ShaderController}
+     */
+    _initShaderController(sc) {
+        if (this._initialized) {
+            sc.initialize();
+            if (!this.activeShaderProgram) {
+                this.activeShaderProgram = sc;
+                sc.activate();
+            } else {
+                sc.deactivate();
+                this.activeShaderProgram._program.enableAttribArrays();
+                this.activeShaderProgram._program.use();
+            }
         }
     }
-    return this.extensions && this.extensions[extensionStr];
-};
 
-/**
- * Main function that initialize handler.
- * @public
- */
-og.webgl.Handler.prototype.initialize = function () {
-
-    if (this._id) {
-        this.canvas = document.getElementById(this._id);
-    } else {
-        this.canvas = document.createElement("canvas");
-        this.canvas.width = this._params.width;
-        this.canvas.height = this._params.height;
+    /**
+     * Used in init function.
+     * @private
+     */
+    _initShaderPrograms() {
+        for (var p in this.shaderPrograms) {
+            this._initShaderController(this.shaderPrograms[p]);
+        }
     }
 
-    og.console = og.Console.getInstance();
-
-    this.gl = og.webgl.getContext(this.canvas, this._params.context);
-    this._initialized = true;
-
-    /** Sets deafult extensions */
-    this._params.extensions.push("OES_standard_derivatives");
-    this._params.extensions.push("EXT_texture_filter_anisotropic");
-    this._params.extensions.push("OES_element_index_uint");
-
-    //this._params.extensions.push('OES_texture_half_float');
-    //this._params.extensions.push('OES_texture_half_float_linear');
-
-    //this._params.extensions.push('OES_texture_float');
-    //this._params.extensions.push('OES_texture_float_linear');
-    
-    var i = this._params.extensions.length;
-    while (i--) {
-        this.initializeExtension(this._params.extensions[i], true);
+    /**
+     * Initialize additional WebGL extensions.
+     * @public
+     * @param {string} extensionStr - Extension name.
+     */
+    initializeExtension(extensionStr, showLog) {
+        if (!(this.extensions && this.extensions[extensionStr])) {
+            var ext = Handler.getExtension(this.gl, extensionStr);
+            if (ext) {
+                this.extensions[extensionStr] = ext;
+            } else if (showLog) {
+                !COMPILED && _cons.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
+            }
+        }
+        return this.extensions && this.extensions[extensionStr];
     }
 
-    if (!this.extensions.EXT_texture_filter_anisotropic)
-        this.createTexture = this.createTexture_mm;
+    /**
+     * Main function that initialize handler.
+     * @public
+     */
+    initialize() {
 
-    /** Initilalize shaders and rendering parameters*/
-    this._initShaderPrograms();
-    this._setDefaults();
-};
+        if (this._id) {
+            this.canvas = document.getElementById(this._id);
+        } else {
+            this.canvas = document.createElement("canvas");
+            this.canvas.width = this._params.width;
+            this.canvas.height = this._params.height;
+        }
 
-/**
- * Sets default gl render parameters. Used in init function.
- * @private
- */
-og.webgl.Handler.prototype._setDefaults = function () {
-    this.activateDepthTest();
-    this.setSize(this._params.width, this._params.height);
-    this.gl.frontFace(this.gl.CCW);
-    this.gl.cullFace(this.gl.BACK);
-    this.activateFaceCulling();
-    this.deactivateBlending();
-    var that = this;
-    this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
-        that.transparentTexture = t;
-    });
-};
+        this.gl = Handler.getContext(this.canvas, this._params.context);
+        this._initialized = true;
 
-/**
- * Activate depth test.
- * @public
- */
-og.webgl.Handler.prototype.activateDepthTest = function () {
-    this.gl.enable(this.gl.DEPTH_TEST);
-};
+        /** Sets deafult extensions */
+        this._params.extensions.push("OES_standard_derivatives");
+        this._params.extensions.push("EXT_texture_filter_anisotropic");
+        this._params.extensions.push("OES_element_index_uint");
 
-/**
- * Deactivate depth test.
- * @public
- */
-og.webgl.Handler.prototype.deactivateDepthTest = function () {
-    this.gl.disable(this.gl.DEPTH_TEST);
-};
+        //this._params.extensions.push('OES_texture_half_float');
+        //this._params.extensions.push('OES_texture_half_float_linear');
 
-/**
- * Activate face culling.
- * @public
- */
-og.webgl.Handler.prototype.activateFaceCulling = function () {
-    this.gl.enable(this.gl.CULL_FACE);
-};
+        //this._params.extensions.push('OES_texture_float');
+        //this._params.extensions.push('OES_texture_float_linear');
 
-/**
- * Deactivate face cullting.
- * @public
- */
-og.webgl.Handler.prototype.deactivateFaceCulling = function () {
-    this.gl.disable(this.gl.CULL_FACE);
-};
+        var i = this._params.extensions.length;
+        while (i--) {
+            this.initializeExtension(this._params.extensions[i], true);
+        }
 
-/**
- * Activate blending.
- * @public
- */
-og.webgl.Handler.prototype.activateBlending = function () {
-    this.gl.enable(this.gl.BLEND);
-};
+        if (!this.extensions.EXT_texture_filter_anisotropic)
+            this.createTexture = this.createTexture_mm;
 
-/**
- * Deactivate blending.
- * @public
- */
-og.webgl.Handler.prototype.deactivateBlending = function () {
-    this.gl.disable(this.gl.BLEND);
-};
-
-/**
- * Creates ARRAY buffer.
- * @public
- * @param {Array.<number>} array - Input array.
- * @param {number} itemSize - Array item size.
- * @param {number} numItems - Items quantity.
- * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
- * @return {Object}
- */
-og.webgl.Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage) {
-    var buffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
-    buffer.itemSize = itemSize;
-    buffer.numItems = numItems;
-    return buffer;
-};
-
-/**
- * Creates ELEMENT ARRAY buffer.
- * @public
- * @param {Array.<number>} array - Input array.
- * @param {number} itemSize - Array item size.
- * @param {number} numItems - Items quantity.
- * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
- * @return {Object}
- */
-og.webgl.Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems, usage) {
-    var buffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
-    buffer.itemSize = itemSize;
-    buffer.numItems = numItems || array.length;
-    return buffer;
-};
-
-/**
- * Sets handler canvas size.
- * @public
- * @param {number} width - Canvas width.
- * @param {number} height - Canvas height.
- */
-og.webgl.Handler.prototype.setSize = function (w, h) {
-
-    if (w > og.webgl.Handler.MAX_SIZE) {
-        w = og.webgl.Handler.MAX_SIZE;
+        /** Initilalize shaders and rendering parameters*/
+        this._initShaderPrograms();
+        this._setDefaults();
     }
 
-    if (h > og.webgl.Handler.MAX_SIZE) {
-        h = og.webgl.Handler.MAX_SIZE;
-    }
-
-    this._params.width = w;
-    this._params.height = h;
-    this.canvas.width = w;
-    this.canvas.height = h;
-    this._oneByHeight = 1 / h;
-
-    this.gl && this.gl.viewport(0, 0, w, h);
-    this.onCanvasResize && this.onCanvasResize(this.canvas);
-};
-
-/**
- * Returns context screen width.
- * @public
- * @returns {number}
- */
-og.webgl.Handler.prototype.getWidth = function () {
-    return this.canvas.width;
-};
-
-/**
- * Returns context screen height.
- * @public
- * @returns {number}
- */
-og.webgl.Handler.prototype.getHeight = function () {
-    return this.canvas.height;
-};
-
-/**
- * Returns canvas aspect ratio.
- * @public
- * @returns {number}
- */
-og.webgl.Handler.prototype.getClientAspect = function () {
-    return this.canvas.clientWidth / this.canvas.clientHeight;
-};
-
-/**
- * Returns screen center coordinates.
- * @public
- * @returns {number}
- */
-og.webgl.Handler.prototype.getCenter = function () {
-    var c = this.canvas;
-    return new og.math.Pixel(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
-};
-
-/**
- * Draw single frame.
- * @public
- * @param {number} now - Frame current time milliseconds.
- */
-og.webgl.Handler.prototype.drawFrame = function () {
-
-    /** Calculate frame time */
-    var now = new Date().getTime();
-    this.deltaTime = now - this._lastAnimationFrameTime;
-    this._lastAnimationFrameTime = now;
-
-    this.defaultClock._tick(this.deltaTime);
-
-    for (var i = 0; i < this._clocks.length; i++) {
-        this._clocks[i]._tick(this.deltaTime);
-    }
-
-    /** Canvas resize checking */
-    var canvas = this.canvas;
-    if (canvas.clientWidth !== canvas.width ||
-        canvas.clientHeight !== canvas.height) {
-        this.setSize(canvas.clientWidth, canvas.clientHeight);
-    }
-
-    /** Draw frame */
-    this._frameCallback();
-};
-
-/**
- * Clearing gl frame.
- * @public
- */
-og.webgl.Handler.prototype.clearFrame = function () {
-    var gl = this.gl;
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-};
-
-/**
- * Starts animation loop.
- * @public
- */
-og.webgl.Handler.prototype.start = function () {
-    if (!this._requestAnimationFrameId && this._initialized) {
-        var d = new Date();
-        this._lastAnimationFrameTime = d.getTime();
-        this.defaultClock.setDate(d);
-        this._animationFrameCallback();
-    }
-};
-
-og.webgl.Handler.prototype.stop = function () {
-    if (this._requestAnimationFrameId) {
-        window.cancelAnimationFrame(this._requestAnimationFrameId);
-        this._requestAnimationFrameId = null;
-    }
-};
-
-/**
- * Make animation.
- * @private
- */
-og.webgl.Handler.prototype._animationFrameCallback = function () {
-    var that = this;
-    this._requestAnimationFrameId = window.requestAnimationFrame(function () {
-        that.drawFrame();
-        that._animationFrameCallback();
-    });
-};
-
-/**
- * @public
- * @param
- */
-og.webgl.Handler.prototype.createDefaultTexture = function (params, success) {
-    var imgCnv;
-    var texture;
-    if (params && params.color) {
-        imgCnv = new og.ImageCanvas(2, 2);
-        imgCnv.fillColor(params.color);
-        texture = this.createTexture_n(imgCnv._canvas);
-        texture.default = true;
-        success(texture);
-    } else if (params && params.url) {
-        var img = new Image();
+    /**
+     * Sets default gl render parameters. Used in init function.
+     * @private
+     */
+    _setDefaults() {
+        this.activateDepthTest();
+        this.setSize(this._params.width, this._params.height);
+        this.gl.frontFace(this.gl.CCW);
+        this.gl.cullFace(this.gl.BACK);
+        this.activateFaceCulling();
+        this.deactivateBlending();
         var that = this;
-        img.onload = function () {
-            texture = that.createTexture(this);
+        this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
+            that.transparentTexture = t;
+        });
+    };
+
+    /**
+     * Activate depth test.
+     * @public
+     */
+    activateDepthTest() {
+        this.gl.enable(this.gl.DEPTH_TEST);
+    }
+
+    /**
+     * Deactivate depth test.
+     * @public
+     */
+    deactivateDepthTest() {
+        this.gl.disable(this.gl.DEPTH_TEST);
+    }
+
+    /**
+     * Activate face culling.
+     * @public
+     */
+    activateFaceCulling() {
+        this.gl.enable(this.gl.CULL_FACE);
+    }
+
+    /**
+     * Deactivate face cullting.
+     * @public
+     */
+    deactivateFaceCulling() {
+        this.gl.disable(this.gl.CULL_FACE);
+    }
+
+    /**
+     * Activate blending.
+     * @public
+     */
+    activateBlending() {
+        this.gl.enable(this.gl.BLEND);
+    }
+
+    /**
+     * Deactivate blending.
+     * @public
+     */
+    deactivateBlending() {
+        this.gl.disable(this.gl.BLEND);
+    }
+
+    /**
+     * Creates ARRAY buffer.
+     * @public
+     * @param {Array.<number>} array - Input array.
+     * @param {number} itemSize - Array item size.
+     * @param {number} numItems - Items quantity.
+     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @return {Object}
+     */
+    createArrayBuffer(array, itemSize, numItems, usage) {
+        var buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        buffer.itemSize = itemSize;
+        buffer.numItems = numItems;
+        return buffer;
+    }
+
+    /**
+     * Creates ELEMENT ARRAY buffer.
+     * @public
+     * @param {Array.<number>} array - Input array.
+     * @param {number} itemSize - Array item size.
+     * @param {number} numItems - Items quantity.
+     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @return {Object}
+     */
+    createElementArrayBuffer(array, itemSize, numItems, usage) {
+        var buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
+        buffer.itemSize = itemSize;
+        buffer.numItems = numItems || array.length;
+        return buffer;
+    }
+
+    /**
+     * Sets handler canvas size.
+     * @public
+     * @param {number} width - Canvas width.
+     * @param {number} height - Canvas height.
+     */
+    setSize(w, h) {
+
+        if (w > MAX_SIZE) {
+            w = MAX_SIZE;
+        }
+
+        if (h > MAX_SIZE) {
+            h = MAX_SIZE;
+        }
+
+        this._params.width = w;
+        this._params.height = h;
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this._oneByHeight = 1 / h;
+
+        this.gl && this.gl.viewport(0, 0, w, h);
+        this.onCanvasResize && this.onCanvasResize(this.canvas);
+    };
+
+    /**
+     * Returns context screen width.
+     * @public
+     * @returns {number}
+     */
+    getWidth() {
+        return this.canvas.width;
+    };
+
+    /**
+     * Returns context screen height.
+     * @public
+     * @returns {number}
+     */
+    getHeight() {
+        return this.canvas.height;
+    }
+
+    /**
+     * Returns canvas aspect ratio.
+     * @public
+     * @returns {number}
+     */
+    getClientAspect() {
+        return this.canvas.clientWidth / this.canvas.clientHeight;
+    }
+
+    /**
+     * Returns screen center coordinates.
+     * @public
+     * @returns {number}
+     */
+    getCenter() {
+        var c = this.canvas;
+        return new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
+    }
+
+    /**
+     * Draw single frame.
+     * @public
+     * @param {number} now - Frame current time milliseconds.
+     */
+    drawFrame() {
+
+        /** Calculate frame time */
+        var now = new Date().getTime();
+        this.deltaTime = now - this._lastAnimationFrameTime;
+        this._lastAnimationFrameTime = now;
+
+        this.defaultClock._tick(this.deltaTime);
+
+        for (var i = 0; i < this._clocks.length; i++) {
+            this._clocks[i]._tick(this.deltaTime);
+        }
+
+        /** Canvas resize checking */
+        var canvas = this.canvas;
+        if (canvas.clientWidth !== canvas.width ||
+            canvas.clientHeight !== canvas.height) {
+            this.setSize(canvas.clientWidth, canvas.clientHeight);
+        }
+
+        /** Draw frame */
+        this._frameCallback();
+    }
+
+    /**
+     * Clearing gl frame.
+     * @public
+     */
+    clearFrame() {
+        var gl = this.gl;
+        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
+    /**
+     * Starts animation loop.
+     * @public
+     */
+    start() {
+        if (!this._requestAnimationFrameId && this._initialized) {
+            var d = new Date();
+            this._lastAnimationFrameTime = d.getTime();
+            this.defaultClock.setDate(d);
+            this._animationFrameCallback();
+        }
+    };
+
+    stop() {
+        if (this._requestAnimationFrameId) {
+            window.cancelAnimationFrame(this._requestAnimationFrameId);
+            this._requestAnimationFrameId = null;
+        }
+    };
+
+    /**
+     * Make animation.
+     * @private
+     */
+    _animationFrameCallback() {
+        this._requestAnimationFrameId = window.requestAnimationFrame(() => {
+            this.drawFrame();
+            this._animationFrameCallback();
+        });
+    }
+
+    /**
+     * @public
+     * @param
+     */
+    createDefaultTexture(params, success) {
+        var imgCnv;
+        var texture;
+        if (params && params.color) {
+            imgCnv = new ImageCanvas(2, 2);
+            imgCnv.fillColor(params.color);
+            texture = this.createTexture_n(imgCnv._canvas);
             texture.default = true;
             success(texture);
-        };
-        img.src = params.url;
-    } else {
-        imgCnv = new og.ImageCanvas(2, 2);
-        imgCnv.fillColor("#C5C5C5");
-        texture = this.createTexture_n(imgCnv._canvas);
-        texture.default = true;
-        success(texture);
-    }
-};
-
-/**
- * @public
- */
-og.webgl.Handler.prototype.destroy = function () {
-
-    var gl = this.gl;
-
-    this.stop();
-
-    for (var p in this.shaderPrograms) {
-        this.removeShaderProgram(p);
+        } else if (params && params.url) {
+            var img = new Image();
+            var that = this;
+            img.onload = function () {
+                texture = that.createTexture(this);
+                texture.default = true;
+                success(texture);
+            };
+            img.src = params.url;
+        } else {
+            imgCnv = new ImageCanvas(2, 2);
+            imgCnv.fillColor("#C5C5C5");
+            texture = this.createTexture_n(imgCnv._canvas);
+            texture.default = true;
+            success(texture);
+        }
     }
 
-    gl.deleteTexture(this.transparentTexture);
-    this.transparentTexture = null;
+    /**
+     * @public
+     */
+    destroy() {
 
-    this.framebufferStack = null;
-    this.framebufferStack = new og.Stack();
+        var gl = this.gl;
 
-    if (this.canvas.parentNode) {
-        this.canvas.parentNode.removeChild(this.canvas);
+        this.stop();
+
+        for (var p in this.shaderPrograms) {
+            this.removeShaderProgram(p);
+        }
+
+        gl.deleteTexture(this.transparentTexture);
+        this.transparentTexture = null;
+
+        this.framebufferStack = null;
+        this.framebufferStack = new Stack();
+
+        if (this.canvas.parentNode) {
+            this.canvas.parentNode.removeChild(this.canvas);
+        }
+        this.canvas.width = 1;
+        this.canvas.height = 1;
+        this.canvas = null;
+
+        gl.canvas = null;
+
+        var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+        var tmp = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
+        for (var ii = 0; ii < numAttribs; ++ii) {
+            gl.disableVertexAttribArray(ii);
+            gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
+            gl.vertexAttrib1f(ii, 0);
+        }
+        gl.deleteBuffer(tmp);
+
+        var numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+        for (var ii = 0; ii < numTextureUnits; ++ii) {
+            gl.activeTexture(gl.TEXTURE0 + ii);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.useProgram(null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+        gl.disable(gl.BLEND);
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.DITHER);
+        gl.disable(gl.SCISSOR_TEST);
+        gl.blendColor(0, 0, 0, 0);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ZERO);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clearDepth(1);
+        gl.clearStencil(-1);
+
+        this.gl = null;
+
+        this._initialized = false;
     }
-    this.canvas.width = 1;
-    this.canvas.height = 1;
-    this.canvas = null;
 
-    gl.canvas = null;
-
-    var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
-    var tmp = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
-    for (var ii = 0; ii < numAttribs; ++ii) {
-        gl.disableVertexAttribArray(ii);
-        gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
-        gl.vertexAttrib1f(ii, 0);
-    }
-    gl.deleteBuffer(tmp);
-
-    var numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-    for (var ii = 0; ii < numTextureUnits; ++ii) {
-        gl.activeTexture(gl.TEXTURE0 + ii);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+    addClock(clock) {
+        if (!clock.__handler) {
+            clock.__handler = this;
+            this._clocks.push(clock);
+        }
     }
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.useProgram(null);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.disable(gl.BLEND);
-    gl.disable(gl.CULL_FACE);
-    gl.disable(gl.DEPTH_TEST);
-    gl.disable(gl.DITHER);
-    gl.disable(gl.SCISSOR_TEST);
-    gl.blendColor(0, 0, 0, 0);
-    gl.blendEquation(gl.FUNC_ADD);
-    gl.blendFunc(gl.ONE, gl.ZERO);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clearDepth(1);
-    gl.clearStencil(-1);
-
-    this.gl = null;
-
-    this._initialized = false;
-};
-
-og.webgl.Handler.prototype.addClock = function (clock) {
-    if (!clock.__handler) {
-        clock.__handler = this;
-        this._clocks.push(clock);
+    addClocks(clockArr) {
+        for (var i = 0; i < clockArr.length; i++) {
+            this.addClock(clockArr[i]);
+        }
     }
-};
 
-og.webgl.Handler.prototype.addClocks = function (clockArr) {
-    for (var i = 0; i < clockArr.length; i++) {
-        this.addClock(clockArr[i]);
-    }
-};
-
-og.webgl.Handler.prototype.removeClock = function (clock) {
-    if (clock.__handler) {
-        var c = this._clocks;
-        var i = c.length;
-        while (i--) {
-            if (c[i].equal(clock)) {
-                clock.__handler = null;
-                c.splice(i, 1);
-                break;
+    removeClock(clock) {
+        if (clock.__handler) {
+            var c = this._clocks;
+            var i = c.length;
+            while (i--) {
+                if (c[i].equal(clock)) {
+                    clock.__handler = null;
+                    c.splice(i, 1);
+                    break;
+                }
             }
         }
     }
 };
+
+export { Handler };
 

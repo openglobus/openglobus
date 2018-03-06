@@ -2,6 +2,8 @@
  * @module og/ellipsoid/Ellipsoid
  */
 
+'use strict';
+
 import { math } from '../math.js';
 import { Vec3 } from '../math/Vec3.js';
 import { LonLat } from '../LonLat.js';

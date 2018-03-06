@@ -1,6 +1,10 @@
-goog.provide('og.input.KeyboardHandler');
+/**
+ * @module og/input/KeyboardHandler
+ */
 
-og.input.KeyboardHandler = function () {
+'use strict';
+
+const KeyboardHandler = function () {
     var _currentlyPressedKeys = {};
     var _pressedKeysCallbacks = {};
     var _charkeysCallbacks = {};
@@ -8,10 +12,10 @@ og.input.KeyboardHandler = function () {
     var _anykeyCallback = null;
     var _event = null;
 
-    if (og.input.KeyboardHandler.prototype._instance) {
-        return og.input.KeyboardHandler.prototype._instance;
+    if (KeyboardHandler.prototype._instance) {
+        return KeyboardHandler.prototype._instance;
     } else {
-        og.input.KeyboardHandler.prototype._instance = this;
+        KeyboardHandler.prototype._instance = this;
 
         document.onkeydown = function (event) { _event = event; _that.handleKeyDown.call(_that) };
         document.onkeyup = function (event) { _event = event; _that.handleKeyUp.call(_that) };
@@ -79,3 +83,5 @@ og.input.KeyboardHandler = function () {
         }
     };
 };
+
+export { KeyboardHandler };
