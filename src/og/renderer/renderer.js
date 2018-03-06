@@ -225,7 +225,7 @@ class Renderer {
      * @returns {number} -
      */
     getWidth() {
-        return this.handler.gl.canvas.width;
+        return this.handler.canvas.width;
     }
 
     /**
@@ -234,7 +234,7 @@ class Renderer {
      * @returns {number} -
      */
     getHeight() {
-        return this.handler.gl.canvas.height;
+        return this.handler.canvas.height;
     }
 
     /**
@@ -243,7 +243,7 @@ class Renderer {
      * @returns {og.math.Vec2} -
      */
     getCenter() {
-        var cnv = this.handler.gl.canvas;
+        var cnv = this.handler.canvas;
         return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
     }
 

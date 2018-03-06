@@ -31,6 +31,6 @@ og.control.ShowFps.prototype.oninit = function () {
 
 
 og.control.ShowFps.prototype._draw = function () {
-    print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.gl.canvas.clientWidth - 60, 0);
+    print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.canvas.clientWidth - 60, 0);
 };
 

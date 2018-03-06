@@ -184,7 +184,7 @@ og.control.MouseNavigation.prototype.onMouseLeftButtonDoubleClick = function () 
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonClick = function () {
     if (this._active) {
-        this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
+        this.renderer.handler.canvas.classList.add("ogGrabbingPoiner");
         this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
         if (this.grabbedPoint) {
             this._eye0.copy(this.renderer.activeCamera.eye);
@@ -202,7 +202,7 @@ og.control.MouseNavigation.prototype.stopRotation = function () {
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonUp = function (e) {
-    this.renderer.handler.gl.canvas.classList.remove("ogGrabbingPoiner");
+    this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
 };
 
 og.control.MouseNavigation.prototype.onMouseLeftButtonDown = function (e) {

@@ -169,7 +169,7 @@ class Handler {
         try {
             ctx = canvas.getContext("webgl", contextAttributes) ||
                 canvas.getContext("experimental-webgl", contextAttributes);
-            ctx.canvas = canvas;
+            //ctx.canvas = canvas;
         }
         catch (ex) {
             _cons.logErr("exception during the GL context initialization");
@@ -836,8 +836,6 @@ class Handler {
         this.canvas.width = 1;
         this.canvas.height = 1;
         this.canvas = null;
-
-        gl.canvas = null;
 
         var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
         var tmp = gl.createBuffer();

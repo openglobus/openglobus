@@ -126,7 +126,7 @@ og.SpinNavigation.prototype.onTouchMove = function (e) {
 
 
 og.SpinNavigation.prototype.onMouseLeftButtonClick = function () {
-    this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
+    this.renderer.handler.canvas.classList.add("ogGrabbingPoiner");
     this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
     if (this.grabbedPoint) {
         this.grabbedSpheroid.radius = this.grabbedPoint.length();
@@ -143,7 +143,7 @@ og.SpinNavigation.prototype.stopRotation = function () {
 
 og.SpinNavigation.prototype.onMouseLeftButtonUp = function (e) {
     this.scaleRot = 1;
-    this.renderer.handler.gl.canvas.classList.remove("ogGrabbingPoiner");
+    this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
 
     if (Math.abs(e.x - e.prev_x) < 3 &&
         Math.abs(e.y - e.prev_y) < 3)

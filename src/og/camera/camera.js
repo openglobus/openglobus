@@ -379,7 +379,7 @@ class Camera {
         this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
 
-        var c = this.renderer.handler.gl.canvas;
+        var c = this.renderer.handler.canvas;
         this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (this._viewAngle * math.RADIANS);
 
         this._projectionMatrix.setPerspective(angle, aspect, near, far);
@@ -494,7 +494,7 @@ class Camera {
      * @returns {og.math.Vector3} - Direction vector.
      */
     unproject(x, y) {
-        var c = this.renderer.handler.gl.canvas,
+        var c = this.renderer.handler.canvas,
             w = c.width * 0.5,
             h = c.height * 0.5;
 
@@ -504,7 +504,7 @@ class Camera {
         var world1 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1, 1)).affinity(),
             world2 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0, 1)).affinity();
 
-        return world2.subA(world1).toVector3().normalize();
+        return world2.subA(world1).toVec3().normalize();
     }
 
     /**
@@ -515,7 +515,7 @@ class Camera {
      */
     project(v) {
         var r = this._projectionViewMatrix.mulVec4(v.toVector4()),
-            c = this.renderer.handler.gl.canvas;
+            c = this.renderer.handler.canvas;
         return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }
 

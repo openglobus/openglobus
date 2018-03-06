@@ -5,6 +5,7 @@
 'use strict';
 
 import { Events } from '../Events.js';
+import { input } from '../input/input.js';
 import { KeyboardHandler } from '../input/KeyboardHandler.js';
 import { MouseHandler } from '../input/MouseHandler.js';
 import { TouchHandler } from '../input/TouchHandler.js';
@@ -33,14 +34,14 @@ class RendererEvents extends Events {
          * @private
          * @type {og.input.TouchHandler}
          */
-        this._touchHandler = new TouchHandler(renderer.handler.gl.canvas);
+        this._touchHandler = new TouchHandler(renderer.handler.canvas);
 
         /**
          * Low level mouse events handler.
          * @private
          * @type {og.input.MouseHandler}
          */
-        this._mouseHandler = new MouseHandler(renderer.handler.gl.canvas);
+        this._mouseHandler = new MouseHandler(renderer.handler.canvas);
 
         /**
          * Low level keyboard events handler.
@@ -471,7 +472,6 @@ class RendererEvents extends Events {
                     if (p[0] || p[1] || p[2]) {
                         var po = o[p[0] + "_" + p[1] + "_" + p[2]];
                         if (po) {
-                            //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
                             var pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                             ms.pickingObject = po;
                             pe.dispatch(pe.mouseleave, ms);
@@ -481,7 +481,6 @@ class RendererEvents extends Events {
                     }
 
                     if (co) {
-                        //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
                         var ce = co.events || co._entityCollection && co._entityCollection.events || co._layer.events;
                         ms.pickingObject = co;
                         ce.dispatch(ce.mouseenter, ms);
@@ -497,9 +496,8 @@ class RendererEvents extends Events {
      * @private
      */
     handleMouseEvents() {
-        var ms = this.mouseState,
-            ce = this.dispatch;
-        var po = ms.pickingObject,
+        let ms = this.mouseState;
+        let po = ms.pickingObject,
             pe = null;
 
         if (ms.leftButtonClick) {
@@ -507,7 +505,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.lclick, ms);
             }
-            ce(this.lclick, ms);
+            this.dispatch(this.lclick, ms);
             ms.leftButtonClick = false;
         }
 
@@ -516,7 +514,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.rclick, ms);
             }
-            ce(this.rclick, ms);
+            this.dispatch(this.rclick, ms);
             ms.rightButtonClick = false;
         }
 
@@ -525,7 +523,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mclick, ms);
             }
-            ce(this.mclick, ms);
+            this.dispatch(this.mclick, ms);
             ms.middleButtonClick = false;
         }
 
@@ -535,14 +533,14 @@ class RendererEvents extends Events {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.lhold, ms);
                 }
-                ce(this.lhold, ms);
+                this.dispatch(this.lhold, ms);
             } else {
                 ms.leftButtonHold = true;
                 if (po) {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.ldown, ms);
                 }
-                ce(this.ldown, ms);
+                this.dispatch(this.ldown, ms);
             }
         }
 
@@ -552,14 +550,14 @@ class RendererEvents extends Events {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.rhold, ms);
                 }
-                ce(this.rhold, ms);
+                this.dispatch(this.rhold, ms);
             } else {
                 ms.rightButtonHold = true;
                 if (po) {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.rdown, ms);
                 }
-                ce(this.rdown, ms);
+                this.dispatch(this.rdown, ms);
             }
         }
 
@@ -569,14 +567,14 @@ class RendererEvents extends Events {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.mhold, ms);
                 }
-                ce(this.mhold, ms);
+                this.dispatch(this.mhold, ms);
             } else {
                 ms.middleButtonHold = true;
                 if (po) {
                     pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                     pe.dispatch(pe.mdown, ms);
                 }
-                ce(this.mdown, ms);
+                this.dispatch(this.mdown, ms);
             }
         }
 
@@ -585,7 +583,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.lup, ms);
             }
-            ce(this.lup, ms);
+            this.dispatch(this.lup, ms);
             ms.leftButtonUp = false;
             ms.leftButtonHold = false;
         }
@@ -595,7 +593,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.rup, ms);
             }
-            ce(this.rup, ms);
+            this.dispatch(this.rup, ms);
             ms.rightButtonUp = false;
             ms.rightButtonHold = false;
         }
@@ -605,7 +603,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mup, ms);
             }
-            ce(this.mup, ms);
+            this.dispatch(this.mup, ms);
             ms.middleButtonUp = false;
             ms.middleButtonHold = false;
         }
@@ -615,7 +613,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.ldblclick, ms);
             }
-            ce(this.ldblclick, ms);
+            this.dispatch(this.ldblclick, ms);
             ms.leftButtonDoubleClick = false;
         }
 
@@ -624,7 +622,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.rdblclick, ms);
             }
-            ce(this.rdblclick, ms);
+            this.dispatch(this.rdblclick, ms);
             ms.rightButtonDoubleClick = false;
         }
 
@@ -633,7 +631,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mdblclick, ms);
             }
-            ce(this.mdblclick, ms);
+            this.dispatch(this.mdblclick, ms);
             ms.middleButtonDoubleClick = false;
         }
 
@@ -642,7 +640,7 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mousewheel, ms);
             }
-            ce(this.mousewheel, ms);
+            this.dispatch(this.mousewheel, ms);
             ms.wheelDelta = 0;
         }
 
@@ -651,13 +649,13 @@ class RendererEvents extends Events {
                 pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
                 pe.dispatch(pe.mousemove, ms);
             }
-            ce(this.mousemove, ms);
+            this.dispatch(this.mousemove, ms);
             ms.prev_x = ms.x;
             ms.prev_y = ms.y;
         }
 
         if (ms.justStopped) {
-            ce(this.mousestop, ms);
+            this.dispatch(this.mousestop, ms);
             ms.justStopped = false;
         }
     }
@@ -666,14 +664,13 @@ class RendererEvents extends Events {
      * @private
      */
     handleTouchEvents() {
-        var ts = this.touchState,
-            ce = this.dispatch;
+        var ts = this.touchState;
 
         var tpo = ts.pickingObject,
             tpe = null;
 
         if (ts.touchCancel) {
-            ce(this.touchcancel, ts);
+            this.dispatch(this.touchcancel, ts);
             ts.touchCancel = false;
         }
 
@@ -690,7 +687,7 @@ class RendererEvents extends Events {
                 tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
                 tpe.dispatch(tpe.touchstart, ts);
             }
-            ce(this.touchstart, ts);
+            this.dispatch(this.touchstart, ts);
             ts.touchStart = false;
         }
 
@@ -699,7 +696,7 @@ class RendererEvents extends Events {
                 tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
                 tpe.dispatch(tpe.doubletouch, ts);
             }
-            ce(this.doubletouch, ts);
+            this.dispatch(this.doubletouch, ts);
             ts.doubleTouch = false;
         }
 
@@ -708,7 +705,7 @@ class RendererEvents extends Events {
                 tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
                 tpe.dispatch(tpe.touchend, ts);
             }
-            ce(this.touchend, ts);
+            this.dispatch(this.touchend, ts);
             ts.x = 0;
             ts.y = 0;
             ts.touchEnd = false;
@@ -719,7 +716,7 @@ class RendererEvents extends Events {
                 tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
                 tpe.dispatch(tpe.touchmove, ts);
             }
-            ce(this.touchmove, ts);
+            this.dispatch(this.touchmove, ts);
             ts.prev_x = ts.x;
             ts.prev_y = ts.y;
         }

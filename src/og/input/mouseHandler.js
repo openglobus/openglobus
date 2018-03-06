@@ -13,14 +13,18 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
         case "mousewheel": {
             this._htmlObject.addEventListener('mousewheel', function (evt) {
                 var delta = evt.deltaY || evt.detail || evt.wheelDelta;
-                evt.wheelDelta = delta * (-120);
+                if (evt.wheelDelta == undefined) {
+                    evt.wheelDelta = delta * (-120);
+                }
                 callback.call(sender, evt);
                 evt.preventDefault();
             }, false);
 
             this._htmlObject.addEventListener('wheel', function (evt) {
                 var delta = evt.deltaY || evt.detail || evt.wheelDelta;
-                evt.wheelDelta = delta * (-120);
+                if (evt.wheelDelta == undefined) {
+                    evt.wheelDelta = delta * (-120);
+                }
                 callback.call(sender, evt);
                 evt.preventDefault();
             }, false);
