@@ -1,4 +1,8 @@
-goog.provide('og.control.BaseControl');
+/**
+ * @module og/control/BaseControl
+ */
+
+'use strict';
 
 /**
  * Base control class for implementing renderer controls.
@@ -7,124 +11,128 @@ goog.provide('og.control.BaseControl');
  * @param {Object} [options] - Control activation options:
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
-og.control.BaseControl = function (options) {
-    options = options || {};
+class BaseControl {
+    constructor(options) {
+        options = options || {};
+
+        /**
+         * Control initialized.
+         * @protected
+         * @type {Boolean}
+         */
+        this._initialized = false;
+
+        /**
+         * Assigned renderer.
+         * @public
+         * @type {og.Renderer}
+         */
+        this.renderer = null;
+
+        /**
+         * Auto activation flag.
+         * @public
+         * @type {Boolean}
+         */
+        this.autoActivate = options.autoActivate != undefined ? options.autoActivate : true;
+
+        /**
+         * Control activity.
+         * @protected
+         * @type {Boolean}
+         */
+        this._active = false;
+    }
 
     /**
-     * Control initialized.
-     * @protected
-     * @type {Boolean}
+     * Control initialization function have to be overriden.
+     * @public
+     * @virtual
      */
-    this._initialized = false;
+    oninit() { }
 
     /**
-     * Assigned renderer.
+     * Control renderer assigning function have to be overriden.
+     * @public
+     * @virtual
+     */
+    onadd() { }
+
+    /**
+     * Control remove function have to be overriden.
+     * @public
+     * @virtual
+     */
+    onremove() { }
+
+    /**
+     * Control activation function have to be overriden.
+     * @public
+     * @virtual
+     */
+    onactivate() { }
+
+    /**
+     * Control deactivation function have to be overriden.
+     * @public
+     * @virtual
+     */
+    ondeactivate() { }
+
+    /**
+     * Assign renderer to the control.
      * @public
      * @type {og.Renderer}
      */
-    this.renderer = null;
-
-    /**
-     * Auto activation flag.
-     * @public
-     * @type {Boolean}
-     */
-    this.autoActivate = options.autoActivate != undefined ? options.autoActivate : true;
-
-    /**
-     * Control activity.
-     * @protected
-     * @type {Boolean}
-     */
-    this._active = false;
-};
-
-/**
- * Control initialization function have to be overriden.
- * @public
- * @virtual
- */
-og.control.BaseControl.prototype.oninit = function () { }
-
-/**
- * Control renderer assigning function have to be overriden.
- * @public
- * @virtual
- */
-og.control.BaseControl.prototype.onadd = function () { }
-
-/**
- * Control remove function have to be overriden.
- * @public
- * @virtual
- */
-og.control.BaseControl.prototype.onremove = function () { }
-
-/**
- * Control activation function have to be overriden.
- * @public
- * @virtual
- */
-og.control.BaseControl.prototype.onactivate = function () { }
-
-/**
- * Control deactivation function have to be overriden.
- * @public
- * @virtual
- */
-og.control.BaseControl.prototype.ondeactivate = function () { }
-
-/**
- * Assign renderer to the control.
- * @public
- * @type {og.Renderer}
- */
-og.control.BaseControl.prototype.addTo = function (renderer) {
-    if (renderer) {
-        this.renderer = renderer;
-        renderer.controls.push(this);
-        this.onadd && this.onadd();
-        if (this.autoActivate) {
-            this.oninit && this.oninit();
-            this._initialized = true;
-            this._active = true;
+    addTo(renderer) {
+        if (renderer) {
+            this.renderer = renderer;
+            renderer.controls.push(this);
+            this.onadd && this.onadd();
+            if (this.autoActivate) {
+                this.oninit && this.oninit();
+                this._initialized = true;
+                this._active = true;
+            }
         }
+    }
+
+    /**
+     * Assign renderer to the control.
+     * @public
+     */
+    remove() {
+        this.onremove && this.onremove();
+        this.renderer = null;
+        this._active = false;
+        this._initialized = false;
+    }
+
+    /**
+     * Activate control.
+     * @public
+     */
+    activate() {
+        this._active = true;
+        this.onactivate && this.onactivate();
+    }
+
+    /**
+     * Deactivate control.
+     * @public
+     */
+    deactivate() {
+        this._active = false;
+        this.ondeactivate && this.ondeactivate();
+    }
+
+    /**
+     * Is control active.
+     * @public
+     */
+    isActive() {
+        return this._active;
     }
 };
 
-/**
- * Assign renderer to the control.
- * @public
- */
-og.control.BaseControl.prototype.remove = function () {
-    this.onremove && this.onremove();
-    this.renderer = null;
-    this._active = false;
-    this._initialized = false;
-};
-
-/**
- * Activate control.
- * @public
- */
-og.control.BaseControl.prototype.activate = function () {
-    this._active = true;
-    this.onactivate && this.onactivate();
-};
-
-/**
- * Deactivate control.
- * @public
- */
-og.control.BaseControl.prototype.deactivate = function () {
-    this._active = false;
-    this.ondeactivate && this.ondeactivate();
-};
-
-/**
- * Is control active.
- * @public
- */
-og.control.BaseControl.prototype.isActive = function () {
-    return this._active;
-};
+export { BaseControl };

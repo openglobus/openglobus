@@ -1,65 +1,73 @@
-goog.provide('og.utils.ImagesCacheManager');
+/**
+ * @module og/utils/ImagesCacheManager
+ */
 
-goog.require('og.QueueArray');
+'use strict';
 
-og.utils.ImagesCacheManager = function () {
-    this.imagesCache = {};
+import { QueueArray } from '../QueueArray.js';
 
-    this._counter = 0;
-    this._pendingsQueue = new og.QueueArray();
-    this._imageIndexCounter = 0;
-};
+class ImagesCacheManager {
+    constructor() {
+        this.imagesCache = {};
 
-og.utils.ImagesCacheManager.prototype.load = function (src, success) {
-    if (this.imagesCache[src]) {
-        success(this.imagesCache[src]);
-    } else {
-        var req = { "src": src, "success": success };
-        if (this._counter >= 1) {
-            this._pendingsQueue.push(req);
-        } else {
-            this._exec(req);
-        }
+        this._counter = 0;
+        this._pendingsQueue = new QueueArray();
+        this._imageIndexCounter = 0;
     }
-};
 
-og.utils.ImagesCacheManager.prototype._exec = function (req) {
-    this._counter++;
-    var that = this;
-
-    var img = new Image();
-    img.crossOrigin = '';
-    img.onload = function () {
-        that.imagesCache[req.src] = img;
-        this.__nodeIndex = that._imageIndexCounter++;
-        req.success(this);
-        that._dequeueRequest();
+    load(src, success) {
+        if (this.imagesCache[src]) {
+            success(this.imagesCache[src]);
+        } else {
+            var req = { "src": src, "success": success };
+            if (this._counter >= 1) {
+                this._pendingsQueue.push(req);
+            } else {
+                this._exec(req);
+            }
+        }
     };
 
-    img.onerror = function () {
-        that._dequeueRequest();
-    };
+    _exec(req) {
+        this._counter++;
+        var that = this;
 
-    img.src = req.src;
-};
+        var img = new Image();
+        img.crossOrigin = '';
+        img.onload = function () {
+            that.imagesCache[req.src] = img;
+            this.__nodeIndex = that._imageIndexCounter++;
+            req.success(this);
+            that._dequeueRequest();
+        };
 
-og.utils.ImagesCacheManager.prototype._dequeueRequest = function () {
-    this._counter--;
-    if (this._pendingsQueue.length && this._counter < 1) {
-        while (this._pendingsQueue.length) {
-            var req = this._pendingsQueue.pop();
-            if (req) {
-                if (this.imagesCache[req.src]) {
-                    if (this._counter <= 0)
-                        this._counter = 0;
-                    else
-                        this._counter--;
-                    req.success(this.imagesCache[req.src]);
-                } else {
-                    this._exec(req);
-                    break;
+        img.onerror = function () {
+            that._dequeueRequest();
+        };
+
+        img.src = req.src;
+    }
+
+    _dequeueRequest() {
+        this._counter--;
+        if (this._pendingsQueue.length && this._counter < 1) {
+            while (this._pendingsQueue.length) {
+                var req = this._pendingsQueue.pop();
+                if (req) {
+                    if (this.imagesCache[req.src]) {
+                        if (this._counter <= 0)
+                            this._counter = 0;
+                        else
+                            this._counter--;
+                        req.success(this.imagesCache[req.src]);
+                    } else {
+                        this._exec(req);
+                        break;
+                    }
                 }
             }
         }
     }
 };
+
+export { ImagesCacheManager };

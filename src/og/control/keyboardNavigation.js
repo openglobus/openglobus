@@ -1,8 +1,13 @@
-goog.provide('og.control.KeyboardNavigation');
+/**
+ * @module og/control/KeyboardNavigation
+ */
 
-goog.require('og.inheritance');
-goog.require('og.control.BaseControl');
-goog.require('og.input');
+'use strict';
+
+import * as math from '../math.js';
+import { BaseControl } from './BaseControl.js';
+import { input } from '../input/input.js';
+import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
@@ -10,106 +15,103 @@ goog.require('og.input');
  * @extends {og.control.BaseControl}
  * @param {Object} [options] - Control options.
  */
-og.control.KeyboardNavigation = function (options) {
-    og.inheritance.base(this, options);
+class KeyboardNavigation extends BaseControl {
+    constructor(options) {
+        options = options || {};
+        super(options);
 
-    options = options || {};
-};
-
-og.inheritance.extend(og.control.KeyboardNavigation, og.control.BaseControl);
-
-og.control.keyboardNavigation = function (options) {
-    return new og.control.KeyboardNavigation(options);
-};
-
-og.control.KeyboardNavigation.prototype.oninit = function () {
-    this.renderer.events.on("keypress", og.input.KEY_W, this.onCameraMoveForward, this);
-    this.renderer.events.on("keypress", og.input.KEY_S, this.onCameraMoveBackward, this);
-    this.renderer.events.on("keypress", og.input.KEY_A, this.onCameraStrifeLeft, this);
-    this.renderer.events.on("keypress", og.input.KEY_D, this.onCameraStrifeRight, this);
-    this.renderer.events.on("keypress", og.input.KEY_UP, this.onCameraLookUp, this);
-    this.renderer.events.on("keypress", og.input.KEY_DOWN, this.onCameraLookDown, this);
-    this.renderer.events.on("keypress", og.input.KEY_LEFT, this.onCameraTurnLeft, this);
-    this.renderer.events.on("keypress", og.input.KEY_RIGHT, this.onCameraTurnRight, this);
-    this.renderer.events.on("keypress", og.input.KEY_Q, this.onCameraRollLeft, this);
-    this.renderer.events.on("keypress", og.input.KEY_E, this.onCameraRollRight, this);
-    this.renderer.events.on("keypress", og.input.KEY_SPACE, this.onCameraGrowAlt, this);
-};
-
-og.control.KeyboardNavigation.prototype.onCameraGrowAlt = function (e) {
-
-};
-
-og.control.KeyboardNavigation.prototype.onCameraMoveForward = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, -camera._lonLat.height / 30);
-    camera.update();
-};
-
-og.control.KeyboardNavigation.prototype.onCameraMoveBackward = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(0, 0, camera._lonLat.height / 30);
-    camera.update();
-};
-
-og.control.KeyboardNavigation.prototype.onCameraStrifeLeft = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(-camera._lonLat.height / 30, 0, 0);
-    camera.update();
-};
-
-og.control.KeyboardNavigation.prototype.onCameraStrifeRight = function (event) {
-    var camera = this.renderer.activeCamera;
-    camera.slide(camera._lonLat.height / 30, 0, 0);
-    camera.update();
-};
-
-og.control.KeyboardNavigation.prototype.onCameraLookUp = function (event) {
-    var cam = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.pitch(5);
-    } else {
-        cam.rotateVertical(cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
     }
-    cam.update();
-};
 
-og.control.KeyboardNavigation.prototype.onCameraLookDown = function (event) {
-    var cam = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.pitch(-5);
-    } else {
-        cam.rotateVertical(-cam._lonLat.height / 3000000 * og.math.RADIANS, og.math.Vector3.ZERO);
+    oninit() {
+        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
+        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
+        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
+        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
+        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
+        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this);
+        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this);
+        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
+        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
     }
-    cam.update();
-};
 
-og.control.KeyboardNavigation.prototype.onCameraTurnLeft = function (event) {
-    var cam = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.yaw(5);
-    } else {
-        cam.rotateHorizontal(cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+    onCameraMoveForward(event) {
+        var camera = this.renderer.activeCamera;
+        camera.slide(0, 0, -camera._lonLat.height / 30);
+        camera.update();
     }
-    cam.update();
-};
 
-og.control.KeyboardNavigation.prototype.onCameraTurnRight = function (event) {
-    var cam = this.renderer.activeCamera;
-    if (this.renderer.events.isKeyPressed(og.input.KEY_SHIFT)) {
-        cam.yaw(-5);
-    } else {
-        cam.rotateHorizontal(-cam._lonLat.height / 3000000 * og.math.RADIANS, false, og.math.Vector3.ZERO);
+    onCameraMoveBackward(event) {
+        var camera = this.renderer.activeCamera;
+        camera.slide(0, 0, camera._lonLat.height / 30);
+        camera.update();
     }
-    cam.update();
+
+    onCameraStrifeLeft(event) {
+        var camera = this.renderer.activeCamera;
+        camera.slide(-camera._lonLat.height / 30, 0, 0);
+        camera.update();
+    }
+
+    onCameraStrifeRight(event) {
+        var camera = this.renderer.activeCamera;
+        camera.slide(camera._lonLat.height / 30, 0, 0);
+        camera.update();
+    }
+
+    onCameraLookUp(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.pitch(5);
+        } else {
+            cam.rotateVertical(cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
+    onCameraLookDown(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.pitch(-5);
+        } else {
+            cam.rotateVertical(-cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
+    onCameraTurnLeft(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.yaw(5);
+        } else {
+            cam.rotateHorizontal(cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
+    onCameraTurnRight(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.yaw(-5);
+        } else {
+            cam.rotateHorizontal(-cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
+    onCameraRollLeft(event) {
+        this.renderer.activeCamera.roll(-5);
+        this.renderer.activeCamera.update();
+    }
+
+    onCameraRollRight(event) {
+        this.renderer.activeCamera.roll(5);
+        this.renderer.activeCamera.update();
+    }
 };
 
-og.control.KeyboardNavigation.prototype.onCameraRollLeft = function (event) {
-    this.renderer.activeCamera.roll(-5);
-    this.renderer.activeCamera.update();
+export function keyboardNavigation(options) {
+    return new KeyboardNavigation(options);
 };
 
-og.control.KeyboardNavigation.prototype.onCameraRollRight = function (event) {
-    this.renderer.activeCamera.roll(5);
-    this.renderer.activeCamera.update();
-};
+export { KeyboardNavigation };

@@ -50,7 +50,7 @@ class Rectangle {
      * @returns {og.Rectangle}
      */
     clone() {
-        return new og.Rectangle(this.left, this.top, this.right, this.bottom);
+        return new Rectangle(this.left, this.top, this.right, this.bottom);
     }
 
     /**

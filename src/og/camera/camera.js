@@ -441,7 +441,7 @@ class Camera {
      * @param {number} dv - delta Y.
      * @param {number} dn - delta Z.
      */
-    oslide(du, dv, dn) {
+    slide(du, dv, dn) {
         this.eye.x += du * this._u.x + dv * this._v.x + dn * this._n.x;
         this.eye.y += du * this._u.y + dv * this._v.y + dn * this._n.y;
         this.eye.z += du * this._u.z + dv * this._v.z + dn * this._n.z;

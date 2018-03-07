@@ -1,55 +1,79 @@
-goog.provide('og.scene.Axes');
+/**
+ * @module og/scene/Axes
+ */
 
-goog.require('og.inheritance');
-goog.require('og.scene.RenderNode');
-goog.require('og.shaderProgram.simple');
+'use strict';
 
-og.scene.Axes = function (size) {
-    og.inheritance.base(this, "Axes");
-    this.size = size || 10;
-    this.axesBuffer = null;
-    this.axesColorBuffer = null;
+import { RenderNode } from './RenderNode.js';
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+class Axes extends RenderNode {
+    constructor(size) {
+        super("Axes");
+
+        this.size = size || 100;
+        this.axesBuffer = null;
+        this.axesColorBuffer = null;
+    }
+
+    initialization() {
+        this.createAxisBuffer(this.size);
+        this.drawMode = this.renderer.handler.gl.LINES;
+        this.renderer.handler.addShaderProgram(new ShaderProgram("axesShader", {
+            uniforms: {
+                projectionViewMatrix: { type: types.MAT4 }
+            },
+            attributes: {
+                aVertexPosition: { type: types.VEC3, enableArray: true },
+                aVertexColor: { type: types.VEC4, enableArray: true }
+            },
+            vertexShader:
+            'attribute vec3 aVertexPosition;\
+            attribute vec4 aVertexColor;\
+            uniform mat4 projectionViewMatrix;\
+            varying vec4 vColor;\
+            void main(void) {\
+                gl_Position = projectionViewMatrix * vec4(aVertexPosition, 1.0);\
+                vColor = aVertexColor;\
+            }',
+            fragmentShader:
+            'precision highp float;\
+            varying vec4 vColor;\
+            void main(void) {\
+                gl_FragColor = vColor;\
+            }'
+        }));
+    }
+
+    frame() {
+
+        this.renderer.handler.shaderPrograms.axesShader.activate().set({
+            projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
+            aVertexPosition: this.axisBuffer,
+            aVertexColor: this.axisColorBuffer
+        });
+
+        this.renderer.handler.shaderPrograms.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
+    }
+
+    createAxisBuffer(gridSize) {
+
+        var vertices = [
+            0.0, 0.0, 0.0, gridSize - 1, 0.0, 0.0, // x - R
+            0.0, 0.0, 0.0, 0.0, gridSize - 1, 0.0, // y - B  
+            0.0, 0.0, 0.0, 0.0, 0.0, gridSize - 1  // z - G
+        ];
+
+        var colors = [
+            1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,   // x - R
+            0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,   // y - B
+            0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0    // z - G
+        ];
+
+        this.axisBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
+        this.axisColorBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(colors), 4, 6);
+    }
 };
 
-og.scene.axes = function (size) {
-    return new og.scene.Axes(size);
-};
-
-og.inheritance.extend(og.scene.Axes, og.scene.RenderNode);
-
-og.scene.Axes.prototype.initialization = function () {
-    this.createAxisBuffer(this.size);
-    this.drawMode = this.renderer.handler.gl.LINES;
-    this.renderer.handler.addShaderProgram(og.shaderProgram.simple());
-};
-
-og.scene.Axes.prototype.frame = function () {
-
-    this.renderer.handler.shaderPrograms.simple.activate();
-
-    this.renderer.handler.shaderPrograms.simple.set({
-        projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
-        aVertexPosition: this.axisBuffer,
-        aVertexColor: this.axisColorBuffer
-    });
-
-    this.renderer.handler.shaderPrograms.simple.drawArray(this.drawMode, this.axisBuffer.numItems);
-};
-
-og.scene.Axes.prototype.createAxisBuffer = function (gridSize) {
-
-    var vertices = [
-         0.0, 0.0, 0.0, gridSize - 1, 0.0, 0.0, // x - R
-         0.0, 0.0, 0.0, 0.0, gridSize - 1, 0.0, // y - B  
-         0.0, 0.0, 0.0, 0.0, 0.0, gridSize - 1  // z - G
-    ];
-
-    var colors = [
-        1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,   // x - R
-        0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,   // y - B
-        0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0    // z - G
-    ];
-
-    this.axisBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
-    this.axisColorBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(colors), 4, 6);
-};
+export { Axes };

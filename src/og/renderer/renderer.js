@@ -12,8 +12,8 @@ import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { _cons } from '../Console.js';
-import { ShaderProgram } from '../shaderProgram/ShaderProgram.js';
-import { types } from '../shaderProgram/types.js';
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
 
 /**
@@ -108,7 +108,7 @@ class Renderer {
          * @public
          * @type {Array.<og.control.Control>}
          */
-        this.controls = [];
+        this.controls = params.controls || [];
 
         /**
          * Provides exchange between controls.
@@ -354,6 +354,10 @@ class Renderer {
         }
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
+
+        let _c = this.controls;
+        this.controls = [];
+        this.addControls(_c);
     };
 
     /**

@@ -13,7 +13,7 @@ class QueueArray {
         this.length = 0;
     }
 
-    clear {
+    clear() {
         this._array.length = 0;
         this._array = new Array(this._size);
         this._popIndex = parseInt(this._size * 0.5);
@@ -26,8 +26,8 @@ class QueueArray {
         this._array[this._popIndex++] = data;
     }
 
-    pop {
-        if(this.length) {
+    pop() {
+        if (this.length) {
             this.length--;
             var res = this._array[--this._popIndex]
             this._array[this._popIndex] = null;
@@ -37,7 +37,7 @@ class QueueArray {
             }
             return res;
         }
-    return undefined;
+        return undefined;
     }
 
     unshift(data) {

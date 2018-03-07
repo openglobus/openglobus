@@ -1,5 +1,5 @@
 /**
- * @module og/shaderProgram/callbacks
+ * @module og/webgl/callbacks
  */
 
 'use strict';

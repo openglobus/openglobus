@@ -1,5 +1,5 @@
 /**
- * @module og/shaderProgram/types
+ * @module og/webgl/types
  */
 
 'use strict';
