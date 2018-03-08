@@ -1,10 +1,45 @@
-goog.provide('og.quadTree.Node');
+/**
+ * @module og/quadTree/Node
+ */
 
-goog.require('og.Extent');
-goog.require('og.LonLat');
-goog.require('og.quadTree');
-goog.require('og.proj.EPSG4326');
-goog.require('og.mercator');
+'use strict';
+
+import * as mercator from '../mercator.js';
+import * as math from '../math.js';
+import * as quadTree from './quadTree.js';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
+import { EPSG4326 } from '../proj/EPSG4326.js';
+import { EPSG3857 } from '../proj/EPSG3857.js';
+import { Vec3 } from '../math/Vec3.js';
+
+const VISIBLE_DISTANCE = 3570;
+const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
+const _neGridSize = Math.sqrt(Node._vertOrder.length) - 1;
+
+/**
+ * Returns triangle coordinate array from inside of the source triangle array.
+ * @static
+ * @param {Array.<number>} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @return{Array.<number>} Triangle coordinates array from the source array.
+ */
+function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
+    var res = new Float32Array((i0 + size + 1) * (j0 + size + 1) * 3);
+    var vInd = 0;
+    for (var i = i0; i <= i0 + size; i++) {
+        for (var j = j0; j <= j0 + size; j++) {
+            var ind = 3 * (i * (gridSize + 1) + j);
+            res[vInd++] = sourceArr[ind];
+            res[vInd++] = sourceArr[ind + 1];
+            res[vInd++] = sourceArr[ind + 2];
+        }
+    }
+    return res;
+};
 
 /**
  * Quad tree planet segment node.
@@ -17,7 +52,7 @@ goog.require('og.mercator');
  * @param {number} tileZoom - Deep index of the quad tree.
  * @param {og.Extent} extent - Planet segment extent.
  */
-og.quadTree.Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
+const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
     this.planet = planet;
     this.parentNode = parent;
     this.nodes = [];
@@ -30,7 +65,7 @@ og.quadTree.Node = function (segmentPrototype, planet, partId, parent, id, tileZ
     this.neighbors = [null, null, null, null];
     this.SegmentPrototype = segmentPrototype;
     this.planetSegment = new segmentPrototype(this, planet, tileZoom, extent);
-    
+
     /**
      * @private
      */
@@ -39,11 +74,7 @@ og.quadTree.Node = function (segmentPrototype, planet, partId, parent, id, tileZ
     this.planet._createdNodesCount++;
 };
 
-og.quadTree.Node.VISIBLE_DISTANCE = 3570;
-og.quadTree.Node._vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
-og.quadTree.Node._neGridSize = Math.sqrt(og.quadTree.Node._vertOrder.length) - 1;
-
-og.quadTree.Node.prototype.createChildrenNodes = function () {
+Node.prototype.createChildrenNodes = function () {
     var p = this.planet;
     var ps = this.planetSegment;
     var ext = ps._extent;
@@ -52,29 +83,29 @@ og.quadTree.Node.prototype.createChildrenNodes = function () {
     var ne = ext.northEast, sw = ext.southWest;
     var z = ps.tileZoom + 1;
     var id = this.nodeId * 4 + 1;
-    var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
+    var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.nodes;
 
-    nd[og.quadTree.NW] = new og.quadTree.Node(this.SegmentPrototype, p, og.quadTree.NW, this, id, z,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)));
+    nd[quadTree.NW] = new Node(this.SegmentPrototype, p, quadTree.NW, this, id, z,
+        new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
 
-    nd[og.quadTree.NE] = new og.quadTree.Node(this.SegmentPrototype, p, og.quadTree.NE, this, id, z,
-        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)));
+    nd[quadTree.NE] = new Node(this.SegmentPrototype, p, quadTree.NE, this, id, z,
+        new Extent(c, new LonLat(ne.lon, ne.lat)));
 
-    nd[og.quadTree.SW] = new og.quadTree.Node(this.SegmentPrototype, p, og.quadTree.SW, this, id, z,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat), c));
+    nd[quadTree.SW] = new Node(this.SegmentPrototype, p, quadTree.SW, this, id, z,
+        new Extent(new LonLat(sw.lon, sw.lat), c));
 
-    nd[og.quadTree.SE] = new og.quadTree.Node(this.SegmentPrototype, p, og.quadTree.SE, this, id, z,
-        new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)));
+    nd[quadTree.SE] = new Node(this.SegmentPrototype, p, quadTree.SE, this, id, z,
+        new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
 };
 
-og.quadTree.Node.prototype.createBounds = function () {
+Node.prototype.createBounds = function () {
 
     var seg = this.planetSegment;
 
     if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
-        seg.bsphere.center = new og.math.Vector3();
+        seg.bsphere.center = new Vec3();
     } else if (seg.tileZoom < seg.planet.terrainProvider.minZoom) {
         seg.createBoundsByExtent();
     } else {
@@ -112,15 +143,15 @@ og.quadTree.Node.prototype.createBounds = function () {
                 var t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                var bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
+                var v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                var vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
                 var vi_y = t_i0,
                     vi_x = t_j0;
@@ -128,18 +159,18 @@ og.quadTree.Node.prototype.createBounds = function () {
                 var coords_lt, coords_rb;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_lt = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
+                    coords_lt = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_lt = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
+                    coords_lt = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
                 vi_y = t_i0 + 1,
                     vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_rb = og.math.Vector3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
+                    coords_rb = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
                 } else {
-                    coords_rb = og.math.Vector3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
+                    coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
                 seg.bsphere.radius = coords_lt.distance(coords_rb) * 0.5;
@@ -151,12 +182,12 @@ og.quadTree.Node.prototype.createBounds = function () {
     }
 };
 
-og.quadTree.Node.prototype.getState = function () {
+Node.prototype.getState = function () {
     //return this.planetSegment.getNodeState();
     var pn = this.parentNode;
     while (pn) {
-        if (pn.state !== og.quadTree.WALKTHROUGH) {
-            return og.quadTree.NOTRENDERING;
+        if (pn.state !== quadTree.WALKTHROUGH) {
+            return quadTree.NOTRENDERING;
         }
         pn = pn.parentNode;
     }
@@ -169,22 +200,22 @@ og.quadTree.Node.prototype.getState = function () {
  * @param {Number} side - Neighbour side index e.g. og.quadTree.N, og.quadTree.W etc.
  * @returns {og.quadTree.Node} -
  */
-og.quadTree.Node.prototype.getEqualNeighbor = function (side) {
+Node.prototype.getEqualNeighbor = function (side) {
     var pn = this;
-    var part = og.quadTree.NEIGHBOUR[side][pn.partId];
+    var part = quadTree.NEIGHBOUR[side][pn.partId];
     if (part !== -1) {
         return pn.parentNode.nodes[part];
     } else {
         var pathId = [];
         while (pn.parentNode) {
             pathId.push(pn.partId);
-            part = og.quadTree.NEIGHBOUR[side][pn.partId];
+            part = quadTree.NEIGHBOUR[side][pn.partId];
             pn = pn.parentNode;
             if (part !== -1) {
                 var i = pathId.length;
-                side = og.quadTree.OPSIDE[side];
+                side = quadTree.OPSIDE[side];
                 while (pn && i--) {
-                    part = og.quadTree.OPPART[side][pathId[i]];
+                    part = quadTree.OPPART[side][pathId[i]];
                     pn = pn.nodes[part];
                 }
                 return pn;
@@ -193,35 +224,35 @@ og.quadTree.Node.prototype.getEqualNeighbor = function (side) {
     }
 };
 
-og.quadTree.Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
+Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
     if (height < 3000000.0) {
         if (altVis) {
             this.renderNode(onlyTerrain);
         } else {
-            this.state = og.quadTree.NOTRENDERING;
+            this.state = quadTree.NOTRENDERING;
         }
     } else {
         this.renderNode(onlyTerrain);
     }
 };
 
-og.quadTree.Node.prototype.traverseNodes = function (maxZoom) {
+Node.prototype.traverseNodes = function (maxZoom) {
     if (!this.nodes.length) {
         this.createChildrenNodes();
     }
-    this.nodes[og.quadTree.NW].renderTree(maxZoom);
-    this.nodes[og.quadTree.NE].renderTree(maxZoom);
-    this.nodes[og.quadTree.SW].renderTree(maxZoom);
-    this.nodes[og.quadTree.SE].renderTree(maxZoom);
+    this.nodes[quadTree.NW].renderTree(maxZoom);
+    this.nodes[quadTree.NE].renderTree(maxZoom);
+    this.nodes[quadTree.SW].renderTree(maxZoom);
+    this.nodes[quadTree.SE].renderTree(maxZoom);
 };
 
-og.quadTree.Node.prototype.isBrother = function (node) {
+Node.prototype.isBrother = function (node) {
     return !(this.parentNode || node.parentNode) ||
         this.parentNode.id === node.parentNode.id;
 };
 
-og.quadTree.Node.prototype.renderTree = function (maxZoom) {
-    this.state = og.quadTree.WALKTHROUGH;
+Node.prototype.renderTree = function (maxZoom) {
+    this.state = quadTree.WALKTHROUGH;
 
     this.neighbors[0] = null;
     this.neighbors[1] = null;
@@ -240,11 +271,11 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
         //Search a node which the camera is flying over.
         if (this.parentNode._cameraInside) {
             var inside;
-            if (Math.abs(cam._lonLat.lat) <= og.mercator.MAX_LAT &&
-                seg._projection.id === og.proj.EPSG3857.id) {
+            if (Math.abs(cam._lonLat.lat) <= mercator.MAX_LAT &&
+                seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
                 cam._insideSegmentPosition = cam._lonLatMerc;
-            } else if (seg._projection.id === og.proj.EPSG4326.id) {
+            } else if (seg._projection.id === EPSG4326.id) {
                 inside = seg._extent.isInside(cam._lonLat);
                 cam._insideSegmentPosition = cam._lonLat;
             }
@@ -270,7 +301,7 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
     var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        og.quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(h);
+        VISIBLE_DISTANCE * Math.sqrt(h);
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
@@ -285,7 +316,7 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
             }
         }
     } else {
-        this.state = og.quadTree.NOTRENDERING;
+        this.state = quadTree.NOTRENDERING;
     }
 
     if (inFrustum && (altVis || h > 10000.0)) {
@@ -298,9 +329,9 @@ og.quadTree.Node.prototype.renderTree = function (maxZoom) {
  * @public
  * @param {Boolean} onlyTerrain - It means that loads only terrain for this node.
  */
-og.quadTree.Node.prototype.renderNode = function (onlyTerrain) {
+Node.prototype.renderNode = function (onlyTerrain) {
 
-    this.state = og.quadTree.NOTRENDERING;
+    this.state = quadTree.NOTRENDERING;
 
     var seg = this.planetSegment;
 
@@ -316,7 +347,7 @@ og.quadTree.Node.prototype.renderNode = function (onlyTerrain) {
         return;
     }
 
-    this.state = og.quadTree.RENDERING;
+    this.state = quadTree.RENDERING;
 
     //Create normal map texture.
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
@@ -342,14 +373,14 @@ og.quadTree.Node.prototype.renderNode = function (onlyTerrain) {
  * Seraching for neighbours and pickup current node to render processing.
  * @public
  */
-og.quadTree.Node.prototype.addToRender = function () {
+Node.prototype.addToRender = function () {
     var node = this;
     var nodes = node.planet._renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
         var ni = nodes[i];
         var cs = node.getCommonSide(ni);
         if (cs !== -1) {
-            var opcs = og.quadTree.OPSIDE[cs];
+            var opcs = quadTree.OPSIDE[cs];
 
             node.neighbors[cs] = ni;
             ni.neighbors[opcs] = node;
@@ -379,7 +410,7 @@ og.quadTree.Node.prototype.addToRender = function () {
     nodes.push(node);
 };
 
-og.quadTree.Node.prototype.getCommonSide = function (node) {
+Node.prototype.getCommonSide = function (node) {
     var a = this.planetSegment._extent,
         b = node.planetSegment._extent;
     var a_ne = a.northEast, a_sw = a.southWest,
@@ -387,39 +418,39 @@ og.quadTree.Node.prototype.getCommonSide = function (node) {
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
         b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
-    var POLE = og.mercator.POLE,
-        MAX_LAT = og.mercator.MAX_LAT;
+    var POLE = mercator.POLE,
+        MAX_LAT = mercator.MAX_LAT;
 
     if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
         if (a_ne_lon === b_sw_lon) {
-            return og.quadTree.E;
+            return quadTree.E;
         } else if (a_sw_lon === b_ne_lon) {
-            return og.quadTree.W;
+            return quadTree.W;
         } else if (this.planetSegment.tileZoom > 0) {
             if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-                return og.quadTree.E;
+                return quadTree.E;
             } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return og.quadTree.E;
+                return quadTree.E;
             } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return og.quadTree.W;
+                return quadTree.W;
             }
         }
     } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
         if (a_ne_lat === b_sw_lat) {
-            return og.quadTree.N;
+            return quadTree.N;
         } else if (a_sw_lat === b_ne_lat) {
-            return og.quadTree.S;
+            return quadTree.S;
         } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-            return og.quadTree.N;
+            return quadTree.N;
         } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-            return og.quadTree.S;
+            return quadTree.S;
         }
     }
 
     return -1;
 };
 
-og.quadTree.Node.prototype.whileNormalMapCreating = function () {
+Node.prototype.whileNormalMapCreating = function () {
 
     var seg = this.planetSegment;
     var maxZ = this.planet.terrainProvider.maxZoom;
@@ -461,7 +492,7 @@ og.quadTree.Node.prototype.whileNormalMapCreating = function () {
     }
 };
 
-og.quadTree.Node.prototype.whileTerrainLoading = function () {
+Node.prototype.whileTerrainLoading = function () {
 
     var seg = this.planetSegment;
 
@@ -474,8 +505,8 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
         n.length === 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
         n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
     ) {
-        var xmin = og.math.MAX, xmax = og.math.MIN, ymin = og.math.MAX,
-            ymax = og.math.MIN, zmin = og.math.MAX, zmax = og.math.MIN;
+        var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
 
         seg.initializePlainSegment();
 
@@ -561,10 +592,10 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
         seg.ready = true;
 
         var e = seg._extent;
-        seg._globalTextureCoordinates[0] = (e.southWest.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[1] = (og.mercator.POLE - e.northEast.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[2] = (e.northEast.lon + og.mercator.POLE) * og.mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[3] = (og.mercator.POLE - e.southWest.lat) * og.mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        seg._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
 
         return false;
     }
@@ -606,35 +637,35 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
                 seg.gridSize = gridSize;
                 this.sideSize = [gridSize, gridSize, gridSize, gridSize];
 
-                tempVertices = og.quadTree.getMatrixSubArray(pseg.terrainVertices,
+                tempVertices = getMatrixSubArray(pseg.terrainVertices,
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
 
-                tempNormalMapNormals = og.quadTree.getMatrixSubArray(pseg.normalMapNormals,
+                tempNormalMapNormals = getMatrixSubArray(pseg.normalMapNormals,
                     fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
             } else {
-                seg.gridSize = og.quadTree.Node._neGridSize;
+                seg.gridSize = _neGridSize;
                 this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
 
                 var i0 = Math.floor(gridSize * offsetY);
                 var j0 = Math.floor(gridSize * offsetX);
 
-                var bigOne = og.quadTree.getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                var bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
                 var insideSize = 1.0 / gridSize;
 
                 var t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                var v_lt = new og.math.Vector3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new og.math.Vector3(bigOne[9], bigOne[10], bigOne[11]);
+                var v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                var vn = new og.math.Vector3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new og.math.Vector3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new og.math.Vector3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new og.math.Vector3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                var vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                var coords = new og.math.Vector3();
-                var vo = og.quadTree.Node._vertOrder;
+                var coords = new Vec3();
+                var vo = _vertOrder;
 
                 tempVertices = new Float32Array(3 * vo.length);
 
@@ -695,37 +726,13 @@ og.quadTree.Node.prototype.whileTerrainLoading = function () {
     return true;
 };
 
-/**
- * Static function returns triangle coordinate array from inside of the source triangle array.
- * @static
- * @param {Array.<number>} sourceArr - Source array
- * @param {number} gridSize - Source array square matrix size
- * @param {number} i0 - First row index source array matrix
- * @param {number} j0 - First column index
- * @param {number} size - Square matrix result size.
- * @return{Array.<number>} Triangle coordinates array from the source array.
- */
-og.quadTree.getMatrixSubArray = function (sourceArr, gridSize, i0, j0, size) {
-    var res = new Float32Array((i0 + size + 1) * (j0 + size + 1) * 3);
-    var vInd = 0;
-    for (var i = i0; i <= i0 + size; i++) {
-        for (var j = j0; j <= j0 + size; j++) {
-            var ind = 3 * (i * (gridSize + 1) + j);
-            res[vInd++] = sourceArr[ind];
-            res[vInd++] = sourceArr[ind + 1];
-            res[vInd++] = sourceArr[ind + 2];
-        }
-    }
-    return res;
-};
-
-og.quadTree.Node.prototype.clearTree = function () {
+Node.prototype.clearTree = function () {
 
     var state = this.getState();
 
-    if (state === og.quadTree.NOTRENDERING) {
+    if (state === quadTree.NOTRENDERING) {
         this.destroyBranches(true);
-    } else if (state === og.quadTree.RENDERING) {
+    } else if (state === quadTree.RENDERING) {
         this.destroyBranches(false);
     } else {
         for (var i = 0; i < this.nodes.length; i++) {
@@ -734,14 +741,14 @@ og.quadTree.Node.prototype.clearTree = function () {
     }
 };
 
-og.quadTree.Node.prototype.destroy = function () {
-    this.state = og.quadTree.NOTRENDERING;
+Node.prototype.destroy = function () {
+    this.state = quadTree.NOTRENDERING;
     this.planetSegment.destroySegment();
     var n = this.neighbors;
-    n[og.quadTree.N] && n[og.quadTree.N].neighbors && (n[og.quadTree.N].neighbors[og.quadTree.S] = null);
-    n[og.quadTree.E] && n[og.quadTree.E].neighbors && (n[og.quadTree.E].neighbors[og.quadTree.W] = null);
-    n[og.quadTree.S] && n[og.quadTree.S].neighbors && (n[og.quadTree.S].neighbors[og.quadTree.N] = null);
-    n[og.quadTree.W] && n[og.quadTree.W].neighbors && (n[og.quadTree.W].neighbors[og.quadTree.E] = null);
+    n[quadTree.N] && n[quadTree.N].neighbors && (n[quadTree.N].neighbors[quadTree.S] = null);
+    n[quadTree.E] && n[quadTree.E].neighbors && (n[quadTree.E].neighbors[quadTree.W] = null);
+    n[quadTree.S] && n[quadTree.S].neighbors && (n[quadTree.S].neighbors[quadTree.N] = null);
+    n[quadTree.W] && n[quadTree.W].neighbors && (n[quadTree.W].neighbors[quadTree.E] = null);
     this.neighbors = null;
     this.hasNeighbors = null;
     this.parentNode = null;
@@ -749,7 +756,7 @@ og.quadTree.Node.prototype.destroy = function () {
     this.planetSegment = null;
 };
 
-og.quadTree.Node.prototype.destroyBranches = function (cls) {
+Node.prototype.destroyBranches = function (cls) {
 
     var nodesToRemove = [],
         i;
@@ -771,9 +778,11 @@ og.quadTree.Node.prototype.destroyBranches = function (cls) {
     nodesToRemove = null;
 };
 
-og.quadTree.Node.prototype.traverseTree = function (callback) {
+Node.prototype.traverseTree = function (callback) {
     callback(this);
     for (var i = 0; i < this.nodes.length; i++) {
         this.nodes[i].traverseTree(callback);
     }
 };
+
+export { Node };

@@ -1,10 +1,13 @@
-goog.provide('og.proj.EPSG3857');
+/**
+ * @module og/proj/EPSG3857
+ */
 
-goog.require('og.proj.Projection');
-goog.require('og.Units');
+'use strict';
+
+import { Units, Proj } from './Proj.js';
 
 /**
  * EPSG:3857 projection object.
  * @type {og.proj.Projection}
  */
-og.proj.EPSG3857 = new og.proj.Projection({ code: "epsg:3857", units: og.Units.METERS });
+export const EPSG3857 = new Proj({ code: "epsg:3857", units: Units.METERS });

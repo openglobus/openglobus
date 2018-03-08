@@ -1,15 +1,20 @@
-goog.provide('og.quadTree.EntityCollectionQuadNode');
-goog.provide('EntityCollectionQuadNodeWGS84');
+/**
+ * @module og/quadTree/EntityCollectionNode
+ */
 
-goog.require('og.Extent');
-goog.require('og.quadTree');
-goog.require('og.LonLat');
-goog.require('og.EntityCollection');
-goog.require('og.bv.Box');
-goog.require('og.bv.Sphere');
-goog.require('og.inheritance');
+'use strict';
 
-og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, extent, planet, zoom) {
+import * as inheritance from '../inheritance.js';
+import * as mercator from '../mercator.js';
+import * as quadTree from './quadTree.js';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
+import { Vec3 } from '../math/Vec3.js';
+import { EntityCollection } from '../entity/EntityCollection.js';
+import { Box } from '../bv/Box.js';
+import { Sphere } from '../bv/Sphere.js';
+
+const EntityCollectionNode = function (layer, partId, parent, id, extent, planet, zoom) {
     this.layer = layer;
     this.parentNode = parent;
     this.childrenNodes = [];
@@ -23,12 +28,12 @@ og.quadTree.EntityCollectionQuadNode = function (layer, partId, parent, id, exte
     this.zoom = zoom;
     this._inTheQueue = false;
 
-    this.bsphere = new og.bv.Sphere();
+    this.bsphere = new Sphere();
 
     planet && this._setExtentBounds();
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.insertEntity = function (entity, isInside, rightNow) {
+EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightNow) {
 
     var p = this._setLonLat(entity);
 
@@ -39,14 +44,14 @@ og.quadTree.EntityCollectionQuadNode.prototype.insertEntity = function (entity, 
         if (this.count > this.layer._nodeCapacity) {
             var cn = this.childrenNodes;
             if (cn.length) {
-                if (cn[og.quadTree.NW].extent.isInside(p)) {
-                    cn[og.quadTree.NW].insertEntity(entity, true, rightNow);
-                } else if (cn[og.quadTree.NE].extent.isInside(p)) {
-                    cn[og.quadTree.NE].insertEntity(entity, true, rightNow);
-                } else if (cn[og.quadTree.SW].extent.isInside(p)) {
-                    cn[og.quadTree.SW].insertEntity(entity, true, rightNow);
-                } else if (cn[og.quadTree.SE].extent.isInside(p)) {
-                    cn[og.quadTree.SE].insertEntity(entity, true, rightNow);
+                if (cn[quadTree.NW].extent.isInside(p)) {
+                    cn[quadTree.NW].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.NE].extent.isInside(p)) {
+                    cn[quadTree.NE].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.SW].extent.isInside(p)) {
+                    cn[quadTree.SW].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.SE].extent.isInside(p)) {
+                    cn[quadTree.SE].insertEntity(entity, true, rightNow);
                 }
             } else {
                 var entities = this.entityCollection.getEntities();
@@ -65,7 +70,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.insertEntity = function (entity, 
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
+EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
     if (entities.length) {
         var l = this.layer,
             p = l._planet,
@@ -75,7 +80,7 @@ og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = functi
         var ec = this.entityCollection;
 
         if (!ec) {
-            ec = new og.EntityCollection({
+            ec = new EntityCollection({
                 'pickingEnabled': l._pickingEnabled
             });
             ec._layer = this.layer;
@@ -93,21 +98,21 @@ og.quadTree.EntityCollectionQuadNode.prototype._addEntitiesToCollection = functi
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype._setExtentBounds = function () {
+EntityCollectionNode.prototype._setExtentBounds = function () {
     if (!this.nodeId) {
         this.bsphere.radius = this.layer._planet.ellipsoid._a;
-        this.bsphere.center = new og.math.Vector3();
+        this.bsphere.center = new Vec3();
     } else {
         this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent.inverseMercator());
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype._setLonLat = function (entity) {
+EntityCollectionNode.prototype._setLonLat = function (entity) {
     if (!entity._lonlat) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
     this.layer._fitExtent(entity);
-    if (Math.abs(entity._lonlat.lat) < og.mercator.MAX_LAT) {
+    if (Math.abs(entity._lonlat.lat) < mercator.MAX_LAT) {
         entity._lonlatMerc = entity._lonlat.forwardMercator();
     } else {
         entity._lonlatMerc = null;
@@ -115,7 +120,7 @@ og.quadTree.EntityCollectionQuadNode.prototype._setLonLat = function (entity) {
     return entity._lonlatMerc;
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities, rightNow) {
+EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
 
     this.count = entities.length;
 
@@ -136,26 +141,26 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities, r
             var ei = entities[i];
             var p = this._setLonLat(ei);
             if (p) {
-                if (cn[og.quadTree.NW].extent.isInside(p)) {
-                    ei._nodePtr = cn[og.quadTree.NW];
+                if (cn[quadTree.NW].extent.isInside(p)) {
+                    ei._nodePtr = cn[quadTree.NW];
                     en_nw.push(ei);
-                } else if (cn[og.quadTree.NE].extent.isInside(p)) {
-                    ei._nodePtr = cn[og.quadTree.NE];
+                } else if (cn[quadTree.NE].extent.isInside(p)) {
+                    ei._nodePtr = cn[quadTree.NE];
                     en_ne.push(ei);
-                } else if (cn[og.quadTree.SW].extent.isInside(p)) {
-                    ei._nodePtr = cn[og.quadTree.SW];
+                } else if (cn[quadTree.SW].extent.isInside(p)) {
+                    ei._nodePtr = cn[quadTree.SW];
                     en_sw.push(ei);
-                } else if (cn[og.quadTree.SE].extent.isInside(p)) {
-                    ei._nodePtr = cn[og.quadTree.SE];
+                } else if (cn[quadTree.SE].extent.isInside(p)) {
+                    ei._nodePtr = cn[quadTree.SE];
                     en_se.push(ei);
                 }
             }
         }
 
-        en_nw.length && cn[og.quadTree.NW].buildTree(en_nw, rightNow);
-        en_ne.length && cn[og.quadTree.NE].buildTree(en_ne, rightNow);
-        en_sw.length && cn[og.quadTree.SW].buildTree(en_sw, rightNow);
-        en_se.length && cn[og.quadTree.SE].buildTree(en_se, rightNow);
+        en_nw.length && cn[quadTree.NW].buildTree(en_nw, rightNow);
+        en_ne.length && cn[quadTree.NE].buildTree(en_ne, rightNow);
+        en_sw.length && cn[quadTree.SW].buildTree(en_sw, rightNow);
+        en_se.length && cn[quadTree.SE].buildTree(en_se, rightNow);
 
     } else {
         this._addEntitiesToCollection(entities, rightNow);
@@ -163,7 +168,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.buildTree = function (entities, r
 };
 
 
-og.quadTree.EntityCollectionQuadNode.prototype.createChildrenNodes = function () {
+EntityCollectionNode.prototype.createChildrenNodes = function () {
     var l = this.layer;
     var ext = this.extent;
     var size_x = ext.getWidth() * 0.5;
@@ -171,25 +176,25 @@ og.quadTree.EntityCollectionQuadNode.prototype.createChildrenNodes = function ()
     var ne = ext.northEast,
         sw = ext.southWest;
     var id = this.nodeId * 4 + 1;
-    var c = new og.LonLat(sw.lon + size_x, sw.lat + size_y);
+    var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.childrenNodes;
     var p = this.layer._planet;
     var z = this.zoom + 1;
 
-    nd[og.quadTree.NW] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.NW, this, id,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat + size_y), new og.LonLat(sw.lon + size_x, ne.lat)), p, z);
+    nd[quadTree.NW] = new EntityCollectionNode(l, quadTree.NW, this, id,
+        new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
 
-    nd[og.quadTree.NE] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.NE, this, id,
-        new og.Extent(c, new og.LonLat(ne.lon, ne.lat)), p, z);
+    nd[quadTree.NE] = new EntityCollectionNode(l, quadTree.NE, this, id,
+        new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
 
-    nd[og.quadTree.SW] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.SW, this, id,
-        new og.Extent(new og.LonLat(sw.lon, sw.lat), c), p, z);
+    nd[quadTree.SW] = new EntityCollectionNode(l, quadTree.SW, this, id,
+        new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
 
-    nd[og.quadTree.SE] = new og.quadTree.EntityCollectionQuadNode(l, og.quadTree.SE, this, id,
-        new og.Extent(new og.LonLat(sw.lon + size_x, sw.lat), new og.LonLat(ne.lon, sw.lat + size_y)), p, z);
+    nd[quadTree.SE] = new EntityCollectionNode(l, quadTree.SE, this, id,
+        new oExtent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS1 = function (visibleNodes, outArr) {
+EntityCollectionNode.prototype.collectRenderCollectionsPASS1 = function (visibleNodes, outArr) {
     var p = this.layer._planet;
     var cam = p.renderer.activeCamera;
     var n = visibleNodes[this.nodeId];
@@ -199,24 +204,24 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS1 = f
         if (this.entityCollection) {
             this.renderCollection(outArr, visibleNodes);
         } else if (cn.length) {
-            if (n.state === og.quadTree.RENDERING) {
+            if (n.state === quadTree.RENDERING) {
                 this.layer._secondPASS.push(this);
             } else {
-                cn[og.quadTree.NW].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                cn[og.quadTree.NE].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                cn[og.quadTree.SW].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                cn[og.quadTree.SE].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                cn[quadTree.NW].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                cn[quadTree.NE].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                cn[quadTree.SW].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                cn[quadTree.SE].collectRenderCollectionsPASS1(visibleNodes, outArr);
             }
         }
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = function (visibleNodes, outArr, renderingNodeId) {
+EntityCollectionNode.prototype.collectRenderCollectionsPASS2 = function (visibleNodes, outArr, renderingNodeId) {
     var p = this.layer._planet;
     var cam = p.renderer.activeCamera;
 
     var altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-        og.quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+        quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
 
     if (this.count > 0 && altVis &&
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
@@ -226,37 +231,37 @@ og.quadTree.EntityCollectionQuadNode.prototype.collectRenderCollectionsPASS2 = f
         if (this.entityCollection) {
             this.renderCollection(outArr, visibleNodes, renderingNodeId);
         } else if (cn.length) {
-            cn[og.quadTree.NW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-            cn[og.quadTree.NE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-            cn[og.quadTree.SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-            cn[og.quadTree.SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[quadTree.NW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[quadTree.NE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[quadTree.SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+            cn[quadTree.SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
         }
 
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.applyCollection = function () {
+EntityCollectionNode.prototype.applyCollection = function () {
     this.entityCollection.addEntities(this.deferredEntities);
     this.deferredEntities.length = 0;
     this.deferredEntities = [];
     this._inTheQueue = false;
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.traverseTree = function (callback) {
+EntityCollectionNode.prototype.traverseTree = function (callback) {
 
     var cn = this.childrenNodes;
 
     if (this.entityCollection) {
         callback(this);
     } else if (cn.length) {
-        cn[og.quadTree.NW].traverseTree(callback);
-        cn[og.quadTree.NE].traverseTree(callback);
-        cn[og.quadTree.SW].traverseTree(callback);
-        cn[og.quadTree.SE].traverseTree(callback);
+        cn[quadTree.NW].traverseTree(callback);
+        cn[quadTree.NE].traverseTree(callback);
+        cn[quadTree.SW].traverseTree(callback);
+        cn[quadTree.SE].traverseTree(callback);
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outArr, visibleNodes, renderingNodeId) {
+EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes, renderingNodeId) {
 
     var l = this.layer;
 
@@ -279,7 +284,7 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
         var e = ec._entities;
         var i = e.length;
 
-        if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === og.quadTree.RENDERING) {
+        if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === quadTree.RENDERING) {
             while (i--) {
                 var ei = e[i];
                 this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].planetSegment);
@@ -305,40 +310,40 @@ og.quadTree.EntityCollectionQuadNode.prototype.renderCollection = function (outA
     }
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
+EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
     planetSegment.getEntityTerrainPoint(entity, entity._cartesian);
     entity._setCartesian3vSilent(entity._cartesian.addA(entity._cartesian.normal().scale(this.layer.relativeToGround && entity._altitude || 0.1)));
 };
 
-og.quadTree.EntityCollectionQuadNode.prototype.isVisible = function () {
+EntityCollectionNode.prototype.isVisible = function () {
     if (this.layer._renderingNodes[this.nodeId]) {
         return true;
     }
     return false;
 };
 
-og.quadTree.EntityCollectionQuadNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
-    og.inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
+const EntityCollectionNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
+    inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
     this.isNorth = false;
 };
 
-og.inheritance.extend(og.quadTree.EntityCollectionQuadNodeWGS84, og.quadTree.EntityCollectionQuadNode);
+inheritance.extend(EntityCollectionNodeWGS84, EntityCollectionQuadNode);
 
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setExtentBounds = function () {
+EntityCollectionNodeWGS84.prototype._setExtentBounds = function () {
     if (this.extent.northEast.lat > 0) {
         this.isNorth = true;
     }
     this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent);
 };
 
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype._setLonLat = function (entity) {
+EntityCollectionNodeWGS84.prototype._setLonLat = function (entity) {
     if (!entity._lonlat) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
     return entity._lonlat;
 };
 
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype.isVisible = function () {
+EntityCollectionNodeWGS84.prototype.isVisible = function () {
     if (this.isNorth && this.layer._renderingNodesNorth[this.nodeId]) {
         return true;
     } else if (this.layer._renderingNodesSouth[this.nodeId]) {
@@ -347,7 +352,7 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype.isVisible = function () {
     return false;
 };
 
-og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function (outArr, visibleNodes, renderingNode) {
+EntityCollectionNodeWGS84.prototype.renderCollection = function (outArr, visibleNodes, renderingNode) {
 
     if (this.isNorth) {
         this.layer._renderingNodesNorth[this.nodeId] = true;
@@ -367,3 +372,5 @@ og.quadTree.EntityCollectionQuadNodeWGS84.prototype.renderCollection = function 
     this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
     outArr.push(this.entityCollection);
 };
+
+export { EntityCollectionNode, EntityCollectionNodeWGS84 };

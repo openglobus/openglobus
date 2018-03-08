@@ -1,10 +1,13 @@
-goog.provide('og.proj.EPSG4326');
+/**
+ * @module og/proj/EPSG4326
+ */
 
-goog.require('og.proj.Projection');
-goog.require('og.Units');
+'use strict';
+
+import { Units, Proj } from './Proj.js';
 
 /**
  * EPSG:4326 projection object.
- * @type {og.proj.Projection}
+ * @type {og.proj.Proj}
  */
-og.proj.EPSG4326 = new og.proj.Projection({ code: "epsg:4326", units: og.Units.DEGREES });
+export const EPSG4326 = new Proj({ code: "epsg:4326", units: Units.DEGREES });

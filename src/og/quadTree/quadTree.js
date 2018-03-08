@@ -1,47 +1,48 @@
-goog.provide('og.quadTree');
-
 /**
- * @namespace og.quadTree
+ * @module og/quadTree/quadTree
  */
 
-og.quadTree.NW = 0;
-og.quadTree.NE = 1;
-og.quadTree.SW = 2;
-og.quadTree.SE = 3;
+'use strict';
 
-og.quadTree.N = 0;
-og.quadTree.E = 1;
-og.quadTree.S = 2;
-og.quadTree.W = 3;
+export const NW = 0;
+export const NE = 1;
+export const SW = 2;
+export const SE = 3;
 
-og.quadTree.NOTRENDERING = 0;
-og.quadTree.RENDERING = 1;
-og.quadTree.WALKTHROUGH = 2;
+export const N = 0;
+export const E = 1;
+export const S = 2;
+export const W = 3;
+
+export const NOTRENDERING = 0;
+export const RENDERING = 1;
+export const WALKTHROUGH = 2;
 
 /**
  * World opposite side table.
  */
-og.quadTree.OPSIDE = [og.quadTree.S, og.quadTree.W, og.quadTree.N, og.quadTree.E];
+export const OPSIDE = [S, W, N, E];
 
-og.quadTree.NEIGHBOUR = [[-1, -1, og.quadTree.NW, og.quadTree.NE],
-                         [og.quadTree.NE, -1, og.quadTree.SE, -1],
-                         [og.quadTree.SW, og.quadTree.SE, -1, -1],
-                         [-1, og.quadTree.NW, -1, og.quadTree.SW]];
+export const NEIGHBOUR =
+    [[-1, -1, NW, NE],
+    [NE, -1, SE, -1],
+    [SW, SE, -1, -1],
+    [-1, NW, -1, SW]];
 
 /**
  * Neighbor's oposite part. For example oposite side
  * on the east neighbor side is: [S][SE] = NE
  */
-og.quadTree.OPPART = [[og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
-                      [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW],
-                      [og.quadTree.SW, og.quadTree.SE, og.quadTree.NW, og.quadTree.NE],
-                      [og.quadTree.NE, og.quadTree.NW, og.quadTree.SE, og.quadTree.SW]];
+export const OPPART = [[SW, SE, NW, NE],
+[NE, NW, SE, SW],
+[SW, SE, NW, NE],
+[NE, NW, SE, SW]];
 
 /**
  * Neighbos's opside array order. For example NW node
  * by E side array index is 0, SE node by S side is 1.
  */
-og.quadTree.NOPSORD = [[0, 1, 0, 1],
-                       [0, 0, 1, 1],
-                       [0, 1, 0, 1],
-                       [0, 0, 1, 1]];
+export const NOPSORD = [[0, 1, 0, 1],
+[0, 0, 1, 1],
+[0, 1, 0, 1],
+[0, 0, 1, 1]];

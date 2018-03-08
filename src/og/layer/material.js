@@ -1,6 +1,10 @@
-goog.provide('og.layer.Material');
+/**
+ * @module og/layer/Material
+ */
 
-og.layer.Material = function (segment, layer) {
+'use strict';
+
+const Material = function (segment, layer) {
     this.segment = segment;
     this.layer = layer;
     this.isReady = false;
@@ -17,15 +21,15 @@ og.layer.Material = function (segment, layer) {
     this.pickingReady = false;
 };
 
-og.layer.Material.prototype.assignLayer = function (layer) {
+Material.prototype.assignLayer = function (layer) {
     this.layer = layer;
 };
 
-og.layer.Material.prototype.abortLoading = function () {
+Material.prototype.abortLoading = function () {
     this.layer.abortMaterialLoading(this);
 };
 
-og.layer.Material.prototype.applyImage = function (img) {
+Material.prototype.applyImage = function (img) {
     if (this.segment.ready) {
         this._updateTexture = null;
 
@@ -39,7 +43,7 @@ og.layer.Material.prototype.applyImage = function (img) {
     }
 };
 
-og.layer.Material.prototype.applyTexture = function (texture, pickingMask) {
+Material.prototype.applyTexture = function (texture, pickingMask) {
 
     this.texture = texture;
     this._updateTexture = null;
@@ -54,11 +58,13 @@ og.layer.Material.prototype.applyTexture = function (texture, pickingMask) {
     this.appliedNodeId = this.segment.node.nodeId;
 };
 
-og.layer.Material.prototype.textureNotExists = function () {
+Material.prototype.textureNotExists = function () {
     this.isLoading = true;
     this.textureExists = false;
 };
 
-og.layer.Material.prototype.clear = function () {
+Material.prototype.clear = function () {
     this.layer.clearMaterial(this);
 };
+
+export { Material };

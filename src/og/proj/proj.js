@@ -1,14 +1,15 @@
-goog.provide('og.proj');
-goog.provide('og.proj.Projection');
-goog.provide('og.Units');
-goog.provide('og.proj.METERS_PER_UNIT');
+/**
+ * @module og/proj/Proj
+ */
+
+'use strict';
 
 /**
  * Projection units: 'degrees', 'ft', 'm' or 'km'.
  * @enum {string}
  * @api
  */
-og.proj.Units = {
+export const Units = {
     "DEGREES": "degrees",
     "FEET": "ft",
     "METERS": "m",
@@ -20,12 +21,12 @@ og.proj.Units = {
  * @const
  * @type {Object.<og.proj.Units, number>}
  */
-og.proj.METERS_PER_UNIT = {};
-og.proj.METERS_PER_UNIT[og.proj.Units.FEET] = 0.3048;
-og.proj.METERS_PER_UNIT[og.proj.Units.METERS] = 1;
-og.proj.METERS_PER_UNIT[og.proj.Units.KILOMETERS] = 1000;
+export const METERS_PER_UNIT = {};
+METERS_PER_UNIT[og.proj.Units.FEET] = 0.3048;
+METERS_PER_UNIT[og.proj.Units.METERS] = 1;
+METERS_PER_UNIT[og.proj.Units.KILOMETERS] = 1000;
 
-og.proj.Projection = function (options) {
+const Proj = function (options) {
 
     /**
      * @public
@@ -37,14 +38,14 @@ og.proj.Projection = function (options) {
      * @public
      * @type {og.proj.Units}
      */
-    this.units = /** @type {ol.proj.Units} */ (options.units);
+    this.units = /** @type {Units} */ (options.units);
 
     /**
      * Projection identifier, especially usefull for comparison.
      * @const
      * @type {integer}
      */
-    this.id = og.proj.Projection._counter++;
+    this.id = Proj._counter++;
 };
 
 /**
@@ -53,8 +54,10 @@ og.proj.Projection = function (options) {
  * @param {og.proj.Projection} proj - Projetion object.
  * @returns {boolean}
  */
-og.proj.Projection.prototype.equal = function (proj) {
+Proj.prototype.equal = function (proj) {
     return proj.id == this.id;
 };
 
-og.proj.Projection._counter = 0;
+Proj._counter = 0;
+
+export { Proj };
