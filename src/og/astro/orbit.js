@@ -1,37 +1,41 @@
-goog.provide('og.orbit');
+/**
+ * @module og/astro/orbit
+ */
 
-goog.require('og.math');
-goog.require('og.math.Matrix3');
+'use strict';
 
-og.orbit.getEccentricAnomaly = function (M, ecc) {
+import * as math from '../math.js');
+import { Mat3 } from '../math/Mat3.js';
+
+export function getEccentricAnomaly(M, ecc) {
     if (ecc == 0.0) {
         // Circular orbit
         return M;
     } else if (ecc < 0.2) {
         // Low eccentricity, so use the standard iteration technique
-        return og.math.solve_iteration_fixed(og.orbit.SolveKeplerFunc1(ecc, M), M, 5);
+        return math.solve_iteration_fixed(solveKeplerFunc1(ecc, M), M, 5);
     } else if (ecc < 0.9) {
         // Higher eccentricity elliptical orbit; use a more complex but
         // much faster converging iteration.
-        return og.math.solve_iteration_fixed(og.orbit.SolveKeplerFunc2(ecc, M), M, 6);
+        return math.solve_iteration_fixed(solveKeplerFunc2(ecc, M), M, 6);
     } else if (ecc < 1.0) {
         // Extremely stable Laguerre-Conway method for solving Kepler's
         // equation.  Only use this for high-eccentricity orbits, as it
         // requires more calcuation.
         var E = M + 0.85 * ecc * sign(sin(M));
-        return og.math.solve_iteration_fixed(og.orbit.SolveKeplerLaguerreConway(ecc, M), E, 8);
+        return math.solve_iteration_fixed(solveKeplerLaguerreConway(ecc, M), E, 8);
     } else if (ecc == 1.0) {
         //TODO: Parabolic orbit
         return M;
     } else {
         // Laguerre-Conway method for hyperbolic (ecc > 1) orbits.
         var E = log(2 * M / ecc + 1.85);
-        return og.math.solve_iteration_fixed(og.orbit.SolveKeplerLaguerreConwayHyp(ecc, M), E, 30);
+        return math.solve_iteration_fixed(solveKeplerLaguerreConwayHyp(ecc, M), E, 30);
     }
 };
 
 // Standard iteration for solving Kepler's Equation
-og.orbit.SolveKeplerFunc1 = function (ecc, M) {
+function solveKeplerFunc1(ecc, M) {
     return function (x) {
         return M + ecc * Math.sin(x);
     }
@@ -40,13 +44,13 @@ og.orbit.SolveKeplerFunc1 = function (ecc, M) {
 // Faster converging iteration for Kepler's Equation; more efficient
 // than above for orbits with eccentricities greater than 0.3.  This
 // is from Jean Meeus's _Astronomical Algorithms_ (2nd ed), p. 199
-og.orbit.SolveKeplerFunc2 = function (ecc, M) {
+function solveKeplerFunc2(ecc, M) {
     return function (x) {
         return x + (M + ecc * Math.sin(x) - x) / (1 - ecc * Math.cos(x));
     }
 };
 
-og.orbit.SolveKeplerLaguerreConway = function (ecc, M) {
+function solveKeplerLaguerreConway(ecc, M) {
     return function (x) {
         var s = ecc * Math.sin(x);
         var c = ecc * Math.cos(x);
@@ -58,7 +62,7 @@ og.orbit.SolveKeplerLaguerreConway = function (ecc, M) {
     }
 };
 
-og.orbit.SolveKeplerLaguerreConwayHyp = function (ecc, M) {
+function solveKeplerLaguerreConwayHyp(ecc, M) {
     return function (x) {
         var s = ecc * Math.sinh(x);
         var c = ecc * Math.cosh(x);
@@ -70,7 +74,7 @@ og.orbit.SolveKeplerLaguerreConwayHyp = function (ecc, M) {
     }
 };
 
-og.orbit.getEllipticalEccentricAnomaly = function (meanAnomaly, eccentricity) {
+export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
     var tol = 0.00000001745;
     var iterations = 20;
     var e = meanAnomaly - 2.0 * Math.PI * (meanAnomaly / (2.0 * Math.PI) | 0);
@@ -84,20 +88,20 @@ og.orbit.getEllipticalEccentricAnomaly = function (meanAnomaly, eccentricity) {
     return e;
 };
 
-og.orbit.getTrueAnomaly = function (eccentricAnomaly, eccentricity) {
-    var revs = Math.floor(eccentricAnomaly / og.math.TWO_PI);
-    eccentricAnomaly -= revs * og.math.TWO_PI;
+export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
+    var revs = Math.floor(eccentricAnomaly / math.TWO_PI);
+    eccentricAnomaly -= revs * math.TWO_PI;
     var trueAnomaly = Math.atan2(Math.sin(eccentricAnomaly) * Math.sqrt(1 - eccentricity * eccentricity),
         Math.cos(eccentricAnomaly) - eccentricity);
-    trueAnomaly = og.math.zeroTwoPI(trueAnomaly);
+    trueAnomaly = math.zeroTwoPI(trueAnomaly);
     if (eccentricAnomaly < 0) {
-        trueAnomaly -= og.math.TWO_PI;
+        trueAnomaly -= math.TWO_PI;
     }
-    return trueAnomaly + revs * og.math.TWO_PI;
+    return trueAnomaly + revs * math.TWO_PI;
 };
 
-og.orbit.getPerifocalToCartesianMatrix = function (argumentOfPeriapsis, inclination, rightAscension) {
-    var res = new og.math.Matrix3();
+export function getPerifocalToCartesianMatrix(argumentOfPeriapsis, inclination, rightAscension) {
+    var res = new Mat3();
     var cosap = Math.cos(argumentOfPeriapsis),
         sinap = Math.sin(argumentOfPeriapsis),
         cosi = Math.cos(inclination),

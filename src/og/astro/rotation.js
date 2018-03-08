@@ -1,6 +1,10 @@
-goog.provide('og.rotation');
+/**
+ * @module og/astro/rotation
+ */
 
-og.rotation.getRotationMatrix = function (rightAscension, declination) {
+'use strict';
+
+export function getRotationMatrix(rightAscension, declination) {
     xAxis.x = Math.cos(rightAscension + og.math.PI_TWO);
     xAxis.y = Math.sin(rightAscension + og.math.PI_TWO);
     xAxis.z = 0.0;

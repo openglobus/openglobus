@@ -1,7 +1,10 @@
-goog.provide('og.bv.Sphere');
+/**
+ * @module og/bv/Sphere
+ */
 
-goog.require('og.bv');
-goog.require('og.math.Vector3');
+'use strict';
+
+import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Bounding sphere class.
@@ -9,37 +12,41 @@ goog.require('og.math.Vector3');
  * @param {Number} [radius] - Bounding sphere radius.
  * @param {og.math.Vector3} [center] - Bounding sphere coordiantes.
  */
-og.bv.Sphere = function (radius, center) {
+class Sphere {
+    constructor(radius, center) {
+
+        /**
+         * Sphere radius.
+         * @public
+         * @type {Number}
+         */
+        this.radius = radius || 0;
+
+        /**
+         * Sphere coordiantes.
+         * @public
+         * @type {og.math.Vector3}
+         */
+        this.center = center ? center.clone() : new Vec3();
+    }
 
     /**
-     * Sphere radius.
-     * @public
-     * @type {Number}
+     * Sets bounding sphere coordinates by the bounds array.
+     * @param {Array.<number>} bounds - Bounds is an array where [minX, maxX, minY, maxY, minZ, maxZ]
      */
-    this.radius = radius || 0;
+    setFromBounds(bounds) {
+        this.center.set(bounds[0] + (bounds[1] - bounds[0]) / 2, bounds[2] + (bounds[3] - bounds[2]) / 2, bounds[4] + (bounds[5] - bounds[4]) / 2);
+        this.radius = this.center.distance(new Vec3(bounds[0], bounds[2], bounds[4]));
+    }
 
     /**
-     * Sphere coordiantes.
-     * @public
-     * @type {og.math.Vector3}
+     * Sets bounding sphere coordiantes by ellipsoid geodetic extend.
+     * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
+     * @param {og.Extent} extent - Geodetic extent.
      */
-    this.center = center ? center.clone() : new og.math.Vector3();
+    setFromExtent(ellipsoid, extent) {
+        this.setFromBounds(extent.getCartesianBounds(ellipsoid));
+    }
 };
 
-/**
- * Sets bounding sphere coordinates by the bounds array.
- * @param {Array.<number>} bounds - Bounds is an array where [minX, maxX, minY, maxY, minZ, maxZ]
- */
-og.bv.Sphere.prototype.setFromBounds = function (bounds) {
-    this.center.set(bounds[0] + (bounds[1] - bounds[0]) / 2, bounds[2] + (bounds[3] - bounds[2]) / 2, bounds[4] + (bounds[5] - bounds[4]) / 2);
-    this.radius = this.center.distance(new og.math.Vector3(bounds[0], bounds[2], bounds[4]));
-};
-
-/**
- * Sets bounding sphere coordiantes by ellipsoid geodetic extend.
- * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
- * @param {og.Extent} extent - Geodetic extent.
- */
-og.bv.Sphere.prototype.setFromExtent = function (ellipsoid, extent) {
-    this.setFromBounds(extent.getCartesianBounds(ellipsoid));
-};
+export { Sphere };
