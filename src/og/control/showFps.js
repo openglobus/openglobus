@@ -1,7 +1,11 @@
-goog.provide('og.control.ShowFps');
+/**
+ * @module og/control/ShowFps
+ */
 
-goog.require('og.inheritance');
-goog.require('og.control.BaseControl');
+'use strict';
+
+import { BaseControl } from './BaseControl.js';
+import { print2d } from '../utils/utils.js';
 
 /**
  * Frame per second(FPS) display control.
@@ -9,28 +13,27 @@ goog.require('og.control.BaseControl');
  * @extends {og.control.BaseControl}
  * @param {Object} [options] - Control options.
  */
-og.control.ShowFps = function (options) {
-    og.inheritance.base(this, options);
+class ShowFps {
+    constructor(options) {
+        super(options);
+    }
 
-    options = options || {};
+    oninit() {
+        var d = document.createElement('div');
+        d.className = 'defaultText ';
+        d.id = "ogShowFpsControl";
+        document.body.appendChild(d);
+        this.renderer.events.on("draw", this._draw, this);
+    }
+
+
+    _draw() {
+        print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.canvas.clientWidth - 60, 0);
+    }
 };
 
-og.inheritance.extend(og.control.ShowFps, og.control.BaseControl);
-
-og.control.showFps = function (options) {
-    return new og.control.ShowFps(options);
+export function showFps(options) {
+    return new ShowFps(options);
 };
 
-og.control.ShowFps.prototype.oninit = function () {
-    var d = document.createElement('div');
-    d.className = 'defaultText ';
-    d.id = "ogShowFpsControl";
-    document.body.appendChild(d);
-    this.renderer.events.on("draw", this._draw, this);
-};
-
-
-og.control.ShowFps.prototype._draw = function () {
-    print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.canvas.clientWidth - 60, 0);
-};
-
+export { ShowFps };

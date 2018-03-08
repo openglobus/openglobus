@@ -1,9 +1,12 @@
-goog.provide('og.control.ZoomControl');
+/**
+ * @module og/control/ZoomControl
+ */
 
-goog.require('og.inheritance');
-goog.require('og.control.BaseControl');
-goog.require('og.control.MouseNavigation');
-goog.require('og.idle');
+'use strict';
+
+import { BaseControl } from './BaseControl.js';
+import { MouseNavigation } from './MouseNavigation.js';
+import { Key } from './Lock.js';
 
 
 /**
@@ -12,105 +15,106 @@ goog.require('og.idle');
  * @extends {og.control.BaseControl}
  * @params {Object} [options] - Control options.
  */
-og.control.ZoomControl = function (options) {
-    og.inheritance.base(this, options);
+class ZoomControl extends BaseControl {
+    constructor(options) {
+        super(options);
 
-    options = options || {};
+        options = options || {};
 
-    this.distDiff = 0.33;
-    this.stepsCount = 5;
-    this.stepsForward = null;
-    this.stepIndex = 0;
-    this._keyLock = new og.idle.Key();
+        this.distDiff = 0.33;
+        this.stepsCount = 5;
+        this.stepsForward = null;
+        this.stepIndex = 0;
+        this._keyLock = new Key();
 
-    this.planet = null;
-};
+        this.planet = null;
+    }
 
-og.inheritance.extend(og.control.ZoomControl, og.control.BaseControl);
+    oninit() {
+        var zoomDiv = document.createElement('div'),
+            btnZoomIn = document.createElement('button'),
+            btnZoomOut = document.createElement('button');
 
-og.control.zoomControl = function (options) {
-    return new og.control.ZoomControl(options);
-};
+        zoomDiv.className = 'ogZoomControl';
+        btnZoomIn.className = 'ogZoomButton ogZoomIn';
+        btnZoomOut.className = 'ogZoomButton ogZoomOut';
 
-og.control.ZoomControl.prototype.oninit = function () {
-    var zoomDiv = document.createElement('div'),
-        btnZoomIn = document.createElement('button'),
-        btnZoomOut = document.createElement('button');
+        zoomDiv.appendChild(btnZoomIn);
+        zoomDiv.appendChild(btnZoomOut);
 
-    zoomDiv.className = 'ogZoomControl';
-    btnZoomIn.className = 'ogZoomButton ogZoomIn';
-    btnZoomOut.className = 'ogZoomButton ogZoomOut';
+        this.renderer.div.appendChild(zoomDiv);
 
-    zoomDiv.appendChild(btnZoomIn);
-    zoomDiv.appendChild(btnZoomOut);
+        var that = this;
+        btnZoomIn.onclick = function (e) {
+            that.zoomIn();
+        };
 
-    this.renderer.div.appendChild(zoomDiv);
+        btnZoomOut.onclick = function (e) {
+            that.zoomOut();
+        };
 
-    var that = this;
-    btnZoomIn.onclick = function (e) {
-        that.zoomIn();
-    };
+        this.renderer.events.on("draw", this._draw, this);
+    }
 
-    btnZoomOut.onclick = function (e) {
-        that.zoomOut();
-    };
+    /** 
+     * Planet zoom in.
+     * @public
+     */
+    zoomIn() {
 
-    this.renderer.events.on("draw", this._draw, this);
-};
+        this._deactivate = true;
 
-/** 
- * Planet zoom in.
- * @public
- */
-og.control.ZoomControl.prototype.zoomIn = function () {
+        this.planet.layerLock.lock(this._keyLock);
+        this.planet.terrainLock.lock(this._keyLock);
+        this.planet._normalMapCreator.lock(this._keyLock);
 
-    this._deactivate = true;
+        this.stepIndex = this.stepsCount;
+        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+            this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.negateTo());
+    }
 
-    this.planet.layerLock.lock(this._keyLock);
-    this.planet.terrainLock.lock(this._keyLock);
-    this.planet._normalMapCreator.lock(this._keyLock);
+    /** 
+     * Planet zoom out.
+     * @public
+     */
+    zoomOut() {
 
-    this.stepIndex = this.stepsCount;
-    this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.negateTo());
-};
+        this._deactivate = true;
 
-/** 
- * Planet zoom out.
- * @public
- */
-og.control.ZoomControl.prototype.zoomOut = function () {
+        this.planet.layerLock.lock(this._keyLock);
+        this.planet.terrainLock.lock(this._keyLock);
+        this.planet._normalMapCreator.lock(this._keyLock);
 
-    this._deactivate = true;
+        this.stepIndex = this.stepsCount;
+        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
+            this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.negateTo());
+    }
 
-    this.planet.layerLock.lock(this._keyLock);
-    this.planet.terrainLock.lock(this._keyLock);
-    this.planet._normalMapCreator.lock(this._keyLock);
+    _draw(e) {
 
-    this.stepIndex = this.stepsCount;
-    this.stepsForward = og.control.MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-        this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.negateTo());
-};
+        var cam = this.renderer.activeCamera;
 
-og.control.ZoomControl.prototype._draw = function (e) {
+        if (this.stepIndex) {
+            var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+            cam.eye = sf.eye;
+            cam._v = sf.v;
+            cam._u = sf.u;
+            cam._n = sf.n;
+            cam.update();
+        } else if (!cam._flying) {
+            if (this._deactivate) {
 
-    var cam = this.renderer.activeCamera;
+                this.planet.layerLock.free(this._keyLock);
+                this.planet.terrainLock.free(this._keyLock);
+                this.planet._normalMapCreator.free(this._keyLock);
 
-    if (this.stepIndex) {
-        var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-        cam.eye = sf.eye;
-        cam._v = sf.v;
-        cam._u = sf.u;
-        cam._n = sf.n;
-        cam.update();
-    } else if (!cam._flying) {
-        if (this._deactivate) {
-
-            this.planet.layerLock.free(this._keyLock);
-            this.planet.terrainLock.free(this._keyLock);
-            this.planet._normalMapCreator.free(this._keyLock);
-
-            this._deactivate = false;
+                this._deactivate = false;
+            }
         }
     }
+};
+
+
+export function zoomControl(options) {
+    return new ZoomControl(options);
 };

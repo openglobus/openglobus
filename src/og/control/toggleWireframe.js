@@ -1,8 +1,11 @@
-goog.provide('og.control.ToggleWireframe');
+/**
+ * @module og/control/ToggleWireframe
+ */
 
-goog.require('og.inheritance');
-goog.require('og.webgl');
-goog.require('og.input');
+'use strict';
+
+import { BaseControl } from './BaseControl.js';
+import { input } from '../input/input.js';
 
 /**
  * Planet GL draw mode(TRIANGLE_STRIP/LINE_STRING) changer.
@@ -10,20 +13,23 @@ goog.require('og.input');
  * @extends {og.control.BaseControl}
  * @param {Object} [options] - Control options.
  */
-og.control.ToggleWireframe = function (options) {
-    og.inheritance.base(this, options);
-};
+class ToggleWireframe extends BaseControl {
+    constructor(options) {
+        super(options);
+    }
 
-og.inheritance.extend(og.control.ToggleWireframe, og.control.BaseControl);
 
-og.control.ToggleWireframe.prototype.oninit = function () {
-    this.renderer.events.on("charkeypress", og.input.KEY_X, this.toogleWireframe, this);
-};
+    oninit() {
+        this.renderer.events.on("charkeypress", input.KEY_X, this.toogleWireframe, this);
+    }
 
-og.control.ToggleWireframe.prototype.toogleWireframe = function (e) {
-    if (this.planet.drawMode === this.renderer.handler.gl.LINE_STRIP) {
-        this.planet.setDrawMode(this.renderer.handler.gl.TRIANGLE_STRIP);
-    } else {
-        this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
+    toogleWireframe(e) {
+        if (this.planet.drawMode === this.renderer.handler.gl.LINE_STRIP) {
+            this.planet.setDrawMode(this.renderer.handler.gl.TRIANGLE_STRIP);
+        } else {
+            this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
+        }
     }
 };
+
+export { ToggleWireframe };

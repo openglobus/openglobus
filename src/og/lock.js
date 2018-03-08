@@ -5,6 +5,7 @@
 'use strict';
 
 class Lock {
+
     constructor() {
         this._lock = 0;
     }
