@@ -1,12 +1,17 @@
-goog.provide('og.utils.NormalMapCreator');
+/**
+ * @module og/utils/NormalMapCreator
+ */
 
-goog.require('og.PlanetSegmentHelper');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.webgl.Handler');
-goog.require('og.webgl.Framebuffer');
-goog.require('og.QueueArray');
+'use strict';
 
-og.utils.NormalMapCreator = function (planet, width, height, maxFrames) {
+import * as quadTree from '../quadTree/quadTree.js';
+import { Framebuffer } from '../webgl/Framebuffer.js';
+import { Lock } from '../Lock.js';
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+import { QueueArray } from '../QueueArray.js';
+
+const NormalMapCreator = function (planet, width, height, maxFrames) {
     this._planet = planet;
     this._handler = planet.renderer.handler;
     this._verticesBufferArray = [];
@@ -20,26 +25,26 @@ og.utils.NormalMapCreator = function (planet, width, height, maxFrames) {
 
     this.MAX_FRAMES = maxFrames || 5;
     this._currentFrame = 0;
-    this._queue = new og.QueueArray(1024);
+    this._queue = new QueueArray(1024);
 
-    this._lock = new og.idle.Lock();
+    this._lock = new Lock();
 
     this._init();
 };
 
-og.utils.NormalMapCreator.prototype._init = function () {
+NormalMapCreator.prototype._init = function () {
 
     var isWebkit = false;//('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
 
     /*==================================================================================
      * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
      *=================================================================================*/
-    var normalMapBlur = new og.shaderProgram.ShaderProgram("normalMapBlur", {
+    var normalMapBlur = new ShaderProgram("normalMapBlur", {
         attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            a_position: { type: types.VEC2, enableArray: true }
         },
         uniforms: {
-            s_texture: { type: og.shaderProgram.types.SAMPLER2D }
+            s_texture: { type: types.SAMPLER2D }
         },
         vertexShader: "attribute vec2 a_position; \n\
                        attribute vec2 a_texCoord; \n\
@@ -78,10 +83,10 @@ og.utils.NormalMapCreator.prototype._init = function () {
                         }"
     });
 
-    var normalMap = new og.shaderProgram.ShaderProgram("normalMap", {
+    var normalMap = new ShaderProgram("normalMap", {
         attributes: {
-            a_position: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_normal: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            a_position: { type: types.VEC2, enableArray: true },
+            a_normal: { type: types.VEC3, enableArray: true }
         },
         vertexShader: "attribute vec2 a_position; \
                       attribute vec3 a_normal; \
@@ -107,7 +112,7 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._handler.addShaderProgram(normalMap);
 
     //create hidden handler buffer
-    this._framebuffer = new og.webgl.Framebuffer(this._handler, {
+    this._framebuffer = new Framebuffer(this._handler, {
         width: this._width,
         height: this._height,
         useDepth: false
@@ -128,8 +133,6 @@ og.utils.NormalMapCreator.prototype._init = function () {
         }
 
         this._verticesBufferArray[gs] = this._handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
-        //var indexes = og.PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
-        //this._indexBufferArray[gs] = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
         this._indexBufferArray[gs] = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
     }
 
@@ -143,15 +146,15 @@ og.utils.NormalMapCreator.prototype._init = function () {
     this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
 };
 
-og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
+NormalMapCreator.prototype._drawNormalMap = function (segment) {
     var normals = segment.normalMapNormals;
-    if (segment.node && segment.node.getState() !== og.quadTree.NOTRENDERING
+    if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING
         && normals && normals.length) {
 
-        segment._normalMapEdgeEqualize(og.quadTree.N, 0);
-        segment._normalMapEdgeEqualize(og.quadTree.S, 1);
-        segment._normalMapEdgeEqualize(og.quadTree.W, 0, true);
-        segment._normalMapEdgeEqualize(og.quadTree.E, 1, true);
+        segment._normalMapEdgeEqualize(quadTree.N, 0);
+        segment._normalMapEdgeEqualize(quadTree.S, 1);
+        segment._normalMapEdgeEqualize(quadTree.W, 0, true);
+        segment._normalMapEdgeEqualize(quadTree.E, 1, true);
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
@@ -200,7 +203,7 @@ og.utils.NormalMapCreator.prototype._drawNormalMap = function (segment) {
     return false;
 };
 
-og.utils.NormalMapCreator.prototype.drawSingle = function (segment) {
+NormalMapCreator.prototype.drawSingle = function (segment) {
     var h = this._handler,
         gl = h.gl;
 
@@ -225,7 +228,7 @@ og.utils.NormalMapCreator.prototype.drawSingle = function (segment) {
     this._framebuffer.deactivate();
 };
 
-og.utils.NormalMapCreator.prototype.frame = function () {
+NormalMapCreator.prototype.frame = function () {
 
     if (this._queue.length) {
         var h = this._handler,
@@ -263,21 +266,21 @@ og.utils.NormalMapCreator.prototype.frame = function () {
     }
 };
 
-og.utils.NormalMapCreator.prototype.queue = function (segment) {
+NormalMapCreator.prototype.queue = function (segment) {
     segment._inTheQueue = true;
     this._queue.push(segment);
 };
 
-og.utils.NormalMapCreator.prototype.unshift = function (segment) {
+NormalMapCreator.prototype.unshift = function (segment) {
     segment._inTheQueue = true;
     this._queue.unshift(segment);
 };
 
-og.utils.NormalMapCreator.prototype.remove = function (segment) {
+NormalMapCreator.prototype.remove = function (segment) {
     //...
 };
 
-og.utils.NormalMapCreator.prototype.clear = function () {
+NormalMapCreator.prototype.clear = function () {
     while (this._queue.length) {
         var s = this._queue.pop();
         s._inTheQueue = false;
@@ -288,7 +291,7 @@ og.utils.NormalMapCreator.prototype.clear = function () {
  * Set activity off
  * @public
  */
-og.utils.NormalMapCreator.prototype.lock = function (key) {
+NormalMapCreator.prototype.lock = function (key) {
     this._lock.lock(key);
 };
 
@@ -296,6 +299,8 @@ og.utils.NormalMapCreator.prototype.lock = function (key) {
  * Set activity on
  * @public
  */
-og.utils.NormalMapCreator.prototype.free = function (key) {
+NormalMapCreator.prototype.free = function (key) {
     this._lock.free(key);
 };
+
+export { NormalMapCreator };

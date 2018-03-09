@@ -1,11 +1,15 @@
-goog.provide('og.utils.VectorTileCreator');
+/**
+ * @module og/utils/VectorTileCreator
+ */
 
-goog.require('og.webgl.Framebuffer');
-goog.require('og.PlanetSegmentHelper');
-goog.require('og.math');
-goog.require('og.idle');
+'use sctrict';
 
-og.utils.VectorTileCreator = function (planet, maxFrames, width, height) {
+import * as quadTree from '../quadTree/quadTree.js';
+import { Framebuffer } from '../webgl/Framebuffer.js';
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+const VectorTileCreator = function (planet, maxFrames, width, height) {
 
     this._width = width || 256;
     this._height = height || 256;
@@ -18,24 +22,24 @@ og.utils.VectorTileCreator = function (planet, maxFrames, width, height) {
     this._initialize();
 };
 
-og.utils.VectorTileCreator.prototype._initialize = function () {
+VectorTileCreator.prototype._initialize = function () {
 
     //Line
     if (!this._handler.shaderPrograms.vectorTileLineRasterization) {
-        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTileLineRasterization", {
+        this._handler.addShaderProgram(new ShaderProgram("vectorTileLineRasterization", {
             uniforms: {
-                'viewport': { type: og.shaderProgram.types.VEC2 },
-                'thicknessOutline': { type: og.shaderProgram.types.FLOAT },
-                'alpha': { type: og.shaderProgram.types.FLOAT },
-                'extentParams': { type: og.shaderProgram.types.VEC4 }
+                'viewport': { type: types.VEC2 },
+                'thicknessOutline': { type: types.FLOAT },
+                'alpha': { type: types.FLOAT },
+                'extentParams': { type: types.VEC4 }
             },
             attributes: {
-                'prev': { type: og.shaderProgram.types.VEC2 },
-                'current': { type: og.shaderProgram.types.VEC2 },
-                'next': { type: og.shaderProgram.types.VEC2 },
-                'order': { type: og.shaderProgram.types.FLOAT },
-                'color': { type: og.shaderProgram.types.VEC4 },
-                'thickness': { type: og.shaderProgram.types.FLOAT }
+                'prev': { type: types.VEC2 },
+                'current': { type: types.VEC2 },
+                'next': { type: types.VEC2 },
+                'order': { type: types.FLOAT },
+                'color': { type: types.VEC4 },
+                'thickness': { type: types.FLOAT }
             },
             vertexShader: 'attribute vec2 prev;\
                 attribute vec2 current;\
@@ -114,13 +118,13 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
 
     //Polygon
     if (!this._handler.shaderPrograms.vectorTilePolygonRasterization) {
-        this._handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorTilePolygonRasterization", {
+        this._handler.addShaderProgram(new ShaderProgram("vectorTilePolygonRasterization", {
             uniforms: {
-                'extentParams': { type: og.shaderProgram.types.VEC4 }
+                'extentParams': { type: types.VEC4 }
             },
             attributes: {
-                'coordinates': { type: og.shaderProgram.types.VEC2 },
-                'colors': { type: og.shaderProgram.types.VEC4 }
+                'coordinates': { type: types.VEC2 },
+                'colors': { type: types.VEC4 }
             },
             vertexShader: 'attribute vec2 coordinates; \
                       attribute vec4 colors; \
@@ -138,14 +142,14 @@ og.utils.VectorTileCreator.prototype._initialize = function () {
         }));
     }
 
-    this._framebuffer = new og.webgl.Framebuffer(this._handler, {
+    this._framebuffer = new Framebuffer(this._handler, {
         width: this._width,
         height: this._height,
         useDepth: false
     });
 };
 
-og.utils.VectorTileCreator.prototype.frame = function () {
+VectorTileCreator.prototype.frame = function () {
     if (this._planet.layerLock.isFree() && this._queue.length) {
         var h = this._handler,
             gl = h.gl;
@@ -176,7 +180,7 @@ og.utils.VectorTileCreator.prototype.frame = function () {
 
         while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
             var material = this._queue.shift();
-            if (material.isLoading && material.segment.node.getState() === og.quadTree.RENDERING) {
+            if (material.isLoading && material.segment.node.getState() === quadTree.RENDERING) {
 
                 if (material.segment.tileZoom <= 3) {
                     width = width2;
@@ -333,10 +337,12 @@ og.utils.VectorTileCreator.prototype.frame = function () {
     }
 };
 
-og.utils.VectorTileCreator.prototype.add = function (material) {
+VectorTileCreator.prototype.add = function (material) {
     this._queue.push(material);
 };
 
-og.utils.VectorTileCreator.prototype.remove = function (material) {
+VectorTileCreator.prototype.remove = function (material) {
     //...
 };
+
+export { VectorTileCreator };

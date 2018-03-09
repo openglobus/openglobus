@@ -1,17 +1,68 @@
-goog.provide('og.utils.TerrainWorker');
+/**
+ * @module og/utils/TerrainWorker
+ */
 
-og.utils.TerrainWorker = function (numWorkers) {
-    this._workerQueue = new og.QueueArray(numWorkers);
-    var elevationProgramm = new Blob([og.utils.TerrainWorker.SegmentElevationProgramm], { type: 'application/javascript' });
+'use sctrict';
 
-    for (var i = 0; i < numWorkers; i++) {
-        this._workerQueue.push(new Worker(URL.createObjectURL(elevationProgramm)));
+import { QueueArray } from '../QueueArray.js';
+
+class TerrainWorker {
+    constructor(numWorkers = 2) {
+        this._workerQueue = new QueueArray(numWorkers);
+        var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
+
+        for (let i = 0; i < numWorkers; i++) {
+            this._workerQueue.push(new Worker(URL.createObjectURL(elevationProgramm)));
+        }
+
+        this._pendingQueue = new QueueArray(512);
     }
 
-    this._pendingQueue = new og.QueueArray(512);
+    make(segment, elevations) {
+
+        if (segment.ready && segment.terrainIsLoading) {
+
+            var _elevations = new Float32Array(elevations.length);
+            _elevations.set(elevations);
+
+            if (this._workerQueue.length) {
+
+                var that = this;
+
+                var w = this._workerQueue.pop();
+
+                w.onmessage = function (e) {
+                    segment._terrainWorkerCallback(e.data);
+                    that._workerQueue.unshift(this);
+                    if (that._pendingQueue.length) {
+                        var p = that._pendingQueue.pop();
+                        that.make(p.segment, p.elevations)
+                    }
+                };
+
+                w.postMessage({
+                    'elevations': _elevations,
+                    'this_plainVertices': segment.plainVertices,
+                    'this_plainNormals': segment.plainNormals,
+                    'this_normalMapVertices': segment.normalMapVertices,
+                    'this_normalMapNormals': segment.normalMapNormals,
+                    'heightFactor': segment.planet._heightFactor,
+                    'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
+                }, [
+                        _elevations.buffer,
+                        segment.plainVertices.buffer,
+                        segment.plainNormals.buffer,
+                        segment.normalMapVertices.buffer,
+                        segment.normalMapNormals.buffer
+                    ]);
+            } else {
+                this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
+            }
+        }
+    }
 };
 
-og.utils.TerrainWorker.SegmentElevationProgramm =
+const _programm =
     'self.onmessage = function (e) {\n\
         \n\
         var Vector3 = function(x, y, z) {\n\
@@ -213,45 +264,4 @@ og.utils.TerrainWorker.SegmentElevationProgramm =
              }, [normalMapNormals.buffer, normalMapVertices.buffer, terrainVertices.buffer]);\n\
     }';
 
-og.utils.TerrainWorker.prototype.make = function (segment, elevations) {
-
-    if (segment.ready && segment.terrainIsLoading) {
-
-        var _elevations = new Float32Array(elevations.length);
-        _elevations.set(elevations);
-
-        if (this._workerQueue.length) {
-
-            var that = this;
-
-            var w = this._workerQueue.pop();
-
-            w.onmessage = function (e) {
-                segment._terrainWorkerCallback(e.data);
-                that._workerQueue.unshift(this);
-                if (that._pendingQueue.length) {
-                    var p = that._pendingQueue.pop();
-                    that.make(p.segment, p.elevations)
-                }
-            };
-
-            w.postMessage({
-                'elevations': _elevations,
-                'this_plainVertices': segment.plainVertices,
-                'this_plainNormals': segment.plainNormals,
-                'this_normalMapVertices': segment.normalMapVertices,
-                'this_normalMapNormals': segment.normalMapNormals,
-                'heightFactor': segment.planet._heightFactor,
-                'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
-            }, [
-                    _elevations.buffer,
-                    segment.plainVertices.buffer,
-                    segment.plainNormals.buffer,
-                    segment.normalMapVertices.buffer,
-                    segment.normalMapNormals.buffer
-                ]);
-        } else {
-            this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
-        }
-    }
-};
+export { TerrainWorker };
