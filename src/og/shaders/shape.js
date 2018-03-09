@@ -1,33 +1,34 @@
-goog.provide('og.shaderProgram.shape_wl');
-goog.provide('og.shaderProgram.shape_nl');
+/**
+ * @module og/shaders/shape
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
 
-og.shaderProgram.shape_wl = function () {
-    return new og.shaderProgram.ShaderProgram("shape_wl", {
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+export function shape_wl() {
+    return new ShaderProgram("shape_wl", {
         uniforms: {
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelMatrix: { type: og.shaderProgram.types.MAT4 },
-            normalMatrix: { type: og.shaderProgram.types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            projectionMatrix: { type: types.MAT4 },
+            modelMatrix: { type: types.MAT4 },
+            normalMatrix: { type: types.MAT4 },
 
-            lightsPositions: { type: og.shaderProgram.types.VEC4 },
-            lightsParamsv: { type: og.shaderProgram.types.VEC3 },
-            lightsParamsf: { type: og.shaderProgram.types.FLOAT },
+            lightsPositions: { type: types.VEC4 },
+            lightsParamsv: { type: types.VEC3 },
+            lightsParamsf: { type: types.FLOAT },
 
-            uColor: { type: og.shaderProgram.types.VEC4 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+            uColor: { type: types.VEC4 },
+            uSampler: { type: types.SAMPLER2D }
         },
         attributes: {
-            aVertexNormal: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexNormal: { type: types.VEC3, enableArray: true },
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexNormal;\
+        'attribute vec3 aVertexNormal;\
             attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionMatrix;\
@@ -48,7 +49,7 @@ og.shaderProgram.shape_wl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             varying vec2 vTextureCoord;\
             varying vec3 vNormal;\
             varying vec4 vPosition;\
@@ -80,20 +81,20 @@ og.shaderProgram.shape_wl = function () {
     });
 };
 
-og.shaderProgram.shape_nl = function () {
-    return new og.shaderProgram.ShaderProgram("shape_nl", {
+export function shape_nl() {
+    return new ShaderProgram("shape_nl", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            modelMatrix: { type: og.shaderProgram.types.MAT4 },
-            uColor: { type: og.shaderProgram.types.VEC4 },
-            uSampler: { type: og.shaderProgram.types.SAMPLER2D }
+            projectionViewMatrix: { type: types.MAT4 },
+            modelMatrix: { type: types.MAT4 },
+            uColor: { type: types.VEC4 },
+            uSampler: { type: types.SAMPLER2D }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
-        vertexShader: 
-            'attribute vec3 aVertexPosition;\
+        vertexShader:
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform mat4 modelMatrix;\
@@ -106,8 +107,8 @@ og.shaderProgram.shape_nl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 vTextureCoord = aTextureCoord;\
             }',
-        fragmentShader: 
-            'precision highp float;\n\
+        fragmentShader:
+        'precision highp float;\n\
             uniform vec4 uColor;\
             uniform sampler2D uSampler;\
             varying vec2 vTextureCoord;\

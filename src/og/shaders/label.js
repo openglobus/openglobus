@@ -1,12 +1,13 @@
-goog.provide('og.shaderProgram.label');
-goog.provide('og.shaderProgram.labelPicking');
+/**
+ * @module og/shaders/label
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
 
-og.shaderProgram.label = function (isSingleBuffer) {
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+export function label(isSingleBuffer) {
 
     var strFragment;
 
@@ -98,31 +99,31 @@ og.shaderProgram.label = function (isSingleBuffer) {
             }';
     }
 
-    return new og.shaderProgram.ShaderProgram("label", {
+    return new ShaderProgram("label", {
         uniforms: {
-            u_fontTextureArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uFloatParams: { type: og.shaderProgram.types.VEC2 },
-            uZ: { type: og.shaderProgram.types.FLOAT },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
-            uOpacity: { type: og.shaderProgram.types.FLOAT }
+            u_fontTextureArr: { type: types.SAMPLER2DXX },
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            uCamPos: { type: types.VEC3 },
+            uFloatParams: { type: types.VEC2 },
+            uZ: { type: types.FLOAT },
+            uScaleByDistance: { type: types.VEC3 },
+            uOpacity: { type: types.FLOAT }
         },
         attributes: {
-            a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_texCoord: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_size: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_rgba: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_fontIndex: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_bufferAA: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            a_vertices: { type: types.VEC2, enableArray: true },
+            a_texCoord: { type: types.VEC4, enableArray: true },
+            a_positions: { type: types.VEC4, enableArray: true },
+            a_size: { type: types.FLOAT, enableArray: true },
+            a_offset: { type: types.VEC3, enableArray: true },
+            a_rgba: { type: types.VEC4, enableArray: true },
+            a_rotation: { type: types.FLOAT, enableArray: true },
+            a_alignedAxis: { type: types.VEC3, enableArray: true },
+            a_fontIndex: { type: types.FLOAT, enableArray: true },
+            a_bufferAA: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec2 a_vertices;\
+        'attribute vec2 a_vertices;\
             attribute vec4 a_texCoord;\
             attribute vec4 a_positions;\
             attribute vec3 a_offset;\
@@ -185,32 +186,32 @@ og.shaderProgram.label = function (isSingleBuffer) {
                 gl_Position.z += a_offset.z + uZ;\
             }',
         fragmentShader:
-            strFragment
+        strFragment
     });
 };
 
-og.shaderProgram.labelPicking = function () {
-    return new og.shaderProgram.ShaderProgram("labelPicking", {
+export function labelPicking() {
+    return new ShaderProgram("labelPicking", {
         uniforms: {
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uFloatParams: { type: og.shaderProgram.types.VEC2 },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
-            uOpacity: { type: og.shaderProgram.types.FLOAT }
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            uCamPos: { type: types.VEC3 },
+            uFloatParams: { type: types.VEC2 },
+            uScaleByDistance: { type: types.VEC3 },
+            uOpacity: { type: types.FLOAT }
         },
         attributes: {
-            a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_texCoord: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_size: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_pickingColor: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            a_vertices: { type: types.VEC2, enableArray: true },
+            a_texCoord: { type: types.VEC4, enableArray: true },
+            a_positions: { type: types.VEC4, enableArray: true },
+            a_size: { type: types.FLOAT, enableArray: true },
+            a_offset: { type: types.VEC3, enableArray: true },
+            a_pickingColor: { type: types.VEC3, enableArray: true },
+            a_rotation: { type: types.FLOAT, enableArray: true },
+            a_alignedAxis: { type: types.VEC3, enableArray: true }
         },
         vertexShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec4 a_texCoord;\
             attribute vec4 a_positions;\
@@ -265,7 +266,7 @@ og.shaderProgram.labelPicking = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             varying vec4 v_color;\
             void main () {\
                 gl_FragColor = v_color;\

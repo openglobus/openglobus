@@ -1,36 +1,34 @@
-goog.provide('og.shaderProgram.drawnode_nl');
-goog.provide('og.shaderProgram.drawnode_wl');
-goog.provide('og.shaderProgram.drawnode_screen_nl');
-goog.provide('og.shaderProgram.drawnode_screen_wl');
-goog.provide('og.shaderProgram.drawnode_colorPicking');
-goog.provide('og.shaderProgram.drawnode_heightPicking');
+/**
+ * @module og/shaders/drawnode
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
+'use sctrict';
+
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
 
 
-og.shaderProgram.drawnode_nl = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_nl", {
+export function drawnode_nl() {
+    return new ShaderProgram("drawnode_nl", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            pickingMaskArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            pickingColorArr: { type: og.shaderProgram.types.VEC3 },
-            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            height: { type: og.shaderProgram.types.FLOAT },
-            cameraPosition: { type: og.shaderProgram.types.VEC3 }
+            projectionViewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            pickingMaskArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            pickingColorArr: { type: types.VEC3 },
+            defaultTexture: { type: types.SAMPLER2D },
+            height: { type: types.FLOAT },
+            cameraPosition: { type: types.VEC3 }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform float height;\
@@ -47,7 +45,7 @@ og.shaderProgram.drawnode_nl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#extension GL_EXT_draw_buffers : require\n\
+        '#extension GL_EXT_draw_buffers : require\n\
             precision highp float;\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
@@ -141,24 +139,24 @@ og.shaderProgram.drawnode_nl = function () {
     });
 };
 
-og.shaderProgram.drawnode_screen_nl = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_screen_nl", {
+export function drawnode_screen_nl() {
+    return new ShaderProgram("drawnode_screen_nl", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            height: { type: og.shaderProgram.types.FLOAT }
+            projectionViewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            defaultTexture: { type: types.SAMPLER2D },
+            height: { type: types.FLOAT }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform float height;\
@@ -172,7 +170,7 @@ og.shaderProgram.drawnode_screen_nl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -218,25 +216,25 @@ og.shaderProgram.drawnode_screen_nl = function () {
     });
 };
 
-og.shaderProgram.drawnode_colorPicking = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_colorPicking", {
+export function drawnode_colorPicking() {
+    return new ShaderProgram("drawnode_colorPicking", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            pickingMaskArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            pickingColorArr: { type: og.shaderProgram.types.VEC3 },
-            height: { type: og.shaderProgram.types.FLOAT }
+            projectionViewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            pickingMaskArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            pickingColorArr: { type: types.VEC3 },
+            height: { type: types.FLOAT }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform float height;\
@@ -250,7 +248,7 @@ og.shaderProgram.drawnode_colorPicking = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
             uniform vec4 transparentColorArr[5];\
@@ -312,25 +310,25 @@ og.shaderProgram.drawnode_colorPicking = function () {
     });
 };
 
-og.shaderProgram.drawnode_heightPicking = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_heightPicking", {
+export function drawnode_heightPicking() {
+    return new ShaderProgram("drawnode_heightPicking", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            height: { type: og.shaderProgram.types.FLOAT },
-            cameraPosition: { type: og.shaderProgram.types.VEC3 }
+            projectionViewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            defaultTexture: { type: types.SAMPLER2D },
+            height: { type: types.FLOAT },
+            cameraPosition: { type: types.VEC3 }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionViewMatrix;\
             uniform float height;\
@@ -347,7 +345,7 @@ og.shaderProgram.drawnode_heightPicking = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             uniform sampler2D defaultTexture;\
             uniform vec4 tileOffsetArr[5];\
             uniform vec4 visibleExtentOffsetArr[5];\
@@ -408,38 +406,38 @@ og.shaderProgram.drawnode_heightPicking = function () {
 
 
 
-og.shaderProgram.drawnode_wl = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_wl", {
+export function drawnode_wl() {
+    return new ShaderProgram("drawnode_wl", {
         uniforms: {
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            pickingMaskArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            pickingColorArr: { type: og.shaderProgram.types.VEC3 },
-            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            height: { type: og.shaderProgram.types.FLOAT },
-            cameraPosition: { type: og.shaderProgram.types.VEC3 },
-            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
-            normalMatrix: { type: og.shaderProgram.types.MAT3 },
-            uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
-            uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
-            nightTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            specularTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            lightsPositions: { type: og.shaderProgram.types.VEC4 },
-            diffuseMaterial: { type: og.shaderProgram.types.VEC3 },
-            ambientMaterial: { type: og.shaderProgram.types.VEC3 },
-            specularMaterial: { type: og.shaderProgram.types.VEC4 }
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            pickingMaskArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            pickingColorArr: { type: types.VEC3 },
+            defaultTexture: { type: types.SAMPLER2D },
+            height: { type: types.FLOAT },
+            cameraPosition: { type: types.VEC3 },
+            uGlobalTextureCoord: { type: types.VEC4 },
+            normalMatrix: { type: types.MAT3 },
+            uNormalMap: { type: types.SAMPLER2D },
+            uNormalMapBias: { type: types.VEC3 },
+            nightTexture: { type: types.SAMPLER2D },
+            specularTexture: { type: types.SAMPLER2D },
+            lightsPositions: { type: types.VEC4 },
+            diffuseMaterial: { type: types.VEC3 },
+            ambientMaterial: { type: types.VEC3 },
+            specularMaterial: { type: types.VEC4 }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionMatrix;\
             uniform mat4 viewMatrix;\
@@ -467,7 +465,7 @@ og.shaderProgram.drawnode_wl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            '#extension GL_EXT_draw_buffers : require\n\
+        '#extension GL_EXT_draw_buffers : require\n\
             precision highp float;\n\
 \n\
             #define MAX_POINT_LIGHTS 1\n\
@@ -630,35 +628,35 @@ og.shaderProgram.drawnode_wl = function () {
     });
 };
 
-og.shaderProgram.drawnode_screen_wl = function () {
-    return new og.shaderProgram.ShaderProgram("drawnode_screen_wl", {
+export function drawnode_screen_wl() {
+    return new ShaderProgram("drawnode_screen_wl", {
         uniforms: {
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            samplerCount: { type: og.shaderProgram.types.INT },
-            tileOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            visibleExtentOffsetArr: { type: og.shaderProgram.types.VEC4 },
-            samplerArr: { type: og.shaderProgram.types.SAMPLER2DXX },
-            transparentColorArr: { type: og.shaderProgram.types.VEC4 },
-            defaultTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            height: { type: og.shaderProgram.types.FLOAT },
-            normalMatrix: { type: og.shaderProgram.types.MAT3 },
-            uNormalMap: { type: og.shaderProgram.types.SAMPLER2D },
-            uNormalMapBias: { type: og.shaderProgram.types.VEC3 },
-            uGlobalTextureCoord: { type: og.shaderProgram.types.VEC4 },
-            nightTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            specularTexture: { type: og.shaderProgram.types.SAMPLER2D },
-            lightsPositions: { type: og.shaderProgram.types.VEC4 },
-            diffuseMaterial: { type: og.shaderProgram.types.VEC3 },
-            ambientMaterial: { type: og.shaderProgram.types.VEC3 },
-            specularMaterial: { type: og.shaderProgram.types.VEC4 }
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            samplerCount: { type: types.INT },
+            tileOffsetArr: { type: types.VEC4 },
+            visibleExtentOffsetArr: { type: types.VEC4 },
+            samplerArr: { type: types.SAMPLER2DXX },
+            transparentColorArr: { type: types.VEC4 },
+            defaultTexture: { type: types.SAMPLER2D },
+            height: { type: types.FLOAT },
+            normalMatrix: { type: types.MAT3 },
+            uNormalMap: { type: types.SAMPLER2D },
+            uNormalMapBias: { type: types.VEC3 },
+            uGlobalTextureCoord: { type: types.VEC4 },
+            nightTexture: { type: types.SAMPLER2D },
+            specularTexture: { type: types.SAMPLER2D },
+            lightsPositions: { type: types.VEC4 },
+            diffuseMaterial: { type: types.VEC3 },
+            ambientMaterial: { type: types.VEC3 },
+            specularMaterial: { type: types.VEC4 }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            aTextureCoord: { type: og.shaderProgram.types.VEC2, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true },
+            aTextureCoord: { type: types.VEC2, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 aVertexPosition;\
+        'attribute vec3 aVertexPosition;\
             attribute vec2 aTextureCoord;\
             uniform mat4 projectionMatrix;\
             uniform mat4 viewMatrix;\
@@ -683,7 +681,7 @@ og.shaderProgram.drawnode_screen_wl = function () {
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
 \n\
             #define MAX_POINT_LIGHTS 1\n\
             #define MAX_OVERLAYS 5\n\
