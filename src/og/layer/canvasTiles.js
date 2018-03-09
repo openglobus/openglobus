@@ -1,8 +1,33 @@
-goog.provide('og.layer.CanvasTiles');
+/**
+ * @module og/layer/CanvasTiles
+ */
 
-goog.require('og.inheritance');
-goog.require('og.layer.Layer');
-goog.require('og.ImageCanvas');
+'use strict';
+
+import * as quadTree from '../quadTree/quadTree.js';
+import { ImageCanvas } from '../ImageCanvas.js';
+import { Layer } from './Layer.js';
+
+/**
+ * Maximum tiles per frame.
+ * @const
+ * @type {number}
+ */
+const MAX_REQUESTS = 7;
+
+const EVENT_NAMES = [
+    /**
+     * Triggered when current tile image has loaded before rendereing.
+     * @event og.layer.CanvasTiles#load
+     */
+    "load",
+
+    /**
+     * Triggered when all tiles have loaded or loading has stopped.
+     * @event og.layer.CanvasTiles#loadend
+     */
+    "loadend"
+];
 
 /**
  * Layer used to rendering each tile as a separate canvas object.
@@ -22,270 +47,239 @@ goog.require('og.ImageCanvas');
  * @fires og.layer.CanvasTiles#load
  * @fires og.layer.CanvasTiles#loadend
  */
-og.layer.CanvasTiles = function(name, options) {
-    options = options || {};
+class CanvasTiles extends Layer {
+    constructor(name, options) {
+        options = options || {};
 
-    og.inheritance.base(this, name, options);
+        super(name, options);
 
-    this.events.registerNames(og.layer.CanvasTiles.EVENT_NAMES);
-
-    /**
-     * Current creating tiles couter.
-     * @protected
-     * @type {number}
-     */
-    this._counter = 0;
-
-    /**
-     * Tile pending queue that waiting for create.
-     * @protected
-     * @type {Array.<og.planetSegment.Material>}
-     */
-    this._pendingsQueue = []; //new og.QueueArray();
-
-    /**
-     * Draw tile callback.
-     * @type {og.layer.CanvasTiles~drawTileCallback}
-     * @public
-     */
-    this.drawTile = options.drawTile || null;
-};
-
-og.inheritance.extend(og.layer.CanvasTiles, og.layer.Layer);
-
-/**
- * CanvasTiles layer {@link og.layer.CanvasTiles} object factory.
- * @static
- * @returns {og.layer.CanvasTiles} Returns canvas tiles layer.
- */
-og.layer.canvasTiles = function(name, options) {
-    return new og.layer.CanvasTiles(name, options);
-};
-
-og.layer.CanvasTiles.__requestsCounter = 0;
-
-/**
- * Maximum tiles per frame.
- * @const
- * @type {number}
- */
-og.layer.CanvasTiles.MAX_REQUESTS = 7;
-
-og.layer.CanvasTiles.EVENT_NAMES = [
-    /**
-     * Triggered when current tile image has loaded before rendereing.
-     * @event og.layer.CanvasTiles#load
-     */
-    "load",
-
-    /**
-     * Triggered when all tiles have loaded or loading has stopped.
-     * @event og.layer.CanvasTiles#loadend
-     */
-    "loadend"
-];
-
-
-/**
- * Abort loading tiles.
- * @public
- */
-og.layer.CanvasTiles.prototype.abortLoading = function() {
-    var q = this._pendingsQueue;
-    for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
-        if (q._array[i]) {
-            this.abortMaterialLoading(q._array[i]);
-        }
-    }
-    this._pendingsQueue = [];
-    //this._pendingsQueue.clear();
-};
-
-/**
- * Sets layer visibility.
- * @public
- * @param {boolean} visibility - Layer visibility.
- */
-og.layer.CanvasTiles.prototype.setVisibility = function(visibility) {
-    if (visibility != this._visibility) {
-        this._visibility = visibility;
-        if (this._isBaseLayer && visibility) {
-            this._planet.setBaseLayer(this);
-        } else if (!visibility) {
-            this.abortLoading();
-        }
-        this._planet.updateVisibleLayers();
-        this.events.dispatch(this.events.visibilitychange, this);
-    }
-};
-
-/**
- * Start to load tile material.
- * @public
- * @virtual
- * @param {og.planetSegment.Material} mateial
- */
-og.layer.CanvasTiles.prototype.loadMaterial = function(material) {
-
-    var seg = material.segment;
-
-    if (this._isBaseLayer) {
-        material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
-    } else {
-        material.texture = seg.planet.transparentTexture;
-    }
-
-    if (this._planet.layerLock.isFree()) {
-        material.isReady = false;
-        material.isLoading = true;
-        if (og.layer.CanvasTiles.__requestsCounter >= og.layer.CanvasTiles.MAX_REQUESTS && this._counter) {
-            this._pendingsQueue.push(material);
-        } else {
-            this._exec(material);
-        }
-    }
-};
-
-/**
- * Loads material image and apply it to the planet segment.
- * @protected
- * @param {og.planetSegment.Material} material - Loads material image.
- */
-og.layer.CanvasTiles.prototype._exec = function(material) {
-    og.layer.CanvasTiles.__requestsCounter++;
-    this._counter++;
-    var that = this;
-    if (this.drawTile) {
+        this.events.registerNames(EVENT_NAMES);
 
         /**
-         * Tile custom draw function.
-         * @callback og.layer.CanvasTiles~drawTileCallback
-         * @param {og.planetSegment.Material} material
-         * @param {applyCanvasCallback} applyCanvasCallback
+         * Current creating tiles couter.
+         * @protected
+         * @type {number}
          */
-        setTimeout(function() {
-            var e = that.events.load;
-            if (e.handlers.length) {
-                that.events.dispatch(e, material);
+        this._counter = 0;
+
+        /**
+         * Tile pending queue that waiting for create.
+         * @protected
+         * @type {Array.<og.planetSegment.Material>}
+         */
+        this._pendingsQueue = []; //new og.QueueArray();
+
+        /**
+         * Draw tile callback.
+         * @type {og.layer.CanvasTiles~drawTileCallback}
+         * @public
+         */
+        this.drawTile = options.drawTile || null;
+    }
+
+    /**
+     * Abort loading tiles.
+     * @public
+     */
+    abortLoading() {
+        var q = this._pendingsQueue;
+        for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
+            if (q._array[i]) {
+                this.abortMaterialLoading(q._array[i]);
             }
-            that.drawTile(material,
-                /**
-                 * Apply canvas.
-                 * @callback applyCanvasCallback
-                 * @param {Object} canvas
-                 */
-                function(canvas) {
-                    that._counter--;
-                    og.layer.CanvasTiles.__requestsCounter--;
-                    if (material.isLoading) {
-                        material.applyImage(canvas);
-                    }
-                    that._dequeueRequest();
-                });
-        }, 50);
-    } else {
-        material.textureNotExists();
-    }
-};
-
-/**
- * Abort exact material loading.
- * @public
- * @param {og.planetSegment.Material} material - Segment material.
- */
-og.layer.CanvasTiles.prototype.abortMaterialLoading = function(material) {
-    if (material.isLoading && material.image) {
-        material.image.src = "";
-        this._counter--;
-        og.layer.CanvasTiles.__requestsCounter--;
-        this._dequeueRequest();
-    }
-    material.isLoading = false;
-    material.isReady = false;
-};
-
-og.layer.CanvasTiles.prototype._dequeueRequest = function() {
-    if (this._pendingsQueue.length) {
-        if (og.layer.CanvasTiles.__requestsCounter < og.layer.CanvasTiles.MAX_REQUESTS) {
-            var pmat;
-            if (pmat = this._whilePendings())
-                this._exec.call(this, pmat);
         }
-    } else if (this._counter === 0) {
-        this.events.dispatch(this.events.loadend);
-    }
-};
+        this._pendingsQueue = [];
+        //this._pendingsQueue.clear();
+    };
 
-og.layer.CanvasTiles.prototype._whilePendings = function() {
-    while (this._pendingsQueue.length) {
-        var pmat = this._pendingsQueue.pop();
-        if (pmat.segment.node) {
-            if (pmat.segment.ready && pmat.segment.node.getState() === og.quadTree.RENDERING) {
-                return pmat;
+    /**
+     * Sets layer visibility.
+     * @public
+     * @param {boolean} visibility - Layer visibility.
+     */
+    setVisibility(visibility) {
+        if (visibility != this._visibility) {
+            this._visibility = visibility;
+            if (this._isBaseLayer && visibility) {
+                this._planet.setBaseLayer(this);
+            } else if (!visibility) {
+                this.abortLoading();
             }
-            pmat.isLoading = false;
+            this._planet.updateVisibleLayers();
+            this.events.dispatch(this.events.visibilitychange, this);
         }
     }
-    return null;
-};
 
+    /**
+     * Start to load tile material.
+     * @public
+     * @virtual
+     * @param {og.planetSegment.Material} mateial
+     */
+    loadMaterial(material) {
 
-og.layer.CanvasTiles.prototype.applyMaterial = function(material) {
-    if (material.isReady) {
-        return [0, 0, 1, 1];
-    } else {
+        var seg = material.segment;
 
-        !material.isLoading && this.loadMaterial(material);
-
-        var segment = material.segment;
-        var pn = segment.node,
-            notEmpty = false;
-
-        var mId = this._id;
-        var psegm = material;
-        while (pn.parentNode) {
-            if (psegm && psegm.isReady) {
-                notEmpty = true;
-                break;
-            }
-            pn = pn.parentNode;
-            psegm = pn.planetSegment.materials[mId];
-        }
-
-        if (notEmpty) {
-            material.appliedNodeId = pn.nodeId;
-            material.texture = psegm.texture;
-            var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
-            return [
-                segment.tileX * dZ2 - pn.planetSegment.tileX,
-                segment.tileY * dZ2 - pn.planetSegment.tileY,
-                dZ2,
-                dZ2
-            ];
+        if (this._isBaseLayer) {
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
         } else {
-            material.texture = segment.planet.transparentTexture;
+            material.texture = seg.planet.transparentTexture;
+        }
+
+        if (this._planet.layerLock.isFree()) {
+            material.isReady = false;
+            material.isLoading = true;
+            if (CanvasTiles.__requestsCounter >= MAX_REQUESTS && this._counter) {
+                this._pendingsQueue.push(material);
+            } else {
+                this._exec(material);
+            }
+        }
+    }
+
+    /**
+     * Loads material image and apply it to the planet segment.
+     * @protected
+     * @param {og.planetSegment.Material} material - Loads material image.
+     */
+    _exec(material) {
+        CanvasTiles.__requestsCounter++;
+        this._counter++;
+        var that = this;
+        if (this.drawTile) {
+
+            /**
+             * Tile custom draw function.
+             * @callback og.layer.CanvasTiles~drawTileCallback
+             * @param {og.planetSegment.Material} material
+             * @param {applyCanvasCallback} applyCanvasCallback
+             */
+            setTimeout(function () {
+                var e = that.events.load;
+                if (e.handlers.length) {
+                    that.events.dispatch(e, material);
+                }
+                that.drawTile(material,
+                    /**
+                     * Apply canvas.
+                     * @callback applyCanvasCallback
+                     * @param {Object} canvas
+                     */
+                    function (canvas) {
+                        that._counter--;
+                        og.layer.CanvasTiles.__requestsCounter--;
+                        if (material.isLoading) {
+                            material.applyImage(canvas);
+                        }
+                        that._dequeueRequest();
+                    });
+            }, 50);
+        } else {
+            material.textureNotExists();
+        }
+    }
+
+    /**
+     * Abort exact material loading.
+     * @public
+     * @param {og.planetSegment.Material} material - Segment material.
+     */
+    abortMaterialLoading(material) {
+        if (material.isLoading && material.image) {
+            material.image.src = "";
+            this._counter--;
+            og.layer.CanvasTiles.__requestsCounter--;
+            this._dequeueRequest();
+        }
+        material.isLoading = false;
+        material.isReady = false;
+    }
+
+    _dequeueRequest() {
+        if (this._pendingsQueue.length) {
+            if (CanvasTiles.__requestsCounter < MAX_REQUESTS) {
+                var pmat;
+                if (pmat = this._whilePendings())
+                    this._exec.call(this, pmat);
+            }
+        } else if (this._counter === 0) {
+            this.events.dispatch(this.events.loadend);
+        }
+    }
+
+    _whilePendings() {
+        while (this._pendingsQueue.length) {
+            var pmat = this._pendingsQueue.pop();
+            if (pmat.segment.node) {
+                if (pmat.segment.ready && pmat.segment.node.getState() === quadTree.RENDERING) {
+                    return pmat;
+                }
+                pmat.isLoading = false;
+            }
+        }
+        return null;
+    }
+
+
+    applyMaterial(material) {
+        if (material.isReady) {
             return [0, 0, 1, 1];
+        } else {
+
+            !material.isLoading && this.loadMaterial(material);
+
+            var segment = material.segment;
+            var pn = segment.node,
+                notEmpty = false;
+
+            var mId = this._id;
+            var psegm = material;
+            while (pn.parentNode) {
+                if (psegm && psegm.isReady) {
+                    notEmpty = true;
+                    break;
+                }
+                pn = pn.parentNode;
+                psegm = pn.planetSegment.materials[mId];
+            }
+
+            if (notEmpty) {
+                material.appliedNodeId = pn.nodeId;
+                material.texture = psegm.texture;
+                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
+                return [
+                    segment.tileX * dZ2 - pn.planetSegment.tileX,
+                    segment.tileY * dZ2 - pn.planetSegment.tileY,
+                    dZ2,
+                    dZ2
+                ];
+            } else {
+                material.texture = segment.planet.transparentTexture;
+                return [0, 0, 1, 1];
+            }
+        }
+    }
+
+    clearMaterial(material) {
+        if (material.isReady) {
+            material.isReady = false;
+
+            !material.texture.default &&
+                material.segment.handler.gl.deleteTexture(material.texture);
+
+            material.texture = null;
+        }
+
+        this.abortMaterialLoading(material);
+
+        material.isLoading = false;
+        material.textureExists = false;
+
+        if (material.image) {
+            material.image.src = '';
+            material.image = null;
         }
     }
 };
 
-og.layer.CanvasTiles.prototype.clearMaterial = function(material) {
-    if (material.isReady) {
-        material.isReady = false;
-
-        !material.texture.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
-
-        material.texture = null;
-    }
-
-    this.abortMaterialLoading(material);
-
-    material.isLoading = false;
-    material.textureExists = false;
-
-    if (material.image) {
-        material.image.src = '';
-        material.image = null;
-    }
-};
+export { CanvasTiles };

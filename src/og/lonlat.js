@@ -43,7 +43,7 @@ const LonLat = function (lon, lat, height) {
  * @param{Array.<Array<number,number,number>>} arr - Coordinates array data.
  * @return{Array.<og.LonLat>} the same coordinates array but each element is LonLat instance.
  */
-LonLat.lonLatArray = function (arr) {
+LonLat.join = function (arr) {
     var res = [];
     for (var i = 0; i < arr.length; i++) {
         var ai = arr[i];
