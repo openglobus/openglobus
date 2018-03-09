@@ -1,9 +1,19 @@
-goog.provide('og.planetSegment.SegmentLonLat');
+/**
+ * @module og/planetSegment/SegmentLonLat
+ */
 
-goog.require('og.planetSegment.Segment');
-goog.require('og.inheritance');
-goog.require('og.LonLat');
-goog.require('og.proj.EPSG4326');
+'use sctrict';
+
+import * as inheritance from '../inheritance.js';
+import * as math from '../math.js';
+import * as mercator from '../mercator.js';
+import * as quadTree from '../quadTree/quadTree.js';
+import { EPSG4326 } from '../proj/EPSG4326.js';
+import { Extent } from '../Extent.js';
+import { Layer } from '../layer/Layer.js';
+import { LonLat } from '../LonLat.js';
+import { Segment } from './Segment.js';
+
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
@@ -14,44 +24,44 @@ goog.require('og.proj.EPSG4326');
  * @param {Number} tileZoom - Segment tile zoom index.
  * @param {og.Extent} extent - Segment WGS84 extent.
  */
-og.planetSegment.SegmentLonLat = function (node, planet, tileZoom, extent) {
+const SegmentLonLat = function (node, planet, tileZoom, extent) {
     this._isNorth = false;
     og.inheritance.base(this, node, planet, tileZoom, extent);
-    this._projection = og.proj.EPSG4326;
-    this._extentMerc = new og.Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
+    this._projection = EPSG4326;
+    this._extentMerc = new Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
 };
 
-og.planetSegment.SegmentLonLat._heightLat = 90.0 - og.mercator.MAX_LAT;
-og.planetSegment.SegmentLonLat._maxPoleZoom = 7;
-og.planetSegment.SegmentLonLat._pieceSize = og.planetSegment.SegmentLonLat._heightLat / Math.pow(2, og.planetSegment.SegmentLonLat._maxPoleZoom);
+SegmentLonLat._heightLat = 90.0 - og.mercator.MAX_LAT;
+SegmentLonLat._maxPoleZoom = 7;
+SegmentLonLat._pieceSize = SegmentLonLat._heightLat / Math.pow(2, SegmentLonLat._maxPoleZoom);
 
-og.inheritance.extend(og.planetSegment.SegmentLonLat, og.planetSegment.Segment);
+inheritance.extend(SegmentLonLat, Segment);
 
-og.planetSegment.SegmentLonLat.prototype.projectNative = function (coords) {
+SegmentLonLat.prototype.projectNative = function (coords) {
     return coords;
 };
 
-og.planetSegment.SegmentLonLat.prototype.getTerrainPoint = function (res, xyz) {
+SegmentLonLat.prototype.getTerrainPoint = function (res, xyz) {
     res.copy(this.planet.ellipsoid.hitRay(xyz, xyz.negateTo().normalize()));
     return xyz.distance(res);
 };
 
-og.planetSegment.SegmentLonLat.prototype.acceptForRendering = function (camera) {
+SegmentLonLat.prototype.acceptForRendering = function (camera) {
     var maxPoleZoom;
     var lat = this._extent.northEast.lat;
     if (this._isNorth) {
         //north pole limits
-        var Yz = Math.floor((90.0 - lat) / og.planetSegment.SegmentLonLat._pieceSize);
+        var Yz = Math.floor((90.0 - lat) / SegmentLonLat._pieceSize);
         maxPoleZoom = Math.floor(Yz / 16) + 7;
     } else {
         //south pole limits
-        var Yz = Math.floor((og.mercator.MIN_LAT - lat) / og.planetSegment.SegmentLonLat._pieceSize);
+        var Yz = Math.floor((mercator.MIN_LAT - lat) / SegmentLonLat._pieceSize);
         maxPoleZoom = 12 - Math.floor(Yz / 16);
     }
-    return og.planetSegment.Segment.prototype.acceptForRendering.call(this, camera) || this.tileZoom >= maxPoleZoom;
+    return Segment.prototype.acceptForRendering.call(this, camera) || this.tileZoom >= maxPoleZoom;
 };
 
-og.planetSegment.SegmentLonLat.prototype._assignTileIndexes = function () {
+SegmentLonLat.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
     var extent = this._extent;
 
@@ -64,19 +74,19 @@ og.planetSegment.SegmentLonLat.prototype._assignTileIndexes = function () {
         this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
     } else {
         //south pole
-        this.tileY = Math.round((og.mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
+        this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
     }
 
-    this.tileIndex = og.layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+    this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
-og.planetSegment.SegmentLonLat.prototype._addViewExtent = function () {
+SegmentLonLat.prototype._addViewExtent = function () {
 
     var ext = this._extent;
     if (!this.planet._viewExtentWGS84) {
-        this.planet._viewExtentWGS84 = new og.Extent(
-            new og.LonLat(ext.southWest.lon, ext.southWest.lat),
-            new og.LonLat(ext.northEast.lon, ext.northEast.lat));
+        this.planet._viewExtentWGS84 = new Extent(
+            new LonLat(ext.southWest.lon, ext.southWest.lat),
+            new LonLat(ext.northEast.lon, ext.northEast.lat));
         return;
     }
 
@@ -99,7 +109,7 @@ og.planetSegment.SegmentLonLat.prototype._addViewExtent = function () {
     }
 };
 
-og.planetSegment.SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
+SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
     var ind = 0;
     var e = this._extent;
     var lonSize = e.getWidth();
@@ -119,7 +129,7 @@ og.planetSegment.SegmentLonLat.prototype.createPlainVertices = function (gridSiz
 
     for (var i = 0; i <= gridSize; i++) {
         for (var j = 0; j <= gridSize; j++) {
-            var v = this.planet.ellipsoid.lonLatToCartesian(new og.LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
+            var v = this.planet.ellipsoid.lonLatToCartesian(new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
             var nx = v.x * r2.x,
                 ny = v.y * r2.y,
                 nz = v.z * r2.z;
@@ -147,21 +157,21 @@ og.planetSegment.SegmentLonLat.prototype.createPlainVertices = function (gridSiz
     this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
 };
 
-og.planetSegment.SegmentLonLat.prototype.createBoundsByExtent = function () {
+SegmentLonLat.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this._extent;
 
-    var xmin = og.math.MAX,
-        xmax = og.math.MIN,
-        ymin = og.math.MAX,
-        ymax = og.math.MIN,
-        zmin = og.math.MAX,
-        zmax = og.math.MIN;
+    var xmin = math.MAX,
+        xmax = math.MIN,
+        ymin = math.MAX,
+        ymax = math.MIN,
+        zmin = math.MAX,
+        zmax = math.MIN;
 
-    var v = [new og.LonLat(extent.southWest.lon, extent.southWest.lat),
-    new og.LonLat(extent.southWest.lon, extent.northEast.lat),
-    new og.LonLat(extent.northEast.lon, extent.northEast.lat),
-    new og.LonLat(extent.northEast.lon, extent.southWest.lat)
+    var v = [new LonLat(extent.southWest.lon, extent.southWest.lat),
+    new LonLat(extent.southWest.lon, extent.northEast.lat),
+    new LonLat(extent.northEast.lon, extent.northEast.lat),
+    new LonLat(extent.northEast.lon, extent.southWest.lat)
     ];
 
     for (var i = 0; i < v.length; i++) {
@@ -180,7 +190,7 @@ og.planetSegment.SegmentLonLat.prototype.createBoundsByExtent = function () {
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
-og.planetSegment.SegmentLonLat.prototype._collectRenderNodes = function () {
+SegmentLonLat.prototype._collectRenderNodes = function () {
     if (this._isNorth) {
         this.planet._visibleNodesNorth[this.node.nodeId] = this.node;
     } else {
@@ -188,11 +198,11 @@ og.planetSegment.SegmentLonLat.prototype._collectRenderNodes = function () {
     }
 };
 
-og.planetSegment.SegmentLonLat.prototype.isEntityInside = function (e) {
+SegmentLonLat.prototype.isEntityInside = function (e) {
     return this._extent.isInside(e._lonlat);
 };
 
-og.planetSegment.SegmentLonLat.prototype._getLayerExtentOffset = function (layer) {
+SegmentLonLat.prototype._getLayerExtentOffset = function (layer) {
     var v0s = layer._extent;
     var v0t = this._extent;
     var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
@@ -204,33 +214,35 @@ og.planetSegment.SegmentLonLat.prototype._getLayerExtentOffset = function (layer
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-og.planetSegment.SegmentLonLat.prototype.layerOverlap = function (layer) {
+SegmentLonLat.prototype.layerOverlap = function (layer) {
     return this._extent.overlaps(layer._extent);
 };
 
-og.planetSegment.SegmentLonLat.prototype._getDefaultTexture = function () {
+SegmentLonLat.prototype._getDefaultTexture = function () {
     return this.planet.solidTextureTwo;
 };
 
-og.planetSegment.SegmentLonLat.prototype.getExtentLonLat = function () {
+SegmentLonLat.prototype.getExtentLonLat = function () {
     return this._extent;
 };
 
-og.planetSegment.SegmentLonLat.prototype.getExtentMerc = function () {
+SegmentLonLat.prototype.getExtentMerc = function () {
     return this._extentMerc;
 };
 
-og.planetSegment.SegmentLonLat.prototype.getNodeState = function () {
+SegmentLonLat.prototype.getNodeState = function () {
     var vn;
     if (this._isNorth) {
         vn = this.planet._visibleNodesNorth[this.node.nodeId];
     } else {
         vn = this.planet._visibleNodesSouth[this.node.nodeId];
     }
-    return vn && vn.state || og.quadTree.NOTRENDERING;
+    return vn && vn.state || quadTree.NOTRENDERING;
 };
 
 
-og.planetSegment.SegmentLonLat.prototype._freeCache = function () {
+SegmentLonLat.prototype._freeCache = function () {
     //empty for a time
 };
+
+export { SegmentLonLat };
