@@ -7,7 +7,6 @@
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 
-
 export function skybox() {
     return new ShaderProgram("skybox", {
         uniforms: {

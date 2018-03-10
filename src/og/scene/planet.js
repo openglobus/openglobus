@@ -5,7 +5,7 @@
 'use strict';
 
 import * as coder from '../math/coder.js';
-import * as drawnode from '../shaderProgram/drawnode.js';
+import * as shaders from '../shaderProgram/drawnode.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as planetSegmentHelper from '../planetSegment/planetSegmentHelper.js';
