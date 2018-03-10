@@ -14,6 +14,8 @@ import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
 import { Vec3 } from '../math/Vec3.js';
+import { Vec4 } from '../math/Vec4.js';
+import { Vector } from '../layer/Vector.js';
 import { ImageBitmapLoader } from '../utils/ImageBitmapLoader.js';
 import { Lock, Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
@@ -88,7 +90,7 @@ class Planet extends RenderNode {
          * @public
          * @type {og.Ellipsoid}
          */
-        this.ellipsoid = ellipsoid || og.ellipsoid.wgs84;
+        this.ellipsoid = ellipsoid || wgs84;
 
         /**
          * Squared ellipsoid radius.
@@ -152,7 +154,7 @@ class Planet extends RenderNode {
          * @public
          * @type {og.math.Vector3}
          */
-        this.mousePositionOnEarth = new og.math.Vector3();
+        this.mousePositionOnEarth = new Vec3();
 
         this.emptyTexture = null;
         this.transparentTexture = null;
@@ -163,14 +165,14 @@ class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this.minCurrZoom = og.math.MAX;
+        this.minCurrZoom = math.MAX;
 
         /**
          * Current visible maximal zoom index planet segment.
          * @public
          * @type {number}
          */
-        this.maxCurrZoom = og.math.MIN;
+        this.maxCurrZoom = math.MIN;
 
         /**
          * Current view geodetic WGS84 extent.
@@ -231,14 +233,14 @@ class Planet extends RenderNode {
          * @public
          * @type {og.idle.Lock}
          */
-        this.layerLock = new og.idle.Lock();
+        this.layerLock = new Lock();
 
         /**
          * Terrain providers activity lock.
          * @public
          * @type {og.idle.Lock}
          */
-        this.terrainLock = new og.idle.Lock();
+        this.terrainLock = new Lock();
 
         /**
          * Layer's transparent colors.
@@ -371,19 +373,19 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new og.utils.TerrainWorker(12);
+        this._terrainWorker = new TerrainWorker(12);
 
-        this._imageBitmapLoader = new og.utils.ImageBitmapLoader({ 'maxRequests': 20, 'numWorkers': 5 });
+        this._imageBitmapLoader = new ImageBitmapLoader({ 'maxRequests': 20, 'numWorkers': 5 });
 
         /**
          * @protected
          */
         this._fnRendering = null;
 
-        this._memKey = new og.idle.Key();
+        this._memKey = new Key();
 
         //events initialization
-        this.events.registerNames(og.scene.Planet.EVENT_NAMES);
+        this.events.registerNames(EVENT_NAMES);
     }
 
     /**
@@ -543,19 +545,19 @@ class Planet extends RenderNode {
     _initializeShaders() {
         var h = this.renderer.handler;
         if (this.renderer.isMultiFramebufferCompatible()) {
-            h.addShaderProgram(og.shaderProgram.drawnode_nl(), true);
-            h.addShaderProgram(og.shaderProgram.drawnode_wl(), true);
+            h.addShaderProgram(shaders.drawnode_nl(), true);
+            h.addShaderProgram(shaders.drawnode_wl(), true);
             this._fnRendering = this._multiframebufferRendering;
         } else {
-            h.addShaderProgram(og.shaderProgram.drawnode_screen_nl(), true);
-            h.addShaderProgram(og.shaderProgram.drawnode_screen_wl(), true);
-            h.addShaderProgram(og.shaderProgram.drawnode_colorPicking(), true);
-            h.addShaderProgram(og.shaderProgram.drawnode_heightPicking(), true);
+            h.addShaderProgram(shaders.drawnode_screen_nl(), true);
+            h.addShaderProgram(shaders.drawnode_screen_wl(), true);
+            h.addShaderProgram(shaders.drawnode_colorPicking(), true);
+            h.addShaderProgram(shaders.drawnode_heightPicking(), true);
             this._fnRendering = this._singleframebufferRendering;
 
             this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
-            this._heightPickingFramebuffer = new og.webgl.Framebuffer(this.renderer.handler, {
+            this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
                 'width': 320,
                 'height': 240
             });
@@ -569,7 +571,7 @@ class Planet extends RenderNode {
     initialization() {
         //Initialization indexes table
         var TABLESIZE = 6;
-        og.PlanetSegmentHelper.initIndexesTables(TABLESIZE);
+        planetSegmentHelper.initIndexesTables(TABLESIZE);
 
         //Iniytialize indexes buffers cache. It takes ~120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -589,7 +591,7 @@ class Planet extends RenderNode {
 
                             //!this._indexesCache[c][w][n][e][s] && (this._indexesCache[c][w][n][e][s] = []);
 
-                            var indexes = og.PlanetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
+                            var indexes = planetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
 
                             var buffer = null;
 
@@ -616,16 +618,16 @@ class Planet extends RenderNode {
 
         this.transparentTexture = this.renderer.handler.transparentTexture;
 
-        this.camera = this.renderer.activeCamera = new og.PlanetCamera(this, {
-            eye: new og.math.Vector3(0, 0, 28000000),
-            look: new og.math.Vector3(0, 0, 0),
-            up: new og.math.Vector3(0, 1, 0)
+        this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
+            eye: new Vec3(0, 0, 28000000),
+            look: new Vec3(0, 0, 0),
+            up: new Vec3(0, 1, 0)
         });
 
         //Creating quad trees nodes
-        this._quadTree = new og.quadTree.Node(og.planetSegment.Segment, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-        this._quadTreeNorth = new og.quadTree.Node(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, og.mercator.MAX_LAT, 180, 90]));
-        this._quadTreeSouth = new og.quadTree.Node(og.planetSegment.SegmentLonLat, this, og.quadTree.NW, null, 0, 0, og.Extent.createFromArray([-180, -90, 180, og.mercator.MIN_LAT]));
+        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
+        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]));
+        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]));
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
@@ -666,11 +668,11 @@ class Planet extends RenderNode {
             img2.src = og.RESOURCES_URL + "spec.png";
         }
 
-        this._geoImageCreator = new og.utils.GeoImageCreator(this.renderer.handler);
+        this._geoImageCreator = new GeoImageCreator(this.renderer.handler);
 
-        this._vectorTileCreator = new og.utils.VectorTileCreator(this);
+        this._vectorTileCreator = new VectorTileCreator(this);
 
-        this._normalMapCreator = new og.utils.NormalMapCreator(this);
+        this._normalMapCreator = new NormalMapCreator(this);
 
         //Loads first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
@@ -831,8 +833,8 @@ class Planet extends RenderNode {
         this._frustumEntityCollections.length = 0;
         this._frustumEntityCollections = [];
 
-        this.minCurrZoom = og.math.MAX;
-        this.maxCurrZoom = og.math.MIN;
+        this.minCurrZoom = math.MAX;
+        this.maxCurrZoom = math.MIN;
 
         this._quadTreeNorth.renderTree();
         this._quadTreeSouth.renderTree();
@@ -856,7 +858,7 @@ class Planet extends RenderNode {
 
             for (i = 0; i < temp.length; i++) {
                 var seg = temp[i].planetSegment;
-                if (seg._projection.id === og.proj.EPSG3857.id && seg.tileZoom < this.maxCurrZoom) {
+                if (seg._projection.id === EPSG3857.id && seg.tileZoom < this.maxCurrZoom) {
                     seg.node.renderTree(this.maxCurrZoom);
                 }
             }
@@ -887,7 +889,7 @@ class Planet extends RenderNode {
         this._geoImageCreator.frame();
 
         //free memory
-        if (this._createdNodesCount > og.scene.Planet.MAX_NODES) {
+        if (this._createdNodesCount > MAX_NODES) {
             this.memClear();
         }
     }
@@ -1380,13 +1382,13 @@ class Planet extends RenderNode {
             var cnv = this.renderer.handler.canvas;
             var color =
                 this.renderer._drawBuffersExtension &&
-                og.math.Vector4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2)) ||
-                og.math.Vector4.fromVec(this._heightPickingFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
+                Vec4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2)) ||
+                Vec4.fromVec(this._heightPickingFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
             if (!(color.x | color.y | color.z)) {
                 return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
             }
             color.w = 0.0;
-            this._currentDistanceFromPixel = og.math.coder.decodeFloatFromRGBA(color);
+            this._currentDistanceFromPixel = coder.decodeFloatFromRGBA(color);
             return this._currentDistanceFromPixel;
         }
         return this._currentDistanceFromPixel;
@@ -1409,8 +1411,8 @@ class Planet extends RenderNode {
      */
     viewExtentArr(extentArr) {
         this.renderer.activeCamera.viewExtent(
-            new og.Extent(new og.LonLat(extentArr[0], extentArr[1]),
-                new og.LonLat(extentArr[2], extentArr[3])));
+            new Extent(new LonLat(extentArr[0], extentArr[1]),
+                new LonLat(extentArr[2], extentArr[3])));
     }
 
     /**
@@ -1437,7 +1439,7 @@ class Planet extends RenderNode {
                     sw.lat = e.southWest.lat;
                 }
             }
-            return new og.Extent(sw, ne);
+            return new Extent(sw, ne);
         } else if (this._viewExtentWGS84) {
             return this._viewExtentWGS84;
         }
@@ -1501,7 +1503,7 @@ class Planet extends RenderNode {
         var readyCollections = {};
         for (var i = 0; i < this.layers.length; i++) {
             var li = this.layers[i];
-            if (li instanceof og.layer.Vector) {
+            if (li instanceof Vector) {
                 li.each(function (e) {
                     if (e._entityCollection && !readyCollections[e._entityCollection.id]) {
                         e._entityCollection.billboardHandler.refreshTexCoordsArr();
