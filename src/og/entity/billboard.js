@@ -1,8 +1,10 @@
-goog.provide('og.Billboard');
+/**
+ * @module og/entity/Billboard
+ */
 
-goog.require('og.BaseBillboard');
-goog.require('og.inheritance');
-goog.require('og.math.Vector2');
+'use strict';
+
+import { BaseBillboard } from './BaseBillboard.js';
 
 
 /**
@@ -22,135 +24,137 @@ goog.require('og.math.Vector2');
  * @param {number} [options.height] - Screen height.
  * @param {number} [options.scale] - Billboard scale.
  */
-og.Billboard = function (options) {
-    options = options || {};
+class Billboard extends BaseBillboard {
+    constructor(options) {
+        super(options);
 
-    og.inheritance.base(this, options);
+        options = options || {};
+
+        /**
+         * Image src.
+         * @protected
+         * @type {string}
+         */
+        this._src = options.src || null;
+
+        /**
+         * Image object.
+         * @protected
+         * @type {Object}
+         */
+        this._image = options.image || null;
+
+        /**
+         * Billboard screen width.
+         * @protected
+         * @type {number}
+         */
+        this._width = options.width || (options.size ? options.size[0] : 30);
+
+        /**
+         * Billboard screen height.
+         * @protected
+         * @type {number}
+         */
+        this._height = options.height || (options.size ? options.size[1] : 30);
+    }
 
     /**
-     * Image src.
-     * @protected
-     * @type {string}
+     * Sets billboard image url source.
+     * @public
+     * @param {string} src - Image url.
      */
-    this._src = options.src || null;
-
-    /**
-     * Image object.
-     * @protected
-     * @type {Object}
-     */
-    this._image = options.image || null;
-
-    /**
-     * Billboard screen width.
-     * @protected
-     * @type {number}
-     */
-    this._width = options.width || (options.size ? options.size[0] : 30);
-
-    /**
-     * Billboard screen height.
-     * @protected
-     * @type {number}
-     */
-    this._height = options.height || (options.size ? options.size[1] : 30);
-};
-
-og.inheritance.extend(og.Billboard, og.BaseBillboard);
-
-/**
- * Sets billboard image url source.
- * @public
- * @param {string} src - Image url.
- */
-og.Billboard.prototype.setSrc = function (src) {
-    this._src = src;
-    var bh = this._handler;
-    if (bh && src) {
-        var rn = bh._entityCollection.renderNode;
-        if (rn) {
-            var ta = rn.billboardsTextureAtlas;
-            var that = this;
-            ta.loadImage(src, function (img) {
-                if (ta.nodes[img.__nodeIndex]) {
-                    that._image = img;
-                    bh.setTexCoordArr(that._handlerIndex, ta.nodes[that._image.__nodeIndex].texCoords);
-                } else {
-                    ta.addImage(img);
-                    ta.createTexture();
-                    that._image = img;
-                    rn.updateBillboardsTexCoords();
-                }
-            });
+    setSrc(src) {
+        this._src = src;
+        var bh = this._handler;
+        if (bh && src) {
+            var rn = bh._entityCollection.renderNode;
+            if (rn) {
+                var ta = rn.billboardsTextureAtlas;
+                var that = this;
+                ta.loadImage(src, function (img) {
+                    if (ta.nodes[img.__nodeIndex]) {
+                        that._image = img;
+                        bh.setTexCoordArr(that._handlerIndex, ta.nodes[that._image.__nodeIndex].texCoords);
+                    } else {
+                        ta.addImage(img);
+                        ta.createTexture();
+                        that._image = img;
+                        rn.updateBillboardsTexCoords();
+                    }
+                });
+            }
         }
+    }
+
+    /**
+     * Sets image object.
+     * @public
+     * @param {Object} image - JavaScript image object.
+     */
+    setImage(image) {
+        this.setSrc(image.src);
+    }
+
+    /**
+     * Sets billboard screen size in pixels.
+     * @public
+     * @param {number} width - Billboard width.
+     * @param {number} height - Billboard height.
+     */
+    setSize(width, height) {
+        this._width = width;
+        this._height = height;
+        this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
+    }
+
+    /**
+     * Returns billboard screen size.
+     * @public
+     * @returns {Object}
+     */
+    getSize() {
+        return {
+            "width": this._width,
+            "height": this._height
+        };
+    }
+
+    /**
+     * Sets billboard screen width.
+     * @public
+     * @param {number} width - Width.
+     */
+    setWidth(width) {
+        this.setSize(width, this._height);
+    }
+
+    /**
+     * Gets billboard screen width.
+     * @public
+     * @returns {number}
+     */
+    getWidth() {
+        return this._width;
+    }
+
+    /**
+     * Sets billboard screen heigh.
+     * @public
+     * @param {number} height - Height.
+     */
+    setHeight(height) {
+        this.setSize(this._width, height);
+    }
+
+    /**
+     * Gets billboard screen height.
+     * @public
+     * @returns {number}
+     */
+    getHeight() {
+        return this._height;
     }
 };
 
-/**
- * Sets image object.
- * @public
- * @param {Object} image - JavaScript image object.
- */
-og.Billboard.prototype.setImage = function (image) {
-    this.setSrc(image.src);
-};
-
-/**
- * Sets billboard screen size in pixels.
- * @public
- * @param {number} width - Billboard width.
- * @param {number} height - Billboard height.
- */
-og.Billboard.prototype.setSize = function (width, height) {
-    this._width = width;
-    this._height = height;
-    this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
-};
-
-/**
- * Returns billboard screen size.
- * @public
- * @returns {Object}
- */
-og.Billboard.prototype.getSize = function () {
-    return {
-        "width": this._width,
-        "height": this._height
-    };
-};
-
-/**
- * Sets billboard screen width.
- * @public
- * @param {number} width - Width.
- */
-og.Billboard.prototype.setWidth = function (width) {
-    this.setSize(width, this._height);
-};
-
-/**
- * Gets billboard screen width.
- * @public
- * @returns {number}
- */
-og.Billboard.prototype.getWidth = function () {
-    return this._width;
-};
-
-/**
- * Sets billboard screen heigh.
- * @public
- * @param {number} height - Height.
- */
-og.Billboard.prototype.setHeight = function (height) {
-    this.setSize(this._width, height);
-};
-
-/**
- * Gets billboard screen height.
- * @public
- * @returns {number}
- */
-og.Billboard.prototype.getHeight = function () {
-    return this._height;
-};
+export { Billboard };
