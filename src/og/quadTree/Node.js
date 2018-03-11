@@ -62,7 +62,7 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
     this.SegmentPrototype = segmentPrototype;
-    this.planetSegment = new segmentPrototype(this, planet, tileZoom, extent);
+    this.segment = new segmentPrototype(this, planet, tileZoom, extent);
 
     /**
      * @private
@@ -77,7 +77,7 @@ const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
     var p = this.planet;
-    var ps = this.planetSegment;
+    var ps = this.segment;
     var ext = ps._extent;
     var size_x = ext.getWidth() * 0.5;
     var size_y = ext.getHeight() * 0.5;
@@ -102,7 +102,7 @@ Node.prototype.createChildrenNodes = function () {
 
 Node.prototype.createBounds = function () {
 
-    var seg = this.planetSegment;
+    var seg = this.segment;
 
     if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
@@ -112,28 +112,28 @@ Node.prototype.createBounds = function () {
     } else {
         var pn = this;
 
-        while (pn.parentNode && !pn.planetSegment.terrainReady) {
+        while (pn.parentNode && !pn.segment.terrainReady) {
             pn = pn.parentNode;
         }
 
-        var scale = this.planetSegment.tileZoom - pn.planetSegment.tileZoom;
+        var scale = this.segment.tileZoom - pn.segment.tileZoom;
 
         var dZ2 = Math.pow(2, scale);
 
-        var offsetX = this.planetSegment.tileX - pn.planetSegment.tileX * dZ2,
-            offsetY = this.planetSegment.tileY - pn.planetSegment.tileY * dZ2;
+        var offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
+            offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
-        if (pn.planetSegment.terrainReady) {
-            var gridSize = pn.planetSegment.gridSize / Math.pow(2, scale);
+        if (pn.segment.terrainReady) {
+            var gridSize = pn.segment.gridSize / Math.pow(2, scale);
             if (gridSize >= 1) {
-                var pVerts = pn.planetSegment.terrainVertices;
+                var pVerts = pn.segment.terrainVertices;
                 var i0 = gridSize * offsetY;
                 var j0 = gridSize * offsetX;
-                var ind1 = 3 * (i0 * (pn.planetSegment.gridSize + 1) + j0);
-                var ind2 = 3 * ((i0 + gridSize) * (pn.planetSegment.gridSize + 1) + j0 + gridSize);
+                var ind1 = 3 * (i0 * (pn.segment.gridSize + 1) + j0);
+                var ind2 = 3 * ((i0 + gridSize) * (pn.segment.gridSize + 1) + j0 + gridSize);
                 seg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
             } else {
-                var pseg = pn.planetSegment;
+                var pseg = pn.segment;
 
                 var i0 = Math.floor(gridSize * offsetY);
                 var j0 = Math.floor(gridSize * offsetX);
@@ -184,7 +184,7 @@ Node.prototype.createBounds = function () {
 };
 
 Node.prototype.getState = function () {
-    //return this.planetSegment.getNodeState();
+    //return this.segment.getNodeState();
     var pn = this.parentNode;
     while (pn) {
         if (pn.state !== quadTree.WALKTHROUGH) {
@@ -261,7 +261,7 @@ Node.prototype.renderTree = function (maxZoom) {
     this.neighbors[3] = null;
 
     var cam = this.planet.renderer.activeCamera,
-        seg = this.planetSegment,
+        seg = this.segment,
         planet = this.planet;
 
 
@@ -334,7 +334,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
     this.state = quadTree.NOTRENDERING;
 
-    var seg = this.planetSegment;
+    var seg = this.segment;
 
     //Create and load terrain data.
     if (!seg.terrainReady) {
@@ -387,8 +387,8 @@ Node.prototype.addToRender = function () {
             ni.neighbors[opcs] = node;
 
             if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
-                var ap = node.planetSegment;
-                var bp = ni.planetSegment;
+                var ap = node.segment;
+                var bp = ni.segment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
                 node.hasNeighbor[cs] = true;
@@ -412,8 +412,8 @@ Node.prototype.addToRender = function () {
 };
 
 Node.prototype.getCommonSide = function (node) {
-    var a = this.planetSegment._extent,
-        b = node.planetSegment._extent;
+    var a = this.segment._extent,
+        b = node.segment._extent;
     var a_ne = a.northEast, a_sw = a.southWest,
         b_ne = b.northEast, b_sw = b.southWest;
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
@@ -427,7 +427,7 @@ Node.prototype.getCommonSide = function (node) {
             return quadTree.E;
         } else if (a_sw_lon === b_ne_lon) {
             return quadTree.W;
-        } else if (this.planetSegment.tileZoom > 0) {
+        } else if (this.segment.tileZoom > 0) {
             if (a_ne_lon === POLE && b_sw_lon === -POLE) {
                 return quadTree.E;
             } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
@@ -453,7 +453,7 @@ Node.prototype.getCommonSide = function (node) {
 
 Node.prototype.whileNormalMapCreating = function () {
 
-    var seg = this.planetSegment;
+    var seg = this.segment;
     var maxZ = this.planet.terrain.maxZoom;
 
     if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
@@ -462,27 +462,27 @@ Node.prototype.whileNormalMapCreating = function () {
 
     var pn = this;
 
-    while (pn.parentNode && !pn.planetSegment.normalMapReady) {
+    while (pn.parentNode && !pn.segment.normalMapReady) {
         pn = pn.parentNode;
     }
 
-    var dZ2 = 2 << (seg.tileZoom - pn.planetSegment.tileZoom - 1);
+    var dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
-    seg.normalMapTexture = pn.planetSegment.normalMapTexture;
-    seg.normalMapTextureBias[0] = seg.tileX - pn.planetSegment.tileX * dZ2;
-    seg.normalMapTextureBias[1] = seg.tileY - pn.planetSegment.tileY * dZ2;
+    seg.normalMapTexture = pn.segment.normalMapTexture;
+    seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
+    seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1 / dZ2;
 
 
     if (seg.tileZoom > maxZ) {
-        if (pn.planetSegment.tileZoom === maxZ) {
+        if (pn.segment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
         } else {
             pn = this;
-            while (pn.parentNode && pn.planetSegment.tileZoom !== maxZ) {
+            while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
                 pn = pn.parentNode;
             }
-            var pns = pn.planetSegment;
+            var pns = pn.segment;
             if (!pns.ready) {
                 pns.createPlainSegment();
                 pns.loadTerrain();
@@ -495,7 +495,7 @@ Node.prototype.whileNormalMapCreating = function () {
 
 Node.prototype.whileTerrainLoading = function () {
 
-    var seg = this.planetSegment;
+    var seg = this.segment;
 
     //Looking for terrain nodes under
     var n = this.nodes;
@@ -503,8 +503,8 @@ Node.prototype.whileTerrainLoading = function () {
     //Maybe better is to replace this code to the Segment module?
     if (seg.tileZoom >= this.planet.terrain.minZoom &&
         seg.tileZoom < this.planet.terrain.maxZoom &&
-        n.length === 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
-        n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
+        n.length === 4 && n[0].segment.terrainReady && n[1].segment.terrainReady &&
+        n[2].segment.terrainReady && n[3].segment.terrainReady
     ) {
         var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
             ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
@@ -549,8 +549,8 @@ Node.prototype.whileTerrainLoading = function () {
 
                 var n_index = 3 * (nii * gs + njj);
 
-                var n_nmVerts = n.planetSegment.normalMapVertices,
-                    n_nmNorms = n.planetSegment.normalMapNormals;
+                var n_nmVerts = n.segment.normalMapVertices,
+                    n_nmNorms = n.segment.normalMapNormals;
 
                 var x = n_nmVerts[n_index],
                     y = n_nmVerts[n_index + 1],
@@ -610,21 +610,21 @@ Node.prototype.whileTerrainLoading = function () {
 
     var pn = this;
 
-    while (pn.parentNode && !pn.planetSegment.terrainReady) {
+    while (pn.parentNode && !pn.segment.terrainReady) {
         pn = pn.parentNode;
     }
 
-    if (pn.planetSegment.terrainReady) {
+    if (pn.segment.terrainReady) {
 
-        var dZ2 = 2 << (seg.tileZoom - pn.planetSegment.tileZoom - 1);
-        var offsetX = seg.tileX - pn.planetSegment.tileX * dZ2,
-            offsetY = seg.tileY - pn.planetSegment.tileY * dZ2;
+        var dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        var offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
-        var pseg = pn.planetSegment;
+        var pseg = pn.segment;
 
-        if (pn.planetSegment.terrainExists && this.appliedTerrainNodeId !== pn.nodeId) {
+        if (pn.segment.terrainExists && this.appliedTerrainNodeId !== pn.nodeId) {
 
-            var gridSize = pn.planetSegment.gridSize / dZ2;
+            var gridSize = pn.segment.gridSize / dZ2;
             var tempVertices;
 
             var fgs = this.planet.terrain.fileGridSize,
@@ -693,7 +693,7 @@ Node.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
 
-            //seg.tempVertices is useful for earth point calculation(see planetSegment object)
+            //seg.tempVertices is useful for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
             this.appliedTerrainNodeId = pn.nodeId;
         }
@@ -701,21 +701,21 @@ Node.prototype.whileTerrainLoading = function () {
         var maxZ = this.planet.terrain.maxZoom;
 
         if (seg.tileZoom > maxZ) {
-            if (pn.planetSegment.tileZoom >= maxZ) {
+            if (pn.segment.tileZoom >= maxZ) {
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
-                if (pn.planetSegment.terrainExists) {
+                if (pn.segment.terrainExists) {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
                     seg.normalMapNormals = tempNormalMapNormals;
                 }
             } else {
                 pn = this;
-                while (pn.parentNode && pn.planetSegment.tileZoom !== maxZ) {
+                while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
                     pn = pn.parentNode;
                 }
-                var pns = pn.planetSegment;
+                var pns = pn.segment;
                 if (!pns.ready) {
                     pns.createPlainSegment();
                 }
@@ -744,7 +744,7 @@ Node.prototype.clearTree = function () {
 
 Node.prototype.destroy = function () {
     this.state = quadTree.NOTRENDERING;
-    this.planetSegment.destroySegment();
+    this.segment.destroySegment();
     var n = this.neighbors;
     n[quadTree.N] && n[quadTree.N].neighbors && (n[quadTree.N].neighbors[quadTree.S] = null);
     n[quadTree.E] && n[quadTree.E].neighbors && (n[quadTree.E].neighbors[quadTree.W] = null);
@@ -754,7 +754,7 @@ Node.prototype.destroy = function () {
     this.hasNeighbors = null;
     this.parentNode = null;
     this.sideSize = null;
-    this.planetSegment = null;
+    this.segment = null;
 };
 
 Node.prototype.destroyBranches = function (cls) {

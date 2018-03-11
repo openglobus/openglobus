@@ -459,9 +459,9 @@ class GeometryHandler {
         var lid = this._layer._id;
         for (var i = 0; i < treeNode.nodes.length; i++) {
             var ni = treeNode.nodes[i];
-            if (geometry._extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+            if (geometry._extent.overlaps(ni.segment.getExtentLonLat())) {
                 this._refreshRecursevely(geometry, ni);
-                var m = ni.planetSegment.materials[lid];
+                var m = ni.segment.materials[lid];
                 if (m && m.isReady) {
                     if (m.segment.node.getState() !== quadTree.RENDERING) {
                         m.layer.clearMaterial(m);
@@ -481,9 +481,9 @@ class GeometryHandler {
         var lid = this._layer._id;
         for (var i = 0; i < treeNode.nodes.length; i++) {
             var ni = treeNode.nodes[i];
-            if (extent.overlaps(ni.planetSegment.getExtentLonLat())) {
+            if (extent.overlaps(ni.segment.getExtentLonLat())) {
                 this._refreshRecursevelyExt(extent, ni);
-                var m = ni.planetSegment.materials[lid];
+                var m = ni.segment.materials[lid];
                 if (m && m.isReady) {
                     m.layer.clearMaterial(m);
                     // m.pickingReady = false;

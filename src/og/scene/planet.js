@@ -471,7 +471,7 @@ class Planet extends RenderNode {
     _clearLayerMaterial(layer) {
         var lid = layer._id;
         this._quadTree.traverseTree(function (node) {
-            var mats = node.planetSegment.materials;
+            var mats = node.segment.materials;
             if (mats[lid]) {
                 mats[lid].clear();
                 mats[lid] = null;
@@ -684,7 +684,7 @@ class Planet extends RenderNode {
     _preRender() {
         this._quadTree.traverseNodes();
         this._quadTree.renderNode();
-        this._normalMapCreator.drawSingle(this._quadTree.planetSegment);
+        this._normalMapCreator.drawSingle(this._quadTree.segment);
 
         this._quadTreeNorth.traverseNodes();
         this._quadTreeNorth.renderNode();
@@ -854,13 +854,13 @@ class Planet extends RenderNode {
 
             for (var i = 0; i < temp.length; i++) {
                 var ri = temp[i];
-                if (ri.planetSegment.tileZoom === this.maxCurrZoom) {
+                if (ri.segment.tileZoom === this.maxCurrZoom) {
                     this._renderedNodes.push(ri);
                 }
             }
 
             for (i = 0; i < temp.length; i++) {
-                var seg = temp[i].planetSegment;
+                var seg = temp[i].segment;
                 if (seg._projection.id === EPSG3857.id && seg.tileZoom < this.maxCurrZoom) {
                     seg.node.renderTree(this.maxCurrZoom);
                 }
@@ -991,7 +991,7 @@ class Planet extends RenderNode {
 
         var i = rn.length;
         while (i--) {
-            rn[i].planetSegment._screenRendering(sh, sl[0], 0);
+            rn[i].segment._screenRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -999,7 +999,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].planetSegment._screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment._screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1039,7 +1039,7 @@ class Planet extends RenderNode {
 
         var i = rn.length;
         while (i--) {
-            rn[i].planetSegment._heightPickingRendering(sh, sl[0], 0);
+            rn[i].segment._heightPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1047,7 +1047,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].planetSegment._heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment._heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1086,7 +1086,7 @@ class Planet extends RenderNode {
 
         var i = rn.length;
         while (i--) {
-            rn[i].planetSegment._colorPickingRendering(sh, sl[0], 0);
+            rn[i].segment._colorPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1094,7 +1094,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -637000 - j);
             while (i--) {
-                rn[i].planetSegment._colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment._colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1180,7 +1180,7 @@ class Planet extends RenderNode {
 
         var i = rn.length;
         while (i--) {
-            rn[i].planetSegment._multiRendering(sh, sl[0]);
+            rn[i].segment._multiRendering(sh, sl[0]);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1188,7 +1188,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].planetSegment._multiRendering(sh, sl[j], this.transparentTexture, true);
+                rn[i].segment._multiRendering(sh, sl[j], this.transparentTexture, true);
             }
         }
 

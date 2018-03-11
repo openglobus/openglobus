@@ -240,16 +240,16 @@ class CanvasTiles extends Layer {
                     break;
                 }
                 pn = pn.parentNode;
-                psegm = pn.planetSegment.materials[mId];
+                psegm = pn.segment.materials[mId];
             }
 
             if (notEmpty) {
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
+                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
-                    segment.tileX * dZ2 - pn.planetSegment.tileX,
-                    segment.tileY * dZ2 - pn.planetSegment.tileY,
+                    segment.tileX * dZ2 - pn.segment.tileX,
+                    segment.tileY * dZ2 - pn.segment.tileY,
                     dZ2,
                     dZ2
                 ];
