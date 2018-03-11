@@ -1,78 +1,95 @@
-goog.provide('og.PolylineHandler');
+/**
+ * @module og/entity/PolylineHandler
+ */
 
-goog.require('og.shaderProgram.polyline');
+'use strict';
 
-og.PolylineHandler = function (entityCollection) {
+import * as shaders from '../shaderProgram/polyline.js';
 
-    this._entityCollection = entityCollection;
+class PolylineHandler {
+    constructor(entityCollection) {
 
-    this._renderer = null;
+        this._entityCollection = entityCollection;
 
-    this._polylines = [];
+        this._renderer = null;
 
-    this.__staticId = og.PolylineHandler.staticCounter++;
-};
+        this._polylines = [];
 
-og.PolylineHandler.staticCounter = 0;
+        this.__staticId = PolylineHandler._staticCounter++;
+    }
 
-og.PolylineHandler.prototype._initShaderProgram = function () {
-    if (this._renderer.handler) {
-        if (!this._renderer.handler.shaderPrograms.polyline) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.polyline(this._renderer.isMultiFramebufferCompatible()));
+    static get _staticCounter() {
+        if (!this._counter && this._counter !== 0) {
+            this._counter = 0;
+        }
+        return this._counter;
+    }
+
+    static set _staticCounter(n) {
+        this._counter = n;
+    }
+
+    _initShaderProgram() {
+        if (this._renderer.handler) {
+            if (!this._renderer.handler.shaderPrograms.polyline) {
+                this._renderer.handler.addShaderProgram(shaders.polyline(this._renderer.isMultiFramebufferCompatible()));
+            }
         }
     }
-};
 
-og.PolylineHandler.prototype.setRenderNode = function (renderNode) {
-    this._renderer = renderNode.renderer;
-    this._initShaderProgram()
-    for (var i = 0; i < this._polylines.length; i++) {
-        this._polylines[i].setRenderNode(renderNode);
+    setRenderNode(renderNode) {
+        this._renderer = renderNode.renderer;
+        this._initShaderProgram()
+        for (var i = 0; i < this._polylines.length; i++) {
+            this._polylines[i].setRenderNode(renderNode);
+        }
+    }
+
+    add(polyline) {
+        if (polyline._handlerIndex == -1) {
+            polyline._handler = this;
+            polyline._handlerIndex = this._polylines.length;
+            this._polylines.push(polyline);
+            this._entityCollection && this._entityCollection.renderNode &&
+                polyline.setRenderNode(this._entityCollection.renderNode);
+        }
+    }
+
+    remove(polyline) {
+        var index = polyline._handlerIndex;
+        if (index !== -1) {
+            polyline._deleteBuffers();
+            polyline._handlerIndex = -1;
+            polyline._handler = null;
+            this._polylines.splice(index, 1);
+            this.reindexPolylineArray(index);
+        }
+    }
+
+    reindexPolylineArray(startIndex) {
+        var ls = this._polylines;
+        for (var i = startIndex; i < ls.length; i++) {
+            ls[i]._handlerIndex = i;
+        }
+    }
+
+    draw() {
+        var i = this._polylines.length;
+        while (i--) {
+            this._polylines[i].draw();
+        }
+    }
+
+    clear() {
+        var i = this._polylines.length;
+        while (i--) {
+            this._polylines[i]._deleteBuffers();
+            this._polylines[i]._handler = null;
+            this._polylines[i]._handlerIndex = -1;
+        }
+        this._polylines.length = 0;
+        this._polylines = [];
     }
 };
 
-og.PolylineHandler.prototype.add = function (polyline) {
-    if (polyline._handlerIndex == -1) {
-        polyline._handler = this;
-        polyline._handlerIndex = this._polylines.length;
-        this._polylines.push(polyline);
-        this._entityCollection && this._entityCollection.renderNode &&
-            polyline.setRenderNode(this._entityCollection.renderNode);
-    }
-};
-
-og.PolylineHandler.prototype.remove = function (polyline) {
-    var index = polyline._handlerIndex;
-    if (index !== -1) {
-        polyline._deleteBuffers();
-        polyline._handlerIndex = -1;
-        polyline._handler = null;
-        this._polylines.splice(index, 1);
-        this.reindexPolylineArray(index);
-    }
-};
-
-og.PolylineHandler.prototype.reindexPolylineArray = function (startIndex) {
-    var ls = this._polylines;
-    for (var i = startIndex; i < ls.length; i++) {
-        ls[i]._handlerIndex = i;
-    }
-};
-
-og.PolylineHandler.prototype.draw = function () {
-    var i = this._polylines.length;
-    while (i--) {
-        this._polylines[i].draw();
-    }
-};
-
-og.PolylineHandler.prototype.clear = function () {
-    var i = this._polylines.length;
-    while (i--) {
-        this._polylines[i]._deleteBuffers();
-        this._polylines[i]._handler = null;
-        this._polylines[i]._handlerIndex = -1;
-    }
-    this._polylines.length = 0;
-    this._polylines = [];
-};
+export { PolylineHandler };
