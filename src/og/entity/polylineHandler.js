@@ -4,7 +4,7 @@
 
 'use strict';
 
-import * as shaders from '../shaderProgram/polyline.js';
+import * as shaders from '../shaders/polyline.js';
 
 class PolylineHandler {
     constructor(entityCollection) {

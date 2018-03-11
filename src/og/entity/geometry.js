@@ -85,7 +85,7 @@ class Geometry {
         this._counter = n;
     }
 
-    static getType = function (typeStr) {
+    static getType(typeStr) {
         return GeometryType[typeStr.toUpperCase()];
     }
 

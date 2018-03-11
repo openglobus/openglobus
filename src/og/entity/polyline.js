@@ -761,7 +761,7 @@ class Polyline {
      * @param {number} b - Blue color.
      * @param {number} [a] - Opacity.
      */
-    setColor = function (r, g, b, a) {
+    setColor(r, g, b, a) {
         this.color.x = r;
         this.color.y = g;
         this.color.z = b;
@@ -773,7 +773,7 @@ class Polyline {
      * @public
      * @param {og.math.Vector3} color - RGB color.
      */
-    setColor3v = function (color) {
+    setColor3v(color) {
         this.color.x = color.x;
         this.color.y = color.y;
         this.color.z = color.z;
@@ -784,7 +784,7 @@ class Polyline {
      * @public
      * @param {og.math.Vector4} color - RGBA color.
      */
-    setColor4v = function (color) {
+    setColor4v(color) {
         this.color.x = color.x;
         this.color.y = color.y;
         this.color.z = color.z;

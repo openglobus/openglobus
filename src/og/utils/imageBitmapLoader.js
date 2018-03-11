@@ -56,7 +56,7 @@ class ImageBitmapLoader {
         this._workers = new Array(options.numWorkers || NUM_WORKERS);
         this._counter = 0;
 
-        var p = new Blob([Program(options.maxRequests || MAX_REQUESTS)], { type: 'application/javascript' });
+        var p = new Blob([program(options.maxRequests || MAX_REQUESTS)], { type: 'application/javascript' });
 
         for (var i = 0; i < this._workers.length; i++) {
             this._workers[i] = new Worker(URL.createObjectURL(p));

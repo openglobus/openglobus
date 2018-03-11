@@ -102,7 +102,7 @@ export function getSunPosition(jd) {
 
     var theta = math.TWO_PI * (d * 24.0 / 23.9344694 - 259.853 / 360.0); // Siderial spin time
 
-    return math.Quaternion.yRotation(-theta).mulVec3(new Vec3(-yequat * astro.AU_TO_METERS,
+    return Quat.yRotation(-theta).mulVec3(new Vec3(-yequat * astro.AU_TO_METERS,
         zequat * astro.AU_TO_METERS, -xequat * astro.AU_TO_METERS));
 
     //Convert to RA and Decl

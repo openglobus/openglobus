@@ -166,7 +166,7 @@ class MouseNavigation extends BaseControl {
             this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
     }
 
-    oninit = function () {
+    oninit() {
         this.activate();
     }
 

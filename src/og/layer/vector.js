@@ -152,11 +152,11 @@ class Vector extends Layer {
 
         /** Creates collections tree*/
         this.setEntities(this._entities);
-    };
+    }
 
-    _bindPicking = function () {
+    _bindPicking() {
         this._pickingColor.clear();
-    };
+    }
 
     /**
      * Adds layer to the planet.
@@ -185,7 +185,7 @@ class Vector extends Layer {
      * @public
      * @returns {Array.<og.Entity>}
      */
-    getEntities = function () {
+    getEntities() {
         return [].concat(this._entities);
     }
 
@@ -466,7 +466,7 @@ class Vector extends Layer {
         return this;
     }
 
-    _createEntityCollectionsTree = function (entitiesForTree) {
+    _createEntityCollectionsTree(entitiesForTree) {
         if (this._planet) {
             this._entityCollectionsTree = new EntityCollectionNode(this, quadTree.NW, null, 0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet, 0);
@@ -479,7 +479,7 @@ class Vector extends Layer {
             this._entityCollectionsTreeNorth.buildTree(entitiesForTree);
             this._entityCollectionsTreeSouth.buildTree(entitiesForTree);
         }
-    };
+    }
 
     _bindEventsDefault(entityCollection) {
         var ve = this.events;

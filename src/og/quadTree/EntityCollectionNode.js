@@ -4,15 +4,15 @@
 
 'use strict';
 
-import * as inheritance from '../inheritance.js';
 import * as mercator from '../mercator.js';
 import * as quadTree from './quadTree.js';
+import { Box } from '../bv/Box.js';
+import { EntityCollection } from '../entity/EntityCollection.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
-import { Vec3 } from '../math/Vec3.js';
-import { EntityCollection } from '../entity/EntityCollection.js';
-import { Box } from '../bv/Box.js';
+import { inherits } from '../inherits.js';
 import { Sphere } from '../bv/Sphere.js';
+import { Vec3 } from '../math/Vec3.js';
 
 const EntityCollectionNode = function (layer, partId, parent, id, extent, planet, zoom) {
     this.layer = layer;
@@ -322,12 +322,22 @@ EntityCollectionNode.prototype.isVisible = function () {
     return false;
 };
 
+/**
+ * Node of entity collections for WGS84 coordinates.
+ * @param {any} layer
+ * @param {any} partId
+ * @param {any} parent
+ * @param {any} id
+ * @param {any} extent
+ * @param {any} planet
+ * @param {any} zoom
+ */
 const EntityCollectionNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
-    inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
+    EntityCollectionNode.call(this, layer, partId, parent, id, extent, planet, zoom);
     this.isNorth = false;
 };
 
-inheritance.extend(EntityCollectionNodeWGS84, EntityCollectionQuadNode);
+inherits(EntityCollectionNodeWGS84, EntityCollectionNode);
 
 EntityCollectionNodeWGS84.prototype._setExtentBounds = function () {
     if (this.extent.northEast.lat > 0) {

@@ -4,15 +4,20 @@
 
 'use sctrict';
 
-import * as inheritance from '../inheritance.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { Extent } from '../Extent.js';
+import { inherits } from '../inherits.js';
 import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
 import { Segment } from './Segment.js';
+
+
+const _heightLat = 90.0 - mercator.MAX_LAT;
+const _maxPoleZoom = 7;
+const _pieceSize = _heightLat / Math.pow(2, _maxPoleZoom);
 
 
 /**
@@ -26,16 +31,12 @@ import { Segment } from './Segment.js';
  */
 const SegmentLonLat = function (node, planet, tileZoom, extent) {
     this._isNorth = false;
-    og.inheritance.base(this, node, planet, tileZoom, extent);
+    Segment.call(this, node, planet, tileZoom, extent);
     this._projection = EPSG4326;
     this._extentMerc = new Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
 };
 
-SegmentLonLat._heightLat = 90.0 - og.mercator.MAX_LAT;
-SegmentLonLat._maxPoleZoom = 7;
-SegmentLonLat._pieceSize = SegmentLonLat._heightLat / Math.pow(2, SegmentLonLat._maxPoleZoom);
-
-inheritance.extend(SegmentLonLat, Segment);
+inherits(SegmentLonLat, Segment);
 
 SegmentLonLat.prototype.projectNative = function (coords) {
     return coords;
@@ -51,11 +52,11 @@ SegmentLonLat.prototype.acceptForRendering = function (camera) {
     var lat = this._extent.northEast.lat;
     if (this._isNorth) {
         //north pole limits
-        var Yz = Math.floor((90.0 - lat) / SegmentLonLat._pieceSize);
+        var Yz = Math.floor((90.0 - lat) / _pieceSize);
         maxPoleZoom = Math.floor(Yz / 16) + 7;
     } else {
         //south pole limits
-        var Yz = Math.floor((mercator.MIN_LAT - lat) / SegmentLonLat._pieceSize);
+        var Yz = Math.floor((mercator.MIN_LAT - lat) / _pieceSize);
         maxPoleZoom = 12 - Math.floor(Yz / 16);
     }
     return Segment.prototype.acceptForRendering.call(this, camera) || this.tileZoom >= maxPoleZoom;

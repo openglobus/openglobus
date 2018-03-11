@@ -7,6 +7,8 @@
 import * as shaders from '../shaderProgram/skybox.js';
 import { RenderNode } from './RenderNode.js';
 
+const RESOURCES_URL = "";
+
 class SkyBox extends RenderNode {
     constructor(params) {
         super("skybox");

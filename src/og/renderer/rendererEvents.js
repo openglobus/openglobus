@@ -192,7 +192,7 @@ class RendererEvents extends Events {
         if (name == "keypress" || name == "charkeypress") {
             this._keyboardHandler.addEvent(name, p2, p1, p0, p3);
         } else {
-            this.constructor.superclass.on.call(this, name, p0, p1);
+            super.on(name, p0, p1);
         }
     }
 

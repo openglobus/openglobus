@@ -8,7 +8,8 @@ import * as quadTree from '../quadTree/quadTree.js';
 
 let CURRENT_POWER = 0;
 
-let textureCoordsTable = [];
+export let textureCoordsTable = [];
+
 let centerIndexesTable = [];
 let skirtsIndexesTable = [];
 

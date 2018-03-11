@@ -312,7 +312,7 @@ class Label extends BaseBillboard {
      * @public
      * @returns {og.math.Vector4}
      */
-    getOutlineColor = function () {
+    getOutlineColor() {
         return this._outlineColor;
     }
 

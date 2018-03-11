@@ -5,7 +5,7 @@
 'use strict';
 
 import { BaseControl } from './BaseControl.js';
-import { print2d } from '../utils/utils.js';
+import { print2d } from '../utils/Shared.js';
 
 /**
  * Frame per second(FPS) display control.
@@ -13,7 +13,7 @@ import { print2d } from '../utils/utils.js';
  * @extends {og.control.BaseControl}
  * @param {Object} [options] - Control options.
  */
-class ShowFps {
+class ShowFps extends BaseControl {
     constructor(options) {
         super(options);
     }

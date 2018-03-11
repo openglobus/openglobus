@@ -595,7 +595,7 @@ class BillboardHandler {
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    setVisibility = function (index, visibility) {
+    setVisibility(index, visibility) {
         var vArr;
         if (visibility) {
             vArr = [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];
@@ -661,7 +661,7 @@ class BillboardHandler {
         this._changedBuffers[ALIGNEDAXIS_BUFFER] = true;
     }
 
-    createPositionBuffer = function () {
+    createPositionBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._positionBuffer);
         this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionArr), 4, this._positionArr.length / 4, h.gl.DYNAMIC_DRAW);

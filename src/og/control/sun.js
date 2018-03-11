@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl';
+import { BaseControl } from './BaseControl.js';
 import { getSunPosition } from '../astro/earth.js';
 import { input } from '../input/input.js';
 import { LightSource } from '../light/LightSource.js';

@@ -43,8 +43,7 @@ class Camera {
          * @public
          * @type {og.Events}
          */
-        this.events = new Events();
-        this.events.registerNames(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES);
 
         /**
          * Camera position.
@@ -162,7 +161,9 @@ class Camera {
         this._tanViewAngle_hrad = 0;
         this._tanViewAngle_hradOneByHeight = 0;
 
-        renderer && this.initialize(renderer, options);
+        this.renderer = renderer;
+
+        renderer && this._initialize(options);
     }
 
     /**
@@ -219,19 +220,18 @@ class Camera {
      * @param {og.math.Vector3} [options.look] - Camera look position. Default (0,0,0)
      * @param {og.math.Vector3} [options.up] - Camera eye position. Default (0,1,0)
      */
-    initialize(renderer, options) {
+    _initialize(options) {
 
-        this.renderer = renderer;
+        this.setProjectionMatrix(
+            options.viewAngle || defaultOptions.viewAngle,
+            this._aspect || this.renderer.handler.getClientAspect(),
+            options.near || defaultOptions.near,
+            options.far || defaultOptions.far);
 
-        var d = defaultOptions;
-
-        this.setProjectionMatrix(options.viewAngle || d.viewAngle, this._aspect || renderer.handler.getClientAspect(),
-            options.near || d.near, options.far || d.far);
-
-        this.set(options.eye || d.eye.clone(), options.look || d.look.clone(),
-            options.up || d.up.clone());
-
-        this.update();
+        this.set(
+            options.eye || defaultOptions.eye.clone(),
+            options.look || defaultOptions.look.clone(),
+            options.up || defaultOptions.up.clone());
     }
 
     getUp() {

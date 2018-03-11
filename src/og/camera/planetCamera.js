@@ -10,7 +10,7 @@ import { Camera } from './Camera.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
-import { Mat4 } from '../math/Mat3.js';
+import { Mat4 } from '../math/Mat4.js';
 import { Ray } from '../math/Ray.js';
 
 /**

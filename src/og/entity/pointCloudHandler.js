@@ -4,7 +4,7 @@
 
 'use strict';
 
-import * as shaders from '../shaderProgram/pointCloud.js';
+import * as shaders from '../shaders/pointCloud.js';
 
 class PointCloudHandler {
     constructor(entityCollection) {

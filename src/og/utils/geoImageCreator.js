@@ -4,10 +4,10 @@
 
 'use sctrict';
 
+import * as planetSegmentHelper from '../planetSegment/planetSegmentHelper.js';
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { LonLat } from '../LonLat.js';
-import { PlanetSegmentHelper } from '../planetSegment/planetSegmentHelper.js';
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 
@@ -112,16 +112,16 @@ GeoImageCreator.prototype.remove = function (geoImage) {
 };
 
 GeoImageCreator.prototype._initBuffers = function () {
-    PlanetSegmentHelper.initIndexesTables(3);
+    planetSegmentHelper.initIndexesTables(3);
 
     this._framebuffer = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
     this._framebufferMercProj = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
 
     var gs = this._gridSize;
     var gs1 = this._gridSize + 1;
-    this._texCoordsBuffer = this._handler.createArrayBuffer(PlanetSegmentHelper.textureCoordsTable[gs], 2, gs1 * gs1);
+    this._texCoordsBuffer = this._handler.createArrayBuffer(planetSegmentHelper.textureCoordsTable[gs], 2, gs1 * gs1);
 
-    var indexes = PlanetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
+    var indexes = planetSegmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
     this._indexBuffer = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
 
     this._quadTexCoordsBuffer = this._handler.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);

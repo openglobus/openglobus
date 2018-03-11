@@ -436,7 +436,7 @@ class LabelHandler extends BillboardHandler {
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    setPositionArr = function (index, position) {
+    setPositionArr(index, position) {
         var i = index * 24 * this._maxLetters;
         var a = this._positionArr, x = position.x, y = position.y, z = position.z;
 

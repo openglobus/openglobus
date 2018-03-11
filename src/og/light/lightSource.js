@@ -50,7 +50,7 @@ class LightSource {
          * @protected
          * @type {og.math.Vector3}
          */
-        this._position = params.position || Vec3();
+        this._position = params.position || new Vec3();
 
         /**
          * True if the light is directional.

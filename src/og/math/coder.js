@@ -5,7 +5,7 @@
 'use strict';
 
 import * as math from '../math.js';
-import { Vec4 } from './Vec4';
+import { Vec4 } from './Vec4.js';
 
 /**
  * Encode 32 bit float value to the RGBA vector.

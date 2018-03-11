@@ -14,8 +14,6 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 
 const VISIBLE_DISTANCE = 3570;
-const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
-const _neGridSize = Math.sqrt(Node._vertOrder.length) - 1;
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -73,6 +71,9 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.createBounds();
     this.planet._createdNodesCount++;
 };
+
+const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
+const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
     var p = this.planet;

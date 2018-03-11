@@ -1,77 +1,90 @@
-goog.provide('og.ShapeHandler');
+/**
+ * @module og/entity/ShapeHandler
+ */
 
-goog.require('og.shape.BaseShape');
-goog.require('og.shape.Sphere');
-goog.require('og.shaderProgram.shape_wl');
-goog.require('og.shaderProgram.shape_nl');
-//goog.require('og.shaderProgram.shapePicking');
+'use strict';
 
-og.ShapeHandler = function (entityCollection) {
+import * as shaders from '../shaders/shape.js';
 
-    /**
-     * Picking rendering option.
-     * @public
-     * @type {boolean}
-     */
-    this.pickingEnabled = true;
+class ShapeHandler {
+    constructor(entityCollection) {
 
-    this._entityCollection = entityCollection;
+        /**
+         * Picking rendering option.
+         * @public
+         * @type {boolean}
+         */
+        this.pickingEnabled = true;
 
-    this._renderer = null;
+        this._entityCollection = entityCollection;
 
-    this._shapes = [];
+        this._renderer = null;
 
-    this.__staticId = og.ShapeHandler.staticCounter++;
-};
+        this._shapes = [];
 
-og.ShapeHandler.staticCounter = 0;
+        this.__staticId = ShapeHandler._staticCounter++;
+    }
 
-og.ShapeHandler.prototype._initShaderProgram = function () {
-    if (this._renderer.handler) {
-        if (!this._renderer.handler.shaderPrograms.shape_nl) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.shape_nl());
+    static get _staticCounter() {
+        if (!this._counter && this._counter !== 0) {
+            this._counter = 0;
         }
-        if (!this._renderer.handler.shaderPrograms.shape_wl) {
-            this._renderer.handler.addShaderProgram(og.shaderProgram.shape_wl());
+        return this._counter;
+    }
+
+    static set _staticCounter(n) {
+        this._counter = n;
+    }
+
+    _initShaderProgram() {
+        if (this._renderer.handler) {
+            if (!this._renderer.handler.shaderPrograms.shape_nl) {
+                this._renderer.handler.addShaderProgram(shaders.shape_nl());
+            }
+            if (!this._renderer.handler.shaderPrograms.shape_wl) {
+                this._renderer.handler.addShaderProgram(shaders.shape_wl());
+            }
+            //if (!this._renderer.handler.shaderPrograms.shapePicking) {
+            //    this._renderer.handler.addShaderProgram(shaders.shapePicking());
+            //}
         }
-        //if (!this._renderer.handler.shaderPrograms.shapePicking) {
-        //    this._renderer.handler.addShaderProgram(og.shaderProgram.shapePicking());
-        //}
+    }
+
+    setRenderNode(renderNode) {
+        this._renderer = renderNode.renderer;
+        this._initShaderProgram()
+        for (var i = 0; i < this._shapes.length; i++) {
+            this._shapes[i].setRenderNode(renderNode);
+        }
+    }
+
+    add(shape) {
+        if (shape._handlerIndex == -1) {
+            shape._handler = this;
+            shape._handlerIndex = this._shapes.length;
+            this._shapes.push(shape);
+            this._entityCollection && this._entityCollection.renderNode && shape.setRenderNode(this._entityCollection.renderNode);
+        }
+    }
+
+    remove(shape) {
+        //TODO
+    }
+
+    draw() {
+        var i = this._shapes.length;
+        while (i--) {
+            this._shapes[i].draw();
+        }
+    }
+
+    drawPicking() {
+        //TODO
+    }
+
+    clear() {
+        //TODO
     }
 };
 
-og.ShapeHandler.prototype.setRenderNode = function (renderNode) {
-    this._renderer = renderNode.renderer;
-    this._initShaderProgram()
-    for (var i = 0; i < this._shapes.length; i++) {
-        this._shapes[i].setRenderNode(renderNode);
-    }
-};
-
-og.ShapeHandler.prototype.add = function (shape) {
-    if (shape._handlerIndex == -1) {
-        shape._handler = this;
-        shape._handlerIndex = this._shapes.length;
-        this._shapes.push(shape);
-        this._entityCollection && this._entityCollection.renderNode && shape.setRenderNode(this._entityCollection.renderNode);
-    }
-};
-
-og.ShapeHandler.prototype.remove = function (shape) {
-
-};
-
-og.ShapeHandler.prototype.draw = function () {
-    var i = this._shapes.length;
-    while (i--) {
-        this._shapes[i].draw();
-    }
-};
-
-og.ShapeHandler.prototype.drawPicking = function () {
-
-};
-
-og.ShapeHandler.prototype.clear = function () {
-
-};
+export { ShapeHandler };

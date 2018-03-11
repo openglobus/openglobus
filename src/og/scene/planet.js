@@ -5,7 +5,7 @@
 'use strict';
 
 import * as coder from '../math/coder.js';
-import * as shaders from '../shaderProgram/drawnode.js';
+import * as shaders from '../shaders/drawnode.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as planetSegmentHelper from '../planetSegment/planetSegmentHelper.js';
@@ -28,6 +28,8 @@ import { SegmentLonLat } from '../planetSegment/SegmentLonLat.js';
 import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
+
+const RESOURCES_URL = "";
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -401,7 +403,7 @@ class Planet extends RenderNode {
      * Add the given controls array to the renderer of the planet.
      * @param {Array.<og.control.BaseControl>} cArr - Control array.
      */
-    addControls = function (cArr) {
+    addControls(cArr) {
         for (var i = 0; i < cArr.length; i++) {
             this.addControl(cArr[i]);
         }
@@ -655,7 +657,7 @@ class Planet extends RenderNode {
             img.onload = function () {
                 that._nightTexture = that.renderer.handler.createTexture_mm(this);
             };
-            img.src = og.RESOURCES_URL + "night.png";
+            img.src = RESOURCES_URL + "night.png";
         }
 
         //load water specular mask
@@ -665,7 +667,7 @@ class Planet extends RenderNode {
             img2.onload = function () {
                 that._specularTexture = that.renderer.handler.createTexture_l(this);
             };
-            img2.src = og.RESOURCES_URL + "spec.png";
+            img2.src = RESOURCES_URL + "spec.png";
         }
 
         this._geoImageCreator = new GeoImageCreator(this.renderer.handler);
@@ -1105,7 +1107,7 @@ class Planet extends RenderNode {
      */
     _multiRenderNodesPASS() {
 
-        var sh;
+        var sh, shu;
         var renderer = this.renderer;
         var h = renderer.handler;
         var gl = h.gl;
@@ -1116,8 +1118,8 @@ class Planet extends RenderNode {
 
         if (this.lightEnabled) {
             h.shaderPrograms.drawnode_wl.activate();
-            sh = h.shaderPrograms.drawnode_wl._program,
-                shu = sh.uniforms;
+            sh = h.shaderPrograms.drawnode_wl._program;
+            shu = sh.uniforms;
 
             gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
 
@@ -1181,7 +1183,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (j = 1; j < sl.length; j++) {
+        for (let j = 1; j < sl.length; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {

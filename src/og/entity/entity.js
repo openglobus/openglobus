@@ -7,14 +7,14 @@
 import * as mercator from '../mercator.js';
 import * as utils from '../utils/shared.js';
 import { Billboard } from './Billboard.js';
-import { Box } from '../shapes/Box.js';
+//import { Box } from '../shapes/Box.js';
 import { Extent } from '../Extent.js';
 import { Geometry } from './Geometry.js';
 import { Label } from './Label.js';
 import { LonLat } from '../LonLat.js';
 import { Polyline } from './Polyline.js';
 import { PointCloud } from './PointCloud.js';
-import { Sphere } from '../shapes/Sphere.js';
+//import { Sphere } from '../shapes/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
 

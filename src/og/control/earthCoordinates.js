@@ -129,7 +129,7 @@ class EarthCoordinates extends BaseControl {
 
         _refresh(this._display);
 
-        centerDiv = document.createElement('div');
+        let centerDiv = document.createElement('div');
         centerDiv.className = 'ogCenterIcon';
         centerDiv.innerHTML = '<svg width="12" height="12"><g><path stroke-width="1" stroke-opacity="1" d="M6 0L6 12M0 6L12 6" stroke="#009DFF"></path></g></svg>';
         this.renderer.div.appendChild(centerDiv);

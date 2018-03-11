@@ -7,8 +7,9 @@
 import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
+import { Extent } from '../Extent.js';
 import { Layer } from './Layer.js';
-import { stringTemplate } from '../utils/utils.js';
+import { stringTemplate } from '../utils/shared.js';
 import { LonLat } from '../LonLat.js';
 import { QueueArray } from '../QueueArray.js';
 
@@ -47,7 +48,7 @@ class XYZ extends Layer {
         this.events.registerNames(EVENT_NAMES);
 
         if (!options.extent) {
-            this.setExtent(new og.Extent(new og.LonLat(-180.0, og.mercator.MIN_LAT), new LonLat(180.0, og.mercator.MAX_LAT)));
+            this.setExtent(new Extent(new LonLat(-180.0, mercator.MIN_LAT), new LonLat(180.0, mercator.MAX_LAT)));
         }
 
         this.transparentColor = options.transparentColor || [-1, -1, -1];

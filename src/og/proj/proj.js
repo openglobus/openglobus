@@ -22,9 +22,9 @@ export const Units = {
  * @type {Object.<og.proj.Units, number>}
  */
 export const METERS_PER_UNIT = {};
-METERS_PER_UNIT[og.proj.Units.FEET] = 0.3048;
-METERS_PER_UNIT[og.proj.Units.METERS] = 1;
-METERS_PER_UNIT[og.proj.Units.KILOMETERS] = 1000;
+METERS_PER_UNIT[Units.FEET] = 0.3048;
+METERS_PER_UNIT[Units.METERS] = 1;
+METERS_PER_UNIT[Units.KILOMETERS] = 1000;
 
 const Proj = function (options) {
 

@@ -5,8 +5,8 @@
 'use strict';
 
 import { BaseControl } from './BaseControl.js';
+import { Key } from '../Lock.js';
 import { MouseNavigation } from './MouseNavigation.js';
-import { Key } from './Lock.js';
 
 
 /**
@@ -118,3 +118,5 @@ class ZoomControl extends BaseControl {
 export function zoomControl(options) {
     return new ZoomControl(options);
 };
+
+export { ZoomControl };

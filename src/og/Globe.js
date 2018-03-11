@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { EmptyTerrainProvider } from './terrainProvider/EmptyTerrainProvider';
+import { EmptyTerrainProvider } from './terrainProvider/EmptyTerrainProvider.js';
 import { Handler } from './webgl/Handler.js';
 import { Planet } from './scene/Planet.js';
 import { Renderer } from './renderer/Renderer.js';
@@ -13,7 +13,7 @@ import { wgs84 } from './ellipsoid/wgs84.js';
 import { EarthCoordinates } from './control/EarthCoordinates.js';
 import { MouseNavigation } from './control/MouseNavigation.js';
 import { TouchNavigation } from './control/TouchNavigation.js';
-import { Sun } from './control/sun.js';
+import { Sun } from './control/Sun.js';
 import { ZoomControl } from './control/ZoomControl.js';
 
 /** @const {string} */
@@ -26,7 +26,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @class
  *
  * @example <caption>Basic initialization</caption>
- * globus = new og.Globus({
+ * globus = new og.Globe({
  *     'atmosphere': false,
  *     'target': 'globus',
  *     'name': 'Earth',
@@ -56,13 +56,13 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Array.<og.control.BaseControl>} [options.controls] - Renderer controls array.
  * @param {Array.<og.layer.Layer>} [options.layers] - Planet layers.
  * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
- * @param {boolean} [options.autoActivate] - Globus rendering auto activation flag. True is default.
+ * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
  */
-class Globus {
+class Globe {
     constructor(options) {
 
         //Canvas creation.
-        var _canvasId = CANVAS_ID_PREFIX + Globus._staticCounter++;
+        var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
 
         this._canvas = document.createElement("canvas");
         this._canvas.id = _canvasId;
@@ -110,7 +110,7 @@ class Globus {
          * @private
          * @type {String}
          */
-        this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globus._staticCounter;
+        this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globe._staticCounter;
 
         if (options.atmosphere) {
             /**
@@ -181,7 +181,7 @@ class Globus {
         this._stopHandler = null;
 
         //Run!
-        if (isUndefined(options.autoActivate) || options.autoActivate) {
+        if (Globe.isUndefined(options.autoActivate) || options.autoActivate) {
             this.fadeIn(500);
             this.renderer.start();
         }
