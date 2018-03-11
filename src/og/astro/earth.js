@@ -13,10 +13,10 @@ import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.
- * @param {Number} jd - Julian date time.
+ * @param {Number} jDate - Julian date time.
  * @returns {og.math.Vector3} - Sun geocentric coordinates.
  */
-export function getSunPosition(jd) {
+export function getSunPosition(jDate) {
     //http://stjarnhimlen.se/comp/tutorial.html
     // a  Mean distance, or semi-major axis
     // e  Eccentricity
@@ -69,7 +69,7 @@ export function getSunPosition(jd) {
     //        position (seen from the Sun) should be converted to a
     //        corresponding geocentric position (seen from the Earth).
 
-    var d = jd - jd.J2000;
+    var d = jDate - jd.J2000;
 
     var w = 282.9404 + 4.70935E-5 * d;                  //longitude of perihelion
     var a = 1.000000;                                   //mean distance, a.u.

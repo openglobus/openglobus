@@ -71,8 +71,6 @@ class MultiFramebuffer {
          * @type {boolean}
          */
         this._active = false;
-
-        this._initialize();
     }
 
     /**
@@ -97,9 +95,9 @@ class MultiFramebuffer {
 
     /**
      * Framebuffer initialization.
-     * @private
+     * @virtual
      */
-    _initialize() {
+    init() {
         var gl = this.handler.gl;
         var ext = this.handler.extensions.WEBGL_draw_buffers;
 
@@ -148,7 +146,7 @@ class MultiFramebuffer {
         this._width = width;
         this._height = height;
         this.destroy();
-        this._initialize();
+        this.init();
     }
 
     /**

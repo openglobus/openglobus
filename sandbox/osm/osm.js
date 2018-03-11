@@ -1,6 +1,7 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
+import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 
 let osm = new XYZ("OSM", {
@@ -16,5 +17,6 @@ let osm = new XYZ("OSM", {
 let globe = new Globe({
     'name': "Earth",
     'target': "earth",
+    'terrain': new GlobusTerrain(),
     'layers': [osm]
 });

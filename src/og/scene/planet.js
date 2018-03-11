@@ -10,6 +10,7 @@ import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as planetSegmentHelper from '../planetSegment/planetSegmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
+import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
@@ -140,9 +141,9 @@ class Planet extends RenderNode {
         /**
          * Terrain provider.
          * @public
-         * @type {og.terrainProvider.TerrainProvider}
+         * @type {og.terrain.Terrain}
          */
-        this.terrainProvider = null;
+        this.terrain = null;
 
         /**
          * Camera is this.renderer.activeCamera pointer.
@@ -533,11 +534,11 @@ class Planet extends RenderNode {
     /**
      * Sets terrain provider
      * @public
-     * @param {og.terrainProvider.TerrainProvider} terrain - Terrain provider.
+     * @param {og.terrain.Terrain} terrain - Terrain provider.
      */
-    setTerrainProvider(terrain) {
-        this.terrainProvider = terrain;
-        this.terrainProvider._planet = this;
+    setTerrain(terrain) {
+        this.terrain = terrain;
+        this.terrain._planet = this;
     }
 
     /**
@@ -563,6 +564,7 @@ class Planet extends RenderNode {
                 'width': 320,
                 'height': 240
             });
+            this._heightPickingFramebuffer.init();
         }
     }
 
@@ -572,8 +574,7 @@ class Planet extends RenderNode {
      */
     initialization() {
         //Initialization indexes table
-        var TABLESIZE = 6;
-        planetSegmentHelper.initIndexesTables(TABLESIZE);
+        var TABLESIZE = planetSegmentHelper.TABLESIZE;
 
         //Iniytialize indexes buffers cache. It takes ~120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -1232,7 +1233,7 @@ class Planet extends RenderNode {
         this._normalMapCreator.lock(this._memKey);
 
         this._normalMapCreator.clear();
-        this.terrainProvider.abortLoading();
+        this.terrain.abortLoading();
 
         var that = this;
         setTimeout(function () {

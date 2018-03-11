@@ -50,6 +50,10 @@ class SDFCreator {
         this._framebuffer0 = new Framebuffer(this._handler, { useDepth: false });
         this._framebuffer1 = new Framebuffer(this._handler, { useDepth: false });
         this._framebuffer2 = new Framebuffer(this._handler, { useDepth: false });
+
+        this._framebuffer0.init();
+        this._framebuffer1.init();
+        this._framebuffer2.init();
     }
     _initShaders() {
         var vfield = new ShaderProgram("vfield", {

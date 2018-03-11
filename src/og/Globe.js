@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { EmptyTerrainProvider } from './terrainProvider/EmptyTerrainProvider.js';
+import { EmptyTerrain } from './terrain/EmptyTerrain.js';
 import { Handler } from './webgl/Handler.js';
 import { Planet } from './scene/Planet.js';
 import { Renderer } from './renderer/Renderer.js';
@@ -52,7 +52,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.skybox] - Render skybox. null - default.
  * @param {boolean} [options.atmosphere] - Render planet with atmosphere. False - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
- * @param {og.terrainProvider.TerrainProvider} [options.terrain] - Terrain provider. Default no terrain - og.terrainProvider.EmptyTerrainProvider.
+ * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<og.control.BaseControl>} [options.controls] - Renderer controls array.
  * @param {Array.<og.layer.Layer>} [options.layers] - Planet layers.
  * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
@@ -127,9 +127,9 @@ class Globe {
 
         //Attach terrain provider
         if (options.terrain) {
-            this.planet.setTerrainProvider(options.terrain);
+            this.planet.setTerrain(options.terrain);
         } else {
-            this.planet.setTerrainProvider(new EmptyTerrainProvider());
+            this.planet.setTerrain(new EmptyTerrain());
         }
 
         this.renderer.addRenderNode(this.planet);

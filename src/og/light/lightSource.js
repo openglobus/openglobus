@@ -28,6 +28,7 @@ class LightSource {
     static set _staticCounter(n) {
         this._counter = n;
     }
+
     constructor(name, params) {
         params = params || {};
 

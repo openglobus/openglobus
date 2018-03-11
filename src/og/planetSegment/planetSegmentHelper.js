@@ -6,23 +6,12 @@
 
 import * as quadTree from '../quadTree/quadTree.js';
 
-let CURRENT_POWER = 0;
+export const TABLESIZE = 6;
 
-export let textureCoordsTable = [];
+const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
+const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
 
-let centerIndexesTable = [];
-let skirtsIndexesTable = [];
-
-export function initIndexesTables(powerOfTwo) {
-    if (powerOfTwo > CURRENT_POWER) {
-        CURRENT_POWER = powerOfTwo;
-        centerIndexesTable = initIndexBodiesTable(powerOfTwo);
-        textureCoordsTable = initTextureCoordsTable(powerOfTwo);
-        skirtsIndexesTable = initIndexesBodySkirts(powerOfTwo);
-    }
-    centerIndexesTable[0] = [];
-    textureCoordsTable[0] = [];
-};
+export const textureCoordsTable = initTextureCoordsTable(TABLESIZE);
 
 export function createSegmentIndexes(size, sidesSizes) {
     if (size != 1) {
@@ -195,6 +184,7 @@ function initTextureCoordsTable(pow) {
         var d = Math.pow(2, i);
         table[d] = createTextureCoords(d);
     }
+    table[0] = [];
     return table;
 };
 
@@ -205,6 +195,7 @@ function initIndexBodiesTable(pow) {
         var t = table[d] = [];
         createCenterBodyIndexes(d + 1, t);
     }
+    table[0] = [];
     return table;
 };
 

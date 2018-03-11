@@ -102,7 +102,7 @@ export function htmlColorToRgb(htmlColor) {
  * @param {Object} params - Template named object with subsrtings.
  * @returns {string} -
  * 
- * @example <caption>Example from og.terrainProvider that replaces tile indexes in url:</caption>
+ * @example <caption>Example from og.terrain that replaces tile indexes in url:</caption>
  * var substrings = {
  *       "x": 12,
  *       "y": 15,

@@ -47,7 +47,7 @@ class TerrainWorker {
                     'this_normalMapVertices': segment.normalMapVertices,
                     'this_normalMapNormals': segment.normalMapNormals,
                     'heightFactor': segment.planet._heightFactor,
-                    'gridSize': segment.planet.terrainProvider.gridSizeByZoom[segment.tileZoom]
+                    'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom]
                 }, [
                         _elevations.buffer,
                         segment.plainVertices.buffer,

@@ -12,9 +12,9 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
+import { textureCoordsTable } from './PlanetSegmentHelper.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
-import { textureCoordsTable } from './PlanetSegmentHelper.js';
 import { Vec3 } from '../math/Vec3.js';
 
 var _RenderingSlice = function (p) {
@@ -86,7 +86,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      * Vertices grid size.
      * @type {number}
      */
-    this.gridSize = planet.terrainProvider.gridSizeByZoom[tileZoom];
+    this.gridSize = planet.terrain.gridSizeByZoom[tileZoom];
 
     /**
      * Tile zoom index.
@@ -284,13 +284,10 @@ Segment.prototype.projectNative = function (lonlat) {
     return lonlat.forwardMercator();
 };
 
-/**
- * Starts and load terrain provider to make terrain.
- */
 Segment.prototype.loadTerrain = function () {
-    if (this.tileZoom >= this.planet.terrainProvider.minZoom) {
+    if (this.tileZoom >= this.planet.terrain.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
-            this.planet.terrainProvider.handleSegmentTerrain(this);
+            this.planet.terrain.handleSegmentTerrain(this);
         }
     } else {
         this.terrainReady = true;
@@ -336,7 +333,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
             this.planet._normalMapCreator.queue(this);
         }
 
-        var tgs = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+        var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
         this.createCoordsBuffers(this.terrainVertices, tgs);
         this.bsphere.setFromBounds(data.bounds);
         this.gridSize = tgs;
@@ -349,13 +346,13 @@ Segment.prototype._terrainWorkerCallback = function (data) {
  * Terrain is not obtained or not exists on the server.
  */
 Segment.prototype.elevationsNotExists = function () {
-    if (this.tileZoom <= this.planet.terrainProvider.maxZoom) {
+    if (this.tileZoom <= this.planet.terrain.maxZoom) {
         if (this.ready && this.terrainIsLoading) {
             this.terrainIsLoading = false;
             this.terrainReady = true;
             this.terrainExists = false;
             this.node.appliedTerrainNodeId = this.node.nodeId;
-            this.gridSize = this.planet.terrainProvider.gridSizeByZoom[this.tileZoom];
+            this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
             if (this.planet.lightEnabled && !this._inTheQueue) {
                 this.planet._normalMapCreator.queue(this);
@@ -381,7 +378,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
     var nn = this.node.neighbors;
     var n = nn[side];
-    var maxZ = this.planet.terrainProvider.maxZoom;
+    var maxZ = this.planet.terrain.maxZoom;
 
     if (this.tileZoom === maxZ) {
         if (!(nn[0] || nn[1] || nn[2] || nn[3])) {
@@ -525,9 +522,6 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
     }
 };
 
-/**
- * Callback that calls in terrain provider to complete the terrain.
- */
 Segment.prototype.applyTerrain = function (elevations) {
     if (this.ready) {
         if (elevations.length) {
@@ -742,10 +736,10 @@ Segment.prototype.initializePlainSegment = function () {
     var n = this.node;
     n.sideSize[0] = n.sideSize[1] =
         n.sideSize[2] = n.sideSize[3] =
-        this.gridSize = p.terrainProvider.gridSizeByZoom[this.tileZoom];
+        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom];
     this.initialized = true;
 
-    if (this.tileZoom <= p.terrainProvider.maxZoom) {
+    if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;
         this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
     }
@@ -761,7 +755,7 @@ Segment.prototype.createPlainSegment = function () {
 Segment.prototype.createPlainVertices = function (gridSize) {
 
     var e = this._extent,
-        fgs = this.planet.terrainProvider.fileGridSize;
+        fgs = this.planet.terrain.fileGridSize;
     var lonSize = e.getWidth();
     var llStep = lonSize / Math.max(fgs, gridSize);
     var esw_lon = e.southWest.lon,

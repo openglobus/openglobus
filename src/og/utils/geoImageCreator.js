@@ -112,10 +112,12 @@ GeoImageCreator.prototype.remove = function (geoImage) {
 };
 
 GeoImageCreator.prototype._initBuffers = function () {
-    planetSegmentHelper.initIndexesTables(3);
 
     this._framebuffer = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
+    this._framebuffer.init();
+
     this._framebufferMercProj = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
+    this._framebufferMercProj.init();
 
     var gs = this._gridSize;
     var gs1 = this._gridSize + 1;

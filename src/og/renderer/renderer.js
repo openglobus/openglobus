@@ -315,6 +315,7 @@ class Renderer {
             'width': 640,
             'height': 480
         });
+        this.pickingFramebuffer.init();
 
         this.handler.addShaderProgram(new ShaderProgram("screenFrame", {
             uniforms: {
@@ -347,9 +348,13 @@ class Renderer {
 
         if (this._drawBuffersExtension) {
             this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });
+            this.sceneFramebuffer.init();
+
             this._fnScreenFrame = this._multiframebufferScreenFrame;
         } else {
             this.sceneFramebuffer = new Framebuffer(this.handler);
+            this.sceneFramebuffer.init();
+
             this._fnScreenFrame = this._singleframebufferScreenFrame;
         }
 

@@ -1,5 +1,5 @@
 /**
- * @module og/terrainProvider/EmptyTerrainProvider
+ * @module og/terrainProvider/EmptyTerrain
  */
 
 'use strict';
@@ -8,7 +8,7 @@
  * Class represents terrain provider without elevation data.
  * @class
  */
-class EmptyTerrainProvider {
+class EmptyTerrain {
     constructor() {
         /**
          * Provider name is "empty"
@@ -72,4 +72,4 @@ class EmptyTerrainProvider {
     abortLoading() { }
 };
 
-export { EmptyTerrainProvider };
+export { EmptyTerrain };

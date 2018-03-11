@@ -1,12 +1,12 @@
 /**
- * @module og/terrainProvider/GlobusTerrainProvider
+ * @module og/terrainProvider/GlobusTerrain
  */
 
 'use strict';
 
 import * as quadTree from '../quadTree/quadTree.js';
 import { ajax } from '../ajax.js';
-import { EmptyTerrainProvider } from './EmptyTerrainProvider.js';
+import { EmptyTerrain } from './EmptyTerrain.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Events } from '../Events.js';
 import { QueueArray } from '../QueueArray.js';
@@ -42,7 +42,7 @@ const EVENT_NAMES = [
  * @fires og.terrainProvider.TerrainProvider#load
  * @fires og.terrainProvider.TerrainProvider#loadend
  */
-class GlobusTerrainProvider extends EmptyTerrainProvider {
+class GlobusTerrain extends EmptyTerrain {
     constructor(name, options) {
         super();
         options = options || {};
@@ -321,4 +321,4 @@ class GlobusTerrainProvider extends EmptyTerrainProvider {
     }
 };
 
-export { TerrainProvider };
+export { GlobusTerrain };

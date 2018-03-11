@@ -67,8 +67,6 @@ class Framebuffer {
          * @type {number}
          */
         this.texture = options.texture || null;
-
-        this._initialize();
     }
 
     destroy() {
@@ -88,7 +86,7 @@ class Framebuffer {
      * Framebuffer initialization.
      * @private
      */
-    _initialize() {
+    init() {
         var gl = this.handler.gl;
 
         this._fbo = gl.createFramebuffer();
@@ -134,7 +132,7 @@ class Framebuffer {
         }
         if (this._useDepth) {
             this.destroy();
-            this._initialize();
+            this.init();
         }
     };
 

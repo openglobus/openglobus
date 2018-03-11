@@ -147,6 +147,7 @@ VectorTileCreator.prototype._initialize = function () {
         height: this._height,
         useDepth: false
     });
+    this._framebuffer.init();
 };
 
 VectorTileCreator.prototype.frame = function () {

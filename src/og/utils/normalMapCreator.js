@@ -118,6 +118,8 @@ NormalMapCreator.prototype._init = function () {
         useDepth: false
     });
 
+    this._framebuffer.init();
+
     this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
     //create vertices hasharray for different grid size segments

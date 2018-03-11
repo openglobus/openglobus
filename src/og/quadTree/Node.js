@@ -107,7 +107,7 @@ Node.prototype.createBounds = function () {
     if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
         seg.bsphere.center = new Vec3();
-    } else if (seg.tileZoom < seg.planet.terrainProvider.minZoom) {
+    } else if (seg.tileZoom < seg.planet.terrain.minZoom) {
         seg.createBoundsByExtent();
     } else {
         var pn = this;
@@ -310,7 +310,7 @@ Node.prototype.renderTree = function (maxZoom) {
         } else if (seg.tileZoom === maxZoom || !maxZoom && seg.acceptForRendering(cam)) {
             this.prepareForRendering(h, altVis, onlyTerrain);
         } else {
-            if (seg.tileZoom < planet.terrainProvider.gridSizeByZoom.length - 1) {
+            if (seg.tileZoom < planet.terrain.gridSizeByZoom.length - 1) {
                 this.traverseNodes(maxZoom);
             } else {
                 this.prepareForRendering(h, altVis, onlyTerrain);
@@ -454,7 +454,7 @@ Node.prototype.getCommonSide = function (node) {
 Node.prototype.whileNormalMapCreating = function () {
 
     var seg = this.planetSegment;
-    var maxZ = this.planet.terrainProvider.maxZoom;
+    var maxZ = this.planet.terrain.maxZoom;
 
     if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
         seg.planet._normalMapCreator.queue(seg);
@@ -501,8 +501,8 @@ Node.prototype.whileTerrainLoading = function () {
     var n = this.nodes;
 
     //Maybe better is to replace this code to the Segment module?
-    if (seg.tileZoom >= this.planet.terrainProvider.minZoom &&
-        seg.tileZoom < this.planet.terrainProvider.maxZoom &&
+    if (seg.tileZoom >= this.planet.terrain.minZoom &&
+        seg.tileZoom < this.planet.terrain.maxZoom &&
         n.length === 4 && n[0].planetSegment.terrainReady && n[1].planetSegment.terrainReady &&
         n[2].planetSegment.terrainReady && n[3].planetSegment.terrainReady
     ) {
@@ -511,7 +511,7 @@ Node.prototype.whileTerrainLoading = function () {
 
         seg.initializePlainSegment();
 
-        var fgs = this.planet.terrainProvider.fileGridSize;
+        var fgs = this.planet.terrain.fileGridSize;
         var dg = Math.max(fgs / seg.gridSize, 1),
             gs = Math.max(fgs, seg.gridSize) + 1;
         var ind = 0,
@@ -627,7 +627,7 @@ Node.prototype.whileTerrainLoading = function () {
             var gridSize = pn.planetSegment.gridSize / dZ2;
             var tempVertices;
 
-            var fgs = this.planet.terrainProvider.fileGridSize,
+            var fgs = this.planet.terrain.fileGridSize,
                 fgsZ = fgs / dZ2;
             var tempNormalMapNormals;
 
@@ -698,7 +698,7 @@ Node.prototype.whileTerrainLoading = function () {
             this.appliedTerrainNodeId = pn.nodeId;
         }
 
-        var maxZ = this.planet.terrainProvider.maxZoom;
+        var maxZ = this.planet.terrain.maxZoom;
 
         if (seg.tileZoom > maxZ) {
             if (pn.planetSegment.tileZoom >= maxZ) {
