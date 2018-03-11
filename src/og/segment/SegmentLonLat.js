@@ -1,5 +1,5 @@
 /**
- * @module og/planetSegment/SegmentLonLat
+ * @module og/segment/SegmentLonLat
  */
 
 'use sctrict';

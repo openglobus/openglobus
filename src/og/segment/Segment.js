@@ -1,5 +1,5 @@
 /**
- * @module og/planetSegment/Segment
+ * @module og/segment/Segment
  */
 
 'use sctrict';
@@ -12,7 +12,7 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
-import { textureCoordsTable } from './PlanetSegmentHelper.js';
+import { textureCoordsTable } from './segmentHelper.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';

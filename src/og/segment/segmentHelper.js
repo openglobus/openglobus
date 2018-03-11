@@ -1,5 +1,5 @@
 /**
- * @module og/layer/Layer
+ * @module og/segment/segmentHelper
  */
 
 'use sctrict';

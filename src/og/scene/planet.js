@@ -8,7 +8,7 @@ import * as coder from '../math/coder.js';
 import * as shaders from '../shaders/drawnode.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
-import * as planetSegmentHelper from '../planetSegment/planetSegmentHelper.js';
+import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
@@ -574,7 +574,7 @@ class Planet extends RenderNode {
      */
     initialization() {
         //Initialization indexes table
-        var TABLESIZE = planetSegmentHelper.TABLESIZE;
+        var TABLESIZE = segmentHelper.TABLESIZE;
 
         //Iniytialize indexes buffers cache. It takes ~120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -594,7 +594,7 @@ class Planet extends RenderNode {
 
                             //!this._indexesCache[c][w][n][e][s] && (this._indexesCache[c][w][n][e][s] = []);
 
-                            var indexes = planetSegmentHelper.createSegmentIndexes(c, [w, n, e, s]);
+                            var indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
 
                             var buffer = null;
 
