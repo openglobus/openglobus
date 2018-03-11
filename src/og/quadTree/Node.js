@@ -693,7 +693,7 @@ Node.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
 
-            //seg.tempVertices is useful for earth point calculation(see planetSegment object)
+            //seg.tempVertices is useful for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
             this.appliedTerrainNodeId = pn.nodeId;
         }

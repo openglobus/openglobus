@@ -672,7 +672,7 @@ class Vector extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.planetSegment.Material} material - Current material.
+     * @param {og.Segment.Material} material - Current material.
      */
     loadMaterial(material) {
 
