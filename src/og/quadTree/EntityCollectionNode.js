@@ -287,12 +287,12 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
         if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === quadTree.RENDERING) {
             while (i--) {
                 var ei = e[i];
-                this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].planetSegment);
+                this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].segment);
             }
         } else if (renderingNodeId) {
             while (i--) {
                 var ei = e[i];
-                this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].planetSegment);
+                this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].segment);
             }
         } else {
             var n = l._planet._renderedNodes;
@@ -300,8 +300,8 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
                 var ei = e[i];
                 var j = n.length;
                 while (j--) {
-                    if (n[j].planetSegment.isEntityInside(ei)) {
-                        this.alignEntityToTheGround(ei, n[j].planetSegment);
+                    if (n[j].segment.isEntityInside(ei)) {
+                        this.alignEntityToTheGround(ei, n[j].segment);
                         break;
                     }
                 }
@@ -310,8 +310,8 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
     }
 };
 
-EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
-    planetSegment.getEntityTerrainPoint(entity, entity._cartesian);
+EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, segment) {
+    segment.getEntityTerrainPoint(entity, entity._cartesian);
     entity._setCartesian3vSilent(entity._cartesian.addA(entity._cartesian.normal().scale(this.layer.relativeToGround && entity._altitude || 0.1)));
 };
 

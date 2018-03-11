@@ -386,7 +386,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
         }
     }
 
-    var ns = n && n.planetSegment;
+    var ns = n && n.segment;
 
     if (n && ns && ns.terrainReady && ns.terrainExists &&
         ns.tileZoom <= maxZ &&

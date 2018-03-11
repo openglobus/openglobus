@@ -584,7 +584,7 @@ class Vector extends Layer {
                             var ll = coords[c_j][c_j_h];
                             var n_k = nodes.length;
                             while (n_k--) {
-                                var seg = nodes[n_k].planetSegment;
+                                var seg = nodes[n_k].segment;
                                 if (seg._extent.isInside(ll)) {
                                     var cart = p._path3v[c_j][c_j_h];
                                     var res = new Vec3();
@@ -721,17 +721,17 @@ class Vector extends Layer {
                     break;
                 }
                 pn = pn.parentNode;
-                psegm = pn.planetSegment.materials[mId];
+                psegm = pn.segment.materials[mId];
             }
 
             if (notEmpty) {
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
                 material.pickingMask = psegm.pickingMask;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.planetSegment.tileZoom - 1));
+                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
-                    segment.tileX * dZ2 - pn.planetSegment.tileX,
-                    segment.tileY * dZ2 - pn.planetSegment.tileY,
+                    segment.tileX * dZ2 - pn.segment.tileX,
+                    segment.tileY * dZ2 - pn.segment.tileY,
                     dZ2,
                     dZ2
                 ];
