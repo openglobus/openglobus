@@ -1,2 +1,2 @@
 SET NODE_ENV=development
-webpack
+webpack --mode development
