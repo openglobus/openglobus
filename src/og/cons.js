@@ -9,7 +9,9 @@ export class Cons {
         this._container = document.createElement("div");
         this._container.classList.add("ogConsole");
         this._container.style.display = "none";
-        document.body.appendChild(this._container);
+        if (document.body) {
+            document.body.appendChild(this._container);
+        }
 
         this._visibility = false;
     }
@@ -34,6 +36,11 @@ export class Cons {
      * @public
      */
     show() {
+        if (!this._container.parentNode) {
+            if (document.body) {
+                document.body.appendChild(this._container);
+            }
+        }
         this._container.style.display = "block";
         this._visibility = true;
     }
@@ -57,6 +64,7 @@ export class Cons {
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-error");
         d.innerHTML = "error: " + str;
+        console.log(d.innerHTML);
         this._container.appendChild(d);
         this.show();
     }
@@ -71,6 +79,7 @@ export class Cons {
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-warning");
         d.innerHTML = "warning: " + str;
+        console.log(d.innerHTML);
         this._container.appendChild(d);
         this.show();
     }
@@ -90,6 +99,7 @@ export class Cons {
             }
         }
         d.innerHTML = str;
+        console.log(str);
         this._container.appendChild(d);
         this.show();
     }

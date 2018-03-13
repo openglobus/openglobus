@@ -55,10 +55,6 @@ if (NODE_ENV == "development") {
                 'NODE_ENV': JSON.stringify(NODE_ENV)
             }),
             new UglifyJsPlugin()
-        ],
-
-        resolve: {
-            extensions: ['.js']
-        }
+        ]
     };
 }
