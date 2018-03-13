@@ -4,7 +4,7 @@
  * Console logging singleton object.
  * @class
  */
-export class Console {
+export class Cons {
     constructor() {
         this._container = document.createElement("div");
         this._container.classList.add("ogConsole");
@@ -95,5 +95,5 @@ export class Console {
     }
 }
 
-export const _cons = new Console();
+export const cons = new Cons();
 

@@ -5,7 +5,7 @@
 'use strict';
 
 import { callbacks } from './callbacks.js';
-import { _cons } from '../console.js';
+import { cons } from '../cons.js';
 
 /**
  * Represents more comfortable using WebGL shader program.
@@ -155,7 +155,7 @@ class ShaderProgram {
         this.gl.shaderSource(shader, src);
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            _cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + ".");
+            cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + ".");
             return false;
         }
         return true;
@@ -239,7 +239,7 @@ class ShaderProgram {
         gl.linkProgram(this._p);
 
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
-            _cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p) + ".");
+            cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p) + ".");
             gl.deleteProgram(this._p);
             return;
         }
@@ -260,7 +260,7 @@ class ShaderProgram {
             this._p[a] = gl.getAttribLocation(this._p, a);
 
             if (this._p[a] == undefined) {
-                _cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - attribute '" + a + "' is not exists.");
+                cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - attribute '" + a + "' is not exists.");
                 gl.deleteProgram(this._p);
                 return;
             }
@@ -280,7 +280,7 @@ class ShaderProgram {
             this._p[u] = gl.getUniformLocation(this._p, u);
 
             if (this._p[u] == undefined) {
-                _cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - uniform '" + u + "' is not exists.");
+                cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - uniform '" + u + "' is not exists.");
                 gl.deleteProgram(this._p);
                 return;
             }

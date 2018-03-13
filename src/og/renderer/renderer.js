@@ -11,7 +11,7 @@ import { randomi } from '../math.js';
 import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
-import { _cons } from '../Console.js';
+import { cons } from '../cons.js';
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
@@ -302,7 +302,7 @@ class Renderer {
 
         //Bind console key
         this.events.on("charkeypress", input.KEY_APOSTROPHE, function () {
-            _cons.setVisibility(!_cons.getVisibility());
+            cons.setVisibility(!cons.getVisibility());
         });
 
         this.handler.onCanvasResize = function (obj) {
@@ -376,7 +376,7 @@ class Renderer {
             this._renderNodesArr.unshift(renderNode);
             this.renderNodes[renderNode.name] = renderNode;
         } else {
-            _cons.logWrn("og.Renderer(370) - node name: " + renderNode.name + " allready exists.");
+            cons.logWrn("og.Renderer(370) - node name: " + renderNode.name + " allready exists.");
         }
     }
 

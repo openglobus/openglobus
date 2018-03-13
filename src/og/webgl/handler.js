@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { _cons } from '../Console.js';
+import { cons } from '../cons.js';
 import { Clock } from '../Clock.js';
 import { ImageCanvas } from '../ImageCanvas.js';
 import { ShaderController } from './ShaderController.js';
@@ -172,10 +172,10 @@ class Handler {
             //ctx.canvas = canvas;
         }
         catch (ex) {
-            _cons.logErr("exception during the GL context initialization");
+            cons.logErr("exception during the GL context initialization");
         }
         if (!ctx) {
-            _cons.logErr("could not initialise WebGL");
+            cons.logErr("could not initialise WebGL");
         }
         return ctx;
     }
@@ -432,7 +432,7 @@ class Handler {
             if (notActivate)
                 sc._activated = false;
         } else {
-            !COMPILED && _cons.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
+            !COMPILED && cons.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
         }
         return program;
     }
@@ -497,7 +497,7 @@ class Handler {
             if (ext) {
                 this.extensions[extensionStr] = ext;
             } else if (showLog) {
-                !COMPILED && _cons.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
+                !COMPILED && cons.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
             }
         }
         return this.extensions && this.extensions[extensionStr];

@@ -22,14 +22,14 @@
   },
   "homepage": "http://www.openglobus.org",
   "dependencies": {
-    "google-closure-library": "^20170910.0.0"
+    "webpack-cli": "^2.0.11"
   },
   "devDependencies": {
     "babel-eslint": "^8.0.0",
     "eslint": "^4.0.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
-    "webpack": "^4.0.1"
+    "webpack": "^4.1.1"
   },
   "keywords": [
     "map",

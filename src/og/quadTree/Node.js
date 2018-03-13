@@ -13,7 +13,6 @@ import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 
-const VISIBLE_DISTANCE = 3570;
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -302,7 +301,7 @@ Node.prototype.renderTree = function (maxZoom) {
     var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        VISIBLE_DISTANCE * Math.sqrt(h);
+        quadTree.VISIBLE_DISTANCE * Math.sqrt(h);
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
