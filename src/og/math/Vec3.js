@@ -395,7 +395,7 @@ Vec3.prototype.mulA = function (vec) {
  * @returns {og.math.Vec3}
  */
 Vec3.prototype.mul = function (vec) {
-    return new og.math.Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
+    return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
 };
 
 /**

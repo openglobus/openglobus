@@ -1,24 +1,27 @@
-goog.provide('og.shaderProgram.pointCloud');
+/**
+ * @module og/shaders/pointCloud
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
+
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
 
 //Picking is the same
-og.shaderProgram.pointCloud = function () {
-    return new og.shaderProgram.ShaderProgram("pointCloud", {
+export function pointCloud() {
+    return new ShaderProgram("pointCloud", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            opacity: { type: og.shaderProgram.types.FLOAT },
-            pointSize: { type: og.shaderProgram.types.FLOAT }
+            projectionViewMatrix: { type: types.MAT4 },
+            opacity: { type: types.FLOAT },
+            pointSize: { type: types.FLOAT }
         },
         attributes: {
-            coordinates: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            colors: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            coordinates: { type: types.VEC3, enableArray: true },
+            colors: { type: types.VEC3, enableArray: true }
         },
         vertexShader:
-            'attribute vec3 coordinates;\
+        'attribute vec3 coordinates;\
             attribute vec4 colors;\
             uniform mat4 projectionViewMatrix;\
             uniform float opacity;\
@@ -35,7 +38,7 @@ og.shaderProgram.pointCloud = function () {
                 gl_PointSize = pointSize;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             varying vec4 color;\
             void main(void) {\
                 gl_FragColor = color;\

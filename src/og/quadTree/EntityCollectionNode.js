@@ -4,15 +4,15 @@
 
 'use strict';
 
-import * as inheritance from '../inheritance.js';
 import * as mercator from '../mercator.js';
 import * as quadTree from './quadTree.js';
+import { Box } from '../bv/Box.js';
+import { EntityCollection } from '../entity/EntityCollection.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
-import { Vec3 } from '../math/Vec3.js';
-import { EntityCollection } from '../entity/EntityCollection.js';
-import { Box } from '../bv/Box.js';
+import { inherits } from '../inherits.js';
 import { Sphere } from '../bv/Sphere.js';
+import { Vec3 } from '../math/Vec3.js';
 
 const EntityCollectionNode = function (layer, partId, parent, id, extent, planet, zoom) {
     this.layer = layer;
@@ -221,7 +221,7 @@ EntityCollectionNode.prototype.collectRenderCollectionsPASS2 = function (visible
     var cam = p.renderer.activeCamera;
 
     var altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-        quadTree.Node.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+        quadTree.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
 
     if (this.count > 0 && altVis &&
         p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
@@ -287,12 +287,12 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
         if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === quadTree.RENDERING) {
             while (i--) {
                 var ei = e[i];
-                this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].planetSegment);
+                this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].segment);
             }
         } else if (renderingNodeId) {
             while (i--) {
                 var ei = e[i];
-                this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].planetSegment);
+                this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].segment);
             }
         } else {
             var n = l._planet._renderedNodes;
@@ -300,8 +300,8 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
                 var ei = e[i];
                 var j = n.length;
                 while (j--) {
-                    if (n[j].planetSegment.isEntityInside(ei)) {
-                        this.alignEntityToTheGround(ei, n[j].planetSegment);
+                    if (n[j].segment.isEntityInside(ei)) {
+                        this.alignEntityToTheGround(ei, n[j].segment);
                         break;
                     }
                 }
@@ -310,8 +310,8 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
     }
 };
 
-EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, planetSegment) {
-    planetSegment.getEntityTerrainPoint(entity, entity._cartesian);
+EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, segment) {
+    segment.getEntityTerrainPoint(entity, entity._cartesian);
     entity._setCartesian3vSilent(entity._cartesian.addA(entity._cartesian.normal().scale(this.layer.relativeToGround && entity._altitude || 0.1)));
 };
 
@@ -322,12 +322,22 @@ EntityCollectionNode.prototype.isVisible = function () {
     return false;
 };
 
+/**
+ * Node of entity collections for WGS84 coordinates.
+ * @param {any} layer
+ * @param {any} partId
+ * @param {any} parent
+ * @param {any} id
+ * @param {any} extent
+ * @param {any} planet
+ * @param {any} zoom
+ */
 const EntityCollectionNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
-    inheritance.base(this, layer, partId, parent, id, extent, planet, zoom);
+    EntityCollectionNode.call(this, layer, partId, parent, id, extent, planet, zoom);
     this.isNorth = false;
 };
 
-inheritance.extend(EntityCollectionNodeWGS84, EntityCollectionQuadNode);
+inherits(EntityCollectionNodeWGS84, EntityCollectionNode);
 
 EntityCollectionNodeWGS84.prototype._setExtentBounds = function () {
     if (this.extent.northEast.lat > 0) {

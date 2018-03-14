@@ -1,12 +1,13 @@
-goog.provide('og.shaderProgram.billboard');
-goog.provide('og.shaderProgram.billboardPicking');
+/**
+ * @module og/shaders/billboard
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
 
-og.shaderProgram.billboard = function (isSingleBuffer) {
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+export function billboard(isSingleBuffer) {
 
     var strFragment;
     if (isSingleBuffer) {
@@ -35,28 +36,28 @@ og.shaderProgram.billboard = function (isSingleBuffer) {
             }';
     }
 
-    return new og.shaderProgram.ShaderProgram("billboard", {
+    return new ShaderProgram("billboard", {
         uniforms: {
-            u_texture: { type: og.shaderProgram.types.SAMPLER2D },
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uFloatParams: { type: og.shaderProgram.types.VEC2 },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
-            uOpacity: { type: og.shaderProgram.types.FLOAT }
+            u_texture: { type: types.SAMPLER2D },
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            uCamPos: { type: types.VEC3 },
+            uFloatParams: { type: types.VEC2 },
+            uScaleByDistance: { type: types.VEC3 },
+            uOpacity: { type: types.FLOAT }
         },
         attributes: {
-            a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_texCoord: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_rgba: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            a_vertices: { type: types.VEC2, enableArray: true },
+            a_texCoord: { type: types.VEC2, enableArray: true },
+            a_positions: { type: types.VEC4, enableArray: true },
+            a_size: { type: types.VEC2, enableArray: true },
+            a_offset: { type: types.VEC3, enableArray: true },
+            a_rgba: { type: types.VEC4, enableArray: true },
+            a_rotation: { type: types.FLOAT, enableArray: true },
+            a_alignedAxis: { type: types.VEC3, enableArray: true }
         },
         vertexShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec2 a_texCoord;\
             attribute vec4 a_positions;\
@@ -108,31 +109,31 @@ og.shaderProgram.billboard = function (isSingleBuffer) {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            strFragment
+        strFragment
     });
 };
 
-og.shaderProgram.billboardPicking = function () {
-    return new og.shaderProgram.ShaderProgram("billboardPicking", {
+export function billboardPicking() {
+    return new ShaderProgram("billboardPicking", {
         uniforms: {
-            projectionMatrix: { type: og.shaderProgram.types.MAT4 },
-            viewMatrix: { type: og.shaderProgram.types.MAT4 },
-            uCamPos: { type: og.shaderProgram.types.VEC3 },
-            uFloatParams: { type: og.shaderProgram.types.VEC2 },
-            uScaleByDistance: { type: og.shaderProgram.types.VEC3 },
-            uOpacity: { type: og.shaderProgram.types.FLOAT }
+            projectionMatrix: { type: types.MAT4 },
+            viewMatrix: { type: types.MAT4 },
+            uCamPos: { type: types.VEC3 },
+            uFloatParams: { type: types.VEC2 },
+            uScaleByDistance: { type: types.VEC3 },
+            uOpacity: { type: types.FLOAT }
         },
         attributes: {
-            a_vertices: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_positions: { type: og.shaderProgram.types.VEC4, enableArray: true },
-            a_size: { type: og.shaderProgram.types.VEC2, enableArray: true },
-            a_offset: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_pickingColor: { type: og.shaderProgram.types.VEC3, enableArray: true },
-            a_rotation: { type: og.shaderProgram.types.FLOAT, enableArray: true },
-            a_alignedAxis: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            a_vertices: { type: types.VEC2, enableArray: true },
+            a_positions: { type: types.VEC4, enableArray: true },
+            a_size: { type: types.VEC2, enableArray: true },
+            a_offset: { type: types.VEC3, enableArray: true },
+            a_pickingColor: { type: types.VEC3, enableArray: true },
+            a_rotation: { type: types.FLOAT, enableArray: true },
+            a_alignedAxis: { type: types.VEC3, enableArray: true }
         },
         vertexShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             attribute vec2 a_vertices;\
             attribute vec4 a_positions;\
             attribute vec3 a_offset;\
@@ -181,7 +182,7 @@ og.shaderProgram.billboardPicking = function () {
                 gl_Position.z += a_offset.z;\
             }',
         fragmentShader:
-            'precision highp float;\n\
+        'precision highp float;\n\
             varying vec4 v_color;\
             void main () {\
                 gl_FragColor = v_color;\

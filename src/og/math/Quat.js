@@ -427,7 +427,7 @@ Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
  * @returns {Object}
  */
 Quat.prototype.getEulerAngles = function () {
-    var matrix = this.getMatrix4();
+    var matrix = this.getMat4();
     return matrix.getEulerAngles();
 };
 
@@ -482,7 +482,7 @@ Quat.prototype.setFromMatrix4 = function (m) {
  * @public
  * @returns {og.math.Matrix4}
  */
-Quat.prototype.getMatrix4 = function () {
+Quat.prototype.getMat4 = function () {
     var m = new Mat4();
     var mx = m._m;
     var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;

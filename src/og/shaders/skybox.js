@@ -1,22 +1,24 @@
-goog.provide('og.shaderProgram.skybox');
+/**
+ * @module og/shaders/skybox
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
 
-og.shaderProgram.skybox = function () {
-    return new og.shaderProgram.ShaderProgram("skybox", {
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+export function skybox() {
+    return new ShaderProgram("skybox", {
         uniforms: {
-            projectionViewMatrix: { type: og.shaderProgram.types.MAT4 },
-            uSampler: { type: og.shaderProgram.types.SAMPLERCUBE },
-            pos: { type: og.shaderProgram.types.VEC3 }
+            projectionViewMatrix: { type: types.MAT4 },
+            uSampler: { type: types.SAMPLERCUBE },
+            pos: { type: types.VEC3 }
         },
         attributes: {
-            aVertexPosition: { type: og.shaderProgram.types.VEC3, enableArray: true }
+            aVertexPosition: { type: types.VEC3, enableArray: true }
         },
-        vertexShader: 
-            'attribute vec3 aVertexPosition;\
+        vertexShader:
+        'attribute vec3 aVertexPosition;\
             uniform mat4 projectionViewMatrix;\
             uniform vec3 pos;\
             varying vec3 vTextureCoord;\
@@ -24,8 +26,8 @@ og.shaderProgram.skybox = function () {
                 vTextureCoord = aVertexPosition;\
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);\
             }',
-        fragmentShader: 
-            'precision lowp float;\
+        fragmentShader:
+        'precision lowp float;\
             varying vec3 vTextureCoord;\
             uniform samplerCube uSampler;\
             void main(void) {\

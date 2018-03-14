@@ -1,39 +1,33 @@
 ﻿'use strict';
 
 const webpack = require('webpack');
+const path = require('path');
 
-const NODE_ENV = process.env.NODE_ENV.trim().toLowerCase() || 'development';
+const libraryName = 'og';
 
+let outputFile = libraryName + '.js';
 
 module.exports = {
-	entry: "./src/og/og.js",
-	
+    entry: __dirname + "/src/og/index.js",
     output: {
-		filename: './dist/og.js',
-		library: 'og'
+        path: __dirname + '/dist',
+        filename: outputFile,
+        library: libraryName,
+        libraryTarget: 'umd',
+        umdNamedDefine: true
     },
-	
-	watch: NODE_ENV == "development",
-	
-	watchOptions:{
-		aggregateTimeout: 100
-	},
-	
-	devtool: NODE_ENV === "development" ? "source-map": "",
-	
-	plugins:[
-		new webpack.NoEmitOnErrorsPlugin(),
-		new webpack.DefinePlugin({
-			'NODE_ENV': JSON.stringify(NODE_ENV)
-		})
-	]
+    devtool: "source-map",
+    plugins: [
+        new webpack.NoEmitOnErrorsPlugin(),
+        new webpack.optimize.ModuleConcatenationPlugin()
+    ],
+    optimization: {
+        usedExports: true,
+        concatenateModules: true,
+        occurrenceOrder: true
+    },
+    stats: {
+        maxModules: Infinity,
+        optimizationBailout: true
+    }
 };
-
-if(NODE_ENV == "production"){
-	
-	const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-	
-	module.exports.plugins.push(
-		new UglifyJsPlugin()
-	);
-}

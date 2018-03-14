@@ -1,29 +1,31 @@
-goog.provide('og.shaderProgram.polyline');
+/**
+ * @module og/shaders/polyline
+ */
 
-goog.require('og.shaderProgram');
-goog.require('og.shaderProgram.ShaderProgram');
-goog.require('og.shaderProgram.types');
-goog.require('og.utils');
+'use sctrict';
 
-og.shaderProgram.polyline = function (isDrawBuffersExtension) {
+import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { types } from '../webgl/types.js';
+
+export function polyline(isDrawBuffersExtension) {
     if (isDrawBuffersExtension) {
-        return new og.shaderProgram.ShaderProgram("polyline", {
+        return new ShaderProgram("polyline", {
             uniforms: {
-                'viewport': { type: og.shaderProgram.types.VEC2 },
-                'proj': { type: og.shaderProgram.types.MAT4 },
-                'view': { type: og.shaderProgram.types.MAT4 },
-                'viewport': { type: og.shaderProgram.types.VEC2 },
-                'uCamPos': { type: og.shaderProgram.types.VEC3 },
-                'uFloatParams': { type: og.shaderProgram.types.VEC2 },
-                'color': { type: og.shaderProgram.types.VEC4 },
-                'thickness': { type: og.shaderProgram.types.FLOAT },
-                'pickingColor': { type: og.shaderProgram.types.VEC3 }
+                'viewport': { type: types.VEC2 },
+                'proj': { type: types.MAT4 },
+                'view': { type: types.MAT4 },
+                'viewport': { type: types.VEC2 },
+                'uCamPos': { type: types.VEC3 },
+                'uFloatParams': { type: types.VEC2 },
+                'color': { type: types.VEC4 },
+                'thickness': { type: types.FLOAT },
+                'pickingColor': { type: types.VEC3 }
             },
             attributes: {
-                'prev': { type: og.shaderProgram.types.VEC3 },
-                'current': { type: og.shaderProgram.types.VEC3 },
-                'next': { type: og.shaderProgram.types.VEC3 },
-                'order': { type: og.shaderProgram.types.FLOAT }
+                'prev': { type: types.VEC3 },
+                'current': { type: types.VEC3 },
+                'next': { type: types.VEC3 },
+                'order': { type: types.FLOAT }
             },
             vertexShader: 'attribute vec3 prev;\
                 attribute vec3 current;\
@@ -127,7 +129,7 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 }',
             fragmentShader:
-                '#extension GL_EXT_draw_buffers : require\n\
+            '#extension GL_EXT_draw_buffers : require\n\
                 precision highp float;\n\
                 uniform vec3 pickingColor;\
                 uniform vec2 uFloatParams;\
@@ -143,22 +145,22 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                 }'
         });
     } else {
-        return new og.shaderProgram.ShaderProgram("polyline", {
+        return new ShaderProgram("polyline", {
             uniforms: {
-                'viewport': { type: og.shaderProgram.types.VEC2 },
-                'proj': { type: og.shaderProgram.types.MAT4 },
-                'view': { type: og.shaderProgram.types.MAT4 },
-                'viewport': { type: og.shaderProgram.types.VEC2 },
-                'uCamPos': { type: og.shaderProgram.types.VEC3 },
-                'uFloatParams': { type: og.shaderProgram.types.VEC2 },
-                'color': { type: og.shaderProgram.types.VEC4 },
-                'thickness': { type: og.shaderProgram.types.FLOAT }
+                'viewport': { type: types.VEC2 },
+                'proj': { type: types.MAT4 },
+                'view': { type: types.MAT4 },
+                'viewport': { type: types.VEC2 },
+                'uCamPos': { type: types.VEC3 },
+                'uFloatParams': { type: types.VEC2 },
+                'color': { type: types.VEC4 },
+                'thickness': { type: types.FLOAT }
             },
             attributes: {
-                'prev': { type: og.shaderProgram.types.VEC3 },
-                'current': { type: og.shaderProgram.types.VEC3 },
-                'next': { type: og.shaderProgram.types.VEC3 },
-                'order': { type: og.shaderProgram.types.FLOAT }
+                'prev': { type: types.VEC3 },
+                'current': { type: types.VEC3 },
+                'next': { type: types.VEC3 },
+                'order': { type: types.FLOAT }
             },
             vertexShader: 'attribute vec3 prev;\
                 attribute vec3 current;\
@@ -275,7 +277,7 @@ og.shaderProgram.polyline = function (isDrawBuffersExtension) {
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 }',
             fragmentShader:
-                'precision highp float;\
+            'precision highp float;\
                 uniform vec2 uFloatParams;\
                 uniform vec3 uCamPos;\
                 varying vec4 vColor;\
