@@ -24,12 +24,10 @@ module.exports = {
     optimization: {
         usedExports: true,
         concatenateModules: true,
-        occurrenceOrder: true // To keep filename consistent between different modes (for example building only)
+        occurrenceOrder: true
     },
     stats: {
-        // Examine all modules
         maxModules: Infinity,
-        // Display bailout reasons
         optimizationBailout: true
     }
 };

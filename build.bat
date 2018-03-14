@@ -1,1 +1,1 @@
-webpack --mode=development
+webpack --mode=production
