@@ -27,7 +27,8 @@ if (NODE_ENV == "development") {
             new webpack.NoEmitOnErrorsPlugin(),
             new webpack.DefinePlugin({
                 'NODE_ENV': JSON.stringify(NODE_ENV)
-            })
+            }),
+            new webpack.optimize.ModuleConcatenationPlugin()
         ],
         resolve: {
             extensions: ['.js']
@@ -45,16 +46,16 @@ if (NODE_ENV == "development") {
         output: {
             path: __dirname + '/dist',
             filename: outputFile,
-            library: libraryName,
-            libraryTarget: 'umd',
-            umdNamedDefine: true
+            library: libraryName//,
+            //libraryTarget: 'umd',
+            //umdNamedDefine: true
         },
-
         plugins: [
             new webpack.DefinePlugin({
                 'NODE_ENV': JSON.stringify(NODE_ENV)
             }),
-            new UglifyJsPlugin()
+            new webpack.optimize.ModuleConcatenationPlugin(),
+            new UglifyJsPlugin(),
         ]
     };
 }
