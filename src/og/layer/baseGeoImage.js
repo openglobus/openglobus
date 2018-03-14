@@ -56,7 +56,7 @@ class BaseGeoImage extends Layer {
         var c = this._cornersWgs84;
         return [new LonLat(c[0].lon, c[0].lat), new LonLat(c[1].lon, c[1].lat),
         new LonLat(c[2].lon, c[2].lat), new LonLat(c[3].lon, c[3].lat)];
-    };
+    }
 
     /**
      * Gets corners coordinates.
@@ -66,7 +66,7 @@ class BaseGeoImage extends Layer {
     getCorners() {
         var c = this._cornersWgs84;
         return [[c[0].lon, c[0].lat], [c[1].lon, c[1].lat], [c[2].lon, c[2].lat], [c[3].lon, c[3].lat]];
-    };
+    }
 
     /**
      * Sets geoImage geographical corners coordinates.
@@ -75,7 +75,7 @@ class BaseGeoImage extends Layer {
      * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
      * and fourth - left bottom image corner.
      */
-    setCorners = function (corners) {
+    setCorners(corners) {
         this.setCornersLonLat(LonLat.join(corners));
     }
 
@@ -144,7 +144,7 @@ class BaseGeoImage extends Layer {
 
             this._refreshFrame = false;
         }
-    };
+    }
 
     /**
      * @virtual
@@ -154,7 +154,7 @@ class BaseGeoImage extends Layer {
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;
-    };
+    }
 
     /**
      * Clear layer material.
@@ -220,7 +220,7 @@ class BaseGeoImage extends Layer {
         material.texture = null;
         material.isLoading = false;
         material.isReady = false;
-    };
+    }
 
     /**
      * @virtual

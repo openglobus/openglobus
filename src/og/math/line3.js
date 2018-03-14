@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Vec3 } from './Vec3.js');
+import { Vec3 } from './Vec3.js';
 
 const Line3 = function (p0, p1) {
     this.p0 = (p0 ? p0.clone() : new Vec3());

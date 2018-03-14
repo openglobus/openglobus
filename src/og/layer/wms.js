@@ -5,8 +5,8 @@
 'use strict';
 
 import * as mercator from '../mercator.js';
-import { Extent } from './Extent.js';
-import { LonLat } from './LonLat.js';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
 import { XYZ } from './XYZ.js';
 
 /**

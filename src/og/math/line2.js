@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Vec2 } from './Vec2.js');
+import { Vec2 } from './Vec2.js';
 
 const Line2 = function (a, b, c) {
     this.a = a || 0;

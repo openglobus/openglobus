@@ -93,7 +93,7 @@ class LayerSwitcher extends BaseControl {
         container.appendChild(lineDiv);
     }
 
-    createBaseLayersContainer = function () {
+    createBaseLayersContainer() {
         var layersDiv = document.createElement('div');
         layersDiv.className = "layersDiv";
         this.dialog.appendChild(layersDiv);
