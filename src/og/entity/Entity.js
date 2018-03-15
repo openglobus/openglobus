@@ -14,7 +14,7 @@ import { Label } from './Label.js';
 import { LonLat } from '../LonLat.js';
 import { Polyline } from './Polyline.js';
 import { PointCloud } from './PointCloud.js';
-//import { Sphere } from '../shapes/Sphere.js';
+import { Sphere } from '../shapes/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
 
@@ -50,7 +50,7 @@ class Entity {
          * @public
          * @readonly
          */
-        this.id = Entity.__staticCounter++;
+        this.id = Entity._staticCounter++;
 
         /**
          * Entity user defined properties.
@@ -154,7 +154,7 @@ class Entity {
             "billboard": [Billboard, this.setBillboard],
             "label": [Label, this.setLabel],
             "sphere": [Sphere, this.setShape],
-            "box": [Box, this.setShape],
+            //"box": [Box, this.setShape],
             "polyline": [Polyline, this.setPolyline],
             "pointCloud": [PointCloud, this.setPointCloud],
             "geometry": [Geometry, this.setGeometry],

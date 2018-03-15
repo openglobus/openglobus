@@ -238,7 +238,7 @@ class Ellipsoid {
         var f1 = lonLat1.lat * math.RADIANS, l1 = nlon * math.RADIANS;
         var dR = distance / this._a;
         var f2 = Math.asin(Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing));
-        return new og.LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2)))
+        return new LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2)))
             * math.DEGREES, f2 * math.DEGREES);
     }
 
