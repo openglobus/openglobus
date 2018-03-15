@@ -264,7 +264,7 @@ class BaseBillboard {
      * @param {string} color - HTML style color.
      */
     setColorHTML(color) {
-        this.setColor4v(og.utils.htmlColorToRgba(color));
+        this.setColor4v(utils.htmlColorToRgba(color));
     }
 
     /**
