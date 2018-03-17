@@ -168,7 +168,7 @@ class EntityCollection {
          * @public
          * @type {og.Events}
          */
-        this.events = new Events(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES, this);
 
         //initialize current entities
         this.addEntities(this._entities);

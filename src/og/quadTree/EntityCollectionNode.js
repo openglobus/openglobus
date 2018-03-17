@@ -322,16 +322,6 @@ EntityCollectionNode.prototype.isVisible = function () {
     return false;
 };
 
-/**
- * Node of entity collections for WGS84 coordinates.
- * @param {any} layer
- * @param {any} partId
- * @param {any} parent
- * @param {any} id
- * @param {any} extent
- * @param {any} planet
- * @param {any} zoom
- */
 const EntityCollectionNodeWGS84 = function (layer, partId, parent, id, extent, planet, zoom) {
     EntityCollectionNode.call(this, layer, partId, parent, id, extent, planet, zoom);
     this.isNorth = false;

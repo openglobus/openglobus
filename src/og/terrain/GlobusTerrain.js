@@ -108,7 +108,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {og.Events}
          */
-        this.events = new Events(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES, this);
 
         this._elevationCache = {};
 
