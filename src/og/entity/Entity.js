@@ -522,6 +522,10 @@ class Entity {
         return geometry;
     }
 
+    get layer() {
+        return this._layer;
+    }
+
     /**
      * Append child entity.
      * @public

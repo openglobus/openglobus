@@ -514,7 +514,7 @@ class Camera {
      * @returns {og.math.Vector2} - Screen point coordinates.
      */
     project(v) {
-        var r = this._projectionViewMatrix.mulVec4(v.toVector4()),
+        var r = this._projectionViewMatrix.mulVec4(v.toVec4()),
             c = this.renderer.handler.canvas;
         return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }

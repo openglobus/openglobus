@@ -105,9 +105,15 @@ const Renderer = function (handler, params) {
     /**
      * OpenGlobus controls array.
      * @public
-     * @type {Array.<og.control.Control>}
+     * @type {Object}
      */
-    this.controls = params.controls || [];
+    this.controls = {};
+
+    if (params.controls) {
+        for (let i in params.controls) {
+            this.controls[params.controls[i].name] = params.controls[i];
+        }
+    }
 
     /**
      * Provides exchange between controls.
@@ -267,17 +273,18 @@ Renderer.prototype.addControls = function (cArr) {
 /**
  * Remove control from the renderer.
  * @param {og.control.BaseControl} control  - Control.
- * @return {og.control.BaseControl|undefined} -
+ * @return {og.Renderer} -
  */
 Renderer.prototype.removeControl = function (control) {
-    for (var i = 0; i < this.controls.length; i++) {
-        if (this.controls[i].isEqual(control)) {
-            this.controls.splice(i, 1);
-            control.remove();
-            return control;
+    var c = this.controls[control.name];
+    if (c) {
+        if (control.isEqual(c)) {
+            this.controls[control.name] = null;
+            delete this.controls[control.name];
+            c.remove();
         }
     }
-    return undefined;
+    return this;
 }
 
 /**
@@ -359,9 +366,11 @@ Renderer.prototype.initialize = function () {
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
-    let _c = this.controls;
-    this.controls = [];
-    this.addControls(_c);
+    let temp = this.controls;
+    this.controls = {};
+    for (let i in temp) {
+        this.addControl(temp[i]);
+    }
 }
 
 /**
