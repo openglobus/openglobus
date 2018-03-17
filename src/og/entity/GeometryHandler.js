@@ -208,7 +208,7 @@ class GeometryHandler {
                     }
                 }
 
-                var data = earcut.flatten(ci);
+                var data = flatten(ci);
                 var indexes = earcut(data.vertices, data.holes, 2);
 
                 geometry._polyVerticesMerc = data.vertices;

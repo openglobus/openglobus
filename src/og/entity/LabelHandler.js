@@ -8,7 +8,15 @@ import * as shaders from '../shaders/label.js';
 import { ALIGN } from './Label.js';
 import { BillboardHandler } from './BillboardHandler.js';
 
-
+const PICKINGCOLOR_BUFFER = 0;
+const POSITION_BUFFER = 1;
+const SIZE_BUFFER = 2;
+const OFFSET_BUFFER = 3;
+const RGBA_BUFFER = 4;
+const ROTATION_BUFFER = 5;
+const TEXCOORD_BUFFER = 6;
+const VERTEX_BUFFER = 7;
+const ALIGNEDAXIS_BUFFER = 8;
 const FONTINDEX_BUFFER = 9;
 const OUTLINE_BUFFER = 10;
 const OUTLINECOLOR_BUFFER = 11;

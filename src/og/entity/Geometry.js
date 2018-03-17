@@ -305,7 +305,7 @@ class Geometry {
         this._handler && this._handler.remove(this);
     }
 
-    etExtent() {
+    getExtent() {
         return this._extent.clone();
     }
 
