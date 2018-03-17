@@ -2,24 +2,22 @@
 
 const webpack = require('webpack');
 const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const libraryName = 'og';
-
-let outputFile = libraryName + '.js';
+const LIBRARY_NAME = 'og';
 
 module.exports = {
-    entry: __dirname + "/src/og/index.js",
+    entry: path.resolve(__dirname, 'src/og/index.js'),
     output: {
-        path: __dirname + '/dist',
-        filename: outputFile,
-        library: libraryName,
+        path: path.resolve(__dirname, 'dist'),
+        filename: LIBRARY_NAME + ".js",
+        library: LIBRARY_NAME,
         libraryTarget: 'umd',
         umdNamedDefine: true
     },
-    devtool: "source-map",
     plugins: [
-        new webpack.NoEmitOnErrorsPlugin(),
-        new webpack.optimize.ModuleConcatenationPlugin()
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        new ExtractTextPlugin(LIBRARY_NAME + ".css")
     ],
     optimization: {
         usedExports: true,
@@ -29,5 +27,20 @@ module.exports = {
     stats: {
         maxModules: Infinity,
         optimizationBailout: true
+    },
+    module: {
+        rules: [{
+            test: /\.css$/,
+            use: ExtractTextPlugin.extract({
+                fallback: 'style-loader',
+                use: [{
+                    loader: 'css-loader',
+                    options: {
+                        importLoaders: 1,
+                        minimize: true
+                    }
+                }]
+            })
+        }]
     }
 };

@@ -5,7 +5,7 @@
   "main": "dist/og.min.js",
   "style": "buils/og.css",
   "directories": {
-    "example": "examples"
+    "example": "./sandbox"
   },
   "scripts": {
     "dev": "webpack --mode=development",
@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OpenGlobus/OpenGlobus.git"
+    "url": "git+https://github.com/openglobus/openglobus.git"
   },
   "author": "Zemledelec",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/OpenGlobus/OpenGlobus/issues",
+    "url": "https://github.com/openglobus/openglobus/issues",
     "email": "mgevlich@gmail.com"
   },
   "homepage": "http://www.openglobus.org",
@@ -28,9 +28,14 @@
   },
   "devDependencies": {
     "babel-eslint": "^8.0.0",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^0.28.10",
     "eslint": "^4.0.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^1.1.11",
+    "style-loader": "^0.20.3",
     "webpack": "^4.1.1"
   },
   "keywords": [

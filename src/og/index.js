@@ -1,5 +1,7 @@
 'use strict';
 
+import '../../css/og.css';
+
 import * as jd from './astro/jd.js';
 import * as math from './math.js';
 import * as mercator from './mercator.js';
