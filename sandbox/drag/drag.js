@@ -7,6 +7,7 @@ import { WMS } from '../../src/og/layer/WMS.js';
 import { Vector } from '../../src/og/layer/Vector.js';
 import { GeoImage } from '../../src/og/layer/GeoImage.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
+import { GeoImageDragControl } from '../../src/og/control/GeoImageDragControl.js';
 import { Vec2 } from '../../src/og/math/Vec2.js';
 
 const pointLayer = new Vector("points", {
@@ -92,6 +93,6 @@ globe.planet.renderer.events.on("mousemove", function (e) {
     }
 }, globe.planet);
 
-globe.planet.addControl(new LayerSwitcher());
+globe.planet.addControls([new LayerSwitcher(), new GeoImageDragControl()]);
 globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
