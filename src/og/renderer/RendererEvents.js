@@ -111,7 +111,9 @@ class RendererEvents extends Events {
             /** JavaScript mouse system event message. */
             sys: null,
             /** Current picking object. */
-            pickingObject: null
+            pickingObject: null,
+            /** Renderer instanve. */
+            renderer: renderer
         };
 
         /**
@@ -149,7 +151,9 @@ class RendererEvents extends Events {
             /** JavaScript touching system event message. */
             sys: null,
             /** Current touched(picking) object. */
-            pickingObject: null
+            pickingObject: null,
+            /** Renderer instanve. */
+            renderer: renderer
         };
 
         this._dblTchCoords = new Vec2();

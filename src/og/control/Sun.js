@@ -21,6 +21,8 @@ class Sun extends BaseControl {
     constructor(options) {
         super(options);
 
+        this._name = "sun";
+
         options = options || {};
 
         /**

@@ -149,7 +149,7 @@ class Globe {
         }
 
         var _controls = this.renderer.controls;
-        for (var i = 0; i < _controls.length; i++) {
+        for (var i in _controls) {
             if (_controls[i] instanceof Sun) {
                 this.sun = _controls[i];
                 break;

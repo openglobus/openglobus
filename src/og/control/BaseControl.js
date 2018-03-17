@@ -15,6 +15,10 @@ class BaseControl {
     constructor(options) {
         options = options || {};
 
+        this._id = BaseControl.__staticCounter++;
+
+        this._name = options.name || "_control_" + this._id;
+
         /**
          * Control initialized.
          * @protected
@@ -42,6 +46,26 @@ class BaseControl {
          * @type {Boolean}
          */
         this._active = false;
+    }
+
+    static get __staticCounter() {
+        if (!this.__counter && this.__counter !== 0) {
+            this.__counter = 0;
+        }
+        return this.__counter;
+    }
+
+    static set __staticCounter(n) {
+        this.__counter = n;
+    }
+
+    /**
+     * Returns control name.
+     * @public
+     * @virtual
+     */
+    get name() {
+        return this._name;
     }
 
     /**
@@ -87,7 +111,7 @@ class BaseControl {
     addTo(renderer) {
         if (renderer) {
             this.renderer = renderer;
-            renderer.controls.push(this);
+            renderer.controls[this.name] = this;
             this.onadd && this.onadd();
             if (this.autoActivate) {
                 this.oninit && this.oninit();
@@ -132,6 +156,10 @@ class BaseControl {
      */
     isActive() {
         return this._active;
+    }
+
+    isEqual(control) {
+        return control._id === this._id;
     }
 };
 

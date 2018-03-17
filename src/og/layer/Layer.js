@@ -309,6 +309,14 @@ class Layer {
     }
 
     /**
+     * Returns planet instance.
+     * @virtual
+     */
+    get planet() {
+        return this._planet;
+    }
+
+    /**
      * Sets layer attribution text.
      * @public
      * @param {string} html - HTML code that represents layer attribution, it could be just a text.

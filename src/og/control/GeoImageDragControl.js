@@ -44,14 +44,16 @@ class GeoImageDragControl extends BaseControl {
                 e.events.on('ldown', function (ms) {
                     if (that._active && that._cornerIndex != -1) {
                         that._catchCorner = true;
-                        p.renderer.controls[0]._active = false;
+                        //p.renderer.controls.mouseNavigation._active = false;
+                        p.renderer.controls.mouseNavigation.deactivate();
                     }
                 });
 
                 e.events.on('lup', function (ms) {
                     if (that._active) {
                         that._catchCorner = false;
-                        p.renderer.controls[0]._active = true;
+                        //p.renderer.controls.mouseNavigation._active = true;
+                        p.renderer.controls.mouseNavigation.activate();
                     }
                 });
             }

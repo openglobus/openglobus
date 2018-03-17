@@ -26,6 +26,8 @@ class MouseNavigation extends BaseControl {
     constructor(options) {
         super(options);
 
+        this._name = "mouseNavigation";
+
         options = options || {};
 
         this.grabbedPoint = new Vec3();
