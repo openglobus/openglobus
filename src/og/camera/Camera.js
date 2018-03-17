@@ -43,7 +43,7 @@ class Camera {
          * @public
          * @type {og.Events}
          */
-        this.events = new Events(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES, this);
 
         /**
          * Camera position.

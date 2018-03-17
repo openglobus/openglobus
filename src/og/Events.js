@@ -13,25 +13,17 @@ import { stamp } from './utils/shared.js';
  */
 class Events {
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
-
-    constructor(eventNames) {
+    constructor(eventNames, sender) {
         /**
          * Registered event names.
          * @protected
          * @type {Array.<string>}
          */
         this._eventNames = [];
+
         eventNames && this.registerNames(eventNames);
+
+        this._sender = sender || this;
 
         /**
          * Event identifier.
@@ -50,6 +42,21 @@ class Events {
         this._stampCache = {};
 
         this.__id = Events.__staticCounter++;
+    }
+
+    static get _staticCounter() {
+        if (!this._counter && this._counter !== 0) {
+            this._counter = 0;
+        }
+        return this._counter;
+    }
+
+    static set _staticCounter(n) {
+        this._counter = n;
+    }
+
+    bindSender(sender) {
+        this._sender = sender || this;
     }
 
     /**
@@ -94,7 +101,7 @@ class Events {
      */
     on(name, callback, sender) {
         if (this._stamp(name, callback)) {
-            this[name] && this[name].handlers.unshift({ "sender": sender || this, "callback": callback });
+            this[name] && this[name].handlers.unshift({ "sender": sender || this._sender, "callback": callback });
         }
     }
 

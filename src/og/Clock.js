@@ -49,7 +49,7 @@ class Clock {
         this.events = new Events([
             "tick",
             "end"
-        ]);
+        ], this);
 
         /**
          * Start julian date clock loop.

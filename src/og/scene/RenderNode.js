@@ -78,12 +78,7 @@ class RenderNode extends BaseNode {
          */
         this.fontAtlas = new FontAtlas();
 
-        /**
-         * Render node events.
-         * @public
-         * @type {og.Events}
-         */
-        this.events = new Events();
+        this.events = new Events(null, this);
     }
 
     /**

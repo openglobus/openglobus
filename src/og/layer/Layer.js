@@ -190,8 +190,7 @@ class Layer {
          * @public
          * @type {og.Events}
          */
-        this.events = new Events();
-        this.events.registerNames(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES, this);
     }
 
     static getTileIndex(...arr) {
