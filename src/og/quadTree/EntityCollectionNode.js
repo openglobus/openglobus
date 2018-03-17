@@ -191,7 +191,7 @@ EntityCollectionNode.prototype.createChildrenNodes = function () {
         new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
 
     nd[quadTree.SE] = new EntityCollectionNode(l, quadTree.SE, this, id,
-        new oExtent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
 };
 
 EntityCollectionNode.prototype.collectRenderCollectionsPASS1 = function (visibleNodes, outArr) {
