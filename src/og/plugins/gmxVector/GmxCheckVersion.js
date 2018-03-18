@@ -5,6 +5,7 @@
 'use strict';
 
 import { ajax } from '../../ajax.js';
+import { GmxVector } from './GmxVector.js';
 
 const GmxCheckVersion = function (planet) {
 
@@ -31,7 +32,7 @@ const GmxCheckVersion = function (planet) {
     };
 
     planet.events.on("layeradd", function (l) {
-        if (l instanceof og.gmx.VectorLayer) {
+        if (l instanceof GmxVector) {
             if (l._visibility) {
                 this._addLayer(l);
             }
@@ -39,13 +40,13 @@ const GmxCheckVersion = function (planet) {
     }, this);
 
     planet.events.on("layerremove", function (l) {
-        if (l instanceof og.gmx.VectorLayer) {
+        if (l instanceof GmxVector) {
             this._removeLayer(l);
         }
     }, this);
 
     planet.events.on("layervisibilitychange", function (l) {
-        if (l instanceof og.gmx.VectorLayer) {
+        if (l instanceof GmxVector) {
             if (l._visibility) {
                 this._addLayer(l);
             } else {

@@ -93,16 +93,15 @@ class Geometry {
      * Returns geometry feature extent.
      @static
      @param {Object} geometryObj - GeoJSON style geometry feature.
-     @param {Array} outoordinates - Geometry feature coordinates clone.
-     @returns {og.Extent}
+     @param {og.LonLat[]} outCoordinates - Geometry feature coordinates clone.
+     @returns {og.Extent} -
      */
     static getExtent(geometryObj, outCoordinates) {
         var res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         var t = Geometry.getType(geometryObj.type);
 
         if (t === GeometryType.POINT) {
-
-            var lon = res.coordinates[0],
+            let lon = res.coordinates[0],
                 lat = res.coordinates[1];
             res.southWest.lon = lon;
             res.southWest.lat = lat;
@@ -112,9 +111,9 @@ class Geometry {
 
         } else if (t === GeometryType.LINESTRING) {
 
-            var c = geometryObj.coordinates;
-            for (var i = 0; i < c.length; i++) {
-                var lon = c[i][0],
+            let c = geometryObj.coordinates;
+            for (let i = 0; i < c.length; i++) {
+                let lon = c[i][0],
                     lat = c[i][1];
                 if (lon < res.southWest.lon) res.southWest.lon = lon;
                 if (lat < res.southWest.lat) res.southWest.lat = lat;
@@ -125,13 +124,13 @@ class Geometry {
 
         } else if (t === GeometryType.POLYGON) {
 
-            var c = geometryObj.coordinates;
-            for (var i = 0; i < c.length; i++) {
-                var ci = c[i];
+            let c = geometryObj.coordinates;
+            for (let i = 0; i < c.length; i++) {
+                let ci = c[i];
                 outCoordinates && (outCoordinates[i] = []);
-                for (var j = 0; j < ci.length; j++) {
-                    var cij = ci[j];
-                    var lon = cij[0],
+                for (let j = 0; j < ci.length; j++) {
+                    let cij = ci[j];
+                    let lon = cij[0],
                         lat = cij[1];
                     if (lon < res.southWest.lon) res.southWest.lon = lon;
                     if (lat < res.southWest.lat) res.southWest.lat = lat;
@@ -143,16 +142,16 @@ class Geometry {
 
         } else if (t === GeometryType.MULTIPOLYGON) {
 
-            var p = geometryObj.coordinates;
-            for (var i = 0; i < p.length; i++) {
-                var pi = p[i];
+            let p = geometryObj.coordinates;
+            for (let i = 0; i < p.length; i++) {
+                let pi = p[i];
                 outCoordinates && (outCoordinates[i] = []);
-                for (var j = 0; j < pi.length; j++) {
-                    var pij = pi[j];
+                for (let j = 0; j < pi.length; j++) {
+                    let pij = pi[j];
                     outCoordinates && (outCoordinates[i][j] = []);
-                    for (var k = 0; k < pij.length; k++) {
-                        var pijk = pij[k];
-                        var lon = pijk[0],
+                    for (let k = 0; k < pij.length; k++) {
+                        let pijk = pij[k];
+                        let lon = pijk[0],
                             lat = pijk[1];
                         if (lon < res.southWest.lon) res.southWest.lon = lon;
                         if (lat < res.southWest.lat) res.southWest.lat = lat;
@@ -165,13 +164,13 @@ class Geometry {
 
         } else if (t === GeometryType.MULTILINESTRING) {
 
-            var c = geometryObj.coordinates;
-            for (var i = 0; i < c.length; i++) {
-                var ci = c[i];
+            let c = geometryObj.coordinates;
+            for (let i = 0; i < c.length; i++) {
+                let ci = c[i];
                 outCoordinates && (outCoordinates[i] = []);
-                for (var j = 0; j < ci.length; j++) {
-                    var cij = ci[j];
-                    var lon = cij[0],
+                for (let j = 0; j < ci.length; j++) {
+                    let cij = ci[j];
+                    let lon = cij[0],
                         lat = cij[1];
                     if (lon < res.southWest.lon) res.southWest.lon = lon;
                     if (lat < res.southWest.lat) res.southWest.lat = lat;
@@ -188,8 +187,6 @@ class Geometry {
         return res;
     }
 
-    /**
-     */
     setGeometry(geoJson) {
         var h = this._handler;
         this.remove();

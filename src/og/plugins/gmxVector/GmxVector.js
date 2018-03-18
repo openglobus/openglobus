@@ -5,16 +5,18 @@
 'use strict';
 
 import * as utils from '../../utils/shared.js';
+import * as quadTree from '../../quadTree/quadTree.js';
 import { ajax } from '../../ajax.js';
-import { CheckVersion } from './CheckVersion.js';
+import { EPSG3857 } from '../../proj/EPSG3857.js';
 import { Extent } from '../../Extent.js';
 import { Geometry } from '../../entity/Geometry.js';
+import { GmxCheckVersion } from './GmxCheckVersion.js';
+import { GmxItem } from './GmxItem.js';
+import { GmxMaterial } from './GmxMaterial.js';
+import { GmxTileData } from './GmxTileData.js';
+import { GmxTileDataGroup } from './GmxTileDataGroup.js';
 import { GmxVectorTileCreator } from './GmxVectorTileCreator.js';
-import { Item } from './Item.js';
 import { Layer } from '../../layer/Layer.js';
-import { Material } from './GmxMaterial.js';
-import { TileData } from './TileData.js';
-import { TileDataGroup } from './TileDataGroup.js';
 import { QueueArray } from '../../QueueArray.js';
 import { Vec4 } from '../../math/Vec4.js';
 
@@ -161,7 +163,7 @@ class GmxVector extends Layer {
 
         //Bind checkVersion to the planet
         if (!planet._gmxCheckVersion) {
-            planet._gmxCheckVersion = new CheckVersion(planet);
+            planet._gmxCheckVersion = new GmxCheckVersion(planet);
         }
 
         //Bind gmxVectorTileCreator to the planet
@@ -448,7 +450,7 @@ class GmxVector extends Layer {
             var cacheItem = this._itemCache[gmxId];
 
             if (!cacheItem) {
-                cacheItem = new og.gmx.Item(gmxId, {
+                cacheItem = new GmxItem(gmxId, {
                     'attributes': this._getAttributes(item),
                     'version': v,
                     'style': {
@@ -471,7 +473,7 @@ class GmxVector extends Layer {
                 cacheItem._extent = null;
             }
 
-            var ti = new og.gmx.TileItem(cacheItem, item[item.length - 1]);
+            var ti = new GmxTileItem(cacheItem, item[item.length - 1]);
 
             ti.createBuffers(h, tileExtent);
 
@@ -511,7 +513,7 @@ class GmxVector extends Layer {
                 this._refreshRecursevelyExtent(extent, ni);
                 var m = ni.segment.materials[lid];
                 if (m) {
-                    if (m.segment.node.getState() !== og.quadTree.RENDERING) {
+                    if (m.segment.node.getState() !== quadTree.RENDERING) {
                         m.layer.clearMaterial(m);
                     } else {
                         if (m.isReady) {
@@ -539,7 +541,7 @@ class GmxVector extends Layer {
 
         var seg = material.segment;
 
-        if (seg._projection.id !== og.proj.EPSG3857.id) {
+        if (seg._projection.id !== EPSG3857.id) {
             material.textureNotExists();
             return;
         }
@@ -596,7 +598,7 @@ class GmxVector extends Layer {
 
                 material.sceneIsLoading = true;
 
-                var url = og.utils.stringTemplate(this._tileImageryUrlTemplate, {
+                var url = utils.stringTemplate(this._tileImageryUrlTemplate, {
                     'x': tileItem.tileData.x,
                     'y': tileItem.tileData.y,
                     'z': tileItem.tileData.z,
@@ -740,7 +742,7 @@ class GmxVector extends Layer {
                 this._refreshRecursevely(item, ni);
                 var m = ni.segment.materials[lid];
                 if (m && m.isReady) {
-                    if (m.segment.node.getState() !== og.quadTree.RENDERING) {
+                    if (m.segment.node.getState() !== quadTree.RENDERING) {
                         m.layer.clearMaterial(m);
                     } else {
                         m.pickingReady = m.pickingReady && item._pickingReady;
@@ -817,4 +819,4 @@ class GmxVector extends Layer {
     }
 };
 
-export { GmxVectorLayer };
+export { GmxVector };

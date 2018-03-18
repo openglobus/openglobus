@@ -95,23 +95,6 @@ class XYZ extends Layer {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
-    static get __requestsCounter() {
-        return this.__reqcounter;
-    }
-
-    static set __requestsCounter(v) {
-        this.__reqcounter = v;
-    }
-
-    /**
-     * Maximum loading queries at one time.
-     * @const
-     * @type {number}
-     */
-    static get MAX_REQUESTS() {
-        return 7;
-    }
-
     /**
      * Abort loading tiles.
      * @public

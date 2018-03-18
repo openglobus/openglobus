@@ -46,7 +46,7 @@ class PolylineHandler {
     }
 
     add(polyline) {
-        if (polyline._handlerIndex == -1) {
+        if (polyline._handlerIndex === -1) {
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
             this._polylines.push(polyline);
