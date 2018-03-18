@@ -312,7 +312,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 
 EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, segment) {
     segment.getEntityTerrainPoint(entity, entity._cartesian);
-    entity._setCartesian3vSilent(entity._cartesian.addA(entity._cartesian.normal().scale(this.layer.relativeToGround && entity._altitude || 0.1)));
+    entity._setCartesian3vSilent(entity._cartesian.addA(entity._cartesian.normal().scale(this.layer.relativeToGround && entity._altitude || 1.0)));
 };
 
 EntityCollectionNode.prototype.isVisible = function () {
