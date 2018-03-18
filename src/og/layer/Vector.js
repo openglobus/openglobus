@@ -22,9 +22,8 @@ import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Creates entity instance array.
- * @static
- * @param {og.Entities[] || Object[]} entities - Entity array.
- * @returns {og.Entity[]} - Entity object array.
+ * @param {og.Entity[] || Object[]} entities - Entity array.
+ * @returns {og.Entity[]} - Entity array.
  */
 function _entitiesConstructor(entities) {
     var res = [];
@@ -161,6 +160,8 @@ class Vector extends Layer {
     /**
      * Adds layer to the planet.
      * @public
+     * @param {og.Planet} planet - Planet scene object.
+     * @returns {og.layer.Vector} -
      */
     addTo(planet) {
         this._assignPlanet(planet);
@@ -171,10 +172,10 @@ class Vector extends Layer {
     }
 
     /**
-     * Returns true if a layer has rasterized vector data like polygons.
+     * Returns true if the layer has vector rasterized data.
      * @public
      * @virtual
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     hasImageryTiles() {
         return true;
@@ -183,15 +184,12 @@ class Vector extends Layer {
     /**
      * Returns stored entities.
      * @public
-     * @returns {Array.<og.Entity>}
+     * @returns {Array.<og.Entity>} -
      */
     getEntities() {
         return [].concat(this._entities);
     }
 
-    /**
-     * @private
-     */
     _fitExtent(entity) {
         var ee = entity.getExtent(),
             e = this._extent;
@@ -294,7 +292,7 @@ class Vector extends Layer {
 
             if (entity._entityCollection) {
                 entity._entityCollection._removeEntitySilent(entity);
-                var node = entity._nodePtr;
+                let node = entity._nodePtr;
                 while (node) {
                     node.count--;
                     node = node.parentNode;
@@ -313,7 +311,7 @@ class Vector extends Layer {
                 while (j--) {
                     if (defEntities[j].id === entity.id) {
                         defEntities.splice(j, 1);
-                        var node = entity._nodePtr;
+                        let node = entity._nodePtr;
                         while (node) {
                             node.count--;
                             node = node.parentNode;
@@ -339,7 +337,7 @@ class Vector extends Layer {
     /**
      * Set layer picking events active.
      * @public
-     * @param {number} enable
+     * @param {boolean} enable - Picking enable flag.
      */
     setPickingEnabled(enable) {
         this._pickingEnabled = enable;
@@ -389,11 +387,12 @@ class Vector extends Layer {
      * @param {number} near - Full scale entity distance.
      * @param {number} far - Zerol scale entity distance.
      * @param {number} [farInvisible] - Entity visibility distance.
+     * @returns {og.layer.Vector} -
      */
-    setScaleByDistance(near, far, farInisible) {
+    setScaleByDistance(near, far, farInvisible) {
         this.scaleByDistance[0] = near;
         this.scaleByDistance[1] = far;
-        this.scaleByDistance[2] = farInisible || math.MAX32;
+        this.scaleByDistance[2] = farInvisible || math.MAX32;
         return this;
     }
 

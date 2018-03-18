@@ -159,6 +159,7 @@ class Polyline {
      * @param {Number[]} outIndexes - Out vertices indexes data array.
      * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
      * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.<Array.<og.LonLat>>} [outPath3v] - Cartesian coordinates out array.
      * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
      * @param {og.Extent} outExtent - Geodetic line extent.
      * @static
@@ -241,7 +242,7 @@ class Polyline {
                 }
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
             } else {
-                var p0 = path[path.length - 1],
+                let p0 = path[path.length - 1],
                     p1 = path[path.length - 2];
                 if (p0.constructor === Array) {
                     p0 = new Vec3(p0[0], p0[1], p0[2]);
@@ -272,6 +273,7 @@ class Polyline {
      * @param {Number[]} outIndexes - Out indexes data array.
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
      * @param {Array.<Array.<Number, Number, Number>>} outTransformedPathCartesian - Cartesian coordinates out array.
+     * @param {Array.<Array.<og.LonLat>>} outPathLonLat - Geographic coordinates out array.
      * @param {Array.<Array.<og.LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
      * @param {og.Extent} outExtent - Geodetic line extent.
      * @static
@@ -301,15 +303,15 @@ class Polyline {
 
             var last;
             if (isClosed) {
-                var pp = path[path.length - 1];
+                let pp = path[path.length - 1];
                 if (pp instanceof Array) {
                     last = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
                     last = ellipsoid.lonLatToCartesian(pp);
                 }
             } else {
-                var p0, p1;
-                var pp = path[0];
+                let p0, p1;
+                let pp = path[0];
                 if (pp instanceof Array) {
                     p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {

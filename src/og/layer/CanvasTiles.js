@@ -129,7 +129,7 @@ class CanvasTiles extends Layer {
         if (this._planet.layerLock.isFree()) {
             material.isReady = false;
             material.isLoading = true;
-            if (CanvasTiles.__requestsCounter >= MAX_REQUESTS && this._counter) {
+            if (CanvasTiles.__requestsCounter >= CanvasTiles.MAX_REQUESTS && this._counter) {
                 this._pendingsQueue.push(material);
             } else {
                 this._exec(material);
@@ -163,11 +163,11 @@ class CanvasTiles extends Layer {
                     /**
                      * Apply canvas.
                      * @callback applyCanvasCallback
-                     * @param {Object} canvas
+                     * @param {Object} canvas -
                      */
                     function (canvas) {
                         that._counter--;
-                        og.layer.CanvasTiles.__requestsCounter--;
+                        CanvasTiles.__requestsCounter--;
                         if (material.isLoading) {
                             material.applyImage(canvas);
                         }
@@ -188,7 +188,7 @@ class CanvasTiles extends Layer {
         if (material.isLoading && material.image) {
             material.image.src = "";
             this._counter--;
-            og.layer.CanvasTiles.__requestsCounter--;
+            CanvasTiles.__requestsCounter--;
             this._dequeueRequest();
         }
         material.isLoading = false;
@@ -197,9 +197,9 @@ class CanvasTiles extends Layer {
 
     _dequeueRequest() {
         if (this._pendingsQueue.length) {
-            if (CanvasTiles.__requestsCounter < MAX_REQUESTS) {
-                var pmat;
-                if (pmat = this._whilePendings())
+            if (CanvasTiles.__requestsCounter < CanvasTiles.MAX_REQUESTS) {
+                var pmat = this._whilePendings();
+                if (pmat)
                     this._exec.call(this, pmat);
             }
         } else if (this._counter === 0) {

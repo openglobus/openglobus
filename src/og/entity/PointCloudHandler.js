@@ -68,7 +68,7 @@ class PointCloudHandler {
     }
 
     add(pointCloud) {
-        if (pointCloud._handlerIndex == -1) {
+        if (pointCloud._handlerIndex === -1) {
             pointCloud._handler = this;
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);

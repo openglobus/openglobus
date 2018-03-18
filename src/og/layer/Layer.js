@@ -208,6 +208,23 @@ class Layer {
         this.__lcounter = n;
     }
 
+    static get __requestsCounter() {
+        return this.__reqcounter;
+    }
+
+    static set __requestsCounter(v) {
+        this.__reqcounter = v;
+    }
+
+    /**
+     * Maximum loading queries at one time.
+     * @const
+     * @type {number}
+     */
+    static get MAX_REQUESTS() {
+        return 7;
+    }
+
     /**
      * Returns true if a layer has imagery tiles.
      * @public

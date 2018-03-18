@@ -5,7 +5,7 @@
 'use strict';
 
 import * as quadTree from '../../quadTree/quadTree.js';
-import { VectorTileCreator } from './VectorTileCreator.js';
+import { VectorTileCreator } from '../../utils/VectorTileCreator.js';
 import { inherits } from '../../inherits.js';
 import { ShaderProgram } from '../../webgl/ShaderProgram.js';
 import { types } from '../../webgl/types.js';

@@ -122,7 +122,7 @@ class GeometryHandler {
             if (isClosed) {
                 last = path[path.length - 1];
             } else {
-                var p0 = path[0],
+                let p0 = path[0],
                     p1 = path[1];
                 last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             }
@@ -154,7 +154,7 @@ class GeometryHandler {
                 first = path[0];
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
             } else {
-                var p0 = path[path.length - 1],
+                let p0 = path[path.length - 1],
                     p1 = path[path.length - 2];
                 first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
@@ -192,24 +192,24 @@ class GeometryHandler {
             geometry._handlerIndex = this._geometries.length;
             this._geometries.push(geometry);
 
-            var pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
+            let pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
             geometry._polyVerticesMerc = [];
             geometry._lineVerticesMerc = [];
 
             if (geometry._type === GeometryType.POLYGON) {
 
-                var coordinates = geometry._coordinates;
-                var ci = [];
-                for (var j = 0; j < coordinates.length; j++) {
+                let coordinates = geometry._coordinates;
+                let ci = [];
+                for (let j = 0; j < coordinates.length; j++) {
                     ci[j] = [];
                     for (var k = 0; k < coordinates[j].length; k++) {
                         ci[j][k] = [mercator.forward_lon(coordinates[j][k][0]), mercator.forward_lat(coordinates[j][k][1])];
                     }
                 }
 
-                var data = flatten(ci);
-                var indexes = earcut(data.vertices, data.holes, 2);
+                let data = flatten(ci);
+                let indexes = earcut(data.vertices, data.holes, 2);
 
                 geometry._polyVerticesMerc = data.vertices;
                 geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
@@ -217,12 +217,12 @@ class GeometryHandler {
 
                 this._polyVerticesMerc.push.apply(this._polyVerticesMerc, data.vertices);
 
-                for (var i = 0; i < indexes.length; i++) {
+                for (let i = 0; i < indexes.length; i++) {
                     this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                 }
 
                 var color = geometry._style.fillColor;
-                for (var i = 0; i < data.vertices.length * 0.5; i++) {
+                for (let i = 0; i < data.vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
                 }
@@ -251,8 +251,8 @@ class GeometryHandler {
 
             } else if (geometry._type === GeometryType.MULTIPOLYGON) {
 
-                var coordinates = geometry._coordinates;
-                var vertices = [],
+                let coordinates = geometry._coordinates;
+                let vertices = [],
                     indexes = [],
                     colors = [];
 
@@ -264,18 +264,18 @@ class GeometryHandler {
                 geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
                 for (var i = 0; i < coordinates.length; i++) {
-                    var cci = coordinates[i];
-                    var ci = [];
-                    for (var j = 0; j < cci.length; j++) {
+                    let cci = coordinates[i];
+                    let ci = [];
+                    for (let j = 0; j < cci.length; j++) {
                         ci[j] = [];
-                        for (var k = 0; k < coordinates[i][j].length; k++) {
+                        for (let k = 0; k < coordinates[i][j].length; k++) {
                             ci[j][k] = [mercator.forward_lon(cci[j][k][0]), mercator.forward_lat(cci[j][k][1])];
                         }
                     }
-                    var data = flatten(ci);
-                    var dataIndexes = earcut(data.vertices, data.holes, 2);
+                    let data = flatten(ci);
+                    let dataIndexes = earcut(data.vertices, data.holes, 2);
 
-                    for (var j = 0; j < dataIndexes.length; j++) {
+                    for (let j = 0; j < dataIndexes.length; j++) {
                         indexes.push(dataIndexes[j] + vertices.length * 0.5);
                     }
 
@@ -294,12 +294,12 @@ class GeometryHandler {
 
                 this._polyVerticesMerc.push.apply(this._polyVerticesMerc, vertices);
 
-                for (var i = 0; i < indexes.length; i++) {
+                for (let i = 0; i < indexes.length; i++) {
                     this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                 }
 
-                var color = geometry._style.fillColor;
-                for (var i = 0; i < vertices.length * 0.5; i++) {
+                let color = geometry._style.fillColor;
+                for (let i = 0; i < vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
                 }
@@ -315,9 +315,9 @@ class GeometryHandler {
 
             } else if (geometry._type === GeometryType.LINESTRING) {
 
-                var coordinates = geometry._coordinates;
-                var ci = new Array(coordinates.length);
-                for (var j = 0; j < coordinates.length; j++) {
+                let coordinates = geometry._coordinates;
+                let ci = new Array(coordinates.length);
+                for (let j = 0; j < coordinates.length; j++) {
                     ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
                 }
 
@@ -341,11 +341,11 @@ class GeometryHandler {
                 geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
             } else if (geometry._type === GeometryType.MULTILINESTRING) {
-                var coordinates = geometry._coordinates;
-                var ci = [];
-                for (var j = 0; j < coordinates.length; j++) {
+                let coordinates = geometry._coordinates;
+                let ci = [];
+                for (let j = 0; j < coordinates.length; j++) {
                     ci[j] = [];
-                    for (var k = 0; k < coordinates[j].length; k++) {
+                    for (let k = 0; k < coordinates[j].length; k++) {
                         ci[j][k] = [mercator.forward_lon(coordinates[j][k][0]), mercator.forward_lat(coordinates[j][k][1])];
                     }
                 }
@@ -406,13 +406,13 @@ class GeometryHandler {
             this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
             this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
             di = geometry._lineVerticesLength * 0.5;
-            for (var i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
+            for (let i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
                 this._lineIndexes[i] -= di;
             }
 
             //reindex
             var g = this._geometries;
-            for (i = index; i < g.length; i++) {
+            for (let i = index; i < g.length; i++) {
                 var gi = g[i];
                 gi._handlerIndex = i;
                 gi._polyVerticesHandlerIndex -= geometry._polyVerticesLength;
