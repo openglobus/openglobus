@@ -6,6 +6,7 @@
 
 import { callbacks } from './callbacks.js';
 import { cons } from '../cons.js';
+import { typeStr } from './types.js';
 
 /**
  * Represents more comfortable using WebGL shader program.
@@ -31,14 +32,30 @@ class ShaderProgram {
          * @public
          * @type {Object}
          */
-        this.attributes = material.attributes;
+        this.attributes = {};
+        for (let t in material.attributes) {
+            if (typeof (material.attributes[t]) === "string" ||
+                typeof (material.attributes[t]) === "number") {
+                this.attributes[t] = { 'type': material.attributes[t] };
+            } else {
+                this.attributes[t] = material.attributes[t];
+            }
+        }
 
         /**
          * Uniforms.
          * @public
          * @type {Object}
          */
-        this.uniforms = material.uniforms;
+        this.uniforms = {};
+        for (let t in material.uniforms) {
+            if (typeof (material.uniforms[t]) === "string" ||
+                typeof (material.uniforms[t]) === "number") {
+                this.uniforms[t] = { 'type': material.uniforms[t] };
+            } else {
+                this.uniforms[t] = material.uniforms[t];
+            }
+        }
 
         /**
          * Vertex shader.
@@ -149,7 +166,7 @@ class ShaderProgram {
      * @private
      * @param {Object} shader - WebGl shader program.
      * @param {string} src - Shader program source.
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     _getShaderCompileStatus(shader, src) {
         this.gl.shaderSource(shader, src);
@@ -165,7 +182,7 @@ class ShaderProgram {
      * Returns compiled vertex shader program pointer.
      * @private
      * @param {string} src - Vertex shader source code.
-     * @returns {Object}
+     * @returns {Object} -
      */
     _createVertexShader(src) {
         var shader = this.gl.createShader(this.gl.VERTEX_SHADER);
@@ -179,7 +196,7 @@ class ShaderProgram {
      * Returns compiled fragment shader program pointer.
      * @private
      * @param {string} src - Vertex shader source code.
-     * @returns {Object}
+     * @returns {Object} -
      */
     _createFragmentShader(src) {
         var shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
@@ -254,8 +271,13 @@ class ShaderProgram {
             this.attributes[a].enableArray = (this.attributes[a].enableArray != undefined ? this.attributes[a].enableArray : true);
             if (this.attributes[a].enableArray)
                 this.attributes[a]._callback = ShaderProgram.bindBuffer;
-            else
-                this.attributes[a]._callback = callbacks.a[this.attributes[a].type];
+            else {
+                if (typeof (this.attributes[a].type) === "string") {
+                    this.attributes[a]._callback = callbacks.a[typeStr[this.attributes[a].type.trim().toLowerCase()]];
+                } else {
+                    this.attributes[a]._callback = callbacks.a[this.attributes[a].type];
+                }
+            }
 
             this._p[a] = gl.getAttribLocation(this._p, a);
 
@@ -275,7 +297,13 @@ class ShaderProgram {
 
         for (var u in this.uniforms) {
             this.uniforms[u]._name = u;
-            this.uniforms[u]._callback = callbacks.u[this.uniforms[u].type];
+
+            if (typeof (this.uniforms[u].type) === "string") {
+                this.uniforms[u]._callback = callbacks.u[typeStr[this.uniforms[u].type.trim().toLowerCase()]];
+            } else {
+                this.uniforms[u]._callback = callbacks.u[this.uniforms[u].type];
+            }
+
             this._variables[u] = this.uniforms[u];
             this._p[u] = gl.getUniformLocation(this._p, u);
 

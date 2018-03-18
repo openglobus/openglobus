@@ -22,11 +22,11 @@ class Axes extends RenderNode {
         this.drawMode = this.renderer.handler.gl.LINES;
         this.renderer.handler.addShaderProgram(new ShaderProgram("axesShader", {
             uniforms: {
-                projectionViewMatrix: { type: types.MAT4 }
+                projectionViewMatrix: 'mat4'
             },
             attributes: {
-                aVertexPosition: { type: types.VEC3, enableArray: true },
-                aVertexColor: { type: types.VEC4, enableArray: true }
+                aVertexPosition: 'vec3',
+                aVertexColor: 'vec4'
             },
             vertexShader:
             'attribute vec3 aVertexPosition;\
