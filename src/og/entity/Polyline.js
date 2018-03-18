@@ -51,7 +51,7 @@ class Polyline {
          * @public
          * @type {og.math.Vector4}
          */
-        this.color = og.utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+        this.color = utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
 
         /**
          * Polyline visibility.
@@ -535,7 +535,7 @@ class Polyline {
 
             for (var i = 0; i < path.length; i++) {
                 var cur = path[i];
-                cartesian = ellipsoid.lonLatToCartesian(cur);
+                var cartesian = ellipsoid.lonLatToCartesian(cur);
                 c[j][i] = cartesian;
                 m[j][i] = cur.forwardMercator();
                 l[j][i] = cur;
