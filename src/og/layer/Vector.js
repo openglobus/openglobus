@@ -589,7 +589,7 @@ class Vector extends Layer {
                                     var cart = p._path3v[c_j][c_j_h];
                                     var res = new Vec3();
                                     seg.getTerrainPoint(res, cart, ll);
-                                    p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 0.1)), c_j_h, c_j, true);
+                                    p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 1.0)), c_j_h, c_j, true);
                                     break;
                                 }
                             }
