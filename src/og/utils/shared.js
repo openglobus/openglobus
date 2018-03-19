@@ -12,10 +12,8 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
-const EMPTY = void (0);
-
 export function isEmpty(v) {
-    return v === EMPTY;
+    return v == null;
 };
 
 let _stampCounter = 0;
@@ -393,27 +391,27 @@ export function xmlToJson(xml) {
 
 export const castType = {
     "string": function (v) {
-        return v !== EMPTY ? v.toString() : v;
+        return isEmpty(v) ? v : v.toString();
     },
 
     "date": function (v) {
-        return v !== EMPTY ? new Date(v * 1000) : v;
+        return isEmpty(v) ? v : new Date(v * 1000);
     },
 
     "datetime": function (v) {
-        return v !== EMPTY ? new Date(v * 1000) : v;
+        return isEmpty(v) ? v : new Date(v * 1000);
     },
 
     "time": function (v) {
-        return v !== EMPTY ? parseInt(v) : v;
+        return isEmpty(v) ? v : parseInt(v);
     },
 
     "integer": function (v) {
-        return v !== EMPTY ? parseInt(v) : v;
+        return isEmpty(v) ? v : parseInt(v);
     },
 
     "float": function (v) {
-        return v !== EMPTY ? parseFloat(v) : v;
+        return isEmpty(v) ? v : parseFloat(v);
     },
 
     "boolean": function (str) {
