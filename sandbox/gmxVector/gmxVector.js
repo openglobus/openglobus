@@ -81,7 +81,10 @@ const globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),
-    'layers': [osm, tg, l1, l2, l3, ct]
+    'layers': [osm, tg, l1, l2, l3, ct],
+    "sun": {
+        "active": false
+    }
 });
 
 globe.planet.addControl(new LayerSwitcher());
