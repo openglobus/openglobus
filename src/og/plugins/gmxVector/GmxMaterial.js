@@ -13,24 +13,24 @@ const GmxMaterial = function (segment, layer) {
 
     this.fromTile = null;
 
-    this.sceneIsLoading = false;
-    this.sceneExists = false;
-    this.sceneReady = false;
-    this.sceneTexture = null;
+    this.sceneIsLoading = {};
+    this.sceneExists = {};
+    this.sceneIsReady = {};
+    this.sceneTexture = {};
 };
 
 inherits(GmxMaterial, Material);
 
-GmxMaterial.applySceneBitmapImage = function (bitmapImage) {
-    this.sceneTexture = this.segment.handler.createTexture(bitmapImage);
-    this.sceneExists = true;
-    this.sceneReady = true;
-    this.sceneIsLoading = false;
+GmxMaterial.applySceneBitmapImage = function (id, bitmapImage) {
+    this.sceneTexture[id] = this.segment.handler.createTexture(bitmapImage);
+    this.sceneExists[id] = true;
+    this.sceneIsReady[id] = true;
+    this.sceneIsLoading[id] = false;
 };
 
 
-GmxMaterial.prototype.sceneNotExists = function () {
-    this.sceneExists = false;
+GmxMaterial.prototype.sceneNotExists = function (id) {
+    this.sceneExists[id] = false;
 };
 
 export { GmxMaterial };

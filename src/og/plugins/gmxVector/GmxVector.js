@@ -591,14 +591,16 @@ class GmxVector extends Layer {
     }
 
     applySceneTexture(tileItem, material) {
+        const item_id = tileItem.item.id;
 
-        if (material.sceneIsReady) {
+        if (material.sceneIsReady[item_id]) {
             return [0, 0, 1, 1];
         } else {
 
-            if (!material.sceneIsLoading) {
+            if (!material.sceneIsLoading[item_id]) {
 
-                material.sceneIsLoading = true;
+                material.sceneIsLoading[item_id] = true;
+                material.sceneIsReady[item_id] = true;
 
                 var url = utils.stringTemplate(this._tileImageryUrlTemplate, {
                     'x': tileItem.tileData.x,
@@ -607,13 +609,15 @@ class GmxVector extends Layer {
                     'l': tileItem.item.attributes.GMX_RasterCatalogID
                 });
 
-                p._imageBitmapLoader(ti.attributes.GMX_RasterCatalogID, (e) => {
-                    if (e.data.ok) {
-                        material.applySceneBitmapImage(e.data.bitmapImage);
-                    } else {
-                        material.sceneNotExists();
-                    }
-                });
+                console.log(url);
+
+                // this._planet._imageBitmapLoader(ti.attributes.GMX_RasterCatalogID, (e) => {
+                //     if (e.data.ok) {
+                //         material.applySceneBitmapImage(e.data.bitmapImage);
+                //     } else {
+                //         material.sceneNotExists();
+                //     }
+                // });
             }
 
             var segment = material.segment;
@@ -623,7 +627,7 @@ class GmxVector extends Layer {
             var mId = this._id;
             var psegm = material;
             while (pn.parentNode) {
-                if (psegm && psegm.sceneReady) {
+                if (psegm && psegm.sceneIsReady[item_id]) {
                     notEmpty = true;
                     break;
                 }
@@ -632,7 +636,7 @@ class GmxVector extends Layer {
             }
 
             if (notEmpty) {
-                material.sceneTexture = psegm.sceneTexture;
+                material.sceneTexture[item_id] = psegm.sceneTexture[item_id];
                 var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
                     segment.tileX * dZ2 - pn.segment.tileX,
@@ -641,7 +645,7 @@ class GmxVector extends Layer {
                     dZ2
                 ];
             } else {
-                material.sceneTexture = segment.planet.transparentTexture;
+                material.sceneTexture[item_id] = segment.planet.transparentTexture;
                 return [0, 0, 1, 1];
             }
         }
