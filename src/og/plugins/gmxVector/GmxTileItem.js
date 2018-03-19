@@ -75,22 +75,22 @@ GmxTileItem.prototype._createVertices = function (extent) {
         sw = this.item._extent.southWest;
 
     if (geometry.type.toLowerCase() === "polygon") {
-        var coordinates = geometry.coordinates;
+        let coordinates = geometry.coordinates;
 
-        var data = flatten(coordinates);
-        var indexes = earcut(data.vertices, data.holes, 2);
+        let data = flatten(coordinates);
+        let indexes = earcut(data.vertices, data.holes, 2);
 
         this._polyVerticesMerc = data.vertices;
 
         this._polyIndexes = indexes;
 
-        for (var i = 0; i < coordinates.length; i++) {
-            var ci = coordinates[i];
-            var path = [];
-            var startLine = false;
-            var isClosed = true;
-            for (var j = 0; j < ci.length; j++) {
-                var p = ci[j];
+        for (let i = 0; i < coordinates.length; i++) {
+            let ci = coordinates[i];
+            let path = [];
+            let startLine = false;
+            let isClosed = true;
+            for (let j = 0; j < ci.length; j++) {
+                let p = ci[j];
                 if (p[0] < sw.lon) sw.lon = p[0];
                 if (p[0] > ne.lon) ne.lon = p[0];
                 if (p[1] < sw.lat) sw.lat = p[1];
@@ -113,28 +113,28 @@ GmxTileItem.prototype._createVertices = function (extent) {
 
     } else if (geometry.type.toLowerCase() === "multipolygon") {
 
-        var coordinates = geometry.coordinates;
-        var vertices = [],
+        let coordinates = geometry.coordinates;
+        let vertices = [],
             indexes = [];
 
-        for (var i = 0; i < coordinates.length; i++) {
-            var cci = coordinates[i];
-            var data = flatten(cci);
-            var dataIndexes = earcut(data.vertices, data.holes, 2);
+        for (let i = 0; i < coordinates.length; i++) {
+            let cci = coordinates[i];
+            let data = flatten(cci);
+            let dataIndexes = earcut(data.vertices, data.holes, 2);
 
-            for (var j = 0; j < dataIndexes.length; j++) {
+            for (let j = 0; j < dataIndexes.length; j++) {
                 indexes.push(dataIndexes[j] + vertices.length * 0.5);
             }
 
             vertices.push.apply(vertices, data.vertices);
 
             for (var ii = 0; ii < cci.length; ii++) {
-                var ci = cci[ii];
-                var path = [];
-                var startLine = false;
-                var isClosed = true;
-                for (var j = 0; j < ci.length; j++) {
-                    var p = ci[j];
+                let ci = cci[ii];
+                let path = [];
+                let startLine = false;
+                let isClosed = true;
+                for (let j = 0; j < ci.length; j++) {
+                    let p = ci[j];
                     if (p[0] < sw.lon) sw.lon = p[0];
                     if (p[0] > ne.lon) ne.lon = p[0];
                     if (p[1] < sw.lat) sw.lat = p[1];

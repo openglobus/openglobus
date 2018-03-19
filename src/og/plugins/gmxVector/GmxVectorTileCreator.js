@@ -37,7 +37,7 @@ GmxVectorTileCreator.appendLineData = function (pathArr, isClosed, outVertices, 
         if (isClosed) {
             last = path[path.length - 1];
         } else {
-            var p0 = path[0],
+            let p0 = path[0],
                 p1 = path[1];
             last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
         }
@@ -56,7 +56,7 @@ GmxVectorTileCreator.appendLineData = function (pathArr, isClosed, outVertices, 
             first = path[0];
             outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
         } else {
-            var p0 = path[path.length - 1],
+            let p0 = path[path.length - 1],
                 p1 = path[path.length - 2];
             first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             outIndexes.push(index - 1, index - 1, index - 1, index - 1);

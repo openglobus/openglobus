@@ -17,6 +17,7 @@ import { GmxTileData } from './GmxTileData.js';
 import { GmxTileItem } from './GmxTileItem.js';
 import { GmxTileDataGroup } from './GmxTileDataGroup.js';
 import { GmxVectorTileCreator } from './GmxVectorTileCreator.js';
+import { isEmpty } from '../../utils/shared.js';
 import { Layer } from '../../layer/Layer.js';
 import { QueueArray } from '../../QueueArray.js';
 import { Vec4 } from '../../math/Vec4.js';
@@ -287,7 +288,7 @@ class GmxVector extends Layer {
             return true;
         }
         var visibility = this._filteredItems[item.id];
-        if (visibility == null) {
+        if (isEmpty(visibility)) {
             visibility = this._filteredItems[item.id] = this._filterCallback[item.id](item);
         }
         return visibility;
@@ -309,7 +310,7 @@ class GmxVector extends Layer {
             return item._style;
         }
         var style = this._styledItems[item.id];
-        if (style == null) {
+        if (isEmpty(style)) {
             style = this._styledItems[item.id] = this._styleCallback[item.id](item);
         }
         return style;
