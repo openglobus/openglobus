@@ -12,6 +12,12 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
+const EMPTY = void (0);
+
+export function isEmpty(v) {
+    return v === EMPTY;
+};
+
 let _stampCounter = 0;
 export function stamp(obj) {
     var stamp = obj._openglobus_id;
@@ -61,13 +67,13 @@ export function htmlColorToRgba(htmlColor, opacity) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, (opacity == undefined ? 1.0 : opacity));
+        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, isEmpty(opacity) ? 1.0 : opacity);
     } else {
-        if (opacity == undefined) {
+        if (isEmpty(opacity)) {
             opacity = 1.0;
         }
         var m = htmlColor.split(",");
-        return new Vec4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, (parseFloat(m[3]) != undefined ? parseFloat(m[3]) : opacity));
+        return new Vec4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, !isEmpty(m[3]) ? parseFloat(m[3]) : opacity);
     }
 };
 
@@ -83,7 +89,7 @@ export function htmlColorToRgb(htmlColor) {
         htmlColor = hColor;
     }
 
-    if (htmlColor[0] == "#") {
+    if (htmlColor[0] === '#') {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
         var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
@@ -253,7 +259,12 @@ export function binarySearch(ar, el, compare_fn) {
 };
 
 /**
- * @todo NEEDS TESTING
+ * Binary insertion that uses binarySearch algorithm.
+ * @param {Array} ar - The sorted array to insert.
+ * @param {Object} el - The item to insert.
+ * @param {og.utils.binarySearch~compare_fn} compare_fn - comparator The function to use to compare the item to
+ *        elements in the array.
+ * @returns {Number} Array index position in which item inserted in.
  */
 export function binaryInsert(ar, el, compare_fn) {
     var i = binarySearch(ar, el, compare_fn);
@@ -365,10 +376,10 @@ export function xmlToJson(xml) {
         for (var i = 0; i < xml.childNodes.length; i++) {
             var item = xml.childNodes.item(i);
             var nodeName = item.nodeName;
-            if (typeof (obj[nodeName]) == "undefined") {
+            if (typeof (obj[nodeName]) === "undefined") {
                 obj[nodeName] = xmlToJson(item);
             } else {
-                if (typeof (obj[nodeName].push) == "undefined") {
+                if (typeof (obj[nodeName].push) === "undefined") {
                     var old = obj[nodeName];
                     obj[nodeName] = [];
                     obj[nodeName].push(old);
@@ -382,27 +393,27 @@ export function xmlToJson(xml) {
 
 export const castType = {
     "string": function (v) {
-        return v != null ? v.toString() : v;
+        return v !== EMPTY ? v.toString() : v;
     },
 
     "date": function (v) {
-        return v != null ? new Date(v * 1000) : v;
+        return v !== EMPTY ? new Date(v * 1000) : v;
     },
 
     "datetime": function (v) {
-        return v != null ? new Date(v * 1000) : v;
+        return v !== EMPTY ? new Date(v * 1000) : v;
     },
 
     "time": function (v) {
-        return v != null ? parseInt(v) : v;
+        return v !== EMPTY ? parseInt(v) : v;
     },
 
     "integer": function (v) {
-        return v != null ? parseInt(v) : v;
+        return v !== EMPTY ? parseInt(v) : v;
     },
 
     "float": function (v) {
-        return v != null ? parseFloat(v) : v;
+        return v !== EMPTY ? parseFloat(v) : v;
     },
 
     "boolean": function (str) {

@@ -27,6 +27,7 @@ const TileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&Mode
 
 let __requestsCounter = 0;
 const MAX_REQUESTS = 15;
+const EMPTY = void (0);
 
 const EVENT_NAMES = [
     "draw",
@@ -287,7 +288,7 @@ class GmxVector extends Layer {
             return true;
         }
         var visibility = this._filteredItems[item.id];
-        if (visibility == null) {
+        if (visibility === EMPTY) {
             visibility = this._filteredItems[item.id] = this._filterCallback[item.id](item);
         }
         return visibility;
@@ -309,7 +310,7 @@ class GmxVector extends Layer {
             return item._style;
         }
         var style = this._styledItems[item.id];
-        if (style == null) {
+        if (style === EMPTY) {
             style = this._styledItems[item.id] = this._styleCallback[item.id](item);
         }
         return style;
