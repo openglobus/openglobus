@@ -146,7 +146,7 @@ ajax.request = function (url, params) {
     if (p.type === ajax.Method.Post) {
         if (p.data) {
             body = "";
-            for (key in p.data) {
+            for (let key in p.data) {
                 d = p.data[key];
                 body += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
             }
@@ -156,7 +156,7 @@ ajax.request = function (url, params) {
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     } else if (p.data) {
         var tail = "?";
-        for (key in p.data) {
+        for (let key in p.data) {
             d = p.data[key];
             tail += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
         }
