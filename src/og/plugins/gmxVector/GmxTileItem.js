@@ -10,6 +10,14 @@ import { earcut, flatten } from '../../utils/earcut.js';
 import { GmxVectorTileCreator } from './GmxVectorTileCreator.js';
 import { LonLat } from '../../LonLat.js';
 
+function chkOnEdge(p1, p2, ext) {
+    if (p1[0] === p2[0] && (Math.abs(p1[0] - ext.northEast.lon) < 0.05 || Math.abs(p1[0] - ext.southWest.lon) < 0.05) ||
+        p1[1] === p2[1] && (Math.abs(p1[1] - ext.northEast.lat) < 0.05 || Math.abs(p1[1] - ext.southWest.lat) < 0.05)) {
+        return true;
+    }
+    return false;
+};
+
 const GmxTileItem = function (item, geometry) {
 
     this.tileData = null;
@@ -52,14 +60,6 @@ GmxTileItem.prototype.createBuffers = function (handler, extent) {
     }
 };
 
-GmxTileItem.chkOnEdge = function (p1, p2, ext) {
-    if (p1[0] === p2[0] && (Math.abs(p1[0] - ext.northEast.lon) < 0.05 || Math.abs(p1[0] - ext.southWest.lon) < 0.05) ||
-        p1[1] === p2[1] && (Math.abs(p1[1] - ext.northEast.lat) < 0.05 || Math.abs(p1[1] - ext.southWest.lat) < 0.05)) {
-        return true;
-    }
-    return false;
-};
-
 GmxTileItem.prototype._createVertices = function (extent) {
 
     var geometry = this.geometry;
@@ -95,7 +95,7 @@ GmxTileItem.prototype._createVertices = function (extent) {
                 if (p[0] > ne.lon) ne.lon = p[0];
                 if (p[1] < sw.lat) sw.lat = p[1];
                 if (p[1] > sw.lat) ne.lat = p[1];
-                if (!TileItem.chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
+                if (!chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
                     startLine = true;
                     path.push(p);
                 } else if (startLine) {
@@ -139,7 +139,7 @@ GmxTileItem.prototype._createVertices = function (extent) {
                     if (p[0] > ne.lon) ne.lon = p[0];
                     if (p[1] < sw.lat) sw.lat = p[1];
                     if (p[1] > sw.lat) ne.lat = p[1];
-                    if (!TileItem.chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
+                    if (!chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
                         startLine = true;
                         path.push(p);
                     } else if (startLine) {

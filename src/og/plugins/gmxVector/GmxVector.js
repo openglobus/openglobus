@@ -14,6 +14,7 @@ import { GmxCheckVersion } from './GmxCheckVersion.js';
 import { GmxItem } from './GmxItem.js';
 import { GmxMaterial } from './GmxMaterial.js';
 import { GmxTileData } from './GmxTileData.js';
+import { GmxTileItem } from './GmxTileItem.js';
 import { GmxTileDataGroup } from './GmxTileDataGroup.js';
 import { GmxVectorTileCreator } from './GmxVectorTileCreator.js';
 import { Layer } from '../../layer/Layer.js';
@@ -200,11 +201,11 @@ class GmxVector extends Layer {
         var p = this._planet;
         var that = this;
 
-        GmxVectorLayer.getLayerInfo(this.hostUrl, this._layerId, function (data) {
+        GmxVector.getLayerInfo(this.hostUrl, this._layerId, function (data) {
             that._gmxProperties = data.properties;
             if (data.properties.Temporal) {
                 var d = new Date();
-                var currEpoch = GmxVectorLayer.dateToEpoch(d);
+                var currEpoch = GmxVector.dateToEpoch(d);
                 that._beginDate = that._beginDate || new Date(currEpoch);
                 that._endDate = that._endDate || new Date(d.setTime(currEpoch + 24 * 60 * 60 * 1000));
                 that._tileSenderUrlTemplate = TileSenderUrlTemporal;
@@ -426,10 +427,10 @@ class GmxVector extends Layer {
             cacheTileDataGroup = this._tileDataGroupCache[tileIndex];
 
         if (!cacheTileDataGroup) {
-            cacheTileDataGroup = this._tileDataGroupCache[tileIndex] = new TileDataGroup(this, tileExtent);
+            cacheTileDataGroup = this._tileDataGroupCache[tileIndex] = new GmxTileDataGroup(this, tileExtent);
         }
 
-        var tileData = new TileData(data),
+        var tileData = new GmxTileData(data),
             tileDataCacheIndex = Layer.getTileIndex(tileIndex, t.level, t.span);
 
         var cacheTileData = this._tileDataCache[tileDataCacheIndex];
@@ -488,10 +489,10 @@ class GmxVector extends Layer {
 
     _onRefreshNodes(p) {
 
-        print2d("l4", `_rNodes: ${this._planet._renderedNodes.length}`, 100, 25);
-        print2d("l3", `zMinMax: ${this._planet.minCurrZoom}, ${this._planet.maxCurrZoom}`, 100, 50);
-        print2d("l1", `loading: ${this._vecCounter}, ${this._vecPendingsQueue.length}`, 100, 100);
-        print2d("l2", `drawing: ${this._planet._gmxVectorTileCreator._queue.length}`, 100, 150);
+        utils.print2d("l4", `_rNodes: ${this._planet._renderedNodes.length}`, 100, 25);
+        utils.print2d("l3", `zMinMax: ${this._planet.minCurrZoom}, ${this._planet.maxCurrZoom}`, 100, 50);
+        utils.print2d("l1", `loading: ${this._vecCounter}, ${this._vecPendingsQueue.length}`, 100, 100);
+        utils.print2d("l2", `drawing: ${this._planet._gmxVectorTileCreator._queue.length}`, 100, 150);
 
         if (this._needRefresh && this._planet) {
             while (this._tileDataGroupQueue.length) {

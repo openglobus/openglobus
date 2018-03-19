@@ -190,6 +190,8 @@ GmxVectorTileCreator.prototype._initialize = function () {
         height: this._height,
         useDepth: false
     });
+
+    this._framebuffer.init();
 };
 
 GmxVectorTileCreator.prototype.add = function (data) {
