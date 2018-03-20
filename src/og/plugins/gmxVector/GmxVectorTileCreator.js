@@ -233,12 +233,14 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                 var layer = material.layer;
                 var tItems = fromTile.tileItemArr;
+                var materialZoom = material.segment.tileZoom;
+                var zoomAvailable = materialZoom >= layer._gmxProperties.RCMinZoomForRasters;
 
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
                 });
 
-                if (material.segment.tileZoom <= 3) {
+                if (materialZoom <= 3) {
                     width = width2;
                     height = height2;
                 } else {
@@ -275,7 +277,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                     var ti = tItems[i];
                     if (layer.getItemVisibility(ti.item)) {
 
-                        if (layer._gmxProperties.Temporal) {
+                        if (layer._gmxProperties.Temporal && zoomAvailable) {
                             let sceneTextureOffset = layer.applySceneTexture(ti, material);
                         }
 

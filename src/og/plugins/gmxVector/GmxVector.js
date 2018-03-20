@@ -657,8 +657,7 @@ class GmxVector extends Layer {
      * @param {og.planetSegment.Material} material - Segment material.
      */
     abortMaterialLoading(material) {
-        material.isLoading = false;
-        material.isReady = false;
+        material.abort();
     }
 
     applyMaterial(material) {
@@ -710,34 +709,7 @@ class GmxVector extends Layer {
     }
 
     clearMaterial(material) {
-        if (material.isReady) {
-            var gl = material.segment.handler.gl;
-
-            material.isReady = false;
-            material.pickingReady = false;
-
-            var t = material.texture;
-            material.texture = null;
-            t && !t.default && gl.deleteTexture(t);
-
-            t = material.pickingMask;
-            material.pickingMask = null;
-            t && !t.default && gl.deleteTexture(t);
-
-            t = material._updateTexture;
-            material._updateTexture = null;
-            t && !t.default && gl.deleteTexture(t);
-
-            t = material._updatePickingMask;
-            material._updatePickingMask = null;
-            t && !t.default && gl.deleteTexture(t);
-        }
-
-        this.abortMaterialLoading(material);
-
-        material.isLoading = false;
-        material.textureExists = false;
-        material.fromTile = null;
+        material.clear();
     }
 
     _refreshRecursevely(item, treeNode) {
