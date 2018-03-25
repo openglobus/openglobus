@@ -8,11 +8,29 @@ import { QueueArray } from '../QueueArray.js';
 
 class TerrainWorker {
     constructor(numWorkers = 2) {
+        this._id = 0;
+        this._segments = {};
+
         this._workerQueue = new QueueArray(numWorkers);
         var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
 
+        var that = this;
         for (let i = 0; i < numWorkers; i++) {
-            this._workerQueue.push(new Worker(URL.createObjectURL(elevationProgramm)));
+            var w = new Worker(URL.createObjectURL(elevationProgramm));
+            w.onmessage = function (e) {
+
+                that._segments[e.data.id]._terrainWorkerCallback(e.data);
+                that._segments[e.data.id] = null;
+                delete that._segments[e.data.id];
+
+                that._workerQueue.unshift(this);
+                if (that._pendingQueue.length) {
+                    var p = that._pendingQueue.pop();
+                    that.make(p.segment, p.elevations)
+                }
+            };
+
+            this._workerQueue.push(w);
         }
 
         this._pendingQueue = new QueueArray(512);
@@ -27,18 +45,9 @@ class TerrainWorker {
 
             if (this._workerQueue.length) {
 
-                var that = this;
-
                 var w = this._workerQueue.pop();
 
-                w.onmessage = function (e) {
-                    segment._terrainWorkerCallback(e.data);
-                    that._workerQueue.unshift(this);
-                    if (that._pendingQueue.length) {
-                        var p = that._pendingQueue.pop();
-                        that.make(p.segment, p.elevations)
-                    }
-                };
+                this._segments[this._id] = segment;
 
                 w.postMessage({
                     'elevations': _elevations,
@@ -47,7 +56,8 @@ class TerrainWorker {
                     'this_normalMapVertices': segment.normalMapVertices,
                     'this_normalMapNormals': segment.normalMapNormals,
                     'heightFactor': segment.planet._heightFactor,
-                    'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom]
+                    'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
+                    'id': this._id++
                 }, [
                         _elevations.buffer,
                         segment.plainVertices.buffer,
@@ -104,6 +114,7 @@ const _programm =
             heightFactor =  e.data.heightFactor,\n\
             //fileGridSize = e.data.fileGridSize,\n\
             gridSize = e.data.gridSize;\n\
+            id = e.data.id;\n\
         \n\
         var xmin = 549755748352, xmax = -549755748352, ymin = 549755748352, ymax = -549755748352, zmin = 549755748352, zmax = -549755748352;\n\
 \n\
@@ -257,6 +268,7 @@ const _programm =
             normalMapNormals = this_plainNormals;\n\
         }\n\
         self.postMessage({ \n\
+                id: id,\n\
                 normalMapNormals: normalMapNormals,\n\
                 normalMapVertices: normalMapVertices,\n\
                 terrainVertices: terrainVertices,\n\

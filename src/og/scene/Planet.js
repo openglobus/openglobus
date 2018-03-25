@@ -17,7 +17,6 @@ import { GeoImageCreator } from '../utils/GeoImageCreator.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 import { Vector } from '../layer/Vector.js';
-import { ImageBitmapLoader } from '../utils/ImageBitmapLoader.js';
 import { Lock, Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
 import { Node } from '../quadTree/Node.js';
@@ -29,6 +28,7 @@ import { SegmentLonLat } from '../segment/SegmentLonLat.js';
 import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
+import { print2d } from '../utils/shared.js';
 
 const RESOURCES_URL = "";
 
@@ -376,9 +376,7 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(12);
-
-        this._imageBitmapLoader = new ImageBitmapLoader({ 'maxRequests': 20, 'numWorkers': 5 });
+        this._terrainWorker = new TerrainWorker(1);
 
         /**
          * @protected
@@ -642,9 +640,11 @@ class Planet extends RenderNode {
         this.renderer.activeCamera.events.on("viewchange", function (e) {
             this._viewChanged = true;
         }, this);
+
         this.renderer.events.on("mousemove", function (e) {
             this._viewChanged = true;
         }, this);
+
         this.renderer.events.on("touchmove", function (e) {
             this._viewChanged = true;
         }, this);
@@ -921,10 +921,10 @@ class Planet extends RenderNode {
      */
     _renderScreenNodesPASS() {
 
-        var sh;
-        var renderer = this.renderer;
-        var h = renderer.handler;
-        var gl = h.gl;
+        let sh, shu;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -932,8 +932,8 @@ class Planet extends RenderNode {
 
         if (this.lightEnabled) {
             h.shaderPrograms.drawnode_screen_wl.activate();
-            sh = h.shaderPrograms.drawnode_screen_wl._program,
-                shu = sh.uniforms;
+            sh = h.shaderPrograms.drawnode_screen_wl._program;
+            shu = sh.uniforms;
 
             gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
 
@@ -995,7 +995,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (j = 1; j < sl.length; j++) {
+        for (let j = 1; j < sl.length; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
@@ -1014,10 +1014,10 @@ class Planet extends RenderNode {
 
         this._heightPickingFramebuffer.activate();
 
-        var sh;
-        var renderer = this.renderer;
-        var h = renderer.handler;
-        var gl = h.gl;
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1037,13 +1037,13 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        var i = rn.length;
+        let i = rn.length;
         while (i--) {
             rn[i].segment._heightPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (j = 1; j < sl.length; j++) {
+        for (let j = 1; j < sl.length; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
@@ -1061,10 +1061,10 @@ class Planet extends RenderNode {
      * @protected
      */
     _renderColorPickingFramebufferPASS() {
-        var sh;
-        var renderer = this.renderer;
-        var h = renderer.handler;
-        var gl = h.gl;
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1084,13 +1084,13 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        var i = rn.length;
+        let i = rn.length;
         while (i--) {
             rn[i].segment._colorPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (j = 1; j < sl.length; j++) {
+        for (let j = 1; j < sl.length; j++) {
             i = rn.length;
             gl.polygonOffset(0, -637000 - j);
             while (i--) {
@@ -1108,10 +1108,10 @@ class Planet extends RenderNode {
      */
     _multiRenderNodesPASS() {
 
-        var sh, shu;
-        var renderer = this.renderer;
-        var h = renderer.handler;
-        var gl = h.gl;
+        let sh, shu;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1499,13 +1499,13 @@ class Planet extends RenderNode {
     }
 
     updateBillboardsTexCoords() {
-        for (var i = 0; i < this.entityCollections.length; i++) {
+        for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
         }
 
-        var readyCollections = {};
-        for (var i = 0; i < this.layers.length; i++) {
-            var li = this.layers[i];
+        let readyCollections = {};
+        for (let i = 0; i < this.layers.length; i++) {
+            let li = this.layers[i];
             if (li instanceof Vector) {
                 li.each(function (e) {
                     if (e._entityCollection && !readyCollections[e._entityCollection.id]) {

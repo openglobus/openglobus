@@ -95,10 +95,12 @@ Extent.createByCoordinatesArr = function (arr) {
 /**
  * Creates extent by meractor grid tile coordinates.
  * @static
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @returns {og.Extent}
+ * @param {number} x -
+ * @param {number} y -
+ * @param {number} z -
+ * @param {number} width -
+ * @param {number} height -
+ * @returns {og.Extent} -
  */
 Extent.fromTile = function (x, y, z, width, height) {
     width = width || mercator.POLE_DOUBLE;
@@ -156,7 +158,7 @@ Extent.prototype.isInside = function (lonlat) {
  * Returns true if two extent overlap each other.
  * @public
  * @param {Extent} e - Another extent.
- * @return {boolean}
+ * @return {boolean} -
  */
 Extent.prototype.overlaps = function (e) {
     var sw = this.southWest,
