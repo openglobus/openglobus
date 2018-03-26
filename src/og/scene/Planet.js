@@ -17,6 +17,7 @@ import { GeoImageCreator } from '../utils/GeoImageCreator.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 import { Vector } from '../layer/Vector.js';
+import { Loader } from '../utils/Loader.js';
 import { Lock, Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
 import { Node } from '../quadTree/Node.js';
@@ -352,7 +353,7 @@ class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this.RATIO_LOD = 1.12;
+        this.RATIO_LOD = 1.0;
 
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
@@ -377,6 +378,8 @@ class Planet extends RenderNode {
         this._normalMapCreator = null;
 
         this._terrainWorker = new TerrainWorker(3);
+
+        this._tileLoader = new Loader(24);
 
         /**
          * @protected
@@ -1234,6 +1237,7 @@ class Planet extends RenderNode {
 
         this._normalMapCreator.clear();
         this.terrain.abortLoading();
+        this._tileLoader.abort();
 
         var that = this;
         setTimeout(function () {
