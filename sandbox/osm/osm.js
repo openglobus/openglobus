@@ -56,7 +56,7 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),
-    'layers': []
+    'layers': [osm]
 });
 
  
