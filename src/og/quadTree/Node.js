@@ -331,7 +331,7 @@ Node.prototype.renderTree = function (maxZoom) {
  */
 Node.prototype.renderNode = function (onlyTerrain) {
 
-    this.state = quadTree.NOTRENDERING;
+    this.state = quadTree.RENDERING;
 
     var seg = this.segment;
 
@@ -346,8 +346,6 @@ Node.prototype.renderNode = function (onlyTerrain) {
     if (onlyTerrain) {
         return;
     }
-
-    this.state = quadTree.RENDERING;
 
     //Create normal map texture.
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {

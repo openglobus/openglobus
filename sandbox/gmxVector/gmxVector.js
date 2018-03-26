@@ -77,7 +77,7 @@ const tg = new CanvasTiles("Tile grid", {
     }
 });
 
-const globe = new Globe({
+window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),

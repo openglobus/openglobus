@@ -5,13 +5,13 @@
 'use strict';
 
 import * as mercator from '../mercator.js';
-import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Layer } from './Layer.js';
 import { stringTemplate } from '../utils/shared.js';
 import { LonLat } from '../LonLat.js';
-import { QueueArray } from '../QueueArray.js';
+import { RENDERING } from '../quadTree/quadTree.js';
+import { Loader } from '../utils/Loader.js';
 
 /**
  * Represents an imagery tiles source provider.
@@ -61,20 +61,6 @@ class XYZ extends Layer {
         this.url = options.url || "";
 
         /**
-         * Current loading tiles couter.
-         * @protected
-         * @type {number}
-         */
-        this._counter = 0;
-
-        /**
-         * Tile pending queue that waiting for loading.
-         * @protected
-         * @type {Array.<og.planetSegment.Material>}
-         */
-        this._pendingsQueue = new QueueArray();
-
-        /**
          * @protected
          */
         this._s = options.subdomains || ['a', 'b', 'c'];
@@ -83,6 +69,8 @@ class XYZ extends Layer {
          * @protected
          */
         this._crossOrigin = options.crossOrigin === undefined ? '' : options.crossOrigin;
+
+        this._loader = new Loader();
 
         /**
          * Rewrites imagery tile url query.
@@ -100,11 +88,7 @@ class XYZ extends Layer {
      * @public
      */
     abortLoading() {
-        var that = this;
-        this._pendingsQueue.each(function (q) {
-            q && that.abortMaterialLoading(q);
-        });
-        this._pendingsQueue.clear();
+        this._loader.abort();
     }
 
     /**
@@ -157,11 +141,29 @@ class XYZ extends Layer {
             material.isReady = false;
             material.isLoading = true;
             if (material.segment._projection.id === EPSG3857.id) {
-                if (XYZ.__requestsCounter >= XYZ.MAX_REQUESTS && this._counter) {
-                    this._pendingsQueue.push(material);
-                } else {
-                    this._exec(material);
-                }
+                this._loader.load({
+                    'segment': seg,
+                    'src': this._getHTTPRequestString(material.segment),
+                    'type': 'imageBitmap',
+                    'filter': () => seg.ready && seg.node.getState() === RENDERING,
+                    'options': {}
+                }, (response) => {
+                    if (response.status === "ready") {
+                        if (material.isLoading) {
+                            var e = this.events.load;
+                            if (e.handlers.length) {
+                                this.events.dispatch(e, material);
+                            }
+                            material.applyImage(response.data);
+                        }
+                    } else if (response.status === "abort") {
+                        material.isLoading = false;
+                    } else if (response.status === "error") {
+                        if (material.isLoading) {
+                            material.textureNotExists();
+                        }
+                    }
+                });
             } else {
                 material.textureNotExists();
             }
@@ -202,89 +204,6 @@ class XYZ extends Layer {
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;
-    }
-
-    /**
-     * Loads material image and apply it to the planet segment.
-     * @protected
-     * @param {og.planetSegment.Material} material - Loads material image.
-     */
-    _exec(material) {
-        XYZ.__requestsCounter++;
-        this._counter++;
-
-        material.image = new Image();
-        material.image.crossOrigin = this._crossOrigin;
-
-        var that = this;
-        material.image.onload = function (evt) {
-            that._counter--;
-            XYZ.__requestsCounter--;
-
-            if (material.isLoading) {
-                var e = that.events.load;
-                if (e.handlers.length) {
-                    that.events.dispatch(e, material);
-                }
-                this.onerror = null;
-                this.onload = null;
-                material.applyImage(this);
-            }
-            that._dequeueRequest();
-        };
-
-        material.image.onerror = function (evt) {
-            that._counter--;
-            XYZ.__requestsCounter--;
-            this.onerror = null;
-            this.onload = null;
-            if (material.isLoading && material.image) {
-                material.textureNotExists.call(material);
-            }
-            that._dequeueRequest();
-        };
-
-        material.image.src = this._getHTTPRequestString(material.segment);
-    }
-
-    /**
-     * Abort exact material loading.
-     * @public
-     * @param {og.planetSegment.Material} material - Segment material.
-     */
-    abortMaterialLoading(material) {
-        if (material.isLoading && material.image) {
-            material.image.src = "";
-            material.image.__og_canceled = true;
-            material.image = null;
-        } else {
-            this._dequeueRequest();
-        }
-    }
-
-    _dequeueRequest() {
-        if (this._pendingsQueue.length) {
-            if (XYZ.__requestsCounter < XYZ.MAX_REQUESTS) {
-                var pmat = this._whilePendings();
-                if (pmat)
-                    this._exec.call(this, pmat);
-            }
-        } else if (this._counter === 0) {
-            this.events.dispatch(this.events.loadend);
-        }
-    }
-
-    _whilePendings() {
-        while (this._pendingsQueue.length) {
-            var pmat = this._pendingsQueue.pop();
-            if (pmat.segment.node) {
-                if (pmat.segment.ready && pmat.segment.node.getState() === quadTree.RENDERING) {
-                    return pmat;
-                }
-                pmat.isLoading = false;
-            }
-        }
-        return null;
     }
 
     applyMaterial(material) {
@@ -333,14 +252,12 @@ class XYZ extends Layer {
                 material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
         } else {
-            this.abortMaterialLoading(material);
+            //this.abortMaterialLoading(material);
         }
 
         material.textureExists = false;
 
         if (material.image) {
-            material.image.onload = null;
-            material.image.onerror = null;
             material.image.src = '';
             material.image = null;
         }

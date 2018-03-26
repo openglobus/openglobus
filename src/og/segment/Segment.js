@@ -24,11 +24,6 @@ var _RenderingSlice = function (p) {
     this.transparentColorArr = new Float32Array(p.SLICE_SIZE_4);
 
     this.clear = function () {
-        this.layers.length = 0;
-        this.tileOffsetArr.length = 0;
-        this.visibleExtentOffsetArr.length = 0;
-        this.transparentColorArr.length = 0;
-
         this.layers = null;
         this.tileOffsetArr = null;
         this.visibleExtentOffsetArr = null;
@@ -287,7 +282,7 @@ Segment.prototype.projectNative = function (lonlat) {
 Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrain.minZoom) {
         if (!this.terrainIsLoading && !this.terrainReady) {
-            this.planet.terrain.handleSegmentTerrain(this);
+            this.planet.terrain.loadTerrain(this);
         }
     } else {
         this.terrainReady = true;

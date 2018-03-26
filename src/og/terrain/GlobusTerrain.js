@@ -4,11 +4,11 @@
 
 'use strict';
 
-import * as quadTree from '../quadTree/quadTree.js';
-import { ajax } from '../ajax.js';
 import { EmptyTerrain } from './EmptyTerrain.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Events } from '../Events.js';
+import { Loader } from '../utils/Loader.js';
+import { NOTRENDERING } from '../quadTree/quadTree.js';
 import { QueueArray } from '../QueueArray.js';
 import { stringTemplate } from '../utils/shared.js';
 
@@ -90,20 +90,6 @@ class GlobusTerrain extends EmptyTerrain {
         this.fileGridSize = options.fileGridSize || 32;
 
         /**
-         * Ajax elevation data tile query responce type.
-         * @public
-         * @type {string}
-         */
-        this.responseType = options.responseType || "arraybuffer";
-
-        /**
-         * Maximum at one time loading tiles.
-         * @public
-         * @number
-         */
-        this.MAX_LOADING_TILES = options.MAX_LOADING_TILES || 8;
-
-        /**
          * Events handler.
          * @public
          * @type {og.Events}
@@ -112,19 +98,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._elevationCache = {};
 
-        /**
-         * Current loadings counter.
-         * @protected
-         * @type {number}
-         */
-        this._counter = 0;
-
-        /**
-         * Loading pending queue.
-         * @protected
-         * @type {Array.<og.planetSegment.Segment>}
-         */
-        this._pendingsQueue = new QueueArray();
+        this._loader = new Loader();
 
         /**
          * Rewrites elevation storage url query.
@@ -141,8 +115,8 @@ class GlobusTerrain extends EmptyTerrain {
      * Stop loading.
      * @public
      */
-    abort() {
-        this._pendingsQueue.length = 0;
+    abortLoading() {
+        this._loader.abort();
     }
 
     /**
@@ -171,20 +145,34 @@ class GlobusTerrain extends EmptyTerrain {
      * @virtual
      * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
      */
-    handleSegmentTerrain(segment) {
+    loadTerrain(segment) {
         if (this._planet.terrainLock.isFree()) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
             if (segment._projection.id === EPSG3857.id) {
-                var cacheData = this._elevationCache[segment.getTileIndex()];
-                if (cacheData) {
-                    this._applyElevationsData(segment, cacheData, true);
+                let data = this._elevationCache[segment.tileIndex];
+                if (data) {
+                    this._applyElevationsData(segment, data);
                 } else {
-                    if (this._counter >= this.MAX_LOADING_TILES) {
-                        this._pendingsQueue.push(segment);
-                    } else {
-                        this._exec(segment);
-                    }
+
+                    this._loader.load({
+                        'src': this._getHTTPRequestString(segment),
+                        'segment': segment,
+                        'type': "arrayBuffer",
+                        'filter': () => segment.ready && segment.node.getState() !== NOTRENDERING
+                    }, response => {
+                        if (response.status === "ready") {
+                            this._elevationCache[segment.tileIndex] = response.data;
+                            this._applyElevationsData(segment, response.data);
+                        } else if (response.status === "abort") {
+                            segment.terrainIsLoading = false;
+                        } else if (response.status === "error") {
+                            this._applyElevationsData(segment, []);
+                        }else{
+                            console.log("unknown");
+                        }
+                    });
+
                 }
             } else {
                 //TODO: poles elevation
@@ -198,7 +186,8 @@ class GlobusTerrain extends EmptyTerrain {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {og.planetSegment.Segment}
+     * @param {og.planetSegment.Segment} segment -
+     * @returns {string} -
      */
     _createUrl(segment) {
         return stringTemplate(this.url, {
@@ -212,7 +201,7 @@ class GlobusTerrain extends EmptyTerrain {
      * Returns actual url query string.
      * @protected
      * @param {og.planetSegment.Segment} segment - Segment that loads elevation data.
-     * @returns {string}
+     * @returns {string} -
      */
     _getHTTPRequestString(segment) {
         var url = this._createUrl(segment);
@@ -229,49 +218,26 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     /**
-     * Method that converts loaded elevation data to segment elevation data type(columr major elevation data array in meters)
+     * Converts loaded data to segment elevation data type(columr major elevation data array in meters)
      * @public
      * @virtual
      * @param {*} data - Loaded elevation data.
-     * @returns {Array.<number>}
+     * @returns {Array.<number>} -
      */
     getElevations(data) {
         return new Float32Array(data);
     }
 
     /**
-     * Loads elevation data and apply it to the planet segment.
      * @protected
-     * @param {og.planetSegment.Material} material - Loads material image.
+     * @param {og.planetSegment.Segment} segment -
+     * @param {*} data -
      */
-    _exec(segment) {
-        this._counter++;
-        var xhr = ajax.request(this._getHTTPRequestString(segment), {
-            responseType: this.responseType,
-            sender: this,
-            success: function (data) {
-                this._elevationCache[segment.getTileIndex()] = data;
-                this._applyElevationsData(segment, data);
-            },
-            error: function () {
-                this._applyElevationsData(segment, []);
-            },
-            abort: function () {
-                segment.terrainIsLoading = false;
-            }
-        });
-    }
-
-    /**
-     * @protected
-     * @param {og.planetSegment.Segment} segment
-     * @param {*} data
-     */
-    _applyElevationsData(segment, data, skipDeque) {
+    _applyElevationsData(segment, data) {
         if (segment) {
             var elevations = this.getElevations(data);
             var e = this.events.load;
-            if (e.length) {
+            if (e.handlers.length) {
                 this.events.dispatch(e, {
                     "elevations": elevations,
                     "segment": segment
@@ -279,46 +245,7 @@ class GlobusTerrain extends EmptyTerrain {
             }
             segment.applyTerrain(elevations);
         }
-        !skipDeque && this._dequeueRequest();
     }
-
-    _dequeueRequest() {
-        this._counter--;
-        if (this._pendingsQueue.length) {
-            if (this._counter < this.MAX_LOADING_TILES) {
-                var pseg;
-                if (pseg = this._whilePendings())
-                    this._exec.call(this, pseg);
-            }
-        } else if (this._counter === 0) {
-            this.events.dispatch(this.events.loadend);
-        }
-    }
-
-    _whilePendings() {
-        while (this._pendingsQueue.length) {
-            var pseg = this._pendingsQueue.pop();
-            if (pseg.node) {
-                if (pseg.ready && pseg.node.getState() !== quadTree.NOTRENDERING) {
-                    return pseg;
-                }
-                pseg.terrainIsLoading = false;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Stop loading.
-     * @public
-     */
-    abortLoading() {
-        this._pendingsQueue.each(function (s) {
-            s && (s.terrainIsLoading = false);
-        });
-        //this._pendingsQueue.length = 0;
-        this._pendingsQueue.clear();
-    }
-};
+}
 
 export { GlobusTerrain };
