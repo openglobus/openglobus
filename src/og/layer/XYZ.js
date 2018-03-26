@@ -11,7 +11,6 @@ import { Layer } from './Layer.js';
 import { stringTemplate } from '../utils/shared.js';
 import { LonLat } from '../LonLat.js';
 import { RENDERING } from '../quadTree/quadTree.js';
-import { Loader } from '../utils/Loader.js';
 
 /**
  * Represents an imagery tiles source provider.
@@ -70,8 +69,6 @@ class XYZ extends Layer {
          */
         this._crossOrigin = options.crossOrigin === undefined ? '' : options.crossOrigin;
 
-        this._loader = new Loader();
-
         /**
          * Rewrites imagery tile url query.
          * @private
@@ -88,7 +85,7 @@ class XYZ extends Layer {
      * @public
      */
     abortLoading() {
-        this._loader.abort();
+        this._planet._tileLoader.abort();
     }
 
     /**
@@ -141,7 +138,7 @@ class XYZ extends Layer {
             material.isReady = false;
             material.isLoading = true;
             if (material.segment._projection.id === EPSG3857.id) {
-                this._loader.load({
+                this._planet._tileLoader.load({
                     'segment': seg,
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',

@@ -3,9 +3,10 @@
 import { Events } from '../Events.js';
 import { QueueArray } from '../QueueArray.js';
 
-const MAX_REQUESTS = 12;
 
-const Loader = function () {
+const Loader = function (maxRequests = 12) {
+
+    this.MAX_REQUESTS = maxRequests;
 
     this.events = new Events(["loadend"]);
 
@@ -29,7 +30,7 @@ Loader.prototype.load = function (params, callback) {
 
 Loader.prototype._exec = function () {
 
-    if (this._queue.length > 0 && this._loading < MAX_REQUESTS) {
+    if (this._queue.length > 0 && this._loading < this.MAX_REQUESTS) {
 
         let q = this._queue.pop(),
             p = q.params;
