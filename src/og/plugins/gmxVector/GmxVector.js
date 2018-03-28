@@ -5,7 +5,6 @@
 'use strict';
 
 import * as utils from '../../utils/shared.js';
-import * as quadTree from '../../quadTree/quadTree.js';
 import { ajax } from '../../ajax.js';
 import { EPSG3857 } from '../../proj/EPSG3857.js';
 import { Extent } from '../../Extent.js';
@@ -20,9 +19,10 @@ import { GmxVectorTileCreator } from './GmxVectorTileCreator.js';
 import { isEmpty } from '../../utils/shared.js';
 import { Layer } from '../../layer/Layer.js';
 import { QueueArray } from '../../QueueArray.js';
+import { RENDERING } from '../../quadTree/quadTree.js';
 import { Vec4 } from '../../math/Vec4.js';
 
-const TileSenderUrlImagery = '//maps.kosmosnimki.ru/TileSender.ashx?ModeKey=tile&ftc=osm&x={x}8&y={y}&z={z}&srs=3857&LayerName={l}';
+const TileSenderUrlImagery = '//maps.kosmosnimki.ru/TileSender.ashx?ModeKey=tile&ftc=osm&x={x}&y={y}&z={z}&srs=3857&LayerName={l}';
 const TileSenderUrlTemporal = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}&Level={level}&Span={span}';
 const TileSenderUrl = '//maps.kosmosnimki.ru/TileSender.ashx?WrapStyle=None&ModeKey=tile&r=j&ftc=osm&srs=3857&LayerName={id}&z={z}&x={x}&y={y}&v={v}';
 
@@ -515,7 +515,7 @@ class GmxVector extends Layer {
                 this._refreshRecursevelyExtent(extent, ni);
                 var m = ni.segment.materials[lid];
                 if (m) {
-                    if (m.segment.node.getState() !== quadTree.RENDERING) {
+                    if (m.segment.node.getState() !== RENDERING) {
                         m.layer.clearMaterial(m);
                     } else {
                         if (m.isReady) {
@@ -590,7 +590,47 @@ class GmxVector extends Layer {
         return this._gmxProperties;
     }
 
+    _loadScene(tileItem, material) {
+
+        const item_id = tileItem.item.id;
+
+        let seg = material.segment;
+
+        material.sceneIsLoading[item_id] = true;
+
+        var url = utils.stringTemplate(this._tileImageryUrlTemplate, {
+            'x': seg.tileX,
+            'y': seg.tileY,
+            'z': seg.tileZoom,
+            'l': tileItem.item.attributes.GMX_RasterCatalogID
+        });
+
+        this._planet._tileLoader.load({
+            'src': url,
+            'type': 'imageBitmap',
+            'filter': () => seg.ready && seg.node.getState() === RENDERING,
+            'options': {}
+        }, (response) => {
+            if (response.status === "ready") {
+                if (material.isLoading) {
+                    let e = this.events.load;
+                    if (e.handlers.length) {
+                        this.events.dispatch(e, material);
+                    }
+                    material.applySceneBitmapImage(item_id, response.data);
+                }
+            } else if (response.status === "abort") {
+                material.sceneIsLoading[item_id] = false;
+            } else if (response.status === "error") {
+                if (material.sceneIsLoading[item_id] === true) {
+                    material.sceneNotExists(item_id);
+                }
+            }
+        });
+    }
+
     applySceneTexture(tileItem, material) {
+
         const item_id = tileItem.item.id;
 
         if (material.sceneIsReady[item_id]) {
@@ -598,26 +638,7 @@ class GmxVector extends Layer {
         } else {
 
             if (!material.sceneIsLoading[item_id]) {
-
-                material.sceneIsLoading[item_id] = true;
-                material.sceneIsReady[item_id] = true;
-
-                var url = utils.stringTemplate(this._tileImageryUrlTemplate, {
-                    'x': tileItem.tileData.x,
-                    'y': tileItem.tileData.y,
-                    'z': tileItem.tileData.z,
-                    'l': tileItem.item.attributes.GMX_RasterCatalogID
-                });
-
-                console.log(url);
-
-                // this._planet._imageBitmapLoader(ti.attributes.GMX_RasterCatalogID, (e) => {
-                //     if (e.data.ok) {
-                //         material.applySceneBitmapImage(e.data.bitmapImage);
-                //     } else {
-                //         material.sceneNotExists();
-                //     }
-                // });
+                this._loadScene(tileItem, material);
             }
 
             var segment = material.segment;
@@ -720,7 +741,7 @@ class GmxVector extends Layer {
                 this._refreshRecursevely(item, ni);
                 var m = ni.segment.materials[lid];
                 if (m && m.isReady) {
-                    if (m.segment.node.getState() !== quadTree.RENDERING) {
+                    if (m.segment.node.getState() !== RENDERING) {
                         m.layer.clearMaterial(m);
                     } else {
                         m.pickingReady = m.pickingReady && item._pickingReady;

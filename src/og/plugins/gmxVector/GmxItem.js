@@ -28,16 +28,10 @@ const GmxItem = function (id, options) {
     this._pickingColor = null;
 
     this._pickingReady = false;
-
-    this._extent = null;
 };
 
 GmxItem.prototype.addTo = function (layer) {
     layer.addItem(this);
-};
-
-GmxItem.prototype.getExtent = function () {
-    return this._extent.clone();
 };
 
 GmxItem.prototype.setStyle = function (style) {

@@ -101,7 +101,7 @@ Node.prototype.createChildrenNodes = function () {
 
 Node.prototype.createBounds = function () {
 
-    var seg = this.segment;
+    let seg = this.segment;
 
     if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
@@ -109,54 +109,54 @@ Node.prototype.createBounds = function () {
     } else if (seg.tileZoom < seg.planet.terrain.minZoom) {
         seg.createBoundsByExtent();
     } else {
-        var pn = this;
+        let pn = this;
 
         while (pn.parentNode && !pn.segment.terrainReady) {
             pn = pn.parentNode;
         }
 
-        var scale = this.segment.tileZoom - pn.segment.tileZoom;
+        let scale = this.segment.tileZoom - pn.segment.tileZoom;
 
-        var dZ2 = Math.pow(2, scale);
+        let dZ2 = Math.pow(2, scale);
 
-        var offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
+        let offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
             offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
         if (pn.segment.terrainReady) {
-            var gridSize = pn.segment.gridSize / Math.pow(2, scale);
+            let gridSize = pn.segment.gridSize / Math.pow(2, scale);
             if (gridSize >= 1) {
-                var pVerts = pn.segment.terrainVertices;
-                var i0 = gridSize * offsetY;
-                var j0 = gridSize * offsetX;
-                var ind1 = 3 * (i0 * (pn.segment.gridSize + 1) + j0);
-                var ind2 = 3 * ((i0 + gridSize) * (pn.segment.gridSize + 1) + j0 + gridSize);
+                let pVerts = pn.segment.terrainVertices;
+                let i0 = gridSize * offsetY;
+                let j0 = gridSize * offsetX;
+                let ind1 = 3 * (i0 * (pn.segment.gridSize + 1) + j0);
+                let ind2 = 3 * ((i0 + gridSize) * (pn.segment.gridSize + 1) + j0 + gridSize);
                 seg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
             } else {
-                var pseg = pn.segment;
+                let pseg = pn.segment;
 
-                var i0 = Math.floor(gridSize * offsetY);
-                var j0 = Math.floor(gridSize * offsetX);
+                let i0 = Math.floor(gridSize * offsetY),
+                    j0 = Math.floor(gridSize * offsetX);
 
-                var insideSize = 1 / gridSize;
-                var fullSize = insideSize * pseg.gridSize;
+                let insideSize = 1 / gridSize,
+                    fullSize = insideSize * pseg.gridSize;
 
-                var t_i0 = offsetY - insideSize * i0,
+                let t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                var bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                var v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                var vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
                     vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
                     ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
                     vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                var vi_y = t_i0,
+                let vi_y = t_i0,
                     vi_x = t_j0;
 
-                var coords_lt, coords_rb;
+                let coords_lt, coords_rb;
 
                 if (vi_y + vi_x < insideSize) {
                     coords_lt = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
@@ -492,7 +492,7 @@ Node.prototype.whileNormalMapCreating = function () {
 
 Node.prototype.whileTerrainLoading = function () {
 
-    var seg = this.segment;
+    let seg = this.segment;
 
     //Looking for terrain nodes under
     var n = this.nodes;
@@ -503,21 +503,21 @@ Node.prototype.whileTerrainLoading = function () {
         n.length === 4 && n[0].segment.terrainReady && n[1].segment.terrainReady &&
         n[2].segment.terrainReady && n[3].segment.terrainReady
     ) {
-        var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
             ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
 
         seg.initializePlainSegment();
 
-        var fgs = this.planet.terrain.fileGridSize;
-        var dg = Math.max(fgs / seg.gridSize, 1),
+        let fgs = this.planet.terrain.fileGridSize;
+        let dg = Math.max(fgs / seg.gridSize, 1),
             gs = Math.max(fgs, seg.gridSize) + 1;
-        var ind = 0,
+            let ind = 0,
             nmInd = 0;
 
-        var gs3 = gs * gs * 3,
+        let gs3 = gs * gs * 3,
             sgs3 = (seg.gridSize + 1) * (seg.gridSize + 1) * 3;
 
-        var hgsOne = 0.5 * (gs - 1) + 1;
+        let hgsOne = 0.5 * (gs - 1) + 1;
 
         seg.terrainVertices && (seg.terrainVertices = null);
         seg.normalMapNormals && (seg.normalMapNormals = null);
@@ -527,29 +527,29 @@ Node.prototype.whileTerrainLoading = function () {
         seg.normalMapVertices = new Float32Array(gs3);
         seg.normalMapNormals = new Float32Array(gs3);
 
-        var verts = seg.terrainVertices,
+        let verts = seg.terrainVertices,
             nmVerts = seg.normalMapVertices,
             nmNorms = seg.normalMapNormals;
 
-        for (var i = 0; i < gs; i++) {
+        for (let i = 0; i < gs; i++) {
 
-            var ni = Math.floor(i / hgsOne),
+            let ni = Math.floor(i / hgsOne),
                 ii = i % hgsOne + ni;
 
-            for (var j = 0; j < gs; j++) {
+            for (let j = 0; j < gs; j++) {
 
-                var nj = Math.floor(j / hgsOne);
-                var n = this.nodes[2 * ni + nj];
+                let nj = Math.floor(j / hgsOne);
+                let n = this.nodes[2 * ni + nj];
 
-                var nii = ii * 2,
+                let nii = ii * 2,
                     njj = (j % hgsOne + nj) * 2;
 
-                var n_index = 3 * (nii * gs + njj);
+                let n_index = 3 * (nii * gs + njj);
 
-                var n_nmVerts = n.segment.normalMapVertices,
+                let n_nmVerts = n.segment.normalMapVertices,
                     n_nmNorms = n.segment.normalMapNormals;
 
-                var x = n_nmVerts[n_index],
+                let x = n_nmVerts[n_index],
                     y = n_nmVerts[n_index + 1],
                     z = n_nmVerts[n_index + 2];
 
@@ -589,7 +589,7 @@ Node.prototype.whileTerrainLoading = function () {
 
         seg.ready = true;
 
-        var e = seg._extent;
+        let e = seg._extent;
         seg._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
         seg._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
         seg._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
@@ -605,7 +605,7 @@ Node.prototype.whileTerrainLoading = function () {
         seg.createPlainSegment();
     }
 
-    var pn = this;
+    let pn = this;
 
     while (pn.parentNode && !pn.segment.terrainReady) {
         pn = pn.parentNode;
@@ -613,20 +613,21 @@ Node.prototype.whileTerrainLoading = function () {
 
     if (pn.segment.terrainReady) {
 
-        var dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
-        var offsetX = seg.tileX - pn.segment.tileX * dZ2,
+        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        let offsetX = seg.tileX - pn.segment.tileX * dZ2,
             offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
-        var pseg = pn.segment;
+        let pseg = pn.segment;
+
+        let tempVertices,
+            tempNormalMapNormals;
 
         if (pn.segment.terrainExists && this.appliedTerrainNodeId !== pn.nodeId) {
 
-            var gridSize = pn.segment.gridSize / dZ2;
-            var tempVertices;
+            let gridSize = pn.segment.gridSize / dZ2;
 
-            var fgs = this.planet.terrain.fileGridSize,
+            let fgs = this.planet.terrain.fileGridSize,
                 fgsZ = fgs / dZ2;
-            var tempNormalMapNormals;
 
             seg.deleteBuffers();
             seg.refreshIndexesBuffer = true;
@@ -644,34 +645,33 @@ Node.prototype.whileTerrainLoading = function () {
                 seg.gridSize = _neGridSize;
                 this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
 
-                var i0 = Math.floor(gridSize * offsetY);
-                var j0 = Math.floor(gridSize * offsetX);
+                let i0 = Math.floor(gridSize * offsetY),
+                    j0 = Math.floor(gridSize * offsetX);
 
-                var bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
 
-                var insideSize = 1.0 / gridSize;
+                let insideSize = 1.0 / gridSize;
 
-                var t_i0 = offsetY - insideSize * i0,
+                let t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                var v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                var vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
                     vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
                     ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
                     vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
-                var coords = new Vec3();
-                var vo = _vertOrder;
+                let coords = new Vec3();
 
-                tempVertices = new Float32Array(3 * vo.length);
+                tempVertices = new Float32Array(3 * _vertOrder.length);
 
-                for (var i = 0; i < vo.length; i++) {
-                    var vi_y = vo[i].y + t_i0,
-                        vi_x = vo[i].x + t_j0;
+                for (var i = 0; i < _vertOrder.length; i++) {
+                    let vi_y = _vertOrder[i].y + t_i0,
+                        vi_x = _vertOrder[i].x + t_j0;
 
-                    var vi_x_is = vi_x * gridSize,
+                    let vi_x_is = vi_x * gridSize,
                         vi_y_is = vi_y * gridSize;
 
                     if (vi_y + vi_x < insideSize) {
@@ -680,7 +680,7 @@ Node.prototype.whileTerrainLoading = function () {
                         coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                     }
 
-                    var i3 = i * 3;
+                    let i3 = i * 3;
 
                     tempVertices[i3] = coords.x;
                     tempVertices[i3 + 1] = coords.y;
@@ -695,7 +695,7 @@ Node.prototype.whileTerrainLoading = function () {
             this.appliedTerrainNodeId = pn.nodeId;
         }
 
-        var maxZ = this.planet.terrain.maxZoom;
+        let maxZ = this.planet.terrain.maxZoom;
 
         if (seg.tileZoom > maxZ) {
             if (pn.segment.tileZoom >= maxZ) {
@@ -712,7 +712,7 @@ Node.prototype.whileTerrainLoading = function () {
                 while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
                     pn = pn.parentNode;
                 }
-                var pns = pn.segment;
+                let pns = pn.segment;
                 if (!pns.ready) {
                     pns.createPlainSegment();
                 }

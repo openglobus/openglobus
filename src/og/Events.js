@@ -101,7 +101,7 @@ class Events {
      */
     on(name, callback, sender) {
         if (this._stamp(name, callback)) {
-            this[name] && this[name].handlers.unshift({ "sender": sender || this._sender, "callback": callback });
+            this[name] && this[name].handlers.unshift(callback.bind(sender || this._sender));
         }
     }
 
@@ -119,7 +119,7 @@ class Events {
             var indexToRemove = -1;
             while (i--) {
                 var hi = h[i];
-                if (hi.callback._openglobus_id === callback._openglobus_id) {
+                if (hi._openglobus_id === callback._openglobus_id) {
                     indexToRemove = i;
                     break;
                 }
@@ -144,8 +144,7 @@ class Events {
             var h = event.handlers;
             var i = h.length;
             while (i-- && !this._stopPropagation) {
-                var e = h[i];
-                e.callback.call(e.sender, obj);
+                h[i](obj);
             }
         }
         this._stopPropagation = false;

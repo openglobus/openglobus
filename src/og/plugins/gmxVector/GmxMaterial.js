@@ -30,7 +30,9 @@ GmxMaterial.applySceneBitmapImage = function (id, bitmapImage) {
 
 
 GmxMaterial.prototype.sceneNotExists = function (id) {
+    this.sceneIsReady[id] = true;
     this.sceneExists[id] = false;
+    this.sceneIsLoading[id] = false;
 };
 
 GmxMaterial.prototype.clear = function () {
@@ -57,6 +59,8 @@ GmxMaterial.prototype.clear = function () {
         t && !t.default && gl.deleteTexture(t);
     }
 
+    this._gmxClear();
+    
     this.layer.abortMaterialLoading(this);
 
     this.isLoading = false;
@@ -67,6 +71,19 @@ GmxMaterial.prototype.clear = function () {
 GmxMaterial.prototype.abort = function () {
     this.isLoading = false;
     this.isReady = false;
+
+    this._gmxClear();
+};
+
+GmxMaterial.prototype._gmxClear = function () {
+    this.sceneIsLoading = {};
+    this.sceneExists = {};
+    this.sceneIsReady = {};
+
+    for (let c in this.sceneTexture) {
+        let t = this.sceneTexture[c];
+        t && !t.default && gl.deleteTexture(t);
+    }
 };
 
 export { GmxMaterial };

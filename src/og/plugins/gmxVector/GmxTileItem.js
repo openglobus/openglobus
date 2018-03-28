@@ -26,6 +26,8 @@ const GmxTileItem = function (item, geometry) {
     this.item = item;
     this.geometry = geometry;
 
+    this.extent = null;
+
     //Polygon arrays
     this._polyVerticesMerc = [];
     this._polyIndexes = [];
@@ -67,14 +69,14 @@ GmxTileItem.prototype._createVertices = function (extent) {
     this._polyVerticesMerc = [];
     this._lineVerticesMerc = [];
 
-    if (!this.item._extent) {
-        this.item._extent = new Extent(new LonLat(math.MAX_FLOAT, math.MAX_FLOAT), new LonLat(-math.MAX_FLOAT, -math.MAX_FLOAT));
+    if (!this.extent) {
+        this.extent = new Extent(new LonLat(math.MAX_FLOAT, math.MAX_FLOAT), new LonLat(-math.MAX_FLOAT, -math.MAX_FLOAT));
     }
 
-    var ne = this.item._extent.northEast,
-        sw = this.item._extent.southWest;
+    var ne = this.extent.northEast,
+        sw = this.extent.southWest;
 
-    if (geometry.type.toLowerCase() === "polygon") {
+    if (geometry.type.trim().toLowerCase() === "polygon") {
         let coordinates = geometry.coordinates;
 
         let data = flatten(coordinates);
@@ -94,7 +96,7 @@ GmxTileItem.prototype._createVertices = function (extent) {
                 if (p[0] < sw.lon) sw.lon = p[0];
                 if (p[0] > ne.lon) ne.lon = p[0];
                 if (p[1] < sw.lat) sw.lat = p[1];
-                if (p[1] > sw.lat) ne.lat = p[1];
+                if (p[1] > ne.lat) ne.lat = p[1];
                 if (!chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
                     startLine = true;
                     path.push(p);
@@ -111,7 +113,7 @@ GmxTileItem.prototype._createVertices = function (extent) {
             }
         }
 
-    } else if (geometry.type.toLowerCase() === "multipolygon") {
+    } else if (geometry.type.trim().toLowerCase() === "multipolygon") {
 
         let coordinates = geometry.coordinates;
         let vertices = [],
@@ -138,7 +140,7 @@ GmxTileItem.prototype._createVertices = function (extent) {
                     if (p[0] < sw.lon) sw.lon = p[0];
                     if (p[0] > ne.lon) ne.lon = p[0];
                     if (p[1] < sw.lat) sw.lat = p[1];
-                    if (p[1] > sw.lat) ne.lat = p[1];
+                    if (p[1] > ne.lat) ne.lat = p[1];
                     if (!chkOnEdge(p, j < ci.length - 1 ? ci[j + 1] : ci[0], extent)) {
                         startLine = true;
                         path.push(p);
