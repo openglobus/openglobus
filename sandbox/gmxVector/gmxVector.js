@@ -1,7 +1,7 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
-import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { GmxVector } from '../../src/og/plugins/gmxVector/GmxVector.js';
@@ -26,8 +26,8 @@ const l3 = new GmxVector("House", {
 const ct = new GmxVector("LANDSAT-8", {
     'layerId': "47A9D4E5E5AE497A8A1A7EA49C7FC336",
     'visibility': false,
-    'beginDate': new Date(2017, 6, 1),
-    'endDate': new Date(2017, 6, 10)
+    'beginDate': new Date(2017, 5, 30),
+    'endDate': new Date(2017, 6, 1)
 });
 
 const osm = new XYZ("OSM", {
@@ -80,7 +80,7 @@ const tg = new CanvasTiles("Tile grid", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new GlobusTerrain(),
+    'terrain': new EmptyTerrain(),
     'layers': [osm, tg, l1, l2, l3, ct],
     "sun": {
         "active": false

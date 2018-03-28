@@ -193,7 +193,8 @@ Segment.prototype.acceptForRendering = function (camera) {
  * Returns entity terrain point.
  * @public
  * @param {og.Entity} entity - Entity.
- * @returns {og.math.Vector3}
+ * @param {og.Vec3} res - Point coordinates.
+ * @returns {og.math.Vector3} -
  */
 Segment.prototype.getEntityTerrainPoint = function (entity, res) {
     return this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
@@ -371,9 +372,9 @@ Segment.prototype.elevationsNotExists = function () {
 
 Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
-    var nn = this.node.neighbors;
-    var n = nn[side];
-    var maxZ = this.planet.terrain.maxZoom;
+    let nn = this.node.neighbors;
+    let n = nn[side];
+    let maxZ = this.planet.terrain.maxZoom;
 
     if (this.tileZoom === maxZ) {
         if (!(nn[0] || nn[1] || nn[2] || nn[3])) {
@@ -381,37 +382,38 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
         }
     }
 
-    var ns = n && n.segment;
+    let ns = n && n.segment;
 
     if (n && ns && ns.terrainReady && ns.terrainExists &&
         ns.tileZoom <= maxZ &&
         this._appliedNeighborsZoom[side] !== ns.tileZoom) {
 
-        var s = this, b = ns;
+        let s = this, 
+            b = ns;
 
         s._appliedNeighborsZoom[side] = b.tileZoom;
 
-        var seg_a = s.normalMapNormals,
+        let seg_a = s.normalMapNormals,
             seg_b = b.normalMapNormals;
 
         if (!(seg_a && seg_b)) return;
 
-        var s_gs = Math.sqrt(s.normalMapNormals.length / 3),
+        let s_gs = Math.sqrt(s.normalMapNormals.length / 3),
             b_gs = Math.sqrt(b.normalMapNormals.length / 3),
             s_gs1 = s_gs - 1,
             b_gs1 = b_gs - 1;
 
         i_a *= s_gs1;
 
-        var nx, ny, nz, q;
+        let nx, ny, nz, q;
 
         if (s.tileZoom === b.tileZoom) {
 
-            var i_b = s_gs1 - i_a;
+            let i_b = s_gs1 - i_a;
 
             if (vert) {
-                for (var k = 0; k < s_gs; k++) {
-                    var vInd_a = (k * s_gs + i_a) * 3,
+                for (let k = 0; k < s_gs; k++) {
+                    let vInd_a = (k * s_gs + i_a) * 3,
                         vInd_b = (k * s_gs + i_b) * 3;
 
                     nx = seg_a[vInd_a] + seg_b[vInd_b];
@@ -425,8 +427,8 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                     seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
                 }
             } else {
-                for (var k = 0; k < s_gs; k++) {
-                    var vInd_a = (i_a * s_gs + k) * 3,
+                for (let k = 0; k < s_gs; k++) {
+                    let vInd_a = (i_a * s_gs + k) * 3,
                         vInd_b = (i_b * s_gs + k) * 3;
 
                     nx = seg_a[vInd_a] + seg_b[vInd_b];
@@ -447,7 +449,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
 
         } else {
-            var s_edge, b_edge;
+            let s_edge, b_edge;
 
             if (i_a) {
                 s_edge = 1;
@@ -463,7 +465,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                 }
                 b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
                 side = quadTree.OPSIDE[side];
-                var t = b;
+                let t = b;
                 t = s;
                 s = b;
                 b = t;
@@ -471,48 +473,46 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                 b_edge ^= 1;
             }
 
-            var s_nm = s.normalMapNormals,
-                b_nm = b.normalMapNormals;
+            //TODO: need to store default normal maps, but equalize only default normals, and render equalized normals.
+            // let dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
 
-            var dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
+            // if (vert) {
+            //     var offsetY = s.tileY * dZ2 - b.tileY;
 
-            if (vert) {
-                var offsetY = s.tileY * dZ2 - b.tileY;
+            //     for (let k = 0; k < s_gs; k++) {
+            //         let vInd_a = (s_gs * k + s_gs1 * s_edge) * 3,
+            //             kk = Math.round(k * dZ2),
+            //             vInd_b = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
 
-                for (var k = 0; k < s_gs; k++) {
-                    var s_ind = (s_gs * k + s_gs1 * s_edge) * 3;
-                    var kk = Math.round(k * dZ2);
-                    var b_ind = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
+            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
+            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
-                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+            //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+            //         seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
+            //     }
+            // } else {
+            //     let offsetX = s.tileX * dZ2 - b.tileX;
 
-                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                }
-            } else {
-                var offsetX = s.tileX * dZ2 - b.tileX;
+            //     for (let k = 0; k < s_gs; k++) {
+            //         let vInd_a = (s_gs * s_gs1 * s_edge + k) * 3,
+            //             kk = Math.round(k * dZ2),
+            //             vInd_b = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
 
-                for (var k = 0; k < s_gs; k++) {
-                    var s_ind = (s_gs * s_gs1 * s_edge + k) * 3;
-                    var kk = Math.round(k * dZ2);
-                    var b_ind = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
+            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
+            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
+            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
-                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-                    seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-                    seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-                    seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-                }
-            }
+            //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
+            //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
+            //         seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
+            //     }
+            // }
         }
     }
 };

@@ -139,7 +139,6 @@ class XYZ extends Layer {
             material.isLoading = true;
             if (material.segment._projection.id === EPSG3857.id) {
                 this._planet._tileLoader.load({
-                    'segment': seg,
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',
                     'filter': () => seg.ready && seg.node.getState() === RENDERING,
@@ -147,7 +146,7 @@ class XYZ extends Layer {
                 }, (response) => {
                     if (response.status === "ready") {
                         if (material.isLoading) {
-                            var e = this.events.load;
+                            let e = this.events.load;
                             if (e.handlers.length) {
                                 this.events.dispatch(e, material);
                             }
