@@ -176,10 +176,10 @@ NormalMapCreator.prototype._drawNormalMap = function (segment) {
         p.activate();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
-        gl.vertexAttribPointer(sha.a_position._pName, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_position, this._verticesBufferArray[gridSize].itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-        gl.vertexAttribPointer(sha.a_normal._pName, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
@@ -195,10 +195,10 @@ NormalMapCreator.prototype._drawNormalMap = function (segment) {
 
         p.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(p._program.attributes.a_position._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(p._program.attributes.a_position, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
-        gl.uniform1i(p._program.uniforms.s_texture._pName, 0);
+        gl.uniform1i(p._program.uniforms.s_texture, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
         return true;
     }

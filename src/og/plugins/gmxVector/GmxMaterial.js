@@ -13,6 +13,8 @@ const GmxMaterial = function (segment, layer) {
 
     this.fromTile = null;
 
+    this.maskTexture = null;
+    
     this.sceneIsLoading = {};
     this.sceneExists = {};
     this.sceneIsReady = {};

@@ -450,9 +450,9 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     //MAYBE: Could be refactored with framebuf function like getTexture()
     gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
-    gl.uniform1i(p.uniforms.texture._pName, 0);
+    gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.enable(gl.DEPTH_TEST);
 }
@@ -469,9 +469,9 @@ Renderer.prototype._singleframebufferScreenFrame = function () {
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
     //gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
     gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.texture);
-    gl.uniform1i(p.uniforms.texture._pName, 0);
+    gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners._pName, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.enable(gl.DEPTH_TEST);
 }

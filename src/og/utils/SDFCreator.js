@@ -212,22 +212,22 @@ class SDFCreator {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-        gl.uniform1i(shu.uTex1._pName, 0);
-        gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
+        gl.uniform1i(shu.uTex1, 0);
+        gl.uniform2fv(shu.uTexSize, [this._width, this._height]);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.aPos, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         //VERT
         this._framebuffer0.activate();
-        gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
-        gl.uniform2fv(shu.uNeg._pName, [0.0, -1.0]);
+        gl.uniform1i(shu.uDistance, this._outsideDistance);
+        gl.uniform2fv(shu.uNeg, [0.0, -1.0]);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer0.deactivate();
 
         //NEG VERT
         this._framebuffer2.activate();
-        gl.uniform2fv(shu.uNeg._pName, [1.0, 1.0]);
-        gl.uniform1i(shu.uDistance._pName, this._insideDistance);
+        gl.uniform2fv(shu.uNeg, [1.0, 1.0]);
+        gl.uniform1i(shu.uDistance, this._insideDistance);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer2.deactivate();
 
@@ -236,16 +236,16 @@ class SDFCreator {
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        gl.uniform2fv(shu.uTexSize._pName, [this._width, this._height]);
+        gl.uniform2fv(shu.uTexSize, [this._width, this._height]);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.aPos, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         //HORIZ
         this._framebuffer1.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
-        gl.uniform1i(shu.uTex1._pName, 0);
-        gl.uniform1i(shu.uDistance._pName, this._outsideDistance);
+        gl.uniform1i(shu.uTex1, 0);
+        gl.uniform1i(shu.uDistance, this._outsideDistance);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer1.deactivate();
 
@@ -253,8 +253,8 @@ class SDFCreator {
         this._framebuffer0.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer2.texture);
-        gl.uniform1i(shu.uTex1._pName, 0);
-        gl.uniform1i(shu.uDistance._pName, this._insideDistance);
+        gl.uniform1i(shu.uTex1, 0);
+        gl.uniform1i(shu.uDistance, this._insideDistance);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer0.deactivate();
 
@@ -271,15 +271,15 @@ class SDFCreator {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer1.texture);
-        gl.uniform1i(shu.outside._pName, 0);
+        gl.uniform1i(shu.outside, 0);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
-        gl.uniform1i(shu.inside._pName, 1);
+        gl.uniform1i(shu.inside, 1);
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-        gl.uniform1i(shu.source._pName, 2);
+        gl.uniform1i(shu.source, 2);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(sha.aPos._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.aPos, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         return h.canvas;

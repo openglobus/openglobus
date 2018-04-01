@@ -296,8 +296,7 @@ class GmxVector extends Layer {
 
     updateFilter() {
         this._filteredItems = {};
-        //...T
-        ODO
+        //...TODO
     }
 
     setStyleHook(styleCallback) {

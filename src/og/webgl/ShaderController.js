@@ -48,7 +48,7 @@ ShaderController.prototype.initialize = function () {
 /**
  * Returns controller's shader program.
  * @public
- * @return {og.shaderProgram.ShaderProgram}
+ * @return {og.shaderProgram.ShaderProgram} -
  */
 ShaderController.prototype.getProgram = function () {
     return this._program;
@@ -57,6 +57,7 @@ ShaderController.prototype.getProgram = function () {
 /**
  * Activates current shader program.
  * @public
+ * @returns {ShaderController} -
  */
 ShaderController.prototype.activate = function () {
     if (!this._activated) {
@@ -98,7 +99,7 @@ ShaderController.prototype.deactivate = function () {
 /**
  * Returns program activity.
  * @public
- * @return {boolean}
+ * @return {boolean} -
  */
 ShaderController.prototype.isActive = function () {
     return this._activated;
@@ -107,8 +108,8 @@ ShaderController.prototype.isActive = function () {
 /**
  * Sets program uniforms and attributes values and return controller instance.
  * @public
- * @param {Object} - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
- * @return {og.webgl.ShaderController}
+ * @param {Object} params - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
+ * @return {og.webgl.ShaderController} -
  */
 ShaderController.prototype.set = function (params) {
     this.activate();
@@ -120,7 +121,7 @@ ShaderController.prototype.set = function (params) {
  * Draw index buffer with this program.
  * @public
  * @param {number} mode - Gl draw mode
- * @param {}
+ * @param {WEBGLBuffer} buffer - Buffer to draw.
  * @return {og.webgl.ShaderController} Returns current shader controller instance.
  */
 ShaderController.prototype.drawIndexBuffer = function (mode, buffer) {
@@ -130,8 +131,8 @@ ShaderController.prototype.drawIndexBuffer = function (mode, buffer) {
 
 /**
  * Calls Gl drawArray function.
- * @param {number} - Gl draw mode.
- * @param {number} - draw items count.
+ * @param {number} mode - Gl draw mode.
+ * @param {number} numItems - draw items count.
  * @return {og.webgl.ShaderController} Returns current shader controller instance.
  */
 ShaderController.prototype.drawArray = function (mode, numItems) {

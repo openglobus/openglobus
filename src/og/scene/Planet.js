@@ -938,21 +938,21 @@ class Planet extends RenderNode {
             sh = h.shaderPrograms.drawnode_screen_wl._program;
             shu = sh.uniforms;
 
-            gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+            gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
 
-            gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera._normalMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
             gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture) || this.transparentTexture);
-            gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE);
+            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             //bind specular material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-            gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE + 1);
+            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             var b = this.baseLayer;
             if (b) {
@@ -985,7 +985,7 @@ class Planet extends RenderNode {
         } else {
             h.shaderPrograms.drawnode_screen_nl.activate();
             sh = h.shaderPrograms.drawnode_screen_nl._program;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
         //draw planet's nodes
@@ -1032,9 +1032,9 @@ class Planet extends RenderNode {
 
         h.shaderPrograms.drawnode_heightPicking.activate();
         sh = h.shaderPrograms.drawnode_heightPicking._program;
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
 
-        h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
+        h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
 
         //draw planet's nodes
         var rn = this._renderedNodes,
@@ -1081,7 +1081,7 @@ class Planet extends RenderNode {
 
         h.shaderPrograms.drawnode_colorPicking.activate();
         sh = h.shaderPrograms.drawnode_colorPicking._program;
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
 
         //draw planet's nodes
         var rn = this._renderedNodes,
@@ -1125,21 +1125,21 @@ class Planet extends RenderNode {
             sh = h.shaderPrograms.drawnode_wl._program;
             shu = sh.uniforms;
 
-            gl.uniform4fv(shu.lightsPositions._pName, this._lightsTransformedPositions);
+            gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
 
-            gl.uniformMatrix3fv(shu.normalMatrix._pName, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.viewMatrix._pName, false, renderer.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, renderer.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera._normalMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera._projectionMatrix._m);
 
             //bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2);
             gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture) || this.transparentTexture);
-            gl.uniform1i(shu.nightTexture._pName, this.SLICE_SIZE * 2);
+            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE * 2);
 
             //bind specular material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2 + 1);
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-            gl.uniform1i(shu.specularTexture._pName, this.SLICE_SIZE * 2 + 1);
+            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE * 2 + 1);
 
             var b = this.baseLayer;
             if (b) {
@@ -1172,10 +1172,10 @@ class Planet extends RenderNode {
         } else {
             h.shaderPrograms.drawnode_nl.activate();
             sh = h.shaderPrograms.drawnode_nl._program;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix._pName, false, renderer.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
-        h.gl.uniform3fv(sh.uniforms.cameraPosition._pName, renderer.activeCamera.eye.toVec());
+        h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
 
         //draw planet's nodes
         var rn = this._renderedNodes,

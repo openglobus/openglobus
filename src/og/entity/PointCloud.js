@@ -347,17 +347,17 @@ class PointCloud {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
-            gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
+            gl.uniform1f(shu.opacity, this._handler._entityCollection._animatedOpacity);
 
-            gl.uniform1f(shu.pointSize._pName, this.pointSize);
+            gl.uniform1f(shu.pointSize, this.pointSize);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
-            gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.coordinates, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-            gl.vertexAttribPointer(sha.colors._pName, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.colors, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer.numItems);
         }
@@ -375,17 +375,17 @@ class PointCloud {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
-            gl.uniform1f(shu.opacity._pName, this._handler._entityCollection._animatedOpacity);
+            gl.uniform1f(shu.opacity, this._handler._entityCollection._animatedOpacity);
 
-            gl.uniform1f(shu.pointSize._pName, this.pointSize + this.pickingDistance);
+            gl.uniform1f(shu.pointSize, this.pointSize + this.pickingDistance);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
-            gl.vertexAttribPointer(sha.coordinates._pName, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.coordinates, this._coordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-            gl.vertexAttribPointer(sha.colors._pName, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.colors, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer.numItems);
         }
