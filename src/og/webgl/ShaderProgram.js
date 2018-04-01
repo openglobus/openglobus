@@ -27,18 +27,21 @@ class ShaderProgram {
          */
         this.name = name;
 
+        this.attributes = {};
+        this.uniforms = {};
+
         /**
          * Attributes.
          * @public
          * @type {Object}
          */
-        this.attributes = {};
+        this._attributes = {};
         for (let t in material.attributes) {
             if (typeof (material.attributes[t]) === "string" ||
                 typeof (material.attributes[t]) === "number") {
-                this.attributes[t] = { 'type': material.attributes[t] };
+                this._attributes[t] = { 'type': material.attributes[t] };
             } else {
-                this.attributes[t] = material.attributes[t];
+                this._attributes[t] = material.attributes[t];
             }
         }
 
@@ -47,13 +50,13 @@ class ShaderProgram {
          * @public
          * @type {Object}
          */
-        this.uniforms = {};
+        this._uniforms = {};
         for (let t in material.uniforms) {
             if (typeof (material.uniforms[t]) === "string" ||
                 typeof (material.uniforms[t]) === "number") {
-                this.uniforms[t] = { 'type': material.uniforms[t] };
+                this._uniforms[t] = { 'type': material.uniforms[t] };
             } else {
-                this.uniforms[t] = material.uniforms[t];
+                this._uniforms[t] = material.uniforms[t];
             }
         }
 
@@ -263,19 +266,19 @@ class ShaderProgram {
 
         this.use();
 
-        for (var a in this.attributes) {
-            this.attributes[a]._name = a;
-            this._variables[a] = this.attributes[a];
+        for (var a in this._attributes) {
+            //this.attributes[a]._name = a;
+            this._variables[a] = this._attributes[a];
 
             //Maybe, it will be better to remove enableArray option...
-            this.attributes[a].enableArray = (this.attributes[a].enableArray != undefined ? this.attributes[a].enableArray : true);
-            if (this.attributes[a].enableArray)
-                this.attributes[a]._callback = ShaderProgram.bindBuffer;
+            this._attributes[a].enableArray = (this._attributes[a].enableArray != undefined ? this._attributes[a].enableArray : true);
+            if (this._attributes[a].enableArray)
+                this._attributes[a]._callback = ShaderProgram.bindBuffer;
             else {
-                if (typeof (this.attributes[a].type) === "string") {
-                    this.attributes[a]._callback = callbacks.a[typeStr[this.attributes[a].type.trim().toLowerCase()]];
+                if (typeof (this._attributes[a].type) === "string") {
+                    this._attributes[a]._callback = callbacks.a[typeStr[this._attributes[a].type.trim().toLowerCase()]];
                 } else {
-                    this.attributes[a]._callback = callbacks.a[this.attributes[a].type];
+                    this._attributes[a]._callback = callbacks.a[this._attributes[a].type];
                 }
             }
 
@@ -287,24 +290,25 @@ class ShaderProgram {
                 return;
             }
 
-            if (this.attributes[a].enableArray) {
+            if (this._attributes[a].enableArray) {
                 this._attribArrays.push(this._p[a]);
                 gl.enableVertexAttribArray(this._p[a]);
             }
 
-            this.attributes[a]._pName = this._p[a];
+            this._attributes[a]._pName = this._p[a];
+            this.attributes[a] = this._p[a];
         }
 
-        for (var u in this.uniforms) {
-            this.uniforms[u]._name = u;
+        for (var u in this._uniforms) {
+            //this.uniforms[u]._name = u;
 
-            if (typeof (this.uniforms[u].type) === "string") {
-                this.uniforms[u]._callback = callbacks.u[typeStr[this.uniforms[u].type.trim().toLowerCase()]];
+            if (typeof (this._uniforms[u].type) === "string") {
+                this._uniforms[u]._callback = callbacks.u[typeStr[this._uniforms[u].type.trim().toLowerCase()]];
             } else {
-                this.uniforms[u]._callback = callbacks.u[this.uniforms[u].type];
+                this._uniforms[u]._callback = callbacks.u[this._uniforms[u].type];
             }
 
-            this._variables[u] = this.uniforms[u];
+            this._variables[u] = this._uniforms[u];
             this._p[u] = gl.getUniformLocation(this._p, u);
 
             if (this._p[u] == undefined) {
@@ -313,7 +317,8 @@ class ShaderProgram {
                 return;
             }
 
-            this.uniforms[u]._pName = this._p[u];
+            this._uniforms[u]._pName = this._p[u];
+            this.uniforms[u] = this._p[u];
         }
 
         //Maybe it will be better to deleteProgram...

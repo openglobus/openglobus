@@ -236,6 +236,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                 var materialZoom = material.segment.tileZoom;
                 var zoomAvailable = materialZoom >= layer._gmxProperties.RCMinZoomForRasters;
 
+                //TODO: sort optimization
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
                 });
@@ -274,48 +275,55 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                 //
                 //HERE IS A LONG ITEMS DRAWING LOOP
+                //TODO: need optimization
                 //
                 //draw vectors
-                for (var i = 0; i < tItems.length; i++) {
-                    var ti = tItems[i];
-                    
-                    if (ti.extent.overlaps(extent) && layer.getItemVisibility(ti.item)) {
+                for (let i = 0; i < tItems.length; i++) {
+                    let ti = tItems[i];
 
-                        // if (layer._gmxProperties.Temporal && zoomAvailable) {
-                        //     let sceneTextureOffset = layer.applySceneTexture(ti, material);
-                        // }
+                    if (layer.getItemVisibility(ti.item) && ti.extent.overlaps(extent)) {
 
-                        var style = layer.getItemStyle(ti.item),
-                            fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w];
-
-                        var pickingColor = [ti.item._pickingColor.x / 255.0, ti.item._pickingColor.y / 255.0, ti.item._pickingColor.z / 255.0, 1.0];
+                        let style = layer.getItemStyle(ti.item),
+                            fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w],
+                            pickingColor = [ti.item._pickingColor.x / 255.0, ti.item._pickingColor.y / 255.0, ti.item._pickingColor.z / 255.0, 1.0];
 
                         hPoly.activate();
-                        var sh = hPoly._program;
-                        var sha = sh.attributes,
+                        let sh = hPoly._program,
+                            sha = sh.attributes,
                             shu = sh.uniforms;
 
-                        //==============
-                        //polygon
-                        //==============
-                        f.bindOutputTexture(texture);
-                        gl.uniform4fv(shu.color._pName, fillColor);
-                        gl.uniform4fv(shu.extentParams._pName, extentParams);
+                        if (layer._gmxProperties.Temporal) {
+                            let sceneTextureOffset;
+                            if (zoomAvailable) {
+                                sceneTextureOffset = layer.applySceneTexture(ti, material);
+                            }
+                            //create mask
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
-                        gl.vertexAttribPointer(sha.coordinates._pName, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                        } else {
 
-                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
-                        gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                        //Polygon picking pass
-                        if (layer._pickingEnabled) {
-                            if (!material.pickingReady) {
-                                f.bindOutputTexture(pickingMask);
-                                gl.uniform4fv(shu.color._pName, pickingColor);
-                                gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                            } else {
-                                pickingMask = material.pickingMask;
+                            //==============
+                            //polygon
+                            //==============
+                            f.bindOutputTexture(texture);
+                            gl.uniform4fv(shu.color, fillColor);
+                            gl.uniform4fv(shu.extentParams, extentParams);
+
+                            gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
+                            gl.vertexAttribPointer(sha.coordinates, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+
+                            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
+                            gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+
+                            //Polygon picking pass
+                            if (layer._pickingEnabled) {
+                                if (!material.pickingReady) {
+                                    f.bindOutputTexture(pickingMask);
+                                    gl.uniform4fv(shu.color, pickingColor);
+                                    gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                                } else {
+                                    pickingMask = material.pickingMask;
+                                }
                             }
                         }
 
@@ -329,55 +337,55 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                         f.bindOutputTexture(texture);
 
-                        gl.uniform2fv(shu.viewport._pName, [width, height]);
-                        gl.uniform4fv(shu.extentParams._pName, extentParams);
+                        gl.uniform2fv(shu.viewport, [width, height]);
+                        gl.uniform4fv(shu.extentParams, extentParams);
 
                         //vertex
                         var mb = ti._lineVerticesBufferMerc;
                         gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-                        gl.vertexAttribPointer(sha.prev._pName, mb.itemSize, gl.FLOAT, false, 8, 0);
-                        gl.vertexAttribPointer(sha.current._pName, mb.itemSize, gl.FLOAT, false, 8, 32);
-                        gl.vertexAttribPointer(sha.next._pName, mb.itemSize, gl.FLOAT, false, 8, 64);
+                        gl.vertexAttribPointer(sha.prev, mb.itemSize, gl.FLOAT, false, 8, 0);
+                        gl.vertexAttribPointer(sha.current, mb.itemSize, gl.FLOAT, false, 8, 32);
+                        gl.vertexAttribPointer(sha.next, mb.itemSize, gl.FLOAT, false, 8, 64);
 
                         //order
                         gl.bindBuffer(gl.ARRAY_BUFFER, ti._lineOrdersBuffer);
-                        gl.vertexAttribPointer(sha.order._pName, ti._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+                        gl.vertexAttribPointer(sha.order, ti._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
                         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._lineIndexesBuffer);
 
                         //PASS - stroke
-                        gl.uniform1f(shu.thickness._pName, style.strokeWidth);
-                        gl.uniform4fv(shu.color._pName, style.strokeColor.toArray());
+                        gl.uniform1f(shu.thickness, style.strokeWidth);
+                        gl.uniform4fv(shu.color, style.strokeColor.toArray());
 
                         //Antialias pass
-                        gl.uniform1f(shu.thicknessOutline._pName, 2);
-                        gl.uniform1f(shu.alpha._pName, 0.54);
+                        gl.uniform1f(shu.thicknessOutline, 2);
+                        gl.uniform1f(shu.alpha, 0.54);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         //
                         //Aliased pass
-                        gl.uniform1f(shu.thicknessOutline._pName, 1);
-                        gl.uniform1f(shu.alpha._pName, 1.0);
+                        gl.uniform1f(shu.thicknessOutline, 1);
+                        gl.uniform1f(shu.alpha, 1.0);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //PASS - inside line
-                        gl.uniform1f(shu.thickness._pName, style.lineWidth);
-                        gl.uniform4fv(shu.color._pName, style.lineColor.toArray());
+                        gl.uniform1f(shu.thickness, style.lineWidth);
+                        gl.uniform4fv(shu.color, style.lineColor.toArray());
 
                         //Antialias pass
-                        gl.uniform1f(shu.thicknessOutline._pName, 2);
-                        gl.uniform1f(shu.alpha._pName, 0.54);
+                        gl.uniform1f(shu.thicknessOutline, 2);
+                        gl.uniform1f(shu.alpha, 0.54);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         //
                         //Aliased pass
-                        gl.uniform1f(shu.thicknessOutline._pName, 1);
-                        gl.uniform1f(shu.alpha._pName, 1.0);
+                        gl.uniform1f(shu.thicknessOutline, 1);
+                        gl.uniform1f(shu.alpha, 1.0);
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //Outline picking pass
                         if (layer._pickingEnabled && !material.pickingReady) {
                             f.bindOutputTexture(pickingMask);
-                            gl.uniform1f(shu.thicknessOutline._pName, 8);
-                            gl.uniform4fv(shu.color._pName, pickingColor);
+                            gl.uniform1f(shu.thicknessOutline, 8);
+                            gl.uniform4fv(shu.color, pickingColor);
                             gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         }
 

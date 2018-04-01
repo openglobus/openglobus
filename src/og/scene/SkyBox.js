@@ -44,14 +44,14 @@ class SkyBox extends RenderNode {
         h.shaderPrograms.skybox.activate();
         sh = h.shaderPrograms.skybox._program;
         var shu = sh.uniforms;
-        gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, cam._projectionViewMatrix._m);
-        gl.uniform3fv(shu.pos._pName, cam.eye.toVec());
+        gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam._projectionViewMatrix._m);
+        gl.uniform3fv(shu.pos, cam.eye.toVec());
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
-        gl.uniform1i(shu.uSampler._pName, 0);
+        gl.uniform1i(shu.uSampler, 0);
         var buf = this.vertexPositionBuffer;
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.vertexAttribPointer(sh.attributes.aVertexPosition._pName, buf.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sh.attributes.aVertexPosition, buf.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(this.drawMode, 0, buf.numItems);
         h.gl.enable(h.gl.DEPTH_TEST);

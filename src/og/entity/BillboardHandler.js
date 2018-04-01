@@ -239,42 +239,42 @@ class BillboardHandler {
 
         var gl = h.gl;
 
-        gl.uniform1i(shu.u_texture._pName, 0);
+        gl.uniform1i(shu.u_texture, 0);
 
-        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
 
-        gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
+        gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity._pName, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.uOpacity, this._entityCollection._animatedOpacity);
 
-        gl.uniform2fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord._pName, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_positions, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
-        gl.vertexAttribPointer(sha.a_rgba._pName, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
-        gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
-        gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
-        gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -289,37 +289,37 @@ class BillboardHandler {
 
         var gl = h.gl;
 
-        gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
+        gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
 
-        gl.uniform3fv(shu.uScaleByDistance._pName, this._entityCollection.scaleByDistance);
+        gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity._pName, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.uOpacity, this._entityCollection._animatedOpacity);
 
-        gl.uniform2fv(shu.uFloatParams._pName, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(sha.a_vertices._pName, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(sha.a_positions._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_positions, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-        gl.vertexAttribPointer(sha.a_pickingColor._pName, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_pickingColor, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
-        gl.vertexAttribPointer(sha.a_size._pName, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
-        gl.vertexAttribPointer(sha.a_offset._pName, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        gl.vertexAttribPointer(sha.a_rotation._pName, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
-        gl.vertexAttribPointer(sha.a_alignedAxis._pName, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     };

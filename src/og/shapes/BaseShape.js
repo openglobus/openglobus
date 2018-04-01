@@ -406,15 +406,15 @@ class BaseShape {
 
                 sh.activate();
 
-                gl.uniform4fv(shu.lightsPositions._pName, rn._lightsTransformedPositions);
-                gl.uniform3fv(shu.lightsParamsv._pName, rn._lightsParamsv);
-                gl.uniform1fv(shu.lightsParamsf._pName, rn._lightsParamsf);
-                gl.uniformMatrix4fv(shu.projectionMatrix._pName, false, r.activeCamera._projectionMatrix._m);
-                gl.uniformMatrix4fv(shu.viewMatrix._pName, false, r.activeCamera._viewMatrix._m);
-                gl.uniformMatrix3fv(shu.normalMatrix._pName, false, r.activeCamera._normalMatrix._m);
+                gl.uniform4fv(shu.lightsPositions, rn._lightsTransformedPositions);
+                gl.uniform3fv(shu.lightsParamsv, rn._lightsParamsv);
+                gl.uniform1fv(shu.lightsParamsf, rn._lightsParamsf);
+                gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+                gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+                gl.uniformMatrix3fv(shu.normalMatrix, false, r.activeCamera._normalMatrix._m);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
-                gl.vertexAttribPointer(sha.aVertexNormal._pName, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(sha.aVertexNormal, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
             } else {
                 sh = r.handler.shaderPrograms.shape_nl;
                 p = sh._program;
@@ -423,21 +423,21 @@ class BaseShape {
 
                 sh.activate();
 
-                gl.uniformMatrix4fv(shu.projectionViewMatrix._pName, false, r.activeCamera._projectionViewMatrix._m);
+                gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
             }
 
-            gl.uniform4fv(shu.uColor._pName, this.color);
+            gl.uniform4fv(shu.uColor, this.color);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition._pName, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.uniformMatrix4fv(shu.modelMatrix._pName, false, this._mxModel._m);
+            gl.vertexAttribPointer(sha.aVertexPosition, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniformMatrix4fv(shu.modelMatrix, false, this._mxModel._m);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
-            gl.uniform1i(shu.uSampler._pName, 0);
+            gl.uniform1i(shu.uSampler, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
-            gl.vertexAttribPointer(sha.aTextureCoord._pName, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.aTextureCoord, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);

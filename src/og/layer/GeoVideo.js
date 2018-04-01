@@ -214,13 +214,13 @@ class GeoVideo extends BaseGeoImage {
         gl.clearColor(tr, tg, tb, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.texCoords, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, this._extentMercParams);
+        gl.vertexAttribPointer(sha.corners, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform4fv(shu.extentParams, this._extentMercParams);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
+        gl.uniform1i(shu.sourceTexture, 0);
         sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
         f.deactivate();
 
@@ -266,13 +266,13 @@ class GeoVideo extends BaseGeoImage {
         gl.clearColor(tr, tg, tb, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords._pName, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.texCoords, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
-        gl.vertexAttribPointer(sha.corners._pName, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.uniform4fv(shu.extentParams._pName, this._extentWgs84Params);
+        gl.vertexAttribPointer(sha.corners, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform4fv(shu.extentParams, this._extentWgs84Params);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-        gl.uniform1i(shu.sourceTexture._pName, 0);
+        gl.uniform1i(shu.sourceTexture, 0);
         sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
         f.deactivate();
 

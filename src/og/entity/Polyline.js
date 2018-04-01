@@ -992,27 +992,27 @@ class Polyline {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
-            gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
             if (r.isMultiFramebufferCompatible()) {
-                gl.uniform3fv(shu.pickingColor._pName, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
+                gl.uniform3fv(shu.pickingColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
             }
 
-            gl.uniform4fv(shu.color._pName, this.color.toVec());
-            gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
-            gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-            gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-            gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
+            gl.uniform4fv(shu.color, this.color.toVec());
+            gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+            gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5);
 
             var v = this._verticesBuffer;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
-            gl.vertexAttribPointer(sha.prev._pName, v.itemSize, gl.FLOAT, false, 12, 0);
-            gl.vertexAttribPointer(sha.current._pName, v.itemSize, gl.FLOAT, false, 12, 48);
-            gl.vertexAttribPointer(sha.next._pName, v.itemSize, gl.FLOAT, false, 12, 96);
+            gl.vertexAttribPointer(sha.prev, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.current, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.next, v.itemSize, gl.FLOAT, false, 12, 96);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
-            gl.vertexAttribPointer(sha.order._pName, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
@@ -1035,23 +1035,23 @@ class Polyline {
             gl.disable(gl.BLEND);
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.proj._pName, false, r.activeCamera._projectionMatrix._m);
-            gl.uniformMatrix4fv(shu.view._pName, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
-            gl.uniform4fv(shu.color._pName, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
-            gl.uniform3fv(shu.uCamPos._pName, r.activeCamera.eye.toVec());
-            gl.uniform2fv(shu.uFloatParams._pName, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-            gl.uniform2fv(shu.viewport._pName, [r.handler.canvas.width, r.handler.canvas.height]);
-            gl.uniform1f(shu.thickness._pName, this.thickness * 0.5);
+            gl.uniform4fv(shu.color, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
+            gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+            gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5);
 
             var v = this._verticesBuffer;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
-            gl.vertexAttribPointer(sha.prev._pName, v.itemSize, gl.FLOAT, false, 12, 0);
-            gl.vertexAttribPointer(sha.current._pName, v.itemSize, gl.FLOAT, false, 12, 48);
-            gl.vertexAttribPointer(sha.next._pName, v.itemSize, gl.FLOAT, false, 12, 96);
+            gl.vertexAttribPointer(sha.prev, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.current, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.next, v.itemSize, gl.FLOAT, false, 12, 96);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
-            gl.vertexAttribPointer(sha.order._pName, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
