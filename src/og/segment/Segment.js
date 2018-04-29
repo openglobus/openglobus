@@ -59,11 +59,11 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.handler = planet.renderer.handler;
 
-    /**
-     * Segment bounding box.
-     * @type {og.bv.Box}
-     */
-    this.bbox = new Box();
+    ///**
+    // * Segment bounding box.
+    // * @type {og.bv.Box}
+    // */
+    //this.bbox = new Box();
 
     /**
      * Segment bounding box.
@@ -298,7 +298,6 @@ Segment.prototype.loadTerrain = function () {
  * @param {Float32Array} elevations - Elevation data.
  */
 Segment.prototype.elevationsExists = function (elevations) {
-    //terrain exists
     if (this.ready && this.terrainIsLoading) {
         this.planet._terrainWorker.make(this, elevations);
     }
@@ -357,7 +356,10 @@ Segment.prototype.elevationsNotExists = function () {
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
         }
 
-        var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX, ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
+        var xmin = math.MAX, xmax = math.MIN, 
+            ymin = math.MAX, ymax = math.MIN, 
+            zmin = math.MAX, zmax = math.MIN;
+            
         var v = this.terrainVertices;
         for (var i = 0; i < v.length; i += 3) {
             var x = v[i], y = v[i + 1], z = v[i + 2];
@@ -388,7 +390,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
         ns.tileZoom <= maxZ &&
         this._appliedNeighborsZoom[side] !== ns.tileZoom) {
 
-        let s = this, 
+        let s = this,
             b = ns;
 
         s._appliedNeighborsZoom[side] = b.tileZoom;
@@ -658,11 +660,15 @@ Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this._extent;
 
-    var xmin = math.MAX, xmax = math.MIN, ymin = math.MAX, ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
-    var v = [LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
-    LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
-    LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
-    LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat)];
+    var xmin = math.MAX, xmax = math.MIN,
+        ymin = math.MAX, ymax = math.MIN,
+        zmin = math.MAX, zmax = math.MIN;
+
+    var v =
+        [LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
+        LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
+        LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
+        LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat)];
 
     for (var i = 0; i < v.length; i++) {
         var coord = ellipsoid.lonLatToCartesian(v[i]);

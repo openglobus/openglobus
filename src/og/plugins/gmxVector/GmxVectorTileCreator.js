@@ -4,9 +4,9 @@
 
 'use strict';
 
-import * as quadTree from '../../quadTree/quadTree.js';
 import { VectorTileCreator } from '../../utils/VectorTileCreator.js';
 import { inherits } from '../../inherits.js';
+import { RENDERING } from '../../quadTree/quadTree.js';
 import { ShaderProgram } from '../../webgl/ShaderProgram.js';
 import { types } from '../../webgl/types.js';
 import { Framebuffer } from '../../webgl/Framebuffer.js';
@@ -14,6 +14,8 @@ import { Framebuffer } from '../../webgl/Framebuffer.js';
 const GmxVectorTileCreator = function (planet, maxFrames, width, height) {
 
     VectorTileCreator.call(this, planet, maxFrames, width, height);
+
+    this._maskTexture = null;
 
     planet.events.on("draw", this.frame, this);
 };
@@ -192,6 +194,8 @@ GmxVectorTileCreator.prototype._initialize = function () {
     });
 
     this._framebuffer.init();
+
+    this._maskTexture = this._handler.createEmptyTexture_n(this._width, this._height);
 };
 
 GmxVectorTileCreator.prototype.add = function (data) {
@@ -229,7 +233,7 @@ GmxVectorTileCreator.prototype.frame = function () {
             var fromTile = q.fromTile,
                 material = q.material;
 
-            if (material.isLoading && material.segment.node.getState() === quadTree.RENDERING) {
+            if (material.isLoading && material.segment.node.getState() === RENDERING) {
 
                 var layer = material.layer;
                 var tItems = fromTile.tileItemArr;
@@ -266,7 +270,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                 f.setSize(width, height);
 
                 f.bindOutputTexture(texture);
-                gl.clearColor(1.0, 1.0, 1.0, 0.0);
+                gl.clearColor(0.0, 0.0, 0.0, 0.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 f.bindOutputTexture(pickingMask);
@@ -275,13 +279,14 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                 //
                 //HERE IS A LONG ITEMS DRAWING LOOP
-                //TODO: need optimization
+                //TODO: optimization
                 //
                 //draw vectors
                 for (let i = 0; i < tItems.length; i++) {
                     let ti = tItems[i];
 
-                    if (layer.getItemVisibility(ti.item) && ti.extent.overlaps(extent)) {
+                    if (layer.getItemVisibility(ti.item) &&
+                        ti.extent.overlaps(extent)) {
 
                         let style = layer.getItemStyle(ti.item),
                             fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w],
@@ -297,7 +302,9 @@ GmxVectorTileCreator.prototype.frame = function () {
                             if (zoomAvailable) {
                                 sceneTextureOffset = layer.applySceneTexture(ti, material);
                             }
-                            //create mask
+                            //f.bindOutputTexture(this._maskTexture);
+                            //gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                            //gl.clear(gl.COLOR_BUFFER_BIT);
 
                         } else {
 

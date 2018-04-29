@@ -235,7 +235,7 @@ class Camera {
     }
 
     getUp() {
-        return this._v;
+        return this._v.clone();
     }
 
     getDown() {
@@ -243,7 +243,7 @@ class Camera {
     }
 
     getRight() {
-        return this._u;
+        return this._u.clone();
     }
 
     getLeft() {
@@ -251,11 +251,11 @@ class Camera {
     }
 
     getForward() {
-        return this._n;
+        return this._n.negateTo();
     }
 
     getBackward() {
-        return this._n.negateTo();
+        return this._n.clone();
     }
 
     /**
