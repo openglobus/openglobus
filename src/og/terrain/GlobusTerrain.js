@@ -169,7 +169,7 @@ class GlobusTerrain extends EmptyTerrain {
                         } else if (response.status === "error") {
                             this._applyElevationsData(segment, []);
                         }else{
-                            console.log("unknown");
+                            segment.terrainIsLoading = false;
                         }
                     });
 

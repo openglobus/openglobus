@@ -13,6 +13,8 @@ import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 
+const POLE = mercator.POLE;
+const MAX_LAT = mercator.MAX_LAT;
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -115,15 +117,14 @@ Node.prototype.createBounds = function () {
             pn = pn.parentNode;
         }
 
-        let scale = this.segment.tileZoom - pn.segment.tileZoom;
-
-        let dZ2 = Math.pow(2, scale);
+        let scale = this.segment.tileZoom - pn.segment.tileZoom,
+            dZ2 = 1 << scale;
 
         let offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
             offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
         if (pn.segment.terrainReady) {
-            let gridSize = pn.segment.gridSize / Math.pow(2, scale);
+            let gridSize = pn.segment.gridSize / dZ2;
             if (gridSize >= 1) {
                 let pVerts = pn.segment.terrainVertices;
                 let i0 = gridSize * offsetY;
@@ -164,8 +165,8 @@ Node.prototype.createBounds = function () {
                     coords_lt = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
-                vi_y = t_i0 + 1,
-                    vi_x = t_j0 + 1;
+                vi_y = t_i0 + 1;
+                vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
                     coords_rb = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
@@ -331,8 +332,6 @@ Node.prototype.renderTree = function (maxZoom) {
  */
 Node.prototype.renderNode = function (onlyTerrain) {
 
-    this.state = quadTree.RENDERING;
-
     var seg = this.segment;
 
     //Create and load terrain data.
@@ -344,6 +343,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
     }
 
     if (onlyTerrain) {
+        this.state = quadTree.NOTRENDERING;
         return;
     }
 
@@ -363,7 +363,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
     seg._addViewExtent();
 
-    //Finally this node proceed to rendering.
+    //Finally this node proceeds to rendering.
     this.addToRender();
 };
 
@@ -372,6 +372,9 @@ Node.prototype.renderNode = function (onlyTerrain) {
  * @public
  */
 Node.prototype.addToRender = function () {
+
+    this.state = quadTree.RENDERING;
+
     var node = this;
     var nodes = node.planet._renderedNodes;
     for (var i = 0; i < nodes.length; i++) {
@@ -415,9 +418,6 @@ Node.prototype.getCommonSide = function (node) {
         b_ne = b.northEast, b_sw = b.southWest;
     var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
         b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
-
-    var POLE = mercator.POLE,
-        MAX_LAT = mercator.MAX_LAT;
 
     if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
         if (a_ne_lon === b_sw_lon) {
@@ -511,7 +511,7 @@ Node.prototype.whileTerrainLoading = function () {
         let fgs = this.planet.terrain.fileGridSize;
         let dg = Math.max(fgs / seg.gridSize, 1),
             gs = Math.max(fgs, seg.gridSize) + 1;
-            let ind = 0,
+        let ind = 0,
             nmInd = 0;
 
         let gs3 = gs * gs * 3,

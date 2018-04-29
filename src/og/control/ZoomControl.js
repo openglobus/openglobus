@@ -6,8 +6,6 @@
 
 import { BaseControl } from './BaseControl.js';
 import { Key } from '../Lock.js';
-import { MouseNavigation } from './MouseNavigation.js';
-
 
 /**
  * Planet zoom buttons control.
@@ -21,13 +19,11 @@ class ZoomControl extends BaseControl {
 
         options = options || {};
 
-        this.distDiff = 0.33;
-        this.stepsCount = 5;
-        this.stepsForward = null;
-        this.stepIndex = 0;
         this._keyLock = new Key();
 
         this.planet = null;
+
+        this._move = 0;
     }
 
     oninit() {
@@ -44,14 +40,11 @@ class ZoomControl extends BaseControl {
 
         this.renderer.div.appendChild(zoomDiv);
 
-        var that = this;
-        btnZoomIn.onclick = function (e) {
-            that.zoomIn();
-        };
+        btnZoomIn.addEventListener("mousedown", (e) => this.zoomIn());
+        btnZoomIn.addEventListener("mouseup", (e) => this.stopZoom());
 
-        btnZoomOut.onclick = function (e) {
-            that.zoomOut();
-        };
+        btnZoomOut.addEventListener("mousedown", (e) => this.zoomOut());
+        btnZoomOut.addEventListener("mouseup", (e) => this.stopZoom());
 
         this.renderer.events.on("draw", this._draw, this);
     }
@@ -62,15 +55,13 @@ class ZoomControl extends BaseControl {
      */
     zoomIn() {
 
-        this._deactivate = true;
-
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
-        this.stepIndex = this.stepsCount;
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-            this.planet, this.stepsCount, this.distDiff * 1.7, this.renderer.getCenter(), true, this.renderer.activeCamera._n.negateTo());
+        this._targetPoint = this.renderer.getCenter();
+
+        this._move = 1;
     }
 
     /** 
@@ -79,44 +70,38 @@ class ZoomControl extends BaseControl {
      */
     zoomOut() {
 
-        this._deactivate = true;
-
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
-        this.stepIndex = this.stepsCount;
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-            this.planet, this.stepsCount, this.distDiff * 2, this.renderer.getCenter(), false, this.renderer.activeCamera._n.negateTo());
+        this._targetPoint = this.renderer.getCenter();
+        this._move = -1;
+    }
+
+    stopZoom() {
+
+        this._move = 0;
+
+        this.planet.layerLock.free(this._keyLock);
+        // this.planet.terrainLock.free(this._keyLock);
+        this.planet._normalMapCreator.free(this._keyLock);
     }
 
     _draw(e) {
 
         var cam = this.renderer.activeCamera;
 
-        if (this.stepIndex) {
-            var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-            cam.eye = sf.eye;
-            cam._v = sf.v;
-            cam._u = sf.u;
-            cam._n = sf.n;
+        if (this._move !== 0) {
+            var d = cam.eye.distance(
+                this.planet.getCartesianFromPixelTerrain(this._targetPoint, true)) * 0.075;
+            cam.eye.addA(cam.getForward().scale(this._move * d));
             cam.update();
-        } else if (!cam._flying) {
-            if (this._deactivate) {
-
-                this.planet.layerLock.free(this._keyLock);
-                this.planet.terrainLock.free(this._keyLock);
-                this.planet._normalMapCreator.free(this._keyLock);
-
-                this._deactivate = false;
-            }
         }
     }
-};
-
+}
 
 export function zoomControl(options) {
     return new ZoomControl(options);
-};
+}
 
 export { ZoomControl };
