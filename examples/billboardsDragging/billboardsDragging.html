@@ -1,0 +1,91 @@
+<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <script>
+
+    pointLayer = new og.layer.Vector("points", {
+        'groundAlign': true,
+        'entities': [{
+            'name': 'Blue Marker',
+            'lonlat': [8.19, 46.73],
+            'billboard': {
+                'src': 'marker.png',
+                'size': [29, 48],
+                'offset': [0, 24]
+            }
+        }, {
+            'name': 'label',
+            'lonlat': [8.25, 46.74],
+            'label': {
+                'text': 'Touch me',
+                'size': [35],
+                'outlineColor': "rgba(0,0,0,.5)"
+            }
+        }],
+        'async': false
+    });
+
+    var osm = new og.layer.XYZ("OpenStreetMap", {
+        specular: [0.0003, 0.00012, 0.00001],
+        shininess: 20,
+        diffuse: [0.89, 0.9, 0.83],
+        isBaseLayer: true,
+        url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+        attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    });
+
+    globus = new og.Globus({
+        "target": "globus",
+        "name": "Earth",
+        "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+        "layers": [osm, pointLayer]
+    });
+
+    var pickingObject = null;
+    var startClick = new og.math.Vector2(),
+        startPos;
+
+    pointLayer.events.on("mouseenter", function (e) {
+        globus.planet.renderer.handler.gl.canvas.style.cursor = "pointer";
+    });
+
+    pointLayer.events.on("mouseleave", function (e) {
+        globus.planet.renderer.handler.gl.canvas.style.cursor = "default";
+    });
+
+    pointLayer.events.on("ldown", function (e) {
+        globus.planet.renderer.controls[0].deactivate();
+
+        startClick.set(e.x, e.y);
+        pickingObject = e.pickingObject;
+        startPos = globus.planet.getPixelFromCartesian(pickingObject.getCartesian());
+    });
+
+    pointLayer.events.on("lup", function (e) {
+        globus.planet.renderer.controls[0].activate();
+        pickingObject = null;
+    });
+
+    globus.planet.renderer.events.on("mousemove", function (e) {
+        if (pickingObject) {
+            var d = og.math.vector2(e.x, e.y).sub(startClick);
+            var endPos = startPos.add(d);
+            var coords = globus.planet.getCartesianFromPixelTerrain(endPos);
+            if (coords) {
+                pickingObject.setCartesian3v(coords);
+            }
+        }
+    });
+
+    globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+
+    </script>
+</body>
+</html>

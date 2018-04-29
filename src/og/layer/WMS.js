@@ -76,26 +76,8 @@ class WMS extends XYZ {
         this.setVersion(options.version);
     }
 
+    _bindEmpyTexture(material) {
 
-    /**
-     * Start to load tile material.
-     * @public
-     * @virtual
-     * @param {og.planetSegment.Material} mateial
-     */
-    loadMaterial(material) {
-        var seg = material.segment;
-        if (!material.isLoading) {
-            if (this._planet.layerLock.isFree()) {
-                material.isReady = false;
-                material.isLoading = true;
-                if (WMS.__requestsCounter >= WMS.MAX_REQUESTS && this.counter) {
-                    this.pendingsQueue.push(material);
-                } else {
-                    this._exec(material);
-                }
-            }
-        }
     }
 
     /**

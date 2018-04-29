@@ -1,0 +1,159 @@
+<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<style>
+    .clockDiv {
+        padding: 12px 7px 7px 7px;
+    }
+
+    .clocksContainer {
+        position: absolute;
+        background-color: white;
+    }
+
+    .tlabel {
+        text-align: right;
+    }
+
+    td {
+        width: 80px;
+    }
+</style>
+
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+
+    <div class="clocksContainer">
+        <div class="clockDiv">
+            <table>
+                <caption><b>Default Clock</b></caption>
+                <tr>
+                    <td id="dateDef"></td>
+                    <td id="timeDef"></td>
+                    <td><input type="number" value="18200.0" id="multDef" style="width:80px;" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+
+        function getDateStr(date) {
+            var d = date.getDate(),
+                m = (date.getMonth() + 1),
+                y = date.getFullYear();
+            return (d < 10 ? "0" + d : d) + "." + (m < 10 ? "0" + m : m) + "." + (y);
+
+        };
+
+        function getTimeStr(date) {
+            var h = date.getHours(),
+                m = date.getMinutes(),
+                s = date.getSeconds();
+            return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        };
+
+        //Marker want to move
+        var marker = new og.Entity({
+            'name': 'Blue Marker',
+            'lonlat': [0, 0],
+            'billboard': {
+                'src': 'marker.png',
+                'size': [18, 32],
+                'offset': [0, 16]
+            }
+        });
+
+        //Improvized track data, where utc - julian date and lonlat is a date coordinates.
+        var track = [
+            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 1)), 'lonlat': [0, 0] },
+            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 2)), 'lonlat': [0, 25] },
+            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 3)), 'lonlat': [25, 25] },
+            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 4)), 'lonlat': [25, 0] },
+            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 5)), 'lonlat': [0, 0] }
+        ];
+
+        pointLayer = new og.layer.Vector("pointLayer", {
+            'groundAlign': true,
+            'entities': [marker]
+        });
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, pointLayer]
+        });
+
+        globus.renderer.handler.defaultClock.events.on("tick", function (c) {
+
+            var lon, lat;
+
+            var currDate = c.currentDate;
+
+            if (currDate < track[0].utc) {
+
+                lon = track[0].lonlat[0];
+                lat = track[0].lonlat[1];
+
+            } else if (currDate > track[track.length - 1].utc) {
+
+                lon = track[track.length - 1].lonlat[0];
+                lat = track[track.length - 1].lonlat[1];
+
+            } else {
+
+                var date = og.jd.UTCtoDate(currDate);
+                document.getElementById("dateDef").innerHTML = getDateStr(date);
+                document.getElementById("timeDef").innerHTML = getTimeStr(date);
+
+                //Looking for nearest time stamps for current time
+                var ti = og.utils.binarySearch(track, currDate, function (a, b, k) {
+                    if (track[k + 1] && track[k].utc < a && track[k + 1].utc > a) {
+                        return 0;
+                    } else {
+                        return a - b.utc;
+                    }
+                });
+
+                var t0 = track[ti],
+                    t1 = track[(ti + 1) % track.length]; //for negative multiplier
+
+                var d = (currDate - t0.utc) / (t1.utc - t0.utc);
+
+                //Linear interpolation between two nearest coordinates accordingly to the current time
+                //TODO: It's better to apply geodetic interpolation 
+                lon = og.math.lerp(d, t1.lonlat[0], t0.lonlat[0]);
+                lat = og.math.lerp(d, t1.lonlat[1], t0.lonlat[1]);
+            }
+
+            marker.setLonLat(new og.LonLat(lon, lat));
+        });
+
+        document.getElementById("multDef").addEventListener("change", function (e) {
+            globus.renderer.handler.defaultClock.multiplier = parseFloat(this.value);
+        });
+
+        //Sets default clock parameters
+        globus.renderer.handler.defaultClock.multiplier = 18200;
+        globus.renderer.handler.defaultClock.startDate = track[0].utc;
+        globus.renderer.handler.defaultClock.endDate = track[track.length - 1].utc;
+        globus.renderer.handler.defaultClock.reset();
+
+    </script>
+</body>
+</html>
