@@ -83,7 +83,7 @@ class ZoomControl extends BaseControl {
         this._move = 0;
 
         this.planet.layerLock.free(this._keyLock);
-        // this.planet.terrainLock.free(this._keyLock);
+        this.planet.terrainLock.free(this._keyLock);
         this.planet._normalMapCreator.free(this._keyLock);
     }
 
