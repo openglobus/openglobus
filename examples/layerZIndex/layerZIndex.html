@@ -1,0 +1,74 @@
+﻿<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+
+<body>
+    <div id="globus" style="width:100%;height:80%"></div>
+    <script>
+        var maxZIndex = 0;
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            isBaseLayer: false,
+            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            extent: [[-10, 40], [20, 58]],
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        osm.events.on("lclick", function () {
+            osm.setZIndex(++maxZIndex);
+        });
+
+        osm.events.on("touchstart", function () {
+            osm.setZIndex(++maxZIndex);
+        });
+
+        var sat = new og.layer.XYZ("MapQuest Satellite", {
+            isBaseLayer: false,
+            extent: [[-12, 38], [8, 53]],
+            url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWdldmxpY2giLCJhIjoiY2o0ZmVudncwMGZvbjJ3bGE0OGpsejBlZyJ9.RSRJLS0J_U9_lw1Ti1CmsQ",
+            visibility: true,
+            attribution: '2014 MapQuest - Portions 2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+        });
+
+        sat.events.on("lclick", function () {
+            sat.setZIndex(++maxZIndex);
+        });
+
+        sat.events.on("touchstart", function () {
+            sat.setZIndex(++maxZIndex);
+        });
+
+        var img = new og.layer.GeoImage("UK.jpg", {
+            src: "UK.jpg",
+            corners: [[-7.674585966211434, 59.25936136683274], [4.052821115801188, 58.19691969395908], [0.9659972036307729, 49.203405066507365], [-8.57191505617858, 50.31013492636263]],
+            visibility: true,
+            isBaseLayer: false,
+            opacity: 1.0
+        });
+
+        img.events.on("lclick", function () {
+            img.setZIndex(++maxZIndex);
+        });
+
+        img.events.on("touchstart", function () {
+            img.setZIndex(++maxZIndex);
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, sat, img]
+        });
+
+        globus.planet.viewExtent(osm.getExtent());
+    </script>
+</body>
+
+</html>

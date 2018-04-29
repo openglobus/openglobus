@@ -1,0 +1,200 @@
+<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+
+    <script id="shader-vs" type="x-shader/x-vertes">
+        attribute vec2 aPos;
+        //attribute vec2 aUV;
+        varying vec2 vUV;
+        void main() {
+        gl_Position = vec4(aPos, 0.0, 1.0);
+        vUV = aPos * 0.5 + 0.5;;
+        }
+    </script>
+
+    <script id="shader-fs" type="x-shader/x-fragment">
+        // 2D vector field visualization by Morgan McGuire, @morgan3d, http://casual-effects.com
+        // Shadertoy source: https://www.shadertoy.com/view/4s23DG#
+        precision highp float;
+
+        uniform float     iGlobalTime;           // shader playback time (in seconds)
+        uniform vec2      iResolution;
+
+        const float PI = 3.1415927;
+
+        const int   ARROW_V_STYLE = 1;
+        const int   ARROW_LINE_STYLE = 2;
+
+        // Choose your arrow head style
+        const int   ARROW_STYLE = ARROW_LINE_STYLE;
+        const float ARROW_TILE_SIZE = 32.0;
+
+        // How sharp should the arrow head be? Used
+        const float ARROW_HEAD_ANGLE = 24.0 * PI / 180.0;
+
+        // Used for ARROW_LINE_STYLE
+        const float ARROW_HEAD_LENGTH = ARROW_TILE_SIZE / 5.0;
+        const float ARROW_SHAFT_THICKNESS = 1.0;
+
+        varying vec2 vUV;
+
+        // Computes the center pixel of the tile containing pixel pos
+        vec2 arrowTileCenterCoord(vec2 pos) {
+        return (floor(pos / ARROW_TILE_SIZE) + 0.5) * ARROW_TILE_SIZE;
+        }
+
+        // v = field sampled at tileCenterCoord(p), scaled by the length
+        // desired in pixels for arrows
+        // Returns 1.0 where there is an arrow pixel.
+        float arrow(vec2 p, vec2 v) {
+        // Make everything relative to the center, which may be fractional
+        p -= arrowTileCenterCoord(p);
+
+        float mag_v = length(v), mag_p = length(p);
+
+        if (mag_v > 0.0) {
+        // Non-zero velocity case
+        vec2 dir_p = p / mag_p, dir_v = v / mag_v;
+
+        // We can't draw arrows larger than the tile radius, so clamp magnitude.
+        // Enforce a minimum length to help see direction
+        mag_v = clamp(mag_v, 5.0, ARROW_TILE_SIZE / 2.0);
+
+        // Arrow tip location
+        v = dir_v * mag_v;
+
+        // Define a 2D implicit surface so that the arrow is antialiased.
+        // In each line, the left expression defines a shape and the right controls
+        // how quickly it fades in or out.
+
+        float dist;
+        if (ARROW_STYLE == ARROW_LINE_STYLE) {
+        // Signed distance from a line segment based on https://www.shadertoy.com/view/ls2GWG by
+        // Matthias Reitinger, @mreitinger
+
+        // Line arrow style
+        dist =
+        max(
+        // Shaft
+        ARROW_SHAFT_THICKNESS / 4.0 -
+        max(abs(dot(p, vec2(dir_v.y, -dir_v.x))), // Width
+        abs(dot(p, dir_v)) - mag_v + ARROW_HEAD_LENGTH / 2.0), // Length
+
+        // Arrow head
+        min(0.0, dot(v - p, dir_v) - cos(ARROW_HEAD_ANGLE / 2.0) * length(v - p)) * 2.0 + // Front sides
+        min(0.0, dot(p, dir_v) + ARROW_HEAD_LENGTH - mag_v)); // Back
+        } else {
+        // V arrow style
+        dist = min(0.0, mag_v - mag_p) * 2.0 + // length
+        min(0.0, dot(normalize(v - p), dir_v) - cos(ARROW_HEAD_ANGLE / 2.0)) * 2.0 * length(v - p) + // head sides
+        min(0.0, dot(p, dir_v) + 1.0) + // head back
+        min(0.0, cos(ARROW_HEAD_ANGLE / 2.0) - dot(normalize(v * 0.33 - p), dir_v)) * mag_v * 0.8; // cutout
+        }
+
+        return clamp(1.0 + dist, 0.0, 1.0);
+
+        } else {
+        // Center of the pixel is always on the arrow
+        return max(0.0, 1.2 - mag_p);
+        }
+        }
+
+        /////////////////////////////////////////////////////////////////////
+        // The vector field; use your own function or texture
+        vec2 field(vec2 pos) {
+        return vec2(cos(pos.x * 0.01 + pos.y * 0.01) + cos(pos.y * 0.005 + iGlobalTime), 2.0 * cos(pos.y * 0.01  + iGlobalTime * 0.3)) * 0.5;
+        }
+
+        void main() {
+        vec2 fc =  0.5 * (vUV * iResolution.y + iResolution.xy);
+        vec4 fragColor =
+        (arrow(fc, field(arrowTileCenterCoord(fc)) * ARROW_TILE_SIZE * 0.4)) *
+        vec4(0.0, 0.0, 0.0, 1.0);
+        gl_FragColor = fragColor;
+        }
+    </script>
+    <script>
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        geoTex = new og.layer.GeoTexture2d("Vector Field", {
+            corners: [[-2.3565396747912852, 51.75253410564987], [2.173417790597063, 50.95010370686831], [1.26786087508808, 49.01434061915433], [-3.153942423073776, 49.72627636180551]],
+            visibility: true,
+            isBaseLayer: false,
+            frameWidth: 1024,
+            frameHeight: 1024,
+            opacity: 1.0,
+            attribution: '<a href="https://www.shadertoy.com/view/4s23DG">2D vector field visualization</a> <a href="http://casual-effects.com">by Morgan McGuire</a>'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm, geoTex]
+        });
+
+        var handler = globus.renderer.handler;
+
+        //Framebuffer that we want to render.
+        var frameBuffer = new og.webgl.Framebuffer(handler, {
+            'width': 1024,
+            'height': 1024
+        });
+
+        //Bind framebuffer texture to the geoTexture2d layer.
+        geoTex.bindTexture(frameBuffer.texture);
+
+        //Attach vector field shader.
+        handler.addShaderProgram(new og.shaderProgram.ShaderProgram("vectorMap", {
+            uniforms: {
+                'iGlobalTime': { type: og.shaderProgram.types.FLOAT },
+                'iResolution': { type: og.shaderProgram.types.VEC2 }
+            },
+            attributes: {
+                'aPos': { type: og.shaderProgram.types.VEC2, enableArray: true }
+            },
+            vertexShader: document.getElementById("shader-vs").innerHTML,
+            fragmentShader: document.getElementById("shader-fs").innerHTML
+        }));
+
+        var animCounter = 0,
+            vertBuffer = handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
+
+        globus.renderer.events.on("draw", function (r) {
+
+            //Rendering vector field to geoTexture2d buffer
+            frameBuffer.activate();
+            var gl = r.handler.gl;
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            //Actually a better way to replace this function to native gl.
+            r.handler.shaderPrograms.vectorMap.set({
+                'aPos': vertBuffer,
+                'iGlobalTime': animCounter += 0.03,
+                'iResolution': [1024, 1024]
+            }).drawArray(r.handler.gl.TRIANGLE_STRIP, vertBuffer.numItems);
+
+            frameBuffer.deactivate();
+            
+        });
+
+        globus.planet.flyExtent(geoTex.getExtent());
+    </script>
+</body>
+</html>

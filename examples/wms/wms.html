@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <script>
+
+        var ne = new og.layer.WMS("Natural Earth", {
+            visibility: true,
+            isBaseLayer: true,
+            url: 'http://openglobus.org/geoserver/ne/',
+            layers: 'ne:HYP_HR_SR_OB_DR',
+            version: '1.1.1',
+            opacity: 1.0,
+            specular: [0.001, 0.00046, 0.0003],
+            shininess: 15,
+            ambient: [0.1, 0.1, 0.2]
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "skybox": og.scene.defaultSkyBox(),
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [ne]
+        });
+
+    </script>
+</body>
+</html>

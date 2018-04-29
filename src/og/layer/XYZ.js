@@ -118,6 +118,15 @@ class XYZ extends Layer {
         this.url = url;
     }
 
+    _bindEmpyTexture(material){
+        let seg = material.segment;
+        if (this._isBaseLayer) {
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+        } else {
+            material.texture = seg.planet.transparentTexture;
+        }
+    }
+
     /**
      * Start to load tile material.
      * @public
@@ -126,15 +135,10 @@ class XYZ extends Layer {
      */
     loadMaterial(material) {
 
-        var seg = material.segment;
-
-        if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
-        } else {
-            material.texture = seg.planet.transparentTexture;
-        }
+        this._bindEmpyTexture(material);
 
         if (this._planet.layerLock.isFree()) {
+            let seg = material.segment;
             material.isReady = false;
             material.isLoading = true;
             if (material.segment._projection.id === EPSG3857.id) {

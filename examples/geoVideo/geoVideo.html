@@ -1,0 +1,72 @@
+﻿<html>
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <button id="btnFlyImergac">View 0</button>
+    <button id="btnFlyLV">View 1</button>
+    <script>
+        document.getElementById("btnFlyImergac").onclick = function () {
+            globus.planet.flyExtent(imergac.getExtent());
+        };
+
+        document.getElementById("btnFlyLV").onclick = function () {
+            globus.planet.flyExtent(lv.getExtent());
+        };
+
+        var sat = new og.layer.XYZ("MapQuest Satellite", {
+            shininess: 20,
+            specular: og.math.vector3(0.00048, 0.00037, 0.00035),
+            diffuse: og.math.vector3(0.88, 0.85, 0.8),
+            ambient: og.math.vector3(0.15, 0.1, 0.23),
+            isBaseLayer: true,
+            url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2giLCJhIjoiY2o0ZmVudncwMGZvbjJ3bGE0OGpsejBlZyJ9.RSRJLS0J_U9_lw1Ti1CmsQ",
+            visibility: true,
+            attribution: '�2014 MapQuest - Portions �2014 "Map data � <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+        });
+
+        var imergac = new og.layer.GeoVideo("USA precipitation 08.05.2016", {
+            minZoom: 0,
+            maxZoom: 10,
+            src: "imergac_20160508_NASA.mp4",
+            corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]],
+            visibility: true,
+            isBaseLayer: false,
+            attribution: 'USA precipitation 08.05.2016, nasasearch.nasa.gov',
+            opacity: 0.7
+        });
+
+        var lv = new og.layer.GeoVideo("Las Vegas", {
+            minZoom: 10,
+            src: "SkyBox-LasVegas.mp4",
+            corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]],
+            visibility: true,
+            isBaseLayer: false,
+            attribution: 'SkyBox Imaging Inc.',
+            opacity: 1.0,
+            diffuse: [1.2, 1.2, 1.2]
+        });
+
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "controls": [
+                og.control.mouseNavigation(),
+                og.control.touchNavigation(),
+                og.control.zoomControl(),
+                og.control.earthCoordinates(),
+                og.control.sun()
+            ],
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [sat, imergac, lv]
+        });
+
+        globus.planet.flyExtent(imergac.getExtent());
+    </script>
+</body>
+</html>

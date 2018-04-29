@@ -1,0 +1,109 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+</head>
+<style>
+    input {
+        position: absolute;
+        width: 250px;
+        top: 0;
+        margin: 15px;
+        padding: 2px;
+    }
+
+    body {
+        margin: 0;
+    }
+</style>
+
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <script>
+        //Define custom control class
+        var CustomControl = function (options) {
+            og.inheritance.base(this, options);
+
+            function parseLonLat(val) {
+                var parts = val.match(/([+-]?\d+\.\d+).+?([+-]?\d+\.\d+)/);
+                if (parts) return new og.LonLat(parts[2], parts[1]);
+                return new og.LonLat();
+            };
+
+            function getUrlVars() {
+                var vars = {};
+                var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,
+                    function (m, key, value) {
+                        vars[key] = value;
+                    });
+                return vars;
+            }
+
+            this.onadd = function () {
+                var lonlatEl = document.createElement("input");
+                lonlatEl.type = "text";
+                lonlatEl.placeholder = "Enter coordinates";
+                var that = this;
+                lonlatEl.addEventListener("keyup", function (event) {
+                    event.preventDefault();
+                    if (event.keyCode == 13) {
+                        that.planet.flyLonLat(parseLonLat(this.value));
+                    }
+                });
+
+                this.renderer.div.appendChild(lonlatEl);
+            };
+
+            this.oninit = function () {
+                var params = document.URL.split('?');
+                if (params[1]) {
+                    var urlVars = getUrlVars(params[1]);
+                    var e = urlVars.e.split(','),
+                        f = urlVars.f.split(','),
+                        u = urlVars.u.split(',');
+
+                    e = new og.math.Vector3(parseFloat(e[0]), parseFloat(e[1]), parseFloat(e[2]));
+                    f = new og.math.Vector3(parseFloat(f[0]), parseFloat(f[1]), parseFloat(f[2]));
+                    u = new og.math.Vector3(parseFloat(u[0]), parseFloat(u[1]), parseFloat(u[2]));
+
+                    globus.planet.camera.set(e, e.sub(f), u);
+                    globus.planet.camera.update();
+                }
+
+                this.planet.camera.events.on("moveend", function (c) {
+                    var splits = document.URL.split('?');
+                    var cameraStr = "e=" + c.eye.x.toFixed(5) + "," + c.eye.y.toFixed(5) + "," + c.eye.z.toFixed(5) +
+                        "&f=" + c.getForward().x.toFixed(5) + "," + c.getForward().y.toFixed(5) + "," + c.getForward().z.toFixed(5) +
+                        "&u=" + c.getUp().x.toFixed(5) + "," + c.getUp().y.toFixed(5) + "," + c.getUp().z.toFixed(5);
+                    history.replaceState("", "", splits[0] + "?" + cameraStr);
+                });
+            };
+        };
+
+        og.inheritance.extend(CustomControl, og.control.BaseControl);
+
+        var osm = new og.layer.XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
+            isBaseLayer: true,
+            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        globus = new og.Globus({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "layers": [osm]
+        });
+
+        globus.planet.addControl(new CustomControl);
+    </script>
+</body>
+
+</html>
