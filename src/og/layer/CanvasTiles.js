@@ -77,6 +77,10 @@ class CanvasTiles extends Layer {
         this.drawTile = options.drawTile || null;
     }
 
+    get instanceName() {
+        return "CanvasTiles";
+    }
+
     /**
      * Abort loading tiles.
      * @public
@@ -98,7 +102,7 @@ class CanvasTiles extends Layer {
      * @param {boolean} visibility - Layer visibility.
      */
     setVisibility(visibility) {
-        if (visibility != this._visibility) {
+        if (visibility !== this._visibility) {
             this._visibility = visibility;
             if (this._isBaseLayer && visibility) {
                 this._planet.setBaseLayer(this);
@@ -114,7 +118,7 @@ class CanvasTiles extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.planetSegment.Material} mateial
+     * @param {og.planetSegment.Material} material -
      */
     loadMaterial(material) {
 

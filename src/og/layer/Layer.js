@@ -225,6 +225,10 @@ class Layer {
         return 7;
     }
 
+    get instanceName() {
+        return "Layer";
+    }
+
     /**
      * Returns true if a layer has imagery tiles.
      * @public

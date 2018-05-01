@@ -30,6 +30,8 @@ import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
 import { print2d } from '../utils/shared.js';
+import { NIGHT } from '../res/night.js';
+import { SPECULAR } from '../res/spec.js';
 
 const RESOURCES_URL = "";
 
@@ -656,22 +658,16 @@ class Planet extends RenderNode {
 
         //load Earth night glowing texture
         if (this._useNightTexture) {
-            var img = new Image();
-            img.crossOrigin = '';
-            img.onload = function () {
-                that._nightTexture = that.renderer.handler.createTexture_mm(this);
-            };
-            img.src = RESOURCES_URL + "night.png";
+            createImageBitmap(NIGHT).then((e) =>
+                this._nightTexture = this.renderer.handler.createTexture_mm(e)
+            );
         }
 
         //load water specular mask
         if (this._useSpecularTexture) {
-            var img2 = new Image();
-            img2.crossOrigin = '';
-            img2.onload = function () {
-                that._specularTexture = that.renderer.handler.createTexture_l(this);
-            };
-            img2.src = RESOURCES_URL + "spec.png";
+            createImageBitmap(SPECULAR).then((e) =>
+                this._specularTexture = this.renderer.handler.createTexture_l(e)
+            );
         }
 
         this._geoImageCreator = new GeoImageCreator(this.renderer.handler);
