@@ -30,6 +30,9 @@ class GeoImage extends BaseGeoImage {
         this._src = options.src || null;
     }
 
+    get instanceName() {
+        return "GeoImage";
+    }
 
     /**
      * Sets image source url path.

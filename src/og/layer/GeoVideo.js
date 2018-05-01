@@ -37,6 +37,10 @@ class GeoVideo extends BaseGeoImage {
         this._src = options.src || null;
     }
 
+    get instanceName() {
+        return "GeoVideo";
+    }
+
     /**
      * Sets video source url path.
      * @public

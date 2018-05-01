@@ -25,10 +25,13 @@ class GeoTexture2d extends BaseGeoImage {
         this._animate = true;
     }
 
+    get instanceName() {
+        return "GeoTexture2d";
+    }
 
     loadMaterial(material) {
         this._planet._geoImageCreator.add(this);
-    };
+    }
 
     bindTexture(texture) {
         this._sourceReady = true;

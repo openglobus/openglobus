@@ -76,6 +76,10 @@ class WMS extends XYZ {
         this.setVersion(options.version);
     }
 
+    get instanceName() {
+        return "WMS";
+    }
+
     _bindEmpyTexture(material) {
 
     }

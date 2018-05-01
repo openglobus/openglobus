@@ -80,6 +80,10 @@ class XYZ extends Layer {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
+    get instanceName() {
+        return "XYZ";
+    }
+
     /**
      * Abort loading tiles.
      * @public

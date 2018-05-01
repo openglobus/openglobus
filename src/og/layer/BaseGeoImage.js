@@ -47,10 +47,14 @@ class BaseGeoImage extends Layer {
         options.corners && this.setCorners(options.corners);
     }
 
+    get instanceName() {
+        return "BaseGeoImage";
+    }
+
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<og.LonLat,og.LonLat,og.LonLat,og.LonLat>}
+     * @return {Array.<og.LonLat,og.LonLat,og.LonLat,og.LonLat>} -
      */
     getCornersLonLat() {
         var c = this._cornersWgs84;
@@ -61,7 +65,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<Array<number,number,number>>}
+     * @return {Array.<Array<number,number,number>>} -
      */
     getCorners() {
         var c = this._cornersWgs84;
@@ -125,7 +129,7 @@ class BaseGeoImage extends Layer {
 
         this._extentMerc = new Extent(this._extentWgs84.southWest.forwardMercatorEPS01(), this._extentWgs84.northEast.forwardMercatorEPS01());
 
-        if (this._projType == 0) {
+        if (this._projType === 0) {
             this._extentWgs84Params = [this._extentWgs84.southWest.lon, this._extentWgs84.southWest.lat, 2.0 / this._extentWgs84.getWidth(), 2.0 / this._extentWgs84.getHeight()];
         } else {
             this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
@@ -193,7 +197,7 @@ class BaseGeoImage extends Layer {
      * @param {boolean} visibility - GeoImage visibility.
      */
     setVisibility(visibility) {
-        if (visibility != this._visibility) {
+        if (visibility !== this._visibility) {
             this._visibility = visibility;
             if (this._isBaseLayer && visibility) {
                 this._planet.setBaseLayer(this);
@@ -226,6 +230,7 @@ class BaseGeoImage extends Layer {
      * @virtual
      * @protected
      * @param {og.planetSegment.Material} material - GeoImage material.
+     * @returns {Array<Number, Number, Number, Number> } -
      */
     applyMaterial(material) {
 
@@ -238,12 +243,13 @@ class BaseGeoImage extends Layer {
             !this._creationProceeding && this.loadMaterial(material);
         }
 
+        var v0s, v0t;
         if (this._projType === 0) {
-            var v0s = this._extentWgs84;
-            var v0t = segment._extent;
+            v0s = this._extentWgs84;
+            v0t = segment._extent;
         } else {
-            var v0s = this._extentMerc;
-            var v0t = segment.getExtentMerc();
+            v0s = this._extentMerc;
+            v0t = segment.getExtentMerc();
         }
 
         var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
@@ -258,16 +264,18 @@ class BaseGeoImage extends Layer {
     /**
      * Gets frame width size in pixels.
      * @public
+     * @returns {Number} Frame width.
      */
-    getFrameWidth() {
+    get getFrameWidth() {
         return this._frameWidth;
     }
 
     /**
      * Gets frame height size in pixels.
      * @public
+     * @returns {Number} Frame height.
      */
-    getFrameHeight() {
+    get getFrameHeight() {
         return this._frameHeight;
     }
 };

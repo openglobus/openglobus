@@ -22,14 +22,14 @@ import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Creates entity instance array.
- * @param {og.Entity[] || Object[]} entities - Entity array.
- * @returns {og.Entity[]} - Entity array.
+ * @param {Entity[] || Object[]} entities - Entity array.
+ * @returns {Entity[]} - Entity array.
  */
 function _entitiesConstructor(entities) {
     var res = [];
     for (var i = 0; i < entities.length; i++) {
         var ei = entities[i];
-        if (ei instanceof Entity) {
+        if (ei.instanceName === "Entity") {
             res.push(ei);
         } else {
             res.push(new Entity(ei));
@@ -151,6 +151,10 @@ class Vector extends Layer {
 
         /** Creates collections tree*/
         this.setEntities(this._entities);
+    }
+
+    get instanceName() {
+        return "Vector";
     }
 
     _bindPicking() {

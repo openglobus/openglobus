@@ -218,6 +218,10 @@ class Entity {
         this._counter = n;
     }
 
+    get instanceName() {
+        return "Entity";
+    }
+
     _createOptionFeature(featureName, options) {
         if (options) {
             var c = this._featureConstructorArray[featureName];
