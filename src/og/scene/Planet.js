@@ -30,6 +30,8 @@ import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
 import { print2d } from '../utils/shared.js';
+import { NIGHT } from '../res/night.js';
+import { SPECULAR } from '../res/spec.js';
 
 const RESOURCES_URL = "";
 
