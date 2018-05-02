@@ -147,6 +147,10 @@ class GmxVector extends Layer {
         return time - time % 86400000;
     }
 
+    get instanceName() {
+        return "GmxVector";
+    }
+
     _bindPicking() {
         this._pickingColor.clear();
     }

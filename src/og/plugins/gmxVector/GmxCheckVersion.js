@@ -32,7 +32,7 @@ const GmxCheckVersion = function (planet) {
     };
 
     planet.events.on("layeradd", function (l) {
-        if (l instanceof GmxVector) {
+        if (l.instanceName === "GmxVector") {
             if (l._visibility) {
                 this._addLayer(l);
             }
@@ -40,13 +40,13 @@ const GmxCheckVersion = function (planet) {
     }, this);
 
     planet.events.on("layerremove", function (l) {
-        if (l instanceof GmxVector) {
+        if (l.instanceName === "GmxVector") {
             this._removeLayer(l);
         }
     }, this);
 
     planet.events.on("layervisibilitychange", function (l) {
-        if (l instanceof GmxVector) {
+        if (l.instanceName === "GmxVector") {
             if (l._visibility) {
                 this._addLayer(l);
             } else {

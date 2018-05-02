@@ -341,9 +341,9 @@ class PlanetCamera extends Camera {
             startCallback.call(this);
         }
 
-        var _look = look || Vec3.ZERO;
+        look = look || Vec3.ZERO;
         if (look instanceof LonLat) {
-            _look = this.planet.ellipsoid.lonLatToCartesian(look);
+            look = this.planet.ellipsoid.lonLatToCartesian(look);
         }
 
         var ground_a = this.planet.ellipsoid.lonLatToCartesian(new LonLat(this._lonLat.lon, this._lonLat.lat));
@@ -354,7 +354,7 @@ class PlanetCamera extends Camera {
         var up_b = up || Vec3.UP;
         var ground_b = this.planet.ellipsoid.lonLatToCartesian(new LonLat(lonlat_b.lon, lonlat_b.lat, 0));
         var eye_b = cartesian;
-        var n_b = Vec3.sub(eye_b, _look);
+        var n_b = Vec3.sub(eye_b, look);
         var u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
