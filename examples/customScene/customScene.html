@@ -3,42 +3,67 @@
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
-    <script src="http://www.openglobus.org/og.js"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 </head>
 
-<body>
+<body style="margin:0;">
     <canvas id="myCanvas" style="width: 100%; height: 80%; display: block"></canvas>
     <div>
-        <div style="float:left; padding: 15px;"><input type="checkbox" id="cubeScene" checked>MyScene scene activity</div>
-        <div style="float:left; padding: 15px;"><input type="checkbox" id="axisScene" checked>Axis scene activity</div>
+        <div style="float:left; padding: 15px;">
+            <input type="checkbox" id="cubeScene" checked>MyScene scene activity</div>
+        <div style="float:left; padding: 15px;">
+            <input type="checkbox" id="axisScene" checked>Axis scene activity</div>
     </div>
-    <script>
+    <script type="module">
+        'use strict';
+
+        import * as math from '../../src/og/math.js';
+        import { Axes } from '../../src/og/scene/Axes.js';
+        import { RenderNode } from '../../src/og/scene/RenderNode.js';
+        import { ShaderProgram } from '../../src/og/webgl/ShaderProgram.js';
+        import { Handler } from '../../src/og/webgl/Handler.js';
+        import { Renderer } from '../../src/og/renderer/Renderer.js';
+        import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
+        import { ShowFps } from '../../src/og/control/ShowFps.js';
+        import { Vec3 } from '../../src/og/math/Vec3.js';
+        import { Mat4 } from '../../src/og/math/Mat4.js';
+
+
         document.getElementById("cubeScene").onchange = function () {
             renderer.renderNodes.MyScene.setActive(this.checked);
         };
         document.getElementById("axisScene").onchange = function () {
             renderer.renderNodes.Axes.setActive(this.checked);
         };
-        //Define custom control class
-        var MyScene = function () {
-            og.inheritance.base(this, "MyScene");
 
-            this.initialization = function () {
+        class MyScene extends RenderNode {
+            constructor() {
+                super("MyScene");
+
+                this._grad = 0;
+
+                this.neheTexture = null;
+
+                this.vericesBuffer = null;
+                this.textureCoordsBuffer = null;
+                this.indicesBuffer = null;
+            }
+
+            initialization() {
 
                 //Initialize shader program
-                this.renderer.handler.addShaderProgram(new og.shaderProgram.ShaderProgram("myShader", {
+                this.renderer.handler.addShaderProgram(new ShaderProgram("myShader", {
                     'uniforms': {
-                        'uMVMatrix': { type: og.shaderProgram.types.MAT4 },
-                        'uPMatrix': { type: og.shaderProgram.types.MAT4 },
-                        'uSampler': { type: og.shaderProgram.types.SAMPLER2D }
+                        'uMVMatrix': 'mat4',
+                        'uPMatrix': 'mat4',
+                        'uSampler': 'sampler2d'
                     },
                     'attributes': {
-                        'aVertexPosition': { type: og.shaderProgram.types.VEC3 },
-                        'aTextureCoord': { type: og.shaderProgram.types.VEC2 },
+                        'aVertexPosition': 'vec3',
+                        'aTextureCoord': 'vec2'
                     },
                     'vertexShader':
-                    'attribute vec3 aVertexPosition;\
+                        'attribute vec3 aVertexPosition;\
                             attribute vec2 aTextureCoord;\
                             \
                             uniform mat4 uMVMatrix;\
@@ -52,7 +77,7 @@
                             }'
                     ,
                     'fragmentShader':
-                    'precision mediump float;\
+                        'precision mediump float;\
                             varying vec2 vTextureCoord;\
                             uniform sampler2D uSampler;\
                             \
@@ -165,10 +190,9 @@
 
                 this.indicesBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, cubeVertexIndices.length);
 
-            };
+            }
 
-            var grad = 0;
-            this.frame = function () {
+            frame() {
 
                 var r = this.renderer;
                 var sh = r.handler.shaderPrograms.myShader;
@@ -178,46 +202,47 @@
                 sh.activate();
 
                 //Cube rotation
-                var gradRad = grad * og.math.RADIANS;
-                var rotate = og.math.Matrix4.identity()
-                    .rotate(og.math.vector3(0, 1, 0), gradRad)
-                    .rotate(og.math.vector3(1, 0, 0), gradRad);
-                grad++;
+                var gradRad = this._grad * math.RADIANS;
+                var rotate = Mat4.identity()
+                    .rotate(new Vec3(0, 1, 0), gradRad)
+                    .rotate(new Vec3(1, 0, 0), gradRad);
+                this._grad++;
 
                 var modelViewMat = r.activeCamera._viewMatrix.mul(rotate);
 
                 //Sets shader's data
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, this.neheTexture);
-                gl.uniform1i(p.uniforms.uSampler._pName, 0);
+                gl.uniform1i(p.uniforms.uSampler, 0);
 
-                gl.uniformMatrix4fv(p.uniforms.uMVMatrix._pName, false, modelViewMat._m);
-                gl.uniformMatrix4fv(p.uniforms.uPMatrix._pName, false, r.activeCamera._projectionMatrix._m);
+                gl.uniformMatrix4fv(p.uniforms.uMVMatrix, false, modelViewMat._m);
+                gl.uniformMatrix4fv(p.uniforms.uPMatrix, false, r.activeCamera._projectionMatrix._m);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.vericesBuffer);
-                gl.vertexAttribPointer(p.attributes.aVertexPosition._pName, this.vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(p.attributes.aVertexPosition, this.vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordsBuffer);
-                gl.vertexAttribPointer(p.attributes.aTextureCoord._pName, this.textureCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(p.attributes.aTextureCoord, this.textureCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
                 gl.drawElements(gl.TRIANGLES, this.indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-            };
-        };
+            }
+        }
 
-        og.inheritance.extend(MyScene, og.scene.RenderNode);
+        var handler = new Handler("myCanvas", {
+            alpha: false
+        });
 
-        var handler = new og.webgl.Handler("myCanvas", { alpha: false });
         handler.initialize();
 
-        var renderer = new og.Renderer(handler);
+        var renderer = new Renderer(handler);
         renderer.initialize();
-        renderer.addRenderNodes([new MyScene(), new og.scene.Axes()]);
+        renderer.addRenderNodes([new MyScene(), new Axes()]);
         renderer.addControls([
-            og.control.simpleNavigation({ 'speed': 0.3 }),
-            og.control.showFps()
+            new SimpleNavigation({ 'speed': 0.3 }),
+            new ShowFps()
         ]);
-        renderer.activeCamera.set(og.math.vector3(5, 5, 5), og.math.Vector3.ZERO).update();
+        renderer.activeCamera.set(new Vec3(5, 5, 5), Vec3.ZERO).update();
         renderer.start();
     </script>
 </body>

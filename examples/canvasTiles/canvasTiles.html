@@ -1,30 +1,38 @@
 <html>
+
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
-    <script src="http://www.openglobus.org/og.js"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 </head>
+
 <body>
     <div id="globus" style="width:100%;height:100%"></div>
-    <script>
+    <script type="module">
 
-        var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
-            isBaseLayer: true,
-            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        'use strict';
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
+
+        const osm = new XYZ("OSM", {
+            'specular': [0.0003, 0.00012, 0.00001],
+            'shininess': 20,
+            'diffuse': [0.89, 0.9, 0.83],
+            'isBaseLayer': true,
+            'url': "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            'visibility': true,
+            'attribution': 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var cnv = document.createElement("canvas");
-        var ctx = cnv.getContext("2d");
+        let cnv = document.createElement("canvas");
+        let ctx = cnv.getContext("2d");
         cnv.width = 256;
         cnv.height = 256;
 
-        var tg = new og.layer.CanvasTiles("Tile grid", {
+        const tg = new CanvasTiles("Tile grid", {
             visibility: true,
             isBaseLayer: false,
             drawTile: function (material, applyCanvas) {
@@ -38,8 +46,10 @@
                 ctx.strokeStyle = 'black';
                 ctx.stroke();
 
+                let size;
+
                 //Draw text
-                if(material.segment.tileZoom > 14){
+                if (material.segment.tileZoom > 14) {
                     size = "26";
                 } else {
                     size = "32";
@@ -54,21 +64,16 @@
             }
         });
 
-        var controls = [
-            og.control.mouseNavigation(),
-            og.control.touchNavigation(),
-            og.control.zoomControl(),
-            og.control.earthCoordinates(),
-            og.control.sun()
-        ];
-
-        globus = new og.Globus({
-            "target": "globus",
-            "name": "Earth",
-            "controls": controls,
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
-            "layers": [osm, tg]
+        window.globe = new Globe({
+            'name': "Earth",
+            'target': "globus",
+            'terrain': new EmptyTerrain(),
+            'layers': [osm, tg],
+            "sun": {
+                "active": false
+            }
         });
     </script>
 </body>
+
 </html>
