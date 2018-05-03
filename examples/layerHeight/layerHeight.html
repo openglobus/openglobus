@@ -1,14 +1,22 @@
 ﻿<html>
+
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
-    <script src="http://www.openglobus.org/og.js"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 </head>
+
 <body>
     <div id="globus" style="width:100%;height:100%"></div>
-    <button id="btnChangeHeights">Change heights</button>
-    <script>
+    <button id="btnChangeHeights" style="position:absolute;left:0;margin:10px;">Change heights</button>
+    <script type="module">
+        'use strict';
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { GeoImage } from '../../src/og/layer/GeoImage.js';
+        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+
         document.getElementById("btnChangeHeights").onclick = function () {
             var h0 = sat.getHeight(),
                 h1 = img.getHeight();
@@ -16,33 +24,30 @@
             sat.setHeight(h1);
         };
 
-        var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
+        var osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
             url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var osmRed = new og.layer.XYZ("OpenStreetMap", {
-            diffuse: [0.6, 0.5, .5],
-            specular: og.math.vector3(0.7, 0.4, 0.4),
+        var osmRed = new XYZ("OpenStreetMap", {
+            diffuse: [1.2, 0.5, 0.5],
+            specular: [0.7, 0.4, 0.4],
             shininess: 70,
             isBaseLayer: false,
             extent: [[130.10, 31.16], [130.9, 31.8]],
             url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
             height: 4000,
-            opacity: 0.5,
+            opacity: 0.7,
             zIndex: 10
         });
 
-        var sat = new og.layer.XYZ("MapQuest Satellite", {
+        var sat = new XYZ("MapQuest Satellite", {
             shininess: 20,
-            specular: og.math.vector3(0.2, 0.2, 0.2),
-            diffuse: og.math.vector3(1.2, 1.2, 1.2),
+            specular: [0.2, 0.2, 0.2],
+            diffuse: [1.2, 1.2, 1.2],
             isBaseLayer: false,
             height: 4000,
             extent: [[130.355, 31.368], [130.656, 31.583]],
@@ -53,13 +58,13 @@
         });
 
 
-        var img = new og.layer.GeoImage("Sakurajima volcano LANDSAT-8", {
+        var img = new GeoImage("Sakurajima volcano LANDSAT-8", {
             src: "landsat 8 sakurajima volcano lg.jpg",
             corners: [[130.45707789384713, 31.709325879170276], [130.7840602216474, 31.692775737529196], [130.7733037851439, 31.43233754673159], [130.46073202271168, 31.433614009357886]],
             visibility: true,
-            specular: og.math.vector3(0.0, 0.0, 0.0),
-            diffuse: og.math.vector3(1.5, 1.5, 1.5),
-            ambient: og.math.vector3(0, 0, 0),
+            specular: [0.0, 0.0, 0.0],
+            diffuse: [1.5, 1.5, 1.5],
+            ambient: [0, 0, 0],
             isBaseLayer: false,
             attribution: '<a href="http://www.satimagingcorp.com/">www.satimagingcorp.com</a> SPOT-7',
             opacity: 1.0,
@@ -67,14 +72,15 @@
             zIndex: 5
         });
 
-        globus = new og.Globus({
+        var globus = new Globe({
             "target": "globus",
             "name": "Earth",
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "terrain": new GlobusTerrain(),
             "layers": [osm, osmRed, sat, img]
         });
 
         globus.planet.flyExtent(img.getExtent());
     </script>
 </body>
+
 </html>
