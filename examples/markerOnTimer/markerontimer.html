@@ -2,8 +2,7 @@
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
-    <script src="http://www.openglobus.org/og.js"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 </head>
 <style>
     .clockDiv {
@@ -40,7 +39,18 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        'use strict';
+
+        import * as jd from '../../src/og/astro/jd.js'
+        import * as math from '../../src/og/math.js'
+        import * as utils from '../../src/og/utils/shared.js'
+        import { Globe } from '../../src/og/Globe.js';
+        import { LonLat } from '../../src/og/LonLat.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { Vector } from '../../src/og/layer/Vector.js';
+        import { Entity } from '../../src/og/entity/Entity.js';
+        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 
         function getDateStr(date) {
             var d = date.getDate(),
@@ -58,7 +68,7 @@
         };
 
         //Marker want to move
-        var marker = new og.Entity({
+        var marker = new Entity({
             'name': 'Blue Marker',
             'lonlat': [0, 0],
             'billboard': {
@@ -70,19 +80,19 @@
 
         //Improvized track data, where utc - julian date and lonlat is a date coordinates.
         var track = [
-            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 1)), 'lonlat': [0, 0] },
-            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 2)), 'lonlat': [0, 25] },
-            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 3)), 'lonlat': [25, 25] },
-            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 4)), 'lonlat': [25, 0] },
-            { 'utc': og.jd.DateToUTC(new Date(2015, 0, 5)), 'lonlat': [0, 0] }
+            { 'utc': jd.DateToUTC(new Date(2015, 0, 1)), 'lonlat': [0, 0] },
+            { 'utc': jd.DateToUTC(new Date(2015, 0, 2)), 'lonlat': [0, 25] },
+            { 'utc': jd.DateToUTC(new Date(2015, 0, 3)), 'lonlat': [25, 25] },
+            { 'utc': jd.DateToUTC(new Date(2015, 0, 4)), 'lonlat': [25, 0] },
+            { 'utc': jd.DateToUTC(new Date(2015, 0, 5)), 'lonlat': [0, 0] }
         ];
 
-        pointLayer = new og.layer.Vector("pointLayer", {
+        var pointLayer = new Vector("pointLayer", {
             'groundAlign': true,
             'entities': [marker]
         });
 
-        var osm = new og.layer.XYZ("OpenStreetMap", {
+        var osm = new XYZ("OpenStreetMap", {
             specular: [0.0003, 0.00012, 0.00001],
             shininess: 20,
             diffuse: [0.89, 0.9, 0.83],
@@ -92,10 +102,10 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        globus = new og.Globus({
+        var globus = new Globe({
             "target": "globus",
             "name": "Earth",
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "terrain": new GlobusTerrain(),
             "layers": [osm, pointLayer]
         });
 
@@ -117,12 +127,12 @@
 
             } else {
 
-                var date = og.jd.UTCtoDate(currDate);
+                var date = jd.UTCtoDate(currDate);
                 document.getElementById("dateDef").innerHTML = getDateStr(date);
                 document.getElementById("timeDef").innerHTML = getTimeStr(date);
 
                 //Looking for nearest time stamps for current time
-                var ti = og.utils.binarySearch(track, currDate, function (a, b, k) {
+                var ti = utils.binarySearch(track, currDate, function (a, b, k) {
                     if (track[k + 1] && track[k].utc < a && track[k + 1].utc > a) {
                         return 0;
                     } else {
@@ -137,11 +147,11 @@
 
                 //Linear interpolation between two nearest coordinates accordingly to the current time
                 //TODO: It's better to apply geodetic interpolation 
-                lon = og.math.lerp(d, t1.lonlat[0], t0.lonlat[0]);
-                lat = og.math.lerp(d, t1.lonlat[1], t0.lonlat[1]);
+                lon = math.lerp(d, t1.lonlat[0], t0.lonlat[0]);
+                lat = math.lerp(d, t1.lonlat[1], t0.lonlat[1]);
             }
 
-            marker.setLonLat(new og.LonLat(lon, lat));
+            marker.setLonLat(new LonLat(lon, lat));
         });
 
         document.getElementById("multDef").addEventListener("change", function (e) {
