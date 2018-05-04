@@ -76,20 +76,14 @@ class WMS extends XYZ {
         this.setVersion(options.version);
     }
 
+    _checkSegment(segment) {
+        return true;
+    }
+
     get instanceName() {
         return "WMS";
     }
 
-    _bindEmpyTexture(material) {
-
-    }
-
-    /**
-     * Creates query url.
-     * @protected
-     * @virtual
-     * @param {og.planetSegment.Segment}
-     */
     _createUrl(segment) {
         return this.url + "wms?" + "LAYERS=" + this.layers +
             "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=" + this._version + "&REQUEST=GetMap" +
@@ -115,25 +109,14 @@ class WMS extends XYZ {
         }
     }
 
-    /**
-     * @private
-     * @return {string}
-     */
     _getBbox111(segment) {
         return segment._extent.getWest() + "," + segment._extent.getSouth() + "," + segment._extent.getEast() + "," + segment._extent.getNorth();
     }
 
-    /**
-     * @private
-     * @return {string}
-     */
     _getBbox130(segment) {
         return segment._extent.getSouth() + "," + segment._extent.getWest() + "," + segment._extent.getNorth() + "," + segment._extent.getEast();
     }
 
-    /**
-     * @protected
-     */
     _correctFullExtent() {
         var e = this._extent,
             em = this._extentMerc;
