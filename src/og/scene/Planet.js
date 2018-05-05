@@ -396,7 +396,7 @@ class Planet extends RenderNode {
 
     /**
      * Add the given control to the renderer of the planet scene.
-     * @param {og.control.BaseControl} control - Control.
+     * @param {og.control.Control} control - Control.
      */
     addControl(control) {
         control.planet = this;
@@ -405,7 +405,7 @@ class Planet extends RenderNode {
 
     /**
      * Add the given controls array to the renderer of the planet.
-     * @param {Array.<og.control.BaseControl>} cArr - Control array.
+     * @param {Array.<og.control.Control>} cArr - Control array.
      */
     addControls(cArr) {
         for (var i = 0; i < cArr.length; i++) {

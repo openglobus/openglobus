@@ -4,16 +4,16 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { input } from '../input/input.js';
 
 /**
  * Planet GL draw mode(TRIANGLE_STRIP/LINE_STRING) changer.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
-class ToggleWireframe extends BaseControl {
+class ToggleWireframe extends Control {
     constructor(options) {
         super(options);
     }

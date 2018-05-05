@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 
 function dec2deg(base) {
     var t, t2;
@@ -48,12 +48,12 @@ const DisplayTypesConverters = [
 /**
  * Control displays mouse or screen center Earth coordinates.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Options:
  * @param {Boolean} [options.center] - Earth coordiantes by screen center otherwise mouse pointer. False is default.
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
  */
-class EarthCoordinates extends BaseControl {
+class EarthCoordinates extends Control {
     constructor(options) {
         super(options);
 

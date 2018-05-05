@@ -23,13 +23,12 @@ const layer = {
     'GeoImage': GeoImage,
     'GeoTexture2d': GeoTexture2d,
     'GeoVideo': GeoVideo,
-    'Layer': Layer,
     'Vector': Vector,
     'WMS': WMS,
     'XYZ': XYZ,
 };
 
-import { BaseControl } from './control/BaseControl.js';
+import { Control } from './control/Control.js';
 import { EarthCoordinates } from './control/EarthCoordinates.js';
 import { GeoImageDragControl } from './control/GeoImageDragControl.js';
 import { KeyboardNavigation } from './control/KeyboardNavigation.js';
@@ -43,7 +42,6 @@ import { Sun } from './control/Sun.js';
 import { ZoomControl } from './control/ZoomControl.js';
 
 const control = {
-    'BaseControl': BaseControl,
     'EarthCoordinates': EarthCoordinates,
     'GeoImageDragControl': GeoImageDragControl,
     'KeyboardNavigation': KeyboardNavigation,
@@ -66,7 +64,6 @@ import { PointCloud } from './entity/PointCloud.js';
 import { Polyline } from './entity/Polyline.js';
 
 const entity = {
-    'Entity': Entity,
     'Billboard': Billboard,
     'Geometry': Geometry,
     'Label': Label,
@@ -124,8 +121,14 @@ import { Events } from './Events.js';
 import { Extent } from './Extent.js';
 import { LonLat } from './LonLat.js';
 
+import { Axes } from './scene/Axes.js';
 import { Planet } from './scene/Planet.js';
 import { RenderNode } from './scene/RenderNode.js';
+
+const scene = {
+    'Planet': Planet,
+    'Axes': Axes
+};
 
 export {
     jd,
@@ -133,10 +136,11 @@ export {
     mercator,
     utils,
     input,
+    Layer,
     layer,
     terrain,
+    Control,
     control,
-    entity,
     webgl,
     wgs84,
     Camera,
@@ -151,7 +155,7 @@ export {
     Events,
     Extent,
     LonLat,
-    Planet,
+    scene,
     RenderNode,
     Line2,
     Line3,
@@ -162,5 +166,7 @@ export {
     Ray,
     Vec2,
     Vec3,
-    Vec4
+    Vec4,
+    entity,
+    Entity
 };

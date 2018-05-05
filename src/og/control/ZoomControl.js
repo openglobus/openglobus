@@ -4,16 +4,16 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { Key } from '../Lock.js';
 
 /**
  * Planet zoom buttons control.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @params {Object} [options] - Control options.
  */
-class ZoomControl extends BaseControl {
+class ZoomControl extends Control {
     constructor(options) {
         super(options);
 

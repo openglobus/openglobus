@@ -5,17 +5,17 @@
 'use strict';
 
 import * as math from '../math.js';
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { input } from '../input/input.js';
 import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
-class KeyboardNavigation extends BaseControl {
+class KeyboardNavigation extends Control {
     constructor(options) {
         options = options || {};
         super(options);

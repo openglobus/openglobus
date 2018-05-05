@@ -254,7 +254,7 @@ Renderer.prototype.getCenter = function () {
 
 /**
  * Add the given control to the renderer.
- * @param {og.control.BaseControl} control - Control.
+ * @param {og.control.Control} control - Control.
  */
 Renderer.prototype.addControl = function (control) {
     control.addTo(this);
@@ -262,7 +262,7 @@ Renderer.prototype.addControl = function (control) {
 
 /**
  * Add the given controls array to the planet node.
- * @param {Array.<og.control.BaseControl>} cArr - Control array.
+ * @param {Array.<og.control.Control>} cArr - Control array.
  */
 Renderer.prototype.addControls = function (cArr) {
     for (var i = 0; i < cArr.length; i++) {
@@ -272,7 +272,7 @@ Renderer.prototype.addControls = function (cArr) {
 
 /**
  * Remove control from the renderer.
- * @param {og.control.BaseControl} control  - Control.
+ * @param {og.control.Control} control  - Control.
  * @return {og.Renderer} -
  */
 Renderer.prototype.removeControl = function (control) {
