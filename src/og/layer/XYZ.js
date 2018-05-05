@@ -122,13 +122,8 @@ class XYZ extends Layer {
         this.url = url;
     }
 
-    _bindEmpyTexture(material){
-        let seg = material.segment;
-        if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
-        } else {
-            material.texture = seg.planet.transparentTexture;
-        }
+    _checkSegment(segment) {
+        return segment._projection.id === EPSG3857.id;
     }
 
     /**
@@ -139,13 +134,19 @@ class XYZ extends Layer {
      */
     loadMaterial(material) {
 
-        this._bindEmpyTexture(material);
+        let seg = material.segment;
+
+        if (this._isBaseLayer) {
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+        } else {
+            material.texture = seg.planet.transparentTexture;
+        }
 
         if (this._planet.layerLock.isFree()) {
-            let seg = material.segment;
             material.isReady = false;
             material.isLoading = true;
-            if (material.segment._projection.id === EPSG3857.id) {
+
+            if (this._checkSegment(seg)) {
                 this._planet._tileLoader.load({
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',

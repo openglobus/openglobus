@@ -4,10 +4,10 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';
 
-class GeoImageDragControl extends BaseControl {
+class GeoImageDragControl extends Control {
     constructor(options) {
         super(options);
 

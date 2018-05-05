@@ -5,7 +5,7 @@
 'use strict';
 
 import * as math from '../math.js';
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { input } from '../input/input.js';
 import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
@@ -19,10 +19,10 @@ import { Vec3 } from '../math/Vec3.js';
 /**
  * Touch pad planet camera dragging control.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
-class TouchNavigation extends BaseControl {
+class TouchNavigation extends Control {
     constructor(options) {
         super(options);
 

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { getSunPosition } from '../astro/earth.js';
 import { input } from '../input/input.js';
 import { LightSource } from '../light/LightSource.js';
@@ -14,10 +14,10 @@ import { Vec3 } from '../math/Vec3.js';
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
-class Sun extends BaseControl {
+class Sun extends Control {
     constructor(options) {
         super(options);
 

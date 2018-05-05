@@ -53,7 +53,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.atmosphere] - Render planet with atmosphere. False - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
  * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
- * @param {Array.<og.control.BaseControl>} [options.controls] - Renderer controls array.
+ * @param {Array.<og.control.Control>} [options.controls] - Renderer controls array.
  * @param {Array.<og.layer.Layer>} [options.layers] - Planet layers.
  * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.

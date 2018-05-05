@@ -27,12 +27,12 @@
         import { Globe } from '../../src/og/Globe.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
-        import { BaseControl } from '../../src/og/control/BaseControl.js';
+        import { Control } from '../../src/og/control/Control.js';
         import { Vec3 } from '../../src/og/math/Vec3.js';
         import { LonLat } from '../../src/og/LonLat.js';
 
         //Define custom control class
-        class CustomControl extends BaseControl {
+        class CustomControl extends Control {
             constructor(options) {
                 super(options);
             }

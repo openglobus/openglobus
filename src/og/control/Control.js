@@ -1,5 +1,5 @@
 /**
- * @module og/control/BaseControl
+ * @module og/control/Control
  */
 
 'use strict';
@@ -11,11 +11,11 @@
  * @param {Object} [options] - Control activation options:
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
-class BaseControl {
+class Control {
     constructor(options) {
         options = options || {};
 
-        this._id = BaseControl.__staticCounter++;
+        this._id = Control.__staticCounter++;
 
         this._name = options.name || "_control_" + this._id;
 
@@ -163,4 +163,4 @@ class BaseControl {
     }
 };
 
-export { BaseControl };
+export { Control };

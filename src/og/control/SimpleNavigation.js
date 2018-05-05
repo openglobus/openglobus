@@ -5,16 +5,16 @@
 'use strict';
 
 import * as math from '../math.js';
-import { BaseControl } from './BaseControl.js';
+import { Control } from './Control.js';
 import { input } from '../input/input.js';
 
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
  * @class
- * @extends {og.control.BaseControl}
+ * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
-class SimpleNavigation extends BaseControl {
+class SimpleNavigation extends Control {
     constructor(options) {
         options = options || {};
         super(options);

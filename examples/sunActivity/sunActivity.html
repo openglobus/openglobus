@@ -3,8 +3,7 @@
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
-    <script src="http://www.openglobus.org/og.js"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 </head>
 
 <style>
@@ -43,10 +42,17 @@
         <button id="btnStop" class="btn">Stop</button>
         <button id="btnDeactivate" class="btn">Deactivate</button>
     </div>
-    <div id="chkLightingEnabled"><input type="checkbox" checked/>
+    <div id="chkLightingEnabled">
+        <input type="checkbox" checked/>
         <div>Lighting</div>
     </div>
-    <script>
+    <script type="module">
+        'use strict';
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+
         document.getElementById("btnActivate").onclick = function () {
             globus.sun.activate();
         };
@@ -63,10 +69,7 @@
             globus.planet.lightEnabled = this.checked;
         };
 
-        var osm = new og.layer.XYZ("OpenStreetMap", {
-            specular: [0.0003, 0.00012, 0.00001],
-            shininess: 20,
-            diffuse: [0.89, 0.9, 0.83],
+        var osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
             url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
@@ -74,10 +77,10 @@
         });
 
 
-        globus = new og.Globus({
+        var globus = new Globe({
             "target": "globus",
             "name": "Earth",
-            "terrain": new og.terrainProvider.TerrainProvider("OpenGlobus"),
+            "terrain": new GlobusTerrain(),
             "layers": [osm],
             "sun": {
                 "active": false
