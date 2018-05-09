@@ -678,6 +678,26 @@ class Planet extends RenderNode {
 
         //Loads first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
+
+        this.renderer.controls.DebugInfo.addWatches([{
+            'label': "Nodes count",
+            'frame': () => this._renderedNodes.length
+        }, {
+            'label': "TileLoader",
+            'frame': () => { return this._tileLoader._loading + ' ' + this._tileLoader._queue.length; }
+        }, {
+            'label': "NormalMapCreator",
+            'frame': () => this._normalMapCreator._queue.length
+        }, {
+            'label': "TerrainWorker",
+            'frame': () => this._terrainWorker._pendingQueue.length
+        }, {
+            'label': "TerrainLoader",
+            'frame': () => { return this.terrain._loader._loading + ' ' + this.terrain._loader._queue.length; }
+        }, {
+            'label': "maxZoom/minZoom",
+            'frame': () => this.maxCurrZoom + '/' + this.minCurrZoom
+        }]);
     }
 
     _preRender() {

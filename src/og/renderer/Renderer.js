@@ -15,6 +15,7 @@ import { cons } from '../cons.js';
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
+import { DebugInfo } from '../control/DebugInfo.js';
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler works real time.
@@ -331,7 +332,7 @@ Renderer.prototype.initialize = function () {
             corners: { type: types.VEC3, enableArray: true },
         },
         vertexShader:
-        'attribute vec2 corners;\
+            'attribute vec2 corners;\
             \
             varying vec2 tc;\
             void main(void) {\
@@ -339,7 +340,7 @@ Renderer.prototype.initialize = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-        'precision highp float;\
+            'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\
@@ -371,6 +372,8 @@ Renderer.prototype.initialize = function () {
     for (let i in temp) {
         this.addControl(temp[i]);
     }
+
+    this.addControl(new DebugInfo({ 'name': "DebugInfo" }));
 }
 
 /**

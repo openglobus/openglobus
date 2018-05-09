@@ -108,9 +108,9 @@ class Layer {
          * @type {Object}
          */
         this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.1, 0.1, 0.21));
-        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
-        this.specular = utils.createColorRGB(options.specular, new Vec3(0.00025, 0.00015, 0.0001));
-        this.shininess = options.shininess || 100.0;
+        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.89, 0.9, 0.83));
+        this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.00012, 0.00001));
+        this.shininess = options.shininess || 20.0;
 
         /**
          * Planet node.
