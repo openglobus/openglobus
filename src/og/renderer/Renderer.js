@@ -15,7 +15,6 @@ import { cons } from '../cons.js';
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
-import { DebugInfo } from '../control/DebugInfo.js';
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler works real time.
@@ -372,8 +371,6 @@ Renderer.prototype.initialize = function () {
     for (let i in temp) {
         this.addControl(temp[i]);
     }
-
-    this.addControl(new DebugInfo({ 'name': "DebugInfo" }));
 }
 
 /**

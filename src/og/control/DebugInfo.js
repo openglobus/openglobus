@@ -15,6 +15,10 @@ import { print2d } from '../utils/Shared.js';
  */
 class DebugInfo extends Control {
     constructor(options) {
+        options = options || {};
+        if (!options.name || options.name === "") {
+            options.name = "DebugInfo";
+        }
         super(options);
         this.el = null;
         this._watch = options.watch || [];
@@ -45,6 +49,35 @@ class DebugInfo extends Control {
         }
         this.renderer.div.appendChild(this.el);
         this.renderer.events.on("draw", this._frame, this);
+
+        let p = this.planet;
+
+        if (p) {
+            this.addWatches([{
+                'label': "Nodes count",
+                'frame': () => p._renderedNodes.length
+            }, {
+                'label': "TileLoader",
+                'frame': () => p._tileLoader._loading + ' ' + p._tileLoader._queue.length
+            }, {
+                'label': "NormalMapCreator",
+                'frame': () => p._normalMapCreator._queue.length
+            }, {
+                'label': "TerrainWorker",
+                'frame': () => p._terrainWorker._pendingQueue.length
+            }, {
+                'label': "TerrainLoader",
+                'frame': () => {
+                    if (p.terrain && p.terrain._loader)
+                        return p.terrain._loader._loading + ' ' + p.terrain._loader._queue.length;
+                    else
+                        return '';
+                }
+            }, {
+                'label': "maxZoom/minZoom",
+                'frame': () => p.maxCurrZoom + '/' + p.minCurrZoom
+            }]);
+        }
     }
 
     _frame() {
