@@ -94,10 +94,10 @@ class Globe {
          * @type {og.Renderer}
          */
         this.renderer = new Renderer(_handler);
-        this.renderer.initialize();
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
         this.renderer.div.attributions.classList.add("ogAttribution");
+        this.renderer.initialize();
         this.div.appendChild(this.renderer.div.attributions);
 
         //Skybox

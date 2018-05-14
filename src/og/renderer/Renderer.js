@@ -331,7 +331,7 @@ Renderer.prototype.initialize = function () {
             corners: { type: types.VEC3, enableArray: true },
         },
         vertexShader:
-        'attribute vec2 corners;\
+            'attribute vec2 corners;\
             \
             varying vec2 tc;\
             void main(void) {\
@@ -339,7 +339,7 @@ Renderer.prototype.initialize = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-        'precision highp float;\
+            'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\

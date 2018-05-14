@@ -244,3 +244,33 @@
     .ogViewExtentBtn:hover {
         background: white;
     }
+
+
+    /**
+     *DebugInfo
+     */
+    .og-debug-info{
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: white;
+        font-family: arial;
+        font-size: 14px;
+        width: 250px;
+        text-shadow: 0px 0px 3px #616161;
+        padding: 10px;
+    }
+
+    .og-debug-info .og-watch-line{
+        width:100%;
+    }
+
+    .og-watch-line .og-watch-label{
+        float: left;
+        width: 75%;
+    }
+
+    .og-watch-line .og-watch-value{
+        float: left;
+        width: 25%;
+    }

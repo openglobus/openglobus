@@ -46,6 +46,12 @@ class ZoomControl extends Control {
         btnZoomOut.addEventListener("mousedown", (e) => this.zoomOut());
         btnZoomOut.addEventListener("mouseup", (e) => this.stopZoom());
 
+        btnZoomIn.addEventListener('touchstart', (e) => this.zoomIn());
+        btnZoomIn.addEventListener('touchcancel', (e) => this.stopZoom());
+
+        btnZoomOut.addEventListener('touchstart', (e) => this.zoomOut());
+        btnZoomOut.addEventListener('touchcancel', (e) => this.stopZoom());
+
         this.renderer.events.on("draw", this._draw, this);
     }
 
