@@ -24,16 +24,20 @@ class TerrainWorker {
                 delete that._segments[e.data.id];
 
                 that._workerQueue.unshift(this);
-                if (that._pendingQueue.length) {
-                    var p = that._pendingQueue.pop();
-                    that.make(p.segment, p.elevations)
-                }
+                that.check();
             };
 
             this._workerQueue.push(w);
         }
 
         this._pendingQueue = new QueueArray(512);
+    }
+
+    check(){
+        if (this._pendingQueue.length) {
+            var p = this._pendingQueue.pop();
+            this.make(p.segment, p.elevations);
+        }
     }
 
     make(segment, elevations) {
