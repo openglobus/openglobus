@@ -724,21 +724,6 @@ Node.prototype.whileTerrainLoading = function () {
     return true;
 };
 
-Node.prototype.clearTree = function () {
-
-    var state = this.getState();
-
-    if (state === quadTree.NOTRENDERING) {
-        this.destroyBranches(true);
-    } else if (state === quadTree.RENDERING) {
-        this.destroyBranches(false);
-    } else {
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].clearTree();
-        }
-    }
-};
-
 Node.prototype.destroy = function () {
     this.state = quadTree.NOTRENDERING;
     this.segment.destroySegment();
@@ -754,26 +739,50 @@ Node.prototype.destroy = function () {
     this.segment = null;
 };
 
-Node.prototype.destroyBranches = function (cls) {
+Node.prototype.clearTree = function () {
 
-    var nodesToRemove = [],
-        i;
+    var state = this.getState();
 
+    if (state === quadTree.NOTRENDERING) {
+        this.destroyBranches();
+    } else if (state === quadTree.RENDERING) {
+        this.destroyBranches();
+    } else {
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].clearTree();
+        }
+    }
+};
+
+Node.prototype.clearBranches = function () {
     for (i = 0; i < this.nodes.length; i++) {
-        nodesToRemove[i] = this.nodes[i];
+        this.nodes[i].clearBranches();
+        this.nodes[i].segment.deleteMaterials();
     }
+};
 
-    this.nodes.neighbors = [null, null, null, null];
-    this.nodes.length = 0;
-    this.nodes = [];
+Node.prototype.destroyBranches = function () {
 
-    for (i = 0; i < nodesToRemove.length; i++) {
-        nodesToRemove[i].destroyBranches(false);
-        nodesToRemove[i].destroy();
-        nodesToRemove[i] = null;
+    if (this.nodes.length) {
+
+        var nodesToRemove = [], i;
+
+        for (i = 0; i < this.nodes.length; i++) {
+            nodesToRemove[i] = this.nodes[i];
+        }
+
+        this.nodes.length = 0;
+        this.nodes = [];
+
+        for (i = 0; i < nodesToRemove.length; i++) {
+            nodesToRemove[i].destroyBranches();
+            nodesToRemove[i].destroy();
+            nodesToRemove[i] = null;
+        }
+
+        nodesToRemove.length = 0;
+        nodesToRemove = null;
     }
-    nodesToRemove.length = 0;
-    nodesToRemove = null;
 };
 
 Node.prototype.traverseTree = function (callback) {

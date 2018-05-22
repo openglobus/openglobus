@@ -277,16 +277,14 @@ GmxVectorTileCreator.prototype.frame = function () {
                 gl.clearColor(0.0, 0.0, 0.0, 0.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                //
-                //HERE IS A LONG ITEMS DRAWING LOOP
-                //TODO: optimization
-                //
                 //draw vectors
-                for (let i = 0; i < tItems.length; i++) {
+                //for (let i = 0; i < tItems.length; i++) {
+                //for (let i = 0; i < tItems.length; i++) {
+                let i = 0;
+                while (i < tItems.length && i < 5) {
                     let ti = tItems[i];
-
-                    if (layer.getItemVisibility(ti.item) &&
-                        ti.extent.overlaps(extent)) {
+                    i++;
+                    if (layer.getItemVisibility(ti.item) && ti.extent.overlaps(extent)) {
 
                         let style = layer.getItemStyle(ti.item),
                             fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w],
@@ -297,40 +295,37 @@ GmxVectorTileCreator.prototype.frame = function () {
                             sha = sh.attributes,
                             shu = sh.uniforms;
 
-                        if (layer._gmxProperties.Temporal) {
-                            let sceneTextureOffset;
-                            if (zoomAvailable) {
-                                sceneTextureOffset = layer.applySceneTexture(ti, material);
-                            }
-                            //f.bindOutputTexture(this._maskTexture);
-                            //gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                            //gl.clear(gl.COLOR_BUFFER_BIT);
+                        // if (layer._gmxProperties.Temporal) {
+                        //     let sceneTextureOffset;
+                        //     if (zoomAvailable) {
+                        //         sceneTextureOffset = layer.applySceneTexture(ti, material);
+                        //     }
+                        //     //f.bindOutputTexture(this._maskTexture);
+                        //     //gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                        //     //gl.clear(gl.COLOR_BUFFER_BIT);
+                        // }
 
-                        } else {
+                        //==============
+                        //polygon
+                        //==============
+                        f.bindOutputTexture(texture);
+                        gl.uniform4fv(shu.color, fillColor);
+                        gl.uniform4fv(shu.extentParams, extentParams);
 
+                        gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
+                        gl.vertexAttribPointer(sha.coordinates, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
-                            //==============
-                            //polygon
-                            //==============
-                            f.bindOutputTexture(texture);
-                            gl.uniform4fv(shu.color, fillColor);
-                            gl.uniform4fv(shu.extentParams, extentParams);
+                        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
+                        gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                            gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
-                            gl.vertexAttribPointer(sha.coordinates, ti._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
-
-                            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ti._polyIndexesBuffer);
-                            gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
-                            //Polygon picking pass
-                            if (layer._pickingEnabled) {
-                                if (!material.pickingReady) {
-                                    f.bindOutputTexture(pickingMask);
-                                    gl.uniform4fv(shu.color, pickingColor);
-                                    gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                                } else {
-                                    pickingMask = material.pickingMask;
-                                }
+                        //Polygon picking pass
+                        if (layer._pickingEnabled) {
+                            if (!material.pickingReady) {
+                                f.bindOutputTexture(pickingMask);
+                                gl.uniform4fv(shu.color, pickingColor);
+                                gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                            } else {
+                                pickingMask = material.pickingMask;
                             }
                         }
 
