@@ -377,7 +377,7 @@ Node.prototype.addToRender = function () {
 
     var node = this;
     var nodes = node.planet._renderedNodes;
-    for (var i = 0; i < nodes.length; i++) {
+    for (var i = nodes.length - 1; i >= 0; i--) {
         var ni = nodes[i];
         var cs = node.getCommonSide(ni);
         if (cs !== -1) {

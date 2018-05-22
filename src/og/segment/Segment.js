@@ -356,10 +356,10 @@ Segment.prototype.elevationsNotExists = function () {
             this.createCoordsBuffers(this.terrainVertices, this.gridSize);
         }
 
-        var xmin = math.MAX, xmax = math.MIN, 
-            ymin = math.MAX, ymax = math.MIN, 
+        var xmin = math.MAX, xmax = math.MIN,
+            ymin = math.MAX, ymax = math.MIN,
             zmin = math.MAX, zmax = math.MIN;
-            
+
         var v = this.terrainVertices;
         for (var i = 0; i < v.length; i += 3) {
             var x = v[i], y = v[i + 1], z = v[i + 2];
@@ -451,14 +451,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
 
         } else {
-            let s_edge, b_edge;
+            let s_edge = 0, b_edge = 1;
 
             if (i_a) {
                 s_edge = 1;
                 b_edge = 0;
-            } else {
-                s_edge = 0;
-                b_edge = 1;
             }
 
             if (s.tileZoom < b.tileZoom) {
@@ -771,16 +768,16 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this.plainNormals = new Float32Array(gridSize3);
     this.plainVertices = new Float32Array(gridSize3);
 
-    var gs3 = gs * gs * 3;
-    this.normalMapNormals = new Float32Array(gs3);
-    this.normalMapVertices = new Float32Array(gs3);
+    var gsgs = gs * gs;
+    this.normalMapNormals = new Float32Array(gsgs * 3);
+    this.normalMapVertices = new Float32Array(gsgs * 3);
 
     var verts = this.plainVertices,
         norms = this.plainNormals,
         nmVerts = this.normalMapVertices,
         nmNorms = this.normalMapNormals;
 
-    for (var k = 0; k < gs3; k++) {
+    for (var k = 0; k < gsgs; k++) {
 
         var j = k % gs,
             i = ~~(k / gs);
@@ -939,9 +936,9 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
             //bind normalmap texture
             if (p.lightEnabled) {
                 gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 3);
+                gl.activeTexture(gl.TEXTURE0 + (p.SLICE_SIZE << 1) + 3);
                 gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap, p.SLICE_SIZE * 2 + 3);
+                gl.uniform1i(shu.uNormalMap, (p.SLICE_SIZE << 1) + 3);
 
                 //bind segment specular and night material texture coordinates
                 gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);

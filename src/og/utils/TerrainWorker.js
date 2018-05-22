@@ -131,7 +131,7 @@ const _programm =
         var fileGridSize = Math.sqrt(elevations.length) - 1;
 
         var fileGridSize_one = fileGridSize + 1,
-            fileGridSize_one_3 = fileGridSize_one * fileGridSize_one * 3,
+            fileGridSize_one_x2 = fileGridSize_one * fileGridSize_one,
             tgs = gridSize,
             dg = fileGridSize / tgs,
             gs = tgs + 1,
@@ -141,15 +141,15 @@ const _programm =
         var vInd = 0;
 
         var terrainVertices = new Float32Array(gs * gs * 3);
-        var normalMapNormals = new Float32Array(fileGridSize_one_3);
-        var normalMapVertices = new Float32Array(fileGridSize_one_3);
+        var normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
+        var normalMapVertices = new Float32Array(fileGridSize_one_x2 * 3);
 
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
 
         if (fileGridSize >= tgs) {
 
-                for (var k = 0; k < fileGridSize_one_3; k++) {
+                for (var k = 0; k < fileGridSize_one_x2; k++) {
 
                     var j = k % fileGridSize_one,
                         i = ~~(k / fileGridSize_one);
