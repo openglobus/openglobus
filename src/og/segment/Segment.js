@@ -780,32 +780,34 @@ Segment.prototype.createPlainVertices = function (gridSize) {
         nmVerts = this.normalMapVertices,
         nmNorms = this.normalMapNormals;
 
-    for (var i = 0; i < gs; i++) {
-        for (var j = 0; j < gs; j++) {
-            var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
-            var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            var nxl = nx * l, nyl = ny * l, nzl = nz * l;
+    for (var k = 0; k < gs3; k++) {
 
-            nmVerts[nmInd] = v.x;
-            nmNorms[nmInd++] = nxl;
+        var j = k % gs,
+            i = ~~(k / gs);
 
-            nmVerts[nmInd] = v.y;
-            nmNorms[nmInd++] = nyl;
+        var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+        var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+        var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var nxl = nx * l, nyl = ny * l, nzl = nz * l;
 
-            nmVerts[nmInd] = v.z;
-            nmNorms[nmInd++] = nzl;
+        nmVerts[nmInd] = v.x;
+        nmNorms[nmInd++] = nxl;
 
-            if (i % dg === 0 && j % dg === 0) {
-                verts[ind] = v.x;
-                norms[ind++] = nxl;
+        nmVerts[nmInd] = v.y;
+        nmNorms[nmInd++] = nyl;
 
-                verts[ind] = v.y;
-                norms[ind++] = nyl;
+        nmVerts[nmInd] = v.z;
+        nmNorms[nmInd++] = nzl;
 
-                verts[ind] = v.z;
-                norms[ind++] = nzl;
-            }
+        if (i % dg === 0 && j % dg === 0) {
+            verts[ind] = v.x;
+            norms[ind++] = nxl;
+
+            verts[ind] = v.y;
+            norms[ind++] = nyl;
+
+            verts[ind] = v.z;
+            norms[ind++] = nzl;
         }
     }
 

@@ -131,6 +131,7 @@ const _programm =
         var fileGridSize = Math.sqrt(elevations.length) - 1;
 
         var fileGridSize_one = fileGridSize + 1,
+            fileGridSize_one_3 = fileGridSize_one * fileGridSize_one * 3,
             tgs = gridSize,
             dg = fileGridSize / tgs,
             gs = tgs + 1,
@@ -140,15 +141,19 @@ const _programm =
         var vInd = 0;
 
         var terrainVertices = new Float32Array(gs * gs * 3);
-        var normalMapNormals = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
-        var normalMapVertices = new Float32Array(fileGridSize_one * fileGridSize_one * 3);
+        var normalMapNormals = new Float32Array(fileGridSize_one_3);
+        var normalMapVertices = new Float32Array(fileGridSize_one_3);
 
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
 
         if (fileGridSize >= tgs) {
-            for (var i = 0; i < fileGridSize_one; i++) {
-                for (var j = 0; j < fileGridSize_one; j++) {
+
+                for (var k = 0; k < fileGridSize_one_3; k++) {
+
+                    var j = k % fileGridSize_one,
+                        i = ~~(k / fileGridSize_one);
+
                     var hInd0 = i * fileGridSize_one + j;
                     var vInd0 = hInd0 * 3;
                     var h0 = hf * elevations[hInd0];
@@ -157,7 +162,7 @@ const _programm =
                     normalMapVertices[vInd0 + 1] = v0.y;
                     normalMapVertices[vInd0 + 2] = v0.z;
 
-                    if (i % dg == 0 && j % dg == 0) {
+                    if (i % dg === 0 && j % dg === 0) {
                         terrainVertices[vInd++] = v0.x;
                         terrainVertices[vInd++] = v0.y;
                         terrainVertices[vInd++] = v0.z;
@@ -167,7 +172,7 @@ const _programm =
                         if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
                     }
 
-                    if (i != fileGridSize && j != fileGridSize) {
+                    if (i !== fileGridSize && j !== fileGridSize) {
                         var hInd1 = i * fileGridSize_one + j + 1;
                         var vInd1 = hInd1 * 3;
                         var h1 = hf * elevations[hInd1];
@@ -219,7 +224,6 @@ const _programm =
                         normalMapNormals[vInd3 + 2] += n0.z;
                     }
                 }
-            }
 
         } else {
 
@@ -229,7 +233,8 @@ const _programm =
             var oneSize = tgs / fileGridSize;
             var h, inside_i, inside_j, v_i, v_j;
 
-            for (var i = 0; i < gs; i++) {
+            for (var i = 0; i < gs; i++) 
+            {
                 if (i == gs - 1) {
                     inside_i = oneSize;
                     v_i = Math.floor(i / oneSize) - 1;
@@ -238,7 +243,8 @@ const _programm =
                     v_i = Math.floor(i / oneSize);
                 }
 
-                for (var j = 0; j < gs; j++) {
+                for (var j = 0; j < gs; j++) 
+                {
                     if (j == gs - 1) {
                         inside_j = oneSize;
                         v_j = Math.floor(j / oneSize) - 1;
