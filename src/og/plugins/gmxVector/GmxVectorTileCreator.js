@@ -205,9 +205,22 @@ GmxVectorTileCreator.prototype.add = function (data) {
 GmxVectorTileCreator.prototype.frame = function () {
 
     if (this._planet.layerLock.isFree() && this._queue.length) {
-        var h = this._handler,
-            gl = h.gl;
-        var p = this._planet;
+
+        const h = this._handler;
+        const gl = h.gl;
+        const p = this._planet;
+        const hLine = h.shaderPrograms.gmxVectorTileLineRasterization;
+        const hPoly = h.shaderPrograms.gmxVectorTilePolygonRasterization;
+
+        const f = this._framebuffer.activate();
+
+        const _w = this._width;
+        const _h = this._height;
+        const _w2 = _w << 1;
+        const _h2 = _h << 1;
+
+        let width = _w,
+            height = _h;
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
@@ -215,82 +228,78 @@ GmxVectorTileCreator.prototype.frame = function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var hLine = h.shaderPrograms.gmxVectorTileLineRasterization,
-            hPoly = h.shaderPrograms.gmxVectorTilePolygonRasterization;
-
-        var f = this._framebuffer.activate();
-
-        var width, height;
-        var width2 = this._width * 2,
-            height2 = this._height * 2;
-
-        var deltaTime = 0,
+        let deltaTime = 0,
             startTime = window.performance.now();
 
         while (p.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
 
-            var q = this._queue.shift();
-            var fromTile = q.fromTile,
+            let q = this._queue.shift(),
+                fromTile = q.fromTile,
                 material = q.material;
 
             if (material.isLoading && material.segment.node.getState() === RENDERING) {
 
-                var layer = material.layer;
-                var tItems = fromTile.tileItemArr;
-                var materialZoom = material.segment.tileZoom;
-                var zoomAvailable = materialZoom >= layer._gmxProperties.RCMinZoomForRasters;
+                let layer = material.layer,
+                    tItems = fromTile.tileItemArr,
+                    materialZoom = material.segment.tileZoom,
+                    zoomAvailable = materialZoom >= layer._gmxProperties.RCMinZoomForRasters,
+                    extent = material.segment.getExtentMerc(),
+                    extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
 
-                //TODO: sort optimization
+                material.setTotalItems(tItems.length);
+
+                //
+                //TODO: sort optimization is needed
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
                 });
+                //
+
 
                 if (materialZoom <= 3) {
-                    width = width2;
-                    height = height2;
+                    width = _w2;
+                    height = _h2;
                 } else {
-                    width = this._width;
-                    height = this._height;
-                }
-
-                var extent = material.segment.getExtentMerc();
-                var extentParams = [extent.southWest.lon, extent.southWest.lat, 2.0 / extent.getWidth(), 2.0 / extent.getHeight()];
-
-                var texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
-
-                var pickingMask;
-                if (layer._pickingEnabled && !material.pickingReady) {
-                    if (material._updatePickingMask) {
-                        pickingMask = material._updatePickingMask;
-                    } else {
-                        pickingMask = h.createEmptyTexture_n(width, height);
-                    }
+                    width = _w;
+                    height = _h;
                 }
 
                 f.setSize(width, height);
 
-                f.bindOutputTexture(texture);
-                gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
+                let texture = material.texture,
+                    pickingMask = material.pickingMask;
 
-                f.bindOutputTexture(pickingMask);
-                gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
+                if (material._completedItems === 0) {
+                    texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
+                    if (layer._pickingEnabled && !material.pickingReady) {
+                        if (material._updatePickingMask) {
+                            pickingMask = material._updatePickingMask;
+                        } else {
+                            pickingMask = h.createEmptyTexture_n(width, height);
+                        }
+                    }
 
-                //draw vectors
-                //for (let i = 0; i < tItems.length; i++) {
-                //for (let i = 0; i < tItems.length; i++) {
+                    f.bindOutputTexture(texture);
+                    gl.clearColor(1.0, 1.0, 1.0, 0.0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+
+                    f.bindOutputTexture(pickingMask);
+                    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                }
+
                 let i = 0;
-                while (i < tItems.length && i < 5) {
-                    let ti = tItems[i];
-                    i++;
+                while (i < 200 && material._completedItems < material._totalItems) {
+                    
+                    let ti = tItems[material._completedItems];
+
                     if (layer.getItemVisibility(ti.item) && ti.extent.overlaps(extent)) {
 
                         let style = layer.getItemStyle(ti.item),
-                            fillColor = [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w],
                             pickingColor = [ti.item._pickingColor.x / 255.0, ti.item._pickingColor.y / 255.0, ti.item._pickingColor.z / 255.0, 1.0];
 
                         hPoly.activate();
+
                         let sh = hPoly._program,
                             sha = sh.attributes,
                             shu = sh.uniforms;
@@ -309,7 +318,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                         //polygon
                         //==============
                         f.bindOutputTexture(texture);
-                        gl.uniform4fv(shu.color, fillColor);
+                        gl.uniform4fv(shu.color, [style.fillColor.x, style.fillColor.y, style.fillColor.z, style.fillColor.w]);
                         gl.uniform4fv(shu.extentParams, extentParams);
 
                         gl.bindBuffer(gl.ARRAY_BUFFER, ti._polyVerticesBufferMerc);
@@ -390,12 +399,19 @@ GmxVectorTileCreator.prototype.frame = function () {
                             gl.uniform4fv(shu.color, pickingColor);
                             gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                         }
-
                     }
+
+                    material._completedItems++;
+                    i++;
                 }
 
                 material.applyTexture(texture, pickingMask);
 
+                if (material.notComplete()) {
+                    material.isLoading = true;
+                    this.add(q);
+                }
+                
             } else {
                 material.isLoading = false;
             }

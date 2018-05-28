@@ -14,11 +14,14 @@ const GmxMaterial = function (segment, layer) {
     this.fromTile = null;
 
     this.maskTexture = null;
-    
+
     this.sceneIsLoading = {};
     this.sceneExists = {};
     this.sceneIsReady = {};
     this.sceneTexture = {};
+
+    this._completedItems = 0;
+    this._totalItems = 0;
 };
 
 inherits(GmxMaterial, Material);
@@ -30,6 +33,13 @@ GmxMaterial.applySceneBitmapImage = function (id, bitmapImage) {
     this.sceneIsLoading[id] = false;
 };
 
+GmxMaterial.prototype.setTotalItems = function (n) {
+    this._totalItems = n;
+};
+
+GmxMaterial.prototype.notComplete = function () {
+    return this._completedItems !== this._totalItems;
+};
 
 GmxMaterial.prototype.sceneNotExists = function (id) {
     this.sceneIsReady[id] = true;
@@ -59,10 +69,13 @@ GmxMaterial.prototype.clear = function () {
         t = this._updatePickingMask;
         this._updatePickingMask = null;
         t && !t.default && gl.deleteTexture(t);
+
+        this._completedItems = 0;
+        this._totalItems = 0;
     }
 
     this._gmxClear();
-    
+
     this.layer.abortMaterialLoading(this);
 
     this.isLoading = false;
