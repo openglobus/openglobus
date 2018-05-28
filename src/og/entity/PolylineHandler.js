@@ -90,6 +90,6 @@ class PolylineHandler {
         this._polylines.length = 0;
         this._polylines = [];
     }
-};
+}
 
 export { PolylineHandler };

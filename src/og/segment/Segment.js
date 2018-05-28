@@ -768,7 +768,8 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this.plainNormals = new Float32Array(gridSize3);
     this.plainVertices = new Float32Array(gridSize3);
 
-    var gsgs = gs * gs;
+    const gsgs = gs * gs;
+    
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float32Array(gsgs * 3);
 

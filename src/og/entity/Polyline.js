@@ -359,7 +359,7 @@ class Polyline {
 
             var first;
             if (isClosed) {
-                var pp = path[0];
+                let pp = path[0];
                 if (pp instanceof Array) {
                     first = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -367,9 +367,8 @@ class Polyline {
                 }
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
             } else {
-                var pp;
-                var p0, p1;
-                pp = path[path.length - 1];
+                let p0, p1;
+                let pp = path[path.length - 1];
                 if (pp instanceof Array) {
                     p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -499,8 +498,8 @@ class Polyline {
     _setEqualPathLonLat(pathLonLat) {
 
         var extent = this._extent;
-        extent.southWest.set(180, 90);
-        extent.northEast.set(-180, -90);
+        extent.southWest.set(180.0, 90.0);
+        extent.northEast.set(-180.0, -90.0);
 
         var v = this._vertices,
             l = this._pathLonLat,
@@ -517,7 +516,7 @@ class Polyline {
             if (this._closedLine) {
                 last = ellipsoid.lonLatToCartesian(path[path.length - 1]);
             } else {
-                var p0 = ellipsoid.lonLatToCartesian(path[0]),
+                let p0 = ellipsoid.lonLatToCartesian(path[0]),
                     p1 = ellipsoid.lonLatToCartesian(path[1]);
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
@@ -568,7 +567,7 @@ class Polyline {
             if (this._closedLine) {
                 first = ellipsoid.lonLatToCartesian(path[0]);
             } else {
-                var p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
+                let p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
                     p1 = ellipsoid.lonLatToCartesian(path[path.length - 2]);
                 first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
@@ -586,10 +585,12 @@ class Polyline {
             v[k++] = first.y;
             v[k++] = first.z;
         }
-    };
+    }
 
     setPoint3v(coordinates, index, segmentIndex, forceLonLat) {
+
         segmentIndex = segmentIndex || 0;
+
         if (this._renderNode) {
             var v = this._vertices,
                 l = this._pathLonLat,
@@ -600,7 +601,7 @@ class Polyline {
                 kk += this._path3v[i].length * 12 + 24;
             }
 
-            var path = this._path3v[segmentIndex];
+            let path = this._path3v[segmentIndex];
 
             path[index].x = coordinates.x;
             path[index].y = coordinates.y;
@@ -639,8 +640,8 @@ class Polyline {
                 // Apply new extent(TODO: think about optimization)
                 //
                 var extent = this._extent;
-                extent.southWest.set(180, 90);
-                extent.northEast.set(-180, -90);
+                extent.southWest.set(180.0, 90.0);
+                extent.northEast.set(-180.0, -90.0);
                 for (var i = 0; i < l.length; i++) {
                     var pi = l[i];
                     for (var j = 0; j < pi.length; j++) {
@@ -701,7 +702,7 @@ class Polyline {
 
             this._changedBuffers[VERTICES_BUFFER] = true;
         } else {
-            var path = this._path3v[segmentIndex];
+            let path = this._path3v[segmentIndex];
             path[index].x = coordinates.x;
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
@@ -722,7 +723,7 @@ class Polyline {
     /**
      * Adds a new geodetic point in the end of the path.
      * @public
-     * @param {og.LonLat} lonlat - New coordinate.
+     * @param {og.LonLat} lonLat - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPointLonLat(lonLat, multiLineIndex) {
@@ -841,6 +842,7 @@ class Polyline {
     /**
      * Assign with render node.
      * @public
+     * @param {og.scene.RenderNode} renderNode -
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;
@@ -872,24 +874,17 @@ class Polyline {
         this._pathLonLatMerc = [];
     }
 
-    /**
-     * @protected
-     */
     _createData3v(path3v) {
         this._clearData();
         Polyline.appendLineData3v(path3v, this._closedLine, this._vertices, this._orders, this._indexes,
             this._renderNode.ellipsoid, this._pathLonLat, this._path3v, this._pathLonLatMerc, this._extent);
     }
 
-    /**
-     * @protected
-     */
     _createDataLonLat(pathLonlat) {
         this._clearData();
         Polyline.appendLineDataLonLat(pathLonlat, this._closedLine, this._vertices, this._orders, this._indexes,
             this._renderNode.ellipsoid, this._path3v, this._pathLonLat, this._pathLonLatMerc, this._extent);
-    };
-
+    }
 
     /**
      * Removes from an entity.
@@ -935,7 +930,8 @@ class Polyline {
     /**
      * Sets geodetic coordinates.
      * @public
-     * @param {Array.<Array.<number,number,number>>} path - Polyline path cartesian coordinates.
+     * @param {Array.<Array.<number,number,number>>} pathLonLat - Polyline path cartesian coordinates.
+     * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
     setPathLonLat(pathLonLat, forceEqual) {
         if (this._renderNode && this._renderNode.ellipsoid) {
@@ -955,7 +951,8 @@ class Polyline {
     /**
      * Sets Polyline cartesian coordinates.
      * @public
-     * @param {Array.<Array.<number,number,number>>} path - Polyline path cartesian coordinates.
+     * @param {Array.<Array.<number,number,number>>} path3v - Polyline path cartesian coordinates.
+     * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
     setPath3v(path3v, forceEqual) {
         if (this._renderNode) {
@@ -1072,7 +1069,6 @@ class Polyline {
         }
     }
 
-
     /**
      * Updates render buffers.
      * @protected
@@ -1129,6 +1125,6 @@ class Polyline {
         this._ordersBuffer = h.createArrayBuffer(new Float32Array(this._orders), 1, this._orders.length / 2);
         this._indexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._indexes), 1, this._indexes.length);
     }
-};
+}
 
 export { Polyline };

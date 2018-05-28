@@ -6,6 +6,7 @@ import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { GmxVector } from '../../src/og/plugins/gmxVector/GmxVector.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
+import { DebugInfo } from '../../src/og/control/DebugInfo.js';
 
 const l1 = new GmxVector("Regions Big", {
     'layerId': "3BCCB0F1ACFB4A56BAC87ECA31ADA199",
@@ -27,7 +28,7 @@ const ct = new GmxVector("LANDSAT-8", {
     'layerId': "47A9D4E5E5AE497A8A1A7EA49C7FC336",
     'visibility': false,
     'beginDate': new Date(2017, 5, 30),
-    'endDate': new Date(2017, 6, 5)
+    'endDate': new Date(2017, 6, 15)
 });
 
 const osm = new XYZ("OSM", {
@@ -88,3 +89,12 @@ window.globe = new Globe({
 });
 
 globe.planet.addControl(new LayerSwitcher());
+globe.planet.addControl(new DebugInfo({ 'name': "myDebug" }));
+
+globe.planet.renderer.controls.myDebug.addWatches([{
+    'label': "_gmxVectorTileCreator",
+    'frame': () => globe.planet._gmxVectorTileCreator._queue.length
+}, {
+    'label': "_vecPendingsQueue",
+    'frame': () => ct._vecPendingsQueue.length
+}]);

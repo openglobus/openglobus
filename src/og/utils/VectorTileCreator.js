@@ -164,17 +164,21 @@ VectorTileCreator.prototype.frame = function () {
         var hLine = h.shaderPrograms.vectorTileLineRasterization,
             hPoly = h.shaderPrograms.vectorTilePolygonRasterization;
 
-        var width, height;
-        var pickingMask, texture;
+        var _w = this._width,
+            _h = this._height,
+            width = _w,
+            height = _h,
+            _w2 = width << 1,
+            _h2 = height << 1;
+
+        var pickingMask = null,
+            texture = null;
 
         var prevLayerId = -1;
 
         var extentParams = new Array(4);
 
         var f = this._framebuffer.activate();
-
-        var width2 = this._width * 2,
-            height2 = this._height * 2;
 
         var deltaTime = 0,
             startTime = window.performance.now();
@@ -184,11 +188,11 @@ VectorTileCreator.prototype.frame = function () {
             if (material.isLoading && material.segment.node.getState() === quadTree.RENDERING) {
 
                 if (material.segment.tileZoom <= 3) {
-                    width = width2;
-                    height = height2;
+                    width = _w2;
+                    height = _h2;
                 } else {
-                    width = this._width;
-                    height = this._height;
+                    width = _w;
+                    height = _h;
                 }
 
                 texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);

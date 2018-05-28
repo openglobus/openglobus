@@ -493,11 +493,6 @@ class GmxVector extends Layer {
 
     _onRefreshNodes(p) {
 
-        utils.print2d("l4", `_rNodes: ${this._planet._renderedNodes.length}`, 100, 25);
-        utils.print2d("l3", `zMinMax: ${this._planet.minCurrZoom}, ${this._planet.maxCurrZoom}`, 100, 50);
-        utils.print2d("l1", `loading: ${this._vecCounter}, ${this._vecPendingsQueue.length}`, 100, 100);
-        utils.print2d("l2", `drawing: ${this._planet._gmxVectorTileCreator._queue.length}`, 100, 150);
-
         if (this._needRefresh && this._planet) {
             while (this._tileDataGroupQueue.length) {
                 var t = this._tileDataGroupQueue.pop();
@@ -529,6 +524,10 @@ class GmxVector extends Layer {
                         }
                         m.isLoading = false;
                         m.fromTile = null;
+
+                        //reset drawing process
+                        m._completedItems = 0;
+                        m._totalItems = 0;
                     }
                     //item._pickingReady = true;
                 }
@@ -686,7 +685,17 @@ class GmxVector extends Layer {
 
     applyMaterial(material) {
         if (material.isReady) {
+
+            if (material.notComplete() && !material.isLoading) {
+                material.isLoading = true;
+                this._planet._gmxVectorTileCreator.add({
+                    'material': material,
+                    'fromTile': material.fromTile
+                });
+            }
+
             return [0, 0, 1, 1];
+            
         } else {
 
             !material.isLoading && this.loadMaterial(material);
@@ -751,6 +760,10 @@ class GmxVector extends Layer {
                         m.isReady = false;
                         m._updateTexture = m.texture;
                         m._updatePickingMask = m.pickingMask;
+
+                        //reset drawing process
+                        m._completedItems = 0;
+                        m._totalItems = 0;
                     }
                     item._pickingReady = true;
                 }
