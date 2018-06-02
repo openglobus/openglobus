@@ -27,18 +27,20 @@ const MAX_LAT = mercator.MAX_LAT;
  * @return{Array.<number>} Triangle coordinates array from the source array.
  */
 function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
-    var res = new Float32Array((i0 + size + 1) * (j0 + size + 1) * 3);
+    const i0size = i0 + size + 1;
+    const j0size = j0 + size + 1;
+    var res = new Float32Array(i0size * j0size * 3);
     var vInd = 0;
-    for (var i = i0; i <= i0 + size; i++) {
-        for (var j = j0; j <= j0 + size; j++) {
+    for (var i = i0; i < i0size; i++) {
+        for (var j = j0; j < j0size; j++) {
             var ind = 3 * (i * (gridSize + 1) + j);
             res[vInd++] = sourceArr[ind];
             res[vInd++] = sourceArr[ind + 1];
-            res[vInd++] = sourceArr[ind + 2];
+            res[vInd++] = sourceArr[ind + 2];            
         }
     }
     return res;
-};
+}
 
 /**
  * Quad tree planet segment node.
@@ -494,12 +496,14 @@ Node.prototype.whileTerrainLoading = function () {
 
     let seg = this.segment;
 
+    const terrain = this.planet.terrain;
+
     //Looking for terrain nodes under
     var n = this.nodes;
 
-    //Maybe better is to replace this code to the Segment module?
-    if (seg.tileZoom >= this.planet.terrain.minZoom &&
-        seg.tileZoom < this.planet.terrain.maxZoom &&
+    //Maybe the better way is to replace this code to the Segment module?
+    if (seg.tileZoom >= terrain.minZoom &&
+        seg.tileZoom < terrain.maxZoom &&
         n.length === 4 && n[0].segment.terrainReady && n[1].segment.terrainReady &&
         n[2].segment.terrainReady && n[3].segment.terrainReady
     ) {
@@ -508,7 +512,7 @@ Node.prototype.whileTerrainLoading = function () {
 
         seg.initializePlainSegment();
 
-        let fgs = this.planet.terrain.fileGridSize;
+        let fgs = terrain.fileGridSize;
         let dg = Math.max(fgs / seg.gridSize, 1),
             gs = Math.max(fgs, seg.gridSize) + 1;
         let ind = 0,
@@ -626,7 +630,7 @@ Node.prototype.whileTerrainLoading = function () {
 
             let gridSize = pn.segment.gridSize / dZ2;
 
-            let fgs = this.planet.terrain.fileGridSize,
+            let fgs = terrain.fileGridSize,
                 fgsZ = fgs / dZ2;
 
             seg.deleteBuffers();
@@ -695,7 +699,7 @@ Node.prototype.whileTerrainLoading = function () {
             this.appliedTerrainNodeId = pn.nodeId;
         }
 
-        let maxZ = this.planet.terrain.maxZoom;
+        let maxZ = terrain.maxZoom;
 
         if (seg.tileZoom > maxZ) {
             if (pn.segment.tileZoom >= maxZ) {
