@@ -960,7 +960,9 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+            
 
             var _indexBuffer = this._getIndexBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
@@ -1092,7 +1094,9 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -1156,7 +1160,9 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -1208,7 +1214,9 @@ Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
