@@ -615,7 +615,7 @@ Handler.prototype.deactivateBlending = function () {
  * @param {number} itemSize - Array item size.
  * @param {number} numItems - Items quantity.
  * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
- * @return {Object}
+ * @return {Object} -
  */
 Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage) {
     var buffer = this.gl.createBuffer();
@@ -634,7 +634,7 @@ Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage
  * @param {number} itemSize - Array item size.
  * @param {number} numItems - Items quantity.
  * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
- * @return {Object}
+ * @return {Object} -
  */
 Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems, usage) {
     var buffer = this.gl.createBuffer();

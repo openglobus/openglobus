@@ -203,8 +203,8 @@ function createTextureCoords(size) {
     var texCoords = [];
     for (var i = 0; i <= size; i++) {
         for (var j = 0; j <= size; j++) {
-            texCoords.push(j / size, i / size);
+            texCoords.push(j / size * 0xFFFF, i / size * 0xFFFF);
         }
     }
-    return new Float32Array(texCoords);
+    return new Uint16Array(texCoords);
 };
