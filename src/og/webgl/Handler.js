@@ -7,6 +7,7 @@
 import { cons } from '../cons.js';
 import { Clock } from '../Clock.js';
 import { ImageCanvas } from '../ImageCanvas.js';
+import { isEmpty } from '../utils/shared.js';
 import { ShaderController } from './ShaderController.js';
 import { Stack } from '../Stack.js';
 import { Vec2 } from '../math/Vec2.js';
@@ -135,7 +136,7 @@ const Handler = function (id, params) {
 
     this.framebufferStack = new Stack();
 
-    if (params.autoActivate) {
+    if (params.autoActivate || isEmpty(params.autoActivate)) {
         this.initialize();
     }
 }
@@ -144,7 +145,7 @@ const Handler = function (id, params) {
  * The return value is null if the extension is not supported, or an extension object otherwise.
  * @param {Object} gl - WebGl context pointer.
  * @param {String} name - Extension name.
- * @returns {Object}
+ * @returns {Object} -
  */
 Handler.getExtension = function (gl, name) {
     var i, ext;
@@ -618,6 +619,9 @@ Handler.prototype.deactivateBlending = function () {
  * @return {Object} -
  */
 Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage) {
+    //
+    //TODO: What about binding created buffer
+    //
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);

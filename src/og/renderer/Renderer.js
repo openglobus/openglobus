@@ -15,6 +15,7 @@ import { cons } from '../cons.js';
 import { ShaderProgram } from '../webgl/ShaderProgram.js';
 import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
+import { isEmpty } from '../utils/shared.js';
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler works real time.
@@ -168,11 +169,13 @@ const Renderer = function (handler, params) {
      */
     this._fnScreenFrame = null;
 
-    if (params.autoActivate) {
+    this._initialized = false;
+
+    if (params.autoActivate || isEmpty(params.autoActivate)) {
         this.initialize();
         this.start();
     }
-}
+};
 
 /**
  * Adds picking rendering callback function.
@@ -292,6 +295,12 @@ Renderer.prototype.removeControl = function (control) {
  * @public
  */
 Renderer.prototype.initialize = function () {
+
+    if (this._initialized)
+        return;
+    else
+        this._initialized = true;
+
     var that = this;
 
     this.handler.setFrameCallback(function () {
