@@ -9,6 +9,7 @@ import { Handler } from './webgl/Handler.js';
 import { Planet } from './scene/Planet.js';
 import { Renderer } from './renderer/Renderer.js';
 import { wgs84 } from './ellipsoid/wgs84.js';
+import { isEmpty } from './utils/shared.js';
 
 import { EarthCoordinates } from './control/EarthCoordinates.js';
 import { MouseNavigation } from './control/MouseNavigation.js';
@@ -67,9 +68,10 @@ class Globe {
         this._canvas = document.createElement("canvas");
         this._canvas.id = _canvasId;
         this._canvas.style.width = "100%";
-        this._canvas.style.height = "100%";
+        this._canvas.style.height = "100%";        
         this._canvas.style.display = "block";
-        this._canvas.style.opacity = "1.0";
+        this._canvas.style.opacity = "0.0";
+        this._canvas.style.transition = "opacity 1.0s";
 
         /**
          * Dom element where WebGL canvas creates
@@ -84,20 +86,21 @@ class Globe {
         this.div.onmouseenter = function () { document.onmousewheel = _disableWheel; };
         this.div.onmouseleave = function () { document.onmousewheel = _enableWheel; };
 
-        //WegGL handler creation
-        var _handler = new Handler(_canvasId, { 'alpha': false, 'antialias': false });
-        _handler.initialize();
-
         /**
          * Interface for the renderer context(events, input states, renderer nodes etc.)
          * @public
          * @type {og.Renderer}
          */
-        this.renderer = new Renderer(_handler);
+        this.renderer = new Renderer(new Handler(_canvasId, {
+            'alpha': false,
+            'antialias': false
+        }), {
+                'autoActivate': false
+            });
+        this.renderer.initialize();
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
         this.renderer.div.attributions.classList.add("ogAttribution");
-        this.renderer.initialize();
         this.div.appendChild(this.renderer.div.attributions);
 
         //Skybox
@@ -181,33 +184,18 @@ class Globe {
         this._stopHandler = null;
 
         //Run!
-        if (Globe.isUndefined(options.autoActivate) || options.autoActivate) {
-            this.fadeIn(500);
+        if (options.autoActivate || isEmpty(options.autoActivate)) {
             this.renderer.start();
+            this.fadeIn();
         }
     }
 
     /**
      * Starts screen brightness fading in effect by the duration time.
      * @public
-     * @param {number} duration - fadein duration time.
      */
-    fadeIn(duration) {
-        clearInterval(this._stopHandler);
-        clearInterval(this._fadeHandler);
-        this._canvas.style.opacity = 0.0;
-        this._opacityCounter = 0.0;
-        var delta = 10.0;
-        var d = 1.0 / (duration / delta);
-
-        this._fadeHandler = setInterval(() => {
-            this._opacityCounter += d;
-            if (this._opacityCounter >= 1) {
-                this._opacityCounter = 1.0;
-                clearInterval(this._fadeHandler);
-            }
-            this._canvas.style.opacity = this._opacityCounter;
-        }, delta);
+    fadeIn() {
+        this._canvas.style.opacity = 1.0;
     }
 
     /**
@@ -215,22 +203,8 @@ class Globe {
      * @public
      * @param {number} duration - Fadeout duration time.
      */
-    fadeOut(duration) {
-        clearInterval(this._stopHandler);
-        clearInterval(this._fadeHandler);
-        this._canvas.style.opacity = 1.0;
-        this._opacityCounter = 1.0;
-        var delta = 10.0;
-        var d = 1 / (duration / delta);
-
-        this._fadeHandler = setInterval(() => {
-            this._opacityCounter -= d;
-            if (this._opacityCounter <= 0.0) {
-                this._opacityCounter = 0.0;
-                clearInterval(this._fadeHandler);
-            }
-            this._canvas.style.opacity = this._opacityCounter;
-        }, delta);
+    fadeOut() {
+        this._canvas.style.opacity = 0.0;
     }
 
     static get _staticCounter() {
