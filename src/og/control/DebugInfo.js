@@ -76,6 +76,12 @@ class DebugInfo extends Control {
             }, {
                 'label': "maxZoom/minZoom",
                 'frame': () => p.maxCurrZoom + '/' + p.minCurrZoom
+            }, {
+                'label': "height/alt (km)",
+                'frame': () => (p.camera._lonLat.height / 1000.0).toFixed(2) + '/' + (p.camera.getAltitude() / 1000.0).toFixed(2)
+            }, {
+                'label': "cam.slope",
+                'frame': () => p.camera.slope.to
             }]);
         }
     }

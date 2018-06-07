@@ -299,6 +299,7 @@ Node.prototype.renderTree = function (maxZoom) {
 
     var h = cam._lonLat.height;
 
+    //TODO: leads to terrainWorker stuck
     // if (h < 10000.0) {
     //     underBottom = true;
     // }
@@ -313,12 +314,10 @@ Node.prototype.renderTree = function (maxZoom) {
             this.traverseNodes(maxZoom);
         } else if (seg.tileZoom === maxZoom || !maxZoom && seg.acceptForRendering(cam)) {
             this.prepareForRendering(h, altVis, onlyTerrain);
+        } else if (seg.tileZoom < planet.terrain.gridSizeByZoom.length - 1) {
+            this.traverseNodes(maxZoom);
         } else {
-            if (seg.tileZoom < planet.terrain.gridSizeByZoom.length - 1) {
-                this.traverseNodes(maxZoom);
-            } else {
-                this.prepareForRendering(h, altVis, onlyTerrain);
-            }
+            this.prepareForRendering(h, altVis, onlyTerrain);
         }
     } else {
         this.state = quadTree.NOTRENDERING;
