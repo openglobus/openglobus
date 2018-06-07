@@ -12,6 +12,10 @@ import { LonLat } from '../LonLat.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
+import {
+    NW, NE, SW, SE,
+    N, E, S, W
+} from './quadTree.js';
 
 const POLE = mercator.POLE;
 const MAX_LAT = mercator.MAX_LAT;
@@ -36,7 +40,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
             var ind = 3 * (i * (gridSize + 1) + j);
             res[vInd++] = sourceArr[ind];
             res[vInd++] = sourceArr[ind + 1];
-            res[vInd++] = sourceArr[ind + 2];            
+            res[vInd++] = sourceArr[ind + 2];
         }
     }
     return res;
@@ -54,22 +58,19 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
  * @param {og.Extent} extent - Planet segment extent.
  */
 const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
+    this.SegmentPrototype = segmentPrototype;
     this.planet = planet;
     this.parentNode = parent;
-    this.nodes = [];
     this.partId = partId;
     this.nodeId = partId + id;
     this.state = null;
     this.appliedTerrainNodeId = -1;
     this.sideSize = [1, 1, 1, 1];
+    this.ready = false;
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [null, null, null, null];
-    this.SegmentPrototype = segmentPrototype;
+    this.nodes = [null, null, null, null];
     this.segment = new segmentPrototype(this, planet, tileZoom, extent);
-
-    /**
-     * @private
-     */
     this._cameraInside = false;
     this.createBounds();
     this.planet._createdNodesCount++;
@@ -79,6 +80,7 @@ const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
+    this.ready = true;
     var p = this.planet;
     var ps = this.segment;
     var ext = ps._extent;
@@ -90,16 +92,16 @@ Node.prototype.createChildrenNodes = function () {
     var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.nodes;
 
-    nd[quadTree.NW] = new Node(this.SegmentPrototype, p, quadTree.NW, this, id, z,
+    nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z,
         new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
 
-    nd[quadTree.NE] = new Node(this.SegmentPrototype, p, quadTree.NE, this, id, z,
+    nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z,
         new Extent(c, new LonLat(ne.lon, ne.lat)));
 
-    nd[quadTree.SW] = new Node(this.SegmentPrototype, p, quadTree.SW, this, id, z,
+    nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z,
         new Extent(new LonLat(sw.lon, sw.lat), c));
 
-    nd[quadTree.SE] = new Node(this.SegmentPrototype, p, quadTree.SE, this, id, z,
+    nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z,
         new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
 };
 
@@ -240,13 +242,13 @@ Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
 };
 
 Node.prototype.traverseNodes = function (maxZoom) {
-    if (!this.nodes.length) {
+    if (!this.ready) {
         this.createChildrenNodes();
     }
-    this.nodes[quadTree.NW].renderTree(maxZoom);
-    this.nodes[quadTree.NE].renderTree(maxZoom);
-    this.nodes[quadTree.SW].renderTree(maxZoom);
-    this.nodes[quadTree.SE].renderTree(maxZoom);
+    this.nodes[NW].renderTree(maxZoom);
+    this.nodes[NE].renderTree(maxZoom);
+    this.nodes[SW].renderTree(maxZoom);
+    this.nodes[SE].renderTree(maxZoom);
 };
 
 Node.prototype.isBrother = function (node) {
@@ -423,27 +425,27 @@ Node.prototype.getCommonSide = function (node) {
 
     if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
         if (a_ne_lon === b_sw_lon) {
-            return quadTree.E;
+            return E;
         } else if (a_sw_lon === b_ne_lon) {
-            return quadTree.W;
+            return W;
         } else if (this.segment.tileZoom > 0) {
             if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-                return quadTree.E;
+                return E;
             } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return quadTree.E;
+                return E;
             } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return quadTree.W;
+                return W;
             }
         }
     } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
         if (a_ne_lat === b_sw_lat) {
-            return quadTree.N;
+            return N;
         } else if (a_sw_lat === b_ne_lat) {
-            return quadTree.S;
+            return S;
         } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-            return quadTree.N;
+            return N;
         } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-            return quadTree.S;
+            return S;
         }
     }
 
@@ -504,7 +506,7 @@ Node.prototype.whileTerrainLoading = function () {
     //Maybe the better way is to replace this code to the Segment module?
     if (seg.tileZoom >= terrain.minZoom &&
         seg.tileZoom < terrain.maxZoom &&
-        n.length === 4 && n[0].segment.terrainReady && n[1].segment.terrainReady &&
+        n.ready && n[0].segment.terrainReady && n[1].segment.terrainReady &&
         n[2].segment.terrainReady && n[3].segment.terrainReady
     ) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
@@ -732,10 +734,10 @@ Node.prototype.destroy = function () {
     this.state = quadTree.NOTRENDERING;
     this.segment.destroySegment();
     var n = this.neighbors;
-    n[quadTree.N] && n[quadTree.N].neighbors && (n[quadTree.N].neighbors[quadTree.S] = null);
-    n[quadTree.E] && n[quadTree.E].neighbors && (n[quadTree.E].neighbors[quadTree.W] = null);
-    n[quadTree.S] && n[quadTree.S].neighbors && (n[quadTree.S].neighbors[quadTree.N] = null);
-    n[quadTree.W] && n[quadTree.W].neighbors && (n[quadTree.W].neighbors[quadTree.E] = null);
+    n[N] && n[N].neighbors && (n[N].neighbors[S] = null);
+    n[E] && n[E].neighbors && (n[E].neighbors[W] = null);
+    n[S] && n[S].neighbors && (n[S].neighbors[N] = null);
+    n[W] && n[W].neighbors && (n[W].neighbors[E] = null);
     this.neighbors = null;
     this.hasNeighbors = null;
     this.parentNode = null;
@@ -767,7 +769,7 @@ Node.prototype.clearBranches = function () {
 
 Node.prototype.destroyBranches = function () {
 
-    if (this.nodes.length) {
+    if (this.ready) {
 
         var nodesToRemove = [], i;
 
@@ -775,8 +777,8 @@ Node.prototype.destroyBranches = function () {
             nodesToRemove[i] = this.nodes[i];
         }
 
+        this.ready = false;
         this.nodes.length = 0;
-        this.nodes = [];
 
         for (i = 0; i < nodesToRemove.length; i++) {
             nodesToRemove[i].destroyBranches();
