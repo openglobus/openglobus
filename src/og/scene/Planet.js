@@ -841,7 +841,6 @@ class Planet extends RenderNode {
         this._quadTreeNorth.renderTree();
         this._quadTreeSouth.renderTree();
 
-
         this._quadTree.renderTree();
 
         if (this.renderer.activeCamera.slope > 0.72 && this.renderer.activeCamera._lonLat.height < 850000) {
@@ -851,16 +850,16 @@ class Planet extends RenderNode {
 
             this._renderedNodes = [];
 
-            for (var i = 0; i < temp.length; i++) {
+            for (var i = temp.length - 1; i >= 0; --i) {
                 var ri = temp[i];
                 if (ri.segment.tileZoom === this.maxCurrZoom) {
                     this._renderedNodes.push(ri);
                 }
             }
 
-            for (i = 0; i < temp.length; i++) {
+            for (i = temp.length - 1; i >= 0; --i) {
                 var seg = temp[i].segment;
-                if (seg._projection.id === EPSG3857.id && seg.tileZoom < this.maxCurrZoom) {
+                if (seg.tileZoom < this.maxCurrZoom) {
                     seg.node.renderTree(this.maxCurrZoom);
                 }
             }
