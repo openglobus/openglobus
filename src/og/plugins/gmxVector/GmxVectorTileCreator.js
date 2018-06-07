@@ -290,7 +290,7 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                 let i = 0;
                 while (i < 200 && material._completedItems < material._totalItems) {
-                    
+
                     let ti = tItems[material._completedItems];
 
                     if (layer.getItemVisibility(ti.item) && ti.extent.overlaps(extent)) {
@@ -303,16 +303,6 @@ GmxVectorTileCreator.prototype.frame = function () {
                         let sh = hPoly._program,
                             sha = sh.attributes,
                             shu = sh.uniforms;
-
-                        // if (layer._gmxProperties.Temporal) {
-                        //     let sceneTextureOffset;
-                        //     if (zoomAvailable) {
-                        //         sceneTextureOffset = layer.applySceneTexture(ti, material);
-                        //     }
-                        //     //f.bindOutputTexture(this._maskTexture);
-                        //     //gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                        //     //gl.clear(gl.COLOR_BUFFER_BIT);
-                        // }
 
                         //==============
                         //polygon
@@ -410,8 +400,16 @@ GmxVectorTileCreator.prototype.frame = function () {
                 if (material.notComplete()) {
                     material.isLoading = true;
                     this.add(q);
+                } else if (layer._gmxProperties.Temporal) {
+                    let sceneTextureOffset;
+                    if (zoomAvailable) {
+                        //sceneTextureOffset = layer.applySceneTexture(ti, material);
+                    }
+                    //f.bindOutputTexture(this._maskTexture);
+                    //gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                    //gl.clear(gl.COLOR_BUFFER_BIT);
                 }
-                
+
             } else {
                 material.isLoading = false;
             }

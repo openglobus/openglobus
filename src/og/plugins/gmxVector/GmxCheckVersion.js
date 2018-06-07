@@ -100,6 +100,7 @@ const GmxCheckVersion = function (planet) {
 
                 if (layers.length) {
                     var that = this;
+                    //TODO: fetch
                     this._r = ajax.request(this.hostUrl + "Layer/CheckVersion.ashx", {
                         'type': "POST",
                         'responseType': "json",
