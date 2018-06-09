@@ -81,7 +81,7 @@ class DebugInfo extends Control {
                 'frame': () => (p.camera._lonLat.height / 1000.0).toFixed(2) + '/' + (p.camera.getAltitude() / 1000.0).toFixed(2)
             }, {
                 'label': "cam.slope",
-                'frame': () => p.camera.slope.to
+                'frame': () => p.camera.slope
             }]);
         }
     }
