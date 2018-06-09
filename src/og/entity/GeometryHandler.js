@@ -456,40 +456,44 @@ class GeometryHandler {
     }
 
     _refreshRecursevely(geometry, treeNode) {
-        var lid = this._layer._id;
-        for (var i = 0; i < treeNode.nodes.length; i++) {
-            var ni = treeNode.nodes[i];
-            if (geometry._extent.overlaps(ni.segment.getExtentLonLat())) {
-                this._refreshRecursevely(geometry, ni);
-                var m = ni.segment.materials[lid];
-                if (m && m.isReady) {
-                    if (m.segment.node.getState() !== quadTree.RENDERING) {
-                        m.layer.clearMaterial(m);
-                    } else {
-                        m.pickingReady = m.pickingReady && geometry._pickingReady;
-                        m.isReady = false;
-                        m._updateTexture = m.texture;
-                        m._updatePickingMask = m.pickingMask;
+        if (treeNode.ready) {
+            var lid = this._layer._id;
+            for (var i = 0; i < treeNode.nodes.length; i++) {
+                var ni = treeNode.nodes[i];
+                if (geometry._extent.overlaps(ni.segment.getExtentLonLat())) {
+                    this._refreshRecursevely(geometry, ni);
+                    var m = ni.segment.materials[lid];
+                    if (m && m.isReady) {
+                        if (m.segment.node.getState() !== quadTree.RENDERING) {
+                            m.layer.clearMaterial(m);
+                        } else {
+                            m.pickingReady = m.pickingReady && geometry._pickingReady;
+                            m.isReady = false;
+                            m._updateTexture = m.texture;
+                            m._updatePickingMask = m.pickingMask;
+                        }
+                        geometry._pickingReady = true;
                     }
-                    geometry._pickingReady = true;
                 }
             }
         }
     }
 
     _refreshRecursevelyExt(extent, treeNode) {
-        var lid = this._layer._id;
-        for (var i = 0; i < treeNode.nodes.length; i++) {
-            var ni = treeNode.nodes[i];
-            if (extent.overlaps(ni.segment.getExtentLonLat())) {
-                this._refreshRecursevelyExt(extent, ni);
-                var m = ni.segment.materials[lid];
-                if (m && m.isReady) {
-                    m.layer.clearMaterial(m);
-                    // m.pickingReady = false;
-                    // m.isReady = false;
-                    // m._updateTexture = m.texture;
-                    // m._updatePickingMask = m.pickingMask;
+        if (treeNode.ready) {
+            var lid = this._layer._id;
+            for (var i = 0; i < treeNode.nodes.length; i++) {
+                var ni = treeNode.nodes[i];
+                if (extent.overlaps(ni.segment.getExtentLonLat())) {
+                    this._refreshRecursevelyExt(extent, ni);
+                    var m = ni.segment.materials[lid];
+                    if (m && m.isReady) {
+                        m.layer.clearMaterial(m);
+                        // m.pickingReady = false;
+                        // m.isReady = false;
+                        // m._updateTexture = m.texture;
+                        // m._updatePickingMask = m.pickingMask;
+                    }
                 }
             }
         }
