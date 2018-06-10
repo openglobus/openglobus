@@ -79,7 +79,7 @@ Framebuffer.prototype.destroy = function () {
     this._fbo = null;
 
     this._active = false;
-}
+};
 
 /**
  * Framebuffer initialization.
@@ -102,7 +102,7 @@ Framebuffer.prototype.init = function () {
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
+};
 
 /**
  * Bind buffer texture.
@@ -115,7 +115,7 @@ Framebuffer.prototype.bindOutputTexture = function (texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
     gl.bindTexture(gl.TEXTURE_2D, null);
-}
+};
 
 /**
  * Sets framebuffer viewport size.
@@ -142,10 +142,10 @@ Framebuffer.prototype.setSize = function (width, height) {
  */
 Framebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE)
         return true;
     return false;
-}
+};
 
 /**
  * Reads all pixels(RGBA colors) from framebuffer.
@@ -159,7 +159,7 @@ Framebuffer.prototype.readAllPixels = function () {
     gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return pixelValues;
-}
+};
 
 /**
  * Gets pixel RBGA color from framebuffer by coordinates.
@@ -175,7 +175,7 @@ Framebuffer.prototype.readPixel = function (nx, ny) {
     gl.readPixels(nx * this._width, ny * this._height, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return pixelValues;
-}
+};
 
 /**
  * Activate framebuffer frame to draw.
@@ -192,7 +192,7 @@ Framebuffer.prototype.activate = function () {
     c && (c._active = false);
     this.handler.framebufferStack.push(this);
     return this;
-}
+};
 
 /**
  * Deactivate framebuffer frame.
@@ -212,7 +212,7 @@ Framebuffer.prototype.deactivate = function () {
     } else {
         gl.viewport(0, 0, h.canvas.width, h.canvas.height);
     }
-}
+};
 
 /**
  * Gets JavaScript image object that framebuffer has drawn.
@@ -224,7 +224,7 @@ Framebuffer.prototype.getImage = function () {
     var imageCanvas = new ImageCanvas(this._width, this._height);
     imageCanvas.setData(data);
     return imageCanvas.getImage();
-}
+};
 
 /**
  * Open dialog window with framebuffer image.
@@ -245,7 +245,7 @@ Framebuffer.prototype.openImage = function () {
     printWin.document.write(windowContent);
     printWin.document.close();
     printWin.focus();
-}
+};
 
 
 export { Framebuffer };
