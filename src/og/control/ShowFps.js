@@ -5,7 +5,7 @@
 'use strict';
 
 import { Control } from './Control.js';
-import { print2d } from '../utils/Shared.js';
+import { print2d } from '../utils/shared.js';
 
 /**
  * Frame per second(FPS) display control.
