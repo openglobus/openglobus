@@ -15,6 +15,8 @@ const tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
     'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'э', 'ъ', 'ю', 'я', 'й',
     'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ь', 'Э', 'Ъ', 'Ю', 'Я', 'Й',
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+    'ā','ī','ï','â','é','’','Ç','ú','í','ñ','ó','ë','è','ô','ö','ü','ä','ţ','Ş','ḩ','‘',
+    'ţ','Ţ','ū','bٍ','ş','Ḩ','ğ','ı','ç','ő','Ú','ý','Á','Ž','đ','š','č','Ð','đ','Č','Ć','ž','ß','å','ø','æ','î',
     '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '[', ']', '{', '}', '\\', '|', ';', ':', '"', ',', '.', '/', '<', '>', '?', ' ', '    ', "'"];
 
 class FontAtlas {
@@ -53,7 +55,7 @@ class FontAtlas {
         var fontIndex = this.getFontIndex(face, style, weight);
         if (fontIndex == undefined) {
             var tis = this.tokenImageSize;
-            var atlasSize = 1024;//og.math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(og.utils.FontAtlas.tokens.length)) / tis + (og.utils.FontAtlas.tokens.length - 1) * og.utils.TextureAtlas.BORDER_SIZE);
+            var atlasSize = 2048;//math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(tokens.length)) / tis + (tokens.length - 1) * TextureAtlas.BORDER_SIZE);
             var fontName = this.getFullIndex(face, style, weight);
             fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
             var atlas = new TextureAtlas(atlasSize, atlasSize);
