@@ -319,13 +319,13 @@ GmxVectorTileCreator.prototype.frame = function () {
 
                         //Polygon picking pass
                         if (layer._pickingEnabled) {
-                            if (!material.pickingReady) {
-                                f.bindOutputTexture(pickingMask);
-                                gl.uniform4fv(shu.color, pickingColor);
-                                gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                            } else {
-                                pickingMask = material.pickingMask;
-                            }
+                            //if (!material.pickingReady) {
+                            f.bindOutputTexture(pickingMask);
+                            gl.uniform4fv(shu.color, pickingColor);
+                            gl.drawElements(gl.TRIANGLES, ti._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                            //} else {
+                            //    pickingMask = material.pickingMask;
+                            //}
                         }
 
                         //==============
@@ -383,7 +383,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                         gl.drawElements(gl.TRIANGLE_STRIP, ti._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                         //Outline picking pass
-                        if (layer._pickingEnabled && !material.pickingReady) {
+                        if (layer._pickingEnabled/* && !material.pickingReady*/) {
                             f.bindOutputTexture(pickingMask);
                             gl.uniform1f(shu.thicknessOutline, 8);
                             gl.uniform4fv(shu.color, pickingColor);
@@ -401,13 +401,18 @@ GmxVectorTileCreator.prototype.frame = function () {
                     material.isLoading = true;
                     this.add(q);
                 } else if (layer._gmxProperties.Temporal) {
-                    let sceneTextureOffset;
-                    if (zoomAvailable) {
-                        //sceneTextureOffset = layer.applySceneTexture(ti, material);
+                    //Suggested that material.pickingMask is applied already
+                    let data = f.readAllPixels();
+                    for (let i = data.length - 1; i >= 0; i -= 4) {
+                        let c = layer.planet.renderer.getPickingObjectByColor(data[i - 3], data[i - 2], data[i - 1]);
+                        if (c) {
+                            var ti = material.fromTile.tileItemsCache[c.id];
+                            // let sceneTextureOffset;
+                            // if (zoomAvailable) {
+                            //     sceneTextureOffset = layer.applySceneTexture(ti, material);
+                            // }
+                        }
                     }
-                    //f.bindOutputTexture(this._maskTexture);
-                    //gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                    //gl.clear(gl.COLOR_BUFFER_BIT);
                 }
 
             } else {

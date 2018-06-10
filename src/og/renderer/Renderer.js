@@ -184,7 +184,12 @@ const Renderer = function (handler, params) {
  */
 Renderer.prototype.addPickingCallback = function (sender, callback) {
     this._pickingCallbacks.push({ "callback": callback, "sender": sender });
-}
+};
+
+
+Renderer.prototype.getPickingObjectByColor = function (r, g, b) {
+    return this.colorObjects[r + "_" + g + "_" + b];
+};
 
 /**
  * Assign picking color to the object.
@@ -457,7 +462,7 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
     //MAYBE: Could be refactored with framebuf function like getTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[1]);
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);

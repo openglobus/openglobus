@@ -506,30 +506,32 @@ class GmxVector extends Layer {
     }
 
     _refreshRecursevelyExtent(extent, treeNode) {
-        var lid = this._id;
-        for (var i = 0; i < treeNode.nodes.length; i++) {
-            var ni = treeNode.nodes[i];
-            if (extent.overlaps(ni.segment._extent)) {
-                this._refreshRecursevelyExtent(extent, ni);
-                var m = ni.segment.materials[lid];
-                if (m) {
-                    if (m.segment.node.getState() !== RENDERING) {
-                        m.layer.clearMaterial(m);
-                    } else {
-                        if (m.isReady) {
-                            m.isReady = false;
-                            m._updateTexture = m.texture;
-                            m._updatePickingMask = m.pickingMask;
-                            m.pickingReady = false;//m.pickingReady && item._pickingReady;
-                        }
-                        m.isLoading = false;
-                        m.fromTile = null;
+        if (treeNode.ready) {
+            var lid = this._id;
+            for (var i = 0; i < treeNode.nodes.length; i++) {
+                var ni = treeNode.nodes[i];
+                if (extent.overlaps(ni.segment._extent)) {
+                    this._refreshRecursevelyExtent(extent, ni);
+                    var m = ni.segment.materials[lid];
+                    if (m) {
+                        if (m.segment.node.getState() !== RENDERING) {
+                            m.layer.clearMaterial(m);
+                        } else {
+                            if (m.isReady) {
+                                m.isReady = false;
+                                m._updateTexture = m.texture;
+                                m._updatePickingMask = m.pickingMask;
+                                m.pickingReady = false;//m.pickingReady && item._pickingReady;
+                            }
+                            m.isLoading = false;
+                            m.fromTile = null;
 
-                        //reset drawing process
-                        m._completedItems = 0;
-                        m._totalItems = 0;
+                            //reset drawing process
+                            m._completedItems = 0;
+                            m._totalItems = 0;
+                        }
+                        //item._pickingReady = true;
                     }
-                    //item._pickingReady = true;
                 }
             }
         }
@@ -695,7 +697,7 @@ class GmxVector extends Layer {
             }
 
             return [0, 0, 1, 1];
-            
+
         } else {
 
             !material.isLoading && this.loadMaterial(material);
@@ -746,26 +748,28 @@ class GmxVector extends Layer {
     }
 
     _refreshRecursevely(item, treeNode) {
-        var lid = this._id;
-        for (var i = 0; i < treeNode.nodes.length; i++) {
-            var ni = treeNode.nodes[i];
-            if (item._extent.overlaps(ni.segment._extent)) {
-                this._refreshRecursevely(item, ni);
-                var m = ni.segment.materials[lid];
-                if (m && m.isReady) {
-                    if (m.segment.node.getState() !== RENDERING) {
-                        m.layer.clearMaterial(m);
-                    } else {
-                        m.pickingReady = m.pickingReady && item._pickingReady;
-                        m.isReady = false;
-                        m._updateTexture = m.texture;
-                        m._updatePickingMask = m.pickingMask;
+        if (treeNode.ready) {
+            var lid = this._id;
+            for (var i = 0; i < treeNode.nodes.length; i++) {
+                var ni = treeNode.nodes[i];
+                if (item._extent.overlaps(ni.segment._extent)) {
+                    this._refreshRecursevely(item, ni);
+                    var m = ni.segment.materials[lid];
+                    if (m && m.isReady) {
+                        if (m.segment.node.getState() !== RENDERING) {
+                            m.layer.clearMaterial(m);
+                        } else {
+                            m.pickingReady = m.pickingReady && item._pickingReady;
+                            m.isReady = false;
+                            m._updateTexture = m.texture;
+                            m._updatePickingMask = m.pickingMask;
 
-                        //reset drawing process
-                        m._completedItems = 0;
-                        m._totalItems = 0;
+                            //reset drawing process
+                            m._completedItems = 0;
+                            m._totalItems = 0;
+                        }
+                        item._pickingReady = true;
                     }
-                    item._pickingReady = true;
                 }
             }
         }

@@ -17,6 +17,7 @@ const GmxTileDataGroup = function (layer, extent) {
     this.tileExtent = extent;
     this.tileDataArr = [];
     this.tileItemArr = [];
+    this.tileItemsCache = {};
 };
 
 GmxTileDataGroup.prototype.addTileData = function (tileData) {
@@ -41,6 +42,7 @@ GmxTileDataGroup.prototype.removeTileData = function (tileData) {
 
 GmxTileDataGroup.prototype.addTileItem = function (tileItem) {
     this.tileItemArr.push(tileItem);
+    this.tileItemsCache[tileItem.item.id] = tileItem;
 };
 
 export { GmxTileDataGroup };
