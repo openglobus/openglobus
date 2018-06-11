@@ -54,6 +54,10 @@ EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightN
                     cn[quadTree.SE].insertEntity(entity, true, rightNow);
                 }
             } else {
+
+                //
+                //TODO: check for pendingQueue entities
+                //
                 var entities = this.entityCollection.getEntities();
                 entities.push(entity);
                 this.entityCollection.events.clear();
@@ -328,6 +332,32 @@ const EntityCollectionNodeWGS84 = function (layer, partId, parent, id, extent, p
 };
 
 inherits(EntityCollectionNodeWGS84, EntityCollectionNode);
+
+EntityCollectionNodeWGS84.prototype.createChildrenNodes = function () {
+    var l = this.layer;
+    var ext = this.extent;
+    var size_x = ext.getWidth() * 0.5;
+    var size_y = ext.getHeight() * 0.5;
+    var ne = ext.northEast,
+        sw = ext.southWest;
+    var id = this.nodeId * 4 + 1;
+    var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
+    var nd = this.childrenNodes;
+    var p = this.layer._planet;
+    var z = this.zoom + 1;
+
+    nd[quadTree.NW] = new EntityCollectionNodeWGS84(l, quadTree.NW, this, id,
+        new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+
+    nd[quadTree.NE] = new EntityCollectionNodeWGS84(l, quadTree.NE, this, id,
+        new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+
+    nd[quadTree.SW] = new EntityCollectionNodeWGS84(l, quadTree.SW, this, id,
+        new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+
+    nd[quadTree.SE] = new EntityCollectionNodeWGS84(l, quadTree.SE, this, id,
+        new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+};
 
 EntityCollectionNodeWGS84.prototype._setExtentBounds = function () {
     if (this.extent.northEast.lat > 0) {

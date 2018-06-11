@@ -185,7 +185,7 @@ class SDFCreator {
     };
 
     setSize(width, height) {
-        if (width != this._width || height != this._height) {
+        if (width !== this._width || height !== this._height) {
             this._width = width;
             this._height = height;
             this._handler.setSize(width, height);
@@ -284,6 +284,6 @@ class SDFCreator {
 
         return h.canvas;
     }
-};
+}
 
 export { SDFCreator };

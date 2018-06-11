@@ -69,7 +69,7 @@ class EntityCollection {
          * @public
          * @readonly
          */
-        this.id = EntityCollection.__staticCounter++;
+        this.id = EntityCollection._staticCounter++;
 
         /**
          * Render node collections array index.
