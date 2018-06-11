@@ -663,7 +663,7 @@ class Vector extends Layer {
                     var n = that._deferredEntitiesPendingQueue.pop();
                     n._inTheQueue = false;
                     if (n.isVisible()) {
-                        that._execDeferredNode(node);
+                        that._execDeferredNode(n);
                         return;
                     }
                 }
