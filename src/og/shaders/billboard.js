@@ -87,6 +87,7 @@ export function billboard(isSingleBuffer) {
                 if(uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0])) == 0.0){\
                     return;\
                 }\
+                v_rgba.a *= uOpacity;\
                 vec3 right, up;\
                 if(a_alignedAxis == ZERO3){\
                     up = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );\
