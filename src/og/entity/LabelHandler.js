@@ -64,7 +64,7 @@ class LabelHandler extends BillboardHandler {
     }
 
     add(label) {
-        if (label._handlerIndex == -1) {
+        if (label._handlerIndex === -1) {
             label._handler = this;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
@@ -407,7 +407,7 @@ class LabelHandler extends BillboardHandler {
         }
 
         //49/512 - font atlas left border letter offset
-        if (align == ALIGN.CENTER) {
+        if (align === ALIGN.CENTER) {
             offset = (f + 49 / 512 - offset) * 0.5;
             for (c = 0; c < text.length; c++) {
                 var j = i + c * 24;
@@ -418,7 +418,7 @@ class LabelHandler extends BillboardHandler {
                 a[j + 19] = offset;
                 a[j + 23] = offset;
             }
-        } else if (align == ALIGN.LEFT) {
+        } else if (align === ALIGN.LEFT) {
             offset = (f + 49 / 512 - offset);
             for (c = 0; c < text.length; c++) {
                 var j = i + c * 24;
@@ -431,7 +431,7 @@ class LabelHandler extends BillboardHandler {
             }
         }
 
-        for (var c = c; c < this._maxLetters; c++) {
+        for (; c < this._maxLetters; c++) {
             var j = i + c * 24;
             a[j + 2] = -1.0;
             a[j + 6] = -1.0;

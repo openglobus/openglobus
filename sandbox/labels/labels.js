@@ -25,10 +25,12 @@ let towns = new Vector("towns", {
 
 towns.events.on("mouseenter", function (e) {
     e.renderer.handler.canvas.style.cursor = "pointer";
+    e.pickingObject.label.setColor(1, 1, 1, 1);
 });
 
 towns.events.on("mouseleave", function (e) {
     e.renderer.handler.canvas.style.cursor = "default";
+    e.pickingObject.label.setColor(0, 0, 0, 1);
 });
 
 window.globe = new Globe({
@@ -37,6 +39,8 @@ window.globe = new Globe({
     'terrain': new GlobusTerrain(),
     'layers': [osm, towns]
 });
+
+globe.planet.fontAtlas.createFont("Lucida Console", "normal", "bold");
 
 //globe.planet.events.on("draw", function () {
 //    towns.setScaleByDistance(globe.planet.camera.getHeight(), globe.planet.camera.getHeight() * 2);
@@ -62,7 +66,7 @@ fetch("DE.json.txt", {
                     'outline': 0,
                     'face': "Lucida Console",
                     'weight': "bold",
-                    'color': "#5b3fff",
+                    'color': "black",
                     'align': "center"
                 },
                 'properties': {
