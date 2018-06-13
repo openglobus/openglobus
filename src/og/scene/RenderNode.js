@@ -266,7 +266,7 @@ class RenderNode extends BaseNode {
             var i = ec.length;
             while (i--) {
                 var eci = ec[i];
-                if (eci._animatedOpacity) {
+                if (eci._fadingOpacity) {
                     //first begin draw event
                     eci.events.dispatch(eci.events.draw, eci);
                     eci.billboardHandler.draw();
@@ -282,13 +282,13 @@ class RenderNode extends BaseNode {
 
             i = ec.length;
             while (i--) {
-                ec[i]._animatedOpacity && ec[i].labelHandler.draw();
+                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
             }
 
             //polyline pass
             i = ec.length;
             while (i--) {
-                ec[i]._animatedOpacity && ec[i].polylineHandler.draw();
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
             //Z-buffer offset
@@ -301,7 +301,7 @@ class RenderNode extends BaseNode {
             i = ec.length;
             while (i--) {
                 var eci = ec[i];
-                if (eci._animatedOpacity) {
+                if (eci._fadingOpacity) {
                     eci.shapeHandler.draw();
                     //post draw event
                     eci.events.dispatch(eci.events.drawend, eci);
@@ -311,7 +311,7 @@ class RenderNode extends BaseNode {
             //pointClouds pass
             i = ec.length;
             while (i--) {
-                ec[i]._animatedOpacity && ec[i].pointCloudHandler.draw();
+                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
             }
 
         }

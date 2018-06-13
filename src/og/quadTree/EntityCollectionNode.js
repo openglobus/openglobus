@@ -280,7 +280,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
     }
 
     var ec = this.entityCollection;
-    ec._animatedOpacity = l.opacity;
+    ec._fadingOpacity = l._opacity;
     ec.scaleByDistance = l.scaleByDistance;
     outArr.push(this.entityCollection);
 
@@ -398,7 +398,7 @@ EntityCollectionNodeWGS84.prototype.renderCollection = function (outArr, visible
         }
     }
 
-    this.entityCollection._animatedOpacity = this.layer.opacity;
+    this.entityCollection._fadingOpacity = this.layer.opacity;
     this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
     outArr.push(this.entityCollection);
 };

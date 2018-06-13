@@ -161,7 +161,7 @@ class EntityCollection {
          * @protected
          * @type {number}
          */
-        this._animatedOpacity = this._opacity;
+        this._fadingOpacity = this._opacity;
 
         /**
          * Entity collection events handler.
@@ -192,7 +192,7 @@ class EntityCollection {
      */
     setVisibility(visibility) {
         this._visibility = visibility;
-        this._animatedOpacity = this._opacity * (visibility ? 1 : 0);
+        this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
         this.events.dispatch(this.events.visibilitychange, this);
     }
 

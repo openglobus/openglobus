@@ -349,7 +349,7 @@ class PointCloud {
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
-            gl.uniform1f(shu.opacity, this._handler._entityCollection._animatedOpacity);
+            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
 
             gl.uniform1f(shu.pointSize, this.pointSize);
 
@@ -377,7 +377,7 @@ class PointCloud {
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
-            gl.uniform1f(shu.opacity, this._handler._entityCollection._animatedOpacity);
+            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
 
             gl.uniform1f(shu.pointSize, this.pointSize + this.pickingDistance);
 

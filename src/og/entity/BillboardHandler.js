@@ -248,7 +248,7 @@ class BillboardHandler {
 
         gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.uOpacity, this._entityCollection._fadingOpacity);
 
         gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
@@ -296,7 +296,7 @@ class BillboardHandler {
 
         gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity, this._entityCollection._animatedOpacity);
+        gl.uniform1f(shu.uOpacity, this._entityCollection._fadingOpacity);
 
         gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 

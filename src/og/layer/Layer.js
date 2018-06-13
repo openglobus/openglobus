@@ -79,7 +79,7 @@ class Layer {
          * @public
          * @type {number}
          */
-        this.opacity = options.opacity || 1.0;
+        this._opacity = options.opacity || 1.0;
 
         /**
          * Transparent RGB color mask.
@@ -154,6 +154,10 @@ class Layer {
          */
         this._visibility = options.visibility !== undefined ? options.visibility : true;
 
+        this._fading = options.faiding || false;
+
+        this._fadingOpacity = this._visibility ? this._opacity : 0.0;
+
         /**
          * Height over the ground.
          * @protected
@@ -227,6 +231,14 @@ class Layer {
 
     get instanceName() {
         return "Layer";
+    }
+
+    set opacity(opacity) {
+        this._opacity = opacity;
+    }
+
+    get opacity() {
+        return this._opacity;
     }
 
     /**
@@ -430,11 +442,23 @@ class Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
+
+            if (!this._fading) {
+                if (visibility) {
+                    this._fadingOpacity = this._opacity;
+                } else {
+                    this._fadingOpacity = 0.0;
+                }
+            }
+
             this._visibility = visibility;
+            
             if (this._isBaseLayer && visibility) {
                 this._planet.setBaseLayer(this);
             }
+
             this._planet.updateVisibleLayers();
+            
             this.events.dispatch(this.events.visibilitychange, this);
         }
     }

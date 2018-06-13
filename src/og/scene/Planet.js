@@ -751,7 +751,7 @@ class Planet extends RenderNode {
         var html = "";
         for (var i = 0; i < this.layers.length; i++) {
             var li = this.layers[i];
-            if (li._visibility) {
+            if (li._fadingOpacity > 0.0) {
                 if (li._isBaseLayer) {
                     this.baseLayer = li;
                 }
