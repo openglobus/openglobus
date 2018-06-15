@@ -41,6 +41,8 @@ var _RenderingSlice = function (p) {
  */
 const Segment = function (node, planet, tileZoom, extent) {
 
+    this._projection = EPSG3857;
+
     /**
      * Quad tree node of the segment.
      * @type {og.quadTree.Node}
@@ -76,6 +78,8 @@ const Segment = function (node, planet, tileZoom, extent) {
      * @type {og.Extent}
      */
     this._extent = extent;
+
+    this._extentLonLat = null;
 
     /**
      * Vertices grid size.
@@ -169,7 +173,6 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.vertexTextureCoordBuffer = null;
 
     this._globalTextureCoordinates = new Float32Array(4);
-    this._projection = EPSG3857;
     this._inTheQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 
@@ -650,33 +653,56 @@ Segment.prototype.destroySegment = function () {
     this._globalTextureCoordinates = null;
 };
 
+Segment.prototype._setExtentLonLat = function () {
+    this._extentLonLat = this._extent.inverseMercator();
+};
+
 /**
  * Creates bound volumes by segment geographical extent.
  */
 Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
-        extent = this._extent;
+        extent = this._extentLonLat;
 
     var xmin = math.MAX, xmax = math.MIN,
         ymin = math.MAX, ymax = math.MIN,
         zmin = math.MAX, zmax = math.MIN;
 
-    var v =
-        [LonLat.inverseMercator(extent.southWest.lon, extent.southWest.lat),
-        LonLat.inverseMercator(extent.southWest.lon, extent.northEast.lat),
-        LonLat.inverseMercator(extent.northEast.lon, extent.northEast.lat),
-        LonLat.inverseMercator(extent.northEast.lon, extent.southWest.lat)];
+    var coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
+    var x = coord.x, y = coord.y, z = coord.z;
+    if (x < xmin) xmin = x;
+    if (x > xmax) xmax = x;
+    if (y < ymin) ymin = y;
+    if (y > ymax) ymax = y;
+    if (z < zmin) zmin = z;
+    if (z > zmax) zmax = z;
 
-    for (var i = 0; i < v.length; i++) {
-        var coord = ellipsoid.lonLatToCartesian(v[i]);
-        var x = coord.x, y = coord.y, z = coord.z;
-        if (x < xmin) xmin = x;
-        if (x > xmax) xmax = x;
-        if (y < ymin) ymin = y;
-        if (y > ymax) ymax = y;
-        if (z < zmin) zmin = z;
-        if (z > zmax) zmax = z;
-    }
+    coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+    x = coord.x; y = coord.y; z = coord.z;
+    if (x < xmin) xmin = x;
+    if (x > xmax) xmax = x;
+    if (y < ymin) ymin = y;
+    if (y > ymax) ymax = y;
+    if (z < zmin) zmin = z;
+    if (z > zmax) zmax = z;
+
+    coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
+    x = coord.x; y = coord.y; z = coord.z;
+    if (x < xmin) xmin = x;
+    if (x > xmax) xmax = x;
+    if (y < ymin) ymin = y;
+    if (y > ymax) ymax = y;
+    if (z < zmin) zmin = z;
+    if (z > zmax) zmax = z;
+
+    coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+    x = coord.x; y = coord.y; z = coord.z;
+    if (x < xmin) xmin = x;
+    if (x > xmax) xmax = x;
+    if (y < ymin) ymin = y;
+    if (y > ymax) ymax = y;
+    if (z < zmin) zmin = z;
+    if (z > zmax) zmax = z;
 
     this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
@@ -692,15 +718,42 @@ Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
 
 Segment.prototype._addViewExtent = function () {
 
-    var ext = this._extent;
-    if (!this.planet._viewExtentMerc) {
-        this.planet._viewExtentMerc = new Extent(
+    // var ext = this._extent;
+    // if (!this.planet._viewExtentMerc) {
+    //     this.planet._viewExtentMerc = new Extent(
+    //         new LonLat(ext.southWest.lon, ext.southWest.lat),
+    //         new LonLat(ext.northEast.lon, ext.northEast.lat));
+    //     return;
+    // }
+
+    // var viewExt = this.planet._viewExtentMerc;
+
+    // if (ext.southWest.lon < viewExt.southWest.lon) {
+    //     viewExt.southWest.lon = ext.southWest.lon;
+    // }
+
+    // if (ext.northEast.lon > viewExt.northEast.lon) {
+    //     viewExt.northEast.lon = ext.northEast.lon;
+    // }
+
+    // if (ext.southWest.lat < viewExt.southWest.lat) {
+    //     viewExt.southWest.lat = ext.southWest.lat;
+    // }
+
+    // if (ext.northEast.lat > viewExt.northEast.lat) {
+    //     viewExt.northEast.lat = ext.northEast.lat;
+    // }
+
+    var ext = this._extentLonLat;
+
+    if (!this.planet._viewExtent) {
+        this.planet._viewExtent = new Extent(
             new LonLat(ext.southWest.lon, ext.southWest.lat),
             new LonLat(ext.northEast.lon, ext.northEast.lat));
         return;
     }
 
-    var viewExt = this.planet._viewExtentMerc;
+    var viewExt = this.planet._viewExtent;
 
     if (ext.southWest.lon < viewExt.southWest.lon) {
         viewExt.southWest.lon = ext.southWest.lon;
@@ -769,7 +822,7 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this.plainVertices = new Float32Array(gridSize3);
 
     const gsgs = gs * gs;
-    
+
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float32Array(gsgs * 3);
 
@@ -872,7 +925,10 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
         //gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
 
         while (li) {
-            if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
+            if (this.layerOverlap(li) &&
+                (li._fading && li._fadingOpacity > 0.0 ||
+                    li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom)) {
+
                 notEmpty = true;
                 var m = pm[li._id];
 
@@ -898,7 +954,7 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
                 p._transparentColorArr[n4] = li.transparentColor[0];
                 p._transparentColorArr[n4 + 1] = li.transparentColor[1];
                 p._transparentColorArr[n4 + 2] = li.transparentColor[2];
-                p._transparentColorArr[n4 + 3] = li.opacity;
+                p._transparentColorArr[n4 + 3] = li._fadingOpacity;
 
                 p._pickingColorArr[n3] = li._pickingColor.x / 255.0;
                 p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
@@ -962,7 +1018,7 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-            
+
 
             var _indexBuffer = this._getIndexBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
@@ -1247,7 +1303,7 @@ Segment.prototype._getDefaultTexture = function () {
 };
 
 Segment.prototype.getExtentLonLat = function () {
-    return this._extent.inverseMercator();
+    return this._extentLonLat;
 };
 
 Segment.prototype.getExtentMerc = function () {

@@ -109,6 +109,8 @@ Node.prototype.createBounds = function () {
 
     let seg = this.segment;
 
+    seg._setExtentLonLat();
+
     if (!seg.tileZoom) {
         seg.bsphere.radius = seg.planet.ellipsoid._a;
         seg.bsphere.center = new Vec3();

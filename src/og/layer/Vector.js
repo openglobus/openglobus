@@ -606,7 +606,8 @@ class Vector extends Layer {
     collectVisibleCollections(outArr) {
         var p = this._planet;
 
-        if (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom) {
+        if (this._fading && this._fadingOpacity > 0.0 ||
+            this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom) {
 
             this._renderingNodes = {};
             this._renderingNodesNorth = {};

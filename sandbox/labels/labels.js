@@ -20,7 +20,8 @@ let townMarkers = new Vector("towns", {
 let towns = new Vector("towns", {
     'nodeCapacity': 50,
     'scaleByDistance': [0, 350000, 25000000],
-    'minZoom': 8
+    'minZoom': 9,
+    'fading': true
 });
 
 towns.events.on("mouseenter", function (e) {

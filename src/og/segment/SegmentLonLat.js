@@ -38,6 +38,10 @@ const SegmentLonLat = function (node, planet, tileZoom, extent) {
 
 inherits(SegmentLonLat, Segment);
 
+SegmentLonLat.prototype._setExtentLonLat = function(){
+    this._extentLonLat = this._extent;
+};
+
 SegmentLonLat.prototype.projectNative = function (coords) {
     return coords;
 };
@@ -79,35 +83,6 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
     }
 
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
-};
-
-SegmentLonLat.prototype._addViewExtent = function () {
-
-    var ext = this._extent;
-    if (!this.planet._viewExtentWGS84) {
-        this.planet._viewExtentWGS84 = new Extent(
-            new LonLat(ext.southWest.lon, ext.southWest.lat),
-            new LonLat(ext.northEast.lon, ext.northEast.lat));
-        return;
-    }
-
-    var viewExt = this.planet._viewExtentWGS84;
-
-    if (ext.southWest.lon < viewExt.southWest.lon) {
-        viewExt.southWest.lon = ext.southWest.lon;
-    }
-
-    if (ext.northEast.lon > viewExt.northEast.lon) {
-        viewExt.northEast.lon = ext.northEast.lon;
-    }
-
-    if (ext.southWest.lat < viewExt.southWest.lat) {
-        viewExt.southWest.lat = ext.southWest.lat;
-    }
-
-    if (ext.northEast.lat > viewExt.northEast.lat) {
-        viewExt.northEast.lat = ext.northEast.lat;
-    }
 };
 
 SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
@@ -156,39 +131,6 @@ SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
     this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180.0;
     this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360.0;
     this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
-};
-
-SegmentLonLat.prototype.createBoundsByExtent = function () {
-    var ellipsoid = this.planet.ellipsoid,
-        extent = this._extent;
-
-    var xmin = math.MAX,
-        xmax = math.MIN,
-        ymin = math.MAX,
-        ymax = math.MIN,
-        zmin = math.MAX,
-        zmax = math.MIN;
-
-    var v = [new LonLat(extent.southWest.lon, extent.southWest.lat),
-    new LonLat(extent.southWest.lon, extent.northEast.lat),
-    new LonLat(extent.northEast.lon, extent.northEast.lat),
-    new LonLat(extent.northEast.lon, extent.southWest.lat)
-    ];
-
-    for (var i = 0; i < v.length; i++) {
-        var coord = ellipsoid.lonLatToCartesian(v[i]);
-        var x = coord.x,
-            y = coord.y,
-            z = coord.z;
-        if (x < xmin) xmin = x;
-        if (x > xmax) xmax = x;
-        if (y < ymin) ymin = y;
-        if (y > ymax) ymax = y;
-        if (z < zmin) zmin = z;
-        if (z > zmax) zmax = z;
-    }
-
-    this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 };
 
 SegmentLonLat.prototype._collectRenderNodes = function () {

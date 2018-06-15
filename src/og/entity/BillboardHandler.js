@@ -71,7 +71,7 @@ class BillboardHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this.__staticId = BillboardHandler.staticCounter++;
+        this.__staticId = BillboardHandler._staticCounter++;
     }
 
     static get _staticCounter() {

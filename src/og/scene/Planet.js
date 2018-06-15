@@ -11,6 +11,7 @@ import * as mercator from '../mercator.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
+import { EPSG4326 } from '../proj/EPSG4326.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
@@ -118,7 +119,6 @@ class Planet extends RenderNode {
          * @type {Array.<og.layer.Layer>}
          */
         this.visibleTileLayers = [];
-        this._visibleTileLayerSlices = [];
 
         /**
          * Current visible vector layers array.
@@ -126,6 +126,8 @@ class Planet extends RenderNode {
          * @type {Array.<og.layer.Vector>}
          */
         this.visibleVectorLayers = [];
+
+        this._visibleTileLayerSlices = [];
 
         /**
          * Vector layers visible nodes with collections.
@@ -180,19 +182,7 @@ class Planet extends RenderNode {
          */
         this.maxCurrZoom = math.MIN;
 
-        /**
-         * Current view geodetic WGS84 extent.
-         * @protected
-         * @type {og.Extent}
-         */
-        this._viewExtentWGS84 = null;
-
-        /**
-         * Current view geodetic Web Mercator extent.
-         * @protected
-         * @type {og.Extent}
-         */
-        this._viewExtentMerc = null;
+        this._viewExtent = null;
 
         /**
          * @protected
@@ -751,7 +741,8 @@ class Planet extends RenderNode {
         var html = "";
         for (var i = 0; i < this.layers.length; i++) {
             var li = this.layers[i];
-            if (li._fadingOpacity > 0.0) {
+            if (li._visibility) {
+
                 if (li._isBaseLayer) {
                     this.baseLayer = li;
                 }
@@ -766,6 +757,15 @@ class Planet extends RenderNode {
 
                 if (li._attribution.length) {
                     html += "<li>" + li._attribution + "</li>";
+                }
+            } else if (li._fading && li._fadingOpacity > 0) {
+
+                if (li.hasImageryTiles()) {
+                    this.visibleTileLayers.push(li);
+                }
+
+                if (li.isVector) {
+                    this.visibleVectorLayers.push(li);
                 }
             }
         }
@@ -825,8 +825,7 @@ class Planet extends RenderNode {
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
 
-        this._viewExtentWGS84 = null;
-        this._viewExtentMerc = null;
+        this._viewExtent = null;
 
         this._visibleNodes = {};
         this._visibleNodesNorth = {};
@@ -852,14 +851,14 @@ class Planet extends RenderNode {
 
             for (var i = temp.length - 1; i >= 0; --i) {
                 var ri = temp[i];
-                if (ri.segment.tileZoom === this.maxCurrZoom) {
+                if (ri.segment.tileZoom === this.maxCurrZoom || ri.segment._projection.id === EPSG4326.id) {
                     this._renderedNodes.push(ri);
                 }
             }
 
             for (i = temp.length - 1; i >= 0; --i) {
                 var seg = temp[i].segment;
-                if (seg.tileZoom < this.maxCurrZoom) {
+                if (seg.tileZoom < this.maxCurrZoom && seg._projection.id !== EPSG4326.id) {
                     seg.node.renderTree(this.maxCurrZoom);
                 }
             }
@@ -987,13 +986,30 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        var i = rn.length;
+        let sli = sl[0];
+        for (var i = sli.length - 1; i >= 0; --i) {
+            let li = sli[i];
+            if (li._fading && li._refreshFadingOpacity()) {
+                sli.splice(i, 1);
+            }
+        }
+
+        i = rn.length;
         while (i--) {
             rn[i].segment._screenRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1; j < sl.length; j++) {
+
+            let slj = sl[j];
+            for (i = slj.length - 1; i >= 0; --i) {
+                let li = slj[i];
+                if (li._fading && li._refreshFadingOpacity()) {
+                    slj.splice(i, 1);
+                }
+            }
+
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
@@ -1176,17 +1192,34 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        var i = rn.length;
+        let sli = sl[0];
+        for (var i = sli.length - 1; i >= 0; --i) {
+            let li = sli[i];
+            if (li._fading && li._refreshFadingOpacity()) {
+                sli.splice(i, 1);
+            }
+        }
+
+        i = rn.length;
         while (i--) {
             rn[i].segment._multiRendering(sh, sl[0]);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1; j < sl.length; j++) {
+
+            let slj = sl[j];
+            for (var i = slj.length - 1; i >= 0; --i) {
+                let li = slj[i];
+                if (li._fading && li._refreshFadingOpacity()) {
+                    slj.splice(i, 1);
+                }
+            }
+
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].segment._multiRendering(sh, sl[j], this.transparentTexture, true);
+                rn[i].segment._multiRendering(sh, slj, this.transparentTexture, true);
             }
         }
 
@@ -1423,28 +1456,29 @@ class Planet extends RenderNode {
      * @returns {og.Extent} -
      */
     getViewExtent() {
-        if (this._viewExtentMerc) {
-            var ne = this._viewExtentMerc.northEast.inverseMercator(),
-                sw = this._viewExtentMerc.southWest.inverseMercator();
-            if (this._viewExtentWGS84) {
-                var e = this._viewExtentWGS84;
-                if (e.northEast.lon > ne.lon) {
-                    ne.lon = e.northEast.lon;
-                }
-                if (e.northEast.lat > ne.lat) {
-                    ne.lat = e.northEast.lat;
-                }
-                if (e.southWest.lon < sw.lon) {
-                    sw.lon = e.southWest.lon;
-                }
-                if (e.southWest.lat < sw.lat) {
-                    sw.lat = e.southWest.lat;
-                }
-            }
-            return new Extent(sw, ne);
-        } else if (this._viewExtentWGS84) {
-            return this._viewExtentWGS84;
-        }
+        return this._viewExtent;
+        // if (this._viewExtentMerc) {
+        //     var ne = this._viewExtentMerc.northEast.inverseMercator(),
+        //         sw = this._viewExtentMerc.southWest.inverseMercator();
+        //     if (this._viewExtentWGS84) {
+        //         var e = this._viewExtentWGS84;
+        //         if (e.northEast.lon > ne.lon) {
+        //             ne.lon = e.northEast.lon;
+        //         }
+        //         if (e.northEast.lat > ne.lat) {
+        //             ne.lat = e.northEast.lat;
+        //         }
+        //         if (e.southWest.lon < sw.lon) {
+        //             sw.lon = e.southWest.lon;
+        //         }
+        //         if (e.southWest.lat < sw.lat) {
+        //             sw.lat = e.southWest.lat;
+        //         }
+        //     }
+        //     return new Extent(sw, ne);
+        // } else if (this._viewExtentWGS84) {
+        //     return this._viewExtentWGS84;
+        // }
     }
 
     /**

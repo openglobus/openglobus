@@ -334,13 +334,13 @@ class RenderNode extends BaseNode {
             //billoard pass
             var i = ec.length;
             while (i--) {
-                ec[i]._visibility && ec[i].billboardHandler.drawPicking();
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
             }
 
             //label pass
             i = ec.length;
             while (i--) {
-                ec[i]._visibility && ec[i].labelHandler.drawPicking();
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
             }
 
             gl.polygonOffset(0, 0);
