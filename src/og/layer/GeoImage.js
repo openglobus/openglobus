@@ -151,7 +151,9 @@ class GeoImage extends BaseGeoImage {
         gl.clearColor(tr, tg, tb, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
         gl.vertexAttribPointer(sha.corners, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.uniform4fv(shu.extentParams, this._extentMercParams);
@@ -196,7 +198,9 @@ class GeoImage extends BaseGeoImage {
         gl.clearColor(tr, tg, tb, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
-        gl.vertexAttribPointer(sha.texCoords, creator._texCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBuffer);
         gl.vertexAttribPointer(sha.corners, this._gridBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.uniform4fv(shu.extentParams, this._extentWgs84Params);

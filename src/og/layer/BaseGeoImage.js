@@ -198,12 +198,8 @@ class BaseGeoImage extends Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
-            this._visibility = visibility;
-            if (this._isBaseLayer && visibility) {
-                this._planet.setBaseLayer(this);
-            }
-            this._planet.updateVisibleLayers();
-            this.events.dispatch(this.events.visibilitychange, this);
+
+            super.setVisibility(visibility);
 
             //remove from creator
             if (visibility)

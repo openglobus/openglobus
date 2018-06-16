@@ -79,6 +79,28 @@ class Ellipsoid {
     }
 
     /**
+     * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
+     * @public
+     * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
+     * @returns {og.math.Vector3} -
+     */
+    geodeticToCartesian(lon, lat, height) {
+        height = height || 0;
+        var latrad = math.RADIANS * lat,
+            lonrad = math.RADIANS * lon;
+
+        var slt = Math.sin(latrad);
+
+        var N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
+        var nc = (N + height) * Math.cos(latrad);
+
+        return new Vec3(
+            nc * Math.sin(lonrad),
+            (N * (1 - this._e2) + height) * slt,
+            nc * Math.cos(lonrad));
+    }
+
+    /**
      * Gets Wgs84 geodetic coordiantes from cartesian ECEF.
      * @public
      * @param {og.math.Vector3} cartesian - Cartesian coordinates.

@@ -35,43 +35,45 @@ const EntityCollectionNode = function (layer, partId, parent, id, extent, planet
 
 EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightNow) {
 
-    var p = this._setLonLat(entity);
+    //TODO:
 
-    if (isInside || p && this.extent.isInside(p)) {
+    // var p = this._setLonLat(entity);
 
-        this.count++;
+    // if (isInside || p && this.extent.isInside(p)) {
 
-        if (this.count > this.layer._nodeCapacity) {
-            var cn = this.childrenNodes;
-            if (cn.length) {
-                if (cn[quadTree.NW].extent.isInside(p)) {
-                    cn[quadTree.NW].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.NE].extent.isInside(p)) {
-                    cn[quadTree.NE].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.SW].extent.isInside(p)) {
-                    cn[quadTree.SW].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.SE].extent.isInside(p)) {
-                    cn[quadTree.SE].insertEntity(entity, true, rightNow);
-                }
-            } else {
+    //     this.count++;
 
-                //
-                //TODO: check for pendingQueue entities
-                //
-                var entities = this.entityCollection.getEntities();
-                entities.push(entity);
-                this.entityCollection.events.clear();
-                this.entityCollection.clear();
-                this.entityCollection = null;
-                //this._freeCollection();
+    //     if (this.count > this.layer._nodeCapacity) {
+    //         var cn = this.childrenNodes;
+    //         if (cn.length) {
+    //             if (cn[quadTree.NW].extent.isInside(p)) {
+    //                 cn[quadTree.NW].insertEntity(entity, true, rightNow);
+    //             } else if (cn[quadTree.NE].extent.isInside(p)) {
+    //                 cn[quadTree.NE].insertEntity(entity, true, rightNow);
+    //             } else if (cn[quadTree.SW].extent.isInside(p)) {
+    //                 cn[quadTree.SW].insertEntity(entity, true, rightNow);
+    //             } else if (cn[quadTree.SE].extent.isInside(p)) {
+    //                 cn[quadTree.SE].insertEntity(entity, true, rightNow);
+    //             }
+    //         } else {
 
-                /** Build sub tree with new inserted entity */
-                this.buildTree(entities, rightNow);
-            }
-        } else {
-            this._addEntitiesToCollection([entity], rightNow);
-        }
-    }
+    //             //
+    //             //TODO: check for pendingQueue entities
+    //             //
+    //             var entities = this.entityCollection.getEntities();
+    //             entities.push(entity);
+    //             this.entityCollection.events.clear();
+    //             this.entityCollection.clear();
+    //             this.entityCollection = null;
+    //             //this._freeCollection();
+
+    //             /** Build sub tree with new inserted entity */
+    //             this.buildTree(entities, rightNow);
+    //         }
+    //     } else {
+    //         this._addEntitiesToCollection([entity], rightNow);
+    //     }
+    // }
 };
 
 EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
@@ -280,7 +282,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
     }
 
     var ec = this.entityCollection;
-    ec._animatedOpacity = l.opacity;
+    ec._fadingOpacity = l._fadingOpacity;
     ec.scaleByDistance = l.scaleByDistance;
     outArr.push(this.entityCollection);
 
@@ -290,19 +292,19 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 
         if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === quadTree.RENDERING) {
             while (i--) {
-                var ei = e[i];
+                let ei = e[i];
                 this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].segment);
             }
         } else if (renderingNodeId) {
             while (i--) {
-                var ei = e[i];
+                let ei = e[i];
                 this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].segment);
             }
         } else {
             var n = l._planet._renderedNodes;
             while (i--) {
-                var ei = e[i];
-                var j = n.length;
+                let ei = e[i];
+                let j = n.length;
                 while (j--) {
                     if (n[j].segment.isEntityInside(ei)) {
                         this.alignEntityToTheGround(ei, n[j].segment);
@@ -398,8 +400,10 @@ EntityCollectionNodeWGS84.prototype.renderCollection = function (outArr, visible
         }
     }
 
-    this.entityCollection._animatedOpacity = this.layer.opacity;
+    this.entityCollection._fadingOpacity = this.layer._fadingOpacity;
+    //this.entityCollection._visibility = this.layer._fadingOpacity > 0.0 && this.layer._visibility;    
     this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+
     outArr.push(this.entityCollection);
 };
 

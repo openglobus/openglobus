@@ -13,6 +13,8 @@ import { Material } from './Material.js';
 import { Vec3 } from '../math/Vec3.js';
 
 
+export const FADING_FACTOR = 0.33;
+
 /**
  * @classdesc
  * Base class; normally only used for creating subclasses and not instantiated in apps.
@@ -79,7 +81,7 @@ class Layer {
          * @public
          * @type {number}
          */
-        this.opacity = options.opacity || 1.0;
+        this._opacity = options.opacity || 1.0;
 
         /**
          * Transparent RGB color mask.
@@ -154,6 +156,16 @@ class Layer {
          */
         this._visibility = options.visibility !== undefined ? options.visibility : true;
 
+        this._fading = options.fading || false;
+
+        this._fadingFactor = FADING_FACTOR;
+
+        if (this._fading) {
+            this._fadingOpacity = this._visibility ? this._opacity : 0.0;
+        } else {
+            this._fadingOpacity = this._opacity;
+        }
+
         /**
          * Height over the ground.
          * @protected
@@ -227,6 +239,19 @@ class Layer {
 
     get instanceName() {
         return "Layer";
+    }
+
+    set opacity(opacity) {
+        if (opacity > this._opacity) {
+            this._fadingFactor = +FADING_FACTOR;
+        } else if (opacity < this._opacity) {
+            this._fadingFactor = -FADING_FACTOR;
+        }
+        this._opacity = opacity;
+    }
+
+    get opacity() {
+        return this._opacity;
     }
 
     /**
@@ -430,11 +455,15 @@ class Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
+
             this._visibility = visibility;
+
             if (this._isBaseLayer && visibility) {
                 this._planet.setBaseLayer(this);
             }
+
             this._planet.updateVisibleLayers();
+
             this.events.dispatch(this.events.visibilitychange, this);
         }
     }
@@ -499,10 +528,32 @@ class Layer {
         //}
     }
 
+    _refreshFadingOpacity() {
+        var p = this._planet;
+        if (this._visibility && p._viewExtent.overlaps(this._extent) &&
+            p.maxCurrZoom >= this.minZoom && p.minCurrZoom <= this.maxZoom) {
+
+            this._fadingOpacity += this._fadingFactor;
+
+            if (this._fadingFactor > 0.0 && this._fadingOpacity > this._opacity ||
+                this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity) {
+                this._fadingOpacity = this._opacity;
+            }
+        } else {
+            
+            this._fadingOpacity -= FADING_FACTOR;
+
+            if (this._fadingOpacity < 0.0) {
+                this._fadingOpacity = 0.0;
+                return !this._visibility;
+            }
+        }
+    }
+
     createMaterial(segment) {
         return new Material(segment, this);
     }
-};
+}
 
 const EVENT_NAMES = [
     /**
