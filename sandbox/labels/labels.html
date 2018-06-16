@@ -6,13 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="./labels.js" type="module"></script>
     <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <script src="./jquery/jquery-1.10.2.min.js"></script>
+    <link rel="stylesheet" href="./jquery/jquery-ui-1.7.2.custom.css">
+    <script src="./jquery/jquery-ui-1.10.4.min.js"></script>
+    <link rel="stylesheet" href="./colpick.css">
+    <script src="./colpick.js"></script>
+    <style>
+	#colorpicker{
+		position: absolute;
+    	        left: 0;
+		top: 0;
+	}
+    </style>
 </head>
 
 <body>
     <div id="earth" style="width:100%;height:100%"/>
-    <div id="debug" class="defaultText"/>
-    <div id="bounds" class="defaultText"/>
-    <div id="curr" class="defaultText"/>
+    <div id="colorpicker"></div>
 </body>
 
 </html>

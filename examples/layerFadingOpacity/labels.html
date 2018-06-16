@@ -1,0 +1,156 @@
+﻿<html>
+
+<head>
+    <title>OpenStreetMap Base Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+
+    <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
+    <script src="http://www.openglobus.org/og.js"></script>
+
+    <script src="./jquery/jquery-1.10.2.min.js"></script>
+    <link rel="stylesheet" href="./jquery/jquery-ui-1.7.2.custom.css">
+    <script src="./jquery/jquery-ui-1.10.4.min.js"></script>
+
+    <link rel="stylesheet" href="./colpick.css">
+    <script src="./colpick.js"></script>
+    <style>
+        #colorpicker {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="earth" style="width:100%;height:100%" />
+    <div id="colorpicker"></div>
+    <script>
+        let osm = new og.layer.XYZ("OSM", {
+            'isBaseLayer': true,
+            'url': "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            'visibility': true,
+            'attribution': 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        let townMarkers = new og.layer.Vector("town markers", {
+            'nodeCapacity': 100000,
+            'maxZoom': 9,
+            'scaleByDistance': [0, 1500000, 25000000],
+            'fading': true
+        });
+
+        let townLabels = new og.layer.Vector("town labels", {
+            'nodeCapacity': 50,
+            'scaleByDistance': [0, 350000, 25000000],
+            'minZoom': 10,
+            'fading': true
+        });
+
+        townLabels.events.on("mouseenter", function (e) {
+            e.renderer.handler.canvas.style.cursor = "pointer";
+        });
+
+        townLabels.events.on("mouseleave", function (e) {
+            e.renderer.handler.canvas.style.cursor = "default";
+        });
+
+        townMarkers.events.on("mouseenter", function (e) {
+            e.renderer.handler.canvas.style.cursor = "pointer";
+        });
+
+        townMarkers.events.on("mouseleave", function (e) {
+            e.renderer.handler.canvas.style.cursor = "default";
+        });
+
+        window.globe = new og.Globe({
+            'name': "Earth",
+            'target': "earth",
+            'terrain': new og.terrain.GlobusTerrain(),
+            'layers': [osm, townLabels, townMarkers],
+            "sun": {
+                "active": false
+            }
+        });
+
+        //Set low quality
+        globe.planet.RATIO_LOD = 0.75;
+
+        //View at Germany
+        globe.planet.viewExtentArr([-0.895, 47.51, 21.84, 51.65]);
+
+        //Create font
+        globe.planet.fontAtlas.createFont("Lucida Console", "normal", "bold");
+
+        //globe.planet.events.on("draw", function () {
+        //    towns.setScaleByDistance(globe.planet.camera.getHeight(), globe.planet.camera.getHeight() * 2);
+        //});
+
+        //Load points
+        fetch("DE.json.txt", {
+            credentials: 'include',
+            method: 'GET'
+        })
+            .then(function (resp) {
+                return resp.json();
+            })
+            .then(function (resp) {
+                let labels = [],
+                    markers = [];
+                for (let i = 0; i < resp.length; i++) {
+                    let ri = resp[i];
+                    markers.push(new Entity({
+                        'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
+                        'billboard': {
+                            'src': "./marker.png",
+                            'width': 12,
+                            'height': 12,
+                            'offset': [0, 6]
+                        },
+                        'properties': {
+                            'name': ri.name
+                        }
+                    }));
+
+                    labels.push(new Entity({
+                        'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
+                        'label': {
+                            'text': ri.name,
+                            'size': 26,
+                            'outline': 0,
+                            'face': "Lucida Console",
+                            'weight': "bold",
+                            'color': "black",
+                            'align': "center"
+                        },
+                        'properties': {
+                            'name': ri.name
+                        }
+                    }));
+                }
+                townLabels.setEntities(labels);
+                townMarkers.setEntities(markers);
+            });
+
+
+        $("#colorpicker").colpick({
+            colorScheme: 'dark',
+            layout: 'rgbhex',
+            color: "black",
+            flat: true,
+            onChange: function (hsb, hex, rgb, el) {
+                townLabels.each(function (e) {
+                    e.label.setColor(rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0);
+                });
+            },
+            onSubmit: function (hsb, hex, rgb, el) {
+                //ndviFeature.setColor('#' + hex);
+                //$(el).colpickHide();
+            }
+        });
+    </script>
+</body>
+
+</html>
