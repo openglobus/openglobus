@@ -4,7 +4,6 @@
     <title>OpenStreetMap Base Layer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
 
     <link rel="stylesheet" href="http://www.openglobus.org/og.css" type="text/css" />
     <script src="http://www.openglobus.org/og.js"></script>
@@ -101,7 +100,7 @@
                     markers = [];
                 for (let i = 0; i < resp.length; i++) {
                     let ri = resp[i];
-                    markers.push(new Entity({
+                    markers.push(new og.Entity({
                         'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
                         'billboard': {
                             'src': "./marker.png",
@@ -114,7 +113,7 @@
                         }
                     }));
 
-                    labels.push(new Entity({
+                    labels.push(new og.Entity({
                         'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
                         'label': {
                             'text': ri.name,

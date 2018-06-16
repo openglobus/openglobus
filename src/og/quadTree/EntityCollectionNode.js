@@ -35,45 +35,45 @@ const EntityCollectionNode = function (layer, partId, parent, id, extent, planet
 
 EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightNow) {
 
-    //TODO:
+    //TODO: doesnt work!!!!
 
-    // var p = this._setLonLat(entity);
+    var p = this._setLonLat(entity);
 
-    // if (isInside || p && this.extent.isInside(p)) {
+    if (isInside || p && this.extent.isInside(p)) {
 
-    //     this.count++;
+        this.count++;
 
-    //     if (this.count > this.layer._nodeCapacity) {
-    //         var cn = this.childrenNodes;
-    //         if (cn.length) {
-    //             if (cn[quadTree.NW].extent.isInside(p)) {
-    //                 cn[quadTree.NW].insertEntity(entity, true, rightNow);
-    //             } else if (cn[quadTree.NE].extent.isInside(p)) {
-    //                 cn[quadTree.NE].insertEntity(entity, true, rightNow);
-    //             } else if (cn[quadTree.SW].extent.isInside(p)) {
-    //                 cn[quadTree.SW].insertEntity(entity, true, rightNow);
-    //             } else if (cn[quadTree.SE].extent.isInside(p)) {
-    //                 cn[quadTree.SE].insertEntity(entity, true, rightNow);
-    //             }
-    //         } else {
+        if (this.count > this.layer._nodeCapacity) {
+            var cn = this.childrenNodes;
+            if (cn.length) {
+                if (cn[quadTree.NW].extent.isInside(p)) {
+                    cn[quadTree.NW].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.NE].extent.isInside(p)) {
+                    cn[quadTree.NE].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.SW].extent.isInside(p)) {
+                    cn[quadTree.SW].insertEntity(entity, true, rightNow);
+                } else if (cn[quadTree.SE].extent.isInside(p)) {
+                    cn[quadTree.SE].insertEntity(entity, true, rightNow);
+                }
+            } else {
 
-    //             //
-    //             //TODO: check for pendingQueue entities
-    //             //
-    //             var entities = this.entityCollection.getEntities();
-    //             entities.push(entity);
-    //             this.entityCollection.events.clear();
-    //             this.entityCollection.clear();
-    //             this.entityCollection = null;
-    //             //this._freeCollection();
+                //
+                //TODO: check for pendingQueue entities
+                //
+                var entities = this.entityCollection.getEntities();
+                entities.push(entity);
+                this.entityCollection.events.clear();
+                this.entityCollection.clear();
+                this.entityCollection = null;
+                //this._freeCollection();
 
-    //             /** Build sub tree with new inserted entity */
-    //             this.buildTree(entities, rightNow);
-    //         }
-    //     } else {
-    //         this._addEntitiesToCollection([entity], rightNow);
-    //     }
-    // }
+                /** Build sub tree with new inserted entity */
+                this.buildTree(entities, rightNow);
+            }
+        } else {
+            this._addEntitiesToCollection([entity], rightNow);
+        }
+    }
 };
 
 EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
