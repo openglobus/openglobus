@@ -345,7 +345,10 @@ class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this.RATIO_LOD = 1.0;
+        this._lodRatio = 1.0;
+        this._maxLodRatio = this._lodRatio;
+        this._minLodRatio = this._maxLodRatio - 0.4;
+            
 
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
@@ -867,6 +870,8 @@ class Planet extends RenderNode {
      */
     frame() {
 
+        this._lodRatio = math.lerp(this.camera.slope, this._maxLodRatio, this._minLodRatio);
+
         this._collectRenderNodes();
 
         //Here is the planet node dispatches a draw event before rendering begins.
@@ -1205,7 +1210,7 @@ class Planet extends RenderNode {
         for (let j = 1; j < sl.length; j++) {
 
             let slj = sl[j];
-            for (var i = slj.length - 1; i >= 0; --i) {
+            for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
                 if (li._fading && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);

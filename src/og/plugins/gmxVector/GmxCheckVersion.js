@@ -77,9 +77,12 @@ const GmxCheckVersion = function (planet) {
     this._request = function () {
         if (this._layers.length) {
             this._r && this._r.abort();
-            var e = planet._viewExtentMerc;
+            var e = planet.getViewExtent();
 
             if (e) {
+                
+                e = e.inverseMercator();
+
                 var zoom = planet.minCurrZoom,
                     bbox = [e.southWest.lon, e.southWest.lat, e.northEast.lon, e.northEast.lat];
 
@@ -91,8 +94,8 @@ const GmxCheckVersion = function (planet) {
                         _layersOrder.push(li);
                         var p = { "Name": li._layerId, "Version": li._gmxProperties.LayerVersion || -1 };
                         if (li._gmxProperties.Temporal) {
-                            p.dateBegin = parseInt(li._beginDate.getTime() / 1000);
-                            p.dateEnd = parseInt(li._endDate.getTime() / 1000);
+                            p.dateBegin = parseInt(li._beginDate.getTime() / 1000.0);
+                            p.dateEnd = parseInt(li._endDate.getTime() / 1000.0);
                         }
                         layers.push(p);
                     }

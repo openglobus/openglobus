@@ -257,7 +257,7 @@ Extent.prototype.getSouth = function () {
 /**
  * Returns extents are equals.
  * @param {og.Extent} extent - Extent.
- * @returns {boolean}
+ * @returns {boolean} -
  */
 Extent.prototype.equals = function (extent) {
     return this.southWest.lon === extent.southWest.lon && this.southWest.lat === extent.southWest.lat &&

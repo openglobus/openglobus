@@ -182,13 +182,13 @@ const Segment = function (node, planet, tileZoom, extent) {
 };
 
 /**
- * Returns that segment good for rendering with camera by current RATIO_LOD.
+ * Returns that segment good for rendering with camera by current lod ratio.
  * @public
  * @param {og.Camera} camera - Camera object.
  * @returns {boolean} -
  */
 Segment.prototype.acceptForRendering = function (camera) {
-    return camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet.RATIO_LOD;
+    return camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet._lodRatio;
 };
 
 
