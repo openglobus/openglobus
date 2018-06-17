@@ -80,7 +80,9 @@ const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
+    
     this.ready = true;
+
     var p = this.planet;
     var ps = this.segment;
     var ext = ps._extent;

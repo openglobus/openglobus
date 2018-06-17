@@ -508,11 +508,7 @@ class Planet extends RenderNode {
     setHeightFactor(factor) {
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
-            var n = this._quadTree.nodes;
-            this._quadTree.nodes = [];
-            for (var i = 0; i < n.length; i++) {
-                n[i].destroyBranches();
-            }
+            this._quadTree.destroyBranches();
         }
     }
 
