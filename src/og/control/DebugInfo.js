@@ -82,6 +82,9 @@ class DebugInfo extends Control {
             }, {
                 'label': "cam.slope",
                 'frame': () => p.camera.slope
+            }, {
+                'label': "lodRatio",
+                'frame': () => p._lodRatio
             }]);
         }
     }
