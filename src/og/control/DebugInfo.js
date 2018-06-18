@@ -85,6 +85,9 @@ class DebugInfo extends Control {
             }, {
                 'label': "lodRatio",
                 'frame': () => p._lodRatio
+            }, {
+                'label': "createdNodes",
+                'frame': () => p._createdNodesCount
             }]);
         }
     }

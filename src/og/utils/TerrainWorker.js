@@ -33,7 +33,7 @@ class TerrainWorker {
         this._pendingQueue = new QueueArray(512);
     }
 
-    check(){
+    check() {
         if (this._pendingQueue.length) {
             var p = this._pendingQueue.pop();
             this.make(p.segment, p.elevations);
@@ -72,6 +72,8 @@ class TerrainWorker {
             } else {
                 this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
             }
+        } else {
+            this.check();
         }
     }
 };

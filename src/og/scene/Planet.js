@@ -42,7 +42,7 @@ const RESOURCES_URL = "";
  * @type {number}
  * @default
  */
-const MAX_NODES = 250;
+const MAX_NODES = 500;
 
 const EVENT_NAMES = [
     /**
@@ -372,9 +372,9 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(3);
+        this._terrainWorker = new TerrainWorker(4);
 
-        this._tileLoader = new Loader(24);
+        this._tileLoader = new Loader(14);
 
         /**
          * @protected
