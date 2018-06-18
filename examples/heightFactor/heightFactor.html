@@ -42,7 +42,7 @@
         };
 
         document.getElementById("lodRatio").onchange = function () {
-            globus.planet.RATIO_LOD = parseFloat(this.value);
+            globus.planet.setRatioLod(parseFloat(this.value));
         };
 
         let osm = new XYZ("OpenStreetMap", {
