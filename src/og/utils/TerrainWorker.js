@@ -80,6 +80,8 @@ class TerrainWorker {
 
 const _programm =
     `
+    'use strict';
+
     var Vector3 = function(x, y, z) {
         this.x = x;
         this.y = y;
@@ -123,21 +125,21 @@ const _programm =
             this_normalMapNormals = e.data.this_normalMapNormals,
             heightFactor =  e.data.heightFactor,
             //fileGridSize = e.data.fileGridSize,
-            gridSize = e.data.gridSize;
+            gridSize = e.data.gridSize,
             id = e.data.id;
         
-        var xmin = 549755748352, xmax = -549755748352, 
-            ymin = 549755748352, ymax = -549755748352, 
-            zmin = 549755748352, zmax = -549755748352;
+        var xmin = 549755748352.0, xmax = -549755748352.0, 
+            ymin = 549755748352.0, ymax = -549755748352.0, 
+            zmin = 549755748352.0, zmax = -549755748352.0;
 
-        var fileGridSize = Math.sqrt(elevations.length) - 1;
+        const fileGridSize = Math.sqrt(elevations.length) - 1;
 
-        var fileGridSize_one = fileGridSize + 1,
-            fileGridSize_one_x2 = fileGridSize_one * fileGridSize_one,
-            tgs = gridSize,
-            dg = fileGridSize / tgs,
-            gs = tgs + 1,
-            hf = heightFactor;
+        const fileGridSize_one = fileGridSize + 1;
+        const fileGridSize_one_x2 = fileGridSize_one * fileGridSize_one;
+        const tgs = gridSize;
+        const dg = fileGridSize / tgs;
+        const gs = tgs + 1;
+        const hf = heightFactor;
 
         var nmvInd = 0;
         var vInd = 0;
@@ -156,7 +158,7 @@ const _programm =
                     var j = k % fileGridSize_one,
                         i = ~~(k / fileGridSize_one);
 
-                    var hInd0 = i * fileGridSize_one + j;
+                    var hInd0 = k;
                     var vInd0 = hInd0 * 3;
                     var h0 = hf * elevations[hInd0];
                     var v0 = new Vector3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
@@ -175,7 +177,7 @@ const _programm =
                     }
 
                     if (i !== fileGridSize && j !== fileGridSize) {
-                        var hInd1 = i * fileGridSize_one + j + 1;
+                        var hInd1 = k + 1;
                         var vInd1 = hInd1 * 3;
                         var h1 = hf * elevations[hInd1];
                         var v1 = new Vector3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
@@ -183,7 +185,7 @@ const _programm =
                         normalMapVertices[vInd1 + 1] = v1.y;
                         normalMapVertices[vInd1 + 2] = v1.z;
 
-                        var hInd2 = (i + 1) * fileGridSize_one + j;
+                        var hInd2 = k + fileGridSize_one;
                         var vInd2 = hInd2 * 3;
                         var h2 = hf * elevations[hInd2];
                         var v2 = new Vector3(
@@ -194,7 +196,7 @@ const _programm =
                         normalMapVertices[vInd2 + 1] = v2.y;
                         normalMapVertices[vInd2 + 2] = v2.z;
 
-                        var hInd3 = (i + 1) * fileGridSize_one + (j + 1);
+                        var hInd3 = k + fileGridSize_one + 1;
                         var vInd3 = hInd3 * 3;
                         var h3 = hf * elevations[hInd3];
                         var v3 = new Vector3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
@@ -286,13 +288,21 @@ const _programm =
             normalMapNormals = this_plainNormals;
         }
         
+        var normalMapNormalsRaw = new Float32Array(normalMapNormals.length);
+        normalMapNormalsRaw.set(normalMapNormals);
+
         self.postMessage({
                 id: id,
                 normalMapNormals: normalMapNormals,
+                normalMapNormalsRaw: normalMapNormalsRaw,
                 normalMapVertices: normalMapVertices,
                 terrainVertices: terrainVertices,
-                bounds: [xmin, xmax, ymin, ymax, zmin, zmax],
-             }, [normalMapNormals.buffer, normalMapVertices.buffer, terrainVertices.buffer]);
+                bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+             }, [normalMapNormals.buffer, 
+                normalMapNormalsRaw.buffer, 
+                normalMapVertices.buffer, 
+                terrainVertices.buffer
+            ]);
     }`;
 
 export { TerrainWorker };

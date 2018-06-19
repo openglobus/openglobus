@@ -167,6 +167,7 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.normalMapTextureBias = new Float32Array(3);
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -309,11 +310,13 @@ Segment.prototype.elevationsExists = function (elevations) {
 Segment.prototype._terrainWorkerCallback = function (data) {
     if (this.ready) {
         this.normalMapNormals = null;
+        this.normalMapNormalsRaw = null;
         this.normalMapVertices = null;
         this.terrainVertices = null;
         this.tempVertices = null;
 
         this.normalMapNormals = data.normalMapNormals;
+        this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
         this.terrainVertices = data.terrainVertices;
         this.tempVertices = data.terrainVertices;
@@ -567,6 +570,7 @@ Segment.prototype.deleteElevations = function () {
 
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
     this.tempVertices = null;
     this.terrainVertices = null;
     this.plainVertices = null;
@@ -639,6 +643,7 @@ Segment.prototype.destroySegment = function () {
     this.normalMapTextureBias = null;
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -717,32 +722,6 @@ Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
 };
 
 Segment.prototype._addViewExtent = function () {
-
-    // var ext = this._extent;
-    // if (!this.planet._viewExtentMerc) {
-    //     this.planet._viewExtentMerc = new Extent(
-    //         new LonLat(ext.southWest.lon, ext.southWest.lat),
-    //         new LonLat(ext.northEast.lon, ext.northEast.lat));
-    //     return;
-    // }
-
-    // var viewExt = this.planet._viewExtentMerc;
-
-    // if (ext.southWest.lon < viewExt.southWest.lon) {
-    //     viewExt.southWest.lon = ext.southWest.lon;
-    // }
-
-    // if (ext.northEast.lon > viewExt.northEast.lon) {
-    //     viewExt.northEast.lon = ext.northEast.lon;
-    // }
-
-    // if (ext.southWest.lat < viewExt.southWest.lat) {
-    //     viewExt.southWest.lat = ext.southWest.lat;
-    // }
-
-    // if (ext.northEast.lat > viewExt.northEast.lat) {
-    //     viewExt.northEast.lat = ext.northEast.lat;
-    // }
 
     var ext = this._extentLonLat;
 
@@ -823,6 +802,7 @@ Segment.prototype.createPlainVertices = function (gridSize) {
 
     const gsgs = gs * gs;
 
+
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float32Array(gsgs * 3);
 
@@ -865,6 +845,10 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this.normalMapTexture = this.planet.transparentTexture;
     this.terrainVertices = verts;
     this.tempVertices = verts;
+
+    //store raw normals
+    this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
+    this.normalMapNormalsRaw.set(nmNorms);
 
     this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
