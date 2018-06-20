@@ -401,13 +401,16 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
         s._appliedNeighborsZoom[side] = b.tileZoom;
 
+        let seg_a_raw = s.normalMapNormalsRaw,
+            seg_b_raw = b.normalMapNormalsRaw;
+
         let seg_a = s.normalMapNormals,
             seg_b = b.normalMapNormals;
 
         if (!(seg_a && seg_b)) return;
 
-        let s_gs = Math.sqrt(s.normalMapNormals.length / 3),
-            b_gs = Math.sqrt(b.normalMapNormals.length / 3),
+        let s_gs = Math.sqrt(seg_a.length / 3),
+            b_gs = Math.sqrt(seg_b.length / 3),
             s_gs1 = s_gs - 1,
             b_gs1 = b_gs - 1;
 
@@ -424,11 +427,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                     let vInd_a = (k * s_gs + i_a) * 3,
                         vInd_b = (k * s_gs + i_b) * 3;
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
                     seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
                     seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
@@ -439,9 +442,9 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                     let vInd_a = (i_a * s_gs + k) * 3,
                         vInd_b = (i_b * s_gs + k) * 3;
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
                     q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
@@ -457,28 +460,27 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
 
         } else {
-            let s_edge = 0, b_edge = 1;
+            // let s_edge = 0, b_edge = 1;
 
-            if (i_a) {
-                s_edge = 1;
-                b_edge = 0;
-            }
+            // if (i_a) {
+            //     s_edge = 1;
+            //     b_edge = 0;
+            // }
 
-            if (s.tileZoom < b.tileZoom) {
-                if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
-                    this.planet._normalMapCreator.queue(b);
-                }
-                b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
-                side = quadTree.OPSIDE[side];
-                let t = b;
-                t = s;
-                s = b;
-                b = t;
-                s_edge ^= 1;
-                b_edge ^= 1;
-            }
+            // if (s.tileZoom < b.tileZoom) {
+            //     if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
+            //         this.planet._normalMapCreator.queue(b);
+            //     }
+            //     b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
+            //     side = quadTree.OPSIDE[side];
+            //     let t = b;
+            //     t = s;
+            //     s = b;
+            //     b = t;
+            //     s_edge ^= 1;
+            //     b_edge ^= 1;
+            // }
 
-            //TODO: need to store default normal maps, but equalize only default normals, and render equalized normals.
             // let dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
 
             // if (vert) {
@@ -489,9 +491,9 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             //             kk = Math.round(k * dZ2),
             //             vInd_b = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
 
-            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
-            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
             //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
@@ -507,11 +509,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             //             kk = Math.round(k * dZ2),
             //             vInd_b = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
 
-            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
-            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-            //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            //         q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
             //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
             //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
