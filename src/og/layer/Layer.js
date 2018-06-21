@@ -330,7 +330,7 @@ class Layer {
         if (p) {
             var lid = this._id;
             for (var i = 0; i < p.layers.length; i++) {
-                if (p.layers[i]._id === lid) {
+                if (this.isEqual(p.layers[i])) {
                     p.renderer.clearPickingColor(this);
                     p.layers.splice(i, 1);
                     p.updateVisibleLayers();

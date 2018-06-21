@@ -167,6 +167,7 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.normalMapTextureBias = new Float32Array(3);
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -285,7 +286,9 @@ Segment.prototype.projectNative = function (lonlat) {
 
 Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrain.minZoom) {
-        if (!this.terrainIsLoading && !this.terrainReady) {
+        if (!this.terrainIsLoading && 
+            this._createTerrainFromChildNodes() &&
+            !this.terrainReady) {
             this.planet.terrain.loadTerrain(this);
         }
     } else {
@@ -294,6 +297,124 @@ Segment.prototype.loadTerrain = function () {
             this.planet._normalMapCreator.queue(this);
         }
     }
+};
+
+Segment.prototype._createTerrainFromChildNodes = function () {
+
+    const node = this.node;
+    const nodes = node.nodes;
+    const terrain = this.planet.terrain;
+
+    if (node.ready &&
+        this.tileZoom >= terrain.minZoom &&
+        this.tileZoom < terrain.maxZoom &&
+        nodes[0].segment.terrainReady && nodes[1].segment.terrainReady &&
+        nodes[2].segment.terrainReady && nodes[3].segment.terrainReady
+    ) {
+        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
+
+        if (!this.ready) {
+            this.createPlainSegment();
+        } else {
+            this.initializePlainSegment();
+        }
+
+        let fgs = terrain.fileGridSize;
+        let dg = Math.max(fgs / this.gridSize, 1),
+            gs = Math.max(fgs, this.gridSize) + 1;
+        let ind = 0,
+            nmInd = 0;
+
+        let gs3 = gs * gs * 3,
+            sgs3 = (this.gridSize + 1) * (this.gridSize + 1) * 3;
+
+        let hgsOne = 0.5 * gs + 0.5;
+
+        // seg.terrainVertices = null;
+        // seg.normalMapNormals = null;
+        // seg.normalMapNormalsRaw = null;
+        // seg.normalMapVertices = null;
+
+        // seg.terrainVertices = new Float32Array(sgs3);
+        // seg.normalMapVertices = new Float32Array(gs3);
+        // seg.normalMapNormals = new Float32Array(gs3);
+        // seg.normalMapNormalsRaw = new Float32Array(gs3);
+
+        let verts = this.terrainVertices,
+            nmVerts = this.normalMapVertices,
+            nmNorms = this.normalMapNormals;
+
+        for (let i = 0; i < gs; i++) {
+
+            let ni = Math.floor(i / hgsOne),
+                ii = i % hgsOne + ni;
+
+            for (let j = 0; j < gs; j++) {
+
+                let nj = Math.floor(j / hgsOne);
+                let n = nodes[(ni << 1) + nj];
+
+                let nii = ii << 1,
+                    njj = (j % hgsOne + nj) << 1;
+
+                let n_index = 3 * (nii * gs + njj);
+
+                let n_nmVerts = n.segment.normalMapVertices,
+                    n_nmNormsRaw = n.segment.normalMapNormalsRaw;
+
+                let x = n_nmVerts[n_index],
+                    y = n_nmVerts[n_index + 1],
+                    z = n_nmVerts[n_index + 2];
+
+                nmVerts[nmInd] = x;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index];
+
+                nmVerts[nmInd] = y;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
+
+                nmVerts[nmInd] = z;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
+
+                if (i % dg === 0 && j % dg === 0) {
+                    verts[ind++] = x;
+                    verts[ind++] = y;
+                    verts[ind++] = z;
+
+                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                }
+            }
+        }
+
+        this.normalMapNormalsRaw.set(nmNorms);
+
+        if (this.planet.lightEnabled) {
+            this.planet._normalMapCreator.drawSingle(this);
+            //this.planet._normalMapCreator.unshift(seg);
+        }
+
+        this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+
+        this.appliedTerrainNodeId = this.nodeId;
+        this.terrainReady = true;
+        this.terrainExists = true;
+        this.terrainIsLoading = false;
+
+        //seg.ready = true;
+
+        let e = this._extent;
+        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+
+        return false;
+    }
+
+    return true;
 };
 
 /**
@@ -309,11 +430,13 @@ Segment.prototype.elevationsExists = function (elevations) {
 Segment.prototype._terrainWorkerCallback = function (data) {
     if (this.ready) {
         this.normalMapNormals = null;
+        this.normalMapNormalsRaw = null;
         this.normalMapVertices = null;
         this.terrainVertices = null;
         this.tempVertices = null;
 
         this.normalMapNormals = data.normalMapNormals;
+        this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
         this.terrainVertices = data.terrainVertices;
         this.tempVertices = data.terrainVertices;
@@ -387,24 +510,24 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
         }
     }
 
-    let ns = n && n.segment;
+    let b = n && n.segment;
 
-    if (n && ns && ns.terrainReady && ns.terrainExists &&
-        ns.tileZoom <= maxZ &&
-        this._appliedNeighborsZoom[side] !== ns.tileZoom) {
+    if (n && b && b.terrainReady && b.terrainExists &&
+        b.tileZoom <= maxZ &&
+        this._appliedNeighborsZoom[side] !== b.tileZoom) {
 
-        let s = this,
-            b = ns;
+        this._appliedNeighborsZoom[side] = b.tileZoom;
 
-        s._appliedNeighborsZoom[side] = b.tileZoom;
-
-        let seg_a = s.normalMapNormals,
+        let seg_a = this.normalMapNormals,
             seg_b = b.normalMapNormals;
 
         if (!(seg_a && seg_b)) return;
 
-        let s_gs = Math.sqrt(s.normalMapNormals.length / 3),
-            b_gs = Math.sqrt(b.normalMapNormals.length / 3),
+        let seg_a_raw = this.normalMapNormalsRaw,
+            seg_b_raw = b.normalMapNormalsRaw;
+
+        let s_gs = Math.sqrt(seg_a.length / 3),
+            b_gs = Math.sqrt(seg_b.length / 3),
             s_gs1 = s_gs - 1,
             b_gs1 = b_gs - 1;
 
@@ -412,7 +535,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
         let nx, ny, nz, q;
 
-        if (s.tileZoom === b.tileZoom) {
+        if (this.tileZoom === b.tileZoom) {
 
             let i_b = s_gs1 - i_a;
 
@@ -421,11 +544,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                     let vInd_a = (k * s_gs + i_a) * 3,
                         vInd_b = (k * s_gs + i_b) * 3;
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
                     seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
                     seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
@@ -436,11 +559,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                     let vInd_a = (i_a * s_gs + k) * 3,
                         vInd_b = (i_b * s_gs + k) * 3;
 
-                    nx = seg_a[vInd_a] + seg_b[vInd_b];
-                    ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-                    nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+                    nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+                    ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+                    nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-                    q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
                     seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
                     seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
@@ -448,34 +571,34 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                 }
             }
 
-            if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
+            if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== this.tileZoom) {
                 this.planet._normalMapCreator.queue(b);
             }
-            b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
+
+            //b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = this.tileZoom;
 
         } else {
-            let s_edge = 0, b_edge = 1;
+            // let s_edge = 0, b_edge = 1;
 
-            if (i_a) {
-                s_edge = 1;
-                b_edge = 0;
-            }
+            // if (i_a) {
+            //     s_edge = 1;
+            //     b_edge = 0;
+            // }
 
-            if (s.tileZoom < b.tileZoom) {
-                if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
-                    this.planet._normalMapCreator.queue(b);
-                }
-                b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
-                side = quadTree.OPSIDE[side];
-                let t = b;
-                t = s;
-                s = b;
-                b = t;
-                s_edge ^= 1;
-                b_edge ^= 1;
-            }
+            // if (s.tileZoom < b.tileZoom) {
+            //     if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
+            //         this.planet._normalMapCreator.queue(b);
+            //     }
+            //     b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
+            //     side = quadTree.OPSIDE[side];
+            //     let t = b;
+            //     t = s;
+            //     s = b;
+            //     b = t;
+            //     s_edge ^= 1;
+            //     b_edge ^= 1;
+            // }
 
-            //TODO: need to store default normal maps, but equalize only default normals, and render equalized normals.
             // let dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
 
             // if (vert) {
@@ -486,9 +609,9 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             //             kk = Math.round(k * dZ2),
             //             vInd_b = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
 
-            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
-            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
             //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
@@ -504,11 +627,11 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             //             kk = Math.round(k * dZ2),
             //             vInd_b = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
 
-            //         nx = seg_a[vInd_a] + seg_b[vInd_b];
-            //         ny = seg_a[vInd_a + 1] + seg_b[vInd_b + 1];
-            //         nz = seg_a[vInd_a + 2] + seg_b[vInd_b + 2];
+            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
+            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
+            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-            //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            //         q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
             //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
             //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
@@ -567,6 +690,7 @@ Segment.prototype.deleteElevations = function () {
 
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
     this.tempVertices = null;
     this.terrainVertices = null;
     this.plainVertices = null;
@@ -639,6 +763,7 @@ Segment.prototype.destroySegment = function () {
     this.normalMapTextureBias = null;
     this.normalMapVertices = null;
     this.normalMapNormals = null;
+    this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -717,32 +842,6 @@ Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
 };
 
 Segment.prototype._addViewExtent = function () {
-
-    // var ext = this._extent;
-    // if (!this.planet._viewExtentMerc) {
-    //     this.planet._viewExtentMerc = new Extent(
-    //         new LonLat(ext.southWest.lon, ext.southWest.lat),
-    //         new LonLat(ext.northEast.lon, ext.northEast.lat));
-    //     return;
-    // }
-
-    // var viewExt = this.planet._viewExtentMerc;
-
-    // if (ext.southWest.lon < viewExt.southWest.lon) {
-    //     viewExt.southWest.lon = ext.southWest.lon;
-    // }
-
-    // if (ext.northEast.lon > viewExt.northEast.lon) {
-    //     viewExt.northEast.lon = ext.northEast.lon;
-    // }
-
-    // if (ext.southWest.lat < viewExt.southWest.lat) {
-    //     viewExt.southWest.lat = ext.southWest.lat;
-    // }
-
-    // if (ext.northEast.lat > viewExt.northEast.lat) {
-    //     viewExt.northEast.lat = ext.northEast.lat;
-    // }
 
     var ext = this._extentLonLat;
 
@@ -823,6 +922,7 @@ Segment.prototype.createPlainVertices = function (gridSize) {
 
     const gsgs = gs * gs;
 
+
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float32Array(gsgs * 3);
 
@@ -865,6 +965,10 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this.normalMapTexture = this.planet.transparentTexture;
     this.terrainVertices = verts;
     this.tempVertices = verts;
+
+    //store raw normals
+    this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
+    this.normalMapNormalsRaw.set(nmNorms);
 
     this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;

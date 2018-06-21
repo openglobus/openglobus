@@ -80,7 +80,7 @@ const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
-    
+
     this.ready = true;
 
     var p = this.planet;
@@ -499,117 +499,10 @@ Node.prototype.whileNormalMapCreating = function () {
 
 Node.prototype.whileTerrainLoading = function () {
 
-    let seg = this.segment;
-
+    const seg = this.segment;
     const terrain = this.planet.terrain;
 
-    //Looking for terrain nodes under
-    var n = this.nodes;
-
-    //Maybe the better way is to replace this code to the Segment module?
-    if (seg.tileZoom >= terrain.minZoom &&
-        seg.tileZoom < terrain.maxZoom &&
-        n.ready && n[0].segment.terrainReady && n[1].segment.terrainReady &&
-        n[2].segment.terrainReady && n[3].segment.terrainReady
-    ) {
-        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
-            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
-
-        seg.initializePlainSegment();
-
-        let fgs = terrain.fileGridSize;
-        let dg = Math.max(fgs / seg.gridSize, 1),
-            gs = Math.max(fgs, seg.gridSize) + 1;
-        let ind = 0,
-            nmInd = 0;
-
-        let gs3 = gs * gs * 3,
-            sgs3 = (seg.gridSize + 1) * (seg.gridSize + 1) * 3;
-
-        let hgsOne = 0.5 * (gs - 1) + 1;
-
-        seg.terrainVertices && (seg.terrainVertices = null);
-        seg.normalMapNormals && (seg.normalMapNormals = null);
-        seg.normalMapVertices && (seg.normalMapVertices = null);
-
-        seg.terrainVertices = new Float32Array(sgs3);
-        seg.normalMapVertices = new Float32Array(gs3);
-        seg.normalMapNormals = new Float32Array(gs3);
-
-        let verts = seg.terrainVertices,
-            nmVerts = seg.normalMapVertices,
-            nmNorms = seg.normalMapNormals;
-
-        for (let i = 0; i < gs; i++) {
-
-            let ni = Math.floor(i / hgsOne),
-                ii = i % hgsOne + ni;
-
-            for (let j = 0; j < gs; j++) {
-
-                let nj = Math.floor(j / hgsOne);
-                let n = this.nodes[2 * ni + nj];
-
-                let nii = ii * 2,
-                    njj = (j % hgsOne + nj) * 2;
-
-                let n_index = 3 * (nii * gs + njj);
-
-                let n_nmVerts = n.segment.normalMapVertices,
-                    n_nmNorms = n.segment.normalMapNormals;
-
-                let x = n_nmVerts[n_index],
-                    y = n_nmVerts[n_index + 1],
-                    z = n_nmVerts[n_index + 2];
-
-                nmVerts[nmInd] = x;
-                nmNorms[nmInd++] = n_nmNorms[n_index];
-
-                nmVerts[nmInd] = y;
-                nmNorms[nmInd++] = n_nmNorms[n_index + 1];
-
-                nmVerts[nmInd] = z;
-                nmNorms[nmInd++] = n_nmNorms[n_index + 2];
-
-                if (i % dg === 0 && j % dg === 0) {
-                    verts[ind++] = x;
-                    verts[ind++] = y;
-                    verts[ind++] = z;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-                }
-            }
-        }
-
-        if (seg.planet.lightEnabled) {
-            //seg.createNormalMapTexture();
-            this.planet._normalMapCreator.unshift(seg);
-        }
-
-        seg.createCoordsBuffers(seg.terrainVertices, seg.gridSize);
-        seg.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-
-        this.appliedTerrainNodeId = this.nodeId;
-        seg.terrainReady = true;
-        seg.terrainExists = true;
-        seg.terrainIsLoading = false;
-
-        seg.ready = true;
-
-        let e = seg._extent;
-        seg._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        seg._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
-
-        return false;
-    }
-
-
-    //Looking for ready terrain above
-
+    // //Looking for ready terrain above
     if (!seg.ready) {
         seg.createPlainSegment();
     }
@@ -699,7 +592,7 @@ Node.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
 
-            //seg.tempVertices is useful for earth point calculation(see segment object)
+            //seg.tempVertices is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
             this.appliedTerrainNodeId = pn.nodeId;
         }
@@ -715,6 +608,8 @@ Node.prototype.whileTerrainLoading = function () {
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
                     seg.normalMapNormals = tempNormalMapNormals;
+                    seg.normalMapNormalsRaw = new Float32Array(tempNormalMapNormals.length);
+                    seg.normalMapNormalsRaw.set(tempNormalMapNormals);
                 }
             } else {
                 pn = this;
@@ -796,8 +691,10 @@ Node.prototype.destroyBranches = function () {
 
 Node.prototype.traverseTree = function (callback) {
     callback(this);
-    for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].traverseTree(callback);
+    if (this.ready) {
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].traverseTree(callback);
+        }
     }
 };
 

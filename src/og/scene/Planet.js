@@ -42,7 +42,7 @@ const RESOURCES_URL = "";
  * @type {number}
  * @default
  */
-const MAX_NODES = 250;
+const MAX_NODES = 500;
 
 const EVENT_NAMES = [
     /**
@@ -347,8 +347,8 @@ class Planet extends RenderNode {
          */
         this._lodRatio = 1.0;
         this._maxLodRatio = this._lodRatio;
-        this._minLodRatio = this._maxLodRatio - 0.43;
-            
+        this._minLodRatio = this._maxLodRatio - 0.41;
+
 
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
@@ -372,9 +372,9 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(3);
+        this._terrainWorker = new TerrainWorker(4);
 
-        this._tileLoader = new Loader(24);
+        this._tileLoader = new Loader(14);
 
         /**
          * @protected
@@ -396,7 +396,7 @@ class Planet extends RenderNode {
         control.addTo(this.renderer);
     }
 
-    setRatioLod(v){
+    setRatioLod(v) {
         this._maxLodRatio = v;
         this._minLodRatio = v - 0.43;
     }
@@ -793,19 +793,18 @@ class Planet extends RenderNode {
      */
     _sortLayers() {
 
-
         this.visibleVectorLayers.sort(function (a, b) {
             return (a._zIndex - b._zIndex) || (a._height - b._height);
         });
 
+        this._visibleTileLayerSlices = [];
+        this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
             this.visibleTileLayers.sort(function (a, b) {
                 return a._height - b._height || a._zIndex - b._zIndex;
             });
 
-            this._visibleTileLayerSlices = [];
-            this._visibleTileLayerSlices.length = 0;
             var k = -1;
             var currHeight = this.visibleTileLayers[0]._height;
             for (var i = 0; i < this.visibleTileLayers.length; i++) {
@@ -992,11 +991,13 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        let sli = sl[0];
-        for (var i = sli.length - 1; i >= 0; --i) {
-            let li = sli[i];
-            if (li._fading && li._refreshFadingOpacity()) {
-                sli.splice(i, 1);
+        if (sl.length) {
+            let sli = sl[0];
+            for (var i = sli.length - 1; i >= 0; --i) {
+                let li = sli[i];
+                if (li._fading && li._refreshFadingOpacity()) {
+                    sli.splice(i, 1);
+                }
             }
         }
 
@@ -1198,11 +1199,13 @@ class Planet extends RenderNode {
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
-        let sli = sl[0];
-        for (var i = sli.length - 1; i >= 0; --i) {
-            let li = sli[i];
-            if (li._fading && li._refreshFadingOpacity()) {
-                sli.splice(i, 1);
+        if (sl.length) {
+            let sli = sl[0];
+            for (var i = sli.length - 1; i >= 0; --i) {
+                let li = sli[i];
+                if (li._fading && li._refreshFadingOpacity()) {
+                    sli.splice(i, 1);
+                }
             }
         }
 
