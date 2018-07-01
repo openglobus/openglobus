@@ -123,7 +123,7 @@ NormalMapCreator.prototype._init = function () {
     this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
     //create vertices hasharray for different grid size segments
-    for (var p = 1; p <= 6; p++) {
+    for (var p = 1; p <= 7; p++) {
         var gs = Math.pow(2, p);
         var gs2 = (gs / 2);
         var vertices = [];
@@ -152,11 +152,11 @@ NormalMapCreator.prototype._drawNormalMap = function (segment) {
     var normals = segment.normalMapNormals;
     if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING
         && normals && normals.length) {
-
-        segment._normalMapEdgeEqualize(quadTree.N, 0);
-        segment._normalMapEdgeEqualize(quadTree.S, 1);
-        segment._normalMapEdgeEqualize(quadTree.W, 0, true);
-        segment._normalMapEdgeEqualize(quadTree.E, 1, true);
+        
+        segment._normalMapEdgeEqualize(quadTree.N);
+        segment._normalMapEdgeEqualize(quadTree.S);
+        segment._normalMapEdgeEqualize(quadTree.W);
+        segment._normalMapEdgeEqualize(quadTree.E);
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;

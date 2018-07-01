@@ -1003,6 +1003,11 @@ class Planet extends RenderNode {
 
         i = rn.length;
         while (i--) {
+
+            if (rn[i].segment.readyToEngage) {
+                rn[i].segment.engage();
+            }
+
             rn[i].segment._screenRendering(sh, sl[0], 0);
         }
 
@@ -1211,6 +1216,11 @@ class Planet extends RenderNode {
 
         i = rn.length;
         while (i--) {
+            
+            if (rn[i].segment.readyToEngage) {
+                rn[i].segment.engage();
+            }
+
             rn[i].segment._multiRendering(sh, sl[0]);
         }
 

@@ -180,6 +180,8 @@ const Segment = function (node, planet, tileZoom, extent) {
     this._renderingSlices = [];
 
     this._indexBuffer = null;
+
+    this.readyToEngage = false;
 };
 
 /**
@@ -217,9 +219,13 @@ Segment.prototype.isEntityInside = function (e) {
  * @returns {number} -
  */
 Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
+
+    var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
+        ray = new Ray(xyz, xyz.negateTo());
+
     var ne = this._extent.northEast,
         sw = this._extent.southWest,
-        size = this.gridSize;
+        size = Math.sqrt(verts.length / 3) - 1;
 
     var xmax = ne.lon,
         ymax = ne.lat,
@@ -239,9 +245,6 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
 
     var indX = Math.floor(xn / qx),
         indY = Math.floor(size - yn / qy);
-
-    var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
-        ray = new Ray(xyz, xyz.negateTo());
 
     if (verts && verts.length) {
         var ind_v0 = ((size + 1) * indY + indX) * 3;
@@ -274,6 +277,7 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
     return xyz.distance(res);
 };
 
+
 /**
  * Project wgs86 to segment native projection.
  * @public
@@ -286,7 +290,7 @@ Segment.prototype.projectNative = function (lonlat) {
 
 Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrain.minZoom) {
-        if (!this.terrainIsLoading && 
+        if (!this.terrainIsLoading &&
             this._createTerrainFromChildNodes() &&
             !this.terrainReady) {
             this.planet.terrain.loadTerrain(this);
@@ -427,8 +431,74 @@ Segment.prototype.elevationsExists = function (elevations) {
     }
 };
 
+Segment.prototype.engage = function () {
+    this.readyToEngage = false;
+
+    // let n = this.node.neighbors;
+    // let v = this.terrainVertices;
+    // let tgs = Math.sqrt(v.length / 3);
+
+    // if (n[quadTree.N].length && n[quadTree.N][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[quadTree.N][0].segment.tileZoom) {
+    //         let _v = n[quadTree.N][0].segment.terrainVertices;
+    //         let _tgs = Math.sqrt(_v.length / 3);
+
+    //         for (let i = 0; i < tgs; i++) {
+    //             v[i * 3] = _v[(_tgs * (_tgs - 1) + i) * 3];
+    //             v[i * 3 + 1] = _v[(_tgs * (_tgs - 1) + i) * 3 + 1];
+    //             v[i * 3 + 2] = _v[(_tgs * (_tgs - 1) + i) * 3 + 2];
+    //         }
+    //     }
+    // }
+
+    // if (n[quadTree.E].length && n[quadTree.E][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[quadTree.E][0].segment.tileZoom) {
+    //         let _v = n[quadTree.E][0].segment.terrainVertices;
+    //         let _tgs = Math.sqrt(_v.length / 3);
+
+    //         for (let i = 0; i < tgs; i++) {
+    //             v[(i * tgs + tgs - 1) * 3] = _v[_tgs * i * 3];
+    //             v[(i * tgs + tgs - 1) * 3 + 1] = _v[_tgs * i * 3 + 1];
+    //             v[(i * tgs + tgs - 1) * 3 + 2] = _v[_tgs * i * 3 + 2];
+    //         }
+    //     }
+    // }
+
+    // if (n[quadTree.S].length && n[quadTree.S][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[quadTree.S][0].segment.tileZoom) {
+    //         let _v = n[quadTree.S][0].segment.terrainVertices;
+    //         let _tgs = Math.sqrt(_v.length / 3);
+
+    //         for (let i = 0; i < tgs; i++) {
+    //             v[(_tgs * (_tgs - 1) + i) * 3] = _v[i * 3];
+    //             v[(_tgs * (_tgs - 1) + i) * 3 + 1] = _v[i * 3 + 1];
+    //             v[(_tgs * (_tgs - 1) + i) * 3 + 2] = _v[i * 3 + 2];
+    //         }
+    //     }
+    // }
+
+    // if (n[quadTree.W].length && n[quadTree.W][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[quadTree.W][0].segment.tileZoom) {
+    //         let _v = n[quadTree.W][0].segment.terrainVertices;
+    //         let _tgs = Math.sqrt(_v.length / 3);
+
+    //         for (let i = 0; i < tgs; i++) {
+    //             v[_tgs * i * 3] = _v[(i * tgs + tgs - 1) * 3];
+    //             v[_tgs * i * 3 + 1] = _v[(i * tgs + tgs - 1) * 3 + 1];
+    //             v[_tgs * i * 3 + 2] = _v[(i * tgs + tgs - 1) * 3 + 2];
+    //         }
+    //     }
+    // }
+
+    let tgs = Math.sqrt(this.terrainVertices.length / 3) - 1;
+    this.createCoordsBuffers(this.terrainVertices, tgs);
+};
+
 Segment.prototype._terrainWorkerCallback = function (data) {
     if (this.ready) {
+
+        this.readyToEngage = true;
+
         this.normalMapNormals = null;
         this.normalMapNormalsRaw = null;
         this.normalMapVertices = null;
@@ -455,7 +525,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         }
 
         var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
-        this.createCoordsBuffers(this.terrainVertices, tgs);
+        // this.createCoordsBuffers(this.terrainVertices, tgs);
         this.bsphere.setFromBounds(data.bounds);
         this.gridSize = tgs;
         this.terrainExists = true;
@@ -498,48 +568,64 @@ Segment.prototype.elevationsNotExists = function () {
     }
 };
 
-Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
+const _S = new Array(4);
+_S[quadTree.N] = 0;
+_S[quadTree.E] = 1;
+_S[quadTree.S] = 1;
+_S[quadTree.W] = 0;
+
+const _V = new Array(4);
+_V[quadTree.N] = false;
+_V[quadTree.E] = true;
+_V[quadTree.S] = false;
+_V[quadTree.W] = true;
+
+Segment.prototype._normalMapEdgeEqualize = function (side) {
 
     let nn = this.node.neighbors;
-    let n = nn[side];
+    let n = nn[side][0];
     let maxZ = this.planet.terrain.maxZoom;
 
     if (this.tileZoom === maxZ) {
-        if (!(nn[0] || nn[1] || nn[2] || nn[3])) {
+        if (!(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
             n = this.node.getEqualNeighbor(side);
         }
     }
 
-    let b = n && n.segment;
+    let b = n && n.segment,
+        s = this;
 
     if (n && b && b.terrainReady && b.terrainExists &&
         b.tileZoom <= maxZ &&
-        this._appliedNeighborsZoom[side] !== b.tileZoom) {
+        s._appliedNeighborsZoom[side] !== b.tileZoom) {
 
-        this._appliedNeighborsZoom[side] = b.tileZoom;
+        s._appliedNeighborsZoom[side] = b.tileZoom;
 
-        let seg_a = this.normalMapNormals,
+        let seg_a = s.normalMapNormals,
             seg_b = b.normalMapNormals;
 
         if (!(seg_a && seg_b)) return;
 
-        let seg_a_raw = this.normalMapNormalsRaw,
+        let seg_a_raw = s.normalMapNormalsRaw,
             seg_b_raw = b.normalMapNormalsRaw;
+
+        let seg_a_verts = s.terrainVertices,
+            seg_b_verts = s.terrainVertices;
 
         let s_gs = Math.sqrt(seg_a.length / 3),
             b_gs = Math.sqrt(seg_b.length / 3),
             s_gs1 = s_gs - 1,
             b_gs1 = b_gs - 1;
 
-        i_a *= s_gs1;
+        const i_a = s_gs1 * _S[side];
 
         let nx, ny, nz, q;
 
-        if (this.tileZoom === b.tileZoom) {
+        if (s.tileZoom === b.tileZoom) {
 
             let i_b = s_gs1 - i_a;
 
-            if (vert) {
+            if (_V[side]) {
                 for (let k = 0; k < s_gs; k++) {
                     let vInd_a = (k * s_gs + i_a) * 3,
                         vInd_b = (k * s_gs + i_b) * 3;
@@ -571,11 +657,10 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
                 }
             }
 
-            if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== this.tileZoom) {
-                this.planet._normalMapCreator.queue(b);
+            if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
+                b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
+                s.planet._normalMapCreator.queue(b);
             }
-
-            //b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = this.tileZoom;
 
         } else {
             // let s_edge = 0, b_edge = 1;
@@ -587,7 +672,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
             // if (s.tileZoom < b.tileZoom) {
             //     if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
-            //         this.planet._normalMapCreator.queue(b);
+            //         s.planet._normalMapCreator.queue(b);
             //     }
             //     b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
             //     side = quadTree.OPSIDE[side];
@@ -601,7 +686,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
 
             // let dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
 
-            // if (vert) {
+            // if (_V[side]) {
             //     var offsetY = s.tileY * dZ2 - b.tileY;
 
             //     for (let k = 0; k < s_gs; k++) {
@@ -613,7 +698,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
             //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
             //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
 
-            //         q = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            //         q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
 
             //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
             //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
@@ -641,6 +726,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side, i_a, vert) {
         }
     }
 };
+
 
 Segment.prototype.applyTerrain = function (elevations) {
     if (this.ready) {
@@ -1063,6 +1149,7 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
                 p._pickingColorArr[n3] = li._pickingColor.x / 255.0;
                 p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
                 p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
+                p._pickingColorArr[n3 + 3] = li._pickingEnabled;
 
                 p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
                 p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
@@ -1116,7 +1203,7 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
             gl.uniform4fv(shu.tileOffsetArr, p._tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, p._visibleExtentOffsetArr);
             gl.uniform4fv(shu.transparentColorArr, p._transparentColorArr);
-            gl.uniform3fv(shu.pickingColorArr, p._pickingColorArr);
+            gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
@@ -1298,6 +1385,7 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
             p._pickingColorArr[n3] = li._pickingColor.x / 255.0;
             p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
             p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
+            p._pickingColorArr[n3 + 3] = li._pickingEnabled;
 
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
@@ -1316,7 +1404,7 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
             gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
-            gl.uniform3fv(shu.pickingColorArr, p._pickingColorArr);
+            gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);

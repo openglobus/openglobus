@@ -197,6 +197,8 @@ class Layer {
          */
         this._pickingColor = new Vec3();
 
+        this._pickingEnabled = options.pickingEnabled !== undefined ? (options.pickingEnabled ? 1.0 : 0.0) : 1.0;
+
         /**
          * Events handler.
          * @public
@@ -252,6 +254,14 @@ class Layer {
 
     get opacity() {
         return this._opacity;
+    }
+
+    set pickingEnabled(picking){
+        this._pickingEnabled = picking ? 1.0 : 0.0;
+    }
+
+    get pickingEnabled(){
+        return this._pickingEnabled ? true : false;
     }
 
     /**
@@ -540,7 +550,7 @@ class Layer {
                 this._fadingOpacity = this._opacity;
             }
         } else {
-            
+
             this._fadingOpacity -= FADING_FACTOR;
 
             if (this._fadingOpacity < 0.0) {
