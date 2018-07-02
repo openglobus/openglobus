@@ -244,10 +244,14 @@ class Layer {
     }
 
     set opacity(opacity) {
-        if (opacity > this._opacity) {
-            this._fadingFactor = +FADING_FACTOR;
-        } else if (opacity < this._opacity) {
-            this._fadingFactor = -FADING_FACTOR;
+        if (this._fading) {
+            if (opacity > this._opacity) {
+                this._fadingFactor = (opacity - this._opacity) / 2.8;
+            } else if (opacity < this._opacity) {
+                this._fadingFactor = (opacity - this._opacity) / 2.8;
+            }
+        } else {
+            this._fadingOpacity = opacity;
         }
         this._opacity = opacity;
     }
@@ -256,11 +260,11 @@ class Layer {
         return this._opacity;
     }
 
-    set pickingEnabled(picking){
+    set pickingEnabled(picking) {
         this._pickingEnabled = picking ? 1.0 : 0.0;
     }
 
-    get pickingEnabled(){
+    get pickingEnabled() {
         return this._pickingEnabled ? true : false;
     }
 

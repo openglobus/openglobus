@@ -1146,10 +1146,10 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
                 p._transparentColorArr[n4 + 2] = li.transparentColor[2];
                 p._transparentColorArr[n4 + 3] = li._fadingOpacity;
 
-                p._pickingColorArr[n3] = li._pickingColor.x / 255.0;
-                p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
-                p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
-                p._pickingColorArr[n3 + 3] = li._pickingEnabled;
+                p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
+                p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
+                p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
+                p._pickingColorArr[n4 + 3] = li._pickingEnabled;
 
                 p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
                 p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
@@ -1380,12 +1380,12 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
             notEmpty = true;
 
             var li = slice.layers[n];
-            var n3 = n * 3;
+            var n4 = n * 4;
 
-            p._pickingColorArr[n3] = li._pickingColor.x / 255.0;
-            p._pickingColorArr[n3 + 1] = li._pickingColor.y / 255.0;
-            p._pickingColorArr[n3 + 2] = li._pickingColor.z / 255.0;
-            p._pickingColorArr[n3 + 3] = li._pickingEnabled;
+            p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
+            p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
+            p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
+            p._pickingColorArr[n4 + 3] = li._pickingEnabled;
 
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
