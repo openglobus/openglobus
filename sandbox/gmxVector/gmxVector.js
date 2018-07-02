@@ -27,7 +27,7 @@ const l3 = new GmxVector("House", {
 const ct = new GmxVector("LANDSAT-8", {
     'layerId': "47A9D4E5E5AE497A8A1A7EA49C7FC336",
     'visibility': false,
-    'beginDate': new Date(2017, 5, 30),
+    'beginDate': new Date(2017, 6, 14),
     'endDate': new Date(2017, 6, 15)
 });
 

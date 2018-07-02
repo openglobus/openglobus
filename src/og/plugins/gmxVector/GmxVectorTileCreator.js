@@ -249,7 +249,7 @@ GmxVectorTileCreator.prototype.frame = function () {
                 material.setTotalItems(tItems.length);
 
                 //
-                //TODO: sort optimization is needed
+                //TODO: sort optimization is needed PLEASE!!!! PLEASE!!!!
                 tItems.sort(function (a, b) {
                     return layer.getItemStyle(a.item).zIndex - layer.getItemStyle(b.item).zIndex || a.item.id - b.item.id;
                 });
@@ -396,19 +396,9 @@ GmxVectorTileCreator.prototype.frame = function () {
                 if (material.notComplete()) {
                     material.isLoading = true;
                     this.add(q);
-                } else if (layer._gmxProperties.Temporal) {
+                } else if (layer._gmxProperties.Temporal && zoomAvailable) {
                     //Suggested that material.pickingMask is applied already in the frame buffer
-                    let data = f.readAllPixels();
-                    for (let i = data.length - 1; i >= 0; i -= 4) {
-                        let c = layer.planet.renderer.getPickingObjectByColor(data[i - 3], data[i - 2], data[i - 1]);
-                        if (c) {
-                            let ti = material.fromTile.tileItemsCache[c.id];
-                            // let sceneTextureOffset;
-                            // if (zoomAvailable) {
-                            //     sceneTextureOffset = layer.applySceneTexture(ti, material);
-                            // }
-                        }
-                    }
+                    this._proceedImageryTiles(layer, material);
                 }
 
             } else {
@@ -423,6 +413,24 @@ GmxVectorTileCreator.prototype.frame = function () {
         gl.enable(gl.CULL_FACE);
 
         f.deactivate();
+    }
+};
+
+
+
+GmxVectorTileCreator.prototype._proceedImageryTiles = function (layer, material) {
+
+    const f = this._framebuffer;
+    const data = f.readAllPixels();
+
+    var toLoad = 0;
+    for (let i = data.length - 1; i >= 0; i -= 4) {
+        let c = layer.planet.renderer.getPickingObjectByColor(data[i - 3], data[i - 2], data[i - 1]);
+        if (c) {
+            toLoad++;
+            let sceneTextureOffset = layer.applySceneTexture(
+                material.fromTile.tileItemsCache[c.id], material);
+        }
     }
 };
 

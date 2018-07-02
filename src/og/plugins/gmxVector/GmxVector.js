@@ -645,34 +645,34 @@ class GmxVector extends Layer {
                 this._loadScene(tileItem, material);
             }
 
-            var segment = material.segment;
-            var pn = segment.node,
-                notEmpty = false;
+            // var segment = material.segment;
+            // var pn = segment.node,
+            //     notEmpty = false;
 
-            var mId = this._id;
-            var psegm = material;
-            while (pn.parentNode) {
-                if (psegm && psegm.sceneIsReady[item_id]) {
-                    notEmpty = true;
-                    break;
-                }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
-            }
+            // var mId = this._id;
+            // var psegm = material;
+            // while (pn.parentNode) {
+            //     if (psegm && psegm.sceneIsReady[item_id]) {
+            //         notEmpty = true;
+            //         break;
+            //     }
+            //     pn = pn.parentNode;
+            //     psegm = pn.segment.materials[mId];
+            // }
 
-            if (notEmpty) {
-                material.sceneTexture[item_id] = psegm.sceneTexture[item_id];
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [
-                    segment.tileX * dZ2 - pn.segment.tileX,
-                    segment.tileY * dZ2 - pn.segment.tileY,
-                    dZ2,
-                    dZ2
-                ];
-            } else {
-                material.sceneTexture[item_id] = segment.planet.transparentTexture;
-                return [0, 0, 1, 1];
-            }
+            // if (notEmpty) {
+            //     material.sceneTexture[item_id] = psegm.sceneTexture[item_id];
+            //     var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+            //     return [
+            //         segment.tileX * dZ2 - pn.segment.tileX,
+            //         segment.tileY * dZ2 - pn.segment.tileY,
+            //         dZ2,
+            //         dZ2
+            //     ];
+            // } else {
+            //     material.sceneTexture[item_id] = segment.planet.transparentTexture;
+            //     return [0, 0, 1, 1];
+            // }
         }
     }
 

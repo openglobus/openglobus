@@ -115,8 +115,6 @@ class Vector extends Layer {
          */
         this._nodeCapacity = options.nodeCapacity || 30;
 
-        this._pickingEnabled = options.pickingEnabled !== undefined ? options.pickingEnabled : true;
-
         /**
          * Manimal tree node depth index.
          * @private
@@ -130,7 +128,7 @@ class Vector extends Layer {
         this._entities = _entitiesConstructor(options.entities || []);
 
         this._polylineEntityCollection = new EntityCollection({
-            'pickingEnabled': this._pickingEnabled
+            'pickingEnabled': this.pickingEnabled
         });
         this._bindEventsDefault(this._polylineEntityCollection);
 
@@ -341,21 +339,21 @@ class Vector extends Layer {
     /**
      * Set layer picking events active.
      * @public
-     * @param {boolean} enable - Picking enable flag.
+     * @param {boolean} picking - Picking enable flag.
      */
-    setPickingEnabled(enable) {
-        this._pickingEnabled = enable;
+    set pickingEnabled(picking) {
+        this._pickingEnabled = picking ? 1.0 : 0.0;
 
-        this._polylineEntityCollection.setPickingEnabled(enable);
+        this._polylineEntityCollection.setPickingEnabled(picking);
 
         this._entityCollectionsTree.traverseTree(function (ec) {
-            ec.setPickingEnabled(enable);
+            ec.setPickingEnabled(picking);
         });
         this._entityCollectionsTreeNorth.traverseTree(function (ec) {
-            ec.setPickingEnabled(enable);
+            ec.setPickingEnabled(picking);
         });
         this._entityCollectionsTreeSouth.traverseTree(function (ec) {
-            ec.setPickingEnabled(enable);
+            ec.setPickingEnabled(picking);
         });
     }
 

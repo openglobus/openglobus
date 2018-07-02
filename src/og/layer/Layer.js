@@ -197,6 +197,8 @@ class Layer {
          */
         this._pickingColor = new Vec3();
 
+        this._pickingEnabled = options.pickingEnabled !== undefined ? (options.pickingEnabled ? 1.0 : 0.0) : 1.0;
+
         /**
          * Events handler.
          * @public
@@ -242,16 +244,28 @@ class Layer {
     }
 
     set opacity(opacity) {
-        if (opacity > this._opacity) {
-            this._fadingFactor = +FADING_FACTOR;
-        } else if (opacity < this._opacity) {
-            this._fadingFactor = -FADING_FACTOR;
+        if (this._fading) {
+            if (opacity > this._opacity) {
+                this._fadingFactor = (opacity - this._opacity) / 2.8;
+            } else if (opacity < this._opacity) {
+                this._fadingFactor = (opacity - this._opacity) / 2.8;
+            }
+        } else {
+            this._fadingOpacity = opacity;
         }
         this._opacity = opacity;
     }
 
     get opacity() {
         return this._opacity;
+    }
+
+    set pickingEnabled(picking) {
+        this._pickingEnabled = picking ? 1.0 : 0.0;
+    }
+
+    get pickingEnabled() {
+        return this._pickingEnabled ? true : false;
     }
 
     /**
@@ -540,7 +554,7 @@ class Layer {
                 this._fadingOpacity = this._opacity;
             }
         } else {
-            
+
             this._fadingOpacity -= FADING_FACTOR;
 
             if (this._fadingOpacity < 0.0) {

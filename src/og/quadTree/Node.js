@@ -29,11 +29,12 @@ const MAX_LAT = mercator.MAX_LAT;
  * @param {number} j0 - First column index
  * @param {number} size - Square matrix result size.
  * @return{Array.<number>} Triangle coordinates array from the source array.
+ * @TODO: optimization
  */
 function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
     const i0size = i0 + size + 1;
     const j0size = j0 + size + 1;
-    var res = new Float32Array(i0size * j0size * 3);
+    var res = new Float32Array((size + 1) * (size + 1) * 3);
     var vInd = 0;
     for (var i = i0; i < i0size; i++) {
         for (var j = j0; j < j0size; j++) {
@@ -68,7 +69,7 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.sideSize = [1, 1, 1, 1];
     this.ready = false;
     this.hasNeighbor = [false, false, false, false];
-    this.neighbors = [null, null, null, null];
+    this.neighbors = [[], [], [], []];
     this.nodes = [null, null, null, null];
     this.segment = new segmentPrototype(this, planet, tileZoom, extent);
     this._cameraInside = false;
@@ -263,10 +264,10 @@ Node.prototype.isBrother = function (node) {
 Node.prototype.renderTree = function (maxZoom) {
     this.state = quadTree.WALKTHROUGH;
 
-    this.neighbors[0] = null;
-    this.neighbors[1] = null;
-    this.neighbors[2] = null;
-    this.neighbors[3] = null;
+    this.neighbors[0] = [];
+    this.neighbors[1] = [];
+    this.neighbors[2] = [];
+    this.neighbors[3] = [];
 
     var cam = this.planet.renderer.activeCamera,
         seg = this.segment,
@@ -390,8 +391,8 @@ Node.prototype.addToRender = function () {
         if (cs !== -1) {
             var opcs = quadTree.OPSIDE[cs];
 
-            node.neighbors[cs] = ni;
-            ni.neighbors[opcs] = node;
+            node.neighbors[cs].push(ni);
+            ni.neighbors[opcs].push(node);
 
             if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
                 var ap = node.segment;
@@ -415,6 +416,7 @@ Node.prototype.addToRender = function () {
             }
         }
     }
+
     nodes.push(node);
 };
 
@@ -497,6 +499,13 @@ Node.prototype.whileNormalMapCreating = function () {
     }
 };
 
+function precision(a) {
+    if (!isFinite(a)) return 0;
+    var e = 1, p = 0;
+    while (Math.round(a * e) / e !== a) { e *= 10; p++; }
+    return p;
+}
+
 Node.prototype.whileTerrainLoading = function () {
 
     const seg = this.segment;
@@ -568,6 +577,7 @@ Node.prototype.whileTerrainLoading = function () {
                 let coords = new Vec3();
 
                 tempVertices = new Float32Array(3 * _vertOrder.length);
+                tempNormalMapNormals = new Float32Array(3 * _vertOrder.length);
 
                 for (var i = 0; i < _vertOrder.length; i++) {
                     let vi_y = _vertOrder[i].y + t_i0,
@@ -605,11 +615,9 @@ Node.prototype.whileTerrainLoading = function () {
                 seg.terrainIsLoading = false;
                 this.appliedTerrainNodeId = this.nodeId;
                 if (pn.segment.terrainExists) {
+                    seg.readyToEngage = true;
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
-                    seg.normalMapNormals = tempNormalMapNormals;
-                    seg.normalMapNormalsRaw = new Float32Array(tempNormalMapNormals.length);
-                    seg.normalMapNormalsRaw.set(tempNormalMapNormals);
                 }
             } else {
                 pn = this;
@@ -632,10 +640,10 @@ Node.prototype.destroy = function () {
     this.state = quadTree.NOTRENDERING;
     this.segment.destroySegment();
     var n = this.neighbors;
-    n[N] && n[N].neighbors && (n[N].neighbors[S] = null);
-    n[E] && n[E].neighbors && (n[E].neighbors[W] = null);
-    n[S] && n[S].neighbors && (n[S].neighbors[N] = null);
-    n[W] && n[W].neighbors && (n[W].neighbors[E] = null);
+    n[N] && n[N].neighbors && (n[N].neighbors[S] = []);
+    n[E] && n[E].neighbors && (n[E].neighbors[W] = []);
+    n[S] && n[S].neighbors && (n[S].neighbors[N] = []);
+    n[W] && n[W].neighbors && (n[W].neighbors[E] = []);
     this.neighbors = null;
     this.hasNeighbors = null;
     this.parentNode = null;
@@ -699,3 +707,5 @@ Node.prototype.traverseTree = function (callback) {
 };
 
 export { Node };
+
+

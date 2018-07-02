@@ -75,6 +75,8 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.url = options.url || "http://earth3.openglobus.org/{z}/{y}/{x}.ddm";
 
+        this._dataType = "arrayBuffer";
+
         /**
          * Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
          * @public
@@ -158,7 +160,7 @@ class GlobusTerrain extends EmptyTerrain {
                     this._loader.load({
                         'src': this._getHTTPRequestString(segment),
                         'segment': segment,
-                        'type': "arrayBuffer",
+                        'type': this._dataType,
                         'filter': () => segment.ready && segment.node.getState() !== NOTRENDERING
                     }, response => {
                         if (response.status === "ready") {
@@ -167,7 +169,7 @@ class GlobusTerrain extends EmptyTerrain {
                         } else if (response.status === "abort") {
                             segment.terrainIsLoading = false;
                         } else if (response.status === "error") {
-                            this._applyElevationsData(segment, []);
+                            this._applyElevationsData(segment, null);
                         }else{
                             segment.terrainIsLoading = false;
                         }

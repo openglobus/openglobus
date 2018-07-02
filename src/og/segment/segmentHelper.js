@@ -6,7 +6,7 @@
 
 import * as quadTree from '../quadTree/quadTree.js';
 
-export const TABLESIZE = 6;
+export const TABLESIZE = 7;
 
 const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
 const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
@@ -14,7 +14,7 @@ const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
 export const textureCoordsTable = initTextureCoordsTable(TABLESIZE);
 
 export function createSegmentIndexes(size, sidesSizes) {
-    if (size != 1) {
+    if (size !== 1) {
         var c = centerIndexesTable[size],
             w = skirtsIndexesTable[quadTree.W][size][sidesSizes[quadTree.W]],
             n = skirtsIndexesTable[quadTree.N][size][sidesSizes[quadTree.N]],
