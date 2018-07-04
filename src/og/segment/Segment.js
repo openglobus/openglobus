@@ -6,7 +6,11 @@
 
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
-import * as quadTree from '../quadTree/quadTree.js';
+import {
+    NW, NE, SW, SE,
+    N, E, S, W,
+    OPSIDE, NOTRENDERING
+} from '../quadTree/quadTree.js';
 import { Box } from '../bv/Box.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
@@ -97,13 +101,21 @@ const Segment = function (node, planet, tileZoom, extent) {
      * Horizontal tile index.
      * @type {number}
      */
-    this.tileX = null;
+    this.tileX = 0;
+
+    this.tileXE = 0;
+
+    this.tileXW = 0;
+
+    this.tileYN = 0;
+
+    this.tileYS = 0;    
 
     /**
      * Vertical tile index.
      * @type {number}
      */
-    this.tileY = null;
+    this.tileY = 0;
 
     this.tileIndex = "";
 
@@ -290,7 +302,10 @@ Segment.prototype.projectNative = function (lonlat) {
 
 Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrain.minZoom) {
-        if (!this.terrainIsLoading &&
+        if (this.tileZoom > this.planet.terrain.maxZoom) {
+            //check with terrain option
+            this.elevationsNotExists();
+        } else if (!this.terrainIsLoading &&
             this._createTerrainFromChildNodes() &&
             !this.terrainReady) {
             this.planet.terrain.loadTerrain(this);
@@ -434,13 +449,15 @@ Segment.prototype.elevationsExists = function (elevations) {
 Segment.prototype.engage = function () {
     this.readyToEngage = false;
 
-    // let n = this.node.neighbors;
-    // let v = this.terrainVertices;
-    // let tgs = Math.sqrt(v.length / 3);
+    let v = this.terrainVertices;
+    let tgs = Math.sqrt(v.length / 3);
 
-    // if (n[quadTree.N].length && n[quadTree.N][0].segment.terrainReady) {
-    //     if (this.tileZoom === n[quadTree.N][0].segment.tileZoom) {
-    //         let _v = n[quadTree.N][0].segment.terrainVertices;
+    // let n = this.node.neighbors;
+
+
+    // if (n[N].length && n[N][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[N][0].segment.tileZoom) {
+    //         let _v = n[N][0].segment.terrainVertices;
     //         let _tgs = Math.sqrt(_v.length / 3);
 
     //         for (let i = 0; i < tgs; i++) {
@@ -451,9 +468,9 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    // if (n[quadTree.E].length && n[quadTree.E][0].segment.terrainReady) {
-    //     if (this.tileZoom === n[quadTree.E][0].segment.tileZoom) {
-    //         let _v = n[quadTree.E][0].segment.terrainVertices;
+    // if (n[E].length && n[E][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[E][0].segment.tileZoom) {
+    //         let _v = n[E][0].segment.terrainVertices;
     //         let _tgs = Math.sqrt(_v.length / 3);
 
     //         for (let i = 0; i < tgs; i++) {
@@ -464,9 +481,9 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    // if (n[quadTree.S].length && n[quadTree.S][0].segment.terrainReady) {
-    //     if (this.tileZoom === n[quadTree.S][0].segment.tileZoom) {
-    //         let _v = n[quadTree.S][0].segment.terrainVertices;
+    // if (n[S].length && n[S][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[S][0].segment.tileZoom) {
+    //         let _v = n[S][0].segment.terrainVertices;
     //         let _tgs = Math.sqrt(_v.length / 3);
 
     //         for (let i = 0; i < tgs; i++) {
@@ -477,9 +494,9 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    // if (n[quadTree.W].length && n[quadTree.W][0].segment.terrainReady) {
-    //     if (this.tileZoom === n[quadTree.W][0].segment.tileZoom) {
-    //         let _v = n[quadTree.W][0].segment.terrainVertices;
+    // if (n[W].length && n[W][0].segment.terrainReady) {
+    //     if (this.tileZoom === n[W][0].segment.tileZoom) {
+    //         let _v = n[W][0].segment.terrainVertices;
     //         let _tgs = Math.sqrt(_v.length / 3);
 
     //         for (let i = 0; i < tgs; i++) {
@@ -490,8 +507,9 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    let tgs = Math.sqrt(this.terrainVertices.length / 3) - 1;
-    this.createCoordsBuffers(this.terrainVertices, tgs);
+
+    //let tgs = Math.sqrt(this.terrainVertices.length / 3) - 1;
+    this.createCoordsBuffers(this.terrainVertices, tgs - 1);
 };
 
 Segment.prototype._terrainWorkerCallback = function (data) {
@@ -525,7 +543,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         }
 
         var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
-        // this.createCoordsBuffers(this.terrainVertices, tgs);
         this.bsphere.setFromBounds(data.bounds);
         this.gridSize = tgs;
         this.terrainExists = true;
@@ -549,7 +566,7 @@ Segment.prototype.elevationsNotExists = function () {
                 this.planet._normalMapCreator.queue(this);
             }
 
-            this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+            this.readyToEngage = true;
         }
 
         var xmin = math.MAX, xmax = math.MIN,
@@ -569,16 +586,16 @@ Segment.prototype.elevationsNotExists = function () {
 };
 
 const _S = new Array(4);
-_S[quadTree.N] = 0;
-_S[quadTree.E] = 1;
-_S[quadTree.S] = 1;
-_S[quadTree.W] = 0;
+_S[N] = 0;
+_S[E] = 1;
+_S[S] = 1;
+_S[W] = 0;
 
 const _V = new Array(4);
-_V[quadTree.N] = false;
-_V[quadTree.E] = true;
-_V[quadTree.S] = false;
-_V[quadTree.W] = true;
+_V[N] = false;
+_V[E] = true;
+_V[S] = false;
+_V[W] = true;
 
 Segment.prototype._normalMapEdgeEqualize = function (side) {
 
@@ -657,8 +674,8 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
                 }
             }
 
-            if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
-                b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
+            if (!b._inTheQueue && b._appliedNeighborsZoom[OPSIDE[side]] !== s.tileZoom) {
+                b._appliedNeighborsZoom[OPSIDE[side]] = s.tileZoom;
                 s.planet._normalMapCreator.queue(b);
             }
 
@@ -963,6 +980,11 @@ Segment.prototype._assignTileIndexes = function () {
     var pole = mercator.POLE;
     this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
     this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+    var p2 = Math.pow(2, tileZoom);
+    this.tileXE = (this.tileX + 1) % p2;
+    this.tileXW = (p2 + this.tileX - 1) % p2;
+    this.tileYN = (p2 + this.tileY - 1) % p2;
+    this.tileYS = (this.tileY + 1) % p2;
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
     this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
 };
@@ -1217,10 +1239,10 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
         }
     }
 
-    this.node.hasNeighbor[0] = false;
-    this.node.hasNeighbor[1] = false;
-    this.node.hasNeighbor[2] = false;
-    this.node.hasNeighbor[3] = false;
+    // this.node.hasNeighbor[0] = false;
+    // this.node.hasNeighbor[1] = false;
+    // this.node.hasNeighbor[2] = false;
+    // this.node.hasNeighbor[3] = false;
 };
 
 Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
@@ -1350,10 +1372,10 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
         }
     }
 
-    this.node.hasNeighbor[0] = false;
-    this.node.hasNeighbor[1] = false;
-    this.node.hasNeighbor[2] = false;
-    this.node.hasNeighbor[3] = false;
+    // this.node.hasNeighbor[0] = false;
+    // this.node.hasNeighbor[1] = false;
+    // this.node.hasNeighbor[2] = false;
+    // this.node.hasNeighbor[3] = false;
 };
 
 Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
@@ -1508,11 +1530,28 @@ Segment.prototype.getExtent = function () {
 
 Segment.prototype.getNodeState = function () {
     var vn = this.planet._visibleNodes[this.node.nodeId];
-    return vn && vn.state || quadTree.NOTRENDERING;
+    return vn && vn.state || NOTRENDERING;
 };
 
 Segment.prototype.getTileIndex = function () {
     return this.tileZoom + "_" + this.tileX + "_" + this.tileY;
+};
+
+Segment.prototype.getNeighborSide = function(b){
+    if (this.tileY === b.tileY) {
+        if (this.tileX === b.tileXE) {
+            return W;
+        } else if (this.tileX === b.tileXW) {
+            return E;
+        }
+    } else if (this.tileX === b.tileX) {
+        if (this.tileY === b.tileYS) {
+            return N;
+        } else if (this.tileY === b.tileYN) {
+            return S;
+        }
+    }
+    return -1;
 };
 
 export { Segment };

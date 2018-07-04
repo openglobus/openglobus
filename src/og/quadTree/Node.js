@@ -14,7 +14,11 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 import {
     NW, NE, SW, SE,
-    N, E, S, W
+    N, E, S, W,
+    COMSIDE, OPSIDE,
+    WALKTHROUGH, NOTRENDERING,
+    NEIGHBOUR, OPPART,
+    VISIBLE_DISTANCE, RENDERING
 } from './quadTree.js';
 
 const POLE = mercator.POLE;
@@ -196,8 +200,8 @@ Node.prototype.getState = function () {
     //return this.segment.getNodeState();
     var pn = this.parentNode;
     while (pn) {
-        if (pn.state !== quadTree.WALKTHROUGH) {
-            return quadTree.NOTRENDERING;
+        if (pn.state !== WALKTHROUGH) {
+            return NOTRENDERING;
         }
         pn = pn.parentNode;
     }
@@ -212,20 +216,20 @@ Node.prototype.getState = function () {
  */
 Node.prototype.getEqualNeighbor = function (side) {
     var pn = this;
-    var part = quadTree.NEIGHBOUR[side][pn.partId];
+    var part = NEIGHBOUR[side][pn.partId];
     if (part !== -1) {
         return pn.parentNode.nodes[part];
     } else {
         var pathId = [];
         while (pn.parentNode) {
             pathId.push(pn.partId);
-            part = quadTree.NEIGHBOUR[side][pn.partId];
+            part = NEIGHBOUR[side][pn.partId];
             pn = pn.parentNode;
             if (part !== -1) {
                 var i = pathId.length;
-                side = quadTree.OPSIDE[side];
+                side = OPSIDE[side];
                 while (pn && i--) {
-                    part = quadTree.OPPART[side][pathId[i]];
+                    part = OPPART[side][pathId[i]];
                     pn = pn.nodes[part];
                 }
                 return pn;
@@ -239,7 +243,7 @@ Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
         if (altVis) {
             this.renderNode(onlyTerrain);
         } else {
-            this.state = quadTree.NOTRENDERING;
+            this.state = NOTRENDERING;
         }
     } else {
         this.renderNode(onlyTerrain);
@@ -262,12 +266,18 @@ Node.prototype.isBrother = function (node) {
 };
 
 Node.prototype.renderTree = function (maxZoom) {
-    this.state = quadTree.WALKTHROUGH;
+    this.state = WALKTHROUGH;
 
     this.neighbors[0] = [];
     this.neighbors[1] = [];
     this.neighbors[2] = [];
     this.neighbors[3] = [];
+
+    this.hasNeighbor[0] = false;
+    this.hasNeighbor[1] = false;
+    this.hasNeighbor[2] = false;
+    this.hasNeighbor[3] = false;
+
 
     var cam = this.planet.renderer.activeCamera,
         seg = this.segment,
@@ -312,7 +322,7 @@ Node.prototype.renderTree = function (maxZoom) {
     var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        quadTree.VISIBLE_DISTANCE * Math.sqrt(h);
+        VISIBLE_DISTANCE * Math.sqrt(h);
 
     if (inFrustum || onlyTerrain || this._cameraInside) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
@@ -325,7 +335,7 @@ Node.prototype.renderTree = function (maxZoom) {
             this.prepareForRendering(h, altVis, onlyTerrain);
         }
     } else {
-        this.state = quadTree.NOTRENDERING;
+        this.state = NOTRENDERING;
     }
 
     if (inFrustum && (altVis || h > 10000.0)) {
@@ -351,7 +361,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
     }
 
     if (onlyTerrain) {
-        this.state = quadTree.NOTRENDERING;
+        this.state = NOTRENDERING;
         return;
     }
 
@@ -381,26 +391,31 @@ Node.prototype.renderNode = function (onlyTerrain) {
  */
 Node.prototype.addToRender = function () {
 
-    this.state = quadTree.RENDERING;
+    this.state = RENDERING;
 
     var node = this;
     var nodes = node.planet._renderedNodes;
-    for (var i = nodes.length - 1; i >= 0; i--) {
+
+    for (var i = nodes.length - 1; i >= 0; --i) {
         var ni = nodes[i];
+
         var cs = node.getCommonSide(ni);
+
         if (cs !== -1) {
-            var opcs = quadTree.OPSIDE[cs];
+
+            var opcs = OPSIDE[cs];
 
             node.neighbors[cs].push(ni);
             ni.neighbors[opcs].push(node);
 
             if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
-                var ap = node.segment;
-                var bp = ni.segment;
-                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
+
+                var ap = node.segment;
+                var bp = ni.segment;
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
                 if (ld > 1) {
                     node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
@@ -420,39 +435,99 @@ Node.prototype.addToRender = function () {
     nodes.push(node);
 };
 
-Node.prototype.getCommonSide = function (node) {
-    var a = this.segment._extent,
-        b = node.segment._extent;
-    var a_ne = a.northEast, a_sw = a.southWest,
-        b_ne = b.northEast, b_sw = b.southWest;
-    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+Node.prototype.getCommonSide = function (b) {
 
-    if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
-        if (a_ne_lon === b_sw_lon) {
-            return E;
-        } else if (a_sw_lon === b_ne_lon) {
-            return W;
-        } else if (this.segment.tileZoom > 0) {
-            if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-                return E;
-            } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return E;
-            } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-                return W;
+    var a = this,
+        as = a.segment,
+        bs = b.segment;
+
+    if (as.tileZoom === bs.tileZoom) {
+        return as.getNeighborSide(bs);
+    } else if (as.tileZoom > bs.tileZoom) {
+        let dz = as.tileZoom - bs.tileZoom,
+            i = dz,
+            p = this;
+
+        while (i--) {
+            p = p.parentNode;
+        }
+
+        let side = p.segment.getNeighborSide(bs);
+
+        if (side !== -1) {
+            i = dz;
+            p = this;
+            let _n = true;
+
+            while (i--) {
+                _n = _n && COMSIDE[p.partId][side];
+            }
+
+            if (_n) {
+                return side;
             }
         }
-    } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
-        if (a_ne_lat === b_sw_lat) {
-            return N;
-        } else if (a_sw_lat === b_ne_lat) {
-            return S;
-        } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-            return N;
-        } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-            return S;
+    } else {
+        let dz = bs.tileZoom - as.tileZoom,
+            i = dz,
+            p = b;
+
+        while (i--) {
+            p = p.parentNode;
+        }
+
+        let side = p.segment.getNeighborSide(as);
+
+        if (side !== -1) {
+            i = dz;
+            p = b;
+            let _n = true;
+
+            while (i--) {
+                _n = _n && COMSIDE[p.partId][side];
+            }
+
+            if (_n) {
+                return OPSIDE[side];
+            }
         }
     }
+
+    //
+    // IT WAS AWFUL, remove this
+    //
+    // var a = this.segment._extent,
+    //     b = node.segment._extent;
+    // var a_ne = a.northEast, a_sw = a.southWest,
+    //     b_ne = b.northEast, b_sw = b.southWest;
+    // var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+    //     b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+
+    // if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
+    //     if (a_ne_lon === b_sw_lon) {
+    //         return E;
+    //     } else if (a_sw_lon === b_ne_lon) {
+    //         return W;
+    //     } else if (this.segment.tileZoom > 0) {
+    //         if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+    //             return E;
+    //         } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+    //             return E;
+    //         } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
+    //             return W;
+    //         }
+    //     }
+    // } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
+    //     if (a_ne_lat === b_sw_lat) {
+    //         return N;
+    //     } else if (a_sw_lat === b_ne_lat) {
+    //         return S;
+    //     } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
+    //         return N;
+    //     } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
+    //         return S;
+    //     }
+    // }
 
     return -1;
 };
@@ -577,7 +652,7 @@ Node.prototype.whileTerrainLoading = function () {
                 let coords = new Vec3();
 
                 tempVertices = new Float32Array(3 * _vertOrder.length);
-                tempNormalMapNormals = new Float32Array(3 * _vertOrder.length);
+                //tempNormalMapNormals = new Float32Array(3 * _vertOrder.length);
 
                 for (var i = 0; i < _vertOrder.length; i++) {
                     let vi_y = _vertOrder[i].y + t_i0,
@@ -637,7 +712,7 @@ Node.prototype.whileTerrainLoading = function () {
 };
 
 Node.prototype.destroy = function () {
-    this.state = quadTree.NOTRENDERING;
+    this.state = NOTRENDERING;
     this.segment.destroySegment();
     var n = this.neighbors;
     n[N] && n[N].neighbors && (n[N].neighbors[S] = []);
@@ -655,9 +730,9 @@ Node.prototype.clearTree = function () {
 
     var state = this.getState();
 
-    if (state === quadTree.NOTRENDERING) {
+    if (state === NOTRENDERING) {
         this.destroyBranches();
-    } else if (state === quadTree.RENDERING) {
+    } else if (state === RENDERING) {
         this.destroyBranches();
     } else {
         for (var i = 0; i < this.nodes.length; i++) {

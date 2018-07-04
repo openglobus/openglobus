@@ -237,7 +237,7 @@ class GlobusTerrain extends EmptyTerrain {
      */
     _applyElevationsData(segment, data) {
         if (segment) {
-            var elevations = this.getElevations(data);
+            var elevations = this.getElevations(data, segment);
             var e = this.events.load;
             if (e.handlers.length) {
                 this.events.dispatch(e, {
