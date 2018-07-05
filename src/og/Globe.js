@@ -40,12 +40,12 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *          new og.control.TouchNavigation({ autoActivate: true }),
  *          new og.control.Sun({ autoActivate: true })
  *      ],
- *     'skybox': skybox,
+ *     'skybox': true,
  *     'terrain': terrain,
  *     'layers': [
  *          new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' })
  *      ],
- *     'autoActivated': true
+ *     'autoActivate': true
  * });
  *
  * @param {object} options - Options:
