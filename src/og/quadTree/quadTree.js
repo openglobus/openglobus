@@ -25,6 +25,9 @@ export const WALKTHROUGH = 2;
  */
 export const OPSIDE = [S, W, N, E];
 
+/**
+ * First index is {N,E,S,W} and second is {NW,NE,SW,SE}
+ */
 export const NEIGHBOUR =
     [[-1, -1, NW, NE],
     [NE, -1, SE, -1],
@@ -35,16 +38,27 @@ export const NEIGHBOUR =
  * Neighbor's oposite part. For example oposite side
  * on the east neighbor side is: [S][SE] = NE
  */
-export const OPPART = [[SW, SE, NW, NE],
-[NE, NW, SE, SW],
-[SW, SE, NW, NE],
-[NE, NW, SE, SW]];
+export const OPPART =
+    [[SW, SE, NW, NE],
+    [NE, NW, SE, SW],
+    [SW, SE, NW, NE],
+    [NE, NW, SE, SW]];
 
 /**
  * Neighbos's opside array order. For example NW node
  * by E side array index is 0, SE node by S side is 1.
  */
-export const NOPSORD = [[0, 1, 0, 1],
-[0, 0, 1, 1],
-[0, 1, 0, 1],
-[0, 0, 1, 1]];
+export const NOPSORD =
+    [[0, 1, 0, 1],
+    [0, 0, 1, 1],
+    [0, 1, 0, 1],
+    [0, 0, 1, 1]];
+
+/**
+ * First index is {NW,NE,SW,SE}, another one is {N,E,S,W}
+ */
+export const COMSIDE =
+    [[true, false, false, true],
+    [true, true, false, false],
+    [false, false, true, true],
+    [false, true, true, false]];

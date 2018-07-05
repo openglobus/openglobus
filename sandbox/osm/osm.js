@@ -19,19 +19,27 @@ class MapBoxTerrain extends GlobusTerrain {
         this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoibWdldmxpY2giLCJhIjoiY2o0ZmVudncwMGZvbjJ3bGE0OGpsejBlZyJ9.RSRJLS0J_U9_lw1Ti1CmsQ";
         this.fileGridSize = 64;
         this._dataType = "imageBitmap";
+
+        this.tileCache = [];
+        for(var i=this.minZoom;i<=this.maxZoom; i++){
+            this.tileCache[i] = {};
+        }
     }
 
-    getElevations(data) {
+    getElevations(data, segment) {
 
         if (data) {
+
+            const SIZE = data.width;
+            const SIZE_ONE = SIZE - 1;
+                
             let canvas = document.createElement("canvas");
-            canvas.width = 256;
-            canvas.height = 256;
-
+            canvas.width = SIZE;
+            canvas.height = SIZE;
             let ctx = canvas.getContext("2d");
-            ctx.drawImage(data, 0, 0);
 
-            let idata = ctx.getImageData(0, 0, data.width, data.height).data;
+            ctx.drawImage(data, 0, 0);
+            let idata = ctx.getImageData(0, 0, SIZE, SIZE).data;
 
             let fgsOne = this.fileGridSize + 1;
 
@@ -44,19 +52,20 @@ class MapBoxTerrain extends GlobusTerrain {
                 let j = k % fgsOne,
                     i = ~~(k / fgsOne);
 
-                let src_i = Math.round(math.lerp(i / fgsOne, 255, 0)),
-                    src_j = Math.round(math.lerp(j / fgsOne, 255, 0));
+                let src_i = Math.round(math.lerp(i / fgsOne, SIZE_ONE, 0)),
+                    src_j = Math.round(math.lerp(j / fgsOne, SIZE_ONE, 0));
 
-                let src = (src_i * 256 + src_j) * 4;
+                let src = (src_i * SIZE + src_j) * 4;
 
-                let r = idata[src],
-                    g = idata[src + 1],
-                    b = idata[src + 2];
-
-                let height = -10000 + ((r * 256 * 256 + g * 256 + b) * 0.1);
+                let height = -10000 + (idata[src] * 256 * 256 + idata[src + 1] * 256 + idata[src + 2]) * 0.1;
 
                 res[k] = height;
             }
+
+            if(!this.tileCache[segment.tileZoom][segment.tileX]){
+                this.tileCache[segment.tileZoom][segment.tileX] = {};
+            }
+            this.tileCache[segment.tileZoom][segment.tileX][segment.tileY] = res;
 
             return res;
 
@@ -64,7 +73,7 @@ class MapBoxTerrain extends GlobusTerrain {
             return new Float32Array();
         }
     }
-}
+};
 
 let osm = new XYZ("OSM", {
     'specular': [0.0003, 0.00012, 0.00001],

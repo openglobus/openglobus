@@ -50,7 +50,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.
- * @param {boolean} [options.skybox] - Render skybox. null - default.
+ * @param {og.scene.RenderNode} [options.skybox] - Render skybox. null - default.
  * @param {boolean} [options.atmosphere] - Render planet with atmosphere. False - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
  * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
