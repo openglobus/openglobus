@@ -29,6 +29,7 @@ const layer = {
 };
 
 import { Control } from './control/Control.js';
+import { DebugInfo } from './control/DebugInfo';
 import { EarthCoordinates } from './control/EarthCoordinates.js';
 import { GeoImageDragControl } from './control/GeoImageDragControl.js';
 import { KeyboardNavigation } from './control/KeyboardNavigation.js';
@@ -42,6 +43,7 @@ import { Sun } from './control/Sun.js';
 import { ZoomControl } from './control/ZoomControl.js';
 
 const control = {
+    'DebugInfo': DebugInfo,
     'EarthCoordinates': EarthCoordinates,
     'GeoImageDragControl': GeoImageDragControl,
     'KeyboardNavigation': KeyboardNavigation,
@@ -78,10 +80,12 @@ import { wgs84 } from './ellipsoid/wgs84.js';
 
 import { EmptyTerrain } from './terrain/EmptyTerrain.js';
 import { GlobusTerrain } from './terrain/GlobusTerrain.js';
+import { MapboxTerrain } from './terrain/MapboxTerrain.js';
 
 const terrain = {
     'EmptyTerrain': EmptyTerrain,
-    'GlobusTerrain': GlobusTerrain
+    'GlobusTerrain': GlobusTerrain,
+    'MapboxTerrain': MapboxTerrain
 };
 
 import { Camera } from './camera/Camera.js';
