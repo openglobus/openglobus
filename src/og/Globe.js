@@ -40,8 +40,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *          new og.control.TouchNavigation({ autoActivate: true }),
  *          new og.control.Sun({ autoActivate: true })
  *      ],
- *     'skybox': true,
- *     'terrain': terrain,
+ *     'terrain': new og.terrain.GlobusTerrain(),
  *     'layers': [
  *          new og.layer.XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' })
  *      ],
@@ -51,7 +50,6 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.
  * @param {og.scene.RenderNode} [options.skybox] - Render skybox. null - default.
- * @param {boolean} [options.atmosphere] - Render planet with atmosphere. False - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
  * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<og.control.Control>} [options.controls] - Renderer controls array.
