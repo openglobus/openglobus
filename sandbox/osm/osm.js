@@ -21,7 +21,7 @@ class MapBoxTerrain extends GlobusTerrain {
         this._dataType = "imageBitmap";
 
         this.tileCache = [];
-        for(var i=this.minZoom;i<=this.maxZoom; i++){
+        for (var i = this.minZoom; i <= this.maxZoom; i++) {
             this.tileCache[i] = {};
         }
     }
@@ -32,7 +32,7 @@ class MapBoxTerrain extends GlobusTerrain {
 
             const SIZE = data.width;
             const SIZE_ONE = SIZE - 1;
-                
+
             let canvas = document.createElement("canvas");
             canvas.width = SIZE;
             canvas.height = SIZE;
@@ -41,11 +41,24 @@ class MapBoxTerrain extends GlobusTerrain {
             ctx.drawImage(data, 0, 0);
             let idata = ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-            let fgsOne = this.fileGridSize + 1;
+            if (!this.tileCache[segment.tileZoom][segment.tileX]) {
+                this.tileCache[segment.tileZoom][segment.tileX] = {};
+            }
 
-            let size = fgsOne * fgsOne;
+            const nN = this.tileCache[segment.tileZoom][segment.tileX][segment.tileYN];
+            const nE = this.tileCache[segment.tileZoom][segment.tileXE] &&
+                this.tileCache[segment.tileZoom][segment.tileXE][segment.tileY];
+            const nS = this.tileCache[segment.tileZoom][segment.tileX][segment.tileYS];
+            const nW = this.tileCache[segment.tileZoom][segment.tileXW] &&
+                this.tileCache[segment.tileZoom][segment.tileXW][segment.tileY];
+
+            const fgs = this.fileGridSize;
+            const fgsOne = fgs + 1;
+
+            const size = fgsOne * fgsOne;
 
             let res = new Float32Array(size);
+            let raw = new Float32Array(size);
 
             for (let k = 0; k < size; k++) {
 
@@ -59,13 +72,28 @@ class MapBoxTerrain extends GlobusTerrain {
 
                 let height = -10000 + (idata[src] * 256 * 256 + idata[src + 1] * 256 + idata[src + 2]) * 0.1;
 
+                raw[k] = height;
+
+                if (nN && i === 0) {
+                    height = 0.5 * (height + nN[fgs * fgsOne + j]);
+                }
+                
+                if (nE && j === fgs) {
+                    height = 0.5 * (height + nE[i * fgsOne]);
+                }
+                
+                if (nS && i === fgs) {
+                    height = 0.5 * (height + nS[j]);
+                }
+                
+                if (nW && j === 0) {
+                    height = 0.5 * (height + nW[i * fgsOne + fgs]);
+                }
+
                 res[k] = height;
             }
 
-            if(!this.tileCache[segment.tileZoom][segment.tileX]){
-                this.tileCache[segment.tileZoom][segment.tileX] = {};
-            }
-            this.tileCache[segment.tileZoom][segment.tileX][segment.tileY] = res;
+            this.tileCache[segment.tileZoom][segment.tileX][segment.tileY] = raw;
 
             return res;
 
@@ -89,7 +117,7 @@ let osm = new XYZ("OSM", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new GlobusTerrain(),
+    'terrain': new MapBoxTerrain(),
     'layers': [osm]
 });
 
