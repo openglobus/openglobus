@@ -536,6 +536,7 @@ class Planet extends RenderNode {
     setTerrain(terrain) {
         this.terrain = terrain;
         this.terrain._planet = this;
+        this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
     }
 
     /**
@@ -668,7 +669,9 @@ class Planet extends RenderNode {
 
         this._vectorTileCreator = new VectorTileCreator(this);
 
-        this._normalMapCreator = new NormalMapCreator(this);
+        this._normalMapCreator = new NormalMapCreator(this, {
+            blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
+        });
 
         //Loads first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
@@ -1216,7 +1219,7 @@ class Planet extends RenderNode {
 
         i = rn.length;
         while (i--) {
-            
+
             if (rn[i].segment.readyToEngage) {
                 rn[i].segment.engage();
             }

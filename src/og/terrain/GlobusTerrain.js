@@ -47,6 +47,8 @@ class GlobusTerrain extends EmptyTerrain {
         super();
         options = options || {};
 
+        this.blur = true;
+
         /**
          * Provider name.
          * @public

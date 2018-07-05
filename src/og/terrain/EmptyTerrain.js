@@ -10,6 +10,9 @@
  */
 class EmptyTerrain {
     constructor() {
+
+        this.blur = false;
+        
         /**
          * Provider name is "empty"
          * @public
