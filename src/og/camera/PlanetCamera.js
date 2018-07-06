@@ -178,18 +178,20 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * Moves camera to the geographical position.
+     * Places camera to view to the geographical point.
      * @public
-     * @param {og.LonLat} lonlat - Geographical position.
+     * @param {og.LonLat} lonlat - New camera and camera view position.
+     * @param {og.LonLat} [lookLonLat] - Look up coordinates.
+     * @param {og.math.Vector3} [up] - Camera UP vector. Default (0,1,0)
      */
-    setLonLat(lonlat, up) {
+    setLonLat(lonlat, lookLonLat, up) {
+        this.stopFlying();
         this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-        var newEye = this.planet.ellipsoid.lonLatToCartesian(this._lonLat);
-        var rot = new Mat4().rotateBetweenVectors(newEye.normal(), this.eye.normal());
-        this.eye = newEye;
-        this._v = rot.mulVec3(this._v);
-        this._u = rot.mulVec3(this._u);
-        this._n = rot.mulVec3(this._n);
+        var el = this.planet.ellipsoid;
+        var newEye = el.lonLatToCartesian(this._lonLat);
+        var newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
+        this.set(newEye, newLook, up || Vec3.UP);
+        this.refresh();
     }
 
     /**
@@ -208,20 +210,6 @@ class PlanetCamera extends Camera {
      */
     getHeight() {
         return this._lonLat.height;
-    }
-
-    /**
-     * Places camera to view to the geographical point.
-     * @public
-     * @param {og.LonLat} lonlat - New camera and camera view position.
-     * @param {og.math.Vector3} [up] - Camera UP vector. Default (0,1,0)
-     */
-    viewLonLat(lonlat, up) {
-        this._lonLat.set(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-        var el = this.planet.ellipsoid;
-        var newEye = el.lonLatToCartesian(this._lonLat);
-        var newLook = el.lonLatToCartesian(new LonLat(this._lonLat.lon, this._lonLat.lat, 0));
-        this.set(newEye, newLook, up || Vec3.UP);
     }
 
     /**
