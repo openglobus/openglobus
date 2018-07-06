@@ -453,71 +453,71 @@ Segment.prototype.engage = function () {
     const tgsOne = Math.sqrt(v.length / 3);
     const tgs = tgsOne - 1;
 
-    let n = this.node.neighbors;
+    // let n = this.node.neighbors;
 
-    if (n[N].length) {
+    // if (n[N].length) {
 
-        if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
-            let _v = n[N][0].segment.terrainVertices;
-            const _tgsOne = Math.sqrt(_v.length / 3);
-            const _tgs = _tgsOne - 1;
+    //     if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
+    //         let _v = n[N][0].segment.terrainVertices;
+    //         const _tgsOne = Math.sqrt(_v.length / 3);
+    //         const _tgs = _tgsOne - 1;
 
-            for (let i = 0; i < tgsOne; i++) {
-                v[i * 3] = _v[(_tgsOne * _tgs + i) * 3];
-                v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
-                v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
-            }
-        }else{
+    //         for (let i = 0; i < tgsOne; i++) {
+    //             v[i * 3] = _v[(_tgsOne * _tgs + i) * 3];
+    //             v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
+    //             v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
+    //         }
+    //     }else{
 
-        }
+    //     }
 
-    }
+    // }
 
-    if (n[E].length) {
+    // if (n[E].length) {
 
-        if (this.tileZoom === n[E][0].segment.tileZoom && n[E][0].segment.terrainReady) {
-            let _v = n[E][0].segment.terrainVertices;
-            let _tgsOne = Math.sqrt(_v.length / 3);
+    //     if (this.tileZoom === n[E][0].segment.tileZoom && n[E][0].segment.terrainReady) {
+    //         let _v = n[E][0].segment.terrainVertices;
+    //         let _tgsOne = Math.sqrt(_v.length / 3);
 
-            for (let i = 0; i < tgsOne; i++) {
-                v[(i * tgsOne + tgs) * 3] = _v[_tgsOne * i * 3];
-                v[(i * tgsOne + tgs) * 3 + 1] = _v[_tgsOne * i * 3 + 1];
-                v[(i * tgsOne + tgs) * 3 + 2] = _v[_tgsOne * i * 3 + 2];
-            }
-        }
+    //         for (let i = 0; i < tgsOne; i++) {
+    //             v[(i * tgsOne + tgs) * 3] = _v[_tgsOne * i * 3];
+    //             v[(i * tgsOne + tgs) * 3 + 1] = _v[_tgsOne * i * 3 + 1];
+    //             v[(i * tgsOne + tgs) * 3 + 2] = _v[_tgsOne * i * 3 + 2];
+    //         }
+    //     }
 
-    }
+    // }
 
-    if (n[S].length) {
+    // if (n[S].length) {
 
-        if (this.tileZoom === n[S][0].segment.tileZoom && n[S][0].segment.terrainReady) {
-            let _v = n[S][0].segment.terrainVertices;
-            const _tgsOne = Math.sqrt(_v.length / 3);
-            const _tgs = _tgsOne - 1;
+    //     if (this.tileZoom === n[S][0].segment.tileZoom && n[S][0].segment.terrainReady) {
+    //         let _v = n[S][0].segment.terrainVertices;
+    //         const _tgsOne = Math.sqrt(_v.length / 3);
+    //         const _tgs = _tgsOne - 1;
 
-            for (let i = 0; i < tgsOne; i++) {
-                v[(_tgsOne * _tgs + i) * 3] = _v[i * 3];
-                v[(_tgsOne * _tgs + i) * 3 + 1] = _v[i * 3 + 1];
-                v[(_tgsOne * _tgs + i) * 3 + 2] = _v[i * 3 + 2];
-            }
-        }
+    //         for (let i = 0; i < tgsOne; i++) {
+    //             v[(_tgsOne * _tgs + i) * 3] = _v[i * 3];
+    //             v[(_tgsOne * _tgs + i) * 3 + 1] = _v[i * 3 + 1];
+    //             v[(_tgsOne * _tgs + i) * 3 + 2] = _v[i * 3 + 2];
+    //         }
+    //     }
 
-    }
+    // }
 
-    if (n[W].length) {
+    // if (n[W].length) {
 
-        if (this.tileZoom === n[W][0].segment.tileZoom && n[W][0].segment.terrainReady) {
-            let _v = n[W][0].segment.terrainVertices;
-            let _tgsOne = Math.sqrt(_v.length / 3);
+    //     if (this.tileZoom === n[W][0].segment.tileZoom && n[W][0].segment.terrainReady) {
+    //         let _v = n[W][0].segment.terrainVertices;
+    //         let _tgsOne = Math.sqrt(_v.length / 3);
 
-            for (let i = 0; i < tgsOne; i++) {
-                v[_tgsOne * i * 3] = _v[(i * tgsOne + tgs) * 3];
-                v[_tgsOne * i * 3 + 1] = _v[(i * tgsOne + tgs) * 3 + 1];
-                v[_tgsOne * i * 3 + 2] = _v[(i * tgsOne + tgs) * 3 + 2];
-            }
-        }
+    //         for (let i = 0; i < tgsOne; i++) {
+    //             v[_tgsOne * i * 3] = _v[(i * tgsOne + tgs) * 3];
+    //             v[_tgsOne * i * 3 + 1] = _v[(i * tgsOne + tgs) * 3 + 1];
+    //             v[_tgsOne * i * 3 + 2] = _v[(i * tgsOne + tgs) * 3 + 2];
+    //         }
+    //     }
 
-    }
+    // }
 
     this.createCoordsBuffers(this.terrainVertices, tgs);
 };
