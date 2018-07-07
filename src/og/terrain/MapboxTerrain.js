@@ -5,9 +5,11 @@ class MapboxTerrain extends GlobusTerrain {
     constructor(name, options) {
         super();
         this.blur = false;
+        this.equalizeVertices = true;
+        this.equalizeNormals = false;    
         this.minZoom = 2;
         this.maxZoom = 15;
-        this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoibWdldmxpY2giLCJhIjoiY2o0ZmVudncwMGZvbjJ3bGE0OGpsejBlZyJ9.RSRJLS0J_U9_lw1Ti1CmsQ";
+        this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
         this.fileGridSize = 128;
         this._dataType = "imageBitmap";
 

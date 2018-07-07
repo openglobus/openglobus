@@ -49,6 +49,8 @@ class GlobusTerrain extends EmptyTerrain {
 
         this.blur = true;
 
+        this.equalizeNormals = true;        
+
         /**
          * Provider name.
          * @public

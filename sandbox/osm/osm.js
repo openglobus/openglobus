@@ -26,7 +26,7 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new MapboxTerrain(),
-    'layers': [osm]
+    'layers': []
 });
 
 globe.planet.addControl(new DebugInfo());

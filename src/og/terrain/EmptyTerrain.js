@@ -12,6 +12,10 @@ class EmptyTerrain {
     constructor() {
 
         this.blur = false;
+
+        this.equalizeVertices = false;
+
+        this.equalizeNormals = false;
         
         /**
          * Provider name is "empty"

@@ -493,42 +493,6 @@ Node.prototype.getCommonSide = function (b) {
         }
     }
 
-    //
-    // IT WAS AWFUL, remove this
-    //
-    // var a = this.segment._extent,
-    //     b = node.segment._extent;
-    // var a_ne = a.northEast, a_sw = a.southWest,
-    //     b_ne = b.northEast, b_sw = b.southWest;
-    // var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-    //     b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
-
-    // if (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat || a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat) {
-    //     if (a_ne_lon === b_sw_lon) {
-    //         return E;
-    //     } else if (a_sw_lon === b_ne_lon) {
-    //         return W;
-    //     } else if (this.segment.tileZoom > 0) {
-    //         if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-    //             return E;
-    //         } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-    //             return E;
-    //         } else if (a_sw_lon === -POLE && b_ne_lon === POLE) {
-    //             return W;
-    //         }
-    //     }
-    // } else if (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon || a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon) {
-    //     if (a_ne_lat === b_sw_lat) {
-    //         return N;
-    //     } else if (a_sw_lat === b_ne_lat) {
-    //         return S;
-    //     } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-    //         return N;
-    //     } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-    //         return S;
-    //     }
-    // }
-
     return -1;
 };
 
@@ -676,6 +640,7 @@ Node.prototype.whileTerrainLoading = function () {
             }
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
+            seg.readyToEngage = false;
 
             //seg.tempVertices is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
