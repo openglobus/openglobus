@@ -25,8 +25,8 @@ let osm = new XYZ("OSM", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new MapboxTerrain(),
-    'layers': []
+    'terrain': new GlobusTerrain(),//new MapboxTerrain(),
+    'layers': [osm]
 });
 
 globe.planet.addControl(new DebugInfo());

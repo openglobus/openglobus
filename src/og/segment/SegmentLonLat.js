@@ -85,7 +85,8 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
-SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
+SegmentLonLat.prototype.createPlainVertices = function () {
+    var gridSize = this.gridSize;
     var ind = 0;
     var e = this._extent;
     var lonSize = e.getWidth();
@@ -131,9 +132,11 @@ SegmentLonLat.prototype.createPlainVertices = function (gridSize) {
     this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180.0;
     this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360.0;
     this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
+
+    this.ready = true;
 };
 
-SegmentLonLat.prototype._collectRenderNodes = function () {
+SegmentLonLat.prototype._collectVisibleNodes = function () {
     if (this._isNorth) {
         this.planet._visibleNodesNorth[this.node.nodeId] = this.node;
     } else {

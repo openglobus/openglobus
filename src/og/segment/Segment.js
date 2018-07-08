@@ -302,23 +302,34 @@ Segment.prototype.projectNative = function (lonlat) {
 
 Segment.prototype.loadTerrain = function () {
     if (this.tileZoom >= this.planet.terrain.minZoom) {
+
         if (this.tileZoom > this.planet.terrain.maxZoom) {
+
             //check with terrain option
             this.elevationsNotExists();
+
         } else if (!this.terrainIsLoading &&
             this._createTerrainFromChildNodes() &&
             !this.terrainReady) {
+
             this.planet.terrain.loadTerrain(this);
         }
+
     } else {
+
         this.terrainReady = true;
+
         if (!this._inTheQueue) {
             this.planet._normalMapCreator.queue(this);
         }
+
     }
 };
 
 Segment.prototype._createTerrainFromChildNodes = function () {
+
+    return true;
+
 
     const node = this.node;
     const nodes = node.nodes;
@@ -585,7 +596,10 @@ Segment.prototype.elevationsNotExists = function () {
             ymin = math.MAX, ymax = math.MIN,
             zmin = math.MAX, zmax = math.MIN;
 
-        var v = this.terrainVertices;
+        this.terrainVertices = this.plainVertices;
+
+        var v = this.plainVertices;
+
         for (var i = 0; i < v.length; i += 3) {
             var x = v[i], y = v[i + 1], z = v[i + 2];
             if (x < xmin) xmin = x; if (x > xmax) xmax = x;
@@ -948,10 +962,13 @@ Segment.prototype.createBoundsByExtent = function () {
 };
 
 Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
+
     var gsgs = (gridSize + 1) * (gridSize + 1);
     var h = this.handler;
+
     h.gl.deleteBuffer(this.vertexPositionBuffer);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
+
     this.vertexTextureCoordBuffer = h.createArrayBuffer(textureCoordsTable[gridSize], 2, gsgs);
     this.vertexPositionBuffer = h.createArrayBuffer(vertices, 3, gsgs);
 };
@@ -1002,6 +1019,7 @@ Segment.prototype._assignTileIndexes = function () {
 };
 
 Segment.prototype.initializePlainSegment = function () {
+
     var p = this.planet;
     var n = this.node;
     n.sideSize[0] = n.sideSize[1] =
@@ -1013,17 +1031,23 @@ Segment.prototype.initializePlainSegment = function () {
         var nmc = this.planet._normalMapCreator;
         this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
     }
+
+    this.normalMapTexture = this.planet.transparentTexture;
 };
 
 Segment.prototype.createPlainSegment = function () {
+
     this.initializePlainSegment();
-    this.createPlainVertices(this.gridSize);
-    //this.createCoordsBuffers(this.plainVertices, this.gridSize);
+
+    this.createPlainVertices();
+
     this.readyToEngage = true;
-    this.ready = true;
 };
 
-Segment.prototype.createPlainVertices = function (gridSize) {
+//TODO: Let's move in to a webworker!
+Segment.prototype.createPlainVertices = function () {
+
+    var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
     var e = this._extent,
         fgs = this.planet.terrain.fileGridSize;
@@ -1036,13 +1060,13 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     var r2 = this.planet.ellipsoid._invRadii2;
     var ind = 0,
         nmInd = 0;
-
-    var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
-    this.plainNormals = new Float32Array(gridSize3);
-    this.plainVertices = new Float32Array(gridSize3);
-
     const gsgs = gs * gs;
 
+
+    var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+
+    this.plainNormals = new Float32Array(gridSize3);
+    this.plainVertices = new Float32Array(gridSize3);
 
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float32Array(gsgs * 3);
@@ -1083,9 +1107,9 @@ Segment.prototype.createPlainVertices = function (gridSize) {
         }
     }
 
-    this.normalMapTexture = this.planet.transparentTexture;
-    this.terrainVertices = verts;
-    this.tempVertices = verts;
+    if (this.tileZoom < this.planet.terrain.minZoom) {
+        this.terrainVertices = verts;
+    }
 
     //store raw normals
     this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
@@ -1095,6 +1119,9 @@ Segment.prototype.createPlainVertices = function (gridSize) {
     this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+
+    this.ready = true;
+
 };
 
 /**
@@ -1517,7 +1544,7 @@ Segment.prototype._getIndexBuffer = function () {
     return cache.buffer;
 };
 
-Segment.prototype._collectRenderNodes = function () {
+Segment.prototype._collectVisibleNodes = function () {
     this.planet._visibleNodes[this.node.nodeId] = this.node;
 };
 

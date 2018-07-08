@@ -238,28 +238,6 @@ Node.prototype.getEqualNeighbor = function (side) {
     }
 };
 
-Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
-    if (height < 3000000.0) {
-        if (altVis) {
-            this.renderNode(onlyTerrain);
-        } else {
-            this.state = NOTRENDERING;
-        }
-    } else {
-        this.renderNode(onlyTerrain);
-    }
-};
-
-Node.prototype.traverseNodes = function (maxZoom) {
-    if (!this.ready) {
-        this.createChildrenNodes();
-    }
-    this.nodes[NW].renderTree(maxZoom);
-    this.nodes[NE].renderTree(maxZoom);
-    this.nodes[SW].renderTree(maxZoom);
-    this.nodes[SE].renderTree(maxZoom);
-};
-
 Node.prototype.isBrother = function (node) {
     return !(this.parentNode || node.parentNode) ||
         this.parentNode.id === node.parentNode.id;
@@ -309,53 +287,83 @@ Node.prototype.renderTree = function (maxZoom) {
         this._cameraInside = true;
     }
 
-    var inFrustum = cam.frustum.containsSphere(seg.bsphere),
-        underBottom = false;
+    var inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
     var h = cam._lonLat.height;
-
-    //TODO: leads to terrainWorker stuck
-    // if (h < 10000.0) {
-    //     underBottom = true;
-    // }
-
-    var onlyTerrain = !inFrustum && underBottom;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
         VISIBLE_DISTANCE * Math.sqrt(h);
 
-    if (inFrustum || onlyTerrain || this._cameraInside) {
+    if (inFrustum || this._cameraInside) {
+
+        //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
+
             this.traverseNodes(maxZoom);
-        } else if (seg.tileZoom === maxZoom || !maxZoom && seg.acceptForRendering(cam)) {
-            this.prepareForRendering(h, altVis, onlyTerrain);
-        } else if (seg.tileZoom < planet.terrain.gridSizeByZoom.length - 1) {
+
+        } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
+
+            this.prepareForRendering(h, altVis);
+
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
+
             this.traverseNodes(maxZoom);
+
         } else {
-            this.prepareForRendering(h, altVis, onlyTerrain);
+
+            this.prepareForRendering(h, altVis);
+
         }
+
     } else {
         this.state = NOTRENDERING;
     }
 
-    if (inFrustum && (altVis || h > 10000.0)) {
-        seg._collectRenderNodes();
+    if (this.state !== NOTRENDERING && inFrustum && (altVis || h > 10000.0)) {
+        seg._collectVisibleNodes();
     }
 };
 
-/**
- * When a node is visible in frustum than begins to render it.
- * @public
- * @param {Boolean} onlyTerrain - It means that loads only terrain for this node.
- */
+Node.prototype.traverseNodes = function (maxZoom) {
+    if (!this.ready) {
+        this.createChildrenNodes();
+    }
+    this.nodes[NW].renderTree(maxZoom);
+    this.nodes[NE].renderTree(maxZoom);
+    this.nodes[SW].renderTree(maxZoom);
+    this.nodes[SE].renderTree(maxZoom);
+};
+
+Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
+    if (height < 3000000.0) {
+        if (altVis) {
+            this.renderNode(onlyTerrain);
+        } else {
+            this.state = NOTRENDERING;
+        }
+    } else {
+        this.renderNode(onlyTerrain);
+    }
+};
+
 Node.prototype.renderNode = function (onlyTerrain) {
 
     var seg = this.segment;
 
     //Create and load terrain data.
     if (!seg.terrainReady) {
-        //if true proceed to load
-        if (this.whileTerrainLoading()) {
+
+        if (!seg.initialized) {
+            seg.initializePlainSegment();
+        }
+
+        this.whileTerrainLoading();
+
+        if (!seg.ready) {
+            seg.createPlainVertices();
+        }
+
+        if (seg.ready) {
             seg.loadTerrain();
         }
     }
@@ -550,11 +558,6 @@ Node.prototype.whileTerrainLoading = function () {
     const seg = this.segment;
     const terrain = this.planet.terrain;
 
-    // //Looking for ready terrain above
-    if (!seg.ready) {
-        seg.createPlainSegment();
-    }
-
     let pn = this;
 
     while (pn.parentNode && !pn.segment.terrainReady) {
@@ -572,7 +575,7 @@ Node.prototype.whileTerrainLoading = function () {
         let tempVertices,
             tempNormalMapNormals;
 
-        if (pn.segment.terrainExists && this.appliedTerrainNodeId !== pn.nodeId) {
+        if (this.appliedTerrainNodeId !== pn.nodeId) {
 
             let gridSize = pn.segment.gridSize / dZ2;
 
@@ -580,7 +583,6 @@ Node.prototype.whileTerrainLoading = function () {
                 fgsZ = fgs / dZ2;
 
             seg.deleteBuffers();
-            seg.refreshIndexesBuffer = true;
 
             if (gridSize >= 1) {
                 seg.gridSize = gridSize;
@@ -672,8 +674,6 @@ Node.prototype.whileTerrainLoading = function () {
             }
         }
     }
-
-    return true;
 };
 
 Node.prototype.destroy = function () {
@@ -701,7 +701,7 @@ Node.prototype.clearTree = function () {
         this.destroyBranches();
     } else {
         for (var i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].clearTree();
+            this.nodes[i] && this.nodes[i].clearTree();
         }
     }
 };

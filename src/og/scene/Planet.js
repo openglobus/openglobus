@@ -536,6 +536,7 @@ class Planet extends RenderNode {
     setTerrain(terrain) {
         this.terrain = terrain;
         this.terrain._planet = this;
+        this.terrain._maxNodeZoom = terrain.gridSizeByZoom.length - 1;
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
     }
 
@@ -678,15 +679,20 @@ class Planet extends RenderNode {
     }
 
     _preRender() {
-        this._quadTree.traverseNodes();
+        this._quadTree.createChildrenNodes();
+        this._quadTree.segment.createPlainSegment();
         this._quadTree.renderNode();
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        this._quadTreeNorth.traverseNodes();
-        this._quadTreeNorth.renderNode();
+        // this._quadTreeNorth.createChildrenNodes();
+        // this._quadTreeNorth.segment.createPlainSegment();
+        // this._quadTreeNorth.renderNode();
+        // this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
-        this._quadTreeSouth.traverseNodes();
-        this._quadTreeSouth.renderNode();
+        // this._quadTreeSouth.createChildrenNodes();
+        // this._quadTreeSouth.segment.createPlainSegment();
+        // this._quadTreeSouth.renderNode();
+        // this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
     }
 
     /**
@@ -843,32 +849,32 @@ class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTreeNorth.renderTree();
-        this._quadTreeSouth.renderTree();
+        //this._quadTreeNorth.renderTree();
+       // this._quadTreeSouth.renderTree();
 
         this._quadTree.renderTree();
 
-        if (this.renderer.activeCamera.slope > 0.72 && this.renderer.activeCamera._lonLat.height < 850000) {
-            this.minCurrZoom = this.maxCurrZoom;
+        // if (this.renderer.activeCamera.slope > 0.72 && this.renderer.activeCamera._lonLat.height < 850000) {
+        //     this.minCurrZoom = this.maxCurrZoom;
 
-            var temp = this._renderedNodes;
+        //     var temp = this._renderedNodes;
 
-            this._renderedNodes = [];
+        //     this._renderedNodes = [];
 
-            for (var i = temp.length - 1; i >= 0; --i) {
-                var ri = temp[i];
-                if (ri.segment.tileZoom === this.maxCurrZoom || ri.segment._projection.id === EPSG4326.id) {
-                    this._renderedNodes.push(ri);
-                }
-            }
+        //     for (var i = temp.length - 1; i >= 0; --i) {
+        //         var ri = temp[i];
+        //         if (ri.segment.tileZoom === this.maxCurrZoom || ri.segment._projection.id === EPSG4326.id) {
+        //             this._renderedNodes.push(ri);
+        //         }
+        //     }
 
-            for (i = temp.length - 1; i >= 0; --i) {
-                var seg = temp[i].segment;
-                if (seg.tileZoom < this.maxCurrZoom && seg._projection.id !== EPSG4326.id) {
-                    seg.node.renderTree(this.maxCurrZoom);
-                }
-            }
-        }
+        //     for (i = temp.length - 1; i >= 0; --i) {
+        //         var seg = temp[i].segment;
+        //         if (seg.tileZoom < this.maxCurrZoom && seg._projection.id !== EPSG4326.id) {
+        //             seg.node.renderTree(this.maxCurrZoom);
+        //         }
+        //     }
+        // }
     }
 
     /**
