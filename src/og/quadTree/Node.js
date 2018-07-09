@@ -648,7 +648,6 @@ Node.prototype.whileTerrainLoading = function () {
 
             //seg.tempVertices is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
-            seg.normalMapNormals = tempNormalMapNormals;
 
             this.appliedTerrainNodeId = pn.nodeId;
         }

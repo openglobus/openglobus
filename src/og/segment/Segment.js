@@ -304,7 +304,7 @@ Segment.prototype.loadTerrain = function () {
     if (this.tileZoom < this.planet.terrain.minZoom) {
 
         this.terrainIsLoading = true;
-        
+
         this.elevationsNotExists();
 
         if (!this._inTheQueue) {
@@ -568,7 +568,8 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
         this.bsphere.setFromBounds(data.bounds);
-        this.gridSize = tgs;
+        //this.gridSize = tgs;
+        this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.terrainExists = true;
         this.node.appliedTerrainNodeId = this.node.nodeId;
     }
