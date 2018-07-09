@@ -359,8 +359,12 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
         this.whileTerrainLoading();
 
-        if (!seg.ready) {
-            seg.createPlainVertices();
+        if (!seg.ready && !seg.proceed) {
+            seg.proceed = true;
+            setTimeout(function () {
+                seg.createPlainVertices();
+                seg.proceed = false;
+            }, 1000);
         }
 
         if (seg.ready) {
@@ -582,8 +586,6 @@ Node.prototype.whileTerrainLoading = function () {
             let fgs = terrain.fileGridSize,
                 fgsZ = fgs / dZ2;
 
-            seg.deleteBuffers();
-
             if (gridSize >= 1) {
                 seg.gridSize = gridSize;
                 this.sideSize = [gridSize, gridSize, gridSize, gridSize];
@@ -595,7 +597,7 @@ Node.prototype.whileTerrainLoading = function () {
                     fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
             } else {
                 seg.gridSize = _neGridSize;
-                this.sideSize = [seg.gridSize, seg.gridSize, seg.gridSize, seg.gridSize];
+                this.sideSize = [_neGridSize, _neGridSize, _neGridSize, _neGridSize];
 
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
@@ -646,6 +648,8 @@ Node.prototype.whileTerrainLoading = function () {
 
             //seg.tempVertices is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
+            seg.normalMapNormals = tempNormalMapNormals;
+
             this.appliedTerrainNodeId = pn.nodeId;
         }
 
@@ -660,6 +664,7 @@ Node.prototype.whileTerrainLoading = function () {
                     seg.readyToEngage = true;
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
+                    seg.normalMapNormals = tempNormalMapNormals;
                 }
             } else {
                 pn = this;
@@ -667,10 +672,10 @@ Node.prototype.whileTerrainLoading = function () {
                     pn = pn.parentNode;
                 }
                 let pns = pn.segment;
-                if (!pns.ready) {
-                    pns.createPlainSegment();
-                }
-                pns.loadTerrain();
+                // if (!pns.ready) {
+                //     pns.createPlainSegment();
+                // }
+                //pns.loadTerrain();
             }
         }
     }

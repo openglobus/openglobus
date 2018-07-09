@@ -128,7 +128,7 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.materials = [];
 
     /**
-     * Segment is ready for rendering.
+     * Plain segment vertices was created.
      * @type {boolean}
      */
     this.ready = false;
@@ -301,11 +301,20 @@ Segment.prototype.projectNative = function (lonlat) {
 };
 
 Segment.prototype.loadTerrain = function () {
-    if (this.tileZoom >= this.planet.terrain.minZoom) {
+    if (this.tileZoom < this.planet.terrain.minZoom) {
+
+        this.terrainIsLoading = true;
+        
+        this.elevationsNotExists();
+
+        if (!this._inTheQueue) {
+            this.planet._normalMapCreator.queue(this);
+        }
+
+    } else {
 
         if (this.tileZoom > this.planet.terrain.maxZoom) {
 
-            //check with terrain option
             this.elevationsNotExists();
 
         } else if (!this.terrainIsLoading &&
@@ -313,14 +322,6 @@ Segment.prototype.loadTerrain = function () {
             !this.terrainReady) {
 
             this.planet.terrain.loadTerrain(this);
-        }
-
-    } else {
-
-        this.terrainReady = true;
-
-        if (!this._inTheQueue) {
-            this.planet._normalMapCreator.queue(this);
         }
 
     }
@@ -578,10 +579,10 @@ Segment.prototype._terrainWorkerCallback = function (data) {
  */
 Segment.prototype.elevationsNotExists = function () {
     if (this.tileZoom <= this.planet.terrain.maxZoom) {
+
         if (this.ready && this.terrainIsLoading) {
             this.terrainIsLoading = false;
-            this.terrainReady = true;
-            this.terrainExists = false;
+
             this.node.appliedTerrainNodeId = this.node.nodeId;
             this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
@@ -596,9 +597,7 @@ Segment.prototype.elevationsNotExists = function () {
             ymin = math.MAX, ymax = math.MIN,
             zmin = math.MAX, zmax = math.MIN;
 
-        this.terrainVertices = this.plainVertices;
-
-        var v = this.plainVertices;
+        var v = this.terrainVertices = this.plainVertices;
 
         for (var i = 0; i < v.length; i += 3) {
             var x = v[i], y = v[i + 1], z = v[i + 2];
@@ -608,6 +607,9 @@ Segment.prototype.elevationsNotExists = function () {
         }
 
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+
+        this.terrainReady = true;
+        this.terrainExists = false;
     }
 };
 
@@ -772,12 +774,10 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
 
 
 Segment.prototype.applyTerrain = function (elevations) {
-    if (this.ready) {
-        if (elevations.length) {
-            this.elevationsExists(elevations);
-        } else {
-            this.elevationsNotExists();
-        }
+    if (elevations.length) {
+        this.elevationsExists(elevations);
+    } else {
+        this.elevationsNotExists();
     }
 };
 
@@ -1033,6 +1033,13 @@ Segment.prototype.initializePlainSegment = function () {
     }
 
     this.normalMapTexture = this.planet.transparentTexture;
+
+    var e = this._extent;
+
+    this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
 };
 
 Segment.prototype.createPlainSegment = function () {
@@ -1047,81 +1054,77 @@ Segment.prototype.createPlainSegment = function () {
 //TODO: Let's move in to a webworker!
 Segment.prototype.createPlainVertices = function () {
 
-    var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+    if (this.initialized) {
 
-    var e = this._extent,
-        fgs = this.planet.terrain.fileGridSize;
-    var lonSize = e.getWidth();
-    var llStep = lonSize / Math.max(fgs, gridSize);
-    var esw_lon = e.southWest.lon,
-        ene_lat = e.northEast.lat;
-    var dg = Math.max(fgs / gridSize, 1),
-        gs = Math.max(fgs, gridSize) + 1;
-    var r2 = this.planet.ellipsoid._invRadii2;
-    var ind = 0,
-        nmInd = 0;
-    const gsgs = gs * gs;
+        var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
+        var e = this._extent,
+            fgs = this.planet.terrain.fileGridSize;
+        var lonSize = e.getWidth();
+        var llStep = lonSize / Math.max(fgs, gridSize);
+        var esw_lon = e.southWest.lon,
+            ene_lat = e.northEast.lat;
+        var dg = Math.max(fgs / gridSize, 1),
+            gs = Math.max(fgs, gridSize) + 1;
+        var r2 = this.planet.ellipsoid._invRadii2;
+        var ind = 0,
+            nmInd = 0;
+        const gsgs = gs * gs;
 
-    var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
-    this.plainNormals = new Float32Array(gridSize3);
-    this.plainVertices = new Float32Array(gridSize3);
+        this.plainNormals = new Float32Array(gridSize3);
+        this.plainVertices = new Float32Array(gridSize3);
 
-    this.normalMapNormals = new Float32Array(gsgs * 3);
-    this.normalMapVertices = new Float32Array(gsgs * 3);
+        this.normalMapNormals = new Float32Array(gsgs * 3);
+        this.normalMapVertices = new Float32Array(gsgs * 3);
 
-    var verts = this.plainVertices,
-        norms = this.plainNormals,
-        nmVerts = this.normalMapVertices,
-        nmNorms = this.normalMapNormals;
+        var verts = this.plainVertices,
+            norms = this.plainNormals,
+            nmVerts = this.normalMapVertices,
+            nmNorms = this.normalMapNormals;
 
-    for (var k = 0; k < gsgs; k++) {
+        for (var k = 0; k < gsgs; k++) {
 
-        var j = k % gs,
-            i = ~~(k / gs);
+            var j = k % gs,
+                i = ~~(k / gs);
 
-        var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-        var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
-        var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-        var nxl = nx * l, nyl = ny * l, nzl = nz * l;
+            var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+            var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            var nxl = nx * l, nyl = ny * l, nzl = nz * l;
 
-        nmVerts[nmInd] = v.x;
-        nmNorms[nmInd++] = nxl;
+            nmVerts[nmInd] = v.x;
+            nmNorms[nmInd++] = nxl;
 
-        nmVerts[nmInd] = v.y;
-        nmNorms[nmInd++] = nyl;
+            nmVerts[nmInd] = v.y;
+            nmNorms[nmInd++] = nyl;
 
-        nmVerts[nmInd] = v.z;
-        nmNorms[nmInd++] = nzl;
+            nmVerts[nmInd] = v.z;
+            nmNorms[nmInd++] = nzl;
 
-        if (i % dg === 0 && j % dg === 0) {
-            verts[ind] = v.x;
-            norms[ind++] = nxl;
+            if (i % dg === 0 && j % dg === 0) {
+                verts[ind] = v.x;
+                norms[ind++] = nxl;
 
-            verts[ind] = v.y;
-            norms[ind++] = nyl;
+                verts[ind] = v.y;
+                norms[ind++] = nyl;
 
-            verts[ind] = v.z;
-            norms[ind++] = nzl;
+                verts[ind] = v.z;
+                norms[ind++] = nzl;
+            }
         }
+
+        if (this.tileZoom < this.planet.terrain.minZoom) {
+            this.terrainVertices = verts;
+        }
+
+        //store raw normals
+        this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
+        this.normalMapNormalsRaw.set(nmNorms);
+
+        this.ready = true;
     }
-
-    if (this.tileZoom < this.planet.terrain.minZoom) {
-        this.terrainVertices = verts;
-    }
-
-    //store raw normals
-    this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
-    this.normalMapNormalsRaw.set(nmNorms);
-
-    this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
-
-    this.ready = true;
-
 };
 
 /**
@@ -1147,390 +1150,370 @@ Segment.prototype._getLayerExtentOffset = function (layer) {
 };
 
 Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, isOverlay) {
-    if (this.ready) {
-        var gl = this.handler.gl;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
 
-        var pm = this.materials,
-            p = this.planet;
+    var gl = this.handler.gl;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
 
-        //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE * 2 + 2);
+    var pm = this.materials,
+        p = this.planet;
 
-        var currHeight, li;
-        if (layerSlice) {
-            li = layerSlice[0];
-            currHeight = li._height;
-        } else {
-            currHeight = 0;
-        }
+    //First always draw whole planet base layer segment with solid texture.
+    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
+    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+    gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE * 2 + 2);
 
-        var n = 0,
-            i = 0;
-
-        var notEmpty = false;
-
-        //gl.activeTexture(gl.TEXTURE0);
-        //gl.bindTexture(gl.TEXTURE_2D, this.planet.transparentTexture);
-
-        while (li) {
-            if (this.layerOverlap(li) &&
-                (li._fading && li._fadingOpacity > 0.0 ||
-                    li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom)) {
-
-                notEmpty = true;
-                var m = pm[li._id];
-
-                if (!m) {
-                    m = pm[li._id] = li.createMaterial(this);
-                }
-
-                var n4 = n * 4,
-                    n3 = n * 3;
-
-                var arr = li.applyMaterial(m);
-                p._tileOffsetArr[n4] = arr[0];
-                p._tileOffsetArr[n4 + 1] = arr[1];
-                p._tileOffsetArr[n4 + 2] = arr[2];
-                p._tileOffsetArr[n4 + 3] = arr[3];
-
-                arr = this._getLayerExtentOffset(li);
-                p._visibleExtentOffsetArr[n4] = arr[0];
-                p._visibleExtentOffsetArr[n4 + 1] = arr[1];
-                p._visibleExtentOffsetArr[n4 + 2] = arr[2];
-                p._visibleExtentOffsetArr[n4 + 3] = arr[3];
-
-                p._transparentColorArr[n4] = li.transparentColor[0];
-                p._transparentColorArr[n4 + 1] = li.transparentColor[1];
-                p._transparentColorArr[n4 + 2] = li.transparentColor[2];
-                p._transparentColorArr[n4 + 3] = li._fadingOpacity;
-
-                p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
-                p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
-                p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
-                p._pickingColorArr[n4 + 3] = li._pickingEnabled;
-
-                p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
-                p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
-                p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
-
-                p._ambientMaterialArr[n3 + 3] = li.ambient.x;
-                p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
-                p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
-
-                p._specularMaterialArr[n4 + 4] = li.specular.x;
-                p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
-                p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
-                p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
-
-                p._samplerArr[n] = n;
-                gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture && gl.isTexture(m.texture) && m.texture || this.planet.transparentTexture);
-
-
-                p._pickingMaskArr[n] = n + p.SLICE_SIZE;
-                gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
-                gl.bindTexture(gl.TEXTURE_2D, m.pickingMask && gl.isTexture(m.pickingMask) && m.pickingMask || this.planet.transparentTexture);
-
-                n++;
-            }
-            i++;
-            li = layerSlice[i];
-        }
-
-        if (notEmpty || !isOverlay) {
-
-            //bind normalmap texture
-            if (p.lightEnabled) {
-                gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
-                gl.activeTexture(gl.TEXTURE0 + (p.SLICE_SIZE << 1) + 3);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-                gl.uniform1i(shu.uNormalMap, (p.SLICE_SIZE << 1) + 3);
-
-                //bind segment specular and night material texture coordinates
-                gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
-
-                gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
-                gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
-                gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
-            }
-
-            gl.uniform1i(shu.samplerCount, n);
-            gl.uniform1f(shu.height, currHeight);
-            gl.uniform1iv(shu.samplerArr, p._samplerArr);
-            gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
-            gl.uniform4fv(shu.tileOffsetArr, p._tileOffsetArr);
-            gl.uniform4fv(shu.visibleExtentOffsetArr, p._visibleExtentOffsetArr);
-            gl.uniform4fv(shu.transparentColorArr, p._transparentColorArr);
-            gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
-
-            var _indexBuffer = this._getIndexBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-            gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        }
+    var currHeight, li;
+    if (layerSlice) {
+        li = layerSlice[0];
+        currHeight = li._height;
+    } else {
+        currHeight = 0;
     }
 
-    // this.node.hasNeighbor[0] = false;
-    // this.node.hasNeighbor[1] = false;
-    // this.node.hasNeighbor[2] = false;
-    // this.node.hasNeighbor[3] = false;
-};
+    var n = 0,
+        i = 0;
 
-Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-    if (this.ready) {
-        var gl = this.handler.gl;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
+    var notEmpty = false;
 
-        var pm = this.materials,
-            p = this.planet;
+    while (li) {
+        if (this.layerOverlap(li) &&
+            (li._fading && li._fadingOpacity > 0.0 ||
+                li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom)) {
 
-        var currHeight, li;
-        if (layerSlice) {
-            li = layerSlice[0];
-            currHeight = li._height;
-        } else {
-            currHeight = 0;
-        }
-
-        //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-        gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE + 2);
-
-        var n = 0,
-            i = 0;
-
-        var notEmpty = false;
-
-        var slice = this._renderingSlices[sliceIndex];
-
-        if (!slice) {
-            slice = this._renderingSlices[sliceIndex] = new _RenderingSlice(p);
-        } else {
-            slice.layers = [];
-        }
-
-        this._indexBuffer = this._getIndexBuffer();
-
-        while (li) {
-            if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
-                notEmpty = true;
-                var m = pm[li._id];
-                if (!m) {
-                    m = pm[li._id] = li.createMaterial(this);
-                }
-
-                slice.layers.push(li);
-
-                var n4 = n * 4,
-                    n3 = n * 3;
-
-                var arr = li.applyMaterial(m);
-                slice.tileOffsetArr[n4] = arr[0];
-                slice.tileOffsetArr[n4 + 1] = arr[1];
-                slice.tileOffsetArr[n4 + 2] = arr[2];
-                slice.tileOffsetArr[n4 + 3] = arr[3];
-
-                arr = this._getLayerExtentOffset(li);
-                slice.visibleExtentOffsetArr[n4] = arr[0];
-                slice.visibleExtentOffsetArr[n4 + 1] = arr[1];
-                slice.visibleExtentOffsetArr[n4 + 2] = arr[2];
-                slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
-
-                slice.transparentColorArr[n4] = li.transparentColor[0];
-                slice.transparentColorArr[n4 + 1] = li.transparentColor[1];
-                slice.transparentColorArr[n4 + 2] = li.transparentColor[2];
-                slice.transparentColorArr[n4 + 3] = li.opacity;
-
-                p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
-                p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
-                p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
-
-                p._ambientMaterialArr[n3 + 3] = li.ambient.x;
-                p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
-                p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
-
-                p._specularMaterialArr[n4 + 4] = li.specular.x;
-                p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
-                p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
-                p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
-
-                p._samplerArr[n] = n;
-
-                gl.activeTexture(gl.TEXTURE0 + n);
-                gl.bindTexture(gl.TEXTURE_2D, m.texture || p.transparentTexture);
-
-                n++;
-            }
-            i++;
-            li = layerSlice[i];
-        }
-
-        if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, n);
-            gl.uniform1f(shu.height, currHeight);
-            gl.uniform1iv(shu.samplerArr, p._samplerArr);
-            gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
-            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
-            gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
-
-            //bind normalmap texture
-            if (p.lightEnabled) {
-                gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
-                gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || p.transparentTexture);
-                gl.uniform1i(shu.uNormalMap, p.SLICE_SIZE + 3);
-
-                gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
-
-                //bind segment specular and night material texture coordinates
-                gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
-
-                gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
-                gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
-                gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
-            }
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        }
-    }
-
-    // this.node.hasNeighbor[0] = false;
-    // this.node.hasNeighbor[1] = false;
-    // this.node.hasNeighbor[2] = false;
-    // this.node.hasNeighbor[3] = false;
-};
-
-Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-    if (this.ready) {
-        var gl = this.handler.gl;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
-
-        var pm = this.materials,
-            p = this.planet;
-
-        var currHeight;
-        if (layerSlice) {
-            currHeight = layerSlice[0]._height;
-        } else {
-            currHeight = 0;
-        }
-
-        var notEmpty = false;
-
-        var slice = this._renderingSlices[sliceIndex];
-
-        for (var n = 0; n < slice.layers.length; n++) {
             notEmpty = true;
+            var m = pm[li._id];
 
-            var li = slice.layers[n];
-            var n4 = n * 4;
+            if (!m) {
+                m = pm[li._id] = li.createMaterial(this);
+            }
+
+            var n4 = n * 4,
+                n3 = n * 3;
+
+            var arr = li.applyMaterial(m);
+            p._tileOffsetArr[n4] = arr[0];
+            p._tileOffsetArr[n4 + 1] = arr[1];
+            p._tileOffsetArr[n4 + 2] = arr[2];
+            p._tileOffsetArr[n4 + 3] = arr[3];
+
+            arr = this._getLayerExtentOffset(li);
+            p._visibleExtentOffsetArr[n4] = arr[0];
+            p._visibleExtentOffsetArr[n4 + 1] = arr[1];
+            p._visibleExtentOffsetArr[n4 + 2] = arr[2];
+            p._visibleExtentOffsetArr[n4 + 3] = arr[3];
+
+            p._transparentColorArr[n4] = li.transparentColor[0];
+            p._transparentColorArr[n4 + 1] = li.transparentColor[1];
+            p._transparentColorArr[n4 + 2] = li.transparentColor[2];
+            p._transparentColorArr[n4 + 3] = li._fadingOpacity;
 
             p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
             p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
             p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
             p._pickingColorArr[n4 + 3] = li._pickingEnabled;
 
+            p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
+            p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
+            p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
+
+            p._ambientMaterialArr[n3 + 3] = li.ambient.x;
+            p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
+            p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
+
+            p._specularMaterialArr[n4 + 4] = li.specular.x;
+            p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
+            p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
+            p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
+
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
-            gl.bindTexture(gl.TEXTURE_2D, pm[li._id].texture || this.planet.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, m.texture && gl.isTexture(m.texture) && m.texture || this.planet.transparentTexture);
+
 
             p._pickingMaskArr[n] = n + p.SLICE_SIZE;
             gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, pm[li._id].pickingMask || this.planet.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, m.pickingMask && gl.isTexture(m.pickingMask) && m.pickingMask || this.planet.transparentTexture);
+
+            n++;
+        }
+        i++;
+        li = layerSlice[i];
+    }
+
+    if (notEmpty || !isOverlay) {
+
+        //bind normalmap texture
+        if (p.lightEnabled) {
+            gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
+            gl.activeTexture(gl.TEXTURE0 + (p.SLICE_SIZE << 1) + 3);
+            gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
+            gl.uniform1i(shu.uNormalMap, (p.SLICE_SIZE << 1) + 3);
+
+            //bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
+
+            gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
+            gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
+            gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
         }
 
-        if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, n);
-            gl.uniform1f(shu.height, currHeight);
-            gl.uniform1iv(shu.samplerArr, p._samplerArr);
-            gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
-            gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
-            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
-            gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
-            gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+        gl.uniform1i(shu.samplerCount, n);
+        gl.uniform1f(shu.height, currHeight);
+        gl.uniform1iv(shu.samplerArr, p._samplerArr);
+        gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
+        gl.uniform4fv(shu.tileOffsetArr, p._tileOffsetArr);
+        gl.uniform4fv(shu.visibleExtentOffsetArr, p._visibleExtentOffsetArr);
+        gl.uniform4fv(shu.transparentColorArr, p._transparentColorArr);
+        gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        }
+        var _indexBuffer = this._getIndexBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
+        gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 
-Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-    if (this.ready) {
-        var gl = this.handler.gl;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
+Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
+    var gl = this.handler.gl;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
 
-        var pm = this.materials,
-            p = this.planet;
+    var pm = this.materials,
+        p = this.planet;
 
-        //First always draw whole planet base layer segment with solid texture.
-        gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
-        gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
-        gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE);
+    var currHeight, li;
+    if (layerSlice) {
+        li = layerSlice[0];
+        currHeight = li._height;
+    } else {
+        currHeight = 0;
+    }
 
-        var currHeight;
-        if (layerSlice) {
-            currHeight = layerSlice[0]._height;
-        } else {
-            currHeight = 0;
-        }
+    //First always draw whole planet base layer segment with solid texture.
+    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
+    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+    gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE + 2);
 
-        var n = 0;
+    var n = 0,
+        i = 0;
 
-        var slice = this._renderingSlices[sliceIndex];
+    var notEmpty = false;
 
-        var notEmpty = false;
+    var slice = this._renderingSlices[sliceIndex];
 
-        for (n = 0; n < slice.layers.length; n++) {
+    if (!slice) {
+        slice = this._renderingSlices[sliceIndex] = new _RenderingSlice(p);
+    } else {
+        slice.layers = [];
+    }
+
+    this._indexBuffer = this._getIndexBuffer();
+
+    while (li) {
+        if (this.layerOverlap(li) && li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom) {
             notEmpty = true;
+            var m = pm[li._id];
+            if (!m) {
+                m = pm[li._id] = li.createMaterial(this);
+            }
+
+            slice.layers.push(li);
+
+            var n4 = n * 4,
+                n3 = n * 3;
+
+            var arr = li.applyMaterial(m);
+            slice.tileOffsetArr[n4] = arr[0];
+            slice.tileOffsetArr[n4 + 1] = arr[1];
+            slice.tileOffsetArr[n4 + 2] = arr[2];
+            slice.tileOffsetArr[n4 + 3] = arr[3];
+
+            arr = this._getLayerExtentOffset(li);
+            slice.visibleExtentOffsetArr[n4] = arr[0];
+            slice.visibleExtentOffsetArr[n4 + 1] = arr[1];
+            slice.visibleExtentOffsetArr[n4 + 2] = arr[2];
+            slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
+
+            slice.transparentColorArr[n4] = li.transparentColor[0];
+            slice.transparentColorArr[n4 + 1] = li.transparentColor[1];
+            slice.transparentColorArr[n4 + 2] = li.transparentColor[2];
+            slice.transparentColorArr[n4 + 3] = li.opacity;
+
+            p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
+            p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
+            p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
+
+            p._ambientMaterialArr[n3 + 3] = li.ambient.x;
+            p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
+            p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
+
+            p._specularMaterialArr[n4 + 4] = li.specular.x;
+            p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
+            p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
+            p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
+
             p._samplerArr[n] = n;
+
             gl.activeTexture(gl.TEXTURE0 + n);
-            gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || p.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, m.texture || p.transparentTexture);
+
+            n++;
+        }
+        i++;
+        li = layerSlice[i];
+    }
+
+    if (notEmpty || !isOverlay) {
+        gl.uniform1i(shu.samplerCount, n);
+        gl.uniform1f(shu.height, currHeight);
+        gl.uniform1iv(shu.samplerArr, p._samplerArr);
+        gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+        gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+        gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
+
+        //bind normalmap texture
+        if (p.lightEnabled) {
+            gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
+            gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || p.transparentTexture);
+            gl.uniform1i(shu.uNormalMap, p.SLICE_SIZE + 3);
+
+            gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
+
+            //bind segment specular and night material texture coordinates
+            gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
+
+            gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
+            gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
+            gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
         }
 
-        if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, n);
-            gl.uniform1f(shu.height, currHeight);
-            gl.uniform1iv(shu.samplerArr, p._samplerArr);
-            gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
-            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
-            gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            //gl.vertexAttribPointer(sha.aTextureCoord, this.vertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-            gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        }
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    }
+
+};
+
+Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
+
+    var gl = this.handler.gl;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var pm = this.materials,
+        p = this.planet;
+
+    var currHeight;
+    if (layerSlice) {
+        currHeight = layerSlice[0]._height;
+    } else {
+        currHeight = 0;
+    }
+
+    var notEmpty = false;
+
+    var slice = this._renderingSlices[sliceIndex];
+
+    for (var n = 0; n < slice.layers.length; n++) {
+        notEmpty = true;
+
+        var li = slice.layers[n];
+        var n4 = n * 4;
+
+        p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
+        p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
+        p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
+        p._pickingColorArr[n4 + 3] = li._pickingEnabled;
+
+        p._samplerArr[n] = n;
+        gl.activeTexture(gl.TEXTURE0 + n);
+        gl.bindTexture(gl.TEXTURE_2D, pm[li._id].texture || this.planet.transparentTexture);
+
+        p._pickingMaskArr[n] = n + p.SLICE_SIZE;
+        gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
+        gl.bindTexture(gl.TEXTURE_2D, pm[li._id].pickingMask || this.planet.transparentTexture);
+    }
+
+    if (notEmpty || !isOverlay) {
+        gl.uniform1i(shu.samplerCount, n);
+        gl.uniform1f(shu.height, currHeight);
+        gl.uniform1iv(shu.samplerArr, p._samplerArr);
+        gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
+        gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+        gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+        gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
+        gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    }
+
+};
+
+Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
+
+    var gl = this.handler.gl;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var pm = this.materials,
+        p = this.planet;
+
+    //First always draw whole planet base layer segment with solid texture.
+    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
+    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
+    gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE);
+
+    var currHeight;
+    if (layerSlice) {
+        currHeight = layerSlice[0]._height;
+    } else {
+        currHeight = 0;
+    }
+
+    var n = 0;
+
+    var slice = this._renderingSlices[sliceIndex];
+
+    var notEmpty = false;
+
+    for (n = 0; n < slice.layers.length; n++) {
+        notEmpty = true;
+        p._samplerArr[n] = n;
+        gl.activeTexture(gl.TEXTURE0 + n);
+        gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || p.transparentTexture);
+    }
+
+    if (notEmpty || !isOverlay) {
+        gl.uniform1i(shu.samplerCount, n);
+        gl.uniform1f(shu.height, currHeight);
+        gl.uniform1iv(shu.samplerArr, p._samplerArr);
+        gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+        gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+        gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 
