@@ -63,7 +63,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {number}
          */
-        this.minZoom = options.minZoom || 5;
+        this.minZoom = options.minZoom || 3;
 
         /**
          * Maximal visible zoom index when terrain handler works.

@@ -194,6 +194,9 @@ const Segment = function (node, planet, tileZoom, extent) {
     this._indexBuffer = null;
 
     this.readyToEngage = false;
+
+    //TODO:rename
+    this.proceed = false;
 };
 
 /**
@@ -348,7 +351,7 @@ Segment.prototype._createTerrainFromChildNodes = function () {
         if (!this.ready) {
             this.createPlainSegment();
         } else {
-            this.initializePlainSegment();
+            this.initialize();
         }
 
         let fgs = terrain.fileGridSize;
@@ -480,10 +483,7 @@ Segment.prototype.engage = function () {
                     v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
                     v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
                 }
-            } else {
-
             }
-
         }
 
         if (n[E].length) {
@@ -1019,14 +1019,13 @@ Segment.prototype._assignTileIndexes = function () {
     this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
 };
 
-Segment.prototype.initializePlainSegment = function () {
+Segment.prototype.initialize = function () {
 
     var p = this.planet;
     var n = this.node;
-    n.sideSize[0] = n.sideSize[1] =
-        n.sideSize[2] = n.sideSize[3] =
+
+    n.sideSize[0] = n.sideSize[1] = n.sideSize[2] = n.sideSize[3] =
         this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom];
-    this.initialized = true;
 
     if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;
@@ -1041,11 +1040,13 @@ Segment.prototype.initializePlainSegment = function () {
     this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
     this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+
+    this.initialized = true;
 };
 
 Segment.prototype.createPlainSegment = function () {
 
-    this.initializePlainSegment();
+    this.initialize();
 
     this.createPlainVertices();
 
@@ -1116,9 +1117,9 @@ Segment.prototype.createPlainVertices = function () {
             }
         }
 
-        if (this.tileZoom < this.planet.terrain.minZoom) {
-            this.terrainVertices = verts;
-        }
+        //if (this.tileZoom < this.planet.terrain.minZoom) {
+        this.terrainVertices = verts;
+        //}
 
         //store raw normals
         this.normalMapNormalsRaw = new Float32Array(nmNorms.length);

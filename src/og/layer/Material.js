@@ -30,17 +30,15 @@ Material.prototype.abortLoading = function () {
 };
 
 Material.prototype.applyImage = function (img) {
-    if (this.segment.ready) {
-        this._updateTexture = null;
+    this._updateTexture = null;
 
-        this.image = img;
-        this.texture = this.segment.handler.createTexture(img);
-        this.appliedNodeId = this.segment.node.nodeId;
-        this.isReady = true;
-        this.pickingReady = true;
-        this.textureExists = true;
-        this.isLoading = false;
-    }
+    this.image = img;
+    this.texture = this.segment.handler.createTexture(img);
+    this.appliedNodeId = this.segment.node.nodeId;
+    this.isReady = true;
+    this.pickingReady = true;
+    this.textureExists = true;
+    this.isLoading = false;
 };
 
 Material.prototype.applyTexture = function (texture, pickingMask) {

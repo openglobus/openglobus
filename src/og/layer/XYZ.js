@@ -148,7 +148,9 @@ class XYZ extends Layer {
                 this._planet._tileLoader.load({
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',
-                    'filter': () => seg.ready && seg.node.getState() === RENDERING,
+                    'filter': () => {
+                        return seg.initialized && seg.node.getState() === RENDERING
+                    },
                     'options': {}
                 }, (response) => {
                     if (response.status === "ready") {
