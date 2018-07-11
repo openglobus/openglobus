@@ -56,6 +56,7 @@ Loader.prototype._exec = function () {
                     q.callback({ 'status': "error", 'msg': err.toString() });
                     this._exec();
                 });
+
         } else {
             q.callback({ 'status': "abort" });
             this._exec();

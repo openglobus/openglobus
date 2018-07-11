@@ -141,6 +141,7 @@ class XYZ extends Layer {
         }
 
         if (this._planet.layerLock.isFree()) {
+            
             material.isReady = false;
             material.isLoading = true;
 
@@ -148,9 +149,7 @@ class XYZ extends Layer {
                 this._planet._tileLoader.load({
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',
-                    'filter': () => {
-                        return seg.initialized && seg.node.getState() === RENDERING
-                    },
+                    'filter': () => seg.initialized && seg.node.getState() === RENDERING,
                     'options': {}
                 }, (response) => {
                     if (response.status === "ready") {

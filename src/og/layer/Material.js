@@ -30,35 +30,37 @@ Material.prototype.abortLoading = function () {
 };
 
 Material.prototype.applyImage = function (img) {
-    this._updateTexture = null;
-
-    this.image = img;
-    this.texture = this.segment.handler.createTexture(img);
-    this.appliedNodeId = this.segment.node.nodeId;
-    this.isReady = true;
-    this.pickingReady = true;
-    this.textureExists = true;
-    this.isLoading = false;
+    if (this.segment.initialized) {
+        this._updateTexture = null;
+        this.image = img;
+        this.texture = this.segment.handler.createTexture(img);
+        this.appliedNodeId = this.segment.node.nodeId;
+        this.isReady = true;
+        this.pickingReady = true;
+        this.textureExists = true;
+        this.isLoading = false;
+    }
 };
 
 Material.prototype.applyTexture = function (texture, pickingMask) {
-
-    this.texture = texture;
-    this._updateTexture = null;
-
-    this.pickingMask = pickingMask || null;
-    this._updatePickingMask = null;
-
-    this.isReady = true;
-    this.pickingReady = true;
-    this.textureExists = true;
-    this.isLoading = false;
-    this.appliedNodeId = this.segment.node.nodeId;
+    if (this.segment.initialized) {
+        this.texture = texture;
+        this._updateTexture = null;
+        this.pickingMask = pickingMask || null;
+        this._updatePickingMask = null;
+        this.isReady = true;
+        this.pickingReady = true;
+        this.textureExists = true;
+        this.isLoading = false;
+        this.appliedNodeId = this.segment.node.nodeId;
+    }
 };
 
 Material.prototype.textureNotExists = function () {
-    this.isLoading = true;
-    this.textureExists = false;
+    if (this.initialized) {
+        this.isLoading = true;
+        this.textureExists = false;
+    }
 };
 
 Material.prototype.clear = function () {
