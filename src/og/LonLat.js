@@ -6,6 +6,19 @@
 
 import * as mercator from './mercator.js';
 
+const HALF_PI = Math.PI * 0.5;
+
+const PI_BY_180 = Math.PI / 180.0;
+
+const INV_PI_BY_180 = 180.0 / Math.PI;
+
+const INV_PI_BY_360 = INV_PI_BY_180 * 2.0;
+
+const PI_BY_360 = Math.PI / 360.0;
+
+const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
+
+
 /**
  * Represents a geographical point with a certain latitude, longitude and height.
  * @class
@@ -56,7 +69,7 @@ LonLat.join = function (arr) {
  * Creates an object by coordinate array.
  * @static
  * @param {Array.<number,number,number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.createFromArray = function (arr) {
     return new LonLat(arr[0], arr[1], arr[2]);
@@ -68,12 +81,12 @@ LonLat.createFromArray = function (arr) {
  * @param {number} lon - Degrees longitude.
  * @param {number} lat - Degrees latitude.
  * @param {number} [height] - Height.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.forwardMercator = function (lon, lat, height) {
-    var x = lon * mercator.POLE / 180;
-    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * mercator.POLE;
-    return new LonLat(x, y, height);
+    return new LonLat(lon * mercator.POLE_BY_180,
+        Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
+        height);
 };
 
 /**
@@ -82,12 +95,12 @@ LonLat.forwardMercator = function (lon, lat, height) {
  * @param {number} x - Mercator longitude.
  * @param {number} y - Mercator latitude.
  * @param {number} [height] - Height.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.inverseMercator = function (x, y, height) {
-    var lon = 180 * x / mercator.POLE;
-    var lat = 180 / Math.PI * (2 * Math.atan(Math.exp((y / mercator.POLE) * Math.PI)) - Math.PI / 2);
-    return new LonLat(lon, lat, height);
+    return new LonLat(x * mercator.INV_POLE_BY_180,
+        INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
+        height);
 };
 
 /**
@@ -96,7 +109,7 @@ LonLat.inverseMercator = function (x, y, height) {
  * @param {number} [lon] - Longitude.
  * @param {number} [lat] - Latitude.
  * @param {number} [height] - Height.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.prototype.set = function (lon, lat, height) {
     this.lon = lon || 0;
@@ -109,7 +122,7 @@ LonLat.prototype.set = function (lon, lat, height) {
  * Copy coordinates.
  * @public
  * @param {og.LonLat} [lonLat] - Coordinates to copy.
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.prototype.copy = function (lonLat) {
     this.lon = lonLat.lon;
@@ -121,7 +134,7 @@ LonLat.prototype.copy = function (lonLat) {
 /**
  * Clone the coordiante.
  * @public
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.prototype.clone = function () {
     return new LonLat(this.lon, this.lat, this.height);
@@ -130,7 +143,7 @@ LonLat.prototype.clone = function () {
 /**
  * Converts to mercator coordinates.
  * @public
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.prototype.forwardMercator = function () {
     return LonLat.forwardMercator(this.lon, this.lat, this.height);
@@ -144,15 +157,15 @@ LonLat.prototype.forwardMercatorEPS01 = function () {
         lat = -89.9;
     }
     return new LonLat(
-        this.lon * mercator.POLE / 180,
-        Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * mercator.POLE);
+        this.lon * mercator.POLE_BY_180,
+        Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI);
 };
 
 
 /**
  * Converts from mercator coordinates.
  * @public
- * @returns {og.LonLat}
+ * @returns {og.LonLat} -
  */
 LonLat.prototype.inverseMercator = function () {
     return LonLat.inverseMercator(this.lon, this.lat, this.height);
@@ -162,13 +175,13 @@ LonLat.prototype.inverseMercator = function () {
  * Compares coordinates.
  * @public
  * @param {og.LonLat} b - Coordinate to compare with.
- * @returns {boolean}
+ * @returns {boolean} -
  */
 LonLat.prototype.equal = function (b) {
     if (b.height) {
-        return this.lon == b.lon && this.lat == b.lat && this.height == b.height;
+        return this.lon === b.lon && this.lat === b.lat && this.height === b.height;
     } else {
-        return this.lon == b.lon && this.lat == b.lat;
+        return this.lon === b.lon && this.lat === b.lat;
     }
 };
 

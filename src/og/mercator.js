@@ -11,6 +11,22 @@
  */
 export const POLE = 20037508.34;
 
+export const PI_BY_POLE = Math.PI / POLE;
+
+export const POLE_BY_PI = POLE / Math.PI;
+
+const HALF_PI = Math.PI * 0.5;
+
+export const POLE_BY_180 = POLE / 180.0;
+
+export const INV_POLE_BY_180 = 180.0 / POLE;
+
+const PI_BY_360 = Math.PI / 360.0;
+
+const PI_BY_180 = Math.PI / 180.0;
+
+const INV_PI_BY_180 = 180.0 / Math.PI;
+
 /**
  * Double mercator size.
  * @const
@@ -29,7 +45,7 @@ export const ONE_BY_POLE_DOUBLE = 1.0 / POLE_DOUBLE;
  * Converts degrees longitude to mercator coordinate.
  * @function
  * @param {number} lon - Degrees geodetic longitude.
- * @returns {number}
+ * @returns {number} -
  */
 export function forward_lon(lon) {
     return lon * POLE / 180;
@@ -39,17 +55,17 @@ export function forward_lon(lon) {
  * Converts degrees latitude to mercator coordinate.
  * @function
  * @param {number} lat - Degrees geodetic latitude.
- * @returns {number}
+ * @returns {number} -
  */
 export function forward_lat(lat) {
-    return Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * POLE;
+    return Math.log(Math.tan((90 + lat) * PI_BY_360)) * POLE_BY_PI;
 };
 
 /**
  * Converts mercator longitude to degrees coordinate.
  * @function
  * @param {number} lon - Mercator longitude.
- * @returns {number}
+ * @returns {number} -
  */
 export function inverse_lon(lon) {
     return 180 * lon / POLE;
@@ -59,10 +75,10 @@ export function inverse_lon(lon) {
  * Converts mercator latitude to degrees coordinate.
  * @function
  * @param {number} lon - Mercator latitude.
- * @returns {number}
+ * @returns {number} -
  */
 export function inverse_lat(lat) {
-    return 180 / Math.PI * (2 * Math.atan(Math.exp((lat / POLE) * Math.PI)) - Math.PI / 2);
+    return INV_PI_BY_180 * (2.0 * Math.atan(Math.exp(lat * PI_BY_POLE)) - HALF_PI);
 };
 
 /**
@@ -74,7 +90,7 @@ export function inverse_lat(lat) {
  * @returns {number}
  */
 export function getTileX(lon, zoom) {
-    return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+    return Math.floor((lon + 180) / 360.0 * Math.pow(2, zoom));
 };
 
 /**
@@ -86,7 +102,7 @@ export function getTileX(lon, zoom) {
  * @returns {number}
  */
 export function getTileY(lat, zoom) {
-    return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+    return Math.floor((1.0 - Math.log(Math.tan(lat * PI_BY_180) + 1.0 / Math.cos(lat * PI_BY_180)) / Math.PI) * 0.5 * Math.pow(2, zoom));
 };
 
 /**
