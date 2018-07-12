@@ -21,7 +21,7 @@ class PlainSegmentWorker {
 
             w.onmessage = function (e) {
 
-                _this._segments[e.data.id]._terrainWorkerCallback(e.data);
+                _this._segments[e.data.id]._plainSegmentWorkerCallback(e.data);
                 _this._segments[e.data.id] = null;
                 delete _this._segments[e.data.id];
 
@@ -52,9 +52,24 @@ class PlainSegmentWorker {
 
                 this._segments[this._id] = segment;
 
+                let params = new Float64Array([
+                    segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
+                    segment.planet.terrain.fileGridSize,
+                    segment._extent.southWest.lon,
+                    segment._extent.southWest.lat,
+                    segment._extent.northEast.lon,
+                    segment._extent.northEast.lat,
+                    segment.planet.ellipsoid._invRadii2,
+                    segment.planet.ellipsoid._e2,
+                    segment.planet.ellipsoid._a
+                ]);
+
                 w.postMessage({
-                    'id': this._id++
-                }, []);
+                    'id': this._id++,
+                    'params': params
+                }, [
+                    params.buffer
+                ]);
 
             } else {
                 this._pendingQueue.push(segment);
@@ -101,40 +116,34 @@ const _programm =
     };
 
     self.onmessage = function (msg) {
-
-        let id = e.data.id;
         
-        let gridSize = e.data.params[GRIDSIZE],//this.planet.terrain.gridSizeByZoom[this.tileZoom];
-            fgs = e.data.params[FILEGRIDSIZE],//this.planet.terrain.fileGridSize
-            e = e.data.params[SWLON, SWLAT, NELON, NELAT],
-            r2 = e.data.params[INVRADII2],//this.planet.ellipsoid._invRadii2,
-            e2 = e.data.params[E2],//this.planet.ellipsoid._e2
-            a = e.data.params[A];//this.planet.ellipsoid._a
+        let gridSize = msg.data.params[0],
+            fgs = msg.data.params[1],
+            //e = [msg.data.params[2], msg.data.params[3], msg.data.params[4], msg.data.params[5]],
+            r2 = msg.data.params[6],
+            e2 = msg.data.params[7],
+            a = msg.data.params[8];
 
-        let lonSize = e.getWidth();
+        let lonSize = msg.data.params[4] - msg.data.params[2];
         let llStep = lonSize / Math.max(fgs, gridSize);
-        let esw_lon = e.southWest.lon,
-            ene_lat = e.northEast.lat;
+
+        let esw_lon = msg.data.params[2],
+            ene_lat = msg.data.params[5];
+
         let dg = Math.max(fgs / gridSize, 1),
             gs = Math.max(fgs, gridSize) + 1;
-
-        let ind = 0,
-            nmInd = 0;
             
         const gsgs = gs * gs;
 
-        let gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
         let plainNormals = new Float32Array(gridSize3);
         let plainVertices = new Float32Array(gridSize3);
-
         let normalMapNormals = new Float32Array(gsgs * 3);
         let normalMapVertices = new Float32Array(gsgs * 3);
 
-        let verts = plainVertices,
-            norms = plainNormals,
-            nmVerts = normalMapVertices,
-            nmNorms = normalMapNormals;
+        let ind = 0,
+            nmInd = 0;
 
         for (let k = 0; k < gsgs; k++) {
 
@@ -143,39 +152,50 @@ const _programm =
 
             let v = lonLatToCartesian(inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep), e2, a);
             let nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
-            let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            let nxl = nx * l, nyl = ny * l, nzl = nz * l;
+            let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);            
+            let nxl = nx * l,
+                nyl = ny * l,
+                nzl = nz * l;
 
-            nmVerts[nmInd] = v.x;
-            nmNorms[nmInd++] = nxl;
+            normalMapVertices[nmInd] = v.x;
+            normalMapNormals[nmInd++] = nxl;
 
-            nmVerts[nmInd] = v.y;
-            nmNorms[nmInd++] = nyl;
+            normalMapVertices[nmInd] = v.y;
+            normalMapNormals[nmInd++] = nyl;
 
-            nmVerts[nmInd] = v.z;
-            nmNorms[nmInd++] = nzl;
+            normalMapVertices[nmInd] = v.z;
+            normalMapNormals[nmInd++] = nzl;
 
             if (i % dg === 0 && j % dg === 0) {
-                verts[ind] = v.x;
-                norms[ind++] = nxl;
+                plainVertices[ind] = v.x;
+                plainNormals[ind++] = nxl;
 
-                verts[ind] = v.y;
-                norms[ind++] = nyl;
+                plainVertices[ind] = v.y;
+                plainNormals[ind++] = nyl;
 
-                verts[ind] = v.z;
-                norms[ind++] = nzl;
+                plainVertices[ind] = v.z;
+                plainNormals[ind++] = nzl;
             }
         }
 
-        let terrainVertices = verts;
-
         //store raw normals
-        let normalMapNormalsRaw = new Float32Array(nmNorms.length);
-        normalMapNormalsRaw.set(nmNorms);
+        let normalMapNormalsRaw = new Float32Array(normalMapNormals.length);
+        normalMapNormalsRaw.set(normalMapNormals);
 
         self.postMessage({
-            'id': id
-        });
+            id: msg.data.id,
+            plainVertices: plainVertices,
+            plainNormals: plainNormalsm
+            normalMapNormals: normalMapNormals,
+            normalMapVertices: normalMapVertices,
+            normalMapNormalsRaw: normalMapNormalsRaw
+         }, [
+            plainVertices.buffer,
+            plainNormals.buffer,
+            normalMapNormals.buffer,
+            normalMapVertices.buffer,
+            normalMapNormalsRaw.buffer
+        ]);
     }`;
 
 export { PlainSegmentWorker };

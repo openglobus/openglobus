@@ -536,6 +536,13 @@ Segment.prototype.engage = function () {
     this.createCoordsBuffers(this.terrainVertices, tgs);
 };
 
+Segment.prototype._plainSegmentWorkerCallback = function(data){
+    if (this.initialized) {
+        this.terrainVertices = data.plainVertices;
+        this.ready = true;
+    }
+};
+
 Segment.prototype._terrainWorkerCallback = function (data) {
     if (this.ready) {
 
@@ -1044,14 +1051,14 @@ Segment.prototype.initialize = function () {
     this.initialized = true;
 };
 
-Segment.prototype.createPlainSegment = function () {
+// Segment.prototype.createPlainSegment = function () {
 
-    this.initialize();
+//     this.initialize();
 
-    this.createPlainVertices();
+//     this.createPlainVertices();
 
-    this.readyToEngage = true;
-};
+//     this.readyToEngage = true;
+// };
 
 //TODO: Let's move in to a webworker!
 Segment.prototype.createPlainVertices = function () {
