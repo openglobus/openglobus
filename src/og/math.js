@@ -107,7 +107,7 @@ export function clamp(number, min, max) {
  * @returns {number} -
  */
 export function DEG2RAD(degrees) {
-    return degrees * og.math.RADIANS;
+    return degrees * RADIANS;
 };
 
 /**
@@ -117,7 +117,7 @@ export function DEG2RAD(degrees) {
  * @returns {number} -
  */
 export function RAD2DEG(angle) {
-    return angle * og.math.DEGREES;
+    return angle * DEGREES;
 };
 
 /**
@@ -127,7 +127,7 @@ export function RAD2DEG(angle) {
  * @returns {boolean} -
  */
 export function isPowerOfTwo(x) {
-    return (x & (x - 1)) == 0;
+    return (x & (x - 1)) === 0;
 };
 
 /**

@@ -69,19 +69,21 @@ class Ellipsoid {
 
         var slt = Math.sin(latrad);
 
-        var N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
+        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
         var nc = (N + lonlat.height) * Math.cos(latrad);
 
         return new Vec3(
             nc * Math.sin(lonrad),
-            (N * (1 - this._e2) + lonlat.height) * slt,
+            (N * (1.0 - this._e2) + lonlat.height) * slt,
             nc * Math.cos(lonrad));
     }
 
     /**
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
-     * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {Number} lon - Longitude.
+     * @param {Number} lat - Latitude.
+     * @param {Number} height - Height.
      * @returns {og.math.Vector3} -
      */
     geodeticToCartesian(lon, lat, height) {
@@ -143,8 +145,10 @@ class Ellipsoid {
      */
     getSurfaceNormal3v(coord) {
         var r2 = this._invRadii2;
-        var nx = coord.x * r2.x, ny = coord.y * r2.y, nz = coord.z * r2.z;
-        var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var nx = coord.x * r2.x,
+            ny = coord.y * r2.y,
+            nz = coord.z * r2.z;
+        var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         return new Vec3(nx * l, ny * l, nz * l);
     }
 
@@ -157,8 +161,10 @@ class Ellipsoid {
      */
     getSurfaceHeight3v(coord, h) {
         var r2 = this._invRadii2;
-        var nx = coord.x * r2.x, ny = coord.y * r2.y, nz = coord.z * r2.z;
-        var l = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var nx = coord.x * r2.x,
+            ny = coord.y * r2.y,
+            nz = coord.z * r2.z;
+        var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         return new Vec3(coord.x + h * nx * l, coord.y + h * ny * l, coord.z + h * nz * l);
     }
 
