@@ -37,8 +37,7 @@ class PlainSegmentWorker {
 
     check() {
         if (this._pendingQueue.length) {
-            var p = this._pendingQueue.pop();
-            this.make(p.segment, p.elevations);
+            this.make(this._pendingQueue.pop());
         }
     }
 
@@ -59,9 +58,11 @@ class PlainSegmentWorker {
                     segment._extent.southWest.lat,
                     segment._extent.northEast.lon,
                     segment._extent.northEast.lat,
-                    segment.planet.ellipsoid._invRadii2,
                     segment.planet.ellipsoid._e2,
-                    segment.planet.ellipsoid._a
+                    segment.planet.ellipsoid._a,
+                    segment.planet.ellipsoid._invRadii2.x,
+                    segment.planet.ellipsoid._invRadii2.y,
+                    segment.planet.ellipsoid._invRadii2.z
                 ]);
 
                 w.postMessage({
@@ -91,8 +92,9 @@ const _programm =
     const INV_PI_BY_180 = 180.0 / Math.PI;
     const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
     const RADIANS = Math.PI / 180.0;
+    const INV_PI_BY_360 = INV_PI_BY_180 * 2.0;
 
-    function inverseMercator(lon,lat){
+    function inverseMercator(x, y){
         return {
             lon: x * INV_POLE_BY_180,
             lat: INV_PI_BY_360 * Math.atan(Math.exp(y * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI
@@ -120,9 +122,12 @@ const _programm =
         let gridSize = msg.data.params[0],
             fgs = msg.data.params[1],
             //e = [msg.data.params[2], msg.data.params[3], msg.data.params[4], msg.data.params[5]],
-            r2 = msg.data.params[6],
-            e2 = msg.data.params[7],
-            a = msg.data.params[8];
+            e2 = msg.data.params[6],
+            a = msg.data.params[7],
+            r2_x = msg.data.params[8],
+            r2_y = msg.data.params[9],
+            r2_z = msg.data.params[10];
+
 
         let lonSize = msg.data.params[4] - msg.data.params[2];
         let llStep = lonSize / Math.max(fgs, gridSize);
@@ -151,7 +156,7 @@ const _programm =
                 i = ~~(k / gs);
 
             let v = lonLatToCartesian(inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep), e2, a);
-            let nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+            let nx = v.x * r2_x, ny = v.y * r2_y, nz = v.z * r2_z;
             let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);            
             let nxl = nx * l,
                 nyl = ny * l,

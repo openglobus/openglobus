@@ -537,9 +537,18 @@ Segment.prototype.engage = function () {
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function(data){
+
     this.proceed = false;
+
     if (this.initialized) {
+
         this.terrainVertices = data.plainVertices;
+        this.plainVertices = data.plainVertices;
+        this.plainNormals= data.plainNormals;
+        this.normalMapVertices = data.normalMapVertices;
+        this.normalMapNormals = data.normalMapNormals;
+        this.normalMapNormalsRaw = data.normalMapNormalsRaw;
+
         this.plainReady = true;
     }
 };
@@ -1052,12 +1061,12 @@ Segment.prototype.initialize = function () {
     this.initialized = true;
 };
 
-//  Segment.prototype.createPlainSegment = function () {
-//     if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady && !this.proceed) {
-//         this.proceed = true;
-//         this.planet._plainSegmentWorker.make(this);
-//     }
-//  };
+ Segment.prototype.createPlainSegmentAsync = function () {
+    if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady && !this.proceed) {
+        this.proceed = true;
+        this.planet._plainSegmentWorker.make(this);
+    }
+ };
 
 Segment.prototype.createPlainSegment = function () {
     this.initialize();

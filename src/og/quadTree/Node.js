@@ -351,16 +351,16 @@ Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
     }
 };
 
-Node.prototype.execPlainVerticesCreator = function () {
-    var seg = this.segment;
-    if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.plainReady && !seg.proceed) {
-        seg.proceed = true;
-        setTimeout(function () {
-            seg.createPlainVertices();
-            seg.proceed = false;
-        }, 1000);
-    }
-};
+// Node.prototype.execPlainVerticesCreator = function () {
+//     var seg = this.segment;
+//     if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.plainReady && !seg.proceed) {
+//         seg.proceed = true;
+//         setTimeout(function () {
+//             seg.createPlainVertices();
+//             seg.proceed = false;
+//         }, 1000);
+//     }
+// };
 
 Node.prototype.renderNode = function (onlyTerrain) {
 
@@ -375,8 +375,8 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
         this.whileTerrainLoading();
 
-        this.execPlainVerticesCreator();
-        //seg.createPlainSegment();
+        //this.execPlainVerticesCreator();
+        seg.createPlainSegmentAsync();
 
         if (seg.plainReady) {
             seg.loadTerrain();
@@ -690,8 +690,8 @@ Node.prototype.whileTerrainLoading = function () {
                     pns.initialize();
                 }
 
-                pn.execPlainVerticesCreator();
-                //pn.segment.createPlainSegment();
+                //pn.execPlainVerticesCreator();
+                pn.segment.createPlainSegmentAsync();
 
                 if (pns.plainReady) {
                     pns.loadTerrain();
