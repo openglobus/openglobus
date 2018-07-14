@@ -165,7 +165,7 @@ class GlobusTerrain extends EmptyTerrain {
                         'src': this._getHTTPRequestString(segment),
                         'segment': segment,
                         'type': this._dataType,
-                        'filter': () => segment.ready && segment.node.getState() !== NOTRENDERING
+                        'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING
                     }, response => {
                         if (response.status === "ready") {
                             this._elevationCache[segment.tileIndex] = response.data;

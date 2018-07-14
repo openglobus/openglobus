@@ -353,7 +353,7 @@ Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
 
 Node.prototype.execPlainVerticesCreator = function () {
     var seg = this.segment;
-    if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.ready && !seg.proceed) {
+    if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.plainReady && !seg.proceed) {
         seg.proceed = true;
         setTimeout(function () {
             seg.createPlainVertices();
@@ -376,8 +376,9 @@ Node.prototype.renderNode = function (onlyTerrain) {
         this.whileTerrainLoading();
 
         this.execPlainVerticesCreator();
+        //seg.createPlainSegment();
 
-        if (seg.ready) {
+        if (seg.plainReady) {
             seg.loadTerrain();
         }
     }
@@ -550,7 +551,7 @@ Node.prototype.whileNormalMapCreating = function () {
             //     pn = pn.parentNode;
             // }
             // var pns = pn.segment;
-            // if (!pns.ready) {
+            // if (!pns.plainReady) {
             //     pns.createPlainSegment();
             //     pns.loadTerrain();
             // } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
@@ -690,8 +691,9 @@ Node.prototype.whileTerrainLoading = function () {
                 }
 
                 pn.execPlainVerticesCreator();
+                //pn.segment.createPlainSegment();
 
-                if (pns.ready) {
+                if (pns.plainReady) {
                     pns.loadTerrain();
                 }
             }

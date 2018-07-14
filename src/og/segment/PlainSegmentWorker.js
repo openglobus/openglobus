@@ -111,7 +111,7 @@ const _programm =
         return {
             'x': nc * Math.sin(lonrad),
             'y': N * (1.0 - e2) * slt,
-            'z': nc * Math.cos(lonrad));
+            'z': nc * Math.cos(lonrad)
         }
     };
 
@@ -185,7 +185,7 @@ const _programm =
         self.postMessage({
             id: msg.data.id,
             plainVertices: plainVertices,
-            plainNormals: plainNormalsm
+            plainNormals: plainNormals,
             normalMapNormals: normalMapNormals,
             normalMapVertices: normalMapVertices,
             normalMapNormalsRaw: normalMapNormalsRaw

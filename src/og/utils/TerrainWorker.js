@@ -42,7 +42,7 @@ class TerrainWorker {
 
     make(segment, elevations) {
 
-        if (segment.ready && segment.terrainIsLoading) {
+        if (segment.plainReady && segment.terrainIsLoading) {
 
             var _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);

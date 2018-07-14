@@ -133,7 +133,7 @@ SegmentLonLat.prototype.createPlainVertices = function () {
     this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360.0;
     this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
 
-    this.ready = true;
+    this.plainReady = true;
 };
 
 SegmentLonLat.prototype._collectVisibleNodes = function () {

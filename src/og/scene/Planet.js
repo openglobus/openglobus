@@ -27,6 +27,7 @@ import { PlanetCamera } from '../camera/PlanetCamera.js';
 import { RenderNode } from './RenderNode.js';
 import { Segment } from '../segment/Segment.js';
 import { SegmentLonLat } from '../segment/SegmentLonLat.js';
+import { PlainSegmentWorker } from '../segment/PlainSegmentWorker.js';
 import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
@@ -372,7 +373,9 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(4);
+        this._terrainWorker = new TerrainWorker(3);
+
+        this._plainSegmentWorker = new PlainSegmentWorker(2);
 
         this._tileLoader = new Loader(14);
 

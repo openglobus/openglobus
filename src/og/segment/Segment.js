@@ -131,7 +131,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      * Plain segment vertices was created.
      * @type {boolean}
      */
-    this.ready = false;
+    this.plainReady = false;
 
     /**
      * Segment is ready to create plain vertices.
@@ -348,7 +348,7 @@ Segment.prototype._createTerrainFromChildNodes = function () {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
             ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
 
-        if (!this.ready) {
+        if (!this.plainReady) {
             this.createPlainSegment();
         } else {
             this.initialize();
@@ -437,7 +437,7 @@ Segment.prototype._createTerrainFromChildNodes = function () {
         this.terrainExists = true;
         this.terrainIsLoading = false;
 
-        //seg.ready = true;
+        //seg.plainReady = true;
 
         let e = this._extent;
         this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
@@ -456,7 +456,7 @@ Segment.prototype._createTerrainFromChildNodes = function () {
  * @param {Float32Array} elevations - Elevation data.
  */
 Segment.prototype.elevationsExists = function (elevations) {
-    if (this.ready && this.terrainIsLoading) {
+    if (this.plainReady && this.terrainIsLoading) {
         this.planet._terrainWorker.make(this, elevations);
     }
 };
@@ -537,14 +537,15 @@ Segment.prototype.engage = function () {
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function(data){
+    this.proceed = false;
     if (this.initialized) {
         this.terrainVertices = data.plainVertices;
-        this.ready = true;
+        this.plainReady = true;
     }
 };
 
 Segment.prototype._terrainWorkerCallback = function (data) {
-    if (this.ready) {
+    if (this.plainReady) {
 
         this.readyToEngage = true;
 
@@ -588,7 +589,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 Segment.prototype.elevationsNotExists = function () {
     if (this.tileZoom <= this.planet.terrain.maxZoom) {
 
-        if (this.ready && this.terrainIsLoading) {
+        if (this.plainReady && this.terrainIsLoading) {
             this.terrainIsLoading = false;
 
             this.node.appliedTerrainNodeId = this.node.nodeId;
@@ -849,7 +850,7 @@ Segment.prototype.deleteElevations = function () {
  * Clear but not destroy segment data.
  */
 Segment.prototype.clearSegment = function () {
-    this.ready = false;
+    this.plainReady = false;
     this.initialized = false;
     this.deleteBuffers();
     this.deleteMaterials();
@@ -1051,14 +1052,18 @@ Segment.prototype.initialize = function () {
     this.initialized = true;
 };
 
-// Segment.prototype.createPlainSegment = function () {
+//  Segment.prototype.createPlainSegment = function () {
+//     if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady && !this.proceed) {
+//         this.proceed = true;
+//         this.planet._plainSegmentWorker.make(this);
+//     }
+//  };
 
-//     this.initialize();
-
-//     this.createPlainVertices();
-
-//     this.readyToEngage = true;
-// };
+Segment.prototype.createPlainSegment = function () {
+    this.initialize();
+    this.createPlainVertices();
+    this.readyToEngage = true;
+};
 
 //TODO: Let's move in to a webworker!
 Segment.prototype.createPlainVertices = function () {
@@ -1132,7 +1137,7 @@ Segment.prototype.createPlainVertices = function () {
         this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
         this.normalMapNormalsRaw.set(nmNorms);
 
-        this.ready = true;
+        this.plainReady = true;
     }
 };
 
