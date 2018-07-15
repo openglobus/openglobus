@@ -73,12 +73,15 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
     this.tileX = Math.round(Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
 
     var lat = extent.northEast.lat;
+
     if (lat > 0) {
         //north pole
         this._isNorth = true;
+        this._tileGroup = 1;
         this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
     } else {
         //south pole
+        this._tileGroup = 2;
         this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
     }
 
@@ -86,48 +89,6 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
 };
 
 SegmentLonLat.prototype._createPlainVertices = function () {
-    // var gridSize = this.gridSize;
-    // var ind = 0;
-    // var e = this._extent;
-    // var lonSize = e.getWidth();
-    // var latSize = e.getHeight();
-    // var llStep = lonSize / gridSize;
-    // var ltStep = latSize / gridSize;
-    // var esw_lon = e.southWest.lon,
-    //     ene_lat = e.northEast.lat;
-
-    // var r2 = this.planet.ellipsoid._invRadii2;
-
-    // this.plainNormals = new Float32Array((gridSize + 1) * (gridSize + 1) * 3);
-    // this.plainVertices = new Float32Array((gridSize + 1) * (gridSize + 1) * 3);
-
-    // var norms = this.plainNormals;
-    // var verts = this.plainVertices;
-
-    // for (var i = 0; i <= gridSize; i++) {
-    //     for (var j = 0; j <= gridSize; j++) {
-    //         var v = this.planet.ellipsoid.lonLatToCartesian(new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
-    //         var nx = v.x * r2.x,
-    //             ny = v.y * r2.y,
-    //             nz = v.z * r2.z;
-    //         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-    //         verts[ind] = v.x;
-    //         norms[ind++] = nx * l;
-
-    //         verts[ind] = v.y;
-    //         norms[ind++] = ny * l;
-
-    //         verts[ind] = v.z;
-    //         norms[ind++] = nz * l;
-    //     }
-    // }
-
-    // this.normalMapVertices = verts;
-    // this.normalMapNormals = norms;
-    // this.terrainVertices = verts;
-    // this.tempVertices = verts;
-
-    // this.plainReady = true;
 
     var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
@@ -164,7 +125,6 @@ SegmentLonLat.prototype._createPlainVertices = function () {
         var j = k % gs,
             i = ~~(k / gs);
 
-        //var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
         var v = this.planet.ellipsoid.lonLatToCartesian(new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
         var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
@@ -260,7 +220,6 @@ SegmentLonLat.prototype.getNodeState = function () {
     }
     return vn && vn.state || quadTree.NOTRENDERING;
 };
-
 
 SegmentLonLat.prototype._freeCache = function () {
     //empty for a time

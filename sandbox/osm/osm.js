@@ -63,7 +63,7 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),//new MapboxTerrain(),
-    'layers': [osm, tg]
+    'layers': [osm]
 });
 
 globe.planet.addControl(new DebugInfo());

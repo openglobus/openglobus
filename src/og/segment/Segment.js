@@ -45,6 +45,8 @@ var _RenderingSlice = function (p) {
  */
 const Segment = function (node, planet, tileZoom, extent) {
 
+    this._tileGroup = 0;
+
     this._projection = EPSG3857;
 
     /**
@@ -55,7 +57,7 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     /**
      * Planet pointer.
-     * @type {pg.node.RenderNode}
+     * @type {og.scene.Planet}
      */
     this.planet = planet;
 
@@ -76,6 +78,11 @@ const Segment = function (node, planet, tileZoom, extent) {
      * @type {og.bv.Sphere}
      */
     this.bsphere = new Sphere();
+
+    this._swNorm = null;
+    this._nwNorm = null;
+    this._seNorm = null;
+    this._neNorm = null;
 
     /**
      * Geographical extent.
@@ -941,6 +948,7 @@ Segment.prototype.createBoundsByExtent = function () {
         zmin = math.MAX, zmax = math.MIN;
 
     var coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
+    this._swNorm = coord.normal();
     var x = coord.x, y = coord.y, z = coord.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
@@ -950,6 +958,7 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z > zmax) zmax = z;
 
     coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+    this._nwNorm = coord.normal();
     x = coord.x; y = coord.y; z = coord.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
@@ -959,6 +968,7 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z > zmax) zmax = z;
 
     coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
+    this._neNorm = coord.normal();
     x = coord.x; y = coord.y; z = coord.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
@@ -968,6 +978,7 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z > zmax) zmax = z;
 
     coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+    this._seNorm = coord.normal();
     x = coord.x; y = coord.y; z = coord.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
@@ -1022,6 +1033,7 @@ Segment.prototype._addViewExtent = function () {
 };
 
 Segment.prototype._assignTileIndexes = function () {
+    this._tileGroup = 0;
     var tileZoom = this.tileZoom;
     var extent = this._extent;
     var pole = mercator.POLE;
@@ -1586,19 +1598,22 @@ Segment.prototype.getTileIndex = function () {
 };
 
 Segment.prototype.getNeighborSide = function (b) {
-    if (this.tileY === b.tileY) {
-        if (this.tileX === b.tileXE) {
-            return W;
-        } else if (this.tileX === b.tileXW) {
-            return E;
-        }
-    } else if (this.tileX === b.tileX) {
-        if (this.tileY === b.tileYS) {
-            return N;
-        } else if (this.tileY === b.tileYN) {
-            return S;
+    if (this._tileGroup === b._tileGroup) {
+        if (this.tileY === b.tileY) {
+            if (this.tileX === b.tileXE) {
+                return W;
+            } else if (this.tileX === b.tileXW) {
+                return E;
+            }
+        } else if (this.tileX === b.tileX) {
+            if (this.tileY === b.tileYS) {
+                return N;
+            } else if (this.tileY === b.tileYN) {
+                return S;
+            }
         }
     }
+
     return -1;
 };
 

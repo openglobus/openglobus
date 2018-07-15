@@ -118,7 +118,7 @@ Node.prototype.createBounds = function () {
 
     seg._setExtentLonLat();
 
-    if (!seg.tileZoom) {
+    if (seg.tileZoom === 0) {
 
         seg.bsphere.radius = seg.planet.ellipsoid._a;
         seg.bsphere.center = new Vec3();
@@ -135,29 +135,40 @@ Node.prototype.createBounds = function () {
             pn = pn.parentNode;
         }
 
-        let scale = this.segment.tileZoom - pn.segment.tileZoom,
-            dZ2 = 1 << scale;
+        let dZ2 = 1 << (this.segment.tileZoom - pn.segment.tileZoom);
 
         let offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
             offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
         if (pn.segment.terrainReady) {
+
             let gridSize = pn.segment.gridSize / dZ2;
-            if (gridSize >= 1) {
-                let pVerts = pn.segment.terrainVertices;
+
+            if (gridSize >= 1.0) {
+
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
+
                 let ind1 = 3 * (i0 * (pn.segment.gridSize + 1) + j0);
                 let ind2 = 3 * ((i0 + gridSize) * (pn.segment.gridSize + 1) + j0 + gridSize);
-                seg.bsphere.setFromBounds([pVerts[ind1], pVerts[ind2], pVerts[ind1 + 1], pVerts[ind2 + 1], pVerts[ind1 + 2], pVerts[ind2 + 2]]);
+
+                let pVerts = pn.segment.terrainVertices;
+
+                seg.bsphere.center.set(
+                    pVerts[ind1] + (pVerts[ind2] - pVerts[ind1]) * 0.5,
+                    pVerts[ind1 + 1] + (pVerts[ind2 + 1] - pVerts[ind1 + 1]) * 0.5,
+                    pVerts[ind1 + 2] + (pVerts[ind2 + 2] - pVerts[ind1 + 2]) * 0.5);
+
+                seg.bsphere.radius = seg.bsphere.center.distance(new Vec3(pVerts[ind1], pVerts[ind1 + 1], pVerts[ind1 + 2]));
+
             } else {
+
                 let pseg = pn.segment;
 
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
 
-                let insideSize = 1 / gridSize,
-                    fullSize = insideSize * pseg.gridSize;
+                let insideSize = 1.0 / gridSize;
 
                 let t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
@@ -294,10 +305,8 @@ Node.prototype.renderTree = function (maxZoom) {
 
     var inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
-    const h = cam._lonLat.height;
-
-    var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        3570.0 * Math.sqrt(h);
+    //TODO: check up *
+    const altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(cam._lonLat.height);
 
     if (inFrustum || this._cameraInside) {
 
@@ -308,7 +317,7 @@ Node.prototype.renderTree = function (maxZoom) {
 
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
 
-            this.prepareForRendering(h, altVis);
+            this.prepareForRendering(cam, altVis);
 
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
 
@@ -316,7 +325,7 @@ Node.prototype.renderTree = function (maxZoom) {
 
         } else {
 
-            this.prepareForRendering(h, altVis);
+            this.prepareForRendering(cam, altVis);
 
         }
 
@@ -324,7 +333,8 @@ Node.prototype.renderTree = function (maxZoom) {
         this.state = NOTRENDERING;
     }
 
-    if (this.state !== NOTRENDERING && inFrustum && (altVis || h > 10000.0)) {
+    //TODO: check up * and this
+    if (this.state !== NOTRENDERING && inFrustum && (altVis || cam._lonLat.height > 10000.0)) {
         seg._collectVisibleNodes();
     }
 };
@@ -339,15 +349,18 @@ Node.prototype.traverseNodes = function (maxZoom) {
     this.nodes[SE].renderTree(maxZoom);
 };
 
-Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
-    if (height < 12000000/*3000000.0*/) {
+Node.prototype.prepareForRendering = function (cam, altVis) {
+
+    const h = cam._lonLat.height;
+
+    if (h < 3000000.0) {
         if (altVis) {
-            this.renderNode(onlyTerrain);
+            this.renderNode();
         } else {
             this.state = NOTRENDERING;
         }
     } else {
-        this.renderNode(onlyTerrain);
+        this.renderNode();
     }
 };
 
