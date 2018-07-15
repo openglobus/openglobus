@@ -947,9 +947,8 @@ Segment.prototype.createBoundsByExtent = function () {
         ymin = math.MAX, ymax = math.MIN,
         zmin = math.MAX, zmax = math.MIN;
 
-    var coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
-    this._swNorm = coord.normal();
-    var x = coord.x, y = coord.y, z = coord.z;
+    var coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
+    var x = coord_sw.x, y = coord_sw.y, z = coord_sw.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
     if (y < ymin) ymin = y;
@@ -957,9 +956,8 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z < zmin) zmin = z;
     if (z > zmax) zmax = z;
 
-    coord = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
-    this._nwNorm = coord.normal();
-    x = coord.x; y = coord.y; z = coord.z;
+    var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+    x = coord_nw.x; y = coord_nw.y; z = coord_nw.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
     if (y < ymin) ymin = y;
@@ -967,9 +965,8 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z < zmin) zmin = z;
     if (z > zmax) zmax = z;
 
-    coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
-    this._neNorm = coord.normal();
-    x = coord.x; y = coord.y; z = coord.z;
+    var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
+    x = coord_ne.x; y = coord_ne.y; z = coord_ne.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
     if (y < ymin) ymin = y;
@@ -977,9 +974,8 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z < zmin) zmin = z;
     if (z > zmax) zmax = z;
 
-    coord = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
-    this._seNorm = coord.normal();
-    x = coord.x; y = coord.y; z = coord.z;
+    var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+    x = coord_se.x; y = coord_se.y; z = coord_se.z;
     if (x < xmin) xmin = x;
     if (x > xmax) xmax = x;
     if (y < ymin) ymin = y;
@@ -987,7 +983,13 @@ Segment.prototype.createBoundsByExtent = function () {
     if (z < zmin) zmin = z;
     if (z > zmax) zmax = z;
 
-    this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+    this.bsphere.center.set(xmin + (xmax - xmin) * 0.5, ymin + (ymax - ymin) * 0.5, zmin + (zmax - zmin) * 0.5);
+    this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
+
+    this._swNorm = coord_sw.normal();
+    this._nwNorm = coord_nw.normal();
+    this._neNorm = coord_ne.normal();
+    this._seNorm = coord_se.normal();
 };
 
 Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {

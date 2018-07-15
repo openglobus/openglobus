@@ -149,17 +149,34 @@ Node.prototype.createBounds = function () {
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
 
-                let ind1 = 3 * (i0 * (pn.segment.gridSize + 1) + j0);
-                let ind2 = 3 * ((i0 + gridSize) * (pn.segment.gridSize + 1) + j0 + gridSize);
+                let pnGsOne = pn.segment.gridSize + 1;
+
+                let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
+                    ind_nw = 3 * (i0 * pnGsOne + j0),
+                    ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
+                    ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
 
                 let pVerts = pn.segment.terrainVertices;
 
-                seg.bsphere.center.set(
-                    pVerts[ind1] + (pVerts[ind2] - pVerts[ind1]) * 0.5,
-                    pVerts[ind1 + 1] + (pVerts[ind2 + 1] - pVerts[ind1 + 1]) * 0.5,
-                    pVerts[ind1 + 2] + (pVerts[ind2 + 2] - pVerts[ind1 + 2]) * 0.5);
+                let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
+                    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
 
-                seg.bsphere.radius = seg.bsphere.center.distance(new Vec3(pVerts[ind1], pVerts[ind1 + 1], pVerts[ind1 + 2]));
+                seg.bsphere.center.set(
+                    v_sw.x + (v_ne.x - v_sw.x) * 0.5,
+                    v_sw.y + (v_ne.y - v_sw.y) * 0.5,
+                    v_sw.z + (v_ne.z - v_sw.z) * 0.5
+                );
+
+                seg.bsphere.radius = seg.bsphere.center.distance(v_sw);
+
+
+                let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
+                    v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
+
+                seg._swNorm = v_sw.normal();
+                seg._nwNorm = v_nw.normal();
+                seg._neNorm = v_ne.normal();
+                seg._seNorm = v_se.normal();
 
             } else {
 
@@ -349,6 +366,8 @@ Node.prototype.traverseNodes = function (maxZoom) {
     this.nodes[SE].renderTree(maxZoom);
 };
 
+const DOT_VIS = 0.49;
+
 Node.prototype.prepareForRendering = function (cam, altVis) {
 
     const h = cam._lonLat.height;
@@ -360,7 +379,15 @@ Node.prototype.prepareForRendering = function (cam, altVis) {
             this.state = NOTRENDERING;
         }
     } else {
-        this.renderNode();
+
+        if (this.segment._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            this.segment._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            this.segment._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            this.segment._seNorm.dot(cam.eyeNorm) > DOT_VIS) {
+            this.renderNode();
+        } else {
+            this.state = NOTRENDERING;
+        }
     }
 };
 
