@@ -5,6 +5,7 @@
 'use sctrict';
 
 import { QueueArray } from '../QueueArray.js';
+import { EPSG4326 } from '../proj/EPSG4326.js';
 
 class PlainSegmentWorker {
     constructor(numWorkers = 2) {
@@ -52,6 +53,8 @@ class PlainSegmentWorker {
                 this._segments[this._id] = segment;
 
                 let params = new Float64Array([
+                    this._id++,
+                    segment._projection.id === EPSG4326.id ? 1.0 : 0.0,
                     segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
                     segment.planet.terrain.fileGridSize,
                     segment._extent.southWest.lon,
@@ -66,11 +69,10 @@ class PlainSegmentWorker {
                 ]);
 
                 w.postMessage({
-                    'id': this._id++,
                     'params': params
                 }, [
-                    params.buffer
-                ]);
+                        params.buffer
+                    ]);
 
             } else {
                 this._pendingQueue.push(segment);
@@ -94,49 +96,58 @@ const _programm =
     const RADIANS = Math.PI / 180.0;
     const INV_PI_BY_360 = INV_PI_BY_180 * 2.0;
 
-    function inverseMercator(x, y){
-        return {
-            lon: x * INV_POLE_BY_180,
-            lat: INV_PI_BY_360 * Math.atan(Math.exp(y * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI
-        };
-    };
+    let E2 = 0.0, A = 0.0;
 
-    function lonLatToCartesian(lonlat, e2, a) {
-        let latrad = RADIANS * lonlat.lat,
-            lonrad = RADIANS * lonlat.lon;
+    let _projFunc = null;
+
+    var lonLatToCartesian = function (lon, lat) {
+        let latrad = RADIANS * lat,
+            lonrad = RADIANS * lon;
 
         let slt = Math.sin(latrad);
 
-        let N = a / Math.sqrt(1.0 - e2 * slt * slt);
+        let N = A / Math.sqrt(1.0 - E2 * slt * slt);
         let nc = N * Math.cos(latrad);
 
         return {
             'x': nc * Math.sin(lonrad),
-            'y': N * (1.0 - e2) * slt,
+            'y': N * (1.0 - E2) * slt,
             'z': nc * Math.cos(lonrad)
         }
     };
 
+    var lonLatToCartesianInverse = function (lon, lat){
+        return lonLatToCartesian(
+            lon * INV_POLE_BY_180,
+            INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI);
+    };
+
     self.onmessage = function (msg) {
         
-        let gridSize = msg.data.params[0],
-            fgs = msg.data.params[1],
-            //e = [msg.data.params[2], msg.data.params[3], msg.data.params[4], msg.data.params[5]],
-            e2 = msg.data.params[6],
-            a = msg.data.params[7],
-            r2_x = msg.data.params[8],
-            r2_y = msg.data.params[9],
-            r2_z = msg.data.params[10];
+        E2 = msg.data.params[8];
+        A = msg.data.params[9];
 
+        let gridSize = msg.data.params[2],
+            fgs = msg.data.params[3],
+            r2_x = msg.data.params[10],
+            r2_y = msg.data.params[11],
+            r2_z = msg.data.params[12];
+        
+        if(msg.data.params[1] === 0.0){
+            _projFunc = lonLatToCartesianInverse;
+        }else{
+            _projFunc = lonLatToCartesian;
+        }
 
-        let lonSize = msg.data.params[4] - msg.data.params[2];
-        let llStep = lonSize / Math.max(fgs, gridSize);
+        let maxFgs = Math.max(fgs, gridSize);
+        let llStep = (msg.data.params[6] - msg.data.params[4]) / maxFgs;
+        let ltStep = (msg.data.params[7] - msg.data.params[5]) / maxFgs;
 
-        let esw_lon = msg.data.params[2],
-            ene_lat = msg.data.params[5];
+        let esw_lon = msg.data.params[4],
+            ene_lat = msg.data.params[7];
 
-        let dg = Math.max(fgs / gridSize, 1),
-            gs = Math.max(fgs, gridSize) + 1;
+        let dg = Math.max(fgs / gridSize, 1.0),
+            gs = maxFgs + 1;
             
         const gsgs = gs * gs;
 
@@ -155,7 +166,8 @@ const _programm =
             let j = k % gs,
                 i = ~~(k / gs);
 
-            let v = lonLatToCartesian(inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep), e2, a);
+            let v =_projFunc(esw_lon + j * llStep, ene_lat - i * ltStep);
+
             let nx = v.x * r2_x, ny = v.y * r2_y, nz = v.z * r2_z;
             let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);            
             let nxl = nx * l,
@@ -183,12 +195,11 @@ const _programm =
             }
         }
 
-        //store raw normals
         let normalMapNormalsRaw = new Float32Array(normalMapNormals.length);
         normalMapNormalsRaw.set(normalMapNormals);
 
         self.postMessage({
-            id: msg.data.id,
+            id: msg.data.params[0],
             plainVertices: plainVertices,
             plainNormals: plainNormals,
             normalMapNormals: normalMapNormals,

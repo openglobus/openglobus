@@ -108,10 +108,10 @@ class Sun extends Control {
     }
 
     _draw() {
+        this._currDate = this._clockPtr.currentDate;
         if (!this._stopped) {
-            this._currDate = this._clockPtr.currentDate;
             var cam = this.renderer.activeCamera;
-            if (cam.getHeight() < 4650000 || !this._active) {
+            if (cam.getHeight() < 12079000.0 || !this._active) {
                 this._lightOn = true;
                 this._f = 1;
                 var n = cam.eye.normal();
@@ -143,13 +143,15 @@ class Sun extends Control {
                     }
                 }
             }
+        } else {
+            this.sunlight.setPosition(getSunPosition(this._currDate));
         }
     }
-};
+}
 
 export function sun(options) {
     return Sun(options);
-};
+}
 
 export { Sun };
 

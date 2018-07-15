@@ -536,7 +536,7 @@ Segment.prototype.engage = function () {
     this.createCoordsBuffers(this.terrainVertices, tgs);
 };
 
-Segment.prototype._plainSegmentWorkerCallback = function(data){
+Segment.prototype._plainSegmentWorkerCallback = function (data) {
 
     this.proceed = false;
 
@@ -544,7 +544,7 @@ Segment.prototype._plainSegmentWorkerCallback = function(data){
 
         this.terrainVertices = data.plainVertices;
         this.plainVertices = data.plainVertices;
-        this.plainNormals= data.plainNormals;
+        this.plainNormals = data.plainNormals;
         this.normalMapVertices = data.normalMapVertices;
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
@@ -1051,103 +1051,105 @@ Segment.prototype.initialize = function () {
 
     this.normalMapTexture = this.planet.transparentTexture;
 
-    var e = this._extent;
-
-    this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+    this._assignGlobalTextureCoordinates();
 
     this.initialized = true;
 };
 
- Segment.prototype.createPlainSegmentAsync = function () {
+Segment.prototype._assignGlobalTextureCoordinates = function () {
+    var e = this._extent;
+    this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+};
+
+
+Segment.prototype.createPlainSegmentAsync = function () {
     if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady && !this.proceed) {
         this.proceed = true;
         this.planet._plainSegmentWorker.make(this);
     }
- };
+};
 
 Segment.prototype.createPlainSegment = function () {
+
     this.initialize();
-    this.createPlainVertices();
+
+    this._createPlainVertices();
+
     this.readyToEngage = true;
 };
 
-//TODO: Let's move in to a webworker!
-Segment.prototype.createPlainVertices = function () {
+Segment.prototype._createPlainVertices = function () {
+    var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
-    if (this.initialized) {
+    var e = this._extent,
+        fgs = this.planet.terrain.fileGridSize;
+    var lonSize = e.getWidth();
+    var llStep = lonSize / Math.max(fgs, gridSize);
+    var esw_lon = e.southWest.lon,
+        ene_lat = e.northEast.lat;
+    var dg = Math.max(fgs / gridSize, 1),
+        gs = Math.max(fgs, gridSize) + 1;
+    var r2 = this.planet.ellipsoid._invRadii2;
+    var ind = 0,
+        nmInd = 0;
+    const gsgs = gs * gs;
 
-        var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+    var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
-        var e = this._extent,
-            fgs = this.planet.terrain.fileGridSize;
-        var lonSize = e.getWidth();
-        var llStep = lonSize / Math.max(fgs, gridSize);
-        var esw_lon = e.southWest.lon,
-            ene_lat = e.northEast.lat;
-        var dg = Math.max(fgs / gridSize, 1),
-            gs = Math.max(fgs, gridSize) + 1;
-        var r2 = this.planet.ellipsoid._invRadii2;
-        var ind = 0,
-            nmInd = 0;
-        const gsgs = gs * gs;
+    this.plainNormals = new Float32Array(gridSize3);
+    this.plainVertices = new Float32Array(gridSize3);
 
-        var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+    this.normalMapNormals = new Float32Array(gsgs * 3);
+    this.normalMapVertices = new Float32Array(gsgs * 3);
 
-        this.plainNormals = new Float32Array(gridSize3);
-        this.plainVertices = new Float32Array(gridSize3);
+    var verts = this.plainVertices,
+        norms = this.plainNormals,
+        nmVerts = this.normalMapVertices,
+        nmNorms = this.normalMapNormals;
 
-        this.normalMapNormals = new Float32Array(gsgs * 3);
-        this.normalMapVertices = new Float32Array(gsgs * 3);
+    for (var k = 0; k < gsgs; k++) {
 
-        var verts = this.plainVertices,
-            norms = this.plainNormals,
-            nmVerts = this.normalMapVertices,
-            nmNorms = this.normalMapNormals;
+        var j = k % gs,
+            i = ~~(k / gs);
 
-        for (var k = 0; k < gsgs; k++) {
+        var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
+        var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+        var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var nxl = nx * l, nyl = ny * l, nzl = nz * l;
 
-            var j = k % gs,
-                i = ~~(k / gs);
+        nmVerts[nmInd] = v.x;
+        nmNorms[nmInd++] = nxl;
 
-            var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-            var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
-            var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            var nxl = nx * l, nyl = ny * l, nzl = nz * l;
+        nmVerts[nmInd] = v.y;
+        nmNorms[nmInd++] = nyl;
 
-            nmVerts[nmInd] = v.x;
-            nmNorms[nmInd++] = nxl;
+        nmVerts[nmInd] = v.z;
+        nmNorms[nmInd++] = nzl;
 
-            nmVerts[nmInd] = v.y;
-            nmNorms[nmInd++] = nyl;
+        if (i % dg === 0 && j % dg === 0) {
+            verts[ind] = v.x;
+            norms[ind++] = nxl;
 
-            nmVerts[nmInd] = v.z;
-            nmNorms[nmInd++] = nzl;
+            verts[ind] = v.y;
+            norms[ind++] = nyl;
 
-            if (i % dg === 0 && j % dg === 0) {
-                verts[ind] = v.x;
-                norms[ind++] = nxl;
-
-                verts[ind] = v.y;
-                norms[ind++] = nyl;
-
-                verts[ind] = v.z;
-                norms[ind++] = nzl;
-            }
+            verts[ind] = v.z;
+            norms[ind++] = nzl;
         }
-
-        //if (this.tileZoom < this.planet.terrain.minZoom) {
-        this.terrainVertices = verts;
-        //}
-
-        //store raw normals
-        this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
-        this.normalMapNormalsRaw.set(nmNorms);
-
-        this.plainReady = true;
     }
+
+    //if (this.tileZoom < this.planet.terrain.minZoom) {
+    this.terrainVertices = verts;
+    //}
+
+    //store raw normals
+    this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
+    this.normalMapNormalsRaw.set(nmNorms);
+
+    this.plainReady = true;
 };
 
 /**

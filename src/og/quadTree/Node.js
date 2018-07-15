@@ -294,10 +294,10 @@ Node.prototype.renderTree = function (maxZoom) {
 
     var inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
-    var h = cam._lonLat.height;
+    const h = cam._lonLat.height;
 
     var altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-        VISIBLE_DISTANCE * Math.sqrt(h);
+        3570.0 * Math.sqrt(h);
 
     if (inFrustum || this._cameraInside) {
 
@@ -340,7 +340,7 @@ Node.prototype.traverseNodes = function (maxZoom) {
 };
 
 Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
-    if (height < 3000000.0) {
+    if (height < 12000000/*3000000.0*/) {
         if (altVis) {
             this.renderNode(onlyTerrain);
         } else {
@@ -356,7 +356,7 @@ Node.prototype.prepareForRendering = function (height, altVis, onlyTerrain) {
 //     if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.plainReady && !seg.proceed) {
 //         seg.proceed = true;
 //         setTimeout(function () {
-//             seg.createPlainVertices();
+//             seg._createPlainVertices();
 //             seg.proceed = false;
 //         }, 1000);
 //     }
@@ -683,7 +683,7 @@ Node.prototype.whileTerrainLoading = function () {
                 while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
                     pn = pn.parentNode;
                 }
-                
+
                 let pns = pn.segment;
 
                 if (!pns.initialized) {

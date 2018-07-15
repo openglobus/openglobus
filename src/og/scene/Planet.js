@@ -687,15 +687,15 @@ class Planet extends RenderNode {
         this._quadTree.renderNode();
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        // this._quadTreeNorth.createChildrenNodes();
-        // this._quadTreeNorth.segment.createPlainSegment();
-        // this._quadTreeNorth.renderNode();
-        // this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
+        this._quadTreeNorth.createChildrenNodes();
+        this._quadTreeNorth.segment.createPlainSegment();
+        this._quadTreeNorth.renderNode();
+        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
-        // this._quadTreeSouth.createChildrenNodes();
-        // this._quadTreeSouth.segment.createPlainSegment();
-        // this._quadTreeSouth.renderNode();
-        // this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
+        this._quadTreeSouth.createChildrenNodes();
+        this._quadTreeSouth.segment.createPlainSegment();
+        this._quadTreeSouth.renderNode();
+        this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
     }
 
     /**
@@ -852,8 +852,8 @@ class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        //this._quadTreeNorth.renderTree();
-        // this._quadTreeSouth.renderTree();
+        this._quadTreeNorth.renderTree();
+        this._quadTreeSouth.renderTree();
 
         this._quadTree.renderTree();
 
