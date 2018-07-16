@@ -632,15 +632,30 @@ Node.prototype.whileTerrainLoading = function () {
 
             this.appliedTerrainNodeId = pn.nodeId;
 
-            let gridSize = pn.segment.gridSize / dZ2;
+            let gridSize = pn.segment.gridSize / dZ2,
+                gridSizeExt = pn.segment.fileGridSize / dZ2;
 
             if (gridSize >= 1) {
                 seg.gridSize = gridSize;
-                this.sideSize = [gridSize, gridSize, gridSize, gridSize];
 
-                //replace to normalMapVertices
+                this.sideSize[0] = gridSize;
+                this.sideSize[1] = gridSize;
+                this.sideSize[2] = gridSize;
+                this.sideSize[3] = gridSize;
+
                 tempVertices = getMatrixSubArray(pseg.terrainVertices,
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
+
+            } else if (gridSizeExt >= 1) {
+                seg.gridSize = gridSizeExt;
+
+                this.sideSize[0] = gridSizeExt;
+                this.sideSize[1] = gridSizeExt;
+                this.sideSize[2] = gridSizeExt;
+                this.sideSize[3] = gridSizeExt;
+
+                tempVertices = getMatrixSubArray(pseg.normalMapVertices,
+                    pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt);
 
             } else {
                 seg.gridSize = _neGridSize;
@@ -708,9 +723,10 @@ Node.prototype.whileTerrainLoading = function () {
 
                 if (pn.segment.terrainExists) {
 
-                    //seg.readyToEngage = true;
                     seg.terrainExists = true;
                     seg.terrainVertices = tempVertices;
+                    seg.normalMapVertices = tempVertices;
+                    seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
                     let fgs = terrain.fileGridSize,
                         fgsZ = fgs / dZ2;

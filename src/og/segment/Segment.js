@@ -98,6 +98,8 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.gridSize = planet.terrain.gridSizeByZoom[tileZoom];
 
+    this.fileGridSize = 0;
+
     /**
      * Tile zoom index.
      * @type {number}
@@ -556,6 +558,8 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
 
+        this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
+
         this.plainReady = true;
     }
 };
@@ -592,7 +596,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
         this.bsphere.setFromBounds(data.bounds);
-        //this.gridSize = tgs;
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.terrainExists = true;
         this.node.appliedTerrainNodeId = this.node.nodeId;
@@ -623,6 +626,7 @@ Segment.prototype.elevationsNotExists = function () {
             zmin = math.MAX, zmax = math.MIN;
 
         var v = this.terrainVertices = this.plainVertices;
+        this.fileGridSize = Math.sqrt(v.length / 3) - 1;
 
         for (var i = 0; i < v.length; i += 3) {
             var x = v[i], y = v[i + 1], z = v[i + 2];
@@ -633,6 +637,7 @@ Segment.prototype.elevationsNotExists = function () {
 
         this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 
+        this.fileGridSize = Math.sqrt(v.length / 3) - 1;
         this.terrainReady = true;
         this.terrainExists = false;
     }
