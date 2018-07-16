@@ -719,12 +719,13 @@ Node.prototype.whileTerrainLoading = function () {
 
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
+                seg.terrainVertices = tempVertices;
+
                 this.appliedTerrainNodeId = this.nodeId;
 
                 if (pn.segment.terrainExists) {
 
                     seg.terrainExists = true;
-                    seg.terrainVertices = tempVertices;
                     seg.normalMapVertices = tempVertices;
                     seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 

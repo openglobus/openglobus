@@ -247,58 +247,63 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
     var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
         ray = new Ray(xyz, xyz.negateTo());
 
-    var ne = this._extent.northEast,
-        sw = this._extent.southWest,
-        size = Math.sqrt(verts.length / 3) - 1;
+    if (verts) {
 
-    var xmax = ne.lon,
-        ymax = ne.lat,
-        xmin = sw.lon,
-        ymin = sw.lat,
-        x = insideSegmentPosition.lon,
-        y = insideSegmentPosition.lat;
+        var ne = this._extent.northEast,
+            sw = this._extent.southWest,
+            size = Math.sqrt(verts.length / 3) - 1;
 
-    var sxn = xmax - xmin,
-        syn = ymax - ymin;
+        var xmax = ne.lon,
+            ymax = ne.lat,
+            xmin = sw.lon,
+            ymin = sw.lat,
+            x = insideSegmentPosition.lon,
+            y = insideSegmentPosition.lat;
 
-    var qx = sxn / size,
-        qy = syn / size;
+        var sxn = xmax - xmin,
+            syn = ymax - ymin;
 
-    var xn = x - xmin,
-        yn = y - ymin;
+        var qx = sxn / size,
+            qy = syn / size;
 
-    var indX = Math.floor(xn / qx),
-        indY = Math.floor(size - yn / qy);
+        var xn = x - xmin,
+            yn = y - ymin;
 
-    if (verts && verts.length) {
-        var ind_v0 = ((size + 1) * indY + indX) * 3;
-        var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+        var indX = Math.floor(xn / qx),
+            indY = Math.floor(size - yn / qy);
 
-        var v0 = new Vec3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
-            v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
-            v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
+        if (verts && verts.length) {
+            var ind_v0 = ((size + 1) * indY + indX) * 3;
+            var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
 
-        var d = ray.hitTriangle(v0, v1, v2, res);
-        if (d === Ray.INSIDE) {
+            var v0 = new Vec3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
+                v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
+                v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
+
+            var d = ray.hitTriangle(v0, v1, v2, res);
+            if (d === Ray.INSIDE) {
+                return xyz.distance(res);
+            }
+
+            var v3 = new Vec3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
+
+            d = ray.hitTriangle(v1, v3, v2, res);
+            if (d === Ray.INSIDE) {
+                return xyz.distance(res);
+            }
+
+            if (d === Ray.AWAY) {
+                return -xyz.distance(res);
+            }
+
             return xyz.distance(res);
         }
 
-        var v3 = new Vec3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
-
-        d = ray.hitTriangle(v1, v3, v2, res);
-        if (d === Ray.INSIDE) {
-            return xyz.distance(res);
-        }
-
-        if (d === Ray.AWAY) {
-            return -xyz.distance(res);
-        }
-
+        res.copy(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
         return xyz.distance(res);
+    } else {
+        return xyz.distance(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
     }
-
-    res.copy(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
-    return xyz.distance(res);
 };
 
 
@@ -621,21 +626,20 @@ Segment.prototype.elevationsNotExists = function () {
             this.readyToEngage = true;
         }
 
-        var xmin = math.MAX, xmax = math.MIN,
-            ymin = math.MAX, ymax = math.MIN,
-            zmin = math.MAX, zmax = math.MIN;
-
         var v = this.terrainVertices = this.plainVertices;
-        this.fileGridSize = Math.sqrt(v.length / 3) - 1;
 
-        for (var i = 0; i < v.length; i += 3) {
-            var x = v[i], y = v[i + 1], z = v[i + 2];
-            if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-            if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-            if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-        }
+        // var xmin = math.MAX, xmax = math.MIN,
+        //     ymin = math.MAX, ymax = math.MIN,
+        //     zmin = math.MAX, zmax = math.MIN;
 
-        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+        // for (var i = 0; i < v.length; i += 3) {
+        //     var x = v[i], y = v[i + 1], z = v[i + 2];
+        //     if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+        //     if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+        //     if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+        // }
+
+        // this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
 
         this.fileGridSize = Math.sqrt(v.length / 3) - 1;
         this.terrainReady = true;
