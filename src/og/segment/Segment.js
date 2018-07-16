@@ -943,48 +943,52 @@ Segment.prototype.createBoundsByExtent = function () {
     var ellipsoid = this.planet.ellipsoid,
         extent = this._extentLonLat;
 
-    var xmin = math.MAX, xmax = math.MIN,
-        ymin = math.MAX, ymax = math.MIN,
-        zmin = math.MAX, zmax = math.MIN;
+    // var xmin = math.MAX, xmax = math.MIN,
+    //     ymin = math.MAX, ymax = math.MIN,
+    //     zmin = math.MAX, zmax = math.MIN;
 
     var coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
-    var x = coord_sw.x, y = coord_sw.y, z = coord_sw.z;
-    if (x < xmin) xmin = x;
-    if (x > xmax) xmax = x;
-    if (y < ymin) ymin = y;
-    if (y > ymax) ymax = y;
-    if (z < zmin) zmin = z;
-    if (z > zmax) zmax = z;
+    //var x = coord_sw.x, y = coord_sw.y, z = coord_sw.z;
+    // if (x < xmin) xmin = x;
+    // if (x > xmax) xmax = x;
+    // if (y < ymin) ymin = y;
+    // if (y > ymax) ymax = y;
+    // if (z < zmin) zmin = z;
+    // if (z > zmax) zmax = z;
 
     var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
-    x = coord_nw.x; y = coord_nw.y; z = coord_nw.z;
-    if (x < xmin) xmin = x;
-    if (x > xmax) xmax = x;
-    if (y < ymin) ymin = y;
-    if (y > ymax) ymax = y;
-    if (z < zmin) zmin = z;
-    if (z > zmax) zmax = z;
+    //x = coord_nw.x; y = coord_nw.y; z = coord_nw.z;
+    // if (x < xmin) xmin = x;
+    // if (x > xmax) xmax = x;
+    // if (y < ymin) ymin = y;
+    // if (y > ymax) ymax = y;
+    // if (z < zmin) zmin = z;
+    // if (z > zmax) zmax = z;
 
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
-    x = coord_ne.x; y = coord_ne.y; z = coord_ne.z;
-    if (x < xmin) xmin = x;
-    if (x > xmax) xmax = x;
-    if (y < ymin) ymin = y;
-    if (y > ymax) ymax = y;
-    if (z < zmin) zmin = z;
-    if (z > zmax) zmax = z;
+    //x = coord_ne.x; y = coord_ne.y; z = coord_ne.z;
+    // if (x < xmin) xmin = x;
+    // if (x > xmax) xmax = x;
+    // if (y < ymin) ymin = y;
+    // if (y > ymax) ymax = y;
+    // if (z < zmin) zmin = z;
+    // if (z > zmax) zmax = z;
 
     var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
-    x = coord_se.x; y = coord_se.y; z = coord_se.z;
-    if (x < xmin) xmin = x;
-    if (x > xmax) xmax = x;
-    if (y < ymin) ymin = y;
-    if (y > ymax) ymax = y;
-    if (z < zmin) zmin = z;
-    if (z > zmax) zmax = z;
+    //x = coord_se.x; y = coord_se.y; z = coord_se.z;
+    // if (x < xmin) xmin = x;
+    // if (x > xmax) xmax = x;
+    // if (y < ymin) ymin = y;
+    // if (y > ymax) ymax = y;
+    // if (z < zmin) zmin = z;
+    // if (z > zmax) zmax = z;
 
-    this.bsphere.center.set(xmin + (xmax - xmin) * 0.5, ymin + (ymax - ymin) * 0.5, zmin + (zmax - zmin) * 0.5);
-    this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
+    // this.bsphere.center.set(xmin + (xmax - xmin) * 0.5, ymin + (ymax - ymin) * 0.5, zmin + (zmax - zmin) * 0.5);
+    // this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
+
+    this.bsphere.center.set(coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5, coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5, coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5);
+    this.bsphere.radius = this.bsphere.center.distance(coord_ne);
+
 
     this._swNorm = coord_sw.normal();
     this._nwNorm = coord_nw.normal();

@@ -4,14 +4,14 @@
 
 'use strict';
 
-import * as mercator from '../mercator.js';
-import * as math from '../math.js';
-import * as quadTree from './quadTree.js';
+//import * as math from '../math.js';
+//import * as quadTree from './quadTree.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
+import { MAX_LAT } from '../mercator.js';
 import {
     NW, NE, SW, SE,
     N, E, S, W,
@@ -21,8 +21,8 @@ import {
     VISIBLE_DISTANCE, RENDERING
 } from './quadTree.js';
 
-const POLE = mercator.POLE;
-const MAX_LAT = mercator.MAX_LAT;
+const DOT_VIS = 0.49;
+const VISIBLE_HEIGHT = 3000000.0;
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -302,7 +302,7 @@ Node.prototype.renderTree = function (maxZoom) {
         //Search a node which the camera is flying over.
         if (this.parentNode._cameraInside) {
             var inside;
-            if (Math.abs(cam._lonLat.lat) <= mercator.MAX_LAT &&
+            if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
                 seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
                 cam._insideSegmentPosition = cam._lonLatMerc;
@@ -366,24 +366,22 @@ Node.prototype.traverseNodes = function (maxZoom) {
     this.nodes[SE].renderTree(maxZoom);
 };
 
-const DOT_VIS = 0.49;
-
 Node.prototype.prepareForRendering = function (cam, altVis) {
 
     const h = cam._lonLat.height;
 
-    if (h < 3000000.0) {
+    if (h < VISIBLE_HEIGHT) {
         if (altVis) {
             this.renderNode();
         } else {
             this.state = NOTRENDERING;
         }
     } else {
-
-        if (this.segment._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            this.segment._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            this.segment._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            this.segment._seNorm.dot(cam.eyeNorm) > DOT_VIS) {
+        let seg = this.segment;
+        if (seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._seNorm.dot(cam.eyeNorm) > DOT_VIS) {
             this.renderNode();
         } else {
             this.state = NOTRENDERING;
