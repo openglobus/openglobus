@@ -170,6 +170,7 @@ Node.prototype.createBounds = function () {
                 seg.bsphere.radius = seg.bsphere.center.distance(v_sw);
 
 
+                //check for segment zoom
                 let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
                     v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
 
@@ -637,6 +638,7 @@ Node.prototype.whileTerrainLoading = function () {
                 seg.gridSize = gridSize;
                 this.sideSize = [gridSize, gridSize, gridSize, gridSize];
 
+                //replace to normalMapVertices
                 tempVertices = getMatrixSubArray(pseg.terrainVertices,
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
 
