@@ -4,7 +4,6 @@
 
 'use strict';
 
-//import * as math from '../math.js';
 //import * as quadTree from './quadTree.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
@@ -12,6 +11,7 @@ import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 import { MAX_LAT } from '../mercator.js';
+import { MAX, MIN } from '../math.js';
 import {
     NW, NE, SW, SE,
     N, E, S, W,
@@ -21,7 +21,7 @@ import {
     VISIBLE_DISTANCE, RENDERING
 } from './quadTree.js';
 
-const DOT_VIS = 0.49;
+const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
 
 /**
@@ -36,20 +36,44 @@ const VISIBLE_HEIGHT = 3000000.0;
  * @TODO: optimization
  */
 function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
-    const i0size = i0 + size + 1;
-    const j0size = j0 + size + 1;
-    var res = new Float32Array((size + 1) * (size + 1) * 3);
+
+    // var xmin = MAX, xmax = MIN,
+    //     ymin = MAX, ymax = MIN,
+    //     zmin = MAX, zmax = MIN;
+
+    const size_1 = size + 1;
+    const i0size = i0 + size_1;
+    const j0size = j0 + size_1;
+
+    var res = new Float32Array(size_1 * size_1 * 3);
+
     var vInd = 0;
     for (var i = i0; i < i0size; i++) {
         for (var j = j0; j < j0size; j++) {
             var ind = 3 * (i * (gridSize + 1) + j);
+
+            // let x = sourceArr[ind],
+            //     y = sourceArr[ind + 1],
+            //     z = sourceArr[ind + 2];
+
+            // if (x < xmin) xmin = x;
+            // if (x > xmax) xmax = x;
+            // if (y < ymin) ymin = y;
+            // if (y > ymax) ymax = y;
+            // if (z < zmin) zmin = z;
+            // if (z > zmax) zmax = z;
+
+            // res[vInd++] = x;
+            // res[vInd++] = y;
+            // res[vInd++] = z;
+
             res[vInd++] = sourceArr[ind];
             res[vInd++] = sourceArr[ind + 1];
             res[vInd++] = sourceArr[ind + 2];
         }
     }
     return res;
-}
+};
 
 /**
  * Quad tree planet segment node.
