@@ -194,14 +194,16 @@ Node.prototype.createBounds = function () {
                 seg.bsphere.radius = seg.bsphere.center.distance(v_sw);
 
 
-                //check for segment zoom
-                let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
-                    v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
+                if (seg.tileZoom < 7) {
+                    //check for segment zoom
+                    let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
+                        v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
 
-                seg._swNorm = v_sw.normal();
-                seg._nwNorm = v_nw.normal();
-                seg._neNorm = v_ne.normal();
-                seg._seNorm = v_se.normal();
+                    seg._swNorm = v_sw.normal();
+                    seg._nwNorm = v_nw.normal();
+                    seg._neNorm = v_ne.normal();
+                    seg._seNorm = v_se.normal();
+                }
 
             } else {
 

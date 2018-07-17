@@ -958,12 +958,14 @@ Segment.prototype.createBoundsByExtent = function () {
     this.bsphere.radius = this.bsphere.center.distance(coord_ne);
 
     //check for zoom
-    var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
-    var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
-    this._swNorm = coord_sw.normal();
-    this._nwNorm = coord_nw.normal();
-    this._neNorm = coord_ne.normal();
-    this._seNorm = coord_se.normal();
+    if (this.tileZoom < 7) {
+        var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
+        var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+        this._swNorm = coord_sw.normal();
+        this._nwNorm = coord_nw.normal();
+        this._neNorm = coord_ne.normal();
+        this._seNorm = coord_se.normal();
+    }
 };
 
 Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
