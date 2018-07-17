@@ -628,19 +628,6 @@ Segment.prototype.elevationsNotExists = function () {
 
         var v = this.terrainVertices = this.plainVertices;
 
-        // var xmin = math.MAX, xmax = math.MIN,
-        //     ymin = math.MAX, ymax = math.MIN,
-        //     zmin = math.MAX, zmax = math.MIN;
-
-        // for (var i = 0; i < v.length; i += 3) {
-        //     var x = v[i], y = v[i + 1], z = v[i + 2];
-        //     if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-        //     if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-        //     if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-        // }
-
-        // this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-
         this.fileGridSize = Math.sqrt(v.length / 3) - 1;
         this.terrainReady = true;
         this.terrainExists = false;
@@ -954,17 +941,30 @@ Segment.prototype.createBoundsByExtent = function () {
 
     var coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
-    this.bsphere.center.set(coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5, coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5, coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5);
-    this.bsphere.radius = this.bsphere.center.distance(coord_ne);
 
     //check for zoom
     if (this.tileZoom < 7) {
+
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
         var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+
         this._swNorm = coord_sw.normal();
         this._nwNorm = coord_nw.normal();
         this._neNorm = coord_ne.normal();
         this._seNorm = coord_se.normal();
+    }
+
+    if (this.tileZoom < 4) {
+        this.bsphere.center.set(
+            (coord_sw.x + coord_nw.x + (coord_ne.x - coord_sw.x + coord_se.x - coord_nw.x) * 0.5) * 0.5,
+            (coord_sw.y + coord_nw.y + (coord_ne.y - coord_sw.y + coord_se.y - coord_nw.y) * 0.5) * 0.5,
+            (coord_sw.z + coord_nw.z + (coord_ne.z - coord_sw.z + coord_se.z - coord_nw.z) * 0.5) * 0.5
+        );
+
+        this.bsphere.radius = 0.5 * (this.bsphere.center.distance(coord_ne) + this.bsphere.center.distance(coord_sw));
+    } else {
+        this.bsphere.center.set(coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5, coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5, coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5);
+        this.bsphere.radius = this.bsphere.center.distance(coord_ne);
     }
 };
 

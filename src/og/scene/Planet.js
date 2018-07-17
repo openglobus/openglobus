@@ -346,7 +346,7 @@ class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this._lodRatio = 1.0;
+        this._lodRatio = 0.85;
         this._maxLodRatio = this._lodRatio;
         this._minLodRatio = this._maxLodRatio - 0.41;
 
