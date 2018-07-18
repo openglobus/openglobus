@@ -64,6 +64,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
  * @param {number} i0 - First row index source array matrix
  * @param {number} j0 - First column index
  * @param {number} size - Square matrix result size.
+ * @param {object} bounds - Output bounds.
  * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
