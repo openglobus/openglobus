@@ -350,7 +350,6 @@ class Planet extends RenderNode {
         this._maxLodRatio = this._lodRatio;
         this._minLodRatio = this._maxLodRatio - 0.41;
 
-
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._specularMaterialArr = new Float32Array(this.SLICE_SIZE_4 + 4);

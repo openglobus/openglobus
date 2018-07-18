@@ -463,15 +463,25 @@ Node.prototype.renderNode = function (onlyTerrain) {
             seg.initialize();
         }
 
-        this.whileTerrainLoading();
+        if (seg.createTerrainFromChildNodes()) {
 
+<<<<<<< HEAD
         //this.execPlainVerticesCreator();
         if (!seg.plainProcessing) {
             seg.createPlainSegmentAsync();
         }
+=======
+            this.whileTerrainLoading();
+>>>>>>> 82fb84ec5e6a475da267bd60d08f653862b5d023
 
-        if (seg.plainReady) {
-            seg.loadTerrain();
+            //this.execPlainVerticesCreator();
+            if (!seg.plainProcessing) {
+                seg.createPlainSegmentAsync();
+            }
+
+            if (seg.plainReady) {
+                seg.loadTerrain();
+            }
         }
     }
 
@@ -831,8 +841,13 @@ Node.prototype.whileTerrainLoading = function () {
                 }
 
                 //pn.execPlainVerticesCreator();
+<<<<<<< HEAD
                 if (!pns.plainProcessing) {
                     pn.segment.createPlainSegmentAsync();
+=======
+                if (!seg.plainProcessing) {
+                    seg.createPlainSegmentAsync();
+>>>>>>> 82fb84ec5e6a475da267bd60d08f653862b5d023
                 }
 
                 if (pns.plainReady) {
