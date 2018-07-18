@@ -333,12 +333,7 @@ Segment.prototype.loadTerrain = function () {
 
             this.elevationsNotExists();
 
-<<<<<<< HEAD
         } else if (!this.terrainIsLoading && !this.terrainReady) {
-=======
-        } else if (!this.terrainIsLoading &&
-            !this.terrainReady) {
->>>>>>> 82fb84ec5e6a475da267bd60d08f653862b5d023
 
             this.planet.terrain.loadTerrain(this);
         }
