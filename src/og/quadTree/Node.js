@@ -438,13 +438,18 @@ Node.prototype.renderNode = function (onlyTerrain) {
             seg.initialize();
         }
 
-        this.whileTerrainLoading();
+        if (seg.createTerrainFromChildNodes()) {
 
-        //this.execPlainVerticesCreator();
-        seg.createPlainSegmentAsync();
+            this.whileTerrainLoading();
 
-        if (seg.plainReady) {
-            seg.loadTerrain();
+            //this.execPlainVerticesCreator();
+            if (!seg.plainProcessing) {
+                seg.createPlainSegmentAsync();
+            }
+
+            if (seg.plainReady) {
+                seg.loadTerrain();
+            }
         }
     }
 
@@ -774,7 +779,9 @@ Node.prototype.whileTerrainLoading = function () {
                 }
 
                 //pn.execPlainVerticesCreator();
-                pn.segment.createPlainSegmentAsync();
+                if (!seg.plainProcessing) {
+                    seg.createPlainSegmentAsync();
+                }
 
                 if (pns.plainReady) {
                     pns.loadTerrain();
