@@ -204,8 +204,7 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this.readyToEngage = false;
 
-    //TODO:rename
-    this.proceed = false;
+    this.plainProcessing = false;
 };
 
 /**
@@ -334,9 +333,7 @@ Segment.prototype.loadTerrain = function () {
 
             this.elevationsNotExists();
 
-        } else if (!this.terrainIsLoading &&
-            this._createTerrainFromChildNodes() &&
-            !this.terrainReady) {
+        } else if (!this.terrainIsLoading && !this.terrainReady) {
 
             this.planet.terrain.loadTerrain(this);
         }
@@ -344,10 +341,7 @@ Segment.prototype.loadTerrain = function () {
     }
 };
 
-Segment.prototype._createTerrainFromChildNodes = function () {
-
-    return true;
-
+Segment.prototype.createTerrainFromChildNodes = function () {
 
     const node = this.node;
     const nodes = node.nodes;
@@ -361,13 +355,7 @@ Segment.prototype._createTerrainFromChildNodes = function () {
     ) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
             ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
-
-        if (!this.plainReady) {
-            this.createPlainSegment();
-        } else {
-            this.initialize();
-        }
-
+            
         let fgs = terrain.fileGridSize;
         let dg = Math.max(fgs / this.gridSize, 1),
             gs = Math.max(fgs, this.gridSize) + 1;
@@ -379,15 +367,10 @@ Segment.prototype._createTerrainFromChildNodes = function () {
 
         let hgsOne = 0.5 * gs + 0.5;
 
-        // seg.terrainVertices = null;
-        // seg.normalMapNormals = null;
-        // seg.normalMapNormalsRaw = null;
-        // seg.normalMapVertices = null;
-
-        // seg.terrainVertices = new Float32Array(sgs3);
-        // seg.normalMapVertices = new Float32Array(gs3);
-        // seg.normalMapNormals = new Float32Array(gs3);
-        // seg.normalMapNormalsRaw = new Float32Array(gs3);
+        this.terrainVertices = new Float32Array(sgs3);
+        this.normalMapVertices = new Float32Array(gs3);
+        this.normalMapNormals = new Float32Array(gs3);
+        this.normalMapNormalsRaw = new Float32Array(gs3);
 
         let verts = this.terrainVertices,
             nmVerts = this.normalMapVertices,
@@ -552,7 +535,7 @@ Segment.prototype.engage = function () {
 
 Segment.prototype._plainSegmentWorkerCallback = function (data) {
 
-    this.proceed = false;
+    this.plainProcessing = false;
 
     if (this.initialized) {
 
@@ -1056,8 +1039,8 @@ Segment.prototype._assignGlobalTextureCoordinates = function () {
 
 
 Segment.prototype.createPlainSegmentAsync = function () {
-    if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady && !this.proceed) {
-        this.proceed = true;
+    if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady) {
+        this.plainProcessing = true;
         this.planet._plainSegmentWorker.make(this);
     }
 };

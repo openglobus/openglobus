@@ -37,9 +37,37 @@ const VISIBLE_HEIGHT = 3000000.0;
  */
 function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 
-    // var xmin = MAX, xmax = MIN,
-    //     ymin = MAX, ymax = MIN,
-    //     zmin = MAX, zmax = MIN;
+    const size_1 = size + 1;
+    const i0size = i0 + size_1;
+    const j0size = j0 + size_1;
+
+    var res = new Float32Array(size_1 * size_1 * 3);
+
+    var vInd = 0;
+    for (var i = i0; i < i0size; i++) {
+        for (var j = j0; j < j0size; j++) {
+            var ind = 3 * (i * (gridSize + 1) + j);
+
+            res[vInd++] = sourceArr[ind];
+            res[vInd++] = sourceArr[ind + 1];
+            res[vInd++] = sourceArr[ind + 2];
+        }
+    }
+    return res;
+};
+
+/**
+ * Returns triangle coordinate array from inside of the source triangle array.
+ * @static
+ * @param {Array.<number>} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @return{Array.<number>} Triangle coordinates array from the source array.
+ * @TODO: optimization
+ */
+function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, bounds) {
 
     const size_1 = size + 1;
     const i0size = i0 + size_1;
@@ -52,24 +80,20 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
         for (var j = j0; j < j0size; j++) {
             var ind = 3 * (i * (gridSize + 1) + j);
 
-            // let x = sourceArr[ind],
-            //     y = sourceArr[ind + 1],
-            //     z = sourceArr[ind + 2];
+            let x = sourceArr[ind],
+                y = sourceArr[ind + 1],
+                z = sourceArr[ind + 2];
 
-            // if (x < xmin) xmin = x;
-            // if (x > xmax) xmax = x;
-            // if (y < ymin) ymin = y;
-            // if (y > ymax) ymax = y;
-            // if (z < zmin) zmin = z;
-            // if (z > zmax) zmax = z;
+            if (x < bounds.xmin) bounds.xmin = x;
+            if (x > bounds.xmax) bounds.xmax = x;
+            if (y < bounds.ymin) bounds.ymin = y;
+            if (y > bounds.ymax) bounds.ymax = y;
+            if (z < bounds.zmin) bounds.zmin = z;
+            if (z > bounds.zmax) bounds.zmax = z;
 
-            // res[vInd++] = x;
-            // res[vInd++] = y;
-            // res[vInd++] = z;
-
-            res[vInd++] = sourceArr[ind];
-            res[vInd++] = sourceArr[ind + 1];
-            res[vInd++] = sourceArr[ind + 2];
+            res[vInd++] = x;
+            res[vInd++] = y;
+            res[vInd++] = z;
         }
     }
     return res;
@@ -431,8 +455,9 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
     var seg = this.segment;
 
-    //Create and load terrain data.
-    if (!seg.terrainReady) {
+    //Create and load terrain data.    
+
+    if (!seg.terrainReady /*&& seg._createTerrainFromChildNodes()*/) {
 
         if (!seg.initialized) {
             seg.initialize();
@@ -441,7 +466,9 @@ Node.prototype.renderNode = function (onlyTerrain) {
         this.whileTerrainLoading();
 
         //this.execPlainVerticesCreator();
-        seg.createPlainSegmentAsync();
+        if (!seg.plainProcessing) {
+            seg.createPlainSegmentAsync();
+        }
 
         if (seg.plainReady) {
             seg.loadTerrain();
@@ -633,6 +660,15 @@ function precision(a) {
     return p;
 }
 
+let BOUNDS = {
+    'xmin': 0.0,
+    'ymin': 0.0,
+    'zmin': 0.0,
+    'xmax': 0.0,
+    'ymax': 0.0,
+    'zmax': 0.0
+};
+
 Node.prototype.whileTerrainLoading = function () {
 
     const seg = this.segment;
@@ -661,6 +697,13 @@ Node.prototype.whileTerrainLoading = function () {
             let gridSize = pn.segment.gridSize / dZ2,
                 gridSizeExt = pn.segment.fileGridSize / dZ2;
 
+            BOUNDS.xmin = MAX;
+            BOUNDS.xmax = MIN;
+            BOUNDS.ymin = MAX;
+            BOUNDS.ymax = MIN;
+            BOUNDS.zmin = MAX;
+            BOUNDS.zmax = MIN;
+
             if (gridSize >= 1) {
                 seg.gridSize = gridSize;
 
@@ -669,8 +712,8 @@ Node.prototype.whileTerrainLoading = function () {
                 this.sideSize[2] = gridSize;
                 this.sideSize[3] = gridSize;
 
-                tempVertices = getMatrixSubArray(pseg.terrainVertices,
-                    pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize);
+                tempVertices = getMatrixSubArrayBounds(pseg.terrainVertices,
+                    pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, BOUNDS);
 
             } else if (gridSizeExt >= 1) {
                 seg.gridSize = gridSizeExt;
@@ -680,8 +723,8 @@ Node.prototype.whileTerrainLoading = function () {
                 this.sideSize[2] = gridSizeExt;
                 this.sideSize[3] = gridSizeExt;
 
-                tempVertices = getMatrixSubArray(pseg.normalMapVertices,
-                    pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt);
+                tempVertices = getMatrixSubArrayBounds(pseg.normalMapVertices,
+                    pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt, BOUNDS);
 
             } else {
                 seg.gridSize = _neGridSize;
@@ -727,15 +770,29 @@ Node.prototype.whileTerrainLoading = function () {
                     tempVertices[i3] = coords.x;
                     tempVertices[i3 + 1] = coords.y;
                     tempVertices[i3 + 2] = coords.z;
+
+                    if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
+                    if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
+                    if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
+                    if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
+                    if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
+                    if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
                 }
             }
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.readyToEngage = false;
 
-            //seg.tempVertices is used for earth point
-            //calculation(see segment object)
+            //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
+
+            seg.bsphere.center.set(
+                BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
+                BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
+                BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5
+            );
+
+            seg.bsphere.radius = seg.bsphere.center.distance(new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin));
         }
 
         let maxZ = terrain.maxZoom;
@@ -774,7 +831,9 @@ Node.prototype.whileTerrainLoading = function () {
                 }
 
                 //pn.execPlainVerticesCreator();
-                pn.segment.createPlainSegmentAsync();
+                if (!pns.plainProcessing) {
+                    pn.segment.createPlainSegmentAsync();
+                }
 
                 if (pns.plainReady) {
                     pns.loadTerrain();
