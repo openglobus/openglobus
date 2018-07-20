@@ -178,7 +178,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
-    this.plainIndexes = null;
+    //this.plainIndexes = null;
     this.plainVertices = null;
     this.plainNormals = null;
     this.terrainVertices = null;
@@ -341,113 +341,6 @@ Segment.prototype.loadTerrain = function () {
     }
 };
 
-Segment.prototype.createTerrainFromChildNodes = function () {
-
-    const node = this.node;
-    const nodes = node.nodes;
-    const terrain = this.planet.terrain;
-
-    if (node.ready &&
-        this.tileZoom >= terrain.minZoom &&
-        this.tileZoom < terrain.maxZoom &&
-        nodes[0].segment.terrainReady && nodes[1].segment.terrainReady &&
-        nodes[2].segment.terrainReady && nodes[3].segment.terrainReady
-    ) {
-        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
-            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
-            
-        let fgs = terrain.fileGridSize;
-        let dg = Math.max(fgs / this.gridSize, 1),
-            gs = Math.max(fgs, this.gridSize) + 1;
-        let ind = 0,
-            nmInd = 0;
-
-        let gs3 = gs * gs * 3,
-            sgs3 = (this.gridSize + 1) * (this.gridSize + 1) * 3;
-
-        let hgsOne = 0.5 * gs + 0.5;
-
-        this.terrainVertices = new Float32Array(sgs3);
-        this.normalMapVertices = new Float32Array(gs3);
-        this.normalMapNormals = new Float32Array(gs3);
-        this.normalMapNormalsRaw = new Float32Array(gs3);
-
-        let verts = this.terrainVertices,
-            nmVerts = this.normalMapVertices,
-            nmNorms = this.normalMapNormals;
-
-        for (let i = 0; i < gs; i++) {
-
-            let ni = Math.floor(i / hgsOne),
-                ii = i % hgsOne + ni;
-
-            for (let j = 0; j < gs; j++) {
-
-                let nj = Math.floor(j / hgsOne);
-                let n = nodes[(ni << 1) + nj];
-
-                let nii = ii << 1,
-                    njj = (j % hgsOne + nj) << 1;
-
-                let n_index = 3 * (nii * gs + njj);
-
-                let n_nmVerts = n.segment.normalMapVertices,
-                    n_nmNormsRaw = n.segment.normalMapNormalsRaw;
-
-                let x = n_nmVerts[n_index],
-                    y = n_nmVerts[n_index + 1],
-                    z = n_nmVerts[n_index + 2];
-
-                nmVerts[nmInd] = x;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index];
-
-                nmVerts[nmInd] = y;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
-
-                nmVerts[nmInd] = z;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
-
-                if (i % dg === 0 && j % dg === 0) {
-                    verts[ind++] = x;
-                    verts[ind++] = y;
-                    verts[ind++] = z;
-
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-                }
-            }
-        }
-
-        this.normalMapNormalsRaw.set(nmNorms);
-
-        if (this.planet.lightEnabled) {
-            this.planet._normalMapCreator.drawSingle(this);
-            //this.planet._normalMapCreator.unshift(seg);
-        }
-
-        this.createCoordsBuffers(this.terrainVertices, this.gridSize);
-        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
-
-        this.appliedTerrainNodeId = this.nodeId;
-        this.terrainReady = true;
-        this.terrainExists = true;
-        this.terrainIsLoading = false;
-
-        //seg.plainReady = true;
-
-        let e = this._extent;
-        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
-
-        return false;
-    }
-
-    return true;
-};
-
 /**
  * Terrain obtained from server.
  * @param {Float32Array} elevations - Elevation data.
@@ -537,14 +430,14 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
 
     this.plainProcessing = false;
 
-    if (this.initialized) {
+    if (this.initialized && !this.terrainReady) {
 
-        this.terrainVertices = data.plainVertices;
         this.plainVertices = data.plainVertices;
         this.plainNormals = data.plainNormals;
         this.normalMapVertices = data.normalMapVertices;
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
+        this.terrainVertices = this.plainVertices;
 
         this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
 
@@ -569,10 +462,16 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVertices = data.terrainVertices;
         this.tempVertices = data.terrainVertices;
 
+        //var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+        this.bsphere.setFromBounds(data.bounds);
+        this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
+        this.node.appliedTerrainNodeId = this.node.nodeId;
+
         this.terrainReady = true;
         this.terrainIsLoading = false;
         this.parentNormalMapReady = true;
-
+        this.terrainExists = true;
+        
         if (!this.normalMapTexturePtr) {
             var nmc = this.planet._normalMapCreator;
             this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
@@ -581,12 +480,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         if (this.planet.lightEnabled) {
             this.planet._normalMapCreator.queue(this);
         }
-
-        var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
-        this.bsphere.setFromBounds(data.bounds);
-        this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
-        this.terrainExists = true;
-        this.node.appliedTerrainNodeId = this.node.nodeId;
     }
 };
 
@@ -886,7 +779,7 @@ Segment.prototype.destroySegment = function () {
 
     this.materials = null;
 
-    this.plainIndexes = null;
+    //this.plainIndexes = null;
     this.plainVertices = null;
     this.plainNormals = null;
     this.terrainVertices = null;
@@ -949,6 +842,114 @@ Segment.prototype.createBoundsByExtent = function () {
         this.bsphere.center.set(coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5, coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5, coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5);
         this.bsphere.radius = this.bsphere.center.distance(coord_ne);
     }
+};
+
+Segment.prototype.createTerrainFromChildNodes = function () {
+
+    const node = this.node;
+    const nodes = node.nodes;
+    const terrain = this.planet.terrain;
+
+    if (node.ready &&
+        this.tileZoom >= terrain.minZoom &&
+        this.tileZoom < terrain.maxZoom &&
+        nodes[0].segment.terrainReady && nodes[1].segment.terrainReady &&
+        nodes[2].segment.terrainReady && nodes[3].segment.terrainReady
+    ) {
+        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
+
+        this.gridSize = terrain.gridSizeByZoom[this.tileZoom];
+
+        let fgs = terrain.fileGridSize;
+
+        let dg = Math.max(fgs / this.gridSize, 1),
+            gs = Math.max(fgs, this.gridSize) + 1;
+        let ind = 0,
+            nmInd = 0;
+
+        let gs3 = gs * gs * 3,
+            sgs3 = (this.gridSize + 1) * (this.gridSize + 1) * 3;
+
+        let hgsOne = 0.5 * gs + 0.5;
+
+        this.terrainVertices = new Float32Array(sgs3);
+        this.normalMapVertices = new Float32Array(gs3);
+        this.normalMapNormals = new Float32Array(gs3);
+        this.normalMapNormalsRaw = new Float32Array(gs3);
+
+        let verts = this.terrainVertices,
+            nmVerts = this.normalMapVertices,
+            nmNorms = this.normalMapNormals;
+
+        for (let i = 0; i < gs; i++) {
+
+            let ni = Math.floor(i / hgsOne),
+                ii = i % hgsOne + ni;
+
+            for (let j = 0; j < gs; j++) {
+
+                let nj = Math.floor(j / hgsOne);
+                let n = nodes[(ni << 1) + nj];
+
+                let nii = ii << 1,
+                    njj = (j % hgsOne + nj) << 1;
+
+                let n_index = 3 * (nii * gs + njj);
+
+                let n_nmVerts = n.segment.normalMapVertices,
+                    n_nmNormsRaw = n.segment.normalMapNormalsRaw;
+
+                let x = n_nmVerts[n_index],
+                    y = n_nmVerts[n_index + 1],
+                    z = n_nmVerts[n_index + 2];
+
+                nmVerts[nmInd] = x;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index];
+
+                nmVerts[nmInd] = y;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
+
+                nmVerts[nmInd] = z;
+                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
+
+                if (i % dg === 0 && j % dg === 0) {
+                    verts[ind++] = x;
+                    verts[ind++] = y;
+                    verts[ind++] = z;
+
+                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                }
+            }
+        }
+
+        this.normalMapNormalsRaw.set(nmNorms);
+
+        //this.createCoordsBuffers(this.terrainVertices, this.gridSize);
+        this.readyToEngage = true;
+        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+
+        this.appliedTerrainNodeId = this.nodeId;
+        this.terrainReady = true;
+        this.terrainExists = true;
+        this.terrainIsLoading = false;
+
+        if (this.planet.lightEnabled) {
+            this.planet._normalMapCreator.drawSingle(this);
+        }
+
+        let e = this._extent;
+        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+
+        return false;
+    }
+
+    return true;
 };
 
 Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {

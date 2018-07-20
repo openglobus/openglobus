@@ -457,22 +457,24 @@ Node.prototype.renderNode = function (onlyTerrain) {
     var seg = this.segment;
 
     //Create and load terrain data.    
-
-    if (!seg.terrainReady /*&& seg._createTerrainFromChildNodes()*/) {
+    if (!seg.terrainReady) {
 
         if (!seg.initialized) {
             seg.initialize();
         }
 
-        this.whileTerrainLoading();
+        if (seg.createTerrainFromChildNodes()) {
 
-        //this.execPlainVerticesCreator();
-        if (!seg.plainProcessing) {
-            seg.createPlainSegmentAsync();
-        }
+            this.whileTerrainLoading();
 
-        if (seg.plainReady) {
-            seg.loadTerrain();
+            //this.execPlainVerticesCreator();
+            if (!seg.plainProcessing) {
+                seg.createPlainSegmentAsync();
+            }
+
+            if (seg.plainReady) {
+                seg.loadTerrain();
+            }
         }
     }
 
@@ -689,7 +691,7 @@ Node.prototype.whileTerrainLoading = function () {
 
         let pseg = pn.segment;
 
-        let tempVertices;
+        let tempVertices = null;
 
         if (this.appliedTerrainNodeId !== pn.nodeId) {
 
@@ -706,6 +708,7 @@ Node.prototype.whileTerrainLoading = function () {
             BOUNDS.zmax = MIN;
 
             if (gridSize >= 1) {
+                
                 seg.gridSize = gridSize;
 
                 this.sideSize[0] = gridSize;
@@ -717,6 +720,7 @@ Node.prototype.whileTerrainLoading = function () {
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, BOUNDS);
 
             } else if (gridSizeExt >= 1) {
+
                 seg.gridSize = gridSizeExt;
 
                 this.sideSize[0] = gridSizeExt;
@@ -728,8 +732,13 @@ Node.prototype.whileTerrainLoading = function () {
                     pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt, BOUNDS);
 
             } else {
+
                 seg.gridSize = _neGridSize;
-                this.sideSize = [_neGridSize, _neGridSize, _neGridSize, _neGridSize];
+
+                this.sideSize[0] = _neGridSize;
+                this.sideSize[1] = _neGridSize;
+                this.sideSize[2] = _neGridSize;
+                this.sideSize[3] = _neGridSize;
 
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
