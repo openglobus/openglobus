@@ -844,6 +844,9 @@ Segment.prototype.createBoundsByExtent = function () {
     }
 };
 
+/**
+ * @todo: remake it
+ */
 Segment.prototype.createTerrainFromChildNodes = function () {
 
     const node = this.node;
