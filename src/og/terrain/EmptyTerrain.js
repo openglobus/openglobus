@@ -12,7 +12,11 @@ class EmptyTerrain {
     constructor() {
 
         this.blur = false;
-        
+
+        this.equalizeVertices = false;
+
+        this.equalizeNormals = false;
+
         /**
          * Provider name is "empty"
          * @public
@@ -38,7 +42,9 @@ class EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        this.gridSizeByZoom = [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+        this.gridSizeByZoom = [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+
+        this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
         /**
          * Elevation grid size. Currend is 2x2 is the smallest grid size.
@@ -53,6 +59,17 @@ class EmptyTerrain {
          * @type {og.scene.Planet}
          */
         this._planet = null;
+    }
+
+    set maxNodeZoom(val) {
+        if (val > this.gridSizeByZoom.length - 1) {
+            val = this.gridSizeByZoom.length - 1;
+        }
+        this._maxNodeZoom = val;
+    }
+
+    get maxNodeZoom(){
+        return this._maxNodeZoom;
     }
 
     /**

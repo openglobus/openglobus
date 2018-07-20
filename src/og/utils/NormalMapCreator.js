@@ -12,7 +12,7 @@ import { types } from '../webgl/types.js';
 import { QueueArray } from '../QueueArray.js';
 
 const NormalMapCreator = function (planet, options) {
-    
+
     options = options || {};
 
     this._planet = planet;
@@ -34,7 +34,7 @@ const NormalMapCreator = function (planet, options) {
 
     this._blur = options.blur != undefined ? options.blur : true;
 
-    this._drawNormalMap = this._blur  ? this._drawNormalMapBlur : this._drawNormalMapNotBlur;
+    this._drawNormalMap = this._blur ? this._drawNormalMapBlur : this._drawNormalMapNotBlur;
 
     this._init();
 };
@@ -165,10 +165,12 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
     if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING
         && normals && normals.length) {
 
-        segment._normalMapEdgeEqualize(quadTree.N);
-        segment._normalMapEdgeEqualize(quadTree.S);
-        segment._normalMapEdgeEqualize(quadTree.W);
-        segment._normalMapEdgeEqualize(quadTree.E);
+        if (segment.planet.terrain.equalizeNormals) {
+            segment._normalMapEdgeEqualize(quadTree.N);
+            segment._normalMapEdgeEqualize(quadTree.S);
+            segment._normalMapEdgeEqualize(quadTree.W);
+            segment._normalMapEdgeEqualize(quadTree.E);
+        }
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;

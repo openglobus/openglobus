@@ -55,7 +55,7 @@ const Proj = function (options) {
  * @returns {boolean}
  */
 Proj.prototype.equal = function (proj) {
-    return proj.id == this.id;
+    return proj.id === this.id;
 };
 
 Proj._counter = 0;

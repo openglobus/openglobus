@@ -215,7 +215,7 @@ class CanvasTiles extends Layer {
         while (this._pendingsQueue.length) {
             var pmat = this._pendingsQueue.pop();
             if (pmat.segment.node) {
-                if (pmat.segment.ready && pmat.segment.node.getState() === quadTree.RENDERING) {
+                if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
                     return pmat;
                 }
                 pmat.isLoading = false;

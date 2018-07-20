@@ -612,7 +612,7 @@ class GmxVector extends Layer {
         this._planet._tileLoader.load({
             'src': url,
             'type': 'imageBitmap',
-            'filter': () => seg.ready && seg.node.getState() === RENDERING,
+            'filter': () => seg.plainReady && seg.node.getState() === RENDERING,
             'options': {}
         }, (response) => {
             if (response.status === "ready") {

@@ -12,6 +12,18 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
+if (!('createImageBitmap' in window)) {
+    window.createImageBitmap = async function(blob) {
+        return new Promise((resolve,reject) => {
+            let img = document.createElement('img');
+            img.addEventListener('load', function() {
+                resolve(this);
+            });
+            img.src = URL.createObjectURL(blob);
+        });
+    }
+};
+
 export function isEmpty(v) {
     return v == null;
 };

@@ -27,6 +27,7 @@ import { PlanetCamera } from '../camera/PlanetCamera.js';
 import { RenderNode } from './RenderNode.js';
 import { Segment } from '../segment/Segment.js';
 import { SegmentLonLat } from '../segment/SegmentLonLat.js';
+import { PlainSegmentWorker } from '../segment/PlainSegmentWorker.js';
 import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
@@ -372,7 +373,9 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(4);
+        this._terrainWorker = new TerrainWorker(3);
+
+        this._plainSegmentWorker = new PlainSegmentWorker(2);
 
         this._tileLoader = new Loader(14);
 
@@ -536,6 +539,7 @@ class Planet extends RenderNode {
     setTerrain(terrain) {
         this.terrain = terrain;
         this.terrain._planet = this;
+        this.terrain._maxNodeZoom = terrain.gridSizeByZoom.length - 1;
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
     }
 
@@ -678,15 +682,20 @@ class Planet extends RenderNode {
     }
 
     _preRender() {
-        this._quadTree.traverseNodes();
+        this._quadTree.createChildrenNodes();
+        this._quadTree.segment.createPlainSegment();
         this._quadTree.renderNode();
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        this._quadTreeNorth.traverseNodes();
+        this._quadTreeNorth.createChildrenNodes();
+        this._quadTreeNorth.segment.createPlainSegment();
         this._quadTreeNorth.renderNode();
+        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
-        this._quadTreeSouth.traverseNodes();
+        this._quadTreeSouth.createChildrenNodes();
+        this._quadTreeSouth.segment.createPlainSegment();
         this._quadTreeSouth.renderNode();
+        this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
     }
 
     /**

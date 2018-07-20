@@ -11,6 +11,7 @@ import { LightSource } from '../light/LightSource.js';
 import { Quat } from '../math/Quat.js';
 import { Vec3 } from '../math/Vec3.js';
 
+const ACTIVATION_HEIGHT = 12079000.0;
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.
  * @class
@@ -108,10 +109,10 @@ class Sun extends Control {
     }
 
     _draw() {
+        this._currDate = this._clockPtr.currentDate;
         if (!this._stopped) {
-            this._currDate = this._clockPtr.currentDate;
             var cam = this.renderer.activeCamera;
-            if (cam.getHeight() < 4650000 || !this._active) {
+            if (cam.getHeight() < ACTIVATION_HEIGHT || !this._active) {
                 this._lightOn = true;
                 this._f = 1;
                 var n = cam.eye.normal();
@@ -143,13 +144,15 @@ class Sun extends Control {
                     }
                 }
             }
+        } else {
+            this.sunlight.setPosition(getSunPosition(this._currDate));
         }
     }
-};
+}
 
 export function sun(options) {
     return Sun(options);
-};
+}
 
 export { Sun };
 
