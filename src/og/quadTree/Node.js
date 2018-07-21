@@ -23,6 +23,8 @@ import {
 
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
+const MAX_RENDERED_NODES = 200;
+
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -388,7 +390,10 @@ Node.prototype.renderTree = function (maxZoom) {
 
             this.prepareForRendering(cam, altVis);
 
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
+        } else if (
+            seg.tileZoom < planet.terrain._maxNodeZoom &&
+            //limit rendered nodes count due to stack overflow
+            planet._renderedNodes.length < MAX_RENDERED_NODES) {
 
             this.traverseNodes(maxZoom);
 
@@ -708,7 +713,7 @@ Node.prototype.whileTerrainLoading = function () {
             BOUNDS.zmax = MIN;
 
             if (gridSize >= 1) {
-                
+
                 seg.gridSize = gridSize;
 
                 this.sideSize[0] = gridSize;
