@@ -36,6 +36,8 @@ import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 
 const RESOURCES_URL = "";
+const DEFAULT_LOD_RATIO = 0.85;
+const DELTA_LOD = 0.3;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -346,9 +348,9 @@ class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this._lodRatio = 1.0;
+        this._lodRatio = DEFAULT_LOD_RATIO;
         this._maxLodRatio = this._lodRatio;
-        this._minLodRatio = this._maxLodRatio - 0.41;
+        this._minLodRatio = this._maxLodRatio - DELTA_LOD;
 
 
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
@@ -401,7 +403,7 @@ class Planet extends RenderNode {
 
     setRatioLod(v) {
         this._maxLodRatio = v;
-        this._minLodRatio = v - 0.43;
+        this._minLodRatio = v - DELTA_LOD;
     }
 
     /**
