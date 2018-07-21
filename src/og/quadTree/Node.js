@@ -12,6 +12,7 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
 import { MAX_LAT } from '../mercator.js';
 import { MAX, MIN } from '../math.js';
+
 import {
     NW, NE, SW, SE,
     N, E, S, W,
@@ -20,6 +21,8 @@ import {
     NEIGHBOUR, OPPART,
     VISIBLE_DISTANCE, RENDERING
 } from './quadTree.js';
+
+import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
 
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
@@ -221,7 +224,7 @@ Node.prototype.createBounds = function () {
                 seg.bsphere.radius = seg.bsphere.center.distance(v_sw);
 
 
-                if (seg.tileZoom < 7) {
+                if (seg.tileZoom < MAX_NORMAL_ZOOM) {
                     //check for segment zoom
                     let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
                         v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
@@ -435,7 +438,8 @@ Node.prototype.prepareForRendering = function (cam, altVis) {
         }
     } else {
         let seg = this.segment;
-        if (seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
+        if (seg.tileZoom < MAX_NORMAL_ZOOM &&
+            seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._seNorm.dot(cam.eyeNorm) > DOT_VIS) {

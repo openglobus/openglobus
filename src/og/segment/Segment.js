@@ -21,6 +21,8 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
+export const MAX_NORMAL_ZOOM = 7;
+
 var _RenderingSlice = function (p) {
     this.layers = [];
     this.tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
@@ -819,7 +821,7 @@ Segment.prototype.createBoundsByExtent = function () {
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
 
     //check for zoom
-    if (this.tileZoom < 7) {
+    if (this.tileZoom < MAX_NORMAL_ZOOM) {
 
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
         var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
