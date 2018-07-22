@@ -87,6 +87,12 @@ const Segment = function (node, planet, tileZoom, extent) {
     this._neNorm = null;
 
     /**
+     * experimental
+     */
+    this._deltaHeight = 0;
+
+
+    /**
      * Geographical extent.
      * @type {og.Extent}
      */
@@ -465,7 +471,14 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVertices = data.terrainVertices;
 
         //var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
-        this.bsphere.setFromBounds(data.bounds);
+        var b = data.bounds;
+        this.setBoundingSphere(
+            b[0] + (b[1] - b[0]) * 0.5,
+            b[2] + (b[3] - b[2]) * 0.5,
+            b[4] + (b[5] - b[4]) * 0.5,
+            new Vec3(b[0], b[2], b[4])
+        );
+
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.node.appliedTerrainNodeId = this.node.nodeId;
 
@@ -473,7 +486,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainIsLoading = false;
         this.parentNormalMapReady = true;
         this.terrainExists = true;
-        
+
         if (!this.normalMapTexturePtr) {
             var nmc = this.planet._normalMapCreator;
             this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
@@ -833,17 +846,27 @@ Segment.prototype.createBoundsByExtent = function () {
     }
 
     if (this.tileZoom < 4) {
-        this.bsphere.center.set(
+        this.setBoundingSphere(
             (coord_sw.x + coord_nw.x + (coord_ne.x - coord_sw.x + coord_se.x - coord_nw.x) * 0.5) * 0.5,
             (coord_sw.y + coord_nw.y + (coord_ne.y - coord_sw.y + coord_se.y - coord_nw.y) * 0.5) * 0.5,
-            (coord_sw.z + coord_nw.z + (coord_ne.z - coord_sw.z + coord_se.z - coord_nw.z) * 0.5) * 0.5
+            (coord_sw.z + coord_nw.z + (coord_ne.z - coord_sw.z + coord_se.z - coord_nw.z) * 0.5) * 0.5,
+            coord_ne
         );
-
-        this.bsphere.radius = 0.5 * (this.bsphere.center.distance(coord_ne) + this.bsphere.center.distance(coord_sw));
     } else {
-        this.bsphere.center.set(coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5, coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5, coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5);
-        this.bsphere.radius = this.bsphere.center.distance(coord_ne);
+        this.setBoundingSphere(
+            coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
+            coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
+            coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
+            coord_ne
+        );
     }
+};
+
+Segment.prototype.setBoundingSphere = function (x, y, z, v) {
+    this.bsphere.center.x = x;
+    this.bsphere.center.y = y;
+    this.bsphere.center.z = z;
+    this.bsphere.radius = this.bsphere.center.distance(v);
 };
 
 /**
@@ -934,7 +957,13 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         //this.createCoordsBuffers(this.terrainVertices, this.gridSize);
         this.readyToEngage = true;
-        this.bsphere.setFromBounds([xmin, xmax, ymin, ymax, zmin, zmax]);
+        this.setBoundingSphere(
+            xmin + (xmax - xmin) * 0.5,
+            ymin + (ymax - ymin) * 0.5,
+            zmin + (zmax - zmin) * 0.5,
+            new Vec3(xmin, ymin, zmin)
+        );
+
 
         this.appliedTerrainNodeId = this.nodeId;
         this.terrainReady = true;

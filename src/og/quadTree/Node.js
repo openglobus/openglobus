@@ -174,8 +174,7 @@ Node.prototype.createBounds = function () {
 
     if (seg.tileZoom === 0) {
 
-        seg.bsphere.radius = seg.planet.ellipsoid._a;
-        seg.bsphere.center = new Vec3();
+        seg.setBoundingSphere(0.0, 0.0, 0.0, seg.planet.ellipsoid._a);
 
     } else if (seg.tileZoom < seg.planet.terrain.minZoom) {
 
@@ -215,14 +214,12 @@ Node.prototype.createBounds = function () {
                 let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
                     v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
 
-                seg.bsphere.center.set(
+                seg.setBoundingSphere(
                     v_sw.x + (v_ne.x - v_sw.x) * 0.5,
                     v_sw.y + (v_ne.y - v_sw.y) * 0.5,
-                    v_sw.z + (v_ne.z - v_sw.z) * 0.5
+                    v_sw.z + (v_ne.z - v_sw.z) * 0.5,
+                    v_sw
                 );
-
-                seg.bsphere.radius = seg.bsphere.center.distance(v_sw);
-
 
                 if (seg.tileZoom < MAX_NORMAL_ZOOM) {
                     //check for segment zoom
@@ -277,8 +274,12 @@ Node.prototype.createBounds = function () {
                     coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
-                seg.bsphere.radius = coords_lt.distance(coords_rb) * 0.5;
-                seg.bsphere.center = coords_lt.addA(coords_rb.subA(coords_lt).scale(0.5));
+                seg.setBoundingSphere(
+                    coords_lt.x + (coords_rb.x - coords_lt.x) * 0.5,
+                    coords_lt.y + (coords_rb.y - coords_lt.y) * 0.5,
+                    coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
+                    coords_lt
+                );
             }
         } else {
             seg.createBoundsByExtent();
@@ -805,13 +806,12 @@ Node.prototype.whileTerrainLoading = function () {
             //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
 
-            seg.bsphere.center.set(
+            seg.setBoundingSphere(
                 BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
                 BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
-                BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5
+                BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
+                new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
             );
-
-            seg.bsphere.radius = seg.bsphere.center.distance(new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin));
         }
 
         let maxZ = terrain.maxZoom;
