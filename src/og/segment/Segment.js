@@ -852,21 +852,12 @@ Segment.prototype.createBoundsByExtent = function () {
         this._seNorm = coord_se.normal();
     }
 
-    if (this.tileZoom < 4) {
-        this.setBoundingSphere(
-            (coord_sw.x + coord_nw.x + (coord_ne.x - coord_sw.x + coord_se.x - coord_nw.x) * 0.5) * 0.5,
-            (coord_sw.y + coord_nw.y + (coord_ne.y - coord_sw.y + coord_se.y - coord_nw.y) * 0.5) * 0.5,
-            (coord_sw.z + coord_nw.z + (coord_ne.z - coord_sw.z + coord_se.z - coord_nw.z) * 0.5) * 0.5,
-            coord_ne
-        );
-    } else {
-        this.setBoundingSphere(
-            coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
-            coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
-            coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
-            coord_ne
-        );
-    }
+    this.setBoundingSphere(
+        coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
+        coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
+        coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
+        coord_ne
+    );
 };
 
 Segment.prototype.setBoundingSphere = function (x, y, z, v) {
