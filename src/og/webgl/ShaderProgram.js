@@ -329,7 +329,7 @@ class ShaderProgram {
     /**
      * Bind program buffer.
      * @function
-     * @param {og.shaderProgram.ShaderProgram} program - Used program.
+     * @param {og.webgl.ShaderProgram} program - Used program.
      * @param {Object} variable - Variable represents buffer data.
      */
     static bindBuffer(program, variable) {

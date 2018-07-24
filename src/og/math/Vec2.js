@@ -152,7 +152,7 @@ Vec2.orthoNormalize = function (normal, tangent) {
 /**
  * Converts to 3d vector, third value is 0.0.
  * @public
- * @returns {og.math.Vector3}
+ * @returns {og.Vec3}
  */
 Vec2.prototype.toVector3 = function () {
     return new Vec3(this.x, this.y, 0);

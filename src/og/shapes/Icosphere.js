@@ -10,9 +10,9 @@ import { BaseShape } from './BaseShape.js';
  * @class
  * @extends {og.shape.BaseShape}
  * @param {Object} options - Icosphere parameters:
- * @param {og.math.Vector3} [options.position] - Icosphere position.
- * @param {og.math.Quaternion} [options.orientation] - Icosphere orientation(rotation).
- * @param {og.math.Vector3} [options.scale] - Scale vector.
+ * @param {og.Vec3} [options.position] - Icosphere position.
+ * @param {og.Quat} [options.orientation] - Icosphere orientation(rotation).
+ * @param {og.Vec3} [options.scale] - Scale vector.
  * @param {Array.<number,number,number,number>} [options.color] - Icosphere RGBA color.
  * @param {string} [options.src] - Texture image url source.
  * @param {boolean} [options.visibility] - Icosphere visibility.

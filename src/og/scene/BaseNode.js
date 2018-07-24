@@ -22,7 +22,7 @@ class BaseNode {
         /**
          * Top scene tree node pointer.
          * @public
-         * @type {og.scene.Node}
+         * @type {og.RenderNode}
          */
         this.topNode = this;
 
@@ -32,14 +32,14 @@ class BaseNode {
         /**
          * Children nodes.
          * @public
-         * @type {Array.<og.scene.Node>}
+         * @type {Array.<og.RenderNode>}
          */
         this.childNodes = [];
 
         /**
          * Parent node pointer.
          * @public
-         * @type {og.scene.Node}
+         * @type {og.RenderNode}
          */
         this.parentNode = null;
 
@@ -61,7 +61,7 @@ class BaseNode {
     /**
      * Adds node to the current hierarchy.
      * @public
-     * @type {og.scene.Node}
+     * @type {og.RenderNode}
      */
     addNode(node) {
         if (this.parentNode == null) {
@@ -91,7 +91,7 @@ class BaseNode {
      * Gets node by name in the current.
      * @public
      * @param {string} name - Node name.
-     * @return {og.scene.Node} Node object in the current node.
+     * @return {og.RenderNode} Node object in the current node.
      */
     getNodeByName(name) {
         return this._dictionary[name];

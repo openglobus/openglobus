@@ -51,7 +51,7 @@ const Proj = function (options) {
 /**
  * Compare projections.
  * @public
- * @param {og.proj.Projection} proj - Projetion object.
+ * @param {og.Proj} proj - Projetion object.
  * @returns {boolean}
  */
 Proj.prototype.equal = function (proj) {

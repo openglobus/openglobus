@@ -25,7 +25,7 @@ import { Vec3 } from '../math/Vec3.js';
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {og.math.Vector3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
+ * @param {og.Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
  * @param {og.LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
@@ -83,7 +83,7 @@ class Entity {
         /**
          * Entity cartesian position.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._cartesian = utils.createVector3(options.cartesian);
 
@@ -146,7 +146,7 @@ class Entity {
         /**
          * Picking color.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._pickingColor = new Vec3(0, 0, 0);
 
@@ -291,7 +291,7 @@ class Entity {
     /**
      * Sets entity cartesian position.
      * @public
-     * @param {og.math.Vector3} cartesian - Cartesian position in 3d space.
+     * @param {og.Vec3} cartesian - Cartesian position in 3d space.
      */
     setCartesian3v(cartesian) {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
@@ -344,7 +344,7 @@ class Entity {
     /**
      * Sets entity cartesian position without moveentity event dispatching.
      * @protected
-     * @param {og.math.Vector3} cartesian - Cartesian position in 3d space.
+     * @param {og.Vec3} cartesian - Cartesian position in 3d space.
      */
     _setCartesian3vSilent(cartesian) {
 
@@ -415,7 +415,7 @@ class Entity {
     /**
      * Returns carteain position.
      * @public
-     * @returns {og.math.Vector3} -
+     * @returns {og.Vec3} -
      */
     getCartesian() {
         return this._cartesian;

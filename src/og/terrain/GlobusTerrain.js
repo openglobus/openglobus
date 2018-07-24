@@ -15,13 +15,13 @@ import { stringTemplate } from '../utils/shared.js';
 const EVENT_NAMES = [
     /**
     * Triggered when current elevation tile has loaded but before rendereing.
-    * @event og.terrainProvider.TerrainProvider#load
+    * @event og.terrain.GlobusTerrain#load
     */
     "load",
 
     /**
     * Triggered when all elevation tiles have loaded or loading has stopped.
-    * @event og.terrainProvider.TerrainProvider#loadend
+    * @event og.terrain.GlobusTerrain#loadend
     */
     "loadend"
 ];
@@ -29,7 +29,7 @@ const EVENT_NAMES = [
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
- * @extends {og.terrainProvider.EmptyTerrainProvider}
+ * @extends {og.terrain.EmptyTerrain}
  * @param {string} [name=""] - Terrain provider name.
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
@@ -39,8 +39,8 @@ const EVENT_NAMES = [
  * @param {number} [options.fileGridSize=32] - Elevation tile grid size. Default is 32x32.
  * @param {string} [options.responseType="arraybuffer"] - Ajax responce type.
  * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
- * @fires og.terrainProvider.TerrainProvider#load
- * @fires og.terrainProvider.TerrainProvider#loadend
+ * @fires og.terrain.GlobusTerrain#load
+ * @fires og.terrain.GlobusTerrain#loadend
  */
 class GlobusTerrain extends EmptyTerrain {
     constructor(name, options) {
@@ -109,7 +109,7 @@ class GlobusTerrain extends EmptyTerrain {
         /**
          * Rewrites elevation storage url query.
          * @private
-         * @callback og.terrainProvider.TerrainProvider~_urlRewriteCallback
+         * @callback og.terrain.GlobusTerrain~_urlRewriteCallback
          * @param {og.planetSegment.Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
@@ -217,7 +217,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {og.terrainProvider.TerrainProvider~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {og.terrain.GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;

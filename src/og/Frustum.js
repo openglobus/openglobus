@@ -84,7 +84,7 @@ class Frustum {
     /**
      * Returns true if a point in the frustum.
      * @public
-     * @param {og.math.Vec3} point - Cartesian point.
+     * @param {og.Vec3} point - Cartesian point.
      * @returns {boolean}
      */
     containsPoint(point) {

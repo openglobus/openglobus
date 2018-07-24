@@ -10,7 +10,7 @@ import { Vec3 } from '../math/Vec3.js';
  * Bounding sphere class.
  * @class
  * @param {Number} [radius] - Bounding sphere radius.
- * @param {og.math.Vector3} [center] - Bounding sphere coordiantes.
+ * @param {og.Vec3} [center] - Bounding sphere coordiantes.
  */
 class Sphere {
     constructor(radius, center) {
@@ -25,7 +25,7 @@ class Sphere {
         /**
          * Sphere coordiantes.
          * @public
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this.center = center ? center.clone() : new Vec3();
     }

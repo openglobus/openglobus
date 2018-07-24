@@ -6,13 +6,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="./osm.js" type="module"></script>
     <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        .color-options {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: white;
+            padding: 15px;
+            width: 250px;
+        }
+
+        .caption {
+            width: 100%;
+            height: 20px;
+            position: relative;
+        }
+
+        .option {
+            width: 100%;
+            position: relative;
+            display: flex;
+        }
+
+        .label {
+            float: left;
+        }
+
+        .slider {
+            float: left;
+            width: calc(100% - 50px);
+        }
+
+        .slider input {
+            width: 100%;
+            position: relative;
+        }
+
+        .value{
+            float:left;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="earth" style="width:100%;height:100%"/>
-    <div id="debug" class="defaultText"/>
-    <div id="bounds" class="defaultText"/>
-    <div id="curr" class="defaultText"/>
+    <div id="earth" style="width:100%;height:100%"></div>
+
+    <div class="color-options">
+        <div class="caption">Ambient</div>
+        <div class="option">
+            <div class="label">R</div>
+            <div class="slider">
+                <input type="range" id="ambient-r" name="ambient-r" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value ambient-r">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">G</div>
+            <div class="slider">
+                <input type="range" id="ambient-g" name="ambient-g" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value ambient-g">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">B</div>
+            <div class="slider">
+                <input type="range" id="ambient-b" name="ambient-b" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value ambient-b">0.888</div>
+        </div>
+
+        <div class="caption">Diffuse</div>
+        <div class="option">
+            <div class="label">R</div>
+            <div class="slider">
+                <input type="range" id="diffuse-r" name="diffuse-r" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value diffuse-r">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">G</div>
+            <div class="slider">
+                <input type="range" id="diffuse-g" name="diffuse-g" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value diffuse-g">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">B</div>
+            <div class="slider">
+                <input type="range" id="diffuse-b" name="diffuse-b" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="value diffuse-b">0.888</div>
+        </div>
+
+
+        <div class="caption">Specular</div>
+        <div class="option">
+            <div class="label">R</div>
+            <div class="slider">
+                <input type="range" id="specular-r" name="specular-r" value="0.0" min="0.0" max="1.0" step="0.0001" />
+            </div>
+            <div class="value specular-r">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">G</div>
+            <div class="slider">
+                <input type="range" id="specular-g" name="specular-g" value="0.0" min="0.0" max="1.0" step="0.0001" />
+            </div>
+            <div class="value specular-g">0.888</div>
+        </div>
+        <div class="option">
+            <div class="label">B</div>
+            <div class="slider">
+                <input type="range" id="specular-b" name="specular-b" value="0.0" min="0.0" max="1.0" step="0.0001" />
+            </div>
+            <div class="value specular-b">0.888</div>
+        </div>
+
+        <div class="caption">Shininess</div>
+        <div class="option">
+            <div class="label">R</div>
+            <div class="slider">
+                <input type="range" id="shininess" name="shininess" value="0.0" min="0.0" max="1000.0" step="1" />
+            </div>
+            <div class="value shininess">0.888</div>
+        </div>
+
+    </div>
 </body>
 
 </html>

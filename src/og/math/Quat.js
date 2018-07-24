@@ -58,7 +58,7 @@ const Quat = function (x, y, z, w) {
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
  * @param {Number} [w=0.0] The W component.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 export function quat(x, y, z, w) {
     return new Quat(x, y, z, w);
@@ -67,7 +67,7 @@ export function quat(x, y, z, w) {
 /**
  * Identity Quat.
  * @const
- * @type {og.math.Quat}
+ * @type {og.Quat}
  */
 Quat.IDENTITY = new Quat(0.0, 0.0, 0.0, 1.0);
 
@@ -75,7 +75,7 @@ Quat.IDENTITY = new Quat(0.0, 0.0, 0.0, 1.0);
  * Returns a Quat represents rotation around X axis.
  * @static
  * @param {number} a - The angle in radians to rotate around the axis.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.xRotation = function (a) {
     a *= 0.5;
@@ -86,7 +86,7 @@ Quat.xRotation = function (a) {
  * Returns a Quat represents rotation around Y axis.
  * @static
  * @param {number} a - The angle in radians to rotate around the axis.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.yRotation = function (a) {
     a *= 0.5;
@@ -97,7 +97,7 @@ Quat.yRotation = function (a) {
  * Returns a Quat represents rotation around Z axis.
  * @static
  * @param {number} a - The angle in radians to rotate around the axis.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.zRotation = function (a) {
     a *= 0.5;
@@ -107,9 +107,9 @@ Quat.zRotation = function (a) {
 /**
  * Computes a Quat representing a rotation around an axis.
  * @static
- * @param {og.math.Vector3} axis - The axis of rotation.
+ * @param {og.Vec3} axis - The axis of rotation.
  * @param {number} angle The angle in radians to rotate around the axis.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.axisAngleToQuat = function (axis, angle) {
     var res = new Quat();
@@ -123,9 +123,9 @@ Quat.axisAngleToQuat = function (axis, angle) {
 /**
  * Computes a rotation from the given heading and up vector.
  * @static
- * @param {og.math.Vector3} target - Heading target coordinates.
- * @param {og.math.Vector3} up - Up vector.
- * @returns {og.math.Quat}
+ * @param {og.Vec3} target - Heading target coordinates.
+ * @param {og.Vec3} up - Up vector.
+ * @returns {og.Quat}
  */
 Quat.getLookAtTargetUp = function (target, up) {
     var forward = target.normal();
@@ -143,9 +143,9 @@ Quat.getLookAtTargetUp = function (target, up) {
 /**
  * Computes a Quat from from source point heading to the destination point.
  * @static
- * @param {og.math.Vector3} sourcePoint - Source coordinate.
- * @param {og.math.Vector3} destPoint - Destination coordinate.
- * @returns {og.math.Quat}
+ * @param {og.Vec3} sourcePoint - Source coordinate.
+ * @param {og.Vec3} destPoint - Destination coordinate.
+ * @returns {og.Quat}
  */
 Quat.getLookAtSourceDest = function (sourcePoint, destPoint) {
     var forwardVector = destPoint.subA(sourcePoint).normalize();
@@ -164,9 +164,9 @@ Quat.getLookAtSourceDest = function (sourcePoint, destPoint) {
 /**
  * Compute rotation between two vectors.
  * @static
- * @param {og.math.Vector3} u - First vector.
- * @param {og.math.Vector3} v - Second vector.
- * @returns {og.math.Quat}
+ * @param {og.Vec3} u - First vector.
+ * @param {og.Vec3} v - Second vector.
+ * @returns {og.Quat}
  */
 Quat.getRotationBetweenVectors = function (u, v) {
     var w = u.cross(v);
@@ -177,10 +177,10 @@ Quat.getRotationBetweenVectors = function (u, v) {
 /**
  * Compute rotation between two vectors with around vector up for exactly opposite vectors. If vectors exaclty in the same direction than returns identity Quat.
  * @static
- * @param {og.math.Vector3} source - First vector.
- * @param {og.math.Vector3} dest - Second vector.
- * @param {og.math.Vector3} up - Up vector.
- * @returns {og.math.Quat}
+ * @param {og.Vec3} source - First vector.
+ * @param {og.Vec3} dest - Second vector.
+ * @param {og.Vec3} up - Up vector.
+ * @returns {og.Quat}
  */
 Quat.getRotationBetweenVectorsUp = function (source, dest, up) {
     var dot = source.dot(dest);
@@ -202,7 +202,7 @@ Quat.getRotationBetweenVectorsUp = function (source, dest, up) {
 /**
  * Clear Quat. Sets zeroes.
  * @public
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.clear = function () {
     this.x = this.y = this.z = this.w = 0;
@@ -216,7 +216,7 @@ Quat.prototype.clear = function () {
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
  * @param {Number} [w=0.0] The W component.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.set = function (x, y, z, w) {
     this.x = x;
@@ -229,8 +229,8 @@ Quat.prototype.set = function (x, y, z, w) {
 /**
  * Copy Quat values.
  * @public
- * @param {og.math.Quat} q - Copy Quat.
- * @returns {og.math.Quat}
+ * @param {og.Quat} q - Copy Quat.
+ * @returns {og.Quat}
  */
 Quat.prototype.copy = function (q) {
     this.x = q.x;
@@ -243,7 +243,7 @@ Quat.prototype.copy = function (q) {
 /**
  * Set current Quat instance to identity Quat.
  * @public
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.setIdentity = function () {
     this.x = 0.0;
@@ -256,7 +256,7 @@ Quat.prototype.setIdentity = function () {
 /**
  * Duplicates a Quat instance.
  * @public
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.clone = function () {
     return new Quat(this.x, this.y, this.z, this.w);
@@ -265,8 +265,8 @@ Quat.prototype.clone = function () {
 /**
  * Computes the componentwise sum of two Quats.
  * @public
- * @param {og.math.Quat} q - Quat to add.
- * @returns {og.math.Quat}
+ * @param {og.Quat} q - Quat to add.
+ * @returns {og.Quat}
  */
 Quat.prototype.add = function (q) {
     return new Quat(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
@@ -275,8 +275,8 @@ Quat.prototype.add = function (q) {
 /**
  * Computes the componentwise difference of two Quats.
  * @public
- * @param {og.math.Quat} q - Quat to subtract.
- * @returns {og.math.Quat}
+ * @param {og.Quat} q - Quat to subtract.
+ * @returns {og.Quat}
  */
 Quat.prototype.sub = function (q) {
     return new Quat(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
@@ -286,7 +286,7 @@ Quat.prototype.sub = function (q) {
  * Multiplies the provided Quat componentwise by the provided scalar.
  * @public
  * @param {Number} scale - The scalar to multiply with.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.scaleTo = function (scale) {
     return new Quat(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
@@ -307,7 +307,7 @@ Quat.prototype.toVec = function () {
  * @param {number} lat - Latitude.
  * @param {number} lon - Longitude.
  * @param {number} angle - Angle in radians.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     var sin_a = Math.sin(angle / 2);
@@ -352,9 +352,9 @@ Quat.prototype.toSphericalCoords = function () {
 /**
  * Sets current Quat representing a rotation around an axis.
  * @public
- * @param {og.math.Vector3} axis - The axis of rotation.
+ * @param {og.Vec3} axis - The axis of rotation.
  * @param {number} angle The angle in radians to rotate around the axis.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.setFromAxisAngle = function (axis, angle) {
     var v = axis.normal();
@@ -392,7 +392,7 @@ Quat.prototype.getAxisAngle = function () {
  * @param {number} pitch - Pitch angle in degrees.
  * @param {number} yaw - Yaw angle in degrees.
  * @param {number} roll - Roll angle in degrees.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex, ey, ez;
@@ -434,7 +434,7 @@ Quat.prototype.getEulerAngles = function () {
 /**
  * Computes a Quat from the provided 4x4 matrix instance.
  * @public
- * @param {og.math.Matrix4} m - The rotation matrix.
+ * @param {og.Mat4} m - The rotation matrix.
  */
 Quat.prototype.setFromMatrix4 = function (m) {
     var tr, s, q = [];
@@ -480,7 +480,7 @@ Quat.prototype.setFromMatrix4 = function (m) {
 /**
  * Converts current Quat to the rotation matrix.
  * @public
- * @returns {og.math.Matrix4}
+ * @returns {og.Mat4}
  */
 Quat.prototype.getMat4 = function () {
     var m = new Mat4();
@@ -503,8 +503,8 @@ Quat.prototype.getMat4 = function () {
 /**
  * Returns quatrenion and vector production.
  * @public
- * @param {og.math.Vector3} v - 3d Vector.
- * @returns {og.math.Vector3}
+ * @param {og.Vec3} v - 3d Vector.
+ * @returns {og.Vec3}
  */
 Quat.prototype.mulVec3 = function (v) {
     var d = v.x, e = v.y, g = v.z;
@@ -522,8 +522,8 @@ Quat.prototype.mulVec3 = function (v) {
 /**
  * Computes the product of two Quats.
  * @public
- * @param {og.math.Quat} q - Quat to multiply.
- * @returns {og.math.Quat}
+ * @param {og.Quat} q - Quat to multiply.
+ * @returns {og.Quat}
  */
 Quat.prototype.mul = function (q) {
     var d = this.x, e = this.y, g = this.z, a = this.w;
@@ -538,7 +538,7 @@ Quat.prototype.mul = function (q) {
 /**
  * Gets the conjugate of the Quat.
  * @public
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.conjugate = function () {
     return new Quat(-this.x, -this.y, -this.z, this.w);
@@ -547,7 +547,7 @@ Quat.prototype.conjugate = function () {
 /** 
  * Computes the inverse of the Quat.
  * @public
- * @retuns {og.math.Quat}
+ * @retuns {og.Quat}
  */
 Quat.prototype.inverse = function () {
     var n = 1 / this.magnitude2();
@@ -577,7 +577,7 @@ Quat.prototype.magnitude2 = function () {
 /**
  * Computes the dot (scalar) product of two Quats.
  * @public
- * @param {og.math.Quat} q - Second quatrnion.
+ * @param {og.Quat} q - Second quatrnion.
  * @returns {number}
  */
 Quat.prototype.dot = function (q) {
@@ -587,7 +587,7 @@ Quat.prototype.dot = function (q) {
 /**
  * Current Quat normalization.
  * @public
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.normalize = function () {
     var c = this.x, d = this.y, e = this.z, g = this.w,
@@ -610,7 +610,7 @@ Quat.prototype.normalize = function () {
 /**
  * Compares two Quats.
  * @public
- * @param {og.math.Quat} q - Second quatrnion.
+ * @param {og.Quat} q - Second quatrnion.
  * @returns {boolean}
  */
 Quat.prototype.isEqual = function (q) {
@@ -624,9 +624,9 @@ Quat.prototype.isEqual = function (q) {
 /**
  * Performs a spherical linear interpolation between two Quats.
  * @public
- * @param {og.math.Quat} b - The end rotation Quat.
+ * @param {og.Quat} b - The end rotation Quat.
  * @param {number} t - interpolation amount between the two Quats.
- * @returns {og.math.Quat}
+ * @returns {og.Quat}
  */
 Quat.prototype.slerp = function (b, t) {
 

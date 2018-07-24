@@ -11,10 +11,10 @@ import { Vec3 } from '../math/Vec3.js';
  * @class
  * @param {string} [name] - Light source name.
  * @param {Object} [params] - Light parameters:
- * @param {og.math.Vector3} [params.position] - Light source position if it is a point light, otherwise it is a light direction vector.
- * @param {og.math.Vector3} [params.ambient]  - Ambient RGB color.
- * @param {og.math.Vector3} [params.diffuse]  - Diffuse RGB color.
- * @param {og.math.Vector3} [params.specular]  - Specular RGB color.
+ * @param {og.Vec3} [params.position] - Light source position if it is a point light, otherwise it is a light direction vector.
+ * @param {og.Vec3} [params.ambient]  - Ambient RGB color.
+ * @param {og.Vec3} [params.diffuse]  - Diffuse RGB color.
+ * @param {og.Vec3} [params.specular]  - Specular RGB color.
  * @param {number} [params.shininess]  - Specular shininess.
  */
 class LightSource {
@@ -49,7 +49,7 @@ class LightSource {
         /**
          * Light position.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._position = params.position || new Vec3();
 
@@ -63,21 +63,21 @@ class LightSource {
         /**
          * Ambient color.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._ambient = params.ambient || new Vec3();
 
         /**
          * Diffuse color.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._diffuse = params.diffuse || new Vec3(0.8, 0.8, 0.8);
 
         /**
          * Specular color.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._specular = params.specular || new Vec3(0.18, 0.18, 0.18);
 
@@ -158,7 +158,7 @@ class LightSource {
     /**
      * Set light source position, or if it is a directional type sets light direction vector.
      * @public
-     * @param {og.math.Vector3} position - Light position or direction vector.
+     * @param {og.Vec3} position - Light position or direction vector.
      * @returns {og.LightSource}
      */
     setPosition(position) {
@@ -171,7 +171,7 @@ class LightSource {
     /**
      * Returns light source position, or if it is a directional type sets light direction vector.
      * @public
-     * @returns {og.math.Vector3} - Light source position/direction.
+     * @returns {og.Vec3} - Light source position/direction.
      */
     getPosition() {
         return this._position.clone();
@@ -180,7 +180,7 @@ class LightSource {
     /**
      * Set ambient color.
      * @public
-     * @param {og.math.Vector3} rgb - Ambient color.
+     * @param {og.Vec3} rgb - Ambient color.
      * @returns {og.LightSource}
      */
     setAmbient(rgb) {
@@ -200,7 +200,7 @@ class LightSource {
     /**
      * Set diffuse color.
      * @public
-     * @param {og.math.Vector3} rgb - Diffuse color.
+     * @param {og.Vec3} rgb - Diffuse color.
      * @returns {og.LightSource}
      */
     setDiffuse(rgb) {
@@ -220,7 +220,7 @@ class LightSource {
     /**
      * Set specular color.
      * @public
-     * @param {og.math.Vector3} rgb - Specular color.
+     * @param {og.Vec3} rgb - Specular color.
      * @returns {og.LightSource}
      */
     setSpecular(rgb) {

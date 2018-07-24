@@ -56,16 +56,16 @@ const Mat4 = function () {
 /**
  * Mat4 factory.
  * @static
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 export function mat4() {
-    return new og.math.Mat4();
+    return new og.Mat4();
 };
 
 /**
  * Returns identity matrix instance.
  * @static
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.identity = function () {
     var res = new Mat4();
@@ -80,7 +80,7 @@ Mat4.identity = function () {
  * Sets column-major order array matrix.
  * @public
  * @param {Array.<number>} m - Matrix array.
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.set = function (m) {
     this._m[0] = m[0];
@@ -105,7 +105,7 @@ Mat4.prototype.set = function (m) {
 /**
  * Duplicates a Matrix3 instance.
  * @public
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.clone = function () {
     var res = new Mat4();
@@ -116,8 +116,8 @@ Mat4.prototype.clone = function () {
 /**
  * Copy matrix.
  * @public
- * @param {og.math.Matrix3} a - Matrix to copy.
- * @returns {og.math.Mat4}
+ * @param {og.Mat3} a - Matrix to copy.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.copy = function (a) {
     this.set(a._m);
@@ -126,7 +126,7 @@ Mat4.prototype.copy = function (a) {
 /**
  * Converts to 3x3 matrix.
  * @public
- * @returns {og.math.Matrix3}
+ * @returns {og.Mat3}
  */
 Mat4.prototype.toMatrix3 = function () {
     var res = new Mat3();
@@ -147,8 +147,8 @@ Mat4.prototype.toMatrix3 = function () {
 /**
  * Multiply to 3d vector.
  * @public
- * @param {og.math.Vector3} p - 3d vector.
- * @returns {og.math.Vector3}
+ * @param {og.Vec3} p - 3d vector.
+ * @returns {og.Vec3}
  */
 Mat4.prototype.mulVec3 = function (p) {
     var d = p.x, e = p.y, g = p.z;
@@ -162,8 +162,8 @@ Mat4.prototype.mulVec3 = function (p) {
 /**
  * Multiply to 4d vector.
  * @public
- * @param {og.math.Vector4} p - 4d vector.
- * @returns {og.math.Vector4}
+ * @param {og.Vec4} p - 4d vector.
+ * @returns {og.Vec4}
  */
 Mat4.prototype.mulVec4 = function (p) {
     var d = p.x, e = p.y, g = p.z, f = p.w;
@@ -178,7 +178,7 @@ Mat4.prototype.mulVec4 = function (p) {
 /**
  * Creates an inversed 3x3 matrix of the current.
  * @public
- * @returns {og.math.Matrix3}
+ * @returns {og.Mat3}
  */
 Mat4.prototype.toInverseMatrix3 = function () {
     var a = this._m;
@@ -209,7 +209,7 @@ Mat4.prototype.toInverseMatrix3 = function () {
 /**
  * Creates an inversed matrix of the current.
  * @public
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.inverseTo = function () {
     var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
@@ -241,7 +241,7 @@ Mat4.prototype.inverseTo = function () {
 /**
  * Creates a trasposed matrix of the current.
  * @public
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.transposeTo = function () {
     var res = new Mat4();
@@ -255,7 +255,7 @@ Mat4.prototype.transposeTo = function () {
 /**
  * Sets matrix to identity.
  * @public
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.setIdentity = function () {
     this._m[0] = 1; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
@@ -268,8 +268,8 @@ Mat4.prototype.setIdentity = function () {
 /**
  * Computes the product of two matrices.
  * @public
- * @param {og.math.Mat4} mx - Matrix to multiply.
- * @returns {og.math.Mat4}
+ * @param {og.Mat4} mx - Matrix to multiply.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.mul = function (mx) {
     let d = this._m[0], e = this._m[1], g = this._m[2], f = this._m[3],
@@ -293,8 +293,8 @@ Mat4.prototype.mul = function (mx) {
 /**
  * Add translation vector to the current matrix.
  * @public
- * @param {og.math.Vector3} v - Translate vector.
- * @returns {og.math.Mat4}
+ * @param {og.Vec3} v - Translate vector.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.translate = function (v) {
     var d = v.x, e = v.y, b = v.z;
@@ -309,8 +309,8 @@ Mat4.prototype.translate = function (v) {
 /**
  * Sets translation matrix to the position.
  * @public
- * @param {og.math.Vector3} v - Translate to position.
- * @returns {og.math.Mat4}
+ * @param {og.Vec3} v - Translate to position.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.translateToPosition = function (v) {
     var a = this._m;
@@ -323,9 +323,9 @@ Mat4.prototype.translateToPosition = function (v) {
 /**
  * Rotate currrent matrix around the aligned axis and angle.
  * @public
- * @param {og.math.Vector3} u - Aligned axis.
+ * @param {og.Vec3} u - Aligned axis.
  * @param {number} angle - Aligned axis angle in radians.
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  * @todo: OPTIMIZE: reveal multiplication
  */
 Mat4.prototype.rotate = function (u, angle) {
@@ -343,9 +343,9 @@ Mat4.prototype.rotate = function (u, angle) {
 /**
  * Sets current rotation matrix around the aligned axis and angle.
  * @public
- * @param {og.math.Vector3} u - Aligned axis.
+ * @param {og.Vec3} u - Aligned axis.
  * @param {number} angle - Aligned axis angle in radians.
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.setRotation = function (u, angle) {
     var c = Math.cos(angle),
@@ -361,9 +361,9 @@ Mat4.prototype.setRotation = function (u, angle) {
 /**
  * Gets the rotation matrix from one vector to another.
  * @public
- * @param {og.math.Vector3} a - Firtst vector.
- * @param {og.math.Vector3} b - Second vector.
- * @returns {og.math.Mat4}
+ * @param {og.Vec3} a - Firtst vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.rotateBetweenVectors = function (a, b) {
     var q = Quat.getRotationBetweenVectors(a, b);
@@ -373,8 +373,8 @@ Mat4.prototype.rotateBetweenVectors = function (a, b) {
 /**
  * Scale current matrix to the vector values.
  * @public
- * @param {og.math.Vector3} v - Scale vector.
- * @returns {og.math.Mat4}
+ * @param {og.Vec3} v - Scale vector.
+ * @returns {og.Mat4}
  */
 Mat4.prototype.scale = function (v) {
     var mx = this._m;
@@ -394,7 +394,7 @@ Mat4.prototype.scale = function (v) {
  * @param {number} top
  * @param {number} near
  * @param {number} far
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 
@@ -432,7 +432,7 @@ Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
  * @param {number} aspect - Screen aspect ratio.
  * @param {number} near - Near clip plane.
  * @param {number} far - Far clip plane.
- * @retuns {og.math.Mat4}
+ * @retuns {og.Mat4}
  */
 Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
     angle = near * Math.tan(angle * Math.PI / 360);
@@ -449,7 +449,7 @@ Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
  * @param {number} top
  * @param {number} near
  * @param {number} far
- * @retuns {og.math.Mat4}
+ * @retuns {og.Mat4}
  */
 Mat4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
     this.left = left;
@@ -489,7 +489,7 @@ Mat4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
  * @param {number} ax - Rotation angle in radians arond X axis.
  * @param {number} ay - Rotation angle in radians arond Y axis.
  * @param {number} az - Rotation angle in radians arond Z axis.
- * @returns {og.math.Mat4}
+ * @returns {og.Mat4}
  */
 Mat4.prototype.eulerToMatrix = function (ax, ay, az) {
     var a = Math.cos(ax),

@@ -11,22 +11,22 @@ import { Vec3 } from './Vec3.js';
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
  * @class
- * @param {og.math.Vec3} origin - The origin of the ray.
- * @param {og.math.Vec3} direction - The direction of the ray.
+ * @param {og.Vec3} origin - The origin of the ray.
+ * @param {og.Vec3} direction - The direction of the ray.
  */
 const Ray = function (origin, direction) {
 
     /**
      * The origin of the ray.
      * @public
-     * @type {og.math.Vec3}
+     * @type {og.Vec3}
      */
     this.origin = origin.clone();
 
     /**
      * The direction of the ray.
      * @public
-     * @type {og.math.Vec3}
+     * @type {og.Vec3}
      */
     this.direction = direction.clone();
 };
@@ -34,9 +34,9 @@ const Ray = function (origin, direction) {
 /**
  * Ray object creator.
  * @function
- * @param {og.math.Vec3} origin - The origin of the ray.
- * @param {og.math.Vec3} direction - The direction of the ray.
- * @returns {og.math.Ray}
+ * @param {og.Vec3} origin - The origin of the ray.
+ * @param {og.Vec3} direction - The direction of the ray.
+ * @returns {og.Ray}
  */
 export function ray(origin, direction) {
     return new Ray(origin, direction);
@@ -54,9 +54,9 @@ Ray.AWAY = 3;
 /**
  * Sets a ray parameters.
  * @public
- * @param {og.math.Vec3} origin - The origin of the ray.
- * @param {og.math.Vec3} direction - The direction of the ray.
- * @returns {og.math.Ray}
+ * @param {og.Vec3} origin - The origin of the ray.
+ * @param {og.Vec3} direction - The direction of the ray.
+ * @returns {og.Ray}
  */
 Ray.prototype.set = function (origin, direction) {
     this.origin = origin.clone();
@@ -68,7 +68,7 @@ Ray.prototype.set = function (origin, direction) {
  * Computes the point along the ray on the distance.
  * @public
  * @param {number} distance - Point distance.
- * @returns {og.math.Vec3}
+ * @returns {og.Vec3}
  */
 Ray.prototype.getPoint = function (distance) {
     return Vec3.add(this.origin, this.direction.scaleTo(distance));
@@ -77,12 +77,12 @@ Ray.prototype.getPoint = function (distance) {
 /**
  * Returns ray hit a triange result.
  * @public
- * @param {og.math.Vec3} v0 - First triangle corner coordinate.
- * @param {og.math.Vec3} v1 - Second triangle corner coordinate.
- * @param {og.math.Vec3} v2 - Third triangle corner coordinate.
- * @param {og.math.Vec3} res - Hit point object pointer that stores hit result.
- * @returns {number} - Hit code, could 0 - og.math.Ray.OUTSIDE, 1 - og.math.Ray.INSIDE, 
- *      2 - og.math.Ray.INPLANE and 3 - og.math.Ray.AWAY(ray goes away from triangle).
+ * @param {og.Vec3} v0 - First triangle corner coordinate.
+ * @param {og.Vec3} v1 - Second triangle corner coordinate.
+ * @param {og.Vec3} v2 - Third triangle corner coordinate.
+ * @param {og.Vec3} res - Hit point object pointer that stores hit result.
+ * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE, 
+ *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
  */
 Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
     var state;
@@ -136,12 +136,12 @@ Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
 };
 
 /**
- * Gets a ray hit a plane result. If the ray cross the plane returns 1 - og.math.Ray.INSIDE otherwise returns 0 - og.math.Ray.OUTSIDE.
+ * Gets a ray hit a plane result. If the ray cross the plane returns 1 - og.Ray.INSIDE otherwise returns 0 - og.Ray.OUTSIDE.
  * @public
- * @param {og.math.Vec3} v0 - First plane point.
- * @param {og.math.Vec3} v1 - Second plane point.
- * @param {og.math.Vec3} v2 - Third plane point.
- * @param {og.math.Vec3} res - Hit point object pointer that stores hit result.
+ * @param {og.Vec3} v0 - First plane point.
+ * @param {og.Vec3} v1 - Second plane point.
+ * @param {og.Vec3} v2 - Third plane point.
+ * @param {og.Vec3} res - Hit point object pointer that stores hit result.
  * @returns {number}
  */
 Ray.prototype.hitPlane = function (v0, v1, v2, res) {
@@ -180,7 +180,7 @@ Ray.prototype.hitPlane = function (v0, v1, v2, res) {
  * Returns a ray hit sphere coordiante. If there isn't hit returns null.
  * @public
  * @param {og.bv.Sphere} sphere - Sphere object.
- * @returns {og.math.Vec3}
+ * @returns {og.Vec3}
  */
 Ray.prototype.hitSphere = function (sphere) {
     var r = sphere.radius,

@@ -421,7 +421,7 @@ Handler.prototype.loadCubeMapTexture = function (params) {
 /**
  * Adds shader program to the handler.
  * @public
- * @param {og.shaderProgram.ShaderProgram} program - Shader program.
+ * @param {og.webgl.ShaderProgram} program - Shader program.
  * @param {boolean} [notActivate] - If it's true program will not compile.
  */
 Handler.prototype.addShaderProgram = function (program, notActivate) {
@@ -449,7 +449,7 @@ Handler.prototype.removeShaderProgram = function (name) {
 /**
  * Adds shader programs to the handler.
  * @public
- * @param {Array.<og.shaderProgram.ShaderProgram>} programsArr - Shader program array.
+ * @param {Array.<og.webgl.ShaderProgram>} programsArr - Shader program array.
  */
 Handler.prototype.addShaderPrograms = function (programsArr) {
     for (var i = 0; i < programsArr.length; i++) {

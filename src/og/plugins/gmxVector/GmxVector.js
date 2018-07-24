@@ -50,7 +50,7 @@ const EVENT_NAMES = [
  * @class
  * @param {String} name - Layer user name.
  * @param {Object} options:
- * @extends {og.layer.Layer}
+ * @extends {og.Layer}
  */
 class GmxVector extends Layer {
     constructor(name, options) {

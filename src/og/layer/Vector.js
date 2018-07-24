@@ -42,7 +42,7 @@ function _entitiesConstructor(entities) {
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
  * @class
- * @extends {og.layer.Layer}
+ * @extends {og.Layer}
  * @param {string} [name="noname"] - Layer name.
  * @param {Object} [options] - Layer options:
  * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
@@ -573,24 +573,24 @@ class Vector extends Layer {
             var visibleExtent = this._planet.getViewExtent();
             var e = this._polylineEntityCollection._entities;
             var e_i = e.length;
+            let res = new Vec3();
 
             while (e_i--) {
                 var p = e[e_i].polyline;
                 if (visibleExtent.overlaps(p._extent)) {
-                    var coords = p._pathLonLatMerc;
-                    var c_j = coords.length;
+                    let coords = p._pathLonLatMerc,
+                        c_j = coords.length;
                     while (c_j--) {
                         var c_j_h = coords[c_j].length;
                         while (c_j_h--) {
-                            var ll = coords[c_j][c_j_h];
-                            var n_k = nodes.length;
+                            let ll = coords[c_j][c_j_h],
+                                n_k = nodes.length;
                             while (n_k--) {
                                 var seg = nodes[n_k].segment;
                                 if (seg._extent.isInside(ll)) {
-                                    var cart = p._path3v[c_j][c_j_h];
-                                    var res = new Vec3();
+                                    let cart = p._path3v[c_j][c_j_h];
                                     seg.getTerrainPoint(res, cart, ll);
-                                    p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 1.0)), c_j_h, c_j, true);
+                                    p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 0.0)), c_j_h, c_j, true);
                                     break;
                                 }
                             }
@@ -782,7 +782,6 @@ class Vector extends Layer {
 
     update() {
         this._geometryHandler.update();
-        this.collectVisibleCollections(this._planet._frustumEntityCollections);
         this.events.dispatch(this.events.draw, this);
     }
 };
