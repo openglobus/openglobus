@@ -32,7 +32,7 @@ const EVENT_NAMES = [
 /**
  * Layer used to rendering each tile as a separate canvas object.
  * @class
- * @extends {og.layer.Layer}
+ * @extends {og.Layer}
  * //TODO: make asynchronous handler.
  * @param {String} [name="noname"] - Layer name.
  * @param {Object} options:

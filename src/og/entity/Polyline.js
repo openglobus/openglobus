@@ -18,7 +18,7 @@ const INDEX_BUFFER = 1;
  * @class
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
- * @param {og.math.Vector4} [options.color] - RGBA color.
+ * @param {og.Vec4} [options.color] - RGBA color.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
  * @param {Array.<Array.<number,number,number>>} [options.pathLonLat] - Polyline geodetic coordinates array.
@@ -49,7 +49,7 @@ class Polyline {
         /**
          * Polyline RGBA color.
          * @public
-         * @type {og.math.Vector4}
+         * @type {og.Vec4}
          */
         this.color = utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
 
@@ -70,7 +70,7 @@ class Polyline {
         /**
          * Polyline cartesian coordinates.
          * @private
-         * @type {Array.<og.math.Vector3>}
+         * @type {Array.<og.Vec3>}
          */
         this._path3v = [];
 
@@ -712,7 +712,7 @@ class Polyline {
     /**
      * Adds a new cartesian point in the end of the path.
      * @public
-     * @param {og.math.Vector3} point3v - New coordinate.
+     * @param {og.Vec3} point3v - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPoint3v(point3v, multiLineIndex) {
@@ -774,7 +774,7 @@ class Polyline {
     /**
      * Sets Polyline RGB color.
      * @public
-     * @param {og.math.Vector3} color - RGB color.
+     * @param {og.Vec3} color - RGB color.
      */
     setColor3v(color) {
         this.color.x = color.x;
@@ -785,7 +785,7 @@ class Polyline {
     /**
      * Sets Polyline RGBA color.
      * @public
-     * @param {og.math.Vector4} color - RGBA color.
+     * @param {og.Vec4} color - RGBA color.
      */
     setColor4v(color) {
         this.color.x = color.x;
@@ -913,7 +913,7 @@ class Polyline {
 
     /**
      * Returns path cartesian coordinates.
-     * @return {Array.<og.math.Vector3>} Polyline path.
+     * @return {Array.<og.Vec3>} Polyline path.
      */
     getPath3v() {
         return this._path3v;

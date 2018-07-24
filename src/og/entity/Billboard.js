@@ -12,11 +12,11 @@ import { BaseBillboard } from './BaseBillboard.js';
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Options:
- * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
- * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
- * @param {og.math.Vector3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {og.Vec4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {og.Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {og.Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.src] - Billboard image url source.
  * @param {Image} [options.image] - Billboard image object.

@@ -112,14 +112,14 @@ class Planet extends RenderNode {
         /**
          * All layers array.
          * @public
-         * @type {Array.<og.layer.Layer>}
+         * @type {Array.<og.Layer>}
          */
         this.layers = [];
 
         /**
          * Current visible imagery tile layers array.
          * @public
-         * @type {Array.<og.layer.Layer>}
+         * @type {Array.<og.Layer>}
          */
         this.visibleTileLayers = [];
 
@@ -142,7 +142,7 @@ class Planet extends RenderNode {
         /**
          * There is only one base layer on the globe when layer.isBaseLayer is true.
          * @public
-         * @type {og.layer.Layer}
+         * @type {og.Layer}
          */
         this.baseLayer = null;
 
@@ -163,7 +163,7 @@ class Planet extends RenderNode {
         /**
          * Screen mouse pointer projected to planet cartesian position.
          * @public
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this.mousePositionOnEarth = new Vec3();
 
@@ -418,9 +418,9 @@ class Planet extends RenderNode {
 
     /**
      * Return layer by it name
-     * @param {string} name - Name of the layer. og.layer.Layer.prototype.name
+     * @param {string} name - Name of the layer. og.Layer.prototype.name
      * @public
-     * @returns {og.layer.Layer} -
+     * @returns {og.Layer} -
      */
     getLayerByName(name) {
         var i = this.layers.length;
@@ -432,7 +432,7 @@ class Planet extends RenderNode {
 
     /**
      * Adds the given layer to the planet.
-     * @param {og.layer.Layer} layer - Layer object.
+     * @param {og.Layer} layer - Layer object.
      * @public
      */
     addLayer(layer) {
@@ -441,7 +441,7 @@ class Planet extends RenderNode {
 
     /**
      * Dispatch layer visibility changing event.
-     * @param {og.layer.Layer} layer - Changed layer.
+     * @param {og.Layer} layer - Changed layer.
      * @protected
      */
     _onLayerVisibilityChanged(layer) {
@@ -450,7 +450,7 @@ class Planet extends RenderNode {
 
     /**
      * Adds the given layers array to the planet.
-     * @param {Array.<og.layer.Layer>} layers - Layers array.
+     * @param {Array.<og.Layer>} layers - Layers array.
      * @public
      */
     addLayers(layers) {
@@ -461,8 +461,8 @@ class Planet extends RenderNode {
 
     /**
      * Removes the given layer from the planet.
-     * @param {og.layer.Layer} layer - Layer to remove.
-     * @return {og.layer.Layer|undefined} The removed layer or undefined if the layer was not found.
+     * @param {og.Layer} layer - Layer to remove.
+     * @return {og.Layer|undefined} The removed layer or undefined if the layer was not found.
      * @public
      */
     removeLayer(layer) {
@@ -472,7 +472,7 @@ class Planet extends RenderNode {
     /**
      *
      * @protected
-     * @param {og.layer.Layer} layer - Material layer.
+     * @param {og.Layer} layer - Material layer.
      */
     _clearLayerMaterial(layer) {
         var lid = layer._id;
@@ -487,7 +487,7 @@ class Planet extends RenderNode {
 
     /**
      * Get the collection of layers associated with this planet.
-     * @return {Array.<og.layer.Layer>} Layers array.
+     * @return {Array.<og.Layer>} Layers array.
      * @public
      */
     getLayers() {
@@ -496,7 +496,7 @@ class Planet extends RenderNode {
 
     /**
      * Sets base layer coverage to the planet.
-     * @param {og.layer.Layer} layer - Layer object.
+     * @param {og.Layer} layer - Layer object.
      * @public
      */
     setBaseLayer(layer) {
@@ -859,6 +859,8 @@ class Planet extends RenderNode {
 
         this._quadTree.renderTree();
 
+        //this.renderer.activeCamera._insideSegment.node.renderNode(true);
+
         if (this.renderer.activeCamera.slope > 0.72 && this.renderer.activeCamera._lonLat.height < 850000) {
             this.minCurrZoom = this.maxCurrZoom;
 
@@ -890,12 +892,12 @@ class Planet extends RenderNode {
 
         this._lodRatio = math.lerp(this.camera.slope, this._maxLodRatio, this._minLodRatio);
 
+        this.renderer.activeCamera.prepareFrame();
+
         this._collectRenderNodes();
 
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);
-
-        this.renderer.activeCamera.prepareFrame();
 
         this.transformLights();
 
@@ -1269,6 +1271,7 @@ class Planet extends RenderNode {
 
         var i = this.visibleVectorLayers.length;
         while (i--) {
+            this.visibleVectorLayers[i].collectVisibleCollections(this._frustumEntityCollections);
             this.visibleVectorLayers[i].update();
         }
 
@@ -1318,8 +1321,8 @@ class Planet extends RenderNode {
      * Returns ray vector hit ellipsoid coordinates.
      * If the ray doesn't hit ellipsoit returns null.
      * @public
-     * @param {og.math.Ray} ray - Ray 3d.
-     * @returns {og.math.Vector3} -
+     * @param {og.Ray} ray - Ray 3d.
+     * @returns {og.Vec3} -
      */
     getRayIntersectionEllipsoid(ray) {
         return this.ellipsoid.hitRay(ray.origin, ray.direction);
@@ -1329,7 +1332,7 @@ class Planet extends RenderNode {
      * Returns 2d screen coordanates projection point to the planet ellipsoid 3d coordinates.
      * @public
      * @param {og.math.Pixel} px - 2D sreen coordinates.
-     * @returns {og.math.Vector3} -
+     * @returns {og.Vec3} -
      */
     getCartesianFromPixelEllipsoid(px) {
         var cam = this.renderer.activeCamera;
@@ -1355,7 +1358,7 @@ class Planet extends RenderNode {
      * position or null if mouse cursor is outside the planet.
      * @public
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.math.Vector3} -
+     * @returns {og.Vec3} -
      */
     getCartesianFromMouseTerrain(force) {
         var ms = this.renderer.events.mouseState;
@@ -1370,9 +1373,9 @@ class Planet extends RenderNode {
      * Returns 3d cartesian coordinates on the relief planet by 2d screen coordinates.
      * position or null if input coordinates is outside the planet.
      * @public
-     * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
+     * @param {og.Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.math.Vector3} -
+     * @returns {og.Vec3} -
      */
     getCartesianFromPixelTerrain(px, force) {
         var distance = this.getDistanceFromPixel(px, force);
@@ -1387,7 +1390,7 @@ class Planet extends RenderNode {
      * Returns geographical coordinates on the relief planet by 2d screen coordinates.
      * position or null if input coordinates is outside the planet.
      * @public
-     * @param {og.math.Vector2} px - Pixel screen 2d coordinates.
+     * @param {og.Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {og.LonLat} -
      */
@@ -1402,8 +1405,8 @@ class Planet extends RenderNode {
     /**
      * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
      * @public
-     * @param {og.math.Vector3} coords - Cartesian coordinates.
-     * @returns {og.math.Vector2} -
+     * @param {og.Vec3} coords - Cartesian coordinates.
+     * @returns {og.Vec2} -
      */
     getPixelFromCartesian(coords) {
         return this.renderer.activeCamera.project(coords);
@@ -1413,7 +1416,7 @@ class Planet extends RenderNode {
      * Returns projected 2d screen coordinates by geographical coordinates.
      * @public
      * @param {og.LonLat} lonlat - Geographical coordinates.
-     * @returns {og.math.Vector2} -
+     * @returns {og.Vec2} -
      */
     getPixelFromLonLat(lonlat) {
         var coords = this.ellipsoid.lonLatToCartesian(lonlat);
@@ -1426,7 +1429,7 @@ class Planet extends RenderNode {
      * Returns distance from active camera to the the planet ellipsoid
      * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
      * @public
-     * @param {og.math.Vector2} px - Screen coordinates.
+     * @param {og.Vec2} px - Screen coordinates.
      * @returns {number} -
      */
     getDistanceFromPixelEllipsoid(px) {
@@ -1440,7 +1443,7 @@ class Planet extends RenderNode {
      * If screen coordinates inside the planet but relief is not exists in the
      * point than function returns distance to the planet ellipsoid.
      * @public
-     * @param {og.math.Vector2} px - Screen coordinates.
+     * @param {og.Vec2} px - Screen coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {number} -
      */
@@ -1518,7 +1521,7 @@ class Planet extends RenderNode {
      * Sets camera to the planet geographical position.
      * @public
      * @param {og.LonLat} lonlat - New geographical position.
-     * @param {og.math.Vector3} [up] - Camera UP vector.
+     * @param {og.Vec3} [up] - Camera UP vector.
      */
     viewLonLat(lonlat, up) {
         this.renderer.activeCamera.setLonLat(lonlat, up);
@@ -1528,7 +1531,7 @@ class Planet extends RenderNode {
      * Fly camera to the planet geographical extent.
      * @public
      * @param {og.Extent} extent - Geographical extent.
-     * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      */
     flyExtent(extent, up) {
         this.renderer.activeCamera.flyExtent(extent, up);
@@ -1537,9 +1540,9 @@ class Planet extends RenderNode {
     /**
      * Fly camera to the new point.
      * @public
-     * @param {og.math.Vector3} cartesian - Fly coordiantes.
-     * @param {og.math.Vector3} [look] - Camera "look at" point.
-     * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+     * @param {og.Vec3} cartesian - Fly coordiantes.
+     * @param {og.Vec3} [look] - Camera "look at" point.
+     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      */
     flyCartesian(cartesian, look, up) {
         this.renderer.activeCamera.flyCartesian(cartesian, look, up);
@@ -1549,8 +1552,8 @@ class Planet extends RenderNode {
      * Fly camera to the new geographical position.
      * @public
      * @param {og.LonLat} lonlat - Fly geographical coordiantes.
-     * @param {og.math.Vector3} [look] - Camera "look at" point on the end of a flying.
-     * @param {og.math.Vector3} [up] - Camera UP vector on the end of a flying.
+     * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
+     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      */
     flyLonLat(lonlat, look, up) {
         this.renderer.activeCamera.flyLonLat(lonlat, look, up);

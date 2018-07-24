@@ -30,14 +30,14 @@ export const FADING_FACTOR = 0.33;
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {og.Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {og.math.Vector3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
- * @param {og.math.Vector3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
- * @param {og.math.Vector3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
+ * @param {og.Vec3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
+ * @param {og.Vec3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
+ * @param {og.Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
  * @param {Number} [options.shininess=100] - Shininess.
  *
- * @fires og.layer.Layer#visibilitychange
- * @fires og.layer.Layer#add
- * @fires og.layer.Layer#remove
+ * @fires og.Layer#visibilitychange
+ * @fires og.Layer#add
+ * @fires og.Layer#remove
  * @fires og.layer.Vector#mousemove
  * @fires og.layer.Vector#mouseenter
  * @fires og.layer.Vector#mouseleave
@@ -193,7 +193,7 @@ class Layer {
         /**
          * Layer picking color. Assign when added to the planet.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._pickingColor = new Vec3();
 
@@ -290,7 +290,7 @@ class Layer {
     /**
      * Compares layers instances.
      * @public
-     * @param {og.layer.Layer} layer - Layer instance to compare.
+     * @param {og.Layer} layer - Layer instance to compare.
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     isEqual(layer) {
@@ -337,7 +337,7 @@ class Layer {
     /**
      * Removes from planet.
      * @public
-     * @returns {og.layer.Layer} -This layer.
+     * @returns {og.Layer} -This layer.
      */
     remove() {
         var p = this._planet;
@@ -572,169 +572,169 @@ class Layer {
 const EVENT_NAMES = [
     /**
      * Triggered when layer visibilty chanched.
-     * @event og.layer.Layer#visibilitychange
+     * @event og.Layer#visibilitychange
      */
     "visibilitychange",
 
     /**
      * Triggered when layer has added to the planet.
-     * @event og.layer.Layer#add
+     * @event og.Layer#add
      */
     "add",
 
     /**
      * Triggered when layer has removed from the planet.
-     * @event og.layer.Layer#remove
+     * @event og.Layer#remove
      */
     "remove",
 
     /**
      * Triggered when mouse moves over the layer.
-     * @event og.layer.Layer#mousemove
+     * @event og.Layer#mousemove
      */
     "mousemove",
 
     /**
      * Triggered when mouse has entered over the layer.
-     * @event og.layer.Layer#mouseenter
+     * @event og.Layer#mouseenter
      */
     "mouseenter",
 
     /**
      * Triggered when mouse leaves the layer.
-     * @event og.layer.Layer#mouseenter
+     * @event og.Layer#mouseenter
      */
     "mouseleave",
 
     /**
      * Mouse left button clicked.
-     * @event og.layer.Layer#lclick
+     * @event og.Layer#lclick
      */
     "lclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Layer#rclick
+     * @event og.Layer#rclick
      */
     "rclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.layer.Layer#mclick
+     * @event og.Layer#mclick
      */
     "mclick",
 
     /**
      * Mouse left button double click.
-     * @event og.layer.Layer#ldblclick
+     * @event og.Layer#ldblclick
      */
     "ldblclick",
 
     /**
      * Mouse right button double click.
-     * @event og.layer.Layer#rdblclick
+     * @event og.Layer#rdblclick
      */
     "rdblclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.layer.Layer#mdblclick
+     * @event og.Layer#mdblclick
      */
     "mdblclick",
 
     /**
      * Mouse left button up(stop pressing).
-     * @event og.layer.Layer#lup
+     * @event og.Layer#lup
      */
     "lup",
 
     /**
      * Mouse right button up(stop pressing).
-     * @event og.layer.Layer#rup
+     * @event og.Layer#rup
      */
     "rup",
 
     /**
      * Mouse middle button up(stop pressing).
-     * @event og.layer.Layer#mup
+     * @event og.Layer#mup
      */
     "mup",
 
     /**
      * Mouse left button is just pressed down(start pressing).
-     * @event og.layer.Layer#ldown
+     * @event og.Layer#ldown
      */
     "ldown",
 
     /**
      * Mouse right button is just pressed down(start pressing).
-     * @event og.layer.Layer#rdown
+     * @event og.Layer#rdown
      */
     "rdown",
 
     /**
      * Mouse middle button is just pressed down(start pressing).
-     * @event og.layer.Layer#mdown
+     * @event og.Layer#mdown
      */
     "mdown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.layer.Layer#lhold
+     * @event og.Layer#lhold
      */
     "lhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.layer.Layer#rhold
+     * @event og.Layer#rhold
      */
     "rhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.layer.Layer#mhold
+     * @event og.Layer#mhold
      */
     "mhold",
 
     /**
      * Mouse wheel is rotated.
-     * @event og.layer.Layer#mousewheel
+     * @event og.Layer#mousewheel
      */
     "mousewheel",
 
     /**
      * Triggered when touching moves over the layer.
-     * @event og.layer.Layer#touchmove
+     * @event og.Layer#touchmove
      */
     "touchmove",
 
     /**
      * Triggered when layer begins to touch.
-     * @event og.layer.Layer#touchstart
+     * @event og.Layer#touchstart
      */
     "touchstart",
 
     /**
      * Triggered when layer has finished touching.
-     * @event og.layer.Layer#touchend
+     * @event og.Layer#touchend
      */
     "touchend",
 
     /**
      * Triggered layer has double touched.
-     * @event og.layer.Layer#doubletouch
+     * @event og.Layer#doubletouch
      */
     "doubletouch",
 
     /**
      * Triggered when touching leaves layer borders.
-     * @event og.layer.Layer#touchleave
+     * @event og.Layer#touchleave
      */
     "touchleave",
 
     /**
      * Triggered when touch enters over the layer.
-     * @event og.layer.Layer#touchenter
+     * @event og.Layer#touchenter
      */
     "touchenter"
 ];

@@ -191,10 +191,10 @@ class TouchNavigation extends Control {
             //var targetPointC = this.planet.getCartesianFromPixelTerrain(new og.math.Pixel(center_x, center_y));
 
             //var dir0 = cam.unproject(t0.x, t0.y);
-            //var targetPoint0 = new og.math.Ray(cam.eye, dir0).hitSphere(t0.grabbedSpheroid);
+            //var targetPoint0 = new og.Ray(cam.eye, dir0).hitSphere(t0.grabbedSpheroid);
 
             //var dir1 = cam.unproject(t1.x, t1.y);
-            //var targetPoint1 = new og.math.Ray(cam.eye, dir1).hitSphere(t1.grabbedSpheroid);
+            //var targetPoint1 = new og.Ray(cam.eye, dir1).hitSphere(t1.grabbedSpheroid);
 
             //print2d("t1", center_x + "," + center_y, 100, 100);
             //print2d("t2", targetPointC.x + "," + targetPointC.y + "," + targetPointC.z, 100, 120);

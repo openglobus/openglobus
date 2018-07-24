@@ -87,12 +87,6 @@ const Segment = function (node, planet, tileZoom, extent) {
     this._neNorm = null;
 
     /**
-     * experimental
-     */
-    this._deltaHeight = 0;
-
-
-    /**
      * Geographical extent.
      * @type {og.Extent}
      */
@@ -231,7 +225,7 @@ Segment.prototype.acceptForRendering = function (camera) {
  * @public
  * @param {og.Entity} entity - Entity.
  * @param {og.Vec3} res - Point coordinates.
- * @returns {og.math.Vector3} -
+ * @returns {og.Vec3} -
  */
 Segment.prototype.getEntityTerrainPoint = function (entity, res) {
     return this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
@@ -244,8 +238,8 @@ Segment.prototype.isEntityInside = function (e) {
 /**
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
- * @param {og.math.Vector3} res - Result cartesian coordiantes on the terrain.
- * @param {og.math.Vector3} xyz - Cartesian object position.
+ * @param {og.Vec3} res - Result cartesian coordiantes on the terrain.
+ * @param {og.Vec3} xyz - Cartesian object position.
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
  * @returns {number} -
  */
@@ -287,9 +281,16 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
                 v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
                 v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            var d = ray.hitTriangle(v0, v1, v2, res);
+            let d = ray.hitTriangle(v0, v1, v2, res);
+
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
+            } else if (d === Ray.AWAY) {
+                let ray = new Ray(xyz, xyz);
+                let d = ray.hitTriangle(v0, v1, v2, res);
+                if (d === Ray.INSIDE) {
+                    return -xyz.distance(res);
+                }
             }
 
             var v3 = new Vec3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
@@ -297,6 +298,12 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
             d = ray.hitTriangle(v1, v3, v2, res);
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
+            } else if (d === Ray.AWAY) {
+                let ray = new Ray(xyz, xyz);
+                let d = ray.hitTriangle(v1, v3, v2, res);
+                if (d === Ray.INSIDE) {
+                    return -xyz.distance(res);
+                }
             }
 
             if (d === Ray.AWAY) {
@@ -1163,7 +1170,7 @@ Segment.prototype._createPlainVertices = function () {
 /**
  * Gets specific layer material.
  * @public
- * @param {og.layer.Layer} layer - Layer object.
+ * @param {og.Layer} layer - Layer object.
  * @returns {og.planetSegment.Material} - Segment material.
  */
 Segment.prototype.getMaterialByLayer = function (layer) {

@@ -74,7 +74,7 @@ Vec4.fromVec = function (arr) {
 /**
  * Converts to 3d vector, without fourth value.
  * @public
- * @returns {og.math.Vector3}
+ * @returns {og.Vec3}
  */
 Vec4.prototype.toVec3 = function () {
     return new Vec3(this.x, this.y, this.z);
@@ -209,7 +209,7 @@ Vec4.prototype.affinity = function () {
  * Scale current vector to another instance.
  * @public
  * @param {number} scale - Scale value.
- * @returns {og.math.Vector3}
+ * @returns {og.Vec3}
  */
 Vec4.prototype.scaleTo = function (scale) {
     return new Vec4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);

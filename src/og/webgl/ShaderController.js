@@ -10,14 +10,14 @@
  * Get access to the program from ...handler.shaderPrograms.<program name> etc.
  * @class
  * @param {og.webgl.Handler} handler - Handler.
- * @param {og.shaderProgram.ShaderProgram} shaderProgram - Shader program.
+ * @param {og.webgl.ShaderProgram} shaderProgram - Shader program.
  */
 const ShaderController = function (handler, shaderProgram) {
 
     /**
      * Shader program.
      * @private
-     * @type {og.shaderProgram.ShaderProgram}
+     * @type {og.webgl.ShaderProgram}
      */
     this._program = shaderProgram;
 
@@ -48,7 +48,7 @@ ShaderController.prototype.initialize = function () {
 /**
  * Returns controller's shader program.
  * @public
- * @return {og.shaderProgram.ShaderProgram} -
+ * @return {og.webgl.ShaderProgram} -
  */
 ShaderController.prototype.getProgram = function () {
     return this._program;

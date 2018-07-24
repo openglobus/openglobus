@@ -31,11 +31,11 @@ const STR2ALIGN = {
  * @class
  * @extends {og.BaseBillboard}
  * @param {Object} [options] - Label options:
- * @param {og.math.Vector3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
- * @param {og.math.Vector4|string|Array.<number>} [options.color] - Billboard color.
- * @param {og.math.Vector3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {og.math.Vector3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {og.Vec4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {og.Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {og.Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.text] - Text string.
  * @param {string} [options.face] - HTML5 font face.
@@ -43,7 +43,7 @@ const STR2ALIGN = {
  * @param {string} [options.style] - HTML5 font style. Example 'normal', 'italic'.
  * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
  * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
- * @param {og.math.Vector4|string|Array.<number>} [options.outlineColor] - Outline color.
+ * @param {og.Vec4|string|Array.<number>} [options.outlineColor] - Outline color.
  * @param {og.Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
  */
 class Label extends BaseBillboard {
@@ -97,7 +97,7 @@ class Label extends BaseBillboard {
         /**
          * Label outline color.
          * @private
-         * @type {og.math.Vector4}
+         * @type {og.Vec4}
          */
         this._outlineColor = utils.createColorRGBA(options.outlineColor, new Vec4(0.0, 0.0, 0.0, 1.0));
 
@@ -288,7 +288,7 @@ class Label extends BaseBillboard {
     /**
      * Sets text outline color.
      * @public
-     * @param {og.math.Vector4} rgba - Color vector.
+     * @param {og.Vec4} rgba - Color vector.
      */
     setOutlineColor4v(rgba) {
         this._outlineColor.x = rgba.x;
@@ -310,7 +310,7 @@ class Label extends BaseBillboard {
     /**
      * Gets outline color vector.
      * @public
-     * @returns {og.math.Vector4}
+     * @returns {og.Vec4}
      */
     getOutlineColor() {
         return this._outlineColor;

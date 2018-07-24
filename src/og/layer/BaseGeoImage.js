@@ -12,7 +12,7 @@ import { LonLat } from '../LonLat.js';
 /**
  * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
  * @class
- * @extends {og.layer.Layer}
+ * @extends {og.Layer}
  */
 class BaseGeoImage extends Layer {
     constructor(name, options) {

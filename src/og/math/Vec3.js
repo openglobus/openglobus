@@ -56,7 +56,7 @@ Vec3.ZERO = new Vec3();
  * @param {number} [x] - First cvalue.
  * @param {number} [y] - Second value.
  * @param {number} [z] - Third value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 export function vec3(x, y, z) {
     return new Vec3(x, y, z);
@@ -66,7 +66,7 @@ export function vec3(x, y, z) {
  * Creates 3d vector from array.
  * @function
  * @param {Array.<number,number,number>}
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.fromVec = function (arr) {
     return new Vec3(arr[0], arr[1], arr[2]);
@@ -75,8 +75,8 @@ Vec3.fromVec = function (arr) {
 /**
  * Gets angle between two vectors.
  * @static
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
  * @returns {number} -
  */
 Vec3.angle = function (a, b) {
@@ -86,10 +86,10 @@ Vec3.angle = function (a, b) {
 /**
  * Returns two vectors linear interpolation.
  * @static
- * @param {og.math.Vec3} v1 - Start vector.
- * @param {og.math.Vec3} v2 - End vector.
+ * @param {og.Vec3} v1 - Start vector.
+ * @param {og.Vec3} v2 - End vector.
  * @param {number} l - Interpolate value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.lerp = function (v1, v2, l) {
     return Vec3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
@@ -98,9 +98,9 @@ Vec3.lerp = function (v1, v2, l) {
 /**
  * Returns summary vector.
  * @static
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
- * @returns {og.math.Vec3} - Summary vector.
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Vec3} - Summary vector.
  */
 Vec3.add = function (a, b) {
     var res = new Vec3(a.x, a.y, a.z);
@@ -111,9 +111,9 @@ Vec3.add = function (a, b) {
 /**
  * Returns two vectors subtraction.
  * @static
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
- * @returns {og.math.Vec3} - Vectors subtraction.
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Vec3} - Vectors subtraction.
  */
 Vec3.sub = function (a, b) {
     var res = new Vec3(a.x, a.y, a.z);
@@ -124,9 +124,9 @@ Vec3.sub = function (a, b) {
 /**
  * Returns scaled vector.
  * @static
- * @param {og.math.Vec3} a - Input vector.
+ * @param {og.Vec3} a - Input vector.
  * @param {number} scale - Scale value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.scale = function (a, scale) {
     var res = new Vec3(a.x, a.y, a.z);
@@ -137,9 +137,9 @@ Vec3.scale = function (a, scale) {
 /**
  * Returns two vectors production.
  * @static
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Vec3} -
  */
 Vec3.mul = function (a, b) {
     var res = new Vec3(a.x, a.y, a.z);
@@ -150,9 +150,9 @@ Vec3.mul = function (a, b) {
 /**
  * Returns true if two vectors are non collinear.
  * @public
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Vec3} -
  */
 Vec3.noncollinear = function (a, b) {
     return a.y * b.z - a.z * b.y || a.z * b.x - a.x * b.z || a.x * b.y - a.y * b.z;
@@ -161,10 +161,10 @@ Vec3.noncollinear = function (a, b) {
 /**
  * Get projection of the vector to plane where n - normal to the plane.
  * @static
- * @param {og.math.Vec3} b - Vector to project.
- * @param {og.math.Vec3} n - Plane normal.
-* @param {og.math.Vec3} [def] - Default value for non existed result.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} b - Vector to project.
+ * @param {og.Vec3} n - Plane normal.
+* @param {og.Vec3} [def] - Default value for non existed result.
+ * @returns {og.Vec3} -
  */
 Vec3.proj_b_to_plane = function (b, n, def) {
     var res = b.sub(n.scaleTo(n.dot(b) / n.dot(n)));
@@ -177,9 +177,9 @@ Vec3.proj_b_to_plane = function (b, n, def) {
 /**
  * Get projection of the first vector to the second.
  * @static
- * @param {og.math.Vec3} b - First vector.
- * @param {og.math.Vec3} a - Second vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} b - First vector.
+ * @param {og.Vec3} a - Second vector.
+ * @returns {og.Vec3} -
  */
 Vec3.proj_b_to_a = function (b, a) {
     return a.scaleTo(a.dot(b) / a.dot(a));
@@ -189,9 +189,9 @@ Vec3.proj_b_to_a = function (b, a) {
  * Makes vectors normalized and orthogonal to each other.
  * Normalizes normal. Normalizes tangent and makes sure it is orthogonal to normal (that is, angle between them is 90 degrees).
  * @static
- * @param {og.math.Vec3} normal - Normal vector.
- * @param {og.math.Vec3} tangent - Tangent vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} normal - Normal vector.
+ * @param {og.Vec3} tangent - Tangent vector.
+ * @returns {og.Vec3} -
  */
 Vec3.orthoNormalize = function (normal, tangent) {
     normal = normal.normal();
@@ -202,9 +202,9 @@ Vec3.orthoNormalize = function (normal, tangent) {
 /**
  * Returns vector components division product one to another.
  * @static
- * @param {og.math.Vec3} a - First vector.
- * @param {og.math.Vec3} b - Second vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} a - First vector.
+ * @param {og.Vec3} b - Second vector.
+ * @returns {og.Vec3} -
  */
 Vec3.div = function (a, b) {
     var res = new Vec3(a.x, a.y, a.z);
@@ -215,7 +215,7 @@ Vec3.div = function (a, b) {
 /**
  * Converts to 4d vector, Fourth value is 1.0.
  * @public
- * @returns {og.math.Vector4} -
+ * @returns {og.Vec4} -
  */
 Vec3.prototype.toVec4 = function () {
     return new Vec4(this.x, this.y, this.z, 1.0);
@@ -224,7 +224,7 @@ Vec3.prototype.toVec4 = function () {
 /**
  * Returns clone vector.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.clone = function () {
     return new Vec3(this.x, this.y, this.z);
@@ -251,8 +251,8 @@ Vec3.prototype.isZero = function () {
 /**
  * Get projection of the first vector to the second.
  * @static
- * @param {og.math.Vec3} a - Project vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} a - Project vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.projToVec = function (a) {
     return a.scaleTo(a.dot(this) / a.dot(a));
@@ -261,7 +261,7 @@ Vec3.prototype.projToVec = function (a) {
 /**
  * Compares with vector. Returns true if it equals another.
  * @public
- * @param {og.math.Vec3} p - Vector to compare.
+ * @param {og.Vec3} p - Vector to compare.
  * @returns {boolean} -
  */
 Vec3.prototype.equal = function (p) {
@@ -270,8 +270,8 @@ Vec3.prototype.equal = function (p) {
 
 /**
  * Copy input vector's values.
- * @param {og.math.Vec3} point3 - Vector to copy.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} point3 - Vector to copy.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.copy = function (point3) {
     this.x = point3.x;
@@ -301,7 +301,7 @@ Vec3.prototype.length2 = function () {
 /**
  * Converts vector's values to a quaternion object.
  * @public
- * @returns {og.math.Quat} -
+ * @returns {og.Quat} -
  */
 Vec3.prototype.getQuat = function () {
     return new Quat(this.x, this.y, this.z);
@@ -310,8 +310,8 @@ Vec3.prototype.getQuat = function () {
 /**
  * Adds vector to the current.
  * @public
- * @param {og.math.Vec3} point3 - Point to add.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} point3 - Point to add.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.addA = function (point3) {
     this.x += point3.x;
@@ -323,8 +323,8 @@ Vec3.prototype.addA = function (point3) {
 /**
  * Gets two vectors summarization.
  * @public
- * @param {og.math.Vec3} point3 - Vector to add.
- * @returns {og.math.Vec3} Returns a sum vector.
+ * @param {og.Vec3} point3 - Vector to add.
+ * @returns {og.Vec3} Returns a sum vector.
  */
 Vec3.prototype.add = function (point3) {
     return new Vec3(this.x + point3.x, this.y + point3.y, this.z + point3.z);
@@ -333,8 +333,8 @@ Vec3.prototype.add = function (point3) {
 /**
  * Subtract vector from the current.
  * @public
- * @param {og.math.Vec3} point3 - Subtract vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} point3 - Subtract vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.subA = function (point3) {
     this.x -= point3.x;
@@ -346,8 +346,8 @@ Vec3.prototype.subA = function (point3) {
 /**
  * Gets vector subtraction.
  * @public
- * @param {og.math.Vec3} point3 - Subtract vector.
- * @return {og.math.Vec3} Returns new instance of a subtraction
+ * @param {og.Vec3} point3 - Subtract vector.
+ * @return {og.Vec3} Returns new instance of a subtraction
  */
 Vec3.prototype.sub = function (point3) {
     return new Vec3(this.x - point3.x, this.y - point3.y, this.z - point3.z);
@@ -357,7 +357,7 @@ Vec3.prototype.sub = function (point3) {
  * Scale current vector.
  * @public
  * @param {number} scale - Scale value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.scale = function (scale) {
     this.x *= scale;
@@ -370,7 +370,7 @@ Vec3.prototype.scale = function (scale) {
  * Scale current vector to another instance.
  * @public
  * @param {number} scale - Scale value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.scaleTo = function (scale) {
     return new Vec3(this.x * scale, this.y * scale, this.z * scale);
@@ -379,8 +379,8 @@ Vec3.prototype.scaleTo = function (scale) {
 /**
  * Multiply current vector object to another and store result in the current instance.
  * @public
- * @param {og.math.Vec3} vec - Multiply vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} vec - Multiply vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.mulA = function (vec) {
     this.x *= vec.x;
@@ -392,8 +392,8 @@ Vec3.prototype.mulA = function (vec) {
 /**
  * Multiply current vector object to another and returns new vector instance.
  * @public
- * @param {og.math.Vec3} vec - Multiply vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} vec - Multiply vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.mul = function (vec) {
     return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
@@ -402,8 +402,8 @@ Vec3.prototype.mul = function (vec) {
 /**
  * Divide current vector's components to another. Results stores in the current vector object.
  * @public
- * @param {og.math.Vec3} vec - Div vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} vec - Div vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.divA = function (vec) {
     this.x /= vec.x;
@@ -415,8 +415,8 @@ Vec3.prototype.divA = function (vec) {
 /**
  * Divide current vector's components to another and returns new vector instance.
  * @public
- * @param {og.math.Vec3} vec - Div vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} vec - Div vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.div = function (vec) {
     return new Vec3(this.x / vec.x, this.y / vec.y, this.z / vec.z);
@@ -425,7 +425,7 @@ Vec3.prototype.div = function (vec) {
 /**
  * Gets vectors dot production.
  * @public
- * @param {og.math.Vec3} point3 - Another vector.
+ * @param {og.Vec3} point3 - Another vector.
  * @returns {number} -
  */
 Vec3.prototype.dot = function (point3) {
@@ -446,8 +446,8 @@ Vec3.prototype.dotArr = function (arr) {
 /**
  * Gets vectors cross production.
  * @public
- * @param {og.math.Vec3} point3 - Another vector.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} point3 - Another vector.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.cross = function (point3) {
     return new Vec3(
@@ -460,7 +460,7 @@ Vec3.prototype.cross = function (point3) {
 /**
  * Sets vector to zero.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.clear = function () {
     this.x = this.y = this.z = 0;
@@ -470,7 +470,7 @@ Vec3.prototype.clear = function () {
 /**
  * Returns normalized vector.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.normal = function () {
     var res = new Vec3();
@@ -488,7 +488,7 @@ Vec3.prototype.normal = function () {
 /**
  * Normalize current vector.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.normalize = function () {
     var length = 1.0 / this.length();
@@ -522,7 +522,7 @@ Vec3.prototype.toArray = function () {
 /**
  * Gets distance to point.
  * @public
- * @param {og.math.Vec3} point3 - Distant point.
+ * @param {og.Vec3} point3 - Distant point.
  * @returns {number} -
  */
 Vec3.prototype.distance = function (point3) {
@@ -535,7 +535,7 @@ Vec3.prototype.distance = function (point3) {
  * @param {number} x - Value X.
  * @param {number} y - Value Y.
  * @param {number} z - Value Z.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.set = function (x, y, z) {
     this.x = x;
@@ -547,7 +547,7 @@ Vec3.prototype.set = function (x, y, z) {
 /**
  * Negate current vector.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.negate = function () {
     this.x = -this.x;
@@ -559,7 +559,7 @@ Vec3.prototype.negate = function () {
 /**
  * Negate current vector to another instance.
  * @public
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.negateTo = function () {
     return new Vec3(-this.x, -this.y, -this.z);
@@ -568,9 +568,9 @@ Vec3.prototype.negateTo = function () {
 /**
  * Gets projected point coordinates of the current vector on the ray.
  * @public
- * @param {og.math.Vec3} pos - Ray position.
- * @param {og.math.Vec3} direction - Ray direction.
- * @returns {og.math.Vec3} -
+ * @param {og.Vec3} pos - Ray position.
+ * @param {og.Vec3} direction - Ray direction.
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.projToRay = function (pos, direction) {
     var v = Vec3.proj_b_to_a(Vec3.sub(this, pos), direction);
@@ -581,7 +581,7 @@ Vec3.prototype.projToRay = function (pos, direction) {
 /**
  * Gets angle between two vectors.
  * @public
- * @param {og.math.Vec3} a - Another vector.
+ * @param {og.Vec3} a - Another vector.
  * @returns {number} -
  */
 Vec3.prototype.angle = function (a) {
@@ -591,9 +591,9 @@ Vec3.prototype.angle = function (a) {
 /**
  * Returns two vectors linear interpolation.
  * @public
- * @param {og.math.Vec3} v2 - End vector.
+ * @param {og.Vec3} v2 - End vector.
  * @param {number} l - Interpolate value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.lerp = function (v2, l) {
     return new Vec3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
@@ -602,9 +602,9 @@ Vec3.prototype.lerp = function (v2, l) {
 /**
  * Returns vector interpolation by v(t) = v1 * t + v2 * (1 - t)
  * @public
- * @param {og.math.Vec3} v2 - End vector.
+ * @param {og.Vec3} v2 - End vector.
  * @param {number} t - Interpolate value.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.smerp = function (v2, t) {
     var one_d = 1 - t;
@@ -619,9 +619,9 @@ Vec3.LERP_DELTA = 1e-6;
  * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated 
  * by the angle and its magnitude is interpolated between the magnitudes of from and to.
  * @public
- * @param {og.math.Vec3} v2 - 
+ * @param {og.Vec3} v2 - 
  * @param {number} t - The parameter t is clamped to the range [0, 1].
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 Vec3.prototype.slerp = function (v2, t) {
     var res = new Vec3();

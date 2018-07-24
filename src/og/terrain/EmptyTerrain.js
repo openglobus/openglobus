@@ -29,14 +29,14 @@ class EmptyTerrain {
          * @public
          * @type {number}
          */
-        this.minZoom = 50;
+        this.minZoom = 1000000;
 
         /**
          * Maximal z-index value for segment elevation data handling.
          * @public
          * @type {number}
          */
-        this.maxZoom = 50;
+        this.maxZoom = 21;
 
         /**
          * @public

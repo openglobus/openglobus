@@ -91,7 +91,7 @@ export function htmlColorToRgba(htmlColor, opacity) {
  * Convert html color string to the RGB number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vec3} -
+ * @returns {og.Vec3} -
  */
 export function htmlColorToRgb(htmlColor) {
     var hColor = colorTable[htmlColor];

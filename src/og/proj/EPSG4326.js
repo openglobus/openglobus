@@ -8,6 +8,6 @@ import { Units, Proj } from './Proj.js';
 
 /**
  * EPSG:4326 projection object.
- * @type {og.proj.Proj}
+ * @type {og.Proj}
  */
 export const EPSG4326 = new Proj({ code: "epsg:4326", units: Units.DEGREES });

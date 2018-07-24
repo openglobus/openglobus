@@ -4,7 +4,6 @@
 
 'use strict';
 
-//import * as quadTree from './quadTree.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
@@ -363,10 +362,12 @@ Node.prototype.renderTree = function (maxZoom) {
             if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
                 seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
-                cam._insideSegmentPosition = cam._lonLatMerc;
+                cam._insideSegmentPosition.lon = cam._lonLatMerc.lon;
+                cam._insideSegmentPosition.lat = cam._lonLatMerc.lat;
             } else if (seg._projection.id === EPSG4326.id) {
                 inside = seg._extent.isInside(cam._lonLat);
-                cam._insideSegmentPosition = cam._lonLat;
+                cam._insideSegmentPosition.lon = cam._lonLat.lon;
+                cam._insideSegmentPosition.lat = cam._lonLat.lat;
             }
 
             if (inside) {
@@ -380,8 +381,11 @@ Node.prototype.renderTree = function (maxZoom) {
 
     var inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
-    //TODO: check up *
     const altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(cam._lonLat.height);
+
+    if (inFrustum && (altVis || cam._lonLat.height > 10000.0) || this._cameraInside) {
+        seg._collectVisibleNodes();
+    }
 
     if (inFrustum || this._cameraInside) {
 
@@ -409,11 +413,6 @@ Node.prototype.renderTree = function (maxZoom) {
 
     } else {
         this.state = NOTRENDERING;
-    }
-
-    //TODO: check up * and this
-    if (this.state !== NOTRENDERING && inFrustum && (altVis || cam._lonLat.height > 10000.0)) {
-        seg._collectVisibleNodes();
     }
 };
 

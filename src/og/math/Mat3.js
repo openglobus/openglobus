@@ -24,7 +24,7 @@ const Mat3 = function () {
 /**
  * Mat3 factory.
  * @static
- * @return {og.math.Mat3}
+ * @return {og.Mat3}
  */
 
 export function mat3() {
@@ -35,7 +35,7 @@ export function mat3() {
  * Sets column-major order array matrix.
  * @public
  * @param {Array.<number>} m - Matrix array.
- * @returns {og.math.Mat3}
+ * @returns {og.Mat3}
  */
 Mat3.prototype.set = function (m) {
     this._m[0] = m[0];
@@ -53,7 +53,7 @@ Mat3.prototype.set = function (m) {
 /**
  * Duplicates a Mat3 instance.
  * @public
- * @returns {og.math.Mat3}
+ * @returns {og.Mat3}
  */
 Mat3.prototype.clone = function () {
     var res = new Mat3();
@@ -64,8 +64,8 @@ Mat3.prototype.clone = function () {
 /**
  * Copy matrix.
  * @public
- * @param {og.math.Mat3} a - Matrix to copy.
- * @returns {og.math.Mat3}
+ * @param {og.Mat3} a - Matrix to copy.
+ * @returns {og.Mat3}
  */
 Mat3.prototype.copy = function (a) {
     return this.set(a._m);
@@ -74,7 +74,7 @@ Mat3.prototype.copy = function (a) {
 /**
  * Creates trasposed matrix from the current.
  * @public
- * @returns {og.math.Mat3}
+ * @returns {og.Mat3}
  */
 Mat3.prototype.transposeTo = function () {
     var res = new Mat3();
@@ -88,7 +88,7 @@ Mat3.prototype.transposeTo = function () {
 /**
  * Sets matrix to identity.
  * @public
- * @returns {og.math.Mat3}
+ * @returns {og.Mat3}
  */
 Mat3.prototype.setIdentity = function () {
     this._m[0] = 1; this._m[1] = 0; this._m[2] = 0;
@@ -100,8 +100,8 @@ Mat3.prototype.setIdentity = function () {
 /**
  * Multiply to 3d vector.
  * @public
- * @params {og.math.Vector3} p - 3d vector.
- * @returns {og.math.Vector3}
+ * @params {og.Vec3} p - 3d vector.
+ * @returns {og.Vec3}
  */
 Mat3.prototype.mulVec = function (p) {
     var d = p.x, e = p.y, g = p.z;
@@ -116,7 +116,7 @@ Mat3.prototype.mulVec = function (p) {
 /**
  * Converts to 4x4 matrix.
  * @public
- * @returns {og.math.Matrix4}
+ * @returns {og.Mat4}
  */
 Mat3.prototype.toMatrix4 = function () {
     var res = new Mat4();

@@ -14,7 +14,7 @@ import { Vec3 } from '../math/Vec3.js';
 /**
  * Returns Sun position in the geocentric coordinate system by the time.
  * @param {Number} jDate - Julian date time.
- * @returns {og.math.Vector3} - Sun geocentric coordinates.
+ * @returns {og.Vec3} - Sun geocentric coordinates.
  */
 export function getSunPosition(jDate) {
     //http://stjarnhimlen.se/comp/tutorial.html

@@ -12,9 +12,9 @@ import { Mat4 } from '../math/Mat4.js';
  * Base geometry shape class.
  * @class
  * @param {Object} options - Shape parameters:
- * @param {og.math.Vector3} [options.position] - Shape position.
- * @param {og.math.Quaternion} [options.orientation] - Shape orientation(rotation).
- * @param {og.math.Vector3} [options.scale] - Scale vector.
+ * @param {og.Vec3} [options.position] - Shape position.
+ * @param {og.Quat} [options.orientation] - Shape orientation(rotation).
+ * @param {og.Vec3} [options.scale] - Scale vector.
  * @param {Array.<number,number,number,number>} [options.color] - Shape RGBA color.
  * @param {string} [options.src] - Texture image url source.
  * @param {boolean} [options.visibility] - Shape visibility.
@@ -36,21 +36,21 @@ class BaseShape {
         /**
          * Shape position.
          * @public
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this.position = options.position || new Vec3();
 
         /**
          * Shape orientation(rotation)
          * @public
-         * @type {og.math.Quaternion}
+         * @type {og.Quat}
          */
         this.orientation = options.orientation || new Quat(0.0, 0.0, 0.0, 1.0);
 
         /**
          * Scale.
          * @public
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this.scale = options.scale || new Vec3(1.0, 1.0, 1.0);
 
@@ -130,21 +130,21 @@ class BaseShape {
         /**
          * Scale matrix.
          * @protected
-         * @type {og.math.Matrix4}
+         * @type {og.Mat4}
          */
         this._mxScale = new Mat4().setIdentity();
 
         /**
          * Translation matrix.
          * @protected
-         * @type {og.math.Matrix4}
+         * @type {og.Mat4}
          */
         this._mxTranslation = new Mat4().setIdentity();
 
         /**
          * Model matrix.
          * @protected
-         * @type {og.math.Matrix4}
+         * @type {og.Mat4}
          */
         this._mxModel = new Mat4().setIdentity();
 
@@ -240,7 +240,7 @@ class BaseShape {
     /**
      * Sets shape color.
      * @public
-     * @param {og.math.Vector4} color - RGBA color vector.
+     * @param {og.Vec4} color - RGBA color vector.
      */
     setColor4v(color) {
         this.color[0] = color.x;
@@ -314,7 +314,7 @@ class BaseShape {
     /**
      * Sets shape position.
      * @public
-     * @param {og.math.Vector3} position - Shape position.
+     * @param {og.Vec3} position - Shape position.
      */
     setPosition3v(position) {
         this.position.copy(position);
@@ -325,7 +325,7 @@ class BaseShape {
     /**
      * Translate shape position to vector.
      * @public
-     * @param {og.math.Vector3} vec - Translation vector.
+     * @param {og.Vec3} vec - Translation vector.
      */
     translate3v(vec) {
         this.position.addA(vec);
@@ -334,7 +334,7 @@ class BaseShape {
 
     /**
      * Sets shape scale.
-     * @param {og.math.Vector3} scale - Scale vector.
+     * @param {og.Vec3} scale - Scale vector.
      */
     setScale3v(scale) {
         this.scale.copy(scale);
@@ -353,7 +353,7 @@ class BaseShape {
     /**
      * Assign picking color.
      * @protected
-     * @param {og.math.Vector3} color - Picking RGB color.
+     * @param {og.Vec3} color - Picking RGB color.
      */
     setPickingColor3v(color) {
         //...

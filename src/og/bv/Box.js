@@ -15,7 +15,7 @@ class Box {
         /**
          * Vertices array.
          * @public
-         * @type{Array.<og.math.Vector3>}
+         * @type{Array.<og.Vec3>}
          */
         this.vertices = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
     }

@@ -24,9 +24,9 @@ import { Ray } from '../math/Ray.js';
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
  * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 50
- * @param {og.math.Vector3} [options.eye] - Camera eye position. Default (0,0,0)
- * @param {og.math.Vector3} [options.look] - Camera look position. Default (0,0,0)
- * @param {og.math.Vector3} [options.up] - Camera eye position. Default (0,1,0)
+ * @param {og.Vec3} [options.eye] - Camera eye position. Default (0,0,0)
+ * @param {og.Vec3} [options.look] - Camera look position. Default (0,0,0)
+ * @param {og.Vec3} [options.up] - Camera eye position. Default (0,1,0)
  */
 class PlanetCamera extends Camera {
     constructor(planet, options) {
@@ -69,7 +69,7 @@ class PlanetCamera extends Camera {
         /**
          * Cartesian coordinates on the terrain.
          * @protected
-         * @type {og.math.Vector3}
+         * @type {og.Vec3}
          */
         this._terrainPoint = new Vec3();
 
@@ -88,7 +88,7 @@ class PlanetCamera extends Camera {
          * @protected
          * @type {og.LonLat}
          */
-        this._insideSegmentPosition = null;
+        this._insideSegmentPosition = new LonLat();
 
         this._keyLock = new Key();
 
@@ -184,7 +184,7 @@ class PlanetCamera extends Camera {
      * @public
      * @param {og.LonLat} lonlat - New camera and camera view position.
      * @param {og.LonLat} [lookLonLat] - Look up coordinates.
-     * @param {og.math.Vector3} [up] - Camera UP vector. Default (0,1,0)
+     * @param {og.Vec3} [up] - Camera UP vector. Default (0,1,0)
      */
     setLonLat(lonlat, lookLonLat, up) {
         this.stopFlying();
@@ -218,7 +218,7 @@ class PlanetCamera extends Camera {
      * Gets position by viewable extent.
      * @public
      * @param {og.Extent} extent - Viewable extent.
-     * @returns {og.math.Vector3}
+     * @returns {og.Vec3}
      */
     getExtentPosition(extent) {
 
@@ -298,7 +298,7 @@ class PlanetCamera extends Camera {
      * Flies to the current extent.
      * @public
      * @param {og.Extent} extent - Current extent.
-     * @param {og.math.Vector3} [up] - Camera UP in the end of flying. Default - (0,1,0)
+     * @param {og.Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
@@ -310,9 +310,9 @@ class PlanetCamera extends Camera {
     /**
      * Flies to the cartesian coordinates.
      * @public
-     * @param {og.math.Vector3} cartesian - Finish cartesian coordinates.
-     * @param {og.math.Vector3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {og.math.Vector3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {og.Vec3} cartesian - Finish cartesian coordinates.
+     * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
+     * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
@@ -401,8 +401,8 @@ class PlanetCamera extends Camera {
      * Flies to the geo coordiantes.
      * @public
      * @param {og.LonLat} lonlat - Finish coordinates.
-     * @param {og.math.Vector3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {og.math.Vector3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
+     * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
@@ -506,7 +506,7 @@ class PlanetCamera extends Camera {
             }
         } else {
             this._terrainAltitude = this._lonLat.height;
-            if (this._lonLat.height < 1000000) {
+            if (this._lonLat.height < 1000000 && this._insideSegment) {
                 this._terrainAltitude = this._insideSegment.getTerrainPoint(this._terrainPoint, this.eye, this._insideSegmentPosition);
                 if (this._terrainAltitude < this.minAltitude) {
                     this.setAltitude(this.minAltitude);

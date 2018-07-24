@@ -10,7 +10,7 @@ import { Vec4 } from './Vec4.js';
 /**
  * Encode 32 bit float value to the RGBA vector.
  * @function
- * @param {nummer} v - 32 bit float value.
+ * @param {number} v - 32 bit float value.
  * @returns {og.math.Vec4} - RGBA vector value.
  */
 export function encodeFloatToRGBA(v) {
@@ -22,7 +22,7 @@ export function encodeFloatToRGBA(v) {
 /**
  * Decode RGBA vector to 32 bit float value.
  * @function
- * @param {og.math.Vector4} rgba - RGBA encoded 32 bit float value.
+ * @param {og.Vec4} rgba - RGBA encoded 32 bit float value.
  * @returns {number} - Float value.
  */
 export function decodeFloatFromRGBA(rgba) {
