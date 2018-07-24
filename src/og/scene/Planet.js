@@ -37,7 +37,7 @@ import { SPECULAR } from '../res/spec.js';
 
 const RESOURCES_URL = "";
 const DEFAULT_LOD_RATIO = 0.85;
-const DELTA_LOD = 0.3;
+const DELTA_LOD = 0.25;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -890,7 +890,8 @@ class Planet extends RenderNode {
      */
     frame() {
 
-        this._lodRatio = math.lerp(this.camera.slope, this._maxLodRatio, this._minLodRatio);
+        this._lodRatio = math.lerp(this.camera.slope < 0.0 ? this.camera.slope : 0.0 ,
+             this._maxLodRatio, this._minLodRatio);
 
         this.renderer.activeCamera.prepareFrame();
 
