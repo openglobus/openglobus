@@ -22,7 +22,7 @@ import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Creates entity instance array.
- * @param {Entity[] || Object[]} entities - Entity array.
+ * @param {Entity[]} entities - Entity array.
  * @returns {Entity[]} - Entity array.
  */
 function _entitiesConstructor(entities) {

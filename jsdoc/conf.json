@@ -8,7 +8,7 @@
     "excludePattern": "(^|\\/|\\\\)_"
   },
   "plugins": [
-    "../../jaguarjs-jsdoc/plugins/events"
+    "./plugins/events"
   ],
   "templates": {
     "cleverLinks": true,
@@ -16,7 +16,7 @@
     "default": {
       "outputSourceFiles": true
     },
-    "applicationName": "OpenGlobus",
+    "applicationName": "openglobus",
     "disqus": "",
     "googleAnalytics": "",
     "openGraph": {

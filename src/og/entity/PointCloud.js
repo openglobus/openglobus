@@ -19,7 +19,7 @@ const PICKING_COLOR_BUFFER = 2;
  * where first three is cartesian coordinates, next fourth is a RGBA color, and last is an point properties.
  * @param {number} [options.pointSize] - Point screen size in pixels.
  * @param {number} [options.pickingDistance] - Point border picking size in screen pixels.
- * @parar {boolean} [options.visibility] - Point cloud visibility.
+ * @param {boolean} [options.visibility] - Point cloud visibility.
  * @example <caption>Creates point cloud with two ten pixel size points</caption>
  * new og.Entity({
  *     pointCloud: {
@@ -242,9 +242,6 @@ class PointCloud {
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    /**
-     * @todo
-     */
     setPointPosition(index, x, y, z) {
 
         //...
@@ -252,9 +249,6 @@ class PointCloud {
         this._changedBuffers[COORDINATES_BUFFER] = true;
     }
 
-    /**
-     * @todo
-     */
     setPointColor(index, r, g, b, a) {
 
         //...
@@ -262,9 +256,6 @@ class PointCloud {
         this._changedBuffers[COLOR_BUFFER] = true;
     }
 
-    /**
-     * @todo
-     */
     addPoints(points) {
 
         //...
@@ -274,9 +265,6 @@ class PointCloud {
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    /**
-     * @todo
-     */
     addPoint(index, point) {
 
         //...
@@ -296,9 +284,6 @@ class PointCloud {
         return this._points[index];
     }
 
-    /**
-     * @todo
-     */
     removePoint(index) {
 
         //...
@@ -308,9 +293,6 @@ class PointCloud {
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    /**
-     * @todo
-     */
     insertPoint(index, point) {
 
         //...
@@ -323,7 +305,7 @@ class PointCloud {
     /**
      * Each point iterator.
      * @public
-     * @param {callback} callback
+     * @param {callback} callback -
      */
     each(callback) {
         var i = this._points.length;
@@ -456,6 +438,6 @@ class PointCloud {
             this._changedBuffers[PICKING_COLOR_BUFFER] = true;
         }
     }
-};
+}
 
 export { PointCloud };

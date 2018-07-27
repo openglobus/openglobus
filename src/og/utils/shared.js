@@ -13,7 +13,7 @@ import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
 if (!('createImageBitmap' in window)) {
-    window.createImageBitmap = async function(blob) {
+    window.createImageBitmap = function(blob) {
         return new Promise((resolve,reject) => {
             let img = document.createElement('img');
             img.addEventListener('load', function() {
