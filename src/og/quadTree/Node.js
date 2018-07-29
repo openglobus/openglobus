@@ -173,7 +173,7 @@ Node.prototype.createBounds = function () {
 
     if (seg.tileZoom === 0) {
 
-        seg.setBoundingSphere(0.0, 0.0, 0.0, seg.planet.ellipsoid._a);
+        seg.setBoundingSphere(0.0, 0.0, 0.0, new Vec3(0.0, 0.0, seg.planet.ellipsoid._a));
 
     } else if (seg.tileZoom < seg.planet.terrain.minZoom) {
 

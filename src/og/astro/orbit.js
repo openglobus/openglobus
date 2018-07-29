@@ -4,7 +4,7 @@
 
 'use strict';
 
-import * as math from '../math.js');
+import * as math from '../math.js';
 import { Mat3 } from '../math/Mat3.js';
 
 export function getEccentricAnomaly(M, ecc) {

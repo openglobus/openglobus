@@ -379,6 +379,7 @@ Segment.prototype.engage = function () {
         if (n[N].length) {
 
             if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
+
                 let _v = n[N][0].segment.terrainVertices;
                 const _tgsOne = Math.sqrt(_v.length / 3);
                 const _tgs = _tgsOne - 1;
@@ -1036,8 +1037,18 @@ Segment.prototype._assignTileIndexes = function () {
     var p2 = Math.pow(2, tileZoom);
     this.tileXE = (this.tileX + 1) % p2;
     this.tileXW = (p2 + this.tileX - 1) % p2;
+
     this.tileYN = (p2 + this.tileY - 1) % p2;
     this.tileYS = (this.tileY + 1) % p2;
+
+    if (this.tileY === 0) {
+        this.tileYN = -1;
+    } else if (this.tileY === Math.pow(tileZoom, 2) - 1) {
+        this.tileYS = -1;
+    }
+
+
+
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
     this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
 };
