@@ -44,8 +44,10 @@ const EVENT_NAMES = [
  */
 class GlobusTerrain extends EmptyTerrain {
     constructor(name, options) {
+        
         super();
-        options = options || {};
+
+        options = options || {};        
 
         this.blur = true;
 

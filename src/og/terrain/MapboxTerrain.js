@@ -1,15 +1,21 @@
 import { GlobusTerrain } from './GlobusTerrain.js';
 import { lerp } from '../math.js';
 
+const KEY = "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
+
 class MapboxTerrain extends GlobusTerrain {
     constructor(name, options) {
-        super();
+
+        super(name, options);
+
+        options = options || {};
+        
         this.blur = false;
         this.equalizeVertices = true;
-        this.equalizeNormals = false;    
+        this.equalizeNormals = false;
         this.minZoom = 2;
         this.maxZoom = 15;
-        this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
+        this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=" + (options.key || KEY);
         this.fileGridSize = 128;
         this._dataType = "imageBitmap";
 

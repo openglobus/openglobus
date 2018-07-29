@@ -85,7 +85,7 @@ class Frustum {
      * Returns true if a point in the frustum.
      * @public
      * @param {og.Vec3} point - Cartesian point.
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     containsPoint(point) {
         var d;
@@ -101,7 +101,7 @@ class Frustum {
      * Returns true if the frustum contains a bonding sphere.
      * @public
      * @param {og.bv.Sphere} sphere - Bounding sphere.
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     containsSphere(sphere) {
         var r = -sphere.radius;
@@ -115,10 +115,28 @@ class Frustum {
     }
 
     /**
+     * Returns true if the frustum contains a bonding sphere.
+     * @public
+     * @param {Vec3} center - Sphere center.
+     * @param {number} radius - Sphere radius.
+     * @returns {boolean} -
+     */
+    containsSphere2(center, radius) {
+        var r = -radius;
+        if (center.dotArr(this._f[0]) + this._f[0][3] <= r) return false;
+        if (center.dotArr(this._f[1]) + this._f[1][3] <= r) return false;
+        if (center.dotArr(this._f[2]) + this._f[2][3] <= r) return false;
+        if (center.dotArr(this._f[3]) + this._f[3][3] <= r) return false;
+        if (center.dotArr(this._f[4]) + this._f[4][3] <= r) return false;
+        if (center.dotArr(this._f[5]) + this._f[5][3] <= r) return false;
+        return true;
+    }
+
+    /**
      * Returns true if the frustum contains a bounding box.
      * @public
      * @param {og.bv.Box} box - Bounding box.
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     containsBox(box) {
         var result = true, cout, cin;

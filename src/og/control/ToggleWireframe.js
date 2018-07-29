@@ -21,6 +21,7 @@ class ToggleWireframe extends Control {
 
     oninit() {
         this.renderer.events.on("charkeypress", input.KEY_X, this.toogleWireframe, this);
+        this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
     }
 
     toogleWireframe(e) {
