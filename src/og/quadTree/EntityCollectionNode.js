@@ -34,46 +34,7 @@ const EntityCollectionNode = function (layer, partId, parent, id, extent, planet
 };
 
 EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightNow) {
-
-    //TODO: doesnt work!!!!
-
-    var p = this._setLonLat(entity);
-
-    if (isInside || p && this.extent.isInside(p)) {
-
-        this.count++;
-
-        if (this.count > this.layer._nodeCapacity) {
-            var cn = this.childrenNodes;
-            if (cn.length) {
-                if (cn[quadTree.NW].extent.isInside(p)) {
-                    cn[quadTree.NW].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.NE].extent.isInside(p)) {
-                    cn[quadTree.NE].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.SW].extent.isInside(p)) {
-                    cn[quadTree.SW].insertEntity(entity, true, rightNow);
-                } else if (cn[quadTree.SE].extent.isInside(p)) {
-                    cn[quadTree.SE].insertEntity(entity, true, rightNow);
-                }
-            } else {
-
-                //
-                //TODO: check for pendingQueue entities
-                //
-                var entities = this.entityCollection.getEntities();
-                entities.push(entity);
-                this.entityCollection.events.clear();
-                this.entityCollection.clear();
-                this.entityCollection = null;
-                //this._freeCollection();
-
-                /** Build sub tree with new inserted entity */
-                this.buildTree(entities, rightNow);
-            }
-        } else {
-            this._addEntitiesToCollection([entity], rightNow);
-        }
-    }
+    this.buildTree([entity], rightNow);
 };
 
 EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
@@ -128,10 +89,12 @@ EntityCollectionNode.prototype._setLonLat = function (entity) {
 
 EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
 
-    this.count = entities.length;
+    this.count += entities.length;
 
     if (entities.length > this.layer._nodeCapacity ||
-        this.zoom < this.layer.minZoom || this.zoom < this.layer._minDepth) {
+        this.zoom < this.layer.minZoom ||
+        this.zoom < this.layer._minDepth
+    ) {
         var cn = this.childrenNodes;
         if (!cn.length) {
             this.createChildrenNodes();
@@ -317,7 +280,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 };
 
 EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, segment) {
-    var res = new Vec3();    
+    var res = new Vec3();
     segment.getEntityTerrainPoint(entity, res);
     entity._setCartesian3vSilent(res.addA(res.normal().scale(Number(this.layer.relativeToGround) && entity._altitude || 0.0)));
 };

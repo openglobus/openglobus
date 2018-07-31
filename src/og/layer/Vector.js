@@ -247,10 +247,11 @@ class Vector extends Layer {
                         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                     }
 
-                    //poles trees
+                    //north tree
                     if (entity._lonlat.lat > mercator.MAX_LAT) {
                         this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
                     } else if (entity._lonlat.lat < mercator.MIN_LAT) {
+                    //south tree
                         this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
                     } else {
                         this._entityCollectionsTree.insertEntity(entity, rightNow);
