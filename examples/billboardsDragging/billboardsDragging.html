@@ -17,6 +17,7 @@
         import { WMS } from '../../src/og/layer/WMS.js';
         import { Vector } from '../../src/og/layer/Vector.js';
         import { Vec2 } from '../../src/og/math/Vec2.js';
+        import { Entity } from '../../src/og/entity/Entity.js';
 
         let pointLayer = new Vector("points", {
             'clampToGround': true,
@@ -93,6 +94,22 @@
         }, globe.planet);
 
         globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+
+        globe.renderer.events.on("lclick", function (e) {
+
+            var ll = globe.planet.getLonLatFromPixelTerrain(e, true);
+
+            pointLayer.add(new Entity({
+                'name': 'New Marker',
+                'lonlat': ll,
+                'billboard': {
+                    'src': 'marker.png',
+                    'size': [29, 48],
+                    'offset': [0, 24]
+                }
+            }));
+
+        });
 
     </script>
 </body>
