@@ -460,36 +460,36 @@ class RendererEvents extends Events {
             if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
                 //current black
                 if (!(c[0] || c[1] || c[2])) {
-                    var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                    let po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     if (po) {
-                        //TODO: This is a reason to replace geometryHandler to an entityCollection...or maybe not
-                        var pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
+                        //TODO: make eventPtr for all kind of entity storages
+                        let pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
                         ms.pickingObject = po;
-                        pe.dispatch(pe.mouseleave, ms);
+                        pe && pe.dispatch(pe.mouseleave, ms);
                         ts.pickingObject = po;
-                        pe.dispatch(pe.touchleave, ts);
+                        pe && pe.dispatch(pe.touchleave, ts);
                     }
                 } else {
                     //current not black
 
                     //previous not black
                     if (p[0] || p[1] || p[2]) {
-                        var po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                        let po = o[p[0] + "_" + p[1] + "_" + p[2]];
                         if (po) {
-                            var pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
+                            let pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
                             ms.pickingObject = po;
-                            pe.dispatch(pe.mouseleave, ms);
+                            pe && pe.dispatch(pe.mouseleave, ms);
                             ts.pickingObject = po;
-                            pe.dispatch(pe.touchleave, ts);
+                            pe && pe.dispatch(pe.touchleave, ts);
                         }
                     }
 
                     if (co) {
-                        var ce = co.events || co._entityCollection && co._entityCollection.events || co._layer.events;
+                        var ce = co.events || co._entityCollection && co._entityCollection.events || co._layer && co._layer.events;
                         ms.pickingObject = co;
-                        ce.dispatch(ce.mouseenter, ms);
+                        ce && ce.dispatch(ce.mouseenter, ms);
                         ts.pickingObject = co;
-                        ce.dispatch(ce.touchenter, ts);
+                        ce && ce.dispatch(ce.touchenter, ts);
                     }
                 }
             }
@@ -506,8 +506,8 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.lclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.lclick, ms);
             }
             this.dispatch(this.lclick, ms);
             ms.leftButtonClick = false;
@@ -515,8 +515,8 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.rclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.rclick, ms);
             }
             this.dispatch(this.rclick, ms);
             ms.rightButtonClick = false;
@@ -524,8 +524,8 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.mclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.mclick, ms);
             }
             this.dispatch(this.mclick, ms);
             ms.middleButtonClick = false;
@@ -534,15 +534,15 @@ class RendererEvents extends Events {
         if (ms.leftButtonDown) {
             if (ms.leftButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.lhold, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.lhold, ms);
                 }
                 this.dispatch(this.lhold, ms);
             } else {
                 ms.leftButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.ldown, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.ldown, ms);
                 }
                 this.dispatch(this.ldown, ms);
             }
@@ -551,15 +551,15 @@ class RendererEvents extends Events {
         if (ms.rightButtonDown) {
             if (ms.rightButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.rhold, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.rhold, ms);
                 }
                 this.dispatch(this.rhold, ms);
             } else {
                 ms.rightButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.rdown, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.rdown, ms);
                 }
                 this.dispatch(this.rdown, ms);
             }
@@ -568,15 +568,15 @@ class RendererEvents extends Events {
         if (ms.middleButtonDown) {
             if (ms.middleButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.mhold, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.mhold, ms);
                 }
                 this.dispatch(this.mhold, ms);
             } else {
                 ms.middleButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                    pe.dispatch(pe.mdown, ms);
+                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe && pe.dispatch(pe.mdown, ms);
                 }
                 this.dispatch(this.mdown, ms);
             }
@@ -584,8 +584,8 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.lup, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.lup, ms);
             }
             this.dispatch(this.lup, ms);
             ms.leftButtonUp = false;
@@ -594,8 +594,8 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.rup, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.rup, ms);
             }
             this.dispatch(this.rup, ms);
             ms.rightButtonUp = false;
@@ -604,8 +604,8 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.mup, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.mup, ms);
             }
             this.dispatch(this.mup, ms);
             ms.middleButtonUp = false;
@@ -614,8 +614,8 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.ldblclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.ldblclick, ms);
             }
             this.dispatch(this.ldblclick, ms);
             ms.leftButtonDoubleClick = false;
@@ -623,8 +623,8 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.rdblclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.rdblclick, ms);
             }
             this.dispatch(this.rdblclick, ms);
             ms.rightButtonDoubleClick = false;
@@ -632,8 +632,8 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.mdblclick, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.mdblclick, ms);
             }
             this.dispatch(this.mdblclick, ms);
             ms.middleButtonDoubleClick = false;
@@ -641,8 +641,8 @@ class RendererEvents extends Events {
 
         if (ms.wheelDelta) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.mousewheel, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.mousewheel, ms);
             }
             this.dispatch(this.mousewheel, ms);
             ms.wheelDelta = 0;
@@ -650,8 +650,8 @@ class RendererEvents extends Events {
 
         if (ms.moving) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer.events;
-                pe.dispatch(pe.mousemove, ms);
+                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe && pe.dispatch(pe.mousemove, ms);
             }
             this.dispatch(this.mousemove, ms);
             ms.prev_x = ms.x;
@@ -688,8 +688,8 @@ class RendererEvents extends Events {
             var co = o[c[0] + "_" + c[1] + "_" + c[2]];
             tpo = ts.pickingObject = co;
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
-                tpe.dispatch(tpe.touchstart, ts);
+                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe && tpe.dispatch(tpe.touchstart, ts);
             }
             this.dispatch(this.touchstart, ts);
             ts.touchStart = false;
@@ -697,8 +697,8 @@ class RendererEvents extends Events {
 
         if (ts.doubleTouch) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
-                tpe.dispatch(tpe.doubletouch, ts);
+                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe && tpe.dispatch(tpe.doubletouch, ts);
             }
             this.dispatch(this.doubletouch, ts);
             ts.doubleTouch = false;
@@ -706,8 +706,8 @@ class RendererEvents extends Events {
 
         if (ts.touchEnd) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
-                tpe.dispatch(tpe.touchend, ts);
+                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe && tpe.dispatch(tpe.touchend, ts);
             }
             this.dispatch(this.touchend, ts);
             ts.x = 0;
@@ -717,8 +717,8 @@ class RendererEvents extends Events {
 
         if (ts.moving) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer.events;
-                tpe.dispatch(tpe.touchmove, ts);
+                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe && tpe.dispatch(tpe.touchmove, ts);
             }
             this.dispatch(this.touchmove, ts);
             ts.prev_x = ts.x;
