@@ -13,6 +13,12 @@ class QueueArray {
         this.length = 0;
     }
 
+    reset(){
+        this._popIndex = parseInt(this._size * 0.5);
+        this._shiftIndex = this._popIndex;
+        this.length = 0;
+    }
+
     clear() {
         this._array.length = 0;
         this._array = new Array(this._size);

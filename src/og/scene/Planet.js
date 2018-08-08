@@ -36,8 +36,8 @@ import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 
 const RESOURCES_URL = "";
-const DEFAULT_LOD_RATIO = 0.89;
-const DELTA_LOD = 0.31;
+const DEFAULT_LOD_RATIO = 0.98;
+const DELTA_LOD = 0.35;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.

@@ -478,7 +478,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVertices = data.terrainVertices;
         this.tempVertices = data.terrainVertices;
 
-        //var tgs = this.planet.terrain.gridSizeByZoom[this.tileZoom];
         var b = data.bounds;
         this.setBoundingSphere(
             b[0] + (b[1] - b[0]) * 0.5,
@@ -769,7 +768,7 @@ Segment.prototype.clearSegment = function () {
 };
 
 /**
- * Removes cache record.
+ * Removes cache records.
  */
 Segment.prototype._freeCache = function () {
     this.planet._quadTreeNodesCacheMerc[this.tileIndex] = null;
@@ -1084,11 +1083,8 @@ Segment.prototype.createPlainSegmentAsync = function () {
 };
 
 Segment.prototype.createPlainSegment = function () {
-
     this.initialize();
-
     this._createPlainVertices();
-
     this.readyToEngage = true;
 };
 

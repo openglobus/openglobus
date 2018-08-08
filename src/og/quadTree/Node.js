@@ -450,17 +450,6 @@ Node.prototype.prepareForRendering = function (cam, altVis) {
     }
 };
 
-// Node.prototype.execPlainVerticesCreator = function () {
-//     var seg = this.segment;
-//     if (seg.tileZoom <= seg.planet.terrain.maxZoom && !seg.plainReady && !seg.proceed) {
-//         seg.proceed = true;
-//         setTimeout(function () {
-//             seg._createPlainVertices();
-//             seg.proceed = false;
-//         }, 1000);
-//     }
-// };
-
 Node.prototype.renderNode = function (onlyTerrain) {
 
     var seg = this.segment;
@@ -476,7 +465,6 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
             this.whileTerrainLoading();
 
-            //this.execPlainVerticesCreator();
             if (!seg.plainProcessing) {
                 seg.createPlainSegmentAsync();
             }
@@ -492,7 +480,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
         return;
     }
 
-    //Create normal map texture.
+    //Create normal map texture
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
     }
@@ -643,34 +631,15 @@ Node.prototype.whileNormalMapCreating = function () {
     seg.normalMapTexture = pn.segment.normalMapTexture;
     seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
     seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
-    seg.normalMapTextureBias[2] = 1 / dZ2;
+    seg.normalMapTextureBias[2] = 1.0 / dZ2;
 
 
     if (seg.tileZoom > maxZ) {
         if (pn.segment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
-        } else {
-            // pn = this;
-            // while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
-            //     pn = pn.parentNode;
-            // }
-            // var pns = pn.segment;
-            // if (!pns.plainReady) {
-            //     pns.createPlainSegment();
-            //     pns.loadTerrain();
-            // } else if (!pns._inTheQueue && !pns.terrainIsLoading) {
-            //     pns.planet._normalMapCreator.queue(pns);
-            // }
         }
     }
 };
-
-function precision(a) {
-    if (!isFinite(a)) return 0;
-    var e = 1, p = 0;
-    while (Math.round(a * e) / e !== a) { e *= 10; p++; }
-    return p;
-}
 
 let BOUNDS = {
     'xmin': 0.0,
@@ -720,11 +689,6 @@ Node.prototype.whileTerrainLoading = function () {
 
                 seg.gridSize = gridSize;
 
-                this.sideSize[0] = gridSize;
-                this.sideSize[1] = gridSize;
-                this.sideSize[2] = gridSize;
-                this.sideSize[3] = gridSize;
-
                 tempVertices = getMatrixSubArrayBounds(pseg.terrainVertices,
                     pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, BOUNDS);
 
@@ -732,22 +696,13 @@ Node.prototype.whileTerrainLoading = function () {
 
                 seg.gridSize = gridSizeExt;
 
-                this.sideSize[0] = gridSizeExt;
-                this.sideSize[1] = gridSizeExt;
-                this.sideSize[2] = gridSizeExt;
-                this.sideSize[3] = gridSizeExt;
-
                 tempVertices = getMatrixSubArrayBounds(pseg.normalMapVertices,
-                    pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt, BOUNDS);
+                    pn.segment.planet.terrain.fileGridSize, gridSizeExt * offsetY,
+                    gridSizeExt * offsetX, gridSizeExt, BOUNDS);
 
             } else {
 
                 seg.gridSize = _neGridSize;
-
-                this.sideSize[0] = _neGridSize;
-                this.sideSize[1] = _neGridSize;
-                this.sideSize[2] = _neGridSize;
-                this.sideSize[3] = _neGridSize;
 
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
@@ -802,6 +757,11 @@ Node.prototype.whileTerrainLoading = function () {
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.readyToEngage = false;
 
+            this.sideSize[0] = seg.gridSize;
+            this.sideSize[1] = seg.gridSize;
+            this.sideSize[2] = seg.gridSize;
+            this.sideSize[3] = seg.gridSize;
+
             //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
 
@@ -813,10 +773,8 @@ Node.prototype.whileTerrainLoading = function () {
             );
         }
 
-        let maxZ = terrain.maxZoom;
-
-        if (seg.tileZoom > maxZ) {
-            if (pn.segment.tileZoom >= maxZ) {
+        if (seg.tileZoom > terrain.maxZoom) {
+            if (pn.segment.tileZoom >= terrain.maxZoom) {
 
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
@@ -838,7 +796,7 @@ Node.prototype.whileTerrainLoading = function () {
                 }
             } else {
                 pn = this;
-                while (pn.parentNode && pn.segment.tileZoom !== maxZ) {
+                while (pn.parentNode && pn.segment.tileZoom !== terrain.maxZoom) {
                     pn = pn.parentNode;
                 }
 
@@ -848,7 +806,6 @@ Node.prototype.whileTerrainLoading = function () {
                     pns.initialize();
                 }
 
-                //pn.execPlainVerticesCreator();
                 if (!pns.plainProcessing) {
                     pn.segment.createPlainSegmentAsync();
                 }
