@@ -528,21 +528,23 @@ Node.prototype.addToRender = function () {
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
 
-                var ap = node.segment;
-                var bp = ni.segment;
-                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+                let ap = node.segment;
+                let bp = ni.segment;
+                let ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+
+                let cs_size = ap.gridSize,
+                    opcs_size = bp.gridSize;
 
                 if (ld > 1) {
-                    node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
-                    ni.sideSize[opcs] = bp.gridSize;
+                    cs_size = Math.ceil(ap.gridSize / ld);
+                    opcs_size = bp.gridSize;
+                } else if (ld < 1) {
+                    cs_size = ap.gridSize;
+                    opcs_size = Math.ceil(bp.gridSize * ld);
                 }
-                else if (ld < 1) {
-                    node.sideSize[cs] = ap.gridSize;
-                    ni.sideSize[opcs] = Math.ceil(bp.gridSize * ld);
-                } else {
-                    node.sideSize[cs] = ap.gridSize;
-                    ni.sideSize[opcs] = bp.gridSize;
-                }
+
+                node.sideSize[cs] = cs_size;
+                ni.sideSize[opcs] = opcs_size;
             }
         }
     }
@@ -757,10 +759,10 @@ Node.prototype.whileTerrainLoading = function () {
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.readyToEngage = false;
 
-            this.sideSize[0] = seg.gridSize;
-            this.sideSize[1] = seg.gridSize;
-            this.sideSize[2] = seg.gridSize;
-            this.sideSize[3] = seg.gridSize;
+            // this.sideSize[0] = seg.gridSize;
+            // this.sideSize[1] = seg.gridSize;
+            // this.sideSize[2] = seg.gridSize;
+            // this.sideSize[3] = seg.gridSize;
 
             //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
