@@ -1245,6 +1245,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
+        
         for (let j = 1; j < sl.length; j++) {
 
             let slj = sl[j];

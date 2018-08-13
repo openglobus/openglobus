@@ -1304,9 +1304,12 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
 
-        var _indexBuffer = this._getIndexBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-        gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        if (!isOverlay) {
+            this._indexBuffer = this._getIndexBuffer();
+        }
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 
