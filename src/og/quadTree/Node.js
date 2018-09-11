@@ -544,19 +544,21 @@ Node.prototype.addToRender = function () {
                     cs_size = ap.gridSize;
                     opcs_size = Math.ceil(bp.gridSize * ld);
                 }
-                
+
                 node.sideSize[cs] = cs_size;
                 ni.sideSize[opcs] = opcs_size;
 
-                if (node.sideZoom[cs] !== bp.tileZoom) {
+                if (ap.tileZoom >= bp.tileZoom &&
+                    node.sideZoom[cs] !== bp.tileZoom) {
                     node.sideZoom[cs] = bp.tileZoom;
                     node.sideEqualize[cs] = true;
+                    ap.readyToEqualize = true;
+                } else if (ap.tileZoom < bp.tileZoom &&
+                    ni.sideZoom[opcs] !== ap.tileZoom) {
+                    ni.sideZoom[opcs] = ap.tileZoom;
+                    ni.sideEqualize[opcs] = true;
+                    bp.readyToEqualize = true;
                 }
-
-                // if (ni.sideZoom[opcs] !== ap.tileZoom) {
-                //     ni.sideZoom[opcs] = ap.tileZoom;
-                //     bp.sideEqualize[opcs] = true;
-                // }
             }
         }
     }

@@ -1241,11 +1241,15 @@ class Planet extends RenderNode {
                 rn[i].segment.engage();
             }
 
+            if (rn[i].segment.readyToEqualize) {
+                rn[i].segment.equalize();
+            }
+
             rn[i].segment._multiRendering(sh, sl[0]);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        
+
         for (let j = 1; j < sl.length; j++) {
 
             let slj = sl[j];
