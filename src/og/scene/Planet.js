@@ -1241,9 +1241,9 @@ class Planet extends RenderNode {
                 rn[i].segment.engage();
             }
 
-            if (rn[i].segment.readyToEqualize) {
-                rn[i].segment.equalize();
-            }
+            // if (rn[i].segment.readyToEqualize) {
+            //     rn[i].segment.equalize();
+            // }
 
             rn[i].segment._multiRendering(sh, sl[0]);
         }
@@ -1594,6 +1594,16 @@ class Planet extends RenderNode {
             }
         }
     }
-};
+
+    getEntityTerrainPoint(entity, res) {        
+        let n = this._renderedNodes, 
+            i = n.length;
+        while (i--) {
+            if (n[i].segment.isEntityInside(entity)) {
+                return n[i].segment.getEntityTerrainPoint(entity, res);
+            }
+        }
+    }
+}
 
 export { Planet };

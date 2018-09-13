@@ -1,0 +1,65 @@
+<html>
+
+<head>
+    <title>OpenStreetMap Base Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./planner.js" type="module"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .pl-list {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background-color: white;
+        }
+
+        .pl-point {
+            width: calc(100% - 24px);
+            height: 20px;
+            font-size: 14px;
+            margin: 8px 12px;
+        }
+
+        .pl-point.pl-hover{
+            background-color: rgb(218, 218, 218);
+        }
+
+        .pl-point .pl-name {
+            width: 60px;
+        }
+
+        .pl-point .pl-val {
+            float: left;
+            padding-right: 5px;
+        }
+
+        .pl-point .pl-alt {
+            width: 50px;
+            float: right;
+            text-align: right;
+        }
+
+
+        .pl-point .pl-lon,
+        .pl-point .pl-lat {
+            width: 60px;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div id="earth" style="width: calc(100% - 300px);height: 100%;float: right;"></div>
+</body>
+
+</html>

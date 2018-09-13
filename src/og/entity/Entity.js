@@ -413,6 +413,15 @@ class Entity {
     }
 
     /**
+     * Sets entity altitude over the planet.
+     * @public
+     * @param {number} altitude - Altitude.
+     */
+    getAltitude() {
+        return this._altitude;
+    }
+
+    /**
      * Returns carteain position.
      * @public
      * @returns {og.Vec3} -
