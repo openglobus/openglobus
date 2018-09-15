@@ -81,8 +81,8 @@ class PlannerControl extends Control {
 
         this._trackLayer = new Vector("track", {
             'entities': [this._trackEntity],
-            'pickingEnabled': false,
-            'relativeToGround': true
+            'pickingEnabled': false//,
+            //'relativeToGround': true
         });
 
         this._pointLayer.events.on("mouseenter", function (e) {
@@ -184,7 +184,7 @@ class PlannerControl extends Control {
         entity.remove();
         entity.properties.spin.remove();
         this._trackEntity.polyline.removePoint(index);
-        
+
         let points = this._pointLayer.getEntities();
         for (var i = index; i < points.length; i++) {
             points[i].label.setText(i.toString());
@@ -258,6 +258,11 @@ class PlannerControl extends Control {
                     _this._pickingObject.properties.el.querySelector(".pl-lat").innerHTML = ll.lat.toFixed(5);
                     _this._pickingObject.properties.el.querySelector(".pl-alt").innerHTML = alt.toFixed(1);
                 }
+
+                // let index = _this._pickingObject.getCollectionIndex(),
+                //     point = _this._pickingObject.billboard.getPosition();
+                // _this._trackEntity.polyline.setPoint3v(point, index, 0);
+
             }
         }, this.planet);
 
@@ -270,10 +275,24 @@ class PlannerControl extends Control {
         });
     }
 
+    _initDraw() {
+        this.planet.events.on("draw", function () {
+
+            var track = this._trackEntity.polyline;
+
+            this._pointLayer.each((p, i) => {
+                track.setPoint3v(p.getCartesian(), i, 0);
+            });
+
+        }, this);
+    }
+
     onadd() {
         this._createPointLayer();
         this._createHandlers();
         this._createContainer();
+        this._initDraw();
+
         document.body.appendChild(this._container);
 
         this.planet.fontAtlas.createFont("Lucida Console", "normal", "bold");
