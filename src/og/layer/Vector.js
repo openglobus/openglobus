@@ -579,6 +579,8 @@ class Vector extends Layer {
             while (e_i--) {
                 var p = e[e_i].polyline;
                 if (visibleExtent.overlaps(p._extent)) {
+                    //TODO:this works only for mercator area.
+                    //So it needs to be working on poles.
                     let coords = p._pathLonLatMerc,
                         c_j = coords.length;
                     while (c_j--) {

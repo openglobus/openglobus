@@ -182,6 +182,10 @@ class Polyline {
         for (var j = 0; j < path3v.length; j++) {
             var path = path3v[j];
 
+            if (path.length === 0) {
+                continue;
+            }
+
             outTransformedPathLonLat[j] = [];
             outTransformedPathMerc[j] = [];
             outPath3v[j] = [];
@@ -295,6 +299,11 @@ class Polyline {
 
         for (var j = 0; j < pathLonLat.length; j++) {
             var path = pathLonLat[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
             var startIndex = index;
 
             outTransformedPathCartesian[j] = [];
@@ -319,6 +328,11 @@ class Polyline {
                 }
 
                 pp = path[1];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -376,6 +390,11 @@ class Polyline {
                 }
 
                 pp = path[path.length - 2];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -707,7 +726,16 @@ class Polyline {
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
         }
-    };
+    }
+
+    removePoint(index, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
+        multiLineIndex = multiLineIndex || 0;
+        this._path3v[multiLineIndex].splice(index, 1);
+        this.setPath3v([].concat(this._path3v));
+    }
 
     /**
      * Adds a new cartesian point in the end of the path.
@@ -716,8 +744,15 @@ class Polyline {
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPoint3v(point3v, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
         multiLineIndex = multiLineIndex || 0;
-
+        if (multiLineIndex >= this._path3v.length) {
+            this._path3v.push([]);
+        }
+        this._path3v[multiLineIndex].push(point3v);
+        this.setPath3v([].concat(this._path3v));
     }
 
     /**
@@ -727,7 +762,15 @@ class Polyline {
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPointLonLat(lonLat, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
         multiLineIndex = multiLineIndex || 0;
+        if (multiLineIndex >= this._pathLonLat.length) {
+            this._pathLonLat.push([]);
+        }
+        this._pathLonLat[multiLineIndex].push(lonLat);
+        this.setPathLonLat([].concat(this._pathLonLat));
     }
 
     /**

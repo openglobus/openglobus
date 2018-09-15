@@ -16,7 +16,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            width: 300px;
+            width: 310px;
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
@@ -24,18 +24,21 @@
         }
 
         .pl-point {
-            width: calc(100% - 24px);
+            width: calc(100% - 34px);
             height: 20px;
             font-size: 14px;
-            margin: 8px 12px;
+            margin: 8px 27px 10px 10px;
+            padding-left: 15px;
+            padding-top: 5px;
+            padding-bottom: 1px;
         }
 
-        .pl-point.pl-hover{
-            background-color: rgb(218, 218, 218);
+        .pl-point.pl-hover {
+            background-color: rgb(219, 245, 255)
         }
 
         .pl-point .pl-name {
-            width: 60px;
+            width: 25px;
         }
 
         .pl-point .pl-val {
@@ -45,7 +48,7 @@
 
         .pl-point .pl-alt {
             width: 50px;
-            float: right;
+            float: left;
             text-align: right;
         }
 
@@ -54,6 +57,24 @@
         .pl-point .pl-lat {
             width: 60px;
 
+        }
+
+        .pl-point .pl-btn {
+            width: 20px;
+            height: 20px;
+            color: black;
+            cursor: pointer;
+        }
+
+        .pl-point .pl-btn:hover {
+            color: blue;
+        }
+
+        .pl-point .pl-btn.pl-close {
+            float: left;
+            margin-left: 20px;
+            font-size: 22px;
+            margin-top: -4px;
         }
     </style>
 </head>

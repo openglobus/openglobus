@@ -20,6 +20,8 @@ class PlannerControl extends Control {
 
         this._pointLayer = null;
         this._spinLayer = null;
+        this._trackLayer = null;
+
         this._pickingObject = null;
         this._startPos = null;
         this._startClick = new Vec2();
@@ -38,6 +40,7 @@ class PlannerControl extends Control {
               <div class="pl-val pl-lon">{lon}</div>\
               <div class="pl-val pl-lat">{lat}</div>\
               <div class="pl-val pl-alt">{alt}</div>\
+              <div class="pl-btn pl-close">×</div>\
             </div>';
     }
 
@@ -67,14 +70,29 @@ class PlannerControl extends Control {
             'pickingEnabled': false
         });
 
+        this._trackEntity = new Entity({
+            'polyline': {
+                'path3v': [],
+                'thickness': 2.5,
+                'color': "blue",
+                'isClosed': true
+            }
+        });
+
+        this._trackLayer = new Vector("track", {
+            'entities': [this._trackEntity],
+            'pickingEnabled': false,
+            'relativeToGround': true
+        });
+
         this._pointLayer.events.on("mouseenter", function (e) {
             e.renderer.handler.canvas.style.cursor = "pointer";
-            e.pickingObject.properties.el.classList.add('pl-hover');            
+            e.pickingObject.properties.el.classList.add('pl-hover');
         });
 
         this._pointLayer.events.on("mouseleave", function (e) {
             e.renderer.handler.canvas.style.cursor = "default";
-            e.pickingObject.properties.el.classList.remove('pl-hover');            
+            e.pickingObject.properties.el.classList.remove('pl-hover');
         });
 
         let _this = this;
@@ -92,7 +110,7 @@ class PlannerControl extends Control {
             _this._pickingObject = null;
         });
 
-        this.planet.addLayers([this._pointLayer, this._spinLayer]);
+        this.planet.addLayers([this._pointLayer, this._spinLayer, this._trackLayer]);
 
     }
 
@@ -124,7 +142,7 @@ class PlannerControl extends Control {
             }
         });
 
-        this._pointLayer.add(new Entity({
+        let pointEntity = new Entity({
             'name': id,
             'lonlat': lonlat,
             'billboard': {
@@ -146,9 +164,32 @@ class PlannerControl extends Control {
                 'el': lineEl,
                 'spin': spinEntity
             }
-        }));
+        });
 
+        let _this = this;
+
+        lineEl.querySelector(".pl-btn.pl-close").addEventListener('click', function () {
+            _this._removePointEntity(pointEntity);
+        });
+
+        this._pointLayer.add(pointEntity);
         this._spinLayer.add(spinEntity);
+
+        this._trackEntity.polyline.addPointLonLat(lonlat);
+    }
+
+    _removePointEntity(entity) {
+        entity.properties.el.parentNode.removeChild(entity.properties.el);
+        let index = entity.getCollectionIndex();
+        entity.remove();
+        entity.properties.spin.remove();
+        this._trackEntity.polyline.removePoint(index);
+        
+        let points = this._pointLayer.getEntities();
+        for (var i = index; i < points.length; i++) {
+            points[i].label.setText(i.toString());
+            points[i].properties.el.querySelector('.pl-name').innerHTML = i;
+        }
     }
 
     _createHandlers() {
@@ -160,7 +201,6 @@ class PlannerControl extends Control {
 
                 let cam = this.renderer.activeCamera,
                     grCoords = new Vec3();
-
 
                 if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
                     let p0 = _this._pickingObject.getCartesian(),
@@ -222,15 +262,11 @@ class PlannerControl extends Control {
         }, this.planet);
 
         this.planet.renderer.events.on("lclick", function (e) {
-            var ll = _this.planet.getLonLatFromPixelTerrain(e, true);
-            ll.height = 0;
-            _this.addPoint(ll);
+            _this.addPoint(_this.planet.getLonLatFromPixelTerrain(e, true));
         });
 
         this._pointLayer.events.on("rclick", function (e) {
-            e.pickingObject.properties.el.parentNode.removeChild(e.pickingObject.properties.el);
-            e.pickingObject.remove();
-            e.pickingObject.properties.spin.remove();
+            _this._removePointEntity(e.pickingObject);
         });
     }
 

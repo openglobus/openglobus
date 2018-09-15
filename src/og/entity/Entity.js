@@ -230,6 +230,10 @@ class Entity {
         return null;
     }
 
+    getCollectionIndex() {
+        return this._entityCollectionIndex;
+    }
+
     /**
      * Adds current entity into the specified entity collection.
      * @public
