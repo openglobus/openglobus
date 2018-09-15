@@ -206,6 +206,8 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this.readyToEngage = false;
 
+    this.readyToEqualize = false;
+
     this.plainProcessing = false;
 };
 
@@ -366,6 +368,90 @@ Segment.prototype.elevationsExists = function (elevations) {
     }
 };
 
+/**
+ *      it's easy:
+ *      indNeigh = ( gsNeigh / gsCurr ) * 2^dZ * indCurr;
+ *      where:
+ *      indNeigh - neighbour segment vertex index that we have to take for equalize
+ *      gsNeigh - neighbour segment grid size
+ *      gsCurr - current segment grid size
+ *      dZ - currTileZoom - neighTileZoom
+ *      indCurr - current segment verteices square array index
+ */
+Segment.prototype.equalize = function () {
+    this.readyToEqualize = false;
+
+    let v = this.terrainReady ? this.terrainVertices : this.tempVertices;
+    const tgsOne = Math.sqrt(v.length / 3);
+    const tgs = tgsOne - 1;
+
+    var n = this.node;
+
+    var _n = n.neighbors[N][0];
+
+    if (n.sideEqualize[N] && _n) {
+        n.sideEqualize[N] = false;
+        let _s = _n.segment;
+        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        const _tgsOne = Math.sqrt(_v.length / 3);
+        const _tgs = _tgsOne - 1;
+        const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
+
+        for (let i = 0; i < tgsOne; i++) {
+            v[i * 3] = 0;//_v[(_tgsOne * _tgs + i) * 3];
+            v[i * 3 + 1] = 0;//_v[(_tgsOne * _tgs + i) * 3 + 1];
+            v[i * 3 + 2] = 0;//_v[(_tgsOne * _tgs + i) * 3 + 2];
+        }
+    }
+
+    _n = n.neighbors[E][0];
+    if (n.sideEqualize[E] && _n) {
+        let _s = _n.segment;
+        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        const _tgsOne = Math.sqrt(_v.length / 3);
+        const _tgs = _tgsOne - 1;
+        const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
+
+        for (let i = 0; i < tgsOne; i++) {
+            v[(i * tgsOne + tgs) * 3] = 0;//_v[_tgsOne * i * 3];
+            v[(i * tgsOne + tgs) * 3 + 1] = 0;//_v[_tgsOne * i * 3 + 1];
+            v[(i * tgsOne + tgs) * 3 + 2] = 0;//_v[_tgsOne * i * 3 + 2];
+        }
+    }
+
+    _n = n.neighbors[S][0];
+    if (n.sideEqualize[S] && _n) {
+        let _s = n.neighbors[S][0].segment;
+        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        const _tgsOne = Math.sqrt(_v.length / 3);
+        const _tgs = _tgsOne - 1;
+        const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
+
+        for (let i = 0; i < tgsOne; i++) {
+            v[(tgsOne * tgs + i) * 3] = 0;//_v[i * 3];
+            v[(tgsOne * tgs + i) * 3 + 1] = 0;//_v[i * 3 + 1];
+            v[(tgsOne * tgs + i) * 3 + 2] = 0;//_v[i * 3 + 2];
+        }
+    }
+
+    _n = n.neighbors[W][0];
+    if (n.sideEqualize[W] && _n) {
+        let _s = _n.segment;
+        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        const _tgsOne = Math.sqrt(_v.length / 3);
+        const _tgs = _tgsOne - 1;
+        const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
+
+        for (let i = 0; i < tgsOne; i++) {
+            v[tgsOne * i * 3] = 0;//_v[(i * tgsOne + tgs) * 3];
+            v[tgsOne * i * 3 + 1] = 0;//_v[(i * tgsOne + tgs) * 3 + 1];
+            v[tgsOne * i * 3 + 2] = 0;//_v[(i * tgsOne + tgs) * 3 + 2];
+        }
+    }
+
+    this.createCoordsBuffers(v, tgs);
+};
+
 Segment.prototype.engage = function () {
     this.readyToEngage = false;
 
@@ -373,73 +459,73 @@ Segment.prototype.engage = function () {
     const tgsOne = Math.sqrt(v.length / 3);
     const tgs = tgsOne - 1;
 
-    if (this.planet.terrain.equalizeVertices && this.terrainReady) {
-        let n = this.node.neighbors;
+    // if (this.planet.terrain.equalizeVertices && this.terrainReady) {
+    //     let n = this.node.neighbors;
 
-        if (n[N].length) {
+    //     if (n[N].length) {
 
-            if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
+    //         if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
 
-                let _v = n[N][0].segment.terrainVertices;
-                const _tgsOne = Math.sqrt(_v.length / 3);
-                const _tgs = _tgsOne - 1;
+    //             let _v = n[N][0].segment.terrainVertices;
+    //             const _tgsOne = Math.sqrt(_v.length / 3);
+    //             const _tgs = _tgsOne - 1;
 
-                for (let i = 0; i < tgsOne; i++) {
-                    v[i * 3] = _v[(_tgsOne * _tgs + i) * 3];
-                    v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
-                    v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
-                }
-            }
-        }
+    //             for (let i = 0; i < tgsOne; i++) {
+    //                 v[i * 3] = _v[(_tgsOne * _tgs + i) * 3];
+    //                 v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
+    //                 v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
+    //             }
+    //         }
+    //     }
 
-        if (n[E].length) {
+    //     if (n[E].length) {
 
-            if (this.tileZoom === n[E][0].segment.tileZoom && n[E][0].segment.terrainReady) {
-                let _v = n[E][0].segment.terrainVertices;
-                let _tgsOne = Math.sqrt(_v.length / 3);
+    //         if (this.tileZoom === n[E][0].segment.tileZoom && n[E][0].segment.terrainReady) {
+    //             let _v = n[E][0].segment.terrainVertices;
+    //             let _tgsOne = Math.sqrt(_v.length / 3);
 
-                for (let i = 0; i < tgsOne; i++) {
-                    v[(i * tgsOne + tgs) * 3] = _v[_tgsOne * i * 3];
-                    v[(i * tgsOne + tgs) * 3 + 1] = _v[_tgsOne * i * 3 + 1];
-                    v[(i * tgsOne + tgs) * 3 + 2] = _v[_tgsOne * i * 3 + 2];
-                }
-            }
+    //             for (let i = 0; i < tgsOne; i++) {
+    //                 v[(i * tgsOne + tgs) * 3] = _v[_tgsOne * i * 3];
+    //                 v[(i * tgsOne + tgs) * 3 + 1] = _v[_tgsOne * i * 3 + 1];
+    //                 v[(i * tgsOne + tgs) * 3 + 2] = _v[_tgsOne * i * 3 + 2];
+    //             }
+    //         }
 
-        }
+    //     }
 
-        if (n[S].length) {
+    //     if (n[S].length) {
 
-            if (this.tileZoom === n[S][0].segment.tileZoom && n[S][0].segment.terrainReady) {
-                let _v = n[S][0].segment.terrainVertices;
-                const _tgsOne = Math.sqrt(_v.length / 3);
-                const _tgs = _tgsOne - 1;
+    //         if (this.tileZoom === n[S][0].segment.tileZoom && n[S][0].segment.terrainReady) {
+    //             let _v = n[S][0].segment.terrainVertices;
+    //             const _tgsOne = Math.sqrt(_v.length / 3);
+    //             const _tgs = _tgsOne - 1;
 
-                for (let i = 0; i < tgsOne; i++) {
-                    v[(_tgsOne * _tgs + i) * 3] = _v[i * 3];
-                    v[(_tgsOne * _tgs + i) * 3 + 1] = _v[i * 3 + 1];
-                    v[(_tgsOne * _tgs + i) * 3 + 2] = _v[i * 3 + 2];
-                }
-            }
+    //             for (let i = 0; i < tgsOne; i++) {
+    //                 v[(_tgsOne * _tgs + i) * 3] = _v[i * 3];
+    //                 v[(_tgsOne * _tgs + i) * 3 + 1] = _v[i * 3 + 1];
+    //                 v[(_tgsOne * _tgs + i) * 3 + 2] = _v[i * 3 + 2];
+    //             }
+    //         }
 
-        }
+    //     }
 
-        if (n[W].length) {
+    //     if (n[W].length) {
 
-            if (this.tileZoom === n[W][0].segment.tileZoom && n[W][0].segment.terrainReady) {
-                let _v = n[W][0].segment.terrainVertices;
-                let _tgsOne = Math.sqrt(_v.length / 3);
+    //         if (this.tileZoom === n[W][0].segment.tileZoom && n[W][0].segment.terrainReady) {
+    //             let _v = n[W][0].segment.terrainVertices;
+    //             let _tgsOne = Math.sqrt(_v.length / 3);
 
-                for (let i = 0; i < tgsOne; i++) {
-                    v[_tgsOne * i * 3] = _v[(i * tgsOne + tgs) * 3];
-                    v[_tgsOne * i * 3 + 1] = _v[(i * tgsOne + tgs) * 3 + 1];
-                    v[_tgsOne * i * 3 + 2] = _v[(i * tgsOne + tgs) * 3 + 2];
-                }
-            }
+    //             for (let i = 0; i < tgsOne; i++) {
+    //                 v[_tgsOne * i * 3] = _v[(i * tgsOne + tgs) * 3];
+    //                 v[_tgsOne * i * 3 + 1] = _v[(i * tgsOne + tgs) * 3 + 1];
+    //                 v[_tgsOne * i * 3 + 2] = _v[(i * tgsOne + tgs) * 3 + 2];
+    //             }
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
-    this.createCoordsBuffers(this.terrainVertices, tgs);
+    this.createCoordsBuffers(v, tgs);
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function (data) {
@@ -1304,9 +1390,12 @@ Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, is
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
 
-        var _indexBuffer = this._getIndexBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _indexBuffer);
-        gl.drawElements(p.drawMode, _indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        if (!isOverlay) {
+            this._indexBuffer = this._getIndexBuffer();
+        }
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 

@@ -244,14 +244,16 @@ class Vector extends Layer {
             if (entity.billboard || entity.label) {
                 if (this._planet) {
                     if (!entity._lonlat) {
-                        entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+                        entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+                    } else {
+                        entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonlat));
                     }
 
                     //north tree
                     if (entity._lonlat.lat > mercator.MAX_LAT) {
                         this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
                     } else if (entity._lonlat.lat < mercator.MIN_LAT) {
-                    //south tree
+                        //south tree
                         this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
                     } else {
                         this._entityCollectionsTree.insertEntity(entity, rightNow);
@@ -416,7 +418,7 @@ class Vector extends Layer {
         var e = this._entities;
         var i = e.length;
         while (i--) {
-            callback(e[i]);
+            callback(e[i], i);
         }
     }
 
@@ -579,6 +581,8 @@ class Vector extends Layer {
             while (e_i--) {
                 var p = e[e_i].polyline;
                 if (visibleExtent.overlaps(p._extent)) {
+                    //TODO:this works only for mercator area.
+                    //So it needs to be working on poles.
                     let coords = p._pathLonLatMerc,
                         c_j = coords.length;
                     while (c_j--) {

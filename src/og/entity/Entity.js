@@ -230,6 +230,10 @@ class Entity {
         return null;
     }
 
+    getCollectionIndex() {
+        return this._entityCollectionIndex;
+    }
+
     /**
      * Adds current entity into the specified entity collection.
      * @public
@@ -342,11 +346,12 @@ class Entity {
     }
 
     /**
-     * Sets entity cartesian position without moveentity event dispatching.
+     * Sets entity cartesian position without event dispatching.
      * @protected
      * @param {og.Vec3} cartesian - Cartesian position in 3d space.
+     * @param {boolean} skipLonLat - skip geodetic calculation.
      */
-    _setCartesian3vSilent(cartesian) {
+    _setCartesian3vSilent(cartesian, skipLonLat) {
 
         var p = this._cartesian;
 
@@ -365,6 +370,19 @@ class Entity {
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(x, y, z);
+        }
+
+        var ec = this._entityCollection;
+
+        if (!skipLonLat && ec && ec.renderNode && ec.renderNode.ellipsoid) {
+
+            this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+
+            if (Math.abs(this._lonlat.lat) < mercator.MAX_LAT) {
+                this._lonlatMerc = this._lonlat.forwardMercator();
+            } else {
+                this._lonlatMerc = null;
+            }
         }
     }
 
@@ -413,12 +431,21 @@ class Entity {
     }
 
     /**
+     * Sets entity altitude over the planet.
+     * @public
+     * @return {number} Altitude.
+     */
+    getAltitude() {
+        return this._altitude;
+    }
+
+    /**
      * Returns carteain position.
      * @public
      * @returns {og.Vec3} -
      */
     getCartesian() {
-        return this._cartesian;
+        return this._cartesian.clone();
     }
 
     /**

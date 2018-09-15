@@ -124,6 +124,8 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.state = null;
     this.appliedTerrainNodeId = -1;
     this.sideSize = [1, 1, 1, 1];
+    this.sideZoom = [0, 0, 0, 0];
+    this.sideEqualize = [false, false, false, false];
     this.ready = false;
     this.hasNeighbor = [false, false, false, false];
     this.neighbors = [[], [], [], []];
@@ -528,9 +530,9 @@ Node.prototype.addToRender = function () {
                 node.hasNeighbor[cs] = true;
                 ni.hasNeighbor[opcs] = true;
 
-                let ap = node.segment;
-                let bp = ni.segment;
-                let ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+                var ap = node.segment;
+                var bp = ni.segment;
+                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
                 let cs_size = ap.gridSize,
                     opcs_size = bp.gridSize;
@@ -545,6 +547,18 @@ Node.prototype.addToRender = function () {
 
                 node.sideSize[cs] = cs_size;
                 ni.sideSize[opcs] = opcs_size;
+
+                if (ap.tileZoom >= bp.tileZoom &&
+                    node.sideZoom[cs] !== bp.tileZoom) {
+                    node.sideZoom[cs] = bp.tileZoom;
+                    node.sideEqualize[cs] = true;
+                    ap.readyToEqualize = true;
+                } else if (ap.tileZoom < bp.tileZoom &&
+                    ni.sideZoom[opcs] !== ap.tileZoom) {
+                    ni.sideZoom[opcs] = ap.tileZoom;
+                    ni.sideEqualize[opcs] = true;
+                    bp.readyToEqualize = true;
+                }
             }
         }
     }
@@ -758,11 +772,6 @@ Node.prototype.whileTerrainLoading = function () {
 
             seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.readyToEngage = false;
-
-            // this.sideSize[0] = seg.gridSize;
-            // this.sideSize[1] = seg.gridSize;
-            // this.sideSize[2] = seg.gridSize;
-            // this.sideSize[3] = seg.gridSize;
 
             //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;

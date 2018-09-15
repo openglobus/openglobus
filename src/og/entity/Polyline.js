@@ -182,6 +182,10 @@ class Polyline {
         for (var j = 0; j < path3v.length; j++) {
             var path = path3v[j];
 
+            if (path.length === 0) {
+                continue;
+            }
+
             outTransformedPathLonLat[j] = [];
             outTransformedPathMerc[j] = [];
             outPath3v[j] = [];
@@ -295,6 +299,11 @@ class Polyline {
 
         for (var j = 0; j < pathLonLat.length; j++) {
             var path = pathLonLat[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
             var startIndex = index;
 
             outTransformedPathCartesian[j] = [];
@@ -319,6 +328,11 @@ class Polyline {
                 }
 
                 pp = path[1];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -376,6 +390,11 @@ class Polyline {
                 }
 
                 pp = path[path.length - 2];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
@@ -587,7 +606,50 @@ class Polyline {
         }
     }
 
-    setPoint3v(coordinates, index, segmentIndex, forceLonLat) {
+    setPointLonLat(lonlat, index, segmentIndex) {
+        if (this._renderNode && this._renderNode.ellipsoid) {
+
+            let l = this._pathLonLat,
+                m = this._pathLonLatMerc;
+
+            l[segmentIndex][index] = lonlat;
+            m[segmentIndex][index] = lonlat.forwardMercator();
+
+            //
+            // Apply new extent(TODO: think about optimization)
+            //
+            var extent = this._extent;
+            extent.southWest.set(180.0, 90.0);
+            extent.northEast.set(-180.0, -90.0);
+            for (var i = 0; i < l.length; i++) {
+                var pi = l[i];
+                for (var j = 0; j < pi.length; j++) {
+                    var lon = pi[j].lon,
+                        lat = pi[j].lat;
+                    if (lon > extent.northEast.lon)
+                        extent.northEast.lon = lon;
+                    if (lat > extent.northEast.lat)
+                        extent.northEast.lat = lat;
+                    if (lon < extent.southWest.lon)
+                        extent.southWest.lon = lon;
+                    if (lat < extent.southWest.lat)
+                        extent.southWest.lat = lat;
+                }
+            }
+
+            this.setPoint3v(
+                this._renderNode.ellipsoid.lonLatToCartesian(lonlat),
+                index, segmentIndex, true);
+
+        } else {
+            let path = this._pathLonLat[segmentIndex];
+            path[index].lon = lonlat.lon;
+            path[index].lat = lonlat.lat;
+            path[index].height = lonlat.height;
+        }
+    }
+
+    setPoint3v(coordinates, index, segmentIndex, skipLonLat) {
 
         segmentIndex = segmentIndex || 0;
 
@@ -631,7 +693,7 @@ class Polyline {
                 v[k + 11] = last.z;
             }
 
-            if (!forceLonLat && this._renderNode.ellipsoid) {
+            if (!skipLonLat && this._renderNode.ellipsoid) {
                 var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
                 l[segmentIndex][index] = lonLat;
                 m[segmentIndex][index] = lonLat.forwardMercator();
@@ -707,7 +769,16 @@ class Polyline {
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
         }
-    };
+    }
+
+    removePoint(index, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
+        multiLineIndex = multiLineIndex || 0;
+        this._path3v[multiLineIndex].splice(index, 1);
+        this.setPath3v([].concat(this._path3v));
+    }
 
     /**
      * Adds a new cartesian point in the end of the path.
@@ -716,8 +787,15 @@ class Polyline {
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPoint3v(point3v, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
         multiLineIndex = multiLineIndex || 0;
-
+        if (multiLineIndex >= this._path3v.length) {
+            this._path3v.push([]);
+        }
+        this._path3v[multiLineIndex].push(point3v);
+        this.setPath3v([].concat(this._path3v));
     }
 
     /**
@@ -727,7 +805,15 @@ class Polyline {
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPointLonLat(lonLat, multiLineIndex) {
+        //
+        //TODO: could be optimized
+        //
         multiLineIndex = multiLineIndex || 0;
+        if (multiLineIndex >= this._pathLonLat.length) {
+            this._pathLonLat.push([]);
+        }
+        this._pathLonLat[multiLineIndex].push(lonLat);
+        this.setPathLonLat([].concat(this._pathLonLat));
     }
 
     /**

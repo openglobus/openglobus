@@ -1241,10 +1241,15 @@ class Planet extends RenderNode {
                 rn[i].segment.engage();
             }
 
+            // if (rn[i].segment.readyToEqualize) {
+            //     rn[i].segment.equalize();
+            // }
+
             rn[i].segment._multiRendering(sh, sl[0]);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
+
         for (let j = 1; j < sl.length; j++) {
 
             let slj = sl[j];
@@ -1589,6 +1594,16 @@ class Planet extends RenderNode {
             }
         }
     }
-};
+
+    getEntityTerrainPoint(entity, res) {        
+        let n = this._renderedNodes, 
+            i = n.length;
+        while (i--) {
+            if (n[i].segment.isEntityInside(entity)) {
+                return n[i].segment.getEntityTerrainPoint(entity, res);
+            }
+        }
+    }
+}
 
 export { Planet };

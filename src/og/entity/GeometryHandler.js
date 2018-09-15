@@ -117,6 +117,11 @@ class GeometryHandler {
 
         for (var j = 0; j < pathArr.length; j++) {
             var path = pathArr[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
             var startIndex = index;
             var last;
             if (isClosed) {
@@ -124,6 +129,11 @@ class GeometryHandler {
             } else {
                 let p0 = path[0],
                     p1 = path[1];
+
+                if (!p1) {
+                    p1 = p0;
+                }
+
                 last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             }
             outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
@@ -156,6 +166,11 @@ class GeometryHandler {
             } else {
                 let p0 = path[path.length - 1],
                     p1 = path[path.length - 2];
+
+                if (!p1) {
+                    p1 = p0;
+                }
+
                 first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
