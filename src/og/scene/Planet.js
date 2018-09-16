@@ -10,6 +10,7 @@ import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
+import { MAX_RENDERED_NODES } from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { Extent } from '../Extent.js';
@@ -35,7 +36,6 @@ import { print2d } from '../utils/shared.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 
-const RESOURCES_URL = "";
 const DEFAULT_LOD_RATIO = 0.98;
 const DELTA_LOD = 0.35;
 
@@ -859,9 +859,9 @@ class Planet extends RenderNode {
 
         this._quadTree.renderTree(this.camera);
 
-        //this.renderer.activeCamera._insideSegment.node.renderNode(true);
-
-        if (this.renderer.activeCamera.slope > 0.72 && this.renderer.activeCamera._lonLat.height < 850000) {
+        if (this.renderer.activeCamera.slope > 0.77 && 
+            this.renderer.activeCamera._lonLat.height < 850000 &&
+            this._renderedNodes.length < MAX_RENDERED_NODES) {
             this.minCurrZoom = this.maxCurrZoom;
 
             var temp = this._renderedNodes;
