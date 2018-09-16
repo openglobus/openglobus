@@ -854,10 +854,10 @@ class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTreeNorth.renderTree();
-        this._quadTreeSouth.renderTree();
+        this._quadTreeNorth.renderTree(this.camera);
+        this._quadTreeSouth.renderTree(this.camera);
 
-        this._quadTree.renderTree();
+        this._quadTree.renderTree(this.camera);
 
         //this.renderer.activeCamera._insideSegment.node.renderNode(true);
 
@@ -878,7 +878,7 @@ class Planet extends RenderNode {
             for (i = temp.length - 1; i >= 0; --i) {
                 var seg = temp[i].segment;
                 if (seg.tileZoom < this.maxCurrZoom && seg._projection.id !== EPSG4326.id) {
-                    seg.node.renderTree(this.maxCurrZoom);
+                    seg.node.renderTree(this.camera, this.maxCurrZoom);
                 }
             }
         }

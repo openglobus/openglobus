@@ -25,7 +25,7 @@ import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
 
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
-const MAX_RENDERED_NODES = 200;
+const MAX_RENDERED_NODES = 120;
 
 
 /**
@@ -335,7 +335,7 @@ Node.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
-Node.prototype.renderTree = function (maxZoom) {
+Node.prototype.renderTree = function (cam, maxZoom) {
     this.state = WALKTHROUGH;
 
     this.neighbors[0] = [];
@@ -349,8 +349,7 @@ Node.prototype.renderTree = function (maxZoom) {
     this.hasNeighbor[3] = false;
 
 
-    var cam = this.planet.renderer.activeCamera,
-        seg = this.segment,
+    let seg = this.segment,
         planet = this.planet;
 
 
@@ -394,18 +393,20 @@ Node.prototype.renderTree = function (maxZoom) {
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
 
-            this.traverseNodes(maxZoom);
+            this.traverseNodes(cam, maxZoom);
+
+        } else if (planet._renderedNodes.length > MAX_RENDERED_NODES) {
+
+            this.prepareForRendering(cam, altVis);
 
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
 
             this.prepareForRendering(cam, altVis);
 
         } else if (
-            seg.tileZoom < planet.terrain._maxNodeZoom &&
-            //limit rendered nodes count due to stack overflow
-            planet._renderedNodes.length < MAX_RENDERED_NODES) {
+            seg.tileZoom < planet.terrain._maxNodeZoom) {
 
-            this.traverseNodes(maxZoom);
+            this.traverseNodes(cam, maxZoom);
 
         } else {
 
@@ -418,14 +419,19 @@ Node.prototype.renderTree = function (maxZoom) {
     }
 };
 
-Node.prototype.traverseNodes = function (maxZoom) {
+Node.prototype.traverseNodes = function (cam, maxZoom) {
     if (!this.ready) {
         this.createChildrenNodes();
     }
-    this.nodes[NW].renderTree(maxZoom);
-    this.nodes[NE].renderTree(maxZoom);
-    this.nodes[SW].renderTree(maxZoom);
-    this.nodes[SE].renderTree(maxZoom);
+
+    let arr = this.nodes.concat().sort((a, b) => {
+        return cam.eye.distance(a.segment.bsphere.center) - cam.eye.distance(b.segment.bsphere.center);
+    });
+
+    arr[0].renderTree(cam, maxZoom);
+    arr[1].renderTree(cam, maxZoom);
+    arr[2].renderTree(cam, maxZoom);
+    arr[3].renderTree(cam, maxZoom);
 };
 
 Node.prototype.prepareForRendering = function (cam, altVis) {
