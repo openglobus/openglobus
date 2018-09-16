@@ -18,14 +18,14 @@ import {
     COMSIDE, OPSIDE,
     WALKTHROUGH, NOTRENDERING,
     NEIGHBOUR, OPPART,
-    VISIBLE_DISTANCE, RENDERING
+    VISIBLE_DISTANCE, RENDERING,
+    MAX_RENDERED_NODES
 } from './quadTree.js';
 
 import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
 
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
-const MAX_RENDERED_NODES = 120;
 
 
 /**
@@ -336,6 +336,11 @@ Node.prototype.isBrother = function (node) {
 };
 
 Node.prototype.renderTree = function (cam, maxZoom) {
+
+    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES){
+        return;
+    }
+    
     this.state = WALKTHROUGH;
 
     this.neighbors[0] = [];
@@ -392,26 +397,13 @@ Node.prototype.renderTree = function (cam, maxZoom) {
 
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
-
             this.traverseNodes(cam, maxZoom);
-
-        } else if (planet._renderedNodes.length > MAX_RENDERED_NODES) {
-
-            this.prepareForRendering(cam, altVis);
-
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
-
             this.prepareForRendering(cam, altVis);
-
-        } else if (
-            seg.tileZoom < planet.terrain._maxNodeZoom) {
-
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
             this.traverseNodes(cam, maxZoom);
-
         } else {
-
             this.prepareForRendering(cam, altVis);
-
         }
 
     } else {
@@ -420,6 +412,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
 };
 
 Node.prototype.traverseNodes = function (cam, maxZoom) {
+
     if (!this.ready) {
         this.createChildrenNodes();
     }
