@@ -9,6 +9,14 @@ import * as utils from './utils/shared.js';
 
 import { Globe } from './Globe.js';
 
+import { Box } from './bv/Box.js';
+import { Sphere } from './bv/Sphere.js';
+
+const bv = {
+    'Box': Box,
+    'Sphere': Sphere
+};
+
 import { CanvasTiles } from './layer/CanvasTiles.js';
 import { GeoImage } from './layer/GeoImage.js';
 import { GeoTexture2d } from './layer/GeoTexture2d.js';
@@ -135,6 +143,7 @@ const scene = {
 };
 
 export {
+    bv,
     jd,
     math,
     mercator,

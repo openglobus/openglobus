@@ -81,8 +81,7 @@ class PlannerControl extends Control {
 
         this._trackLayer = new Vector("track", {
             'entities': [this._trackEntity],
-            'pickingEnabled': false//,
-            //'relativeToGround': true
+            'pickingEnabled': false
         });
 
         this._pointLayer.events.on("mouseenter", function (e) {
@@ -258,16 +257,11 @@ class PlannerControl extends Control {
                     _this._pickingObject.properties.el.querySelector(".pl-lat").innerHTML = ll.lat.toFixed(5);
                     _this._pickingObject.properties.el.querySelector(".pl-alt").innerHTML = alt.toFixed(1);
                 }
-
-                // let index = _this._pickingObject.getCollectionIndex(),
-                //     point = _this._pickingObject.billboard.getPosition();
-                // _this._trackEntity.polyline.setPoint3v(point, index, 0);
-
             }
         }, this.planet);
 
         this.planet.renderer.events.on("lclick", function (e) {
-            _this.addPoint(_this.planet.getLonLatFromPixelTerrain(e, true));
+            _this.addPoint(_this.planet.getLonLatFromPixelTerrain(e));
         });
 
         this._pointLayer.events.on("rclick", function (e) {
