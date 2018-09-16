@@ -336,6 +336,11 @@ Node.prototype.isBrother = function (node) {
 };
 
 Node.prototype.renderTree = function (cam, maxZoom) {
+
+    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES){
+        return;
+    }
+    
     this.state = WALKTHROUGH;
 
     this.neighbors[0] = [];
@@ -407,10 +412,6 @@ Node.prototype.renderTree = function (cam, maxZoom) {
 };
 
 Node.prototype.traverseNodes = function (cam, maxZoom) {
-
-    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES){
-        return;
-    }
 
     if (!this.ready) {
         this.createChildrenNodes();
