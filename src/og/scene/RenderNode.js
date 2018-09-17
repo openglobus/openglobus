@@ -257,7 +257,7 @@ class RenderNode extends BaseNode {
 
             //Z-buffer offset
             gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0, -637000);
+            //gl.polygonOffset(0, -637000);
 
             //billboards pass
             gl.activeTexture(gl.TEXTURE0);
