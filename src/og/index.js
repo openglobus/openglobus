@@ -114,14 +114,14 @@ import { Framebuffer } from './webgl/Framebuffer.js';
 import { Handler } from './webgl/Handler.js';
 import { MultiFramebuffer } from './webgl/MultiFramebuffer.js';
 import { types } from './webgl/types.js';
-import { ShaderProgram } from './webgl/ShaderProgram.js';
+import { Program } from './webgl/Program.js';
 
 const webgl = {
     'Framebuffer': Framebuffer,
     'Handler': Handler,
     'MultiFramebuffer': MultiFramebuffer,
     'types': types,
-    'ShaderProgram': ShaderProgram
+    'Program': Program
 };
 
 import { Renderer } from './renderer/Renderer.js';

@@ -4,11 +4,11 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 export function skybox() {
-    return new ShaderProgram("skybox", {
+    return new Program("skybox", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             uSampler: { type: types.SAMPLERCUBE },

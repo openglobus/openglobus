@@ -4,13 +4,13 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 
 //Picking is the same
 export function pointCloud() {
-    return new ShaderProgram("pointCloud", {
+    return new Program("pointCloud", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             opacity: { type: types.FLOAT },

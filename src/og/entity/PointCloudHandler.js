@@ -51,17 +51,17 @@ class PointCloudHandler {
         this._counter = n;
     }
 
-    _initShaderProgram() {
+    _initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.shaderPrograms.pointCloud) {
-                this._renderer.handler.addShaderProgram(shaders.pointCloud());
+            if (!this._renderer.handler.Programs.pointCloud) {
+                this._renderer.handler.addProgram(shaders.pointCloud());
             }
         }
     }
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initShaderProgram()
+        this._initProgram()
         for (var i = 0; i < this._pointClouds.length; i++) {
             this._pointClouds[i].setRenderNode(renderNode);
         }

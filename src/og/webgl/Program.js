@@ -1,5 +1,5 @@
 /**
- * @module og/webgl/ShaderProgram
+ * @module og/webgl/Program
  */
 
 'use strict';
@@ -18,7 +18,7 @@ import { typeStr } from './types.js';
  * @param {string} material.vertexShader - Vertex glsl code.
  * @param {string} material.fragmentShader - Fragment glsl code.
  */
-class ShaderProgram {
+class Program {
     constructor(name, material) {
         /**
          * Shader progarm name.
@@ -175,7 +175,7 @@ class ShaderProgram {
         this.gl.shaderSource(shader, src);
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + ".");
+            cons.logErr("og/Program/Program:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + ".");
             return false;
         }
         return true;
@@ -259,7 +259,7 @@ class ShaderProgram {
         gl.linkProgram(this._p);
 
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
-            cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p) + ".");
+            cons.logErr("og/Program/Program:" + this.name + " - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p) + ".");
             gl.deleteProgram(this._p);
             return;
         }
@@ -273,7 +273,7 @@ class ShaderProgram {
             //Maybe, it will be better to remove enableArray option...
             this._attributes[a].enableArray = (this._attributes[a].enableArray != undefined ? this._attributes[a].enableArray : true);
             if (this._attributes[a].enableArray)
-                this._attributes[a]._callback = ShaderProgram.bindBuffer;
+                this._attributes[a]._callback = Program.bindBuffer;
             else {
                 if (typeof (this._attributes[a].type) === "string") {
                     this._attributes[a]._callback = callbacks.a[typeStr[this._attributes[a].type.trim().toLowerCase()]];
@@ -285,7 +285,7 @@ class ShaderProgram {
             this._p[a] = gl.getAttribLocation(this._p, a);
 
             if (this._p[a] == undefined) {
-                cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - attribute '" + a + "' is not exists.");
+                cons.logErr("og/Program/Program:" + this.name + " - attribute '" + a + "' is not exists.");
                 gl.deleteProgram(this._p);
                 return;
             }
@@ -312,7 +312,7 @@ class ShaderProgram {
             this._p[u] = gl.getUniformLocation(this._p, u);
 
             if (this._p[u] == undefined) {
-                cons.logErr("og/shaderProgram/ShaderProgram:" + this.name + " - uniform '" + u + "' is not exists.");
+                cons.logErr("og/Program/Program:" + this.name + " - uniform '" + u + "' is not exists.");
                 gl.deleteProgram(this._p);
                 return;
             }
@@ -329,7 +329,7 @@ class ShaderProgram {
     /**
      * Bind program buffer.
      * @function
-     * @param {og.webgl.ShaderProgram} program - Used program.
+     * @param {og.webgl.Program} program - Used program.
      * @param {Object} variable - Variable represents buffer data.
      */
     static bindBuffer(program, variable) {
@@ -339,4 +339,4 @@ class ShaderProgram {
     }
 };
 
-export { ShaderProgram };
+export { Program };

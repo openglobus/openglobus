@@ -552,14 +552,14 @@ class Planet extends RenderNode {
     _initializeShaders() {
         var h = this.renderer.handler;
         if (this.renderer.isMultiFramebufferCompatible()) {
-            h.addShaderProgram(shaders.drawnode_nl(), true);
-            h.addShaderProgram(shaders.drawnode_wl(), true);
+            h.addProgram(shaders.drawnode_nl(), true);
+            h.addProgram(shaders.drawnode_wl(), true);
             this._fnRendering = this._multiframebufferRendering;
         } else {
-            h.addShaderProgram(shaders.drawnode_screen_nl(), true);
-            h.addShaderProgram(shaders.drawnode_screen_wl(), true);
-            h.addShaderProgram(shaders.drawnode_colorPicking(), true);
-            h.addShaderProgram(shaders.drawnode_heightPicking(), true);
+            h.addProgram(shaders.drawnode_screen_nl(), true);
+            h.addProgram(shaders.drawnode_screen_wl(), true);
+            h.addProgram(shaders.drawnode_colorPicking(), true);
+            h.addProgram(shaders.drawnode_heightPicking(), true);
             this._fnRendering = this._singleframebufferRendering;
 
             this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
@@ -953,8 +953,8 @@ class Planet extends RenderNode {
         gl.enable(gl.BLEND);
 
         if (this.lightEnabled) {
-            h.shaderPrograms.drawnode_screen_wl.activate();
-            sh = h.shaderPrograms.drawnode_screen_wl._program;
+            h.Programs.drawnode_screen_wl.activate();
+            sh = h.Programs.drawnode_screen_wl._program;
             shu = sh.uniforms;
 
             gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
@@ -1002,8 +1002,8 @@ class Planet extends RenderNode {
                 this._specularMaterialArr[3] = 20.0;
             }
         } else {
-            h.shaderPrograms.drawnode_screen_nl.activate();
-            sh = h.shaderPrograms.drawnode_screen_nl._program;
+            h.Programs.drawnode_screen_nl.activate();
+            sh = h.Programs.drawnode_screen_nl._program;
             gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
@@ -1073,8 +1073,8 @@ class Planet extends RenderNode {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
 
-        h.shaderPrograms.drawnode_heightPicking.activate();
-        sh = h.shaderPrograms.drawnode_heightPicking._program;
+        h.Programs.drawnode_heightPicking.activate();
+        sh = h.Programs.drawnode_heightPicking._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
 
         h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
@@ -1122,8 +1122,8 @@ class Planet extends RenderNode {
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.polygonOffset(0, -637000);
 
-        h.shaderPrograms.drawnode_colorPicking.activate();
-        sh = h.shaderPrograms.drawnode_colorPicking._program;
+        h.Programs.drawnode_colorPicking.activate();
+        sh = h.Programs.drawnode_colorPicking._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
 
         //draw planet's nodes
@@ -1164,8 +1164,8 @@ class Planet extends RenderNode {
         gl.enable(gl.BLEND);
 
         if (this.lightEnabled) {
-            h.shaderPrograms.drawnode_wl.activate();
-            sh = h.shaderPrograms.drawnode_wl._program;
+            h.Programs.drawnode_wl.activate();
+            sh = h.Programs.drawnode_wl._program;
             shu = sh.uniforms;
 
             gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
@@ -1213,8 +1213,8 @@ class Planet extends RenderNode {
                 this._specularMaterialArr[3] = 20.0;
             }
         } else {
-            h.shaderPrograms.drawnode_nl.activate();
-            sh = h.shaderPrograms.drawnode_nl._program;
+            h.Programs.drawnode_nl.activate();
+            sh = h.Programs.drawnode_nl._program;
             gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 

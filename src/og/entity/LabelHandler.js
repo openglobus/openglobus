@@ -51,14 +51,14 @@ class LabelHandler extends BillboardHandler {
     }
 
 
-    initShaderProgram() {
+    initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.shaderPrograms.label) {
+            if (!this._renderer.handler.Programs.label) {
                 var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
-                this._renderer.handler.addShaderProgram(shaders.label(isSingleBuffer));
+                this._renderer.handler.addProgram(shaders.label(isSingleBuffer));
             }
-            if (!this._renderer.handler.shaderPrograms.labelPicking) {
-                this._renderer.handler.addShaderProgram(shaders.labelPicking());
+            if (!this._renderer.handler.Programs.labelPicking) {
+                this._renderer.handler.addProgram(shaders.labelPicking());
             }
         }
     }
@@ -196,8 +196,8 @@ class LabelHandler extends BillboardHandler {
     _displayPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.shaderPrograms.label.activate();
-        var sh = h.shaderPrograms.label._program;
+        h.Programs.label.activate();
+        var sh = h.Programs.label._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -268,8 +268,8 @@ class LabelHandler extends BillboardHandler {
     _pickingPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.shaderPrograms.labelPicking.activate();
-        var sh = h.shaderPrograms.labelPicking._program;
+        h.Programs.labelPicking.activate();
+        var sh = h.Programs.labelPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

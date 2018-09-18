@@ -321,7 +321,7 @@ class PointCloud {
 
             var rn = this._renderNode;
             var r = rn.renderer;
-            var sh = r.handler.shaderPrograms.pointCloud;
+            var sh = r.handler.Programs.pointCloud;
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,
@@ -349,7 +349,7 @@ class PointCloud {
         if (this.visibility && this._coordinatesData.length) {
             var rn = this._renderNode;
             var r = rn.renderer;
-            var sh = r.handler.shaderPrograms.pointCloud;
+            var sh = r.handler.Programs.pointCloud;
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,

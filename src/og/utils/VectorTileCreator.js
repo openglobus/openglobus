@@ -6,7 +6,7 @@
 
 import * as quadTree from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 const VectorTileCreator = function (planet, maxFrames, width, height) {
@@ -25,8 +25,8 @@ const VectorTileCreator = function (planet, maxFrames, width, height) {
 VectorTileCreator.prototype._initialize = function () {
 
     //Line
-    if (!this._handler.shaderPrograms.vectorTileLineRasterization) {
-        this._handler.addShaderProgram(new ShaderProgram("vectorTileLineRasterization", {
+    if (!this._handler.Programs.vectorTileLineRasterization) {
+        this._handler.addProgram(new Program("vectorTileLineRasterization", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
                 'thicknessOutline': { type: types.FLOAT },
@@ -117,8 +117,8 @@ VectorTileCreator.prototype._initialize = function () {
     }
 
     //Polygon
-    if (!this._handler.shaderPrograms.vectorTilePolygonRasterization) {
-        this._handler.addShaderProgram(new ShaderProgram("vectorTilePolygonRasterization", {
+    if (!this._handler.Programs.vectorTilePolygonRasterization) {
+        this._handler.addProgram(new Program("vectorTilePolygonRasterization", {
             uniforms: {
                 'extentParams': { type: types.VEC4 }
             },
@@ -161,8 +161,8 @@ VectorTileCreator.prototype.frame = function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var hLine = h.shaderPrograms.vectorTileLineRasterization,
-            hPoly = h.shaderPrograms.vectorTilePolygonRasterization;
+        var hLine = h.Programs.vectorTileLineRasterization,
+            hPoly = h.Programs.vectorTilePolygonRasterization;
 
         var _w = this._width,
             _h = this._height,

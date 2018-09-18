@@ -4,7 +4,7 @@
 
 'use strict';
 
-import * as shaders from '../shaderProgram/skybox.js';
+import * as shaders from '../Program/skybox.js';
 import { RenderNode } from './RenderNode.js';
 
 const RESOURCES_URL = "";
@@ -29,7 +29,7 @@ class SkyBox extends RenderNode {
     }
 
     initialization() {
-        this.renderer.handler.addShaderProgram(shaders.skybox(), true);
+        this.renderer.handler.addProgram(shaders.skybox(), true);
         this.texture = this.renderer.handler.loadCubeMapTexture(this.params);
         this._createBuffers();
         this.drawMode = this.renderer.handler.gl.TRIANGLES;
@@ -41,8 +41,8 @@ class SkyBox extends RenderNode {
         var cam = this.renderer.activeCamera;
         gl.disable(h.gl.DEPTH_TEST);
 
-        h.shaderPrograms.skybox.activate();
-        sh = h.shaderPrograms.skybox._program;
+        h.Programs.skybox.activate();
+        sh = h.Programs.skybox._program;
         var shu = sh.uniforms;
         gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam._projectionViewMatrix._m);
         gl.uniform3fv(shu.pos, cam.eye.toVec());

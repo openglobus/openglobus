@@ -136,8 +136,8 @@ class GeoImage extends BaseGeoImage {
         f.setSize(this._frameWidth, this._frameHeight);
         f.activate();
 
-        h.shaderPrograms.geoImageTransform.activate();
-        var sh = h.shaderPrograms.geoImageTransform._program;
+        h.Programs.geoImageTransform.activate();
+        var sh = h.Programs.geoImageTransform._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -183,8 +183,8 @@ class GeoImage extends BaseGeoImage {
         f.setSize(this._frameWidth, this._frameHeight);
         f.activate();
 
-        h.shaderPrograms.geoImageTransform.activate();
-        var sh = h.shaderPrograms.geoImageTransform._program;
+        h.Programs.geoImageTransform.activate();
+        var sh = h.Programs.geoImageTransform._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

@@ -36,23 +36,23 @@ class ShapeHandler {
         this._counter = n;
     }
 
-    _initShaderProgram() {
+    _initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.shaderPrograms.shape_nl) {
-                this._renderer.handler.addShaderProgram(shaders.shape_nl());
+            if (!this._renderer.handler.Programs.shape_nl) {
+                this._renderer.handler.addProgram(shaders.shape_nl());
             }
-            if (!this._renderer.handler.shaderPrograms.shape_wl) {
-                this._renderer.handler.addShaderProgram(shaders.shape_wl());
+            if (!this._renderer.handler.Programs.shape_wl) {
+                this._renderer.handler.addProgram(shaders.shape_wl());
             }
-            //if (!this._renderer.handler.shaderPrograms.shapePicking) {
-            //    this._renderer.handler.addShaderProgram(shaders.shapePicking());
+            //if (!this._renderer.handler.Programs.shapePicking) {
+            //    this._renderer.handler.addProgram(shaders.shapePicking());
             //}
         }
     }
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initShaderProgram()
+        this._initProgram()
         for (var i = 0; i < this._shapes.length; i++) {
             this._shapes[i].setRenderNode(renderNode);
         }
