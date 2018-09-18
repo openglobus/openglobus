@@ -390,6 +390,8 @@ class Planet extends RenderNode {
 
         //events initialization
         this.events.registerNames(EVENT_NAMES);
+
+        this._tempPickingPix_ = new Uint8Array(4);
     }
 
     /**
@@ -859,7 +861,7 @@ class Planet extends RenderNode {
 
         this._quadTree.renderTree(this.camera);
 
-        if (this.renderer.activeCamera.slope > 0.77 && 
+        if (this.renderer.activeCamera.slope > 0.77 &&
             this.renderer.activeCamera._lonLat.height < 850000 &&
             this._renderedNodes.length < MAX_RENDERED_NODES) {
             this.minCurrZoom = this.maxCurrZoom;
@@ -1460,13 +1462,19 @@ class Planet extends RenderNode {
         if (this._viewChanged || force) {
             this._viewChanged = false;
             var cnv = this.renderer.handler.canvas;
-            var color =
-                this.renderer._drawBuffersExtension &&
-                Vec4.fromVec(this.renderer.sceneFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2)) ||
-                Vec4.fromVec(this._heightPickingFramebuffer.readPixel(px.x / cnv.width, (cnv.height - px.y) / cnv.height));
+
+            if (this.renderer._drawBuffersExtension) {
+                this.renderer.sceneFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2);
+            } else {
+                this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
+            }
+
+            var color = Vec4.fromVec(this._tempPickingPix_);
+
             if (!(color.x | color.y | color.z)) {
                 return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
             }
+
             color.w = 0.0;
             this._currentDistanceFromPixel = coder.decodeFloatFromRGBA(color);
             return this._currentDistanceFromPixel;
@@ -1595,8 +1603,8 @@ class Planet extends RenderNode {
         }
     }
 
-    getEntityTerrainPoint(entity, res) {        
-        let n = this._renderedNodes, 
+    getEntityTerrainPoint(entity, res) {
+        let n = this._renderedNodes,
             i = n.length;
         while (i--) {
             if (n[i].segment.isEntityInside(entity)) {
