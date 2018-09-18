@@ -161,15 +161,14 @@ Handler.getExtension = function (gl, name) {
 /**
  * Returns a drawing context on the canvas, or null if the context identifier is not supported.
  * @param {Object} canvas - HTML canvas object.
- * @params {Object} [contextAttributes] - See canvas.getContext contextAttributes.
- * @returns {Object}
+ * @param {Object} [contextAttributes] - See canvas.getContext contextAttributes.
+ * @returns {Object} -
  */
 Handler.getContext = function (canvas, contextAttributes) {
     var ctx;
     try {
         ctx = canvas.getContext("webgl", contextAttributes) ||
             canvas.getContext("experimental-webgl", contextAttributes);
-        //ctx.canvas = canvas;
     }
     catch (ex) {
         cons.logErr("exception during the GL context initialization");
@@ -183,7 +182,7 @@ Handler.getContext = function (canvas, contextAttributes) {
 /**
  * Sets animation frame function.
  * @public
- * @param {callback} - Frame callback.
+ * @param {callback} callback - Frame callback.
  */
 Handler.prototype.setFrameCallback = function (callback) {
     callback && (this._frameCallback = callback);
@@ -395,16 +394,16 @@ Handler.prototype.loadCubeMapTexture = function (params) {
     imageCanvas.fillEmpty();
     var emptyImage = imageCanvas.getImage();
 
-    for (var i = 0; i < faces.length; i++) {
-        var face = faces[i][1];
+    for (let i = 0; i < faces.length; i++) {
+        let face = faces[i][1];
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, emptyImage);
     }
 
-    for (var i = 0; i < faces.length; i++) {
-        var face = faces[i][1];
-        var image = new Image();
+    for (let i = 0; i < faces.length; i++) {
+        let face = faces[i][1];
+        let image = new Image();
         image.crossOrigin = '';
         image.onload = function (texture, face, image) {
             return function () {
@@ -423,6 +422,7 @@ Handler.prototype.loadCubeMapTexture = function (params) {
  * @public
  * @param {og.webgl.Program} program - Shader program.
  * @param {boolean} [notActivate] - If it's true program will not compile.
+ * @return {og.webgl.Program} -
  */
 Handler.prototype.addProgram = function (program, notActivate) {
     if (!this.Programs[program.name]) {
@@ -440,7 +440,7 @@ Handler.prototype.addProgram = function (program, notActivate) {
 /**
  * Removes shader program from handler.
  * @public
- * @param {String} program - Shader program name.
+ * @param {String} name - Shader program name.
  */
 Handler.prototype.removeProgram = function (name) {
     this.Programs[name] && this.Programs[name].remove();
@@ -460,7 +460,7 @@ Handler.prototype.addPrograms = function (programsArr) {
 /**
  * Used in addProgram
  * @private
- * @param {og.webgl.ProgramController}
+ * @param {og.webgl.ProgramController} sc - Program controller
  */
 Handler.prototype._initProgramController = function (sc) {
     if (this._initialized) {
@@ -490,6 +490,8 @@ Handler.prototype._initPrograms = function () {
  * Initialize additional WebGL extensions.
  * @public
  * @param {string} extensionStr - Extension name.
+ * @param {boolean} showLog - Show logging.
+ * @return {Object} -
  */
 Handler.prototype.initializeExtension = function (extensionStr, showLog) {
     if (!(this.extensions && this.extensions[extensionStr])) {
@@ -653,8 +655,8 @@ Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems
 /**
  * Sets handler canvas size.
  * @public
- * @param {number} width - Canvas width.
- * @param {number} height - Canvas height.
+ * @param {number} w - Canvas width.
+ * @param {number} h - Canvas height.
  */
 Handler.prototype.setSize = function (w, h) {
 
@@ -679,7 +681,7 @@ Handler.prototype.setSize = function (w, h) {
 /**
  * Returns context screen width.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 Handler.prototype.getWidth = function () {
     return this.canvas.width;
@@ -688,7 +690,7 @@ Handler.prototype.getWidth = function () {
 /**
  * Returns context screen height.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 Handler.prototype.getHeight = function () {
     return this.canvas.height;
@@ -697,7 +699,7 @@ Handler.prototype.getHeight = function () {
 /**
  * Returns canvas aspect ratio.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 Handler.prototype.getClientAspect = function () {
     return this.canvas.clientWidth / this.canvas.clientHeight;
@@ -706,7 +708,7 @@ Handler.prototype.getClientAspect = function () {
 /**
  * Returns screen center coordinates.
  * @public
- * @returns {number}
+ * @returns {number} -
  */
 Handler.prototype.getCenter = function () {
     var c = this.canvas;
@@ -784,8 +786,12 @@ Handler.prototype._animationFrameCallback = function () {
 }
 
 /**
+ * Creates default texture object
  * @public
- * @param
+ * @param {Object} [params] - Texture parameters:
+ * @param {Array.<number, number, number, number>} [params.color] - Texture RGBA color
+ * @param {number} [params.url] - Texture source url
+ * @param {callback} success - Creation callback
  */
 Handler.prototype.createDefaultTexture = function (params, success) {
     var imgCnv;
@@ -843,15 +849,15 @@ Handler.prototype.destroy = function () {
     var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
     var tmp = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
-    for (var ii = 0; ii < numAttribs; ++ii) {
+    for (let ii = 0; ii < numAttribs; ++ii) {
         gl.disableVertexAttribArray(ii);
         gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
         gl.vertexAttrib1f(ii, 0);
     }
     gl.deleteBuffer(tmp);
 
-    var numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-    for (var ii = 0; ii < numTextureUnits; ++ii) {
+    var numTextureUnits = gl.getParameter(gl.MAX_TEXTlURE_IMAGE_UNITS);
+    for (let ii = 0; ii < numTextureUnits; ++ii) {
         gl.activeTexture(gl.TEXTURE0 + ii);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
         gl.bindTexture(gl.TEXTURE_2D, null);

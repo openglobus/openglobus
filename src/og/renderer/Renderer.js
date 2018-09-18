@@ -155,7 +155,7 @@ const Renderer = function (handler, params) {
      * @private
      * @type {Array.<number,number,number>}
      */
-    this._currPickingColor = [0, 0, 0];
+    this._currPickingColor = new Uint8Array(4);
 
     /**
      * Stores previous picked rgb color.
@@ -163,6 +163,8 @@ const Renderer = function (handler, params) {
      * @type {Array.<number,number,number>}
      */
     this._prevPickingColor = [0, 0, 0];
+
+    this._tempPickingColor_ = new Uint8Array(4);
 
     /**
      * @private
@@ -345,7 +347,7 @@ Renderer.prototype.initialize = function () {
             corners: { type: types.VEC3, enableArray: true },
         },
         vertexShader:
-            'attribute vec2 corners;\
+        'attribute vec2 corners;\
             \
             varying vec2 tc;\
             void main(void) {\
@@ -353,7 +355,7 @@ Renderer.prototype.initialize = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-            'precision highp float;\
+        'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\
@@ -498,11 +500,11 @@ Renderer.prototype._singleframebufferScreenFrame = function () {
  */
 Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c;
+    var c = this._tempPickingColor_;
     if (this._drawBuffersExtension) {
-        c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height, 1);
+        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
     } else {
-        c = this.sceneFramebuffer.readPixel(x / cnv.width, (cnv.height - y) / cnv.height);
+        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height);
     }
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
 }
@@ -549,17 +551,16 @@ Renderer.prototype._drawPickingBuffer = function () {
         this._prevPickingColor[1] = this._currPickingColor[1];
         this._prevPickingColor[2] = this._currPickingColor[2];
 
-        var pc;
+        var pc = this._currPickingColor;
         if (ts.x || ts.y) {
-            pc = this.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny);
+            this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
             if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
-                pc = this.sceneFramebuffer.readPixel(ts.nx, 1.0 - ts.ny, 1);
+                this.sceneFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
         } else {
-            pc = this.pickingFramebuffer.readPixel(ms.nx, 1.0 - ms.ny);
+            this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
             if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
-                pc = this.sceneFramebuffer.readPixel(ms.nx, 1.0 - ms.ny, 1);
+                this.sceneFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
         }
-        this._currPickingColor = pc;
     }
 };
 

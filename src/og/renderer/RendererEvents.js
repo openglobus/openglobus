@@ -680,9 +680,13 @@ class RendererEvents extends Events {
 
         if (ts.touchStart) {
             var r = this.renderer;
-            r._currPickingColor = (r._drawBuffersExtension ?
-                r.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny, 1) :
-                r.pickingFramebuffer.readPixel(ts.nx, 1.0 - ts.ny));
+
+            if (r._drawBuffersExtension) {
+                r.pickingFramebuffer.readPixels(r._currPickingColor, ts.nx, 1.0 - ts.ny, 1);
+            } else {
+                r.pickingFramebuffer.readPixels(r._currPickingColor, ts.nx, 1.0 - ts.ny);
+            }
+
             var o = r.colorObjects;
             var c = r._currPickingColor;
             var co = o[c[0] + "_" + c[1] + "_" + c[2]];

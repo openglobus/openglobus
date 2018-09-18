@@ -149,33 +149,20 @@ MultiFramebuffer.prototype.setSize = function (width, height) {
 }
 
 /**
- * Reads all pixels(RGBA colors) from framebuffer.
- * @public
- * @returns {Array.<number>}
- */
-MultiFramebuffer.prototype.readAllPixels = function (index) {
-    var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[index || 0]);
-    var pixelValues = new Uint8Array(4 * this._width * this._height);
-    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return pixelValues;
-}
-
-/**
  * Gets pixel RBGA color from framebuffer by coordinates.
  * @public
- * @param {number} x - Normalized x - coordinate.
- * @param {number} y - Normalized y - coordinate.
- * @returns {Array.<number,number,number,number>}
+ * @param {UInt8Array} res - Result out array.
+ * @param {number} nx - Normalized x - coordinate.
+ * @param {number} ny - Normalized y - coordinate.
+ * @param {number} [index=0] - Normalized x - coordinate.
+ * @param {number} [w=1] - Normalized x - coordinate.
+ * @param {number} [h=1] - Normalized y - coordinate.
  */
-MultiFramebuffer.prototype.readPixel = function (nx, ny, index) {
+MultiFramebuffer.prototype.readPixels = function (res, nx, ny, index, w, h) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[index || 0]);
-    var pixelValues = new Uint8Array(4);
-    gl.readPixels(nx * this._width, ny * this._height, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelValues);
+    gl.readPixels(nx * this._width, ny * this._height, w || 1, h || 1, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return pixelValues;
 }
 
 /**
