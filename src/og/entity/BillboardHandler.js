@@ -91,21 +91,21 @@ class BillboardHandler {
         }
     }
 
-    initShaderProgram() {
+    initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.shaderPrograms.billboard) {
+            if (!this._renderer.handler.Programs.billboard) {
                 var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
-                this._renderer.handler.addShaderProgram(shaders.billboard(isSingleBuffer));
+                this._renderer.handler.addProgram(shaders.billboard(isSingleBuffer));
             }
-            if (!this._renderer.handler.shaderPrograms.billboardPicking) {
-                this._renderer.handler.addShaderProgram(shaders.billboardPicking());
+            if (!this._renderer.handler.Programs.billboardPicking) {
+                this._renderer.handler.addProgram(shaders.billboardPicking());
             }
         }
     }
 
     setRenderer(renderer) {
         this._renderer = renderer;
-        this.initShaderProgram();
+        this.initProgram();
     }
 
     refresh() {
@@ -232,8 +232,8 @@ class BillboardHandler {
     _displayPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.shaderPrograms.billboard.activate();
-        var sh = h.shaderPrograms.billboard._program;
+        h.Programs.billboard.activate();
+        var sh = h.Programs.billboard._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -282,8 +282,8 @@ class BillboardHandler {
     _pickingPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.shaderPrograms.billboardPicking.activate();
-        var sh = h.shaderPrograms.billboardPicking._program;
+        h.Programs.billboardPicking.activate();
+        var sh = h.Programs.billboardPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

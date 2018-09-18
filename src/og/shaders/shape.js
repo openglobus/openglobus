@@ -4,11 +4,11 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 export function shape_wl() {
-    return new ShaderProgram("shape_wl", {
+    return new Program("shape_wl", {
         uniforms: {
             viewMatrix: { type: types.MAT4 },
             projectionMatrix: { type: types.MAT4 },
@@ -82,7 +82,7 @@ export function shape_wl() {
 };
 
 export function shape_nl() {
-    return new ShaderProgram("shape_nl", {
+    return new Program("shape_nl", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             modelMatrix: { type: types.MAT4 },

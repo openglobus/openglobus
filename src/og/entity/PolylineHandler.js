@@ -29,17 +29,17 @@ class PolylineHandler {
         this._counter = n;
     }
 
-    _initShaderProgram() {
+    _initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.shaderPrograms.polyline) {
-                this._renderer.handler.addShaderProgram(shaders.polyline(this._renderer.isMultiFramebufferCompatible()));
+            if (!this._renderer.handler.Programs.polyline) {
+                this._renderer.handler.addProgram(shaders.polyline(this._renderer.isMultiFramebufferCompatible()));
             }
         }
     }
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initShaderProgram()
+        this._initProgram()
         for (var i = 0; i < this._polylines.length; i++) {
             this._polylines[i].setRenderNode(renderNode);
         }

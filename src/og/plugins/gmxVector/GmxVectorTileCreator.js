@@ -7,7 +7,7 @@
 import { VectorTileCreator } from '../../utils/VectorTileCreator.js';
 import { inherits } from '../../inherits.js';
 import { RENDERING } from '../../quadTree/quadTree.js';
-import { ShaderProgram } from '../../webgl/ShaderProgram.js';
+import { Program } from '../../webgl/Program.js';
 import { types } from '../../webgl/types.js';
 import { Framebuffer } from '../../webgl/Framebuffer.js';
 
@@ -76,8 +76,8 @@ GmxVectorTileCreator.appendLineData = function (pathArr, isClosed, outVertices, 
 GmxVectorTileCreator.prototype._initialize = function () {
 
     //Line
-    if (!this._handler.shaderPrograms.gmxVectorTileLineRasterization) {
-        this._handler.addShaderProgram(new ShaderProgram("gmxVectorTileLineRasterization", {
+    if (!this._handler.Programs.gmxVectorTileLineRasterization) {
+        this._handler.addProgram(new Program("gmxVectorTileLineRasterization", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
                 'thicknessOutline': { type: types.FLOAT },
@@ -165,8 +165,8 @@ GmxVectorTileCreator.prototype._initialize = function () {
     }
 
     //Polygon
-    if (!this._handler.shaderPrograms.gmxVectorTilePolygonRasterization) {
-        this._handler.addShaderProgram(new ShaderProgram("gmxVectorTilePolygonRasterization", {
+    if (!this._handler.Programs.gmxVectorTilePolygonRasterization) {
+        this._handler.addProgram(new Program("gmxVectorTilePolygonRasterization", {
             uniforms: {
                 'extentParams': { type: types.VEC4 },
                 'color': { type: types.VEC4 }
@@ -209,8 +209,8 @@ GmxVectorTileCreator.prototype.frame = function () {
         const h = this._handler;
         const gl = h.gl;
         const p = this._planet;
-        const hLine = h.shaderPrograms.gmxVectorTileLineRasterization;
-        const hPoly = h.shaderPrograms.gmxVectorTilePolygonRasterization;
+        const hLine = h.Programs.gmxVectorTileLineRasterization;
+        const hPoly = h.Programs.gmxVectorTilePolygonRasterization;
 
         const f = this._framebuffer.activate();
 

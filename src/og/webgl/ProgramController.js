@@ -1,5 +1,5 @@
 /**
- * @module og/webgl/ShaderController
+ * @module og/webgl/ProgramController
  */
 
 'use strict';
@@ -7,19 +7,19 @@
 /**
  * This is shader program controller that used by hadler object to access the shader 
  * program capabilities, like switching program during the rendering.
- * Get access to the program from ...handler.shaderPrograms.<program name> etc.
+ * Get access to the program from ...handler.Programs.<program name> etc.
  * @class
  * @param {og.webgl.Handler} handler - Handler.
- * @param {og.webgl.ShaderProgram} shaderProgram - Shader program.
+ * @param {og.webgl.Program} Program - Shader program.
  */
-const ShaderController = function (handler, shaderProgram) {
+const ProgramController = function (handler, Program) {
 
     /**
      * Shader program.
      * @private
-     * @type {og.webgl.ShaderProgram}
+     * @type {og.webgl.Program}
      */
-    this._program = shaderProgram;
+    this._program = Program;
 
     /**
      * Handler.
@@ -41,28 +41,28 @@ const ShaderController = function (handler, shaderProgram) {
  * Lazy create program call.
  * @public
  */
-ShaderController.prototype.initialize = function () {
+ProgramController.prototype.initialize = function () {
     this._program.createProgram(this._handler.gl);
 }
 
 /**
  * Returns controller's shader program.
  * @public
- * @return {og.webgl.ShaderProgram} -
+ * @return {og.webgl.Program} -
  */
-ShaderController.prototype.getProgram = function () {
+ProgramController.prototype.getProgram = function () {
     return this._program;
 }
 
 /**
  * Activates current shader program.
  * @public
- * @returns {ShaderController} -
+ * @returns {ProgramController} -
  */
-ShaderController.prototype.activate = function () {
+ProgramController.prototype.activate = function () {
     if (!this._activated) {
-        this._handler.activeShaderProgram.deactivate();
-        this._handler.activeShaderProgram = this;
+        this._handler.activeProgram.deactivate();
+        this._handler.activeProgram = this;
         var p = this._program;
         this._activated = true;
         p.enableAttribArrays();
@@ -75,8 +75,8 @@ ShaderController.prototype.activate = function () {
  * Remove program from handler
  * @public
  */
-ShaderController.prototype.remove = function () {
-    var p = this._handler.shaderPrograms;
+ProgramController.prototype.remove = function () {
+    var p = this._handler.Programs;
     if (p[this._program.name]) {
         if (this._activated) {
             this.deactivate();
@@ -91,7 +91,7 @@ ShaderController.prototype.remove = function () {
  * Deactivate shader program. This is not necessary while activae function used.
  * @public
  */
-ShaderController.prototype.deactivate = function () {
+ProgramController.prototype.deactivate = function () {
     this._program.disableAttribArrays();
     this._activated = false;
 }
@@ -101,7 +101,7 @@ ShaderController.prototype.deactivate = function () {
  * @public
  * @return {boolean} -
  */
-ShaderController.prototype.isActive = function () {
+ProgramController.prototype.isActive = function () {
     return this._activated;
 }
 
@@ -109,9 +109,9 @@ ShaderController.prototype.isActive = function () {
  * Sets program uniforms and attributes values and return controller instance.
  * @public
  * @param {Object} params - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
- * @return {og.webgl.ShaderController} -
+ * @return {og.webgl.ProgramController} -
  */
-ShaderController.prototype.set = function (params) {
+ProgramController.prototype.set = function (params) {
     this.activate();
     this._program.set(params);
     return this;
@@ -122,9 +122,9 @@ ShaderController.prototype.set = function (params) {
  * @public
  * @param {number} mode - Gl draw mode
  * @param {WEBGLBuffer} buffer - Buffer to draw.
- * @return {og.webgl.ShaderController} Returns current shader controller instance.
+ * @return {og.webgl.ProgramController} Returns current shader controller instance.
  */
-ShaderController.prototype.drawIndexBuffer = function (mode, buffer) {
+ProgramController.prototype.drawIndexBuffer = function (mode, buffer) {
     this._program.drawIndexBuffer(mode, buffer);
     return this;
 }
@@ -133,11 +133,11 @@ ShaderController.prototype.drawIndexBuffer = function (mode, buffer) {
  * Calls Gl drawArray function.
  * @param {number} mode - Gl draw mode.
  * @param {number} numItems - draw items count.
- * @return {og.webgl.ShaderController} Returns current shader controller instance.
+ * @return {og.webgl.ProgramController} Returns current shader controller instance.
  */
-ShaderController.prototype.drawArray = function (mode, numItems) {
+ProgramController.prototype.drawArray = function (mode, numItems) {
     this._program.drawArray(mode, numItems);
     return this;
 }
 
-export { ShaderController };
+export { ProgramController };

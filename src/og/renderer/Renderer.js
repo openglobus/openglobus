@@ -12,7 +12,7 @@ import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { cons } from '../cons.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
@@ -337,7 +337,7 @@ Renderer.prototype.initialize = function () {
     });
     this.pickingFramebuffer.init();
 
-    this.handler.addShaderProgram(new ShaderProgram("screenFrame", {
+    this.handler.addProgram(new Program("screenFrame", {
         uniforms: {
             texture: { type: types.SAMPLER2D }
         },
@@ -454,7 +454,7 @@ Renderer.prototype.draw = function () {
 
 Renderer.prototype._multiframebufferScreenFrame = function () {
     var h = this.handler;
-    var sh = h.shaderPrograms.screenFrame,
+    var sh = h.Programs.screenFrame,
         p = sh._program,
         gl = h.gl;
 
@@ -473,7 +473,7 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
 
 Renderer.prototype._singleframebufferScreenFrame = function () {
     var h = this.handler;
-    var sh = h.shaderPrograms.screenFrame,
+    var sh = h.Programs.screenFrame,
         p = sh._program,
         gl = h.gl;
 

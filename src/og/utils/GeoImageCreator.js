@@ -8,7 +8,7 @@ import * as segmentHelper from '../segment/segmentHelper.js';
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { LonLat } from '../LonLat.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 const GeoImageCreator = function (handler, maxFrames) {
@@ -131,7 +131,7 @@ GeoImageCreator.prototype._initBuffers = function () {
 };
 
 GeoImageCreator.prototype._initShaders = function () {
-    this._handler.addShaderProgram(new ShaderProgram("geoImageTransform", {
+    this._handler.addProgram(new Program("geoImageTransform", {
         uniforms: {
             sourceTexture: { type: types.SAMPLER2D },
             extentParams: { type: types.VEC4 }

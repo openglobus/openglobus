@@ -4,12 +4,12 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 
 export function drawnode_nl() {
-    return new ShaderProgram("drawnode_nl", {
+    return new Program("drawnode_nl", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             samplerCount: { type: types.INT },
@@ -140,7 +140,7 @@ export function drawnode_nl() {
 };
 
 export function drawnode_screen_nl() {
-    return new ShaderProgram("drawnode_screen_nl", {
+    return new Program("drawnode_screen_nl", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             samplerCount: { type: types.INT },
@@ -217,7 +217,7 @@ export function drawnode_screen_nl() {
 };
 
 export function drawnode_colorPicking() {
-    return new ShaderProgram("drawnode_colorPicking", {
+    return new Program("drawnode_colorPicking", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             samplerCount: { type: types.INT },
@@ -311,7 +311,7 @@ export function drawnode_colorPicking() {
 };
 
 export function drawnode_heightPicking() {
-    return new ShaderProgram("drawnode_heightPicking", {
+    return new Program("drawnode_heightPicking", {
         uniforms: {
             projectionViewMatrix: { type: types.MAT4 },
             samplerCount: { type: types.INT },
@@ -407,7 +407,7 @@ export function drawnode_heightPicking() {
 
 
 export function drawnode_wl() {
-    return new ShaderProgram("drawnode_wl", {
+    return new Program("drawnode_wl", {
         uniforms: {
             projectionMatrix: { type: types.MAT4 },
             viewMatrix: { type: types.MAT4 },
@@ -629,7 +629,7 @@ export function drawnode_wl() {
 };
 
 export function drawnode_screen_wl() {
-    return new ShaderProgram("drawnode_screen_wl", {
+    return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: { type: types.MAT4 },
             viewMatrix: { type: types.MAT4 },

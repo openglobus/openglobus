@@ -5,7 +5,7 @@
 'use strict';
 
 import { RenderNode } from './RenderNode.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 class Axes extends RenderNode {
@@ -20,7 +20,7 @@ class Axes extends RenderNode {
     initialization() {
         this.createAxisBuffer(this.size);
         this.drawMode = this.renderer.handler.gl.LINES;
-        this.renderer.handler.addShaderProgram(new ShaderProgram("axesShader", {
+        this.renderer.handler.addProgram(new Program("axesShader", {
             uniforms: {
                 projectionViewMatrix: 'mat4'
             },
@@ -48,13 +48,13 @@ class Axes extends RenderNode {
 
     frame() {
 
-        this.renderer.handler.shaderPrograms.axesShader.activate().set({
+        this.renderer.handler.Programs.axesShader.activate().set({
             projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
             aVertexPosition: this.axisBuffer,
             aVertexColor: this.axisColorBuffer
         });
 
-        this.renderer.handler.shaderPrograms.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
+        this.renderer.handler.Programs.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
     }
 
     createAxisBuffer(gridSize) {

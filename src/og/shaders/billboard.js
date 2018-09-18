@@ -4,7 +4,7 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 export function billboard(isSingleBuffer) {
@@ -36,7 +36,7 @@ export function billboard(isSingleBuffer) {
             }';
     }
 
-    return new ShaderProgram("billboard", {
+    return new Program("billboard", {
         uniforms: {
             u_texture: { type: types.SAMPLER2D },
             projectionMatrix: { type: types.MAT4 },
@@ -115,7 +115,7 @@ export function billboard(isSingleBuffer) {
 };
 
 export function billboardPicking() {
-    return new ShaderProgram("billboardPicking", {
+    return new Program("billboardPicking", {
         uniforms: {
             projectionMatrix: { type: types.MAT4 },
             viewMatrix: { type: types.MAT4 },

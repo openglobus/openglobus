@@ -7,7 +7,7 @@
 import * as quadTree from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Lock } from '../Lock.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 import { QueueArray } from '../QueueArray.js';
 
@@ -51,7 +51,7 @@ NormalMapCreator.prototype._init = function () {
     /*==================================================================================
      * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
      *=================================================================================*/
-    var normalMapBlur = new ShaderProgram("normalMapBlur", {
+    var normalMapBlur = new Program("normalMapBlur", {
         attributes: {
             a_position: { type: types.VEC2, enableArray: true }
         },
@@ -95,7 +95,7 @@ NormalMapCreator.prototype._init = function () {
                         }"
     });
 
-    var normalMap = new ShaderProgram("normalMap", {
+    var normalMap = new Program("normalMap", {
         attributes: {
             a_position: { type: types.VEC2, enableArray: true },
             a_normal: { type: types.VEC3, enableArray: true }
@@ -120,8 +120,8 @@ NormalMapCreator.prototype._init = function () {
                         }"
     });
 
-    this._handler.addShaderProgram(normalMapBlur);
-    this._handler.addShaderProgram(normalMap);
+    this._handler.addProgram(normalMapBlur);
+    this._handler.addProgram(normalMap);
 
     //create hidden handler buffer
     this._framebuffer = new Framebuffer(this._handler, {
@@ -182,7 +182,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
         var f = this._framebuffer;
-        var p = h.shaderPrograms.normalMap;
+        var p = h.Programs.normalMap;
         var sha = p._program.attributes;
 
         f.bindOutputTexture(this._normalMapVerticesTexture);
@@ -205,7 +205,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         //
         f.bindOutputTexture(outTexture);
 
-        p = h.shaderPrograms.normalMapBlur;
+        p = h.Programs.normalMapBlur;
 
         p.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
@@ -240,7 +240,7 @@ NormalMapCreator.prototype._drawNormalMapNotBlur = function (segment) {
         var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
         var f = this._framebuffer;
-        var p = h.shaderPrograms.normalMap;
+        var p = h.Programs.normalMap;
         var sha = p._program.attributes;
 
         f.bindOutputTexture(outTexture);

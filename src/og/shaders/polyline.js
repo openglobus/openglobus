@@ -4,12 +4,12 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 export function polyline(isDrawBuffersExtension) {
     if (isDrawBuffersExtension) {
-        return new ShaderProgram("polyline", {
+        return new Program("polyline", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
                 'proj': { type: types.MAT4 },
@@ -145,7 +145,7 @@ export function polyline(isDrawBuffersExtension) {
                 }'
         });
     } else {
-        return new ShaderProgram("polyline", {
+        return new Program("polyline", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
                 'proj': { type: types.MAT4 },

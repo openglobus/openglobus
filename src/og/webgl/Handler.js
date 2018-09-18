@@ -8,7 +8,7 @@ import { cons } from '../cons.js';
 import { Clock } from '../Clock.js';
 import { ImageCanvas } from '../ImageCanvas.js';
 import { isEmpty } from '../utils/shared.js';
-import { ShaderController } from './ShaderController.js';
+import { ProgramController } from './ProgramController.js';
 import { Stack } from '../Stack.js';
 import { Vec2 } from '../math/Vec2.js';
 
@@ -74,16 +74,16 @@ const Handler = function (id, params) {
     /**
      * Shader program controller list.
      * @public
-     * @type {Object.<og.webgl.ShaderController>}
+     * @type {Object.<og.webgl.ProgramController>}
      */
-    this.shaderPrograms = {};
+    this.Programs = {};
 
     /**
      * Current active shader program controller.
      * @public
-     * @type {og.webgl.ShaderController}
+     * @type {og.webgl.ProgramController}
      */
-    this.activeShaderProgram = null;
+    this.activeProgram = null;
 
     /**
      * Handler parameters.
@@ -421,14 +421,14 @@ Handler.prototype.loadCubeMapTexture = function (params) {
 /**
  * Adds shader program to the handler.
  * @public
- * @param {og.webgl.ShaderProgram} program - Shader program.
+ * @param {og.webgl.Program} program - Shader program.
  * @param {boolean} [notActivate] - If it's true program will not compile.
  */
-Handler.prototype.addShaderProgram = function (program, notActivate) {
-    if (!this.shaderPrograms[program.name]) {
-        var sc = new ShaderController(this, program);
-        this.shaderPrograms[program.name] = sc;
-        this._initShaderController(sc);
+Handler.prototype.addProgram = function (program, notActivate) {
+    if (!this.Programs[program.name]) {
+        var sc = new ProgramController(this, program);
+        this.Programs[program.name] = sc;
+        this._initProgramController(sc);
         if (notActivate)
             sc._activated = false;
     } else {
@@ -442,36 +442,36 @@ Handler.prototype.addShaderProgram = function (program, notActivate) {
  * @public
  * @param {String} program - Shader program name.
  */
-Handler.prototype.removeShaderProgram = function (name) {
-    this.shaderPrograms[name] && this.shaderPrograms[name].remove();
+Handler.prototype.removeProgram = function (name) {
+    this.Programs[name] && this.Programs[name].remove();
 }
 
 /**
  * Adds shader programs to the handler.
  * @public
- * @param {Array.<og.webgl.ShaderProgram>} programsArr - Shader program array.
+ * @param {Array.<og.webgl.Program>} programsArr - Shader program array.
  */
-Handler.prototype.addShaderPrograms = function (programsArr) {
+Handler.prototype.addPrograms = function (programsArr) {
     for (var i = 0; i < programsArr.length; i++) {
-        this.addShaderProgram(programsArr[i]);
+        this.addProgram(programsArr[i]);
     }
 }
 
 /**
- * Used in addShaderProgram
+ * Used in addProgram
  * @private
- * @param {og.webgl.ShaderController}
+ * @param {og.webgl.ProgramController}
  */
-Handler.prototype._initShaderController = function (sc) {
+Handler.prototype._initProgramController = function (sc) {
     if (this._initialized) {
         sc.initialize();
-        if (!this.activeShaderProgram) {
-            this.activeShaderProgram = sc;
+        if (!this.activeProgram) {
+            this.activeProgram = sc;
             sc.activate();
         } else {
             sc.deactivate();
-            this.activeShaderProgram._program.enableAttribArrays();
-            this.activeShaderProgram._program.use();
+            this.activeProgram._program.enableAttribArrays();
+            this.activeProgram._program.use();
         }
     }
 }
@@ -480,9 +480,9 @@ Handler.prototype._initShaderController = function (sc) {
  * Used in init function.
  * @private
  */
-Handler.prototype._initShaderPrograms = function () {
-    for (var p in this.shaderPrograms) {
-        this._initShaderController(this.shaderPrograms[p]);
+Handler.prototype._initPrograms = function () {
+    for (var p in this.Programs) {
+        this._initProgramController(this.Programs[p]);
     }
 }
 
@@ -540,7 +540,7 @@ Handler.prototype.initialize = function () {
         this.createTexture = this.createTexture_mm;
 
     /** Initilalize shaders and rendering parameters*/
-    this._initShaderPrograms();
+    this._initPrograms();
     this._setDefaults();
 }
 
@@ -823,8 +823,8 @@ Handler.prototype.destroy = function () {
 
     this.stop();
 
-    for (var p in this.shaderPrograms) {
-        this.removeShaderProgram(p);
+    for (var p in this.Programs) {
+        this.removeProgram(p);
     }
 
     gl.deleteTexture(this.transparentTexture);

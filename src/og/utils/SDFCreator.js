@@ -6,7 +6,7 @@
 
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Handler } from '../webgl/Handler.js';
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 class SDFCreator {
@@ -56,7 +56,7 @@ class SDFCreator {
         this._framebuffer2.init();
     }
     _initShaders() {
-        var vfield = new ShaderProgram("vfield", {
+        var vfield = new Program("vfield", {
             uniforms: {
                 uTexSize: { type: types.VEC2 },
                 uTex1: { type: types.SAMPLER2D },
@@ -107,7 +107,7 @@ class SDFCreator {
             }"
         });
 
-        var hfield = new ShaderProgram("hfield", {
+        var hfield = new Program("hfield", {
             uniforms: {
                 uTexSize: { type: types.VEC2 },
                 uTex1: { type: types.SAMPLER2D },
@@ -152,7 +152,7 @@ class SDFCreator {
             }"
         });
 
-        var sum = new ShaderProgram("sum", {
+        var sum = new Program("sum", {
             uniforms: {
                 outside: { type: types.SAMPLER2D },
                 inside: { type: types.SAMPLER2D },
@@ -181,7 +181,7 @@ class SDFCreator {
                             gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * " + this._outsideMix + " + (1.0 - step(0.5, s)) * " + this._insideMix + " )), 1.0);\n\
                         }"
         });
-        this._handler.addShaderPrograms([vfield, hfield, sum]);
+        this._handler.addPrograms([vfield, hfield, sum]);
     };
 
     setSize(width, height) {
@@ -205,8 +205,8 @@ class SDFCreator {
 
         this._sourceTexture = h.createTexture_l(sourceCanvas);
 
-        h.shaderPrograms.vfield.activate();
-        var sh = h.shaderPrograms.vfield._program;
+        h.Programs.vfield.activate();
+        var sh = h.Programs.vfield._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -231,8 +231,8 @@ class SDFCreator {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer2.deactivate();
 
-        h.shaderPrograms.hfield.activate();
-        var sh = h.shaderPrograms.hfield._program;
+        h.Programs.hfield.activate();
+        var sh = h.Programs.hfield._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -264,8 +264,8 @@ class SDFCreator {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        h.shaderPrograms.sum.activate();
-        var sh = h.shaderPrograms.sum._program;
+        h.Programs.sum.activate();
+        var sh = h.Programs.sum._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

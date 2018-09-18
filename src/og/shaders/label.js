@@ -4,7 +4,7 @@
 
 'use sctrict';
 
-import { ShaderProgram } from '../webgl/ShaderProgram.js';
+import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
 export function label(isSingleBuffer) {
@@ -99,7 +99,7 @@ export function label(isSingleBuffer) {
             }`;
     }
 
-    return new ShaderProgram("label", {
+    return new Program("label", {
         uniforms: {
             u_fontTextureArr: { type: types.SAMPLER2DXX },
             projectionMatrix: { type: types.MAT4 },
@@ -192,7 +192,7 @@ export function label(isSingleBuffer) {
 };
 
 export function labelPicking() {
-    return new ShaderProgram("labelPicking", {
+    return new Program("labelPicking", {
         uniforms: {
             projectionMatrix: { type: types.MAT4 },
             viewMatrix: { type: types.MAT4 },
