@@ -17,6 +17,10 @@ const GmxVectorTileCreator = function (planet, maxFrames, width, height) {
 
     this._maskTexture = null;
 
+    this._framebuffer = null;
+
+    this._temporaryData_ = null;
+
     planet.events.on("draw", this.frame, this);
 };
 
@@ -194,6 +198,8 @@ GmxVectorTileCreator.prototype._initialize = function () {
     });
 
     this._framebuffer.init();
+
+    this._temporaryData_ = new Uint8Array(4 * this._width * this._height);
 
     this._maskTexture = this._handler.createEmptyTexture_n(this._width, this._height);
 };
@@ -421,7 +427,8 @@ GmxVectorTileCreator.prototype.frame = function () {
 GmxVectorTileCreator.prototype._proceedImageryTiles = function (layer, material) {
 
     const f = this._framebuffer;
-    const data = f.readAllPixels();
+    let data = this._temporaryData_;
+    f.readAllPixels(data);
 
     var toLoad = 0;
     for (let i = data.length - 1; i >= 0; i -= 4) {

@@ -10,6 +10,10 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * Class represents multiple render framebuffer.
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler.
+ * @param {Object} [options] - Framebuffer options:
+ * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
+ * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
+ * @param {number} [options.size] - Buffer quantity.
  */
 const MultiFramebuffer = function (handler, options) {
 
@@ -104,12 +108,12 @@ MultiFramebuffer.prototype.init = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
     var fragDataArr = [];
-    for (var i = 0; i < this._size; i++) {
+    for (let i = 0; i < this._size; i++) {
         fragDataArr[i] = ext.COLOR_ATTACHMENT0_WEBGL + i;
     }
     ext.drawBuffersWEBGL(fragDataArr);
 
-    for (var i = 0; i < this._size; i++) {
+    for (let i = 0; i < this._size; i++) {
         this.textures[i] = this.handler.createEmptyTexture_l(this._width, this._height);
         gl.bindTexture(gl.TEXTURE_2D, this.textures[i]);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL + i, gl.TEXTURE_2D, this.textures[i], 0);
@@ -166,14 +170,27 @@ MultiFramebuffer.prototype.readPixels = function (res, nx, ny, index, w, h) {
 }
 
 /**
+ * Reads all pixels(RGBA colors) from framebuffer.
+ * @public
+ * @param {UInt8Array} res - Result array
+ * @param {Number} [index] - Buffer index to read
+ */
+MultiFramebuffer.prototype.readAllPixels = function (res, index) {
+    var gl = this.handler.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[index || 0]);
+    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+/**
  * Returns framebuffer completed.
  * @public
- * @returns {boolean}
+ * @returns {boolean} -
  */
 MultiFramebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         return true;
     }
@@ -222,10 +239,12 @@ MultiFramebuffer.prototype.deactivate = function () {
 /**
  * Gets JavaScript image object that framebuffer has drawn.
  * @public
- * @returns {Object}
+ * @param {number} [index] - Buffer index
+ * @returns {Image} -
  */
 MultiFramebuffer.prototype.getImage = function (index) {
-    var data = this.readAllPixels(index);
+    var data = new Uint8Array(4 * this._width * this._height);
+    this.readAllPixels(data, index);
     var imageCanvas = new ImageCanvas(this._width, this._height);
     imageCanvas.setData(data);
     return imageCanvas.getImage();
@@ -234,6 +253,7 @@ MultiFramebuffer.prototype.getImage = function (index) {
 /**
  * Open dialog window with framebuffer image.
  * @public
+ * @param {number} [index] - Buffer index
  */
 MultiFramebuffer.prototype.openImage = function (index) {
     var img = this.getImage(index);
