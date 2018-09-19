@@ -10,8 +10,9 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * Class represents framebuffer.
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler.
- * @param {number} [width] - Framebuffer width. Default is handler canvas width.
- * @param {number} [height] - Framebuffer height. Default is handler canvas height.
+ * @param {Object} [options] - Framebuffer options:
+ * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
+ * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
  */
 const Framebuffer = function (handler, options) {
     options = options || {};
@@ -141,7 +142,7 @@ Framebuffer.prototype.setSize = function (width, height) {
 /**
  * Returns framebuffer completed.
  * @public
- * @returns {boolean}
+ * @returns {boolean} -
  */
 Framebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
@@ -163,6 +164,18 @@ Framebuffer.prototype.readPixels = function (res, nx, ny, w, h) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.readPixels(nx * this._width, ny * this._height, w || 1, h || 1, gl.RGBA, gl.UNSIGNED_BYTE, res);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+};
+
+/**
+ * Reads all pixels(RGBA colors) from framebuffer.
+ * @public
+ * @param {Uint8Array} res - Result array
+ */
+Framebuffer.prototype.readAllPixels = function (res) {
+    var gl = this.handler.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
@@ -206,10 +219,11 @@ Framebuffer.prototype.deactivate = function () {
 /**
  * Gets JavaScript image object that framebuffer has drawn.
  * @public
- * @returns {Object}
+ * @returns {Object} -
  */
 Framebuffer.prototype.getImage = function () {
-    var data = this.readAllPixels();
+    var data = new Uint8Array(4 * this._width * this._height);
+    this.readAllPixels(data);
     var imageCanvas = new ImageCanvas(this._width, this._height);
     imageCanvas.setData(data);
     return imageCanvas.getImage();
