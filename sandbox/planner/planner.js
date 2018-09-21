@@ -11,6 +11,7 @@ import { Vec2 } from '../../src/og/math/Vec2.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { Ray } from '../../src/og/math/Ray.js';
 import { Sphere } from '../../src/og/bv/Sphere.js';
+import { Strip } from './Strip.js';
 
 
 //Define custom control class
@@ -21,6 +22,8 @@ class PlannerControl extends Control {
         this._pointLayer = null;
         this._spinLayer = null;
         this._trackLayer = null;
+
+        this._interiorStrip = new Strip();
 
         this._pickingObject = null;
         this._startPos = null;
@@ -111,6 +114,7 @@ class PlannerControl extends Control {
 
         this.planet.addLayers([this._pointLayer, this._spinLayer, this._trackLayer]);
 
+        this.planet.renderer.addRenderNode(this._interiorStrip);
     }
 
     addPoint(lonlat) {
@@ -274,9 +278,22 @@ class PlannerControl extends Control {
 
             var track = this._trackEntity.polyline;
 
+            var interiorVerts = [];
+
             this._pointLayer.each((p, i) => {
-                track.setPoint3v(p.getCartesian(), i, 0);
+                let v = p.getCartesian();
+                track.setPoint3v(v, i, 0);
+
+                let g = v.normal().scale(6368100.0);
+                interiorVerts.push(v.x, v.y, v.z, g.x, g.y, g.z);
             });
+
+            if (this._pointLayer._entities.length > 2) {
+                interiorVerts.push(interiorVerts[0], interiorVerts[1], interiorVerts[2],
+                    interiorVerts[3], interiorVerts[4], interiorVerts[5]);
+            }
+
+            this._interiorStrip.setCoordinates(interiorVerts);
 
         }, this);
     }
@@ -291,11 +308,7 @@ class PlannerControl extends Control {
 
         this.planet.fontAtlas.createFont("Lucida Console", "normal", "bold");
     }
-
-    oninit() {
-
-    }
-};
+}
 
 let osm = new XYZ("OSM", {
     'specular': [0.0003, 0.00012, 0.00001],

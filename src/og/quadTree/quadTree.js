@@ -5,7 +5,7 @@
 'use strict';
 
 export const VISIBLE_DISTANCE = 3570;
-export const MAX_RENDERED_NODES = 130;
+export const MAX_RENDERED_NODES = 150;
 
 export const NW = 0;
 export const NE = 1;

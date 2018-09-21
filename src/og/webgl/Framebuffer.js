@@ -13,6 +13,8 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {Object} [options] - Framebuffer options:
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
+ * @param {Object} [options.texture] - Texture to render.
+ * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Framebuffer = function (handler, options) {
     options = options || {};
