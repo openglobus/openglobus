@@ -160,7 +160,7 @@ class Program {
      * @param {number} mode - Draw mode(GL_TRIANGLES, GL_LINESTRING etc.).
      * @param {number} numItems - Curent binded buffer drawing items count.
      */
-    drawArray(mode, numItems) {
+    drawArrays(mode, numItems) {
         this.gl.drawArrays(mode, 0, numItems);
     }
 
