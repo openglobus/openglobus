@@ -442,6 +442,7 @@ class Vector extends Layer {
      * Removes current entities from layer and adds new entities.
      * @public
      * @param {Array.<og.Entity>} entities - New entity array.
+     * @returns {og.layer.Vector} - Returns layer instance.
      */
     setEntities(entities) {
 
