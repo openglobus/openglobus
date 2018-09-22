@@ -237,7 +237,10 @@ class BillboardHandler {
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var gl = h.gl;
+        var gl = h.gl,
+            ec = this._entityCollection;
+
+        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1i(shu.u_texture, 0);
 
@@ -246,11 +249,11 @@ class BillboardHandler {
 
         gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
 
-        gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
+        gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity, this._entityCollection._fadingOpacity);
+        gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
-        gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [ec.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -289,16 +292,21 @@ class BillboardHandler {
 
         var gl = h.gl;
 
+        var gl = h.gl,
+            ec = this._entityCollection;
+
+        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
         gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
 
-        gl.uniform3fv(shu.uScaleByDistance, this._entityCollection.scaleByDistance);
+        gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 
-        gl.uniform1f(shu.uOpacity, this._entityCollection._fadingOpacity);
+        gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
-        gl.uniform2fv(shu.uFloatParams, [this._entityCollection.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [ec.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);

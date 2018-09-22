@@ -327,6 +327,8 @@ class PointCloud {
                 sha = p.attributes,
                 shu = p.uniforms;
 
+            gl.polygonOffset(this._handler._entityCollection.polygonOffsetFactor, this._handler._entityCollection.polygonOffsetUnits);
+
             sh.activate();
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
@@ -356,6 +358,8 @@ class PointCloud {
                 shu = p.uniforms;
 
             sh.activate();
+
+            gl.polygonOffset(this._handler._entityCollection.polygonOffsetFactor, this._handler._entityCollection.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
