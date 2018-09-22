@@ -257,7 +257,7 @@ class RenderNode extends BaseNode {
 
             //Z-buffer offset
             gl.enable(gl.POLYGON_OFFSET_FILL);
-            //gl.polygonOffset(0, -637000);
+            gl.polygonOffset(0.0, 0.0);
 
             //billboards pass
             gl.activeTexture(gl.TEXTURE0);
@@ -292,7 +292,7 @@ class RenderNode extends BaseNode {
             }
 
             //Z-buffer offset
-            gl.polygonOffset(0, 0);
+            gl.polygonOffset(0.0, 0.0);
 
             gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);
@@ -329,7 +329,7 @@ class RenderNode extends BaseNode {
 
             //Z-buffer offset
             gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0, -637000);
+            gl.polygonOffset(0.0, 0.0);
 
             //billoard pass
             var i = ec.length;
@@ -343,7 +343,7 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
             }
 
-            gl.polygonOffset(0, 0);
+            gl.polygonOffset(0.0, 0.0);
 
             gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);
