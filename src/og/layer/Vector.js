@@ -60,6 +60,8 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
+ * @param {Number} [options.polygonOffsetFactor=0.0] - The scale factor for the variable depth offset. The default value is 0.
+ * @param {Number} [options.polygonOffsetUnit=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
  *
  * @fires og.layer.Vector#entitymove
  * @fires og.layer.Vector#draw
@@ -149,6 +151,20 @@ class Vector extends Layer {
 
         /** Creates collections tree*/
         this.setEntities(this._entities);
+
+        /**
+         * Specifies the scale factor for gl.polygonOffset function to calculate depth values, 0.0 is default.
+         * @public
+         * @type {Number}
+         */
+        this.polygonOffsetFactor = options.polygonOffsetFactor || 0.0;
+
+        /**
+         * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+         * @public
+         * @type {Number}
+         */
+        this.polygonOffsetUnits = options.polygonOffsetUnits || 0.0;
     }
 
     get instanceName() {
@@ -426,6 +442,7 @@ class Vector extends Layer {
      * Removes current entities from layer and adds new entities.
      * @public
      * @param {Array.<og.Entity>} entities - New entity array.
+     * @returns {og.layer.Vector} - Returns layer instance.
      */
     setEntities(entities) {
 
@@ -568,13 +585,20 @@ class Vector extends Layer {
     }
 
     _collectPolylineCollectionPASS(outArr) {
-        outArr.push(this._polylineEntityCollection);
+
+        var ec = this._polylineEntityCollection;
+
+        ec.polygonOffsetFactor = this.polygonOffsetFactor;
+        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+
+        outArr.push(ec);
+
         if (this.clampToGround || this.relativeToGround) {
             let rtg = Number(this.relativeToGround);
 
             var nodes = this._planet._renderedNodes;
             var visibleExtent = this._planet.getViewExtent();
-            var e = this._polylineEntityCollection._entities;
+            var e = ec._entities;
             var e_i = e.length;
             let res = new Vec3();
 

@@ -220,7 +220,7 @@ class EntityCollection {
     /**
      * Returns collection visibility.
      * @public
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     getVisibility() {
         return this._visibility;
@@ -251,7 +251,7 @@ class EntityCollection {
     /**
      * Gets collection opacity.
      * @public
-     * @param {number} opacity - Opacity.
+     * @returns {number} -
      */
     getOpacity() {
         return this._opacity;
@@ -301,7 +301,7 @@ class EntityCollection {
      * Adds entity to the collection and returns collection.
      * @public
      * @param {og.Entity} entity - Entity.
-     * @returns {og.EntityCollection}
+     * @returns {og.EntityCollection} -
      */
     add(entity) {
         if (!entity._entityCollection) {
@@ -322,7 +322,7 @@ class EntityCollection {
      * Adds entities array to the collection and returns collection.
      * @public
      * @param {Array.<og.Entity>} entities - Entities array.
-     * @returns {og.EntityCollection}
+     * @returns {og.EntityCollection} -
      */
     addEntities(entities) {
         var i = entities.length;
@@ -336,10 +336,10 @@ class EntityCollection {
      * Returns true if the entity belongs this collection, otherwise returns false.
      * @public
      * @param {og.Entity} entity - Entity.
-     * @returns {boolean}
+     * @returns {boolean} -
      */
     belongs(entity) {
-        return (entity._entityCollection && this._renderNodeIndex == entity._entityCollection._renderNodeIndex);
+        return (entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex);
     }
 
     _removeRecursively(entity) {
@@ -434,7 +434,7 @@ class EntityCollection {
      * @public
      * @param {og.scene.RenderNode} renderNode - Render node.
      * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
-     * @returns {og.EntityCollection}
+     * @returns {og.EntityCollection} -
      */
     addTo(renderNode, isHidden) {
         if (!this.renderNode) {
@@ -515,7 +515,7 @@ class EntityCollection {
      */
     remove() {
         if (this.renderNode) {
-            if (this._renderNodeIndex != -1) {
+            if (this._renderNodeIndex !== -1) {
                 this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
                 //reindex in the renderNode
                 for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
@@ -529,9 +529,9 @@ class EntityCollection {
     }
 
     /**
-     * Gets entities.
+     * Gets entity array.
      * @public
-     * @returns {Array.<og.Entity>}
+     * @returns {Array.<og.Entity>} -
      */
     getEntities() {
         return [].concat(this._entities);

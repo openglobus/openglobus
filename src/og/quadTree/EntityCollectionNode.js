@@ -245,9 +245,14 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
     }
 
     var ec = this.entityCollection;
+
     ec._fadingOpacity = l._fadingOpacity;
     ec.scaleByDistance = l.scaleByDistance;
-    outArr.push(this.entityCollection);
+
+    ec.polygonOffsetFactor = l.polygonOffsetFactor;
+    ec.polygonOffsetUnits = l.polygonOffsetUnits;
+    
+    outArr.push(ec);
 
     if (l.clampToGround || l.relativeToGround) {
         var e = ec._entities;
