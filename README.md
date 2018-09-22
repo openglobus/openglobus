@@ -15,7 +15,7 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
   
 ### Build Complete Library
 
-Run **/build.bat** or **npm run build** see package.json scripts
+Run **/build.all.bat** or **npm run build** see package.json scripts
 
 ### Build og.core (rendering engine) stand-alone
 
