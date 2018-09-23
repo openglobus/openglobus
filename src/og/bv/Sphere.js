@@ -32,11 +32,12 @@ class Sphere {
 
     /**
      * Sets bounding sphere coordinates by the bounds array.
-     * @param {Array.<number>} bounds - Bounds is an array where [minX, maxX, minY, maxY, minZ, maxZ]
+     * @param {Array.<number>} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
     setFromBounds(bounds) {
-        this.center.set(bounds[0] + (bounds[1] - bounds[0]) / 2, bounds[2] + (bounds[3] - bounds[2]) / 2, bounds[4] + (bounds[5] - bounds[4]) / 2);
-        this.radius = this.center.distance(new Vec3(bounds[0], bounds[2], bounds[4]));
+        let m = new Vec3(bounds[0], bounds[1], bounds[2]);
+        this.center.set(m.x + (bounds[3] - m.x) * 0.5, m.y + (bounds[3] - m.y) * 0.5, m.z + (bounds[5] - m.z) * 0.5);
+        this.radius = this.center.distance(m);
     }
 
     /**

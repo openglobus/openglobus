@@ -239,9 +239,6 @@ class Vector extends Layer {
             entity._layerIndex = this._entities.length;
             this._entities.push(entity);
 
-
-            this._fitExtent(entity);
-
             //
             //...pointCloud, shape, model etc.
             //
@@ -259,10 +256,11 @@ class Vector extends Layer {
 
             if (entity.billboard || entity.label) {
                 if (this._planet) {
-                    if (!entity._lonlat) {
-                        entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
-                    } else {
+
+                    if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
                         entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonlat));
+                    } else {
+                        entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                     }
 
                     //north tree
@@ -276,6 +274,8 @@ class Vector extends Layer {
                     }
                 }
             }
+
+            this._fitExtent(entity);
 
             this.events.dispatch(this.events.entityadd, entity);
         }

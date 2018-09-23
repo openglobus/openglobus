@@ -52,6 +52,10 @@ const LonLat = function (lon, lat, height) {
     this.height = height || 0;
 };
 
+LonLat.prototype.isZero = function () {
+    return this.lon === 0.0 && this.lat === 0.0 && this.height === 0.0;
+};
+
 /**
  * Creates coordinates array.
  * @static

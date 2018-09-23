@@ -201,7 +201,7 @@ class EntityCollection {
         this._counter = n;
     }
 
-    setPolygonOffset(factor, units){
+    setPolygonOffset(factor, units) {
         this.polygonOffsetFactor = factor;
         this.polygonOffsetUnits = units;
     }
@@ -311,7 +311,9 @@ class EntityCollection {
             var rn = this.renderNode;
             if (rn) {
                 rn.renderer && rn.renderer.assignPickingColor(entity);
-                rn.ellipsoid && entity._lonlat && entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonlat));
+                if (rn.ellipsoid && entity._cartesian.isZero()) {
+                    entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonlat));
+                }
             }
             this._addRecursively(entity);
         }
