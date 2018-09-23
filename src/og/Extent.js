@@ -308,7 +308,7 @@ Extent.prototype.getCartesianBounds = function (ellipsoid) {
         if (z > zmax) zmax = z;
     }
 
-    return [xmin, xmax, ymin, ymax, zmin, zmax];
+    return [xmin, ymin, zmin, xmax, ymax, zmax];
 };
 
 Extent.prototype.toString = function () {

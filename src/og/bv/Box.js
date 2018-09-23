@@ -11,32 +11,38 @@ import { Vec3 } from '../math/Vec3.js';
  * @class
  */
 class Box {
-    constructor() {
+    constructor(bounds) {
         /**
          * Vertices array.
          * @public
          * @type{Array.<og.Vec3>}
          */
         this.vertices = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
+
+        if (bounds) {
+            this.setFromBounds(bounds);
+        }
     }
 
     /**
      * Sets bounding box coordinates by the bounds array.
-     * @param {Array.<number>} bounds - Bounds is an array where [minX, maxX, minY, maxY, minZ, maxZ]
+     * @param {Array.<number>} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
     setFromBounds(bounds) {
-        var xmin = bounds[0], xmax = bounds[1],
-            ymin = bounds[2], ymax = bounds[3],
-            zmin = bounds[4], zmax = bounds[5];
+        var xmin = bounds[0], xmax = bounds[3],
+            ymin = bounds[1], ymax = bounds[4],
+            zmin = bounds[2], zmax = bounds[5];
 
-        this.vertices[0].set(xmin, ymin, zmin);
-        this.vertices[1].set(xmax, ymin, zmin);
-        this.vertices[2].set(xmax, ymin, zmax);
-        this.vertices[3].set(xmin, ymin, zmax);
-        this.vertices[4].set(xmin, ymax, zmin);
-        this.vertices[5].set(xmax, ymax, zmin);
-        this.vertices[6].set(xmax, ymax, zmax);
-        this.vertices[7].set(xmin, ymax, zmax);
+        var v = this.vertices;
+
+        v[0].set(xmin, ymin, zmin);
+        v[1].set(xmax, ymin, zmin);
+        v[2].set(xmax, ymin, zmax);
+        v[3].set(xmin, ymin, zmax);
+        v[4].set(xmin, ymax, zmin);
+        v[5].set(xmax, ymax, zmin);
+        v[6].set(xmax, ymax, zmax);
+        v[7].set(xmin, ymax, zmax);
     }
 
     /**

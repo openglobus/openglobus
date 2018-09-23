@@ -34,6 +34,8 @@ class PlannerControl extends Control {
 
         this._pointCounter = 0;
 
+        this._minRadius = 549755748352.0;
+
         this._containerTemplate =
             '<div class="pl-list"></div>';
 
@@ -117,7 +119,7 @@ class PlannerControl extends Control {
         this.planet.renderer.addRenderNode(this._interiorStrip);
     }
 
-    addPoint(lonlat) {
+    addPoint(lonlat, cart) {
 
         this._pointCounter++;
 
@@ -147,7 +149,7 @@ class PlannerControl extends Control {
 
         let pointEntity = new Entity({
             'name': id,
-            'lonlat': lonlat,
+            'cartesian': cart,
             'billboard': {
                 'src': 'marker.png',
                 'size': [22, 22],
@@ -179,6 +181,12 @@ class PlannerControl extends Control {
         this._spinLayer.add(spinEntity);
 
         this._trackEntity.polyline.addPointLonLat(lonlat);
+
+        var d = pointEntity.getCartesian().length();
+
+        if(d < this._minRadius){
+            this._minRadius = d;
+        }
     }
 
     _removePointEntity(entity) {
@@ -265,7 +273,7 @@ class PlannerControl extends Control {
         }, this.planet);
 
         this.planet.renderer.events.on("lclick", function (e) {
-            _this.addPoint(_this.planet.getLonLatFromPixelTerrain(e));
+            _this.addPoint(_this.planet.getLonLatFromPixelTerrain(e), _this.planet.getCartesianFromMouseTerrain());
         });
 
         this._pointLayer.events.on("rclick", function (e) {
@@ -275,27 +283,29 @@ class PlannerControl extends Control {
 
     _initDraw() {
         this.planet.events.on("draw", function () {
-
-            var track = this._trackEntity.polyline;
-
-            var interiorVerts = [];
-
-            this._pointLayer.each((p, i) => {
-                let v = p.getCartesian();
-                track.setPoint3v(v, i, 0);
-
-                let g = v.normal().scale(6368100.0);
-                interiorVerts.push(v.x, v.y, v.z, g.x, g.y, g.z);
-            });
-
-            if (this._pointLayer._entities.length > 2) {
-                interiorVerts.push(interiorVerts[0], interiorVerts[1], interiorVerts[2],
-                    interiorVerts[3], interiorVerts[4], interiorVerts[5]);
-            }
-
-            this._interiorStrip.setCoordinates(interiorVerts);
-
+            this._redrawTrack(0);
         }, this);
+    }
+
+    _redrawTrack() {
+        var track = this._trackEntity.polyline;
+
+        var interiorVerts = [];
+
+        this._pointLayer.each((p, i) => {
+            let v = p.getCartesian();
+            track.setPoint3v(v, i, 0);
+
+            let g = v.normal().scale(this._minRadius - 500.0);
+            interiorVerts.push(v.x, v.y, v.z, g.x, g.y, g.z);
+        });
+
+        if (this._pointLayer._entities.length > 2) {
+            interiorVerts.push(interiorVerts[0], interiorVerts[1], interiorVerts[2],
+                interiorVerts[3], interiorVerts[4], interiorVerts[5]);
+        }
+
+        this._interiorStrip.setCoordinates(interiorVerts);
     }
 
     onadd() {

@@ -383,7 +383,7 @@ class Camera {
         this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (this._viewAngle * math.RADIANS);
 
         this._projectionMatrix.setPerspective(angle, aspect, near, far);
-        this._projectionMatrixPrecise.setPerspective(angle, aspect, 0.1, 10);
+        this._projectionMatrixPrecise.setPerspective(angle, aspect, 1.0, 100.0);
     }
 
     /**
@@ -501,8 +501,8 @@ class Camera {
         var px = (x - w) / w,
             py = -(y - h) / h;
 
-        var world1 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1, 1)).affinity(),
-            world2 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0, 1)).affinity();
+        var world1 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            world2 = this._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
 
         return world2.subA(world1).toVec3().normalize();
     }
