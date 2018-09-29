@@ -1,7 +1,3 @@
-/**
- * @module og/utils/ImagesCacheManager
- */
-
 'use strict';
 
 import { QueueArray } from '../QueueArray.js';
@@ -26,7 +22,7 @@ class ImagesCacheManager {
                 this._exec(req);
             }
         }
-    };
+    }
 
     _exec(req) {
         this._counter++;
@@ -68,6 +64,6 @@ class ImagesCacheManager {
             }
         }
     }
-};
+}
 
 export { ImagesCacheManager };

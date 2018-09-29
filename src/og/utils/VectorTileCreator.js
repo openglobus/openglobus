@@ -25,7 +25,7 @@ const VectorTileCreator = function (planet, maxFrames, width, height) {
 VectorTileCreator.prototype._initialize = function () {
 
     //Line
-    if (!this._handler.Programs.vectorTileLineRasterization) {
+    if (!this._handler.programs.vectorTileLineRasterization) {
         this._handler.addProgram(new Program("vectorTileLineRasterization", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
@@ -117,7 +117,7 @@ VectorTileCreator.prototype._initialize = function () {
     }
 
     //Polygon
-    if (!this._handler.Programs.vectorTilePolygonRasterization) {
+    if (!this._handler.programs.vectorTilePolygonRasterization) {
         this._handler.addProgram(new Program("vectorTilePolygonRasterization", {
             uniforms: {
                 'extentParams': { type: types.VEC4 }
@@ -161,8 +161,8 @@ VectorTileCreator.prototype.frame = function () {
         gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var hLine = h.Programs.vectorTileLineRasterization,
-            hPoly = h.Programs.vectorTilePolygonRasterization;
+        var hLine = h.programs.vectorTileLineRasterization,
+            hPoly = h.programs.vectorTilePolygonRasterization;
 
         var _w = this._width,
             _h = this._height,

@@ -93,11 +93,11 @@ class BillboardHandler {
 
     initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.Programs.billboard) {
+            if (!this._renderer.handler.programs.billboard) {
                 var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
                 this._renderer.handler.addProgram(shaders.billboard(isSingleBuffer));
             }
-            if (!this._renderer.handler.Programs.billboardPicking) {
+            if (!this._renderer.handler.programs.billboardPicking) {
                 this._renderer.handler.addProgram(shaders.billboardPicking());
             }
         }
@@ -232,8 +232,8 @@ class BillboardHandler {
     _displayPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.Programs.billboard.activate();
-        var sh = h.Programs.billboard._program;
+        h.programs.billboard.activate();
+        var sh = h.programs.billboard._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -285,8 +285,8 @@ class BillboardHandler {
     _pickingPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.Programs.billboardPicking.activate();
-        var sh = h.Programs.billboardPicking._program;
+        h.programs.billboardPicking.activate();
+        var sh = h.programs.billboardPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

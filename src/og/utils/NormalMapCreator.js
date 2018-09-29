@@ -182,7 +182,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
         var f = this._framebuffer;
-        var p = h.Programs.normalMap;
+        var p = h.programs.normalMap;
         var sha = p._program.attributes;
 
         f.bindOutputTexture(this._normalMapVerticesTexture);
@@ -205,7 +205,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         //
         f.bindOutputTexture(outTexture);
 
-        p = h.Programs.normalMapBlur;
+        p = h.programs.normalMapBlur;
 
         p.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
@@ -240,7 +240,7 @@ NormalMapCreator.prototype._drawNormalMapNotBlur = function (segment) {
         var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
         var f = this._framebuffer;
-        var p = h.Programs.normalMap;
+        var p = h.programs.normalMap;
         var sha = p._program.attributes;
 
         f.bindOutputTexture(outTexture);

@@ -399,7 +399,7 @@ class BaseShape {
                 gl = r.handler.gl;
 
             if (rn.lightEnabled) {
-                sh = r.handler.Programs.shape_wl;
+                sh = r.handler.programs.shape_wl;
                 p = sh._program;
                 sha = p.attributes,
                     shu = p.uniforms;
@@ -416,7 +416,7 @@ class BaseShape {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
                 gl.vertexAttribPointer(sha.aVertexNormal, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
             } else {
-                sh = r.handler.Programs.shape_nl;
+                sh = r.handler.programs.shape_nl;
                 p = sh._program;
                 sha = p.attributes,
                     shu = p.uniforms;

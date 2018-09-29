@@ -20,7 +20,7 @@
         import * as math from '../../src/og/math.js';
         import { Axes } from '../../src/og/scene/Axes.js';
         import { RenderNode } from '../../src/og/scene/RenderNode.js';
-        import { ShaderProgram } from '../../src/og/webgl/ShaderProgram.js';
+        import { Program } from '../../src/og/webgl/Program.js';
         import { Handler } from '../../src/og/webgl/Handler.js';
         import { Renderer } from '../../src/og/renderer/Renderer.js';
         import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
@@ -52,7 +52,7 @@
             initialization() {
 
                 //Initialize shader program
-                this.renderer.handler.addShaderProgram(new ShaderProgram("myShader", {
+                this.renderer.handler.addProgram(new Program("myShader", {
                     'uniforms': {
                         'uMVMatrix': 'mat4',
                         'uPMatrix': 'mat4',
@@ -195,7 +195,7 @@
             frame() {
 
                 var r = this.renderer;
-                var sh = r.handler.shaderPrograms.myShader;
+                var sh = r.handler.programs.myShader;
                 var p = sh._program;
                 var gl = r.handler.gl;
 

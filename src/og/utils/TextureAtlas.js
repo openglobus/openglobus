@@ -1,7 +1,3 @@
-/**
- * @module og/utils/TextureAtlas
- */
-
 'use strict';
 
 import { ImageCanvas } from '../ImageCanvas.js';
@@ -17,8 +13,8 @@ import { ImagesCacheManager } from './ImagesCacheManager.js';
 const BORDER_SIZE = 4;
 
 /**
- * Texture atlas stores images in one texture. Each image has texture 
- * coordinates returned with node creation by addImage function.
+ * Texture atlas stores images in one texture. Each image has its own 
+ * atlas texture coordinates.
  * @class
  * @param {number} [width] - Texture atlas width, if it hasn't 1024 default.
  * @param {number} [height] - Texture atlas height, if it hasn't 1024 default..
@@ -57,7 +53,7 @@ class TextureAtlas {
     /**
      * Returns atlas javascript image object.
      * @public
-     * @returns {Object}
+     * @returns {Object} -
      */
     getImage() {
         return this.canvas.getImage();
@@ -66,7 +62,7 @@ class TextureAtlas {
     /**
      * Returns canvas object.
      * @public
-     * @retuns {Object}
+     * @returns {Object} -
      */
     getCanvas() {
         return this.canvas._canvas;
@@ -93,7 +89,7 @@ class TextureAtlas {
     /**
      * Returns image diagonal size.
      * @param {Object} image - JavaSript image object.
-     * @returns {number}
+     * @returns {number} -
      */
     getDiagonal(image) {
         var w = image.atlasWidth || image.width,
@@ -107,7 +103,7 @@ class TextureAtlas {
      * @param {Object} image - Input javascript image object.
      * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
      * and store image in the curent atlas sheme.
-     * @returns {og.utils.TextureAtlasNode}
+     * @returns {og.utils.TextureAtlasNode} -
      */
     addImage(image, fastInsert) {
 
@@ -122,10 +118,6 @@ class TextureAtlas {
         return this.nodes[image.__nodeIndex];
     }
 
-    /**
-     * Calculate texture coordianates and stores node.
-     * @private
-     */
     _completeNode(nodes, node) {
         if (node) {
             var w = this.canvas.getWidth(),
@@ -167,10 +159,10 @@ class TextureAtlas {
     _makeAtlas(fastInsert) {
 
         if (fastInsert && this._btree) {
-            var im = this._images[this._images.length - 1];
+            let im = this._images[this._images.length - 1];
             this._completeNode(this.nodes, this._btree.insert(im));
         } else {
-            var im = this._images.slice(0);
+            let im = this._images.slice(0);
 
             im.sort(function (b, a) {
                 return ((a.atlasWidth || a.width) - (b.atlasWidth || b.width)) || ((a.atlasHeight || a.height) - (b.atlasHeight || b.height));
@@ -214,14 +206,29 @@ class TextureAtlas {
      * @param {Object~successCallback} success - The callback that handles the image loads done.
      */
     loadImage(src, success) {
-        this._imagesCacheManager.load(src, success);
+        let _this = this;
+        this._imagesCacheManager.load(src, (img) => {
+            let isNew = false;
+            if (!_this.nodes[img.__nodeIndex]) {
+                isNew = true;
+                _this.addImage(img);
+                _this.createTexture();
+            }
+            success.call(_this, img, _this.nodes[img.__nodeIndex].texCoords, isNew);
+        });
     }
-};
+
+    getImageTexCoordinates(img) {
+        if (img.__nodeIndex != null && this.nodes[img.__nodeIndex]) {
+            return this.nodes[img.__nodeIndex].texCoords;
+        }
+    }
+}
 
 /**
  * Atlas binary tree node.
  * @class
- * @prarm {og.Rectangle} rect - Node image rectangle.
+ * @param {og.Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
     constructor(rect) {
@@ -232,10 +239,6 @@ class TextureAtlasNode {
         this.atlas = null;
     }
 
-    /**
-     * This algorithm has got from here:
-     * http://www.blackpawn.com/texts/lightmaps/default.html
-     */
     insert(img) {
 
         if (this.childNodes) {
@@ -284,6 +287,6 @@ class TextureAtlasNode {
             return this.childNodes[0].insert(img);
         }
     }
-};
+}
 
 export { TextureAtlas };

@@ -76,6 +76,8 @@ import { Events } from './Events.js';
 import { Axes } from './scene/Axes.js';
 import { RenderNode } from './scene/RenderNode.js';
 
+import { TextureAtlas } from './utils/TextureAtlas.js';
+
 const scene = {
     'Axes': Axes
 };
@@ -105,6 +107,7 @@ export {
     Plane,
     Quat,
     Ray,
+    TextureAtlas,
     Vec2,
     Vec3,
     Vec4,

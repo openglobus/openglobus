@@ -456,7 +456,7 @@ Renderer.prototype.draw = function () {
 
 Renderer.prototype._multiframebufferScreenFrame = function () {
     var h = this.handler;
-    var sh = h.Programs.screenFrame,
+    var sh = h.programs.screenFrame,
         p = sh._program,
         gl = h.gl;
 
@@ -475,7 +475,7 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
 
 Renderer.prototype._singleframebufferScreenFrame = function () {
     var h = this.handler;
-    var sh = h.Programs.screenFrame,
+    var sh = h.programs.screenFrame,
         p = sh._program,
         gl = h.gl;
 
