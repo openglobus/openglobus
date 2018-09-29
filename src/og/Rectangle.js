@@ -1,7 +1,3 @@
-/**
- * @module og/Rectangle
- */
-
 'use strict';
 
 /**
@@ -101,6 +97,6 @@ class Rectangle {
     fit(width, height) {
         return (this.getWidth() == width && this.getHeight() == height);
     }
-};
+}
 
 export { Rectangle };

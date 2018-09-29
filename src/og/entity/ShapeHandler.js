@@ -38,13 +38,13 @@ class ShapeHandler {
 
     _initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.Programs.shape_nl) {
+            if (!this._renderer.handler.programs.shape_nl) {
                 this._renderer.handler.addProgram(shaders.shape_nl());
             }
-            if (!this._renderer.handler.Programs.shape_wl) {
+            if (!this._renderer.handler.programs.shape_wl) {
                 this._renderer.handler.addProgram(shaders.shape_wl());
             }
-            //if (!this._renderer.handler.Programs.shapePicking) {
+            //if (!this._renderer.handler.programs.shapePicking) {
             //    this._renderer.handler.addProgram(shaders.shapePicking());
             //}
         }

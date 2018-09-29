@@ -180,7 +180,7 @@ class ImageCanvas {
      * @param {string} url - Image url.
      * @pararm {imageCallback} [callback] - Image onload callback.
      */
-    loadImage(url, callback) {
+    load(url, callback) {
         var img = new Image();
         var that = this;
         img.onload = function () {

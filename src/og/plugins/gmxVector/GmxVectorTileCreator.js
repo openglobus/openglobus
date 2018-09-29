@@ -80,7 +80,7 @@ GmxVectorTileCreator.appendLineData = function (pathArr, isClosed, outVertices, 
 GmxVectorTileCreator.prototype._initialize = function () {
 
     //Line
-    if (!this._handler.Programs.gmxVectorTileLineRasterization) {
+    if (!this._handler.programs.gmxVectorTileLineRasterization) {
         this._handler.addProgram(new Program("gmxVectorTileLineRasterization", {
             uniforms: {
                 'viewport': { type: types.VEC2 },
@@ -169,7 +169,7 @@ GmxVectorTileCreator.prototype._initialize = function () {
     }
 
     //Polygon
-    if (!this._handler.Programs.gmxVectorTilePolygonRasterization) {
+    if (!this._handler.programs.gmxVectorTilePolygonRasterization) {
         this._handler.addProgram(new Program("gmxVectorTilePolygonRasterization", {
             uniforms: {
                 'extentParams': { type: types.VEC4 },
@@ -215,8 +215,8 @@ GmxVectorTileCreator.prototype.frame = function () {
         const h = this._handler;
         const gl = h.gl;
         const p = this._planet;
-        const hLine = h.Programs.gmxVectorTileLineRasterization;
-        const hPoly = h.Programs.gmxVectorTilePolygonRasterization;
+        const hLine = h.programs.gmxVectorTileLineRasterization;
+        const hPoly = h.programs.gmxVectorTilePolygonRasterization;
 
         const f = this._framebuffer.activate();
 

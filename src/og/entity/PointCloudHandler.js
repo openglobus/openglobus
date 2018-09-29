@@ -53,7 +53,7 @@ class PointCloudHandler {
 
     _initProgram() {
         if (this._renderer.handler) {
-            if (!this._renderer.handler.Programs.pointCloud) {
+            if (!this._renderer.handler.programs.pointCloud) {
                 this._renderer.handler.addProgram(shaders.pointCloud());
             }
         }

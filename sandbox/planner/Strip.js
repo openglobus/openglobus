@@ -65,7 +65,7 @@ class Strip extends RenderNode {
 
             var gl = r.handler.gl;
 
-            var sh = r.handler.Programs.strip,
+            var sh = r.handler.programs.strip,
                 p = sh._program,
                 sha = p.attributes,
                 shu = p.uniforms;

@@ -1,7 +1,3 @@
-/**
- * @module og/QueueArray
- */
-
 'use strict';
 
 class QueueArray {

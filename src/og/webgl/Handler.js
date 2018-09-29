@@ -76,7 +76,7 @@ const Handler = function (id, params) {
      * @public
      * @type {Object.<og.webgl.ProgramController>}
      */
-    this.Programs = {};
+    this.programs = {};
 
     /**
      * Current active shader program controller.
@@ -425,9 +425,9 @@ Handler.prototype.loadCubeMapTexture = function (params) {
  * @return {og.webgl.Program} -
  */
 Handler.prototype.addProgram = function (program, notActivate) {
-    if (!this.Programs[program.name]) {
+    if (!this.programs[program.name]) {
         var sc = new ProgramController(this, program);
-        this.Programs[program.name] = sc;
+        this.programs[program.name] = sc;
         this._initProgramController(sc);
         if (notActivate)
             sc._activated = false;
@@ -443,7 +443,7 @@ Handler.prototype.addProgram = function (program, notActivate) {
  * @param {String} name - Shader program name.
  */
 Handler.prototype.removeProgram = function (name) {
-    this.Programs[name] && this.Programs[name].remove();
+    this.programs[name] && this.programs[name].remove();
 }
 
 /**
@@ -481,8 +481,8 @@ Handler.prototype._initProgramController = function (sc) {
  * @private
  */
 Handler.prototype._initPrograms = function () {
-    for (var p in this.Programs) {
-        this._initProgramController(this.Programs[p]);
+    for (var p in this.programs) {
+        this._initProgramController(this.programs[p]);
     }
 }
 
@@ -829,7 +829,7 @@ Handler.prototype.destroy = function () {
 
     this.stop();
 
-    for (var p in this.Programs) {
+    for (var p in this.programs) {
         this.removeProgram(p);
     }
 

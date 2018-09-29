@@ -129,7 +129,7 @@
         import { GeoTexture2d } from '../../src/og/layer/GeoTexture2d.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
         import { Framebuffer } from '../../src/og/webgl/Framebuffer.js';
-        import { ShaderProgram } from '../../src/og/webgl/ShaderProgram.js';
+        import { Program } from '../../src/og/webgl/Program.js';
 
         let osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
@@ -169,7 +169,7 @@
         geoTex.bindTexture(frameBuffer.texture);
 
         //Attach vector field shader.
-        handler.addShaderProgram(new ShaderProgram("vectorMap", {
+        handler.addProgram(new Program("vectorMap", {
             uniforms: {
                 'iGlobalTime': 'float',
                 'iResolution': 'vec2'
@@ -193,7 +193,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             //Actually a better way to replace this function to native gl.
-            r.handler.shaderPrograms.vectorMap.set({
+            r.handler.programs.vectorMap.set({
                 'aPos': vertBuffer,
                 'iGlobalTime': animCounter += 0.03,
                 'iResolution': [1024, 1024]

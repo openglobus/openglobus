@@ -48,13 +48,13 @@ class Axes extends RenderNode {
 
     frame() {
 
-        this.renderer.handler.Programs.axesShader.activate().set({
+        this.renderer.handler.programs.axesShader.activate().set({
             projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
             aVertexPosition: this.axisBuffer,
             aVertexColor: this.axisColorBuffer
         });
 
-        this.renderer.handler.Programs.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
+        this.renderer.handler.programs.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
     }
 
     createAxisBuffer(gridSize) {

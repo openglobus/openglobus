@@ -205,8 +205,8 @@ class SDFCreator {
 
         this._sourceTexture = h.createTexture_l(sourceCanvas);
 
-        h.Programs.vfield.activate();
-        var sh = h.Programs.vfield._program;
+        h.programs.vfield.activate();
+        var sh = h.programs.vfield._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -231,8 +231,8 @@ class SDFCreator {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         this._framebuffer2.deactivate();
 
-        h.Programs.hfield.activate();
-        var sh = h.Programs.hfield._program;
+        h.programs.hfield.activate();
+        var sh = h.programs.hfield._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -264,8 +264,8 @@ class SDFCreator {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        h.Programs.sum.activate();
-        var sh = h.Programs.sum._program;
+        h.programs.sum.activate();
+        var sh = h.programs.sum._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 

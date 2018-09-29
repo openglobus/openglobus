@@ -7,7 +7,7 @@
 /**
  * This is shader program controller that used by hadler object to access the shader 
  * program capabilities, like switching program during the rendering.
- * Get access to the program from ...handler.Programs.<program name> etc.
+ * Get access to the program from ...handler.programs.<program name> etc.
  * @class
  * @param {og.webgl.Handler} handler - Handler.
  * @param {og.webgl.Program} Program - Shader program.
@@ -76,7 +76,7 @@ ProgramController.prototype.activate = function () {
  * @public
  */
 ProgramController.prototype.remove = function () {
-    var p = this._handler.Programs;
+    var p = this._handler.programs;
     if (p[this._program.name]) {
         if (this._activated) {
             this.deactivate();

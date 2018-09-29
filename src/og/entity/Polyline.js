@@ -1062,7 +1062,7 @@ class Polyline {
 
             var rn = this._renderNode;
             var r = rn.renderer;
-            var sh = r.handler.Programs.polyline;
+            var sh = r.handler.programs.polyline;
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,
@@ -1109,7 +1109,7 @@ class Polyline {
 
             var rn = this._renderNode;
             var r = rn.renderer;
-            var sh = r.handler.Programs.polyline;
+            var sh = r.handler.programs.polyline;
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,

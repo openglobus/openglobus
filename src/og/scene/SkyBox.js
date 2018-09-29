@@ -41,8 +41,8 @@ class SkyBox extends RenderNode {
         var cam = this.renderer.activeCamera;
         gl.disable(h.gl.DEPTH_TEST);
 
-        h.Programs.skybox.activate();
-        sh = h.Programs.skybox._program;
+        h.programs.skybox.activate();
+        sh = h.programs.skybox._program;
         var shu = sh.uniforms;
         gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam._projectionViewMatrix._m);
         gl.uniform3fv(shu.pos, cam.eye.toVec());
