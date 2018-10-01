@@ -206,16 +206,7 @@ class TextureAtlas {
      * @param {Object~successCallback} success - The callback that handles the image loads done.
      */
     loadImage(src, success) {
-        let _this = this;
-        this._imagesCacheManager.load(src, (img) => {
-            let isNew = false;
-            if (!_this.nodes[img.__nodeIndex]) {
-                isNew = true;
-                _this.addImage(img);
-                _this.createTexture();
-            }
-            success.call(_this, img, _this.nodes[img.__nodeIndex].texCoords, isNew);
-        });
+        this._imagesCacheManager.load(src, success);
     }
 
     getImageTexCoordinates(img) {

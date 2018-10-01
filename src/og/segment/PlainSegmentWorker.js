@@ -1,7 +1,3 @@
-/**
- * @module og/segment/PlainSegmentWorker
- */
-
 'use sctrict';
 
 import { QueueArray } from '../QueueArray.js';

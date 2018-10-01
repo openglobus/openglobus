@@ -1,7 +1,3 @@
-/**
- * @module og/segment/segmentHelper
- */
-
 'use sctrict';
 
 import * as quadTree from '../quadTree/quadTree.js';
