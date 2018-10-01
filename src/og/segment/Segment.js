@@ -1,7 +1,3 @@
-/**
- * @module og/segment/Segment
- */
-
 'use sctrict';
 
 import * as math from '../math.js';
