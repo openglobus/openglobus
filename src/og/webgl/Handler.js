@@ -35,6 +35,8 @@ const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
  */
 const Handler = function (id, params) {
 
+    params = params || {};
+
     /**
      * Application default timer.
      * @public

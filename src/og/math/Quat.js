@@ -193,7 +193,7 @@ Quat.getRotationBetweenVectorsUp = function (source, dest, up) {
     var rotAngle = Math.acos(dot);
     var rotAxis = source.cross(dest).normalize();
     return Quat.axisAngleToQuat(rotAxis, rotAngle);
-};   
+};
 
 /**
  * Clear Quat. Sets zeroes.
@@ -298,7 +298,7 @@ Quat.prototype.toVec = function () {
 };
 
 /**
- * Sets current cuaternion by spherical coordinates.
+ * Sets current quaternion by spherical coordinates.
  * @public
  * @param {number} lat - Latitude.
  * @param {number} lon - Longitude.
@@ -391,23 +391,20 @@ Quat.prototype.getAxisAngle = function () {
  * @returns {og.Quat} -
  */
 Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
-    var ex, ey, ez;
-    var cr, cp, cy, sr, sp, sy, cpcy, spsy;
+    var ex = pitch * math.RADIANS_HALF,
+        ey = yaw * mathRADIANS_HALF,
+        ez = roll * math.RADIANS_HALF;
 
-    ex = pitch * math.RADIANS / 2.0;
-    ey = yaw * math.RADIANS / 2.0;
-    ez = roll * math.RADIANS / 2.0;
+    var cr = Math.cos(ex),
+        cp = Math.cos(ey),
+        cy = Math.cos(ez);
 
-    cr = Math.cos(ex);
-    cp = Math.cos(ey);
-    cy = Math.cos(ez);
+    var sr = Math.sin(ex),
+        sp = Math.sin(ey),
+        sy = Math.sin(ez);
 
-    sr = Math.sin(ex);
-    sp = Math.sin(ey);
-    sy = Math.sin(ez);
-
-    cpcy = cp * cy;
-    spsy = sp * sy;
+    var cpcy = cp * cy,
+        spsy = sp * sy;
 
     this.w = cr * cpcy + sr * spsy;
     this.x = sr * cpcy - cr * spsy;
@@ -482,18 +479,31 @@ Quat.prototype.setFromMatrix4 = function (m) {
 Quat.prototype.getMat4 = function () {
     var m = new Mat4();
     var mx = m._m;
-    var c = this.x, d = this.y, e = this.z, g = this.w, f = c + c, h = d + d, i = e + e, j = c * f, k = c * h;
+    var c = this.x,
+        d = this.y,
+        e = this.z,
+        g = this.w,
+        f = c + c,
+        h = d + d,
+        i = e + e,
+        j = c * f,
+        k = c * h;
+
     c = c * i;
+
     var l = d * h;
+
     d = d * i;
     e = e * i;
     f = g * f;
     h = g * h;
     g = g * i;
+
     mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h; mx[3] = 0;
     mx[4] = k + g; mx[5] = 1 - (j + e); mx[6] = d - f; mx[7] = 0;
     mx[8] = c - h; mx[9] = d + f; mx[10] = 1 - (j + l); mx[11] = 0;
     mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
+    
     return m;
 };
 
@@ -545,7 +555,7 @@ Quat.prototype.conjugate = function () {
  * Computes the inverse of the Quat.
  * @public
  * @returns {og.Quat} -
- */ 
+ */
 Quat.prototype.inverse = function () {
     var n = 1 / this.magnitude2();
     return new Quat(-this.x * n, -this.y * n, -this.z * n, this.w * n);

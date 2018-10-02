@@ -143,19 +143,19 @@ class Frustum {
 
         for (var i = 0; i < 6; i++) {
             cout = 0; cin = 0;
-            for (var k = 0; k < 8 && (cin == 0 || cout == 0); k++) {
+            for (var k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
                 var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
                 if (d < 0)
                     cout++;
                 else
                     cin++;
             }
-            if (cin == 0)
+            if (cin === 0)
                 return false;
             else if (cout > 0)
                 result = true;
         }
-        return (result);
+        return result;
     }
 };
 
