@@ -1,12 +1,14 @@
-/**
- * @module og/math/Plane
- */
-
 'use strict';
 
 import * as math from '../math.js';
 import { Vec3 } from './Vec3.js';
 
+/**
+ * Plane class.
+ * @constructor
+ * @param {og.Vec3} [p] - Plane point.
+ * @param {og.Vec3} [n] - Planet normal.
+ */
 class Plane {
     constructor(p, n) {
         this.p = (p ? p.clone() : new Vec3());
@@ -19,7 +21,11 @@ class Plane {
     }
 
     getNormal() {
-        return this.n;
+        return this.n.clone();
+    }
+
+    getProjection(v, def){
+        return Vec3.proj_b_to_plane(v, this.n, def);
     }
 
     getIntersection(Pn1, Pn2, L) {
@@ -83,6 +89,6 @@ class Plane {
         L.p1.copy(iP.add(u));
         return 2;
     }
-};
+}
 
 export { Plane };

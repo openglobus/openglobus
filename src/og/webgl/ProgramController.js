@@ -1,7 +1,3 @@
-/**
- * @module og/webgl/ProgramController
- */
-
 'use strict';
 
 /**
@@ -10,16 +6,16 @@
  * Get access to the program from ...handler.programs.<program name> etc.
  * @class
  * @param {og.webgl.Handler} handler - Handler.
- * @param {og.webgl.Program} Program - Shader program.
+ * @param {og.webgl.Program} program - Shader program.
  */
-const ProgramController = function (handler, Program) {
+const ProgramController = function (handler, program) {
 
     /**
      * Shader program.
      * @private
      * @type {og.webgl.Program}
      */
-    this._program = Program;
+    this._program = program;
 
     /**
      * Handler.
@@ -43,7 +39,7 @@ const ProgramController = function (handler, Program) {
  */
 ProgramController.prototype.initialize = function () {
     this._program.createProgram(this._handler.gl);
-}
+};
 
 /**
  * Returns controller's shader program.
@@ -52,7 +48,7 @@ ProgramController.prototype.initialize = function () {
  */
 ProgramController.prototype.getProgram = function () {
     return this._program;
-}
+};
 
 /**
  * Activates current shader program.
@@ -69,7 +65,7 @@ ProgramController.prototype.activate = function () {
         p.use();
     }
     return this;
-}
+};
 
 /**
  * Remove program from handler
@@ -85,7 +81,7 @@ ProgramController.prototype.remove = function () {
         p[this._program.name] = null;
         delete p[this._program.name];
     }
-}
+};
 
 /**
  * Deactivate shader program. This is not necessary while activae function used.
@@ -94,7 +90,7 @@ ProgramController.prototype.remove = function () {
 ProgramController.prototype.deactivate = function () {
     this._program.disableAttribArrays();
     this._activated = false;
-}
+};
 
 /**
  * Returns program activity.
@@ -103,7 +99,7 @@ ProgramController.prototype.deactivate = function () {
  */
 ProgramController.prototype.isActive = function () {
     return this._activated;
-}
+};
 
 /**
  * Sets program uniforms and attributes values and return controller instance.
@@ -115,7 +111,7 @@ ProgramController.prototype.set = function (params) {
     this.activate();
     this._program.set(params);
     return this;
-}
+};
 
 /**
  * Draw index buffer with this program.
@@ -127,7 +123,7 @@ ProgramController.prototype.set = function (params) {
 ProgramController.prototype.drawIndexBuffer = function (mode, buffer) {
     this._program.drawIndexBuffer(mode, buffer);
     return this;
-}
+};
 
 /**
  * Calls Gl drawArray function.
@@ -135,9 +131,9 @@ ProgramController.prototype.drawIndexBuffer = function (mode, buffer) {
  * @param {number} numItems - draw items count.
  * @return {og.webgl.ProgramController} Returns current shader controller instance.
  */
-ProgramController.prototype.drawArray = function (mode, numItems) {
-    this._program.drawArray(mode, numItems);
+ProgramController.prototype.drawArrays = function (mode, numItems) {
+    this._program.drawArrays(mode, numItems);
     return this;
-}
+};
 
 export { ProgramController };

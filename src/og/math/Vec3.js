@@ -49,6 +49,12 @@ Vec3.FORWARD = new Vec3(0, 0, -1);
 Vec3.BACKWARD = new Vec3(0, 0, 1);
 /** @const */
 Vec3.ZERO = new Vec3();
+/** @const */
+Vec3.UNIT_X =new Vec3(1, 0, 0);
+/** @const */
+Vec3.UNIT_Y =new Vec3(0, 1, 0);
+/** @const */
+Vec3.UNIT_Z =new Vec3(0, 0, 1);
 
 /**
  * Vector 3d object creator.
@@ -65,7 +71,7 @@ export function vec3(x, y, z) {
 /**
  * Creates 3d vector from array.
  * @function
- * @param {Array.<number,number,number>}
+ * @param {Array.<number,number,number>} arr - Input array
  * @returns {og.Vec3} -
  */
 Vec3.fromVec = function (arr) {
@@ -649,5 +655,53 @@ Vec3.prototype.slerp = function (v2, t) {
 
     return Vec3.add(this.scaleTo(scale0), v2.scale(scale1));
 };
+
+/**
+ * Gets the shortest arc quaternion to rotate this vector to the destination vector.
+ * @param {Vec3} dest -
+ * @param {Vec3} fallbackAxis -
+ * @returns {Quat} -
+ * @todo: TEST IT!
+ */
+Vec3.prototype.getRotationTo = function (dest, fallbackAxis) {
+    // Based on Stan Melax's article in Game Programming Gems
+    // Copy, since cannot modify local
+    let v0 = this.clone();
+    let v1 = dest.clone();
+    v0.normalize();
+    v1.normalize();
+
+    let d = v0.dot(v1);
+    // If dot == 1, vectors are the same
+    if (d >= 1.0) {
+        return Quat.IDENTITY.clone();
+    }
+
+    if (d < (1e-6 - 1.0)) {
+        if (!fallbackAxis.isEqual(Vec3.ZERO)) {
+            // rotate 180 degrees about the fallback axis
+            return Quat.axisAngleToQuat(Math.PI, fallbackAxis);
+        }
+        else {
+            // Generate an axis
+            let axis = Vec3.UNIT_X.cross(v0);
+            if (axis.isZero()) // pick another if colinear
+                axis = Vec3.UNIT_Y.cross(v0);
+            axis.normalize();
+            return Quat.axisAngleToQuat(Math.PI, axis);
+        }
+    }
+    else {
+        let s = Math.sqrt((1 + d) * 2);
+        let invs = 1.0 / s;
+
+        let c = v0.cross(v1);
+
+        let q = new Quat(c.x * invs, c.y * invs, c.z * invs, s * 0.5);
+        q.normalise();
+        return q;
+    }
+};
+
 
 export { Vec3 };
