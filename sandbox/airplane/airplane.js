@@ -17,10 +17,7 @@ class Airplane extends RenderNode {
 
         this._grad = 0;
 
-        this.neheTexture = null;
-
         this.vericesBuffer = null;
-        this.textureCoordsBuffer = null;
         this.indicesBuffer = null;
     }
 
@@ -28,139 +25,43 @@ class Airplane extends RenderNode {
 
         //Initialize shader program
         this.renderer.handler.addProgram(new Program("AirplaneShader", {
-            'uniforms': {
-                'uMVMatrix': 'mat4',
-                'uPMatrix': 'mat4',
-                'uSampler': 'sampler2d'
+            uniforms: {
+                uMVMatrix: 'mat4',
+                uPMatrix: 'mat4'
             },
-            'attributes': {
-                'aVertexPosition': 'vec3',
-                'aTextureCoord': 'vec2'
+            attributes: {
+                aVertexPosition: 'vec3'
             },
-            'vertexShader':
-            'attribute vec3 aVertexPosition;\
-                            attribute vec2 aTextureCoord;\
-                            \
-                            uniform mat4 uMVMatrix;\
-                            uniform mat4 uPMatrix;\
-                            \
-                            varying vec2 vTextureCoord;\
-                            \
-                            void main(void) {\
-                                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\
-                                vTextureCoord = aTextureCoord;\
-                            }'
+            vertexShader:
+                'attribute vec3 aVertexPosition;\
+                \
+                uniform mat4 uMVMatrix;\
+                uniform mat4 uPMatrix;\
+                \
+                void main(void) {\
+                    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\
+                }'
             ,
-            'fragmentShader':
-            'precision mediump float;\
-                            varying vec2 vTextureCoord;\
-                            uniform sampler2D uSampler;\
-                            \
-                            void main(void) {\
-                                gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-                            }'
+            fragmentShader:
+                'precision mediump float;\
+                \
+                void main(void) {\
+                    gl_FragColor = vec4(1.0);\
+                }'
         }));
-
-        //Load texture                
-        this.neheTexture = null;
-        var image = new Image();
-        var that = this;
-        image.onload = function () {
-            that.neheTexture = that.renderer.handler.createTexture_mm(this);
-        };
-        image.src = "nehe.gif";
-
 
         //Create buffers
         var vertices = [
-            // Front face
-            -1.0, -1.0, 1.0,
-            1.0, -1.0, 1.0,
-            1.0, 1.0, 1.0,
-            -1.0, 1.0, 1.0,
-
-            // Back face
-            -1.0, -1.0, -1.0,
-            -1.0, 1.0, -1.0,
-            1.0, 1.0, -1.0,
-            1.0, -1.0, -1.0,
-
-            // Top face
-            -1.0, 1.0, -1.0,
-            -1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0,
-            1.0, 1.0, -1.0,
-
-            // Bottom face
-            -1.0, -1.0, -1.0,
-            1.0, -1.0, -1.0,
-            1.0, -1.0, 1.0,
-            -1.0, -1.0, 1.0,
-
-            // Right face
-            1.0, -1.0, -1.0,
-            1.0, 1.0, -1.0,
-            1.0, 1.0, 1.0,
-            1.0, -1.0, 1.0,
-
-            // Left face
-            -1.0, -1.0, -1.0,
-            -1.0, -1.0, 1.0,
-            -1.0, 1.0, 1.0,
-            -1.0, 1.0, -1.0,
+            -1.0, 0.0, -0.5,
+            0.0, 0.0, 0.5,
+            1.0, 0.0, -0.5
         ];
 
         this.vericesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
 
-
-        var textureCoords = [
-            // Front face
-            0.0, 0.0,
-            1.0, 0.0,
-            1.0, 1.0,
-            0.0, 1.0,
-
-            // Back face
-            1.0, 0.0,
-            1.0, 1.0,
-            0.0, 1.0,
-            0.0, 0.0,
-
-            // Top face
-            0.0, 1.0,
-            0.0, 0.0,
-            1.0, 0.0,
-            1.0, 1.0,
-
-            // Bottom face
-            1.0, 1.0,
-            0.0, 1.0,
-            0.0, 0.0,
-            1.0, 0.0,
-
-            // Right face
-            1.0, 0.0,
-            1.0, 1.0,
-            0.0, 1.0,
-            0.0, 0.0,
-
-            // Left face
-            0.0, 0.0,
-            1.0, 0.0,
-            1.0, 1.0,
-            0.0, 1.0,
-        ];
-
-        this.textureCoordsBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(textureCoords), 2, textureCoords.length / 2);
-
-
         var cubeVertexIndices = [
-            0, 1, 2, 0, 2, 3,    // Front face
-            4, 5, 6, 4, 6, 7,    // Back face
-            8, 9, 10, 8, 10, 11,  // Top face
-            12, 13, 14, 12, 14, 15, // Bottom face
-            16, 17, 18, 16, 18, 19, // Right face
-            20, 21, 22, 20, 22, 23  // Left face
+            0, 1, 2,
+            0, 2, 1
         ];
 
         this.indicesBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, cubeVertexIndices.length);
@@ -185,32 +86,21 @@ class Airplane extends RenderNode {
 
         var modelViewMat = r.activeCamera._viewMatrix.mul(rotate);
 
-        //Sets shader's data
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.neheTexture);
-        gl.uniform1i(p.uniforms.uSampler, 0);
-
         gl.uniformMatrix4fv(p.uniforms.uMVMatrix, false, modelViewMat._m);
         gl.uniformMatrix4fv(p.uniforms.uPMatrix, false, r.activeCamera._projectionMatrix._m);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vericesBuffer);
         gl.vertexAttribPointer(p.attributes.aVertexPosition, this.vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordsBuffer);
-        gl.vertexAttribPointer(p.attributes.aTextureCoord, this.textureCoordsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
         gl.drawElements(gl.TRIANGLES, this.indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 }
 
-let handler = new Handler("frame", {
-    'autoActivate': true
-});
+let handler = new Handler("frame");
 
 let renderer = new Renderer(handler, {
-    'controls': [new SimpleNavigation()],
-    'autoActivate': true
+    'controls': [new SimpleNavigation()]
 });
 
 let airplane = new Airplane();
