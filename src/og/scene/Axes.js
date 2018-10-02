@@ -54,7 +54,7 @@ class Axes extends RenderNode {
             aVertexColor: this.axisColorBuffer
         });
 
-        this.renderer.handler.programs.axesShader.drawArray(this.drawMode, this.axisBuffer.numItems);
+        this.renderer.handler.programs.axesShader.drawArrays(this.drawMode, this.axisBuffer.numItems);
     }
 
     createAxisBuffer(gridSize) {
