@@ -26,16 +26,19 @@ class Airplane extends RenderNode {
 
         this.vericesBuffer = null;
         this.indicesBuffer = null;
+
+        this._position = new Float32Array([0.0, 0.0, 0.0]);
+        this._scale = 1.0;
     }
 
-    refresh() {
-        this._mxModel = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
+    update() {
+        this._mxModel = this._mxTranslation.mul(this.orientation.getMat4().mul(this._mxScale));
     }
 
     setPosition3v(position) {
         this.position.copy(position);
         this._mxTranslation.translateToPosition(position);
-        this.refresh();
+        this.update();
     }
 
     translate3v(vec) {
@@ -133,3 +136,5 @@ renderer.addRenderNodes([airplane, new Axes()]);
 
 window.renderer = renderer;
 window.airplane = airplane;
+window.Vec3 = Vec3;
+window.Quat = Quat;

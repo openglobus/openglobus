@@ -383,7 +383,7 @@ class BaseShape {
      * @public
      */
     refresh() {
-        this._mxModel = this._mxTranslation.mul(this.orientation.getMatrix4().mul(this._mxScale));
+        this._mxModel = this._mxTranslation.mul(this.orientation.getMat4().mul(this._mxScale));
     }
 
     /**

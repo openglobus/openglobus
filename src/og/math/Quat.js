@@ -123,22 +123,55 @@ Quat.axisAngleToQuat = function (axis, angle) {
 /**
  * Computes a rotation from the given heading and up vector.
  * @static
- * @param {og.Vec3} target - Heading target coordinates.
+ * @param {og.Vec3} forward - Heading target coordinates.
  * @param {og.Vec3} up - Up vector.
  * @returns {og.Quat} -
  */
-Quat.getLookAtTargetUp = function (target, up) {
-    var forward = target.normal();
-    // Keeps up the same, make forward orthogonal to up
-    forward = Vec3.OrthoNormalize(up, forward);
-    var right = up.cross(forward);
-    var w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
-    var w4_recip = 1.0 / (4.0 * w);
+Quat.getLookRotation = function (forward, up) {
+
+    var f = forward.normal().negate();
+    var s = (up.cross(f)).normalize();
+    var u = f.cross(s);
+
+    var z = 1.0 + s.x + u.y + f.z;
+
+    if (z > 0.000001) {
+        let fd = 1.0 / (2.0 * Math.sqrt(z));
+        return new Quat(
+            (f.y - u.z) * fd,
+            (s.z - f.x) * fd,
+            (u.x - s.y) * fd,
+            0.25 / fd
+        );
+    }
+
+    if (s.x > u.y && s.x > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
+        return new Quat(
+            0.25 / fd,
+            (u.x + s.y) * fd,
+            (s.z + f.x) * fd,
+            (f.y - u.z) * fd
+        );
+    }
+
+    if (u.y > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
+        return new Quat(
+            (u.x + s.y) * fd,
+            0.25 / fd,
+            (f.y + u.z) * fd,
+            (s.z - f.x) * fd
+        );
+    }
+
+    let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
     return new Quat(
-        (forward.y - up.z) * w4_recip,
-        (right.z - forward.x) * w4_recip,
-        (up.x - right.y) * w4_recip,
-        w);
+        (s.z + f.x) * fd,
+        (f.y + u.z) * fd,
+        0.25 / fd,
+        (u.x - s.y) * fd
+    );
 };
 
 /**
@@ -155,7 +188,7 @@ Quat.getLookAtSourceDest = function (sourcePoint, destPoint) {
         return Quat.axisAngleToQuat(Vec3.UP, Math.PI);
     }
     if (Math.abs(dot - (1.0)) < 0.000001) {
-        return new Quat(0, 0, 0, 1);
+        return new Quat(0.0, 0.0, 0.0, 1.0);
     }
     var rotAngle = Math.acos(dot);
     var rotAxis = Vec3.FORWARD.cross(forwardVector).normalize();
@@ -326,6 +359,54 @@ Quat.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     return this;
 };
 
+
+/**
+ * Sets rotation with the given heading and up vectors.
+ * @static
+ * @param {og.Vec3} forward - Heading target coordinates.
+ * @param {og.Vec3} up - Up vector.
+ * @returns {og.Quat} -
+ */
+Quat.prototype.setLookRotation = function (forward, up) {
+
+    var f = forward.normal().negate();
+    var s = (up.cross(f)).normalize();
+    var u = f.cross(s);
+
+    var z = 1.0 + s.x + u.y + f.z;
+
+    if (z > 0.000001) {
+        let fd = 1.0 / (2.0 * Math.sqrt(z));
+        this.x = (f.y - u.z) * fd;
+        this.y = (s.z - f.x) * fd;
+        this.z = (u.x - s.y) * fd;
+        this.w = 0.25 / fd;
+    }
+    else if (s.x > u.y && s.x > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
+        this.x = 0.25 / fd;
+        this.y = (u.x + s.y) * fd;
+        this.z = (s.z + f.x) * fd;
+        this.w = (f.y - u.z) * fd;
+    }
+    else if (u.y > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
+        this.x = (u.x + s.y) * fd;
+        this.y = 0.25 / fd;
+        this.z = (f.y + u.z) * fd;
+        this.w = (s.z - f.x) * fd;
+    }
+    else {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
+        this.x = (s.z + f.x) * fd;
+        this.y = (f.y + u.z) * fd;
+        this.z = 0.25 / fd;
+        this.w = (u.x - s.y) * fd;
+    }
+
+    return this;
+};
+
 /**
  * Gets spherical coordinates.
  * @public
@@ -399,7 +480,7 @@ Quat.prototype.getAxisAngle = function () {
  */
 Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex = pitch * math.RADIANS_HALF,
-        ey = yaw * mathRADIANS_HALF,
+        ey = yaw * math.RADIANS_HALF,
         ez = roll * math.RADIANS_HALF;
 
     var cr = Math.cos(ex),
