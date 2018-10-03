@@ -2,6 +2,7 @@
 
 import * as math from '../math.js';
 import { Mat4 } from './Mat4.js';
+import { Mat3 } from './Mat3.js';
 import { Vec3 } from './Vec3.js';
 
 /**
@@ -104,36 +105,73 @@ Quat.zRotation = function (a) {
  * Computes a Quat representing a rotation around an axis.
  * @static
  * @param {og.Vec3} axis - The axis of rotation.
- * @param {number} angle The angle in radians to rotate around the axis.
+ * @param {number} [angle=0.0] The angle in radians to rotate around the axis.
  * @returns {og.Quat} -
  */
 Quat.axisAngleToQuat = function (axis, angle) {
-    var res = new Quat();
+    angle = angle || 0.0;
     var v = axis.normal();
     var half_angle = angle * 0.5;
     var sin_a = Math.sin(half_angle);
-    res.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
-    return res;
+    return new Quat(
+        v.x * sin_a,
+        v.y * sin_a,
+        v.z * sin_a,
+        Math.cos(half_angle));
 };
 
 /**
  * Computes a rotation from the given heading and up vector.
  * @static
- * @param {og.Vec3} target - Heading target coordinates.
+ * @param {og.Vec3} forward - Heading target coordinates.
  * @param {og.Vec3} up - Up vector.
  * @returns {og.Quat} -
  */
-Quat.getLookAtTargetUp = function (target, up) {
-    var forward = target.normal();
-    forward = Vec3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
-    var right = up.cross(forward);
-    var ret = new Quat();
-    ret.w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
-    var w4_recip = 1.0 / (4.0 * ret.w);
-    ret.x = (forward.y - up.z) * w4_recip;
-    ret.y = (right.z - forward.x) * w4_recip;
-    ret.z = (up.x - right.y) * w4_recip;
-    return ret;
+Quat.getLookRotation = function (forward, up) {
+
+    var f = forward.normal().negate();
+    var s = (up.cross(f)).normalize();
+    var u = f.cross(s);
+
+    var z = 1.0 + s.x + u.y + f.z;
+
+    if (z > 0.000001) {
+        let fd = 1.0 / (2.0 * Math.sqrt(z));
+        return new Quat(
+            (f.y - u.z) * fd,
+            (s.z - f.x) * fd,
+            (u.x - s.y) * fd,
+            0.25 / fd
+        );
+    }
+
+    if (s.x > u.y && s.x > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
+        return new Quat(
+            0.25 / fd,
+            (u.x + s.y) * fd,
+            (s.z + f.x) * fd,
+            (f.y - u.z) * fd
+        );
+    }
+
+    if (u.y > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
+        return new Quat(
+            (u.x + s.y) * fd,
+            0.25 / fd,
+            (f.y + u.z) * fd,
+            (s.z - f.x) * fd
+        );
+    }
+
+    let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
+    return new Quat(
+        (s.z + f.x) * fd,
+        (f.y + u.z) * fd,
+        0.25 / fd,
+        (u.x - s.y) * fd
+    );
 };
 
 /**
@@ -150,7 +188,7 @@ Quat.getLookAtSourceDest = function (sourcePoint, destPoint) {
         return Quat.axisAngleToQuat(Vec3.UP, Math.PI);
     }
     if (Math.abs(dot - (1.0)) < 0.000001) {
-        return new Quat(0, 0, 0, 1);
+        return new Quat(0.0, 0.0, 0.0, 1.0);
     }
     var rotAngle = Math.acos(dot);
     var rotAxis = Vec3.FORWARD.cross(forwardVector).normalize();
@@ -171,7 +209,9 @@ Quat.getRotationBetweenVectors = function (u, v) {
 };
 
 /**
- * Compute rotation between two vectors with around vector up for exactly opposite vectors. If vectors exaclty in the same direction than returns identity Quat.
+ * Compute rotation between two vectors with around vector up 
+ * for exactly opposite vectors. If vectors exaclty in the same
+ * direction than returns identity Quat.
  * @static
  * @param {og.Vec3} source - First vector.
  * @param {og.Vec3} dest - Second vector.
@@ -319,6 +359,54 @@ Quat.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     return this;
 };
 
+
+/**
+ * Sets rotation with the given heading and up vectors.
+ * @static
+ * @param {og.Vec3} forward - Heading target coordinates.
+ * @param {og.Vec3} up - Up vector.
+ * @returns {og.Quat} -
+ */
+Quat.prototype.setLookRotation = function (forward, up) {
+
+    var f = forward.normal().negate();
+    var s = (up.cross(f)).normalize();
+    var u = f.cross(s);
+
+    var z = 1.0 + s.x + u.y + f.z;
+
+    if (z > 0.000001) {
+        let fd = 1.0 / (2.0 * Math.sqrt(z));
+        this.x = (f.y - u.z) * fd;
+        this.y = (s.z - f.x) * fd;
+        this.z = (u.x - s.y) * fd;
+        this.w = 0.25 / fd;
+    }
+    else if (s.x > u.y && s.x > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
+        this.x = 0.25 / fd;
+        this.y = (u.x + s.y) * fd;
+        this.z = (s.z + f.x) * fd;
+        this.w = (f.y - u.z) * fd;
+    }
+    else if (u.y > f.z) {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
+        this.x = (u.x + s.y) * fd;
+        this.y = 0.25 / fd;
+        this.z = (f.y + u.z) * fd;
+        this.w = (s.z - f.x) * fd;
+    }
+    else {
+        let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
+        this.x = (s.z + f.x) * fd;
+        this.y = (f.y + u.z) * fd;
+        this.z = 0.25 / fd;
+        this.w = (u.x - s.y) * fd;
+    }
+
+    return this;
+};
+
 /**
  * Gets spherical coordinates.
  * @public
@@ -392,7 +480,7 @@ Quat.prototype.getAxisAngle = function () {
  */
 Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
     var ex = pitch * math.RADIANS_HALF,
-        ey = yaw * mathRADIANS_HALF,
+        ey = yaw * math.RADIANS_HALF,
         ez = roll * math.RADIANS_HALF;
 
     var cr = Math.cos(ex),
@@ -472,7 +560,7 @@ Quat.prototype.setFromMatrix4 = function (m) {
 };
 
 /**
- * Converts current Quat to the rotation matrix.
+ * Converts current Quat to the rotation 4x4 matrix.
  * @public
  * @returns {og.Mat4} -
  */
@@ -503,7 +591,43 @@ Quat.prototype.getMat4 = function () {
     mx[4] = k + g; mx[5] = 1 - (j + e); mx[6] = d - f; mx[7] = 0;
     mx[8] = c - h; mx[9] = d + f; mx[10] = 1 - (j + l); mx[11] = 0;
     mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
-    
+
+    return m;
+};
+
+/**
+ * Converts current Quat to the rotation 3x3 matrix.
+ * @public
+ * @returns {og.Mat3} -
+ * @todo NOT TESTED
+ */
+Quat.prototype.getMat3 = function () {
+    var m = new Mat3();
+    var mx = m._m;
+    var c = this.x,
+        d = this.y,
+        e = this.z,
+        g = this.w,
+        f = c + c,
+        h = d + d,
+        i = e + e,
+        j = c * f,
+        k = c * h;
+
+    c = c * i;
+
+    var l = d * h;
+
+    d = d * i;
+    e = e * i;
+    f = g * f;
+    h = g * h;
+    g = g * i;
+
+    mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h;
+    mx[3] = k + g; mx[4] = 1 - (j + e); mx[5] = d - f;
+    mx[6] = c - h; mx[7] = d + f; mx[8] = 1 - (j + l);
+
     return m;
 };
 

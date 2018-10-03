@@ -113,7 +113,6 @@ Mat4.prototype.clone = function () {
  * Copy matrix.
  * @public
  * @param {og.Mat3} a - Matrix to copy.
- * @returns {og.Mat4} -
  */
 Mat4.prototype.copy = function (a) {
     this.set(a._m);
