@@ -2,6 +2,7 @@
 
 import * as math from '../math.js';
 import { Mat4 } from './Mat4.js';
+import { Mat3 } from './Mat3.js';
 import { Vec3 } from './Vec3.js';
 
 /**
@@ -104,16 +105,19 @@ Quat.zRotation = function (a) {
  * Computes a Quat representing a rotation around an axis.
  * @static
  * @param {og.Vec3} axis - The axis of rotation.
- * @param {number} angle The angle in radians to rotate around the axis.
+ * @param {number} [angle=0.0] The angle in radians to rotate around the axis.
  * @returns {og.Quat} -
  */
 Quat.axisAngleToQuat = function (axis, angle) {
-    var res = new Quat();
+    angle = angle || 0.0;
     var v = axis.normal();
     var half_angle = angle * 0.5;
     var sin_a = Math.sin(half_angle);
-    res.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
-    return res;
+    return new Quat(
+        v.x * sin_a,
+        v.y * sin_a,
+        v.z * sin_a,
+        Math.cos(half_angle));
 };
 
 /**
@@ -125,15 +129,16 @@ Quat.axisAngleToQuat = function (axis, angle) {
  */
 Quat.getLookAtTargetUp = function (target, up) {
     var forward = target.normal();
-    forward = Vec3.OrthoNormalize(up, forward); // Keeps up the same, make forward orthogonal to up
+    // Keeps up the same, make forward orthogonal to up
+    forward = Vec3.OrthoNormalize(up, forward);
     var right = up.cross(forward);
-    var ret = new Quat();
-    ret.w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
-    var w4_recip = 1.0 / (4.0 * ret.w);
-    ret.x = (forward.y - up.z) * w4_recip;
-    ret.y = (right.z - forward.x) * w4_recip;
-    ret.z = (up.x - right.y) * w4_recip;
-    return ret;
+    var w = Math.sqrt(1.0 + right.x + up.y + forward.z) * 0.5;
+    var w4_recip = 1.0 / (4.0 * w);
+    return new Quat(
+        (forward.y - up.z) * w4_recip,
+        (right.z - forward.x) * w4_recip,
+        (up.x - right.y) * w4_recip,
+        w);
 };
 
 /**
@@ -171,7 +176,9 @@ Quat.getRotationBetweenVectors = function (u, v) {
 };
 
 /**
- * Compute rotation between two vectors with around vector up for exactly opposite vectors. If vectors exaclty in the same direction than returns identity Quat.
+ * Compute rotation between two vectors with around vector up 
+ * for exactly opposite vectors. If vectors exaclty in the same
+ * direction than returns identity Quat.
  * @static
  * @param {og.Vec3} source - First vector.
  * @param {og.Vec3} dest - Second vector.
@@ -472,7 +479,7 @@ Quat.prototype.setFromMatrix4 = function (m) {
 };
 
 /**
- * Converts current Quat to the rotation matrix.
+ * Converts current Quat to the rotation 4x4 matrix.
  * @public
  * @returns {og.Mat4} -
  */
@@ -503,7 +510,43 @@ Quat.prototype.getMat4 = function () {
     mx[4] = k + g; mx[5] = 1 - (j + e); mx[6] = d - f; mx[7] = 0;
     mx[8] = c - h; mx[9] = d + f; mx[10] = 1 - (j + l); mx[11] = 0;
     mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
-    
+
+    return m;
+};
+
+/**
+ * Converts current Quat to the rotation 3x3 matrix.
+ * @public
+ * @returns {og.Mat3} -
+ * @todo NOT TESTED
+ */
+Quat.prototype.getMat3 = function () {
+    var m = new Mat3();
+    var mx = m._m;
+    var c = this.x,
+        d = this.y,
+        e = this.z,
+        g = this.w,
+        f = c + c,
+        h = d + d,
+        i = e + e,
+        j = c * f,
+        k = c * h;
+
+    c = c * i;
+
+    var l = d * h;
+
+    d = d * i;
+    e = e * i;
+    f = g * f;
+    h = g * h;
+    g = g * i;
+
+    mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h;
+    mx[3] = k + g; mx[4] = 1 - (j + e); mx[5] = d - f;
+    mx[6] = c - h; mx[7] = d + f; mx[8] = 1 - (j + l);
+
     return m;
 };
 
