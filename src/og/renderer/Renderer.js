@@ -1,7 +1,3 @@
-/**
- * @module og/renderer/Renderer
- */
-
 'use strict';
 
 import { Camera } from '../camera/Camera.js';
@@ -18,7 +14,7 @@ import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
 
 /**
- * Represents high level WebGL context interface that starts WebGL handler works real time.
+ * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
  * @param {og.webgl.Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
@@ -394,9 +390,9 @@ Renderer.prototype.initialize = function () {
  * @public
  * @param {og.scene.RenderNode} renderNode - Render node.
  */
-Renderer.prototype.addRenderNode = function (renderNode) {
+Renderer.prototype.addNode = function (renderNode) {
     if (!this.renderNodes[renderNode.name]) {
-        renderNode.assignRenderer(this);
+        renderNode.assign(this);
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
@@ -409,9 +405,9 @@ Renderer.prototype.addRenderNode = function (renderNode) {
  * @public
  * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
  */
-Renderer.prototype.addRenderNodes = function (nodesArr) {
+Renderer.prototype.addNodes = function (nodesArr) {
     for (var i = 0; i < nodesArr.length; i++) {
-        this.addRenderNode(nodesArr[i]);
+        this.addNode(nodesArr[i]);
     }
 }
 

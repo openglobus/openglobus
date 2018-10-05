@@ -35,6 +35,7 @@ import { wgs84 } from '../ellipsoid/wgs84.js';
 import { print2d } from '../utils/shared.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
+import { Plane } from '../math/Plane.js';
 
 const DEFAULT_LOD_RATIO = 0.98;
 const DELTA_LOD = 0.35;
@@ -578,7 +579,7 @@ class Planet extends RenderNode {
      * @virtual
      * @public
      */
-    initialization() {
+    init() {
         //Initialization indexes table
         var TABLESIZE = segmentHelper.TABLESIZE;
 
@@ -864,7 +865,7 @@ class Planet extends RenderNode {
         if (this.renderer.activeCamera.slope > 0.77 &&
             this.renderer.activeCamera._lonLat.height < 850000 &&
             this._renderedNodes.length < MAX_RENDERED_NODES) {
-                
+
             this.minCurrZoom = this.maxCurrZoom;
 
             var temp = this._renderedNodes;

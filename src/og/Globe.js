@@ -103,7 +103,7 @@ class Globe {
 
         //Skybox
         if (options.skybox) {
-            this.renderer.addRenderNode(options.skybox);
+            this.renderer.addNode(options.skybox);
         }
 
         /**
@@ -133,7 +133,7 @@ class Globe {
             this.planet.setTerrain(new EmptyTerrain());
         }
 
-        this.renderer.addRenderNode(this.planet);
+        this.renderer.addNode(this.planet);
 
         this.sun;
 

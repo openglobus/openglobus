@@ -17,7 +17,7 @@ class Axes extends RenderNode {
         this.axesColorBuffer = null;
     }
 
-    initialization() {
+    init() {
         this.createAxisBuffer(this.size);
         this.drawMode = this.renderer.handler.gl.LINES;
         this.renderer.handler.addProgram(new Program("axesShader", {

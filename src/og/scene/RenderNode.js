@@ -93,7 +93,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {og.Renderer} renderer - Redner node's renderer.
      */
-    assignRenderer(renderer) {
+    assign(renderer) {
         this.renderer = renderer;
         this.billboardsTextureAtlas.assignHandler(renderer.handler);
         this.fontAtlas.assignHandler(renderer.handler);
@@ -103,7 +103,7 @@ class RenderNode extends BaseNode {
             this.entityCollections[i].setRenderer(renderer);
         }
 
-        this.initialization && this.initialization();
+        this.init && this.init();
     }
 
     /**
@@ -111,7 +111,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {og.EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
-     * @returns {og.scene.RenderNode}
+     * @returns {og.scene.RenderNode} -
      */
     addEntityCollection(entityCollection, isHidden) {
         entityCollection.addTo(this, isHidden);
@@ -169,7 +169,7 @@ class RenderNode extends BaseNode {
     /**
      * Gets render node activity.
      * @public
-     * @returns {boolean}
+     * @returns {Boolean} -
      */
     isActive() {
         return this._isActive;
@@ -188,7 +188,9 @@ class RenderNode extends BaseNode {
     }
 
     /**
+     * Sets draw mode
      * @public
+     * @param {Number} mode - Draw mode, such as gl.TRIANGLES, gl.TRIANGLE_STRIP, gl.LINES etc.
      */
     setDrawMode(mode) {
         this.drawMode = mode;
@@ -244,7 +246,9 @@ class RenderNode extends BaseNode {
     }
 
     /**
+     * Draws entity collections.
      * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
      */
     drawEntityCollections(ec) {
         if (ec.length) {
@@ -318,7 +322,9 @@ class RenderNode extends BaseNode {
     }
 
     /**
+     * Draw entity collections picking frame.
      * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
      */
     drawPickingEntityCollections(ec) {
         if (ec.length) {
