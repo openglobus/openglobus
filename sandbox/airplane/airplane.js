@@ -11,53 +11,48 @@ import { Vec3 } from '../../src/og/math/Vec3.js';
 import { Mat4 } from '../../src/og/math/Mat4.js';
 import { Quat } from '../../src/og/math/Quat.js';
 
-class Airplane extends RenderNode {
+class Planemarker {
     constructor(options) {
-        super("airplane");
-
         options = options || {};
 
-        this.position = options.position || new Vec3();
-        this.orientation = options.orientation || new Quat(0.0, 0.0, 0.0, 1.0);
-        this.scale = options.scale || new Vec3(1.0, 1.0, 1.0);
-        this._mxScale = new Mat4().setIdentity();
-        this._mxTranslation = new Mat4().setIdentity();
+        this.orientation = options.orientation ? option.orientation : new Quat(0.0, 0.0, 0.0, 1.0);
+        this.position = options.position ? options.position : new Vec3();
+        this.scale = options.scale || 0.02;
+
         this._mxModel = new Mat4().setIdentity();
+        this._position = new Float32Array([0, 0, 0]);
+        this._vericesBuffer = null;
+        this._indicesBuffer = null;
+        this._scene = null;
+    }
 
-        this.vericesBuffer = null;
-        this.indicesBuffer = null;
+    bind(scene) {
+        this._scene = scene;
+        this.init();
+    }
 
-        this._position = new Float32Array([0.0, 0.0, 0.0]);
-        this._scale = 1.0;
+    getNorthBearingRotationFrame(cartesian) {
+        let n = cartesian.normal();
+        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        return Quat.getLookRotation(t, n);
     }
 
     update() {
-        this._mxModel = this._mxTranslation.mul(this.orientation.getMat4().mul(this._mxScale));
+        this._mxModel = this.orientation.getMat4();
+        this._position[0] = this.position.x;
+        this._position[1] = this.position.y;
+        this._position[2] = this.position.z;
     }
 
-    setPosition3v(position) {
-        this.position.copy(position);
-        this._mxTranslation.translateToPosition(position);
-        this.update();
-    }
-
-    translate3v(vec) {
-        this.position.addA(vec);
-        this._mxTranslation.translate(vec);
-    }
-
-    setScale3v(scale) {
-        this.scale.copy(scale);
-        this._mxScale.scale(scale);
-    }
-
-    initialization() {
+    init() {
 
         //Initialize shader program
-        this.renderer.handler.addProgram(new Program("AirplaneShader", {
+        this._scene.renderer.handler.addProgram(new Program("AirplaneShader", {
             uniforms: {
                 projectionViewMatrix: { type: 'mat4' },
-                modelMatrix: { type: 'mat4' }
+                modelMatrix: { type: 'mat4' },
+                scale: { type: 'float' },
+                position: { type: 'vec3' }
             },
             attributes: {
                 aVertexPosition: 'vec3'
@@ -67,13 +62,15 @@ class Airplane extends RenderNode {
                 \
                 uniform mat4 projectionViewMatrix;\
                 uniform mat4 modelMatrix;\
+                uniform float scale;\
+                uniform vec3 position;\
                 \
                 const float C = 0.1;\
                 const float far = 149.6e+9;\
                 float logc = 2.0 / log( C * far + 1.0 );\
                 \
                 void main(void) {\
-                    gl_Position = projectionViewMatrix * (modelMatrix * vec4(aVertexPosition, 1.0));\
+                    gl_Position = projectionViewMatrix * (vec4(position, 0.0) + modelMatrix * vec4(aVertexPosition * scale, 1.0));\
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
                 }'
             ,
@@ -92,35 +89,55 @@ class Airplane extends RenderNode {
             1.0, 0.0, 0.5
         ];
 
-        this.vericesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
+        this._vericesBuffer = this._scene.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
 
         var cubeVertexIndices = [
             0, 1, 2,
             0, 2, 1
         ];
 
-        this.indicesBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, cubeVertexIndices.length);
-
+        this._indicesBuffer = this._scene.renderer.handler.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, cubeVertexIndices.length);
     }
 
-    frame() {
+    draw() {
 
-        var r = this.renderer;
+        var r = this._scene.renderer;
         var sh = r.handler.programs.AirplaneShader;
         var p = sh._program;
         var gl = r.handler.gl;
 
         sh.activate();
 
+        gl.uniform1f(p.uniforms.scale, this.scale * this.position.distance(r.activeCamera.eye));
+        gl.uniform3fv(p.uniforms.position, this._position);
+
         gl.uniformMatrix4fv(p.uniforms.modelMatrix, false, this._mxModel._m);
 
         gl.uniformMatrix4fv(p.uniforms.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vericesBuffer);
-        gl.vertexAttribPointer(p.attributes.aVertexPosition, this.vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vericesBuffer);
+        gl.vertexAttribPointer(p.attributes.aVertexPosition, this._vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
-        gl.drawElements(gl.TRIANGLES, this.indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
+        gl.drawElements(gl.TRIANGLES, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    }
+}
+
+class Airplane extends RenderNode {
+    constructor(options) {
+        super("airplane");
+
+        this.marker = new Planemarker();
+
+        options = options || {};
+    }
+
+    init() {
+        this.marker.bind(this);
+    }
+
+    frame() {
+        this.marker.draw();
     }
 }
 
@@ -132,7 +149,8 @@ let renderer = new Renderer(handler, {
 
 let airplane = new Airplane();
 
-renderer.addRenderNodes([airplane, new Axes()]);
+renderer.addNodes([airplane, new Axes()]);
+
 
 window.renderer = renderer;
 window.airplane = airplane;

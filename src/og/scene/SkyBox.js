@@ -28,7 +28,7 @@ class SkyBox extends RenderNode {
         });
     }
 
-    initialization() {
+    init() {
         this.renderer.handler.addProgram(shaders.skybox(), true);
         this.texture = this.renderer.handler.loadCubeMapTexture(this.params);
         this._createBuffers();
