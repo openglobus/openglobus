@@ -1,15 +1,16 @@
 'use strict';
 
-import * as math from '../../src/og/math.js';
-import { Handler } from '../../src/og/webgl/Handler.js';
-import { Renderer } from '../../src/og/renderer/Renderer.js';
+import { RADIANS } from '../../src/og/math.js';
 import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
-import { Axes } from '../../src/og/scene/Axes.js';
 import { RenderNode } from '../../src/og/scene/RenderNode.js';
 import { Program } from '../../src/og/webgl/Program.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { Mat4 } from '../../src/og/math/Mat4.js';
 import { Quat } from '../../src/og/math/Quat.js';
+import { Globe } from '../../src/og/Globe.js';
+import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+import { XYZ } from '../../src/og/layer/XYZ.js';
+import { LonLat } from '../../src/og/LonLat.js';
 
 class Planemarker {
     constructor(options) {
@@ -23,7 +24,44 @@ class Planemarker {
         this._position = new Float32Array([0, 0, 0]);
         this._vericesBuffer = null;
         this._indicesBuffer = null;
+
+        this._lonLatAlt = new LonLat();
+        this._speed = 0.0;
+        this._heading = 0.0;
+
+        this._planet = null;
         this._scene = null;
+    }
+
+    static getNorthBearingRotationFrame(cartesian) {
+        let n = cartesian.normal();
+        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        return Quat.getLookRotation(t, n);
+    }
+
+    set(lon, lat, alt, heading, speed) {
+        this._lonLatAlt.lon = lon;
+        this._lonLatAlt.lat = lat;
+        this._lonLatAlt.height = alt;
+        this._heading = heading || this._heading;
+        this._speed = speed || this._speed;
+        this.update();
+    }
+
+    setLonLat(lon, lat, alt) {
+        this._lonLatAlt.lon = lon;
+        this._lonLatAlt.lat = lat;
+        this._lonLatAlt.height = alt;
+        this.update();
+    }
+
+    setHeading(heading) {
+        this._heading = heading;
+        this.update();
+    }
+
+    setSpeed(speed) {
+        this._speed = speed;
     }
 
     bind(scene) {
@@ -31,17 +69,23 @@ class Planemarker {
         this.init();
     }
 
-    getNorthBearingRotationFrame(cartesian) {
-        let n = cartesian.normal();
-        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
-        return Quat.getLookRotation(t, n);
+    bindPlanet(planet) {
+        this._planet = planet;
+        this.update();
     }
 
     update() {
-        this._mxModel = this.orientation.getMat4();
+        this.position.copy(this._planet.ellipsoid.lonLatToCartesian(this._lonLatAlt));
+
+        this.orientation.copy(
+            Quat.yRotation(this._heading * RADIANS).mul(Planemarker.getNorthBearingRotationFrame(this.position))
+        );
+
         this._position[0] = this.position.x;
         this._position[1] = this.position.y;
         this._position[2] = this.position.z;
+
+        this._mxModel = this.orientation.getMat4();
     }
 
     init() {
@@ -123,36 +167,56 @@ class Planemarker {
     }
 }
 
-class Airplane extends RenderNode {
+class SkyTraffic extends RenderNode {
     constructor(options) {
-        super("airplane");
+        super("SkyTraffic");
 
         this.marker = new Planemarker();
+
+        this._planet;
 
         options = options || {};
     }
 
     init() {
         this.marker.bind(this);
+        this.marker.bindPlanet(this._planet);
     }
 
     frame() {
         this.marker.draw();
     }
+
+    bind(planet) {
+        this._planet = planet;
+    }
 }
 
-let handler = new Handler("frame");
-
-let renderer = new Renderer(handler, {
-    'controls': [new SimpleNavigation()]
+let osm = new XYZ("OpenStreetMap", {
+    specular: [0.0003, 0.00012, 0.00001],
+    shininess: 20,
+    diffuse: [0.89, 0.9, 0.83],
+    isBaseLayer: true,
+    url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+    attribution: 'Data @ OpenStreetMap contributors, ODbL'
 });
 
-let airplane = new Airplane();
+let globe = new Globe({
+    "target": "globus",
+    "name": "Earth",
+    "terrain": new GlobusTerrain(),
+    "layers": [osm]
+});
 
-renderer.addNodes([airplane, new Axes()]);
+var skytraffic = new SkyTraffic();
 
+skytraffic.bind(globe.planet);
 
-window.renderer = renderer;
-window.airplane = airplane;
+globe.renderer.addNode(skytraffic);
+
+window.skytraffic = skytraffic;
 window.Vec3 = Vec3;
+window.LonLat = LonLat;
 window.Quat = Quat;
+window.globe = globe;

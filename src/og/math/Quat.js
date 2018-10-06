@@ -667,6 +667,22 @@ Quat.prototype.mul = function (q) {
 };
 
 /**
+ * Computes the product of two Quats.
+ * @public
+ * @param {og.Quat} q - Quat to multiply.
+ * @returns {og.Quat} -
+ */
+Quat.prototype.mulA = function (q) {
+    var d = this.x, e = this.y, g = this.z, a = this.w;
+    var f = q.x, h = q.y, i = q.z, b = q.w;
+    this.x = d * b + a * f + e * i - g * h;
+    this.y = e * b + a * h + g * f - d * i;
+    this.z = g * b + a * i + d * h - e * f;
+    this.w = a * b - d * f - e * h - g * i;
+    return this;
+};
+
+/**
  * Gets the conjugate of the Quat.
  * @public
  * @returns {og.Quat} -
