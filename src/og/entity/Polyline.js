@@ -665,6 +665,8 @@ class Polyline {
 
             let path = this._path3v[segmentIndex];
 
+            if (path.length === 1) return;
+
             path[index].x = coordinates.x;
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
