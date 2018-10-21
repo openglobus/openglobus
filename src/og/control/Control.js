@@ -137,6 +137,10 @@ class Control {
      * @public
      */
     activate() {
+        if (!this._initialized) {
+            this._initialized = true;
+            this.oninit && this.oninit();
+        }
         this._active = true;
         this.onactivate && this.onactivate();
     }
