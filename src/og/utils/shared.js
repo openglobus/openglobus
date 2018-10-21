@@ -24,6 +24,10 @@ if (!('createImageBitmap' in window)) {
     }
 };
 
+export function getDefault(param, def) {
+    return param != undefined ? param : def;
+};
+
 export function isEmpty(v) {
     return v == null;
 };
