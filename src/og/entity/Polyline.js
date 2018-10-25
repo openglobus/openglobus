@@ -200,7 +200,7 @@ class Polyline {
                 }
             } else {
                 var p0 = path[0],
-                    p1 = path[1];
+                    p1 = path[1] || p0;
                 if (p0.constructor === Array) {
                     p0 = new Vec3(p0[0], p0[1], p0[2]);
                 }
@@ -247,7 +247,7 @@ class Polyline {
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
             } else {
                 let p0 = path[path.length - 1],
-                    p1 = path[path.length - 2];
+                    p1 = path[path.length - 2] || p0;
                 if (p0.constructor === Array) {
                     p0 = new Vec3(p0[0], p0[1], p0[2]);
                 }
