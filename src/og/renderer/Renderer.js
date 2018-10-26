@@ -301,15 +301,7 @@ Renderer.prototype.addControls = function (cArr) {
  * @return {og.Renderer} -
  */
 Renderer.prototype.removeControl = function (control) {
-    var c = this.controls[control.name];
-    if (c) {
-        if (control.isEqual(c)) {
-            this.controls[control.name] = null;
-            delete this.controls[control.name];
-            c.remove();
-        }
-    }
-    return this;
+    control.remove();
 }
 
 /**

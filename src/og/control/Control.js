@@ -126,7 +126,21 @@ class Control {
      * @public
      */
     remove() {
+
         this.onremove && this.onremove();
+
+        let r = this.renderer,
+            n = this.name;
+
+        let c = r.controls[n];
+
+        if (c) {
+            if (this.isEqual(c)) {
+                r.controls[n] = null;
+                delete r.controls[n];
+            }
+        }
+
         this.renderer = null;
         this._active = false;
         this._initialized = false;

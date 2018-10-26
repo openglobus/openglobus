@@ -26,6 +26,8 @@ class TouchNavigation extends Control {
     constructor(options) {
         super(options);
 
+        this._name = "touchNavigation";
+
         this.grabbedPoint = new Vec3();
         this.inertia = 0.007;
         this.grabbedSpheroid = new Sphere();
