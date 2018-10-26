@@ -26,13 +26,6 @@ class Events {
         this._sender = sender || this;
 
         /**
-         * Event identifier.
-         * @protected
-         * @type {number}
-         */
-        this._counter = 0;
-
-        /**
          * Stop propagation flag
          * @protected
          * @type {boolean}
@@ -41,18 +34,18 @@ class Events {
 
         this._stampCache = {};
 
-        this.__id = Events.__staticCounter++;
+        this.__id = Events._staticCounter++;
     }
 
     static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
+        if (!this.__counter__ && this.__counter__ !== 0) {
+            this.__counter__ = 0;
         }
-        return this._counter;
+        return this.__counter__;
     }
 
     static set _staticCounter(n) {
-        this._counter = n;
+        this.__counter__ = n;
     }
 
     bindSender(sender) {
@@ -101,7 +94,11 @@ class Events {
      */
     on(name, callback, sender) {
         if (this._stamp(name, callback)) {
-            this[name] && this[name].handlers.unshift(callback.bind(sender || this._sender));
+            if (this[name]) {
+                let c = callback.bind(sender || this._sender);
+                c._openglobus_id = callback._openglobus_id;
+                this[name].handlers.unshift(c);
+            }
         }
     }
 

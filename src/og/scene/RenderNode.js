@@ -97,13 +97,39 @@ class RenderNode extends BaseNode {
         this.renderer = renderer;
         this.billboardsTextureAtlas.assignHandler(renderer.handler);
         this.fontAtlas.assignHandler(renderer.handler);
-        renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+        this._pickingId = renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
 
         for (var i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].setRenderer(renderer);
         }
 
         this.init && this.init();
+    }
+
+    onremove() {
+        //virtual
+    }
+
+    remove() {
+        var r = this.renderer,
+            n = this.name;
+
+        if (r.renderNodes[n] &&
+            r.renderNodes[n].isEqual(this)) {
+            r.renderNodes[n] = null;
+            delete r.renderNodes[n];
+        }
+
+        for (var i = 0; i < r._renderNodesArr.length; i++) {
+            if (r._renderNodesArr[i].isEqual(this)) {
+                r._renderNodesArr.splice(i, 1);
+                break;
+            }
+        }
+
+        this.renderer.removePickingCallback(this._pickingId);
+        this._pickingId = null;
+        this.onremove && this.onremove();
     }
 
     /**

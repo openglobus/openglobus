@@ -175,13 +175,32 @@ const Renderer = function (handler, params) {
     }
 };
 
+Renderer.__pickingCallbackCounter__ = 0;
+
 /**
  * Adds picking rendering callback function.
  * @param {object} sender - Callback context.
  * @param {og.Renderer~pickingCallback} callback - Rendering callback.
+ * @returns {Number} Handler id
  */
 Renderer.prototype.addPickingCallback = function (sender, callback) {
-    this._pickingCallbacks.push({ "callback": callback, "sender": sender });
+    var id = Renderer.__pickingCallbackCounter__++;
+    this._pickingCallbacks.push({ "id": id, "callback": callback, "sender": sender });
+    return id;
+};
+
+/**
+ * Removes picking rendering callback function.
+ * @param {object} sender - Callback context.
+ * @param {Number} id - Handler id to remove.
+ */
+Renderer.prototype.removePickingCallback = function (id) {
+    for (var i = 0; i < this._pickingCallbacks.length; i++) {
+        if (id === this._pickingCallbacks[i].id) {
+            this._pickingCallbacks.splice(i, 1);
+            break;
+        }
+    }
 };
 
 
@@ -343,7 +362,7 @@ Renderer.prototype.initialize = function () {
             corners: { type: types.VEC3, enableArray: true },
         },
         vertexShader:
-        'attribute vec2 corners;\
+            'attribute vec2 corners;\
             \
             varying vec2 tc;\
             void main(void) {\
@@ -351,7 +370,7 @@ Renderer.prototype.initialize = function () {
                 tc = corners * 0.5 + 0.5;\
             }',
         fragmentShader:
-        'precision highp float;\
+            'precision highp float;\
             uniform sampler2D texture;\
             \
             varying vec2 tc;\
@@ -384,6 +403,10 @@ Renderer.prototype.initialize = function () {
         this.addControl(temp[i]);
     }
 }
+
+Renderer.prototype.removeNode = function (renderNode) {
+    renderNode.remove();
+};
 
 /**
  * Adds render node to the renderer.

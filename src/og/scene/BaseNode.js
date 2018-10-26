@@ -43,18 +43,18 @@ class BaseNode {
          */
         this.parentNode = null;
 
-        this.__staticId = Node.__staticCounter++;
+        this.__staticId = BaseNode._staticCounter++;
     }
 
     static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
+        if (!this.__counter__ && this.__counter__ !== 0) {
+            this.__counter__ = 0;
         }
-        return this._counter;
+        return this.__counter__;
     }
 
     static set _staticCounter(n) {
-        this._counter = n;
+        this.__counter__ = n;
     }
 
 
@@ -106,6 +106,10 @@ class BaseNode {
         this.parentNode = null;
         this.topNode = null;
         this.childNodes.length = 0;
+    }
+
+    isEqual(node) {
+        return node.__staticId === this.__staticId;
     }
 };
 
