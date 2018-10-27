@@ -218,9 +218,10 @@ class PlanetCamera extends Camera {
      * Gets position by viewable extent.
      * @public
      * @param {og.Extent} extent - Viewable extent.
+     * @param {Number} height - Camera height
      * @returns {og.Vec3}
      */
-    getExtentPosition(extent) {
+    getExtentPosition(extent, height) {
 
         var north = extent.getNorth();
         var south = extent.getSouth();
@@ -260,14 +261,14 @@ class PlanetCamera extends Camera {
         var right = direction.cross(Vec3.UP).normalize();
         var up = right.cross(direction).normalize();
 
-        var height = Math.max(
+        var _h = Math.max(
             Math.abs(up.dot(northWest)),
             Math.abs(up.dot(southEast)),
             Math.abs(up.dot(northEast)),
             Math.abs(up.dot(southWest))
         );
 
-        var width = Math.max(
+        var _w = Math.max(
             Math.abs(right.dot(northWest)),
             Math.abs(right.dot(southEast)),
             Math.abs(right.dot(northEast)),
@@ -276,10 +277,11 @@ class PlanetCamera extends Camera {
 
         var tanPhi = Math.tan(this._viewAngle * math.RADIANS * 0.5);
         var tanTheta = this._aspect * tanPhi;
-        var d = Math.max(width / tanTheta, height / tanPhi);
+        var d = Math.max(_w / tanTheta, _h / tanPhi);
 
         center.normalize();
-        center.scale(mag + d);
+        center.scale(mag + d + (height || 0));
+
         return center;
     }
 
@@ -288,9 +290,9 @@ class PlanetCamera extends Camera {
      * @public
      * @param {og.Extent} extent - Current extent.
      */
-    viewExtent(extent) {
+    viewExtent(extent, height) {
         this.stopFlying();
-        this.set(this.getExtentPosition(extent), Vec3.ZERO, Vec3.UP);
+        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.UP);
         this.refresh();
     }
 
@@ -302,8 +304,8 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyExtent(extent, up, completeCallback, startCallback) {
-        this.flyCartesian(this.getExtentPosition(extent), Vec3.ZERO,
+    flyExtent(extent, height, up, completeCallback, startCallback) {
+        this.flyCartesian(this.getExtentPosition(extent, height), Vec3.ZERO,
             up, completeCallback, startCallback);
     }
 

@@ -1552,8 +1552,8 @@ class Planet extends RenderNode {
      * @param {og.Extent} extent - Geographical extent.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      */
-    flyExtent(extent, up) {
-        this.renderer.activeCamera.flyExtent(extent, up);
+    flyExtent(extent, height, up, startCallback, endCallback) {
+        this.renderer.activeCamera.flyExtent(extent, height, up, startCallback, endCallback);
     }
 
     /**
