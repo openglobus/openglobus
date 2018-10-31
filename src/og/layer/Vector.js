@@ -81,6 +81,8 @@ class Vector extends Layer {
 
         this.isVector = true;
 
+        this._hasImageryTiles = false;
+
         /**
          * First index - near distance to the entity, after that entity becomes full scale.
          * Second index - far distance to the entity, when entity becomes zero scale.
@@ -190,16 +192,6 @@ class Vector extends Layer {
     }
 
     /**
-     * Returns true if the layer has vector rasterized data.
-     * @public
-     * @virtual
-     * @returns {boolean} -
-     */
-    hasImageryTiles() {
-        return true;
-    }
-
-    /**
      * Returns stored entities.
      * @public
      * @returns {Array.<og.Entity>} -
@@ -248,6 +240,7 @@ class Vector extends Layer {
             }
 
             if (entity.geometry) {
+                this._hasImageryTiles = true;
                 if (this._planet) {
                     this._planet.renderer.assignPickingColor(entity);
                     this._geometryHandler.add(entity.geometry);
@@ -467,6 +460,7 @@ class Vector extends Layer {
             }
 
             if (ei.geometry) {
+                this._hasImageryTiles = true;
                 if (this._planet) {
                     this._planet.renderer.assignPickingColor(ei);
                     this._geometryHandler.add(ei.geometry);

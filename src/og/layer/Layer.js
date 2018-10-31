@@ -76,6 +76,8 @@ class Layer {
 
         this.displayInLayerSwitcher = options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
 
+        this._hasImageryTiles = true;
+
         /**
          * Layer global opacity.
          * @public
@@ -275,7 +277,7 @@ class Layer {
      * @returns {boolean} - Imagery tiles flag.
      */
     hasImageryTiles() {
-        return true;
+        return this._hasImageryTiles;
     }
 
     /**
