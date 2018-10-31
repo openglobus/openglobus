@@ -134,6 +134,7 @@ class MouseNavigation extends Control {
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
         this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
         this.renderer.events.on("draw", this.onDraw, this);
+        this.renderer.events.on("mousemove", this.onMouseMove, this);
     }
 
     ondeactivate() {
@@ -170,6 +171,8 @@ class MouseNavigation extends Control {
 
     oninit() {
         this.activate();
+
+        this.renderer.events.on("keyfree", input.KEY_SHIFT, this.onShiftFree, this);
     }
 
     onMouseLeftButtonDoubleClick() {
@@ -265,6 +268,23 @@ class MouseNavigation extends Control {
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
             cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);
             cam.update();
+        }
+    }
+
+    onShiftFree() {
+        this._shiftBusy = false;
+    }
+
+    onMouseMove(e) {
+
+        if (this._active && this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+
+            if (!this._shiftBusy) {
+                this._shiftBusy = true;
+                this.onMouseRightButtonClick(e);
+            }
+
+            this.onMouseRightButtonDown(e);
         }
     }
 

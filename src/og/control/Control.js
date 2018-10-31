@@ -114,8 +114,8 @@ class Control {
             renderer.controls[this.name] = this;
             this.onadd && this.onadd();
             if (this.autoActivate) {
-                this.oninit && this.oninit();
                 this._initialized = true;
+                this.oninit && this.oninit();
                 this._active = true;
             }
         }

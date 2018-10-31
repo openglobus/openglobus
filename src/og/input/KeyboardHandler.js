@@ -7,6 +7,7 @@
 const KeyboardHandler = function () {
     var _currentlyPressedKeys = {};
     var _pressedKeysCallbacks = {};
+    var _unpressedKeysCallbacks = {};
     var _charkeysCallbacks = {};
     var _that = this;
     var _anykeyCallback = null;
@@ -30,6 +31,14 @@ const KeyboardHandler = function () {
             priority = 1600;
         }
         switch (event) {
+            case "keyfree": {
+                if (!_unpressedKeysCallbacks[keyCode]) {
+                    _unpressedKeysCallbacks[keyCode] = [];
+                }
+                _unpressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                _unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
+            } break;
+
             case "keypress": {
                 if (keyCode == null) {
                     _anykeyCallback = { "callback": callback, "sender": sender || _that };
@@ -41,6 +50,7 @@ const KeyboardHandler = function () {
                     _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 }
             } break;
+
             case "charkeypress": {
                 if (!_charkeysCallbacks[keyCode]) {
                     _charkeysCallbacks[keyCode] = [];
@@ -69,6 +79,16 @@ const KeyboardHandler = function () {
     };
 
     this.handleKeyUp = function () {
+        if (_currentlyPressedKeys[_event.keyCode]) {
+            for (var pk in _unpressedKeysCallbacks) {
+                if (_currentlyPressedKeys[pk]) {
+                    var cpk = _unpressedKeysCallbacks[pk];
+                    for (var i = 0; i < cpk.length; i++) {
+                        cpk[i].callback.call(cpk[i].sender, _event);
+                    }
+                }
+            }
+        }
         _currentlyPressedKeys[_event.keyCode] = false;
     };
 

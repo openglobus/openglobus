@@ -193,7 +193,7 @@ class RendererEvents extends Events {
      * @param {number} [priority] - Event callback priority
      */
     on(name, p0, p1, p2, p3) {
-        if (name == "keypress" || name == "charkeypress") {
+        if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.addEvent(name, p2, p1, p0, p3);
         } else {
             super.on(name, p0, p1);

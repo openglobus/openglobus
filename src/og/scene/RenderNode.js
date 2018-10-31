@@ -321,10 +321,6 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
-            //Z-buffer offset
-            gl.polygonOffset(0.0, 0.0);
-
-            gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);
 
             //shapes pass
@@ -344,6 +340,8 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
             }
 
+            //gl.polygonOffset(0.0, 0.0);
+            gl.disable(gl.POLYGON_OFFSET_FILL);
         }
     }
 
