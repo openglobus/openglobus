@@ -398,7 +398,8 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom);
-        } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
+        } else if (!maxZoom && seg.acceptForRendering(cam)
+            || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis);
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
             this.traverseNodes(cam, maxZoom);
@@ -417,14 +418,21 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
         this.createChildrenNodes();
     }
 
-    let arr = this.nodes.concat().sort((a, b) => {
-        return cam.eye.distance(a.segment.bsphere.center) - cam.eye.distance(b.segment.bsphere.center);
-    });
+    //let arr = this.nodes.concat().sort((a, b) => {
+    //    return cam.eye.distance(a.segment.bsphere.center) - cam.eye.distance(b.segment.bsphere.center);
+    //});
 
-    arr[0].renderTree(cam, maxZoom);
-    arr[1].renderTree(cam, maxZoom);
-    arr[2].renderTree(cam, maxZoom);
-    arr[3].renderTree(cam, maxZoom);
+    //arr[0].renderTree(cam, maxZoom);
+    //arr[1].renderTree(cam, maxZoom);
+    //arr[2].renderTree(cam, maxZoom);
+    //arr[3].renderTree(cam, maxZoom);
+
+    let n = this.nodes;
+
+    n[0].renderTree(cam, maxZoom);
+    n[1].renderTree(cam, maxZoom);
+    n[2].renderTree(cam, maxZoom);
+    n[3].renderTree(cam, maxZoom);
 };
 
 Node.prototype.prepareForRendering = function (cam, altVis) {
