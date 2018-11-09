@@ -104,8 +104,10 @@ class RendererEvents extends Events {
             moving: false,
             /** Mouse has just stopped now. */
             justStopped: false,
-            /** Mose double click delay response.*/
+            /** Mose double click delay response time.*/
             doubleClickDelay: 300,
+            /** Mose click delay response time.*/
+            clickDelay: 150,
             /** Mouse wheel. */
             wheelDelta: 0,
             /** JavaScript mouse system event message. */
@@ -163,6 +165,9 @@ class RendererEvents extends Events {
         this._ldblClkBegins = 0;
         this._rdblClkBegins = 0;
         this._mdblClkBegins = 0;
+        this._lClkBegins = 0;
+        this._rClkBegins = 0;
+        this._mClkBegins = 0;
         this._lclickX = 0;
         this._lclickY = 0;
         this._rclickX = 0;
@@ -249,6 +254,10 @@ class RendererEvents extends Events {
         this._rdblClkBegins = 0;
         this._mdblClkBegins = 0;
 
+        this._lClkBegins = 0;
+        this._rClkBegins = 0;
+        this._mClkBegins = 0;
+
         ms.x = event.clientX;
         ms.y = event.clientY;
 
@@ -270,17 +279,21 @@ class RendererEvents extends Events {
      * @private
      */
     onMouseDown(event) {
+
         if (event.button === input.MB_LEFT) {
+            this._lClkBegins = new Date().getTime();
             this._lclickX = event.clientX;
             this._lclickY = event.clientY;
             this.mouseState.sys = event;
             this.mouseState.leftButtonDown = true;
         } else if (event.button === input.MB_RIGHT) {
+            this._rClkBegins = new Date().getTime();
             this._rclickX = event.clientX;
             this._rclickY = event.clientY;
             this.mouseState.sys = event;
             this.mouseState.rightButtonDown = true;
         } else if (event.button === input.MB_MIDDLE) {
+            this._mClkBegins = new Date().getTime();
             this._mclickX = event.clientX;
             this._mclickY = event.clientY;
             this.mouseState.sys = event;
@@ -294,12 +307,15 @@ class RendererEvents extends Events {
     onMouseUp(event) {
         var ms = this.mouseState;
         ms.sys = event;
+        var t = new Date().getTime();
+
         if (event.button === input.MB_LEFT) {
             ms.leftButtonDown = false;
             ms.leftButtonUp = true;
 
             if (this._lclickX === event.clientX &&
-                this._lclickY === event.clientY) {
+                this._lclickY === event.clientY &&
+                (t - this._lClkBegins <= ms.clickDelay)) {
 
                 if (this._ldblClkBegins) {
                     var deltatime = new Date().getTime() - this._ldblClkBegins;
@@ -312,6 +328,7 @@ class RendererEvents extends Events {
                 }
 
                 ms.leftButtonClick = true;
+                this._lClkBegins = 0;
             }
 
         } else if (event.button === input.MB_RIGHT) {
@@ -319,7 +336,8 @@ class RendererEvents extends Events {
             ms.rightButtonUp = true;
 
             if (this._rclickX === event.clientX &&
-                this._rclickY === event.clientY) {
+                this._rclickY === event.clientY &&
+                (t - this._rClkBegins <= ms.clickDelay)) {
 
                 if (this._rdblClkBegins) {
                     var deltatime = new Date().getTime() - this._rdblClkBegins;
@@ -332,13 +350,15 @@ class RendererEvents extends Events {
                 }
 
                 ms.rightButtonClick = true;
+                this._rClkBegins = 0;
             }
         } else if (event.button === input.MB_MIDDLE) {
             ms.middleButtonDown = false;
             ms.middleButtonUp = true;
 
             if (this._mclickX === event.clientX &&
-                this._mclickY === event.clientY) {
+                this._mclickY === event.clientY &&
+                (t - this._mClkBegins <= ms.clickDelay)) {
 
                 if (this._mdblClkBegins) {
                     var deltatime = new Date().getTime() - this._mdblClkBegins;
@@ -351,6 +371,7 @@ class RendererEvents extends Events {
                 }
 
                 ms.middleButtonClick = true;
+                this._mClkBegins = 0;
             }
         }
     }
