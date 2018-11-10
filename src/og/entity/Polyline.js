@@ -456,9 +456,20 @@ class Polyline {
             v[k++] = last.z;
 
             for (var i = 0; i < path.length; i++) {
-                var cur = path[i];
+
+                var cur = path[i],
+                    pji = this._path3v[j][i];
+
+                pji.x = cur.x;
+                pji.y = cur.y;
+                pji.z = cur.z;
+
                 if (ellipsoid) {
+
                     var lonLat = ellipsoid.cartesianToLonLat(cur);
+
+                    this._pathLonLat[j][i] = lonLat;
+
                     l[j][i] = lonLat;
                     m[j][i] = lonLat.forwardMercator();
 
