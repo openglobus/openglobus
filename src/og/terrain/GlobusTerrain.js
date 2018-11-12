@@ -4,6 +4,7 @@
 
 'use strict';
 
+import * as mercator from '../mercator.js';
 import { EmptyTerrain } from './EmptyTerrain.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Events } from '../Events.js';

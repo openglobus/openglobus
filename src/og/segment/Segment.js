@@ -1673,10 +1673,6 @@ Segment.prototype.getNodeState = function () {
     return vn && vn.state || NOTRENDERING;
 };
 
-Segment.prototype.getTileIndex = function () {
-    return this.tileZoom + "_" + this.tileX + "_" + this.tileY;
-};
-
 Segment.prototype.getNeighborSide = function (b) {
     if (this._tileGroup === b._tileGroup) {
         if (this.tileY === b.tileY) {
