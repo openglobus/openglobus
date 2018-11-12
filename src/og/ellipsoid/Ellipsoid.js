@@ -114,29 +114,23 @@ class Ellipsoid {
         var ecc22 = this._e22;
         var r2 = x * x + y * y;
         var r = Math.sqrt(r2);
-        var e2 = this._a2 - this._b2;
         var z2 = z * z;
         var f = 54.0 * this._b2 * z2;
-        var g = r2 + (1.0 - ecc2) * z2 + ecc2 * e2;
+        var g = r2 + (1.0 - ecc2) * z2 + ecc2 * (this._a2 - this._b2);
         var g2 = g * g;
         var c = ecc22 * f * r2 / (g2 * g);
-        var s = Math.pow((1 + c + Math.sqrt(c * (c + 2))), 0.33333333333333333);
-        var p = f / (3 * Math.pow((1 + s + 1 / s), 2) * g2);
-        var q = Math.sqrt(1 + 2 * ecc22 * p);
-        var r0 = -(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2);
-        var recc2r0 = r - ecc2 * r0;
+        var s = Math.pow((1.0 + c + Math.sqrt(c * (c + 2.0))), 0.33333333333333333);
+        var p = f / (3.0 * Math.pow((1.0 + s + 1.0 / s), 2.0) * g2);
+        var q = Math.sqrt(1.0 + 2.0 * ecc22 * p);
+        var recc2r0 = r - ecc2 * (-(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2));
         var recc2r02 = recc2r0 * recc2r0;
-        //var u = Math.sqrt(recc2r02 + z2);
+        var u = Math.sqrt(recc2r02 + z2);
         var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
         var z0 = this._b2 * z / (this._a * v);
-        var phi = Math.atan((z + this._k2 * z0) / r);
-        var lambda = Math.atan2(y, x);
-        var lat = phi * math.DEGREES;
-        var lon = lambda * math.DEGREES;
-        //var h = u * (1.0 - this._b2 / (this._a * v));
+        var lat = Math.atan((z + this._k2 * z0) / r) * math.DEGREES;
+        var lon = Math.atan2(y, x) * math.DEGREES;
         var c = this.geodeticToCartesian(lon, lat);
-        var h = cartesian.length() - c.length();
-        return new LonLat(lon, lat, h);
+        return new LonLat(lon, lat, cartesian.length() - c.length());
     }
 
     /**
