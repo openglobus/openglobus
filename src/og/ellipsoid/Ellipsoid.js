@@ -117,23 +117,25 @@ class Ellipsoid {
         var e2 = this._a2 - this._b2;
         var z2 = z * z;
         var f = 54.0 * this._b2 * z2;
-        var g = r2 + (1 - ecc2) * z2 + ecc2 * e2;
+        var g = r2 + (1.0 - ecc2) * z2 + ecc2 * e2;
         var g2 = g * g;
         var c = ecc22 * f * r2 / (g2 * g);
         var s = Math.pow((1 + c + Math.sqrt(c * (c + 2))), 0.33333333333333333);
         var p = f / (3 * Math.pow((1 + s + 1 / s), 2) * g2);
         var q = Math.sqrt(1 + 2 * ecc22 * p);
-        var r0 = -(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1 + 1 / q) - p * (1 - ecc2) * z2 / (q * (1 + q)) - 0.5 * p * r2);
+        var r0 = -(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2);
         var recc2r0 = r - ecc2 * r0;
         var recc2r02 = recc2r0 * recc2r0;
-        var u = Math.sqrt(recc2r02 + z2);
-        var v = Math.sqrt(recc2r02 + (1 - ecc2) * z2);
+        //var u = Math.sqrt(recc2r02 + z2);
+        var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
         var z0 = this._b2 * z / (this._a * v);
-        var h = u * (1 - this._b2 / (this._a * v));
         var phi = Math.atan((z + this._k2 * z0) / r);
         var lambda = Math.atan2(y, x);
         var lat = phi * math.DEGREES;
         var lon = lambda * math.DEGREES;
+        //var h = u * (1.0 - this._b2 / (this._a * v));
+        var c = this.geodeticToCartesian(lon, lat);
+        var h = cartesian.length() - c.length();
         return new LonLat(lon, lat, h);
     }
 
@@ -150,22 +152,6 @@ class Ellipsoid {
             nz = coord.z * r2.z;
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         return new Vec3(nx * l, ny * l, nz * l);
-    }
-
-    /**
-     * Gets the cartesian point on the height over the ellipsoid surface.
-     * @public
-     * @param {og.Vec3} coord - Spatial ellipsoid coordiantes.
-     * @param {number} h - Height this spatial coordinates.
-     * @return {og.Vec3} -
-     */
-    getSurfaceHeight3v(coord, h) {
-        var r2 = this._invRadii2;
-        var nx = coord.x * r2.x,
-            ny = coord.y * r2.y,
-            nz = coord.z * r2.z;
-        var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-        return new Vec3(coord.x + h * nx * l, coord.y + h * ny * l, coord.z + h * nz * l);
     }
 
     /**

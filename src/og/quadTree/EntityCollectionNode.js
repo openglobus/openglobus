@@ -40,9 +40,7 @@ EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightN
 EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, rightNow) {
     if (entities.length) {
         var l = this.layer,
-            p = l._planet,
-            ell = p.ellipsoid,
-            ext = this.extent;
+            p = l._planet;
 
         var ec = this.entityCollection;
 
@@ -57,7 +55,7 @@ EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, ri
             this.entityCollection = ec;
         }
 
-        if (rightNow) {
+        if (rightNow || !l.async) {
             this.entityCollection.addEntities(entities);
         } else {
             this.deferredEntities.push.apply(this.deferredEntities, entities);
@@ -253,7 +251,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 
     ec.polygonOffsetFactor = l.polygonOffsetFactor;
     ec.polygonOffsetUnits = l.polygonOffsetUnits;
-    
+
     outArr.push(ec);
 
     if (l.clampToGround || l.relativeToGround) {
