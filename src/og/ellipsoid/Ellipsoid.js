@@ -34,8 +34,8 @@ class Ellipsoid {
 
         this._radii = new Vec3(equatorialSize, polarSize, equatorialSize);
         this._radii2 = new Vec3(this._a2, this._b2, this._a2);
-        this._invRadii = new Vec3(1 / equatorialSize, 1 / polarSize, 1 / equatorialSize);
-        this._invRadii2 = new Vec3(1 / this._a2, 1 / this._b2, 1 / this._a2);
+        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / polarSize, 1.0 / equatorialSize);
+        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._b2, 1.0 / this._a2);
     }
 
 
