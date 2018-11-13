@@ -1,2 +1,1 @@
 webpack --mode=production
-PAUSE
