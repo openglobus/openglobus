@@ -36,7 +36,7 @@
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
     "style-loader": "^0.20.3",
-    "webpack": "^4.1.1"
+    "webpack": "^4.25.1"
   },
   "keywords": [
     "map",
