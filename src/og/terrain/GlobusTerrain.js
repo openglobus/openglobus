@@ -12,6 +12,7 @@ import { Loader } from '../utils/Loader.js';
 import { NOTRENDERING } from '../quadTree/quadTree.js';
 import { QueueArray } from '../QueueArray.js';
 import { stringTemplate } from '../utils/shared.js';
+import { Geoid } from './Geoid.js';
 
 const EVENT_NAMES = [
     /**
@@ -45,14 +46,14 @@ const EVENT_NAMES = [
  */
 class GlobusTerrain extends EmptyTerrain {
     constructor(name, options) {
-        
+
         super();
 
-        options = options || {};        
+        options = options || {};
 
         this.blur = true;
 
-        this.equalizeNormals = true;        
+        this.equalizeNormals = true;
 
         /**
          * Provider name.
@@ -74,6 +75,10 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {number}
          */
         this.maxZoom = options.maxZoom || 14;
+
+        this.geoid = new Geoid();
+
+        this._pgm = options.pgm != undefined ? otions.pgm : "./res/egm96-15.pgm";
 
         /**
          * Terrain source path url template. 
@@ -177,7 +182,7 @@ class GlobusTerrain extends EmptyTerrain {
                             segment.terrainIsLoading = false;
                         } else if (response.status === "error") {
                             this._applyElevationsData(segment, null);
-                        }else{
+                        } else {
                             segment.terrainIsLoading = false;
                         }
                     });

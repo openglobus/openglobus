@@ -36,6 +36,7 @@ import { print2d } from '../utils/shared.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Plane } from '../math/Plane.js';
+import { Geoid } from '../terrain/Geoid.js';
 
 const DEFAULT_LOD_RATIO = 0.98;
 const DELTA_LOD = 0.35;
@@ -546,6 +547,13 @@ class Planet extends RenderNode {
         this.terrain._planet = this;
         this.terrain._maxNodeZoom = terrain.gridSizeByZoom.length - 1;
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
+
+        if (terrain._pgm) {
+            Geoid.loadModel(terrain._pgm).then((m) => {
+                terrain.geoid.setModel(m);
+                this._plainSegmentWorker.setGeoid(terrain.geoid);
+            });
+        }
     }
 
     /**

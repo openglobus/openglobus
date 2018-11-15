@@ -167,7 +167,7 @@ class EarthCoordinates extends Control {
     _showPosition() {
         if (this.position) {
             this.position.height = ((this.position.height > 10000 || this.position.height < -10000) ? 0 : this.position.height);
-            this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " h(km): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(2) : "-");
+            this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " h(m): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(3) * 1000 : "-");
         } else {
             this._display.innerHTML = "Lat/Lon: " + "_____________________";
         }

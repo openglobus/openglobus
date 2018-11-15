@@ -591,7 +591,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
  * Terrain is not obtained or not exists on the server.
  */
 Segment.prototype.elevationsNotExists = function () {
-    if (this.tileZoom <= this.planet.terrain.maxZoom) {
+    if (this.planet && this.tileZoom <= this.planet.terrain.maxZoom) {
 
         if (this.plainReady && this.terrainIsLoading) {
             this.terrainIsLoading = false;
