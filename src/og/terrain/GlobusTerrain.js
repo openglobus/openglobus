@@ -76,9 +76,9 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.maxZoom = options.maxZoom || 14;
 
-        this.geoid = new Geoid();
-
-        this._pgm = options.pgm != undefined ? otions.pgm : "./res/egm96-15.pgm";
+        this._geoid = new Geoid({
+            'src': "./res/egm96-15.pgm"
+        });
 
         /**
          * Terrain source path url template. 

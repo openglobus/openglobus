@@ -543,15 +543,21 @@ class Planet extends RenderNode {
      * @param {og.terrain.Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
+
+        //
+        //TODO: Replace to terrain
+        //
+
         this.terrain = terrain;
         this.terrain._planet = this;
         this.terrain._maxNodeZoom = terrain.gridSizeByZoom.length - 1;
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
 
-        if (terrain._pgm) {
-            Geoid.loadModel(terrain._pgm).then((m) => {
-                terrain.geoid.setModel(m);
-                this._plainSegmentWorker.setGeoid(terrain.geoid);
+        if (terrain._geoid) {
+            terrain._geoid.model = null;
+            Geoid.loadModel(terrain._geoid.src).then((m) => {
+                terrain._geoid.model = m;
+                this._plainSegmentWorker.setGeoid(terrain._geoid);
             });
         }
     }

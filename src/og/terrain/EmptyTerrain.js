@@ -59,6 +59,8 @@ class EmptyTerrain {
          * @type {og.scene.Planet}
          */
         this._planet = null;
+
+        this._geoid = null;
     }
 
     set maxNodeZoom(val) {
@@ -68,7 +70,7 @@ class EmptyTerrain {
         this._maxNodeZoom = val;
     }
 
-    get maxNodeZoom(){
+    get maxNodeZoom() {
         return this._maxNodeZoom;
     }
 
@@ -82,6 +84,15 @@ class EmptyTerrain {
         segment.terrainIsLoading = false;
         segment.terrainReady = true;
         segment.terrainExists = true;
+    }
+
+    setGeoid(geoid) {
+        this._geoid = geoid;
+        //...this._planet
+    }
+
+    isReady() {
+        return this._geoid && this._geoid.model || !this._geoid;
     }
 
     /**

@@ -13,38 +13,8 @@
  * **********************************************************************
  *
  * Geoid height grade not supported
- */
-
-/* Usage: as an AMD module
- *
- * require(['geoid'], function(Geoid) {
- *
- *      // The AMD module object is a function that loads a geoid
- *	// model data file and returns a Promise which resolves
- *	// once that file has been downloaded and initialized.
- *	// The files can be downloaded from here:
- *	//   http://geographiclib.sourceforge.net/1.18/geoid.html
- *
- *	//Geoid("/geoids/egm2008-1.pgm")  // much too slow in browser
- *	Geoid("/geoids/egm2008-5.pgm").then(function(get_geoid_height) {
- *
- *		// get_geoid_height is a function which will return
- *		// the height of the geoid above the ellipsoid given...
- *
- *		var geoid_height = get_geoid_height(
- *			// ...the latitude in degrees,
- *			45.517405998,
- *			// the longitude in degrees
- *			-73.4086170327,
- *			// the whether to use cubic interpolation
- *			true
- *		);
- *	}, function(err) {
- *		// If we get here, the model failed to load
- *		console.log(err);
- *	});
- *
- * }
+ * The files can be downloaded from here:
+ * http://geographiclib.sourceforge.net/1.18/geoid.html
  */
 
 'use strict';
@@ -98,9 +68,12 @@ const c3s = [
 ];
 
 class Geoid {
-    constructor(model) {
+    constructor(options) {
 
-        this.model = model;
+        options = options || {}
+
+        this.model = null;
+        this.src = options.src || null;
 
         this._cached_ix = null;
         this._cached_iy = null;

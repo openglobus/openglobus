@@ -1158,9 +1158,13 @@ Segment.prototype._assignGlobalTextureCoordinates = function () {
 
 
 Segment.prototype.createPlainSegmentAsync = function () {
-    if (this.tileZoom <= this.planet.terrain.maxZoom && !this.plainReady) {
+
+    let p = this.planet,
+        t = p.terrain;
+
+    if (t.isReady() && this.tileZoom <= t.maxZoom && !this.plainReady) {
         this.plainProcessing = true;
-        this.planet._plainSegmentWorker.make(this);
+        p._plainSegmentWorker.make(this);
     }
 };
 
