@@ -302,22 +302,12 @@ const _programm =
         let slt = Math.sin(latrad);
 
         let N = A / Math.sqrt(1.0 - E2 * slt * slt);
-        let nc = N * Math.cos(latrad);
-        
-        let x = nc * Math.sin(lonrad),
-            y = N * (1.0 - E2) * slt,
-            z = nc * Math.cos(lonrad);
-
-        let length = 1.0 / Math.sqrt(x * x + y * y + z * z);
-
-        let nx = x * length,
-            ny = y * length,
-            nz = z * length;
+        let nc = (N + h) * Math.cos(latrad);       
         
         return {
-            'x': nx * h + x,
-            'y': ny * h + y,
-            'z': nz * h + z
+            'x': nc * Math.sin(lonrad),
+            'y': (N * (1.0 - E2) + h) * slt,
+            'z': nc * Math.cos(lonrad)
         }
     };
 
