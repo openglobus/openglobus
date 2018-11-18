@@ -489,7 +489,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
     }
 
     if (onlyTerrain) {
-        this.state = NOTRENDERING;
+        this.state = RENDERING/*NOTRENDERING*/;
         return;
     }
 
