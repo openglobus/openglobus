@@ -393,12 +393,12 @@ Mat4.prototype.scale = function (v) {
  */
 Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 
-    this.left = left;
-    this.right = right;
-    this.bottom = bottom;
-    this.top = top;
-    this.near = near;
-    this.far = far;
+    //this.left = left;
+    //this.right = right;
+    //this.bottom = bottom;
+    //this.top = top;
+    //this.near = near;
+    //this.far = far;
 
     var h = right - left, i = top - bottom, j = far - near;
     this._m[0] = near * 2 / h;
@@ -447,12 +447,13 @@ Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
  * @return {og.Mat4} -
  */
 Mat4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
-    this.left = left;
-    this.right = right;
-    this.bottom = bottom;
-    this.top = top;
-    this.near = near;
-    this.far = far;
+
+    //this.left = left;
+    //this.right = right;
+    //this.bottom = bottom;
+    //this.top = top;
+    //this.near = near;
+    //this.far = far;
 
     var lr = 1.0 / (left - right),
         bt = 1.0 / (bottom - top),

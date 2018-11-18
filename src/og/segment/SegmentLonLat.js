@@ -42,9 +42,12 @@ SegmentLonLat.prototype.projectNative = function (coords) {
     return coords;
 };
 
-SegmentLonLat.prototype.getTerrainPoint = function (res, xyz) {
+SegmentLonLat.prototype.getTerrainPoint = function (xyz, res, normal) {
     res.copy(this.planet.ellipsoid.hitRay(xyz, xyz.negateTo().normalize()));
-    return xyz.distance(res);
+    if (normal) {
+        normal.copy(res.normal());
+    }
+    return res.length() - xyz.length();
 };
 
 SegmentLonLat.prototype.acceptForRendering = function (camera) {

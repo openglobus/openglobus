@@ -84,7 +84,7 @@ Ray.prototype.getPoint = function (distance) {
  * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE, 
  *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
  */
-Ray.prototype.hitTriangle = function (v0, v1, v2, res) {
+Ray.prototype.hitTriangle = function (v0, v1, v2, res, normal) {
     var state;
     var u = v1.sub(v0);
     var v = v2.sub(v0);

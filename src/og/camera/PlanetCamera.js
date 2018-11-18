@@ -133,7 +133,7 @@ class PlanetCamera extends Camera {
         this._setViewMatrix();
 
         this._projectionViewMatrix = this._projectionMatrix.mul(this._viewMatrix);
-        this.frustum.setFrustum(this._projectionViewMatrix._m);
+        this.frustum.setFrustum(this._projectionViewMatrix);
 
         this._inverseProjectionViewMatrix = this._projectionMatrixPrecise.mul(this._viewMatrix).inverseTo();
 
@@ -509,7 +509,7 @@ class PlanetCamera extends Camera {
         } else {
             this._terrainAltitude = this._lonLat.height;
             if (this._lonLat.height < 1000000 && this._insideSegment) {
-                this._terrainAltitude = this._insideSegment.getTerrainPoint(this._terrainPoint, this.eye, this._insideSegmentPosition);
+                this._terrainAltitude = this._insideSegment.getTerrainPoint(this.eye, this._insideSegmentPosition, this._terrainPoint);
                 if (this._terrainAltitude < this.minAltitude) {
                     this.setAltitude(this.minAltitude);
                 }

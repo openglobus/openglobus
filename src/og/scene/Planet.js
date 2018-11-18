@@ -555,10 +555,14 @@ class Planet extends RenderNode {
 
         if (terrain._geoid) {
             terrain._geoid.model = null;
-            Geoid.loadModel(terrain._geoid.src).then((m) => {
-                terrain._geoid.model = m;
-                this._plainSegmentWorker.setGeoid(terrain._geoid);
-            });
+            Geoid.loadModel(terrain._geoid.src)
+                .then((m) => {
+                    terrain._geoid.model = m;
+                    this._plainSegmentWorker.setGeoid(terrain._geoid);
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         }
     }
 

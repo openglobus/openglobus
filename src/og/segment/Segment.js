@@ -225,8 +225,8 @@ Segment.prototype.acceptForRendering = function (camera) {
  * @param {og.Vec3} res - Point coordinates.
  * @returns {og.Vec3} -
  */
-Segment.prototype.getEntityTerrainPoint = function (entity, res) {
-    return this.getTerrainPoint(res, entity._cartesian, entity._lonlatMerc);
+Segment.prototype.getEntityTerrainPoint = function (entity, res, normal) {
+    return this.getTerrainPoint(entity._cartesian, entity._lonlatMerc, res, normal);
 };
 
 Segment.prototype.isEntityInside = function (e) {
@@ -241,7 +241,7 @@ Segment.prototype.isEntityInside = function (e) {
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
  * @returns {number} -
  */
-Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
+Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
 
     var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
         ray = new Ray(xyz, xyz.negateTo());
@@ -279,13 +279,13 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
                 v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
                 v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            let d = ray.hitTriangle(v0, v1, v2, res);
+            let d = ray.hitTriangle(v0, v1, v2, res, normal);
 
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(v0, v1, v2, res);
+                let d = ray.hitTriangle(v0, v1, v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
@@ -293,12 +293,12 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
 
             var v3 = new Vec3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-            d = ray.hitTriangle(v1, v3, v2, res);
+            d = ray.hitTriangle(v1, v3, v2, res, normal);
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(v1, v3, v2, res);
+                let d = ray.hitTriangle(v1, v3, v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
@@ -312,8 +312,10 @@ Segment.prototype.getTerrainPoint = function (res, xyz, insideSegmentPosition) {
         }
 
         res.copy(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
+        normal && normal.copy(xyz.normal());
         return xyz.distance(res);
     } else {
+        normal && normal.copy(xyz.normal());
         return xyz.distance(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
     }
 };

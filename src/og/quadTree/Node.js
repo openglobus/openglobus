@@ -337,10 +337,10 @@ Node.prototype.isBrother = function (node) {
 
 Node.prototype.renderTree = function (cam, maxZoom) {
 
-    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES){
+    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
         return;
     }
-    
+
     this.state = WALKTHROUGH;
 
     this.neighbors[0] = [];
@@ -385,26 +385,26 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         this._cameraInside = true;
     }
 
-    var inFrustum = cam.frustum.containsSphere(seg.bsphere);
+    let inExcFrustum = cam.frustum.containsSphereBottomExc(seg.bsphere);
 
-    const altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(cam._lonLat.height);
+    if (inExcFrustum || this._cameraInside) {
 
-    if (inFrustum && (altVis || cam._lonLat.height > 10000.0) || this._cameraInside) {
-        seg._collectVisibleNodes();
-    }
+        let inFrustum = inExcFrustum && cam.frustum.containsSphereButtom(seg.bsphere),
+            altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(cam._lonLat.height);
 
-    if (inFrustum || this._cameraInside) {
+        if (inFrustum && (altVis || cam._lonLat.height > 10000.0) || this._cameraInside) {
+            seg._collectVisibleNodes();
+        }
 
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom);
-        } else if (!maxZoom && seg.acceptForRendering(cam)
-            || seg.tileZoom === maxZoom) {
-            this.prepareForRendering(cam, altVis);
+        } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
+            this.prepareForRendering(cam, altVis, inFrustum);
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
             this.traverseNodes(cam, maxZoom);
         } else {
-            this.prepareForRendering(cam, altVis);
+            this.prepareForRendering(cam, altVis, inFrustum);
         }
 
     } else {
@@ -435,27 +435,31 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
     n[3].renderTree(cam, maxZoom);
 };
 
-Node.prototype.prepareForRendering = function (cam, altVis) {
+Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
 
     const h = cam._lonLat.height;
 
     if (h < VISIBLE_HEIGHT) {
+
         if (altVis) {
-            this.renderNode();
+            this.renderNode(!inFrustum);
         } else {
             this.state = NOTRENDERING;
         }
+
     } else {
+
         let seg = this.segment;
         if (seg.tileZoom < MAX_NORMAL_ZOOM && (
             seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)) {
-            this.renderNode();
+            this.renderNode(!inFrustum);
         } else {
             this.state = NOTRENDERING;
         }
+
     }
 };
 

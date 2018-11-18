@@ -612,7 +612,7 @@ class Vector extends Layer {
                                 var seg = nodes[n_k].segment;
                                 if (seg._extent.isInside(ll)) {
                                     let cart = p._path3v[c_j][c_j_h];
-                                    seg.getTerrainPoint(res, cart, ll);
+                                    seg.getTerrainPoint(cart, ll, res);
                                     p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 0.0)), c_j_h, c_j, true);
                                     break;
                                 }

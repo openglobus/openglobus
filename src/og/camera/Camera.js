@@ -176,10 +176,12 @@ class Camera {
             n = this._n,
             eye = this.eye;
 
-        this._viewMatrix.set([u.x, v.x, n.x, 0,
-        u.y, v.y, n.y, 0,
-        u.z, v.z, n.z, 0,
-        -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0]);
+        this._viewMatrix.set([
+            u.x, v.x, n.x, 0,
+            u.y, v.y, n.y, 0,
+            u.z, v.z, n.z, 0,
+            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+        ]);
     }
 
     checkMoveEnd() {
@@ -289,7 +291,7 @@ class Camera {
         this._setViewMatrix();
 
         this._projectionViewMatrix = this._projectionMatrix.mul(this._viewMatrix);
-        this.frustum.setFrustum(this._projectionViewMatrix._m);
+        this.frustum.setFrustum(this._projectionViewMatrix);
         this._inverseProjectionViewMatrix = this._projectionViewMatrix.inverseTo();
         this._normalMatrix = this._viewMatrix.toMatrix3();//this._viewMatrix.toInverseMatrix3().transposeTo();
 
