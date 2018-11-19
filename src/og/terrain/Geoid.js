@@ -226,6 +226,10 @@ class Geoid {
         return (model.rawfile[k] << 8) | model.rawfile[k + 1];
     }
 
+    getHeightLonLat(lonlat, cubic) {
+        return this.getHeight(lonlat.lon, lonlat.lat, cubic);
+    }
+
     getHeight(lon, lat, cubic) {
 
         if (!this.model) return;

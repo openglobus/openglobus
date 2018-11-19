@@ -74,6 +74,10 @@ class EmptyTerrain {
         return this._maxNodeZoom;
     }
 
+    get geoid() {
+        return this._geoid;
+    }
+
     /**
      * Loads or creates segment elevation data.
      * @public
