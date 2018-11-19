@@ -289,7 +289,9 @@ Node.prototype.createBounds = function () {
 };
 
 Node.prototype.getState = function () {
-    //return this.segment.getNodeState();
+    if(this.state === -1){
+        return this.state;
+    }
     var pn = this.parentNode;
     while (pn) {
         if (pn.state !== WALKTHROUGH) {
@@ -488,14 +490,14 @@ Node.prototype.renderNode = function (onlyTerrain) {
         }
     }
 
+    if (onlyTerrain) {
+        this.state = -1/*NOTRENDERING*/;
+        return;
+    }
+
     //Create normal map texture
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
-    }
-
-    if (onlyTerrain) {
-        this.state = RENDERING/*NOTRENDERING*/;
-        return;
     }
 
     //Calculate minimal and maximal zoom index on the screen

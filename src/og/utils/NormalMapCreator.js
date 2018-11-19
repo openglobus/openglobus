@@ -222,8 +222,10 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
 
 NormalMapCreator.prototype._drawNormalMapNotBlur = function (segment) {
     var normals = segment.normalMapNormals;
-    if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING
-        && normals && normals.length) {
+    if (segment.node &&
+        segment.node.getState() !== quadTree.NOTRENDERING &&
+        normals && 
+        normals.length) {
 
         segment._normalMapEdgeEqualize(quadTree.N);
         segment._normalMapEdgeEqualize(quadTree.S);

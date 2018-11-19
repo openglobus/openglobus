@@ -711,66 +711,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
             }
 
         } else {
-            // let s_edge = 0, b_edge = 1;
 
-            // if (i_a) {
-            //     s_edge = 1;
-            //     b_edge = 0;
-            // }
-
-            // if (s.tileZoom < b.tileZoom) {
-            //     if (!b._inTheQueue && b._appliedNeighborsZoom[quadTree.OPSIDE[side]] !== s.tileZoom) {
-            //         s.planet._normalMapCreator.queue(b);
-            //     }
-            //     b._appliedNeighborsZoom[quadTree.OPSIDE[side]] = s.tileZoom;
-            //     side = quadTree.OPSIDE[side];
-            //     let t = b;
-            //     t = s;
-            //     s = b;
-            //     b = t;
-            //     s_edge ^= 1;
-            //     b_edge ^= 1;
-            // }
-
-            // let dZ2 = 1.0 / (2 << (s.tileZoom - b.tileZoom - 1));
-
-            // if (_V[side]) {
-            //     var offsetY = s.tileY * dZ2 - b.tileY;
-
-            //     for (let k = 0; k < s_gs; k++) {
-            //         let vInd_a = (s_gs * k + s_gs1 * s_edge) * 3,
-            //             kk = Math.round(k * dZ2),
-            //             vInd_b = (b_gs * (kk + offsetY * b_gs1) + b_gs1 * b_edge) * 3;
-
-            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
-
-            //         q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-            //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-            //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-            //         seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-            //     }
-            // } else {
-            //     let offsetX = s.tileX * dZ2 - b.tileX;
-
-            //     for (let k = 0; k < s_gs; k++) {
-            //         let vInd_a = (s_gs * s_gs1 * s_edge + k) * 3,
-            //             kk = Math.round(k * dZ2),
-            //             vInd_b = (b_gs * b_gs1 * b_edge + (kk + offsetX * b_gs1)) * 3;
-
-            //         nx = seg_a_raw[vInd_a] + seg_b_raw[vInd_b];
-            //         ny = seg_a_raw[vInd_a + 1] + seg_b_raw[vInd_b + 1];
-            //         nz = seg_a_raw[vInd_a + 2] + seg_b_raw[vInd_b + 2];
-
-            //         q = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-
-            //         seg_b[vInd_b] = seg_a[vInd_a] = nx * q;
-            //         seg_b[vInd_b + 1] = seg_a[vInd_a + 1] = ny * q;
-            //         seg_b[vInd_b + 2] = seg_a[vInd_a + 2] = nz * q;
-            //     }
-            // }
         }
     }
 };
