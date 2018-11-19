@@ -356,7 +356,7 @@ Renderer.prototype.initialize = function () {
         },
         vertexShader:
             `
-            https://github.com/mattdesl/glsl-fxaa
+            //https://github.com/mattdesl/glsl-fxaa
             attribute vec2 corners;           
 
             varying vec2 v_rgbNW;
