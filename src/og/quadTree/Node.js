@@ -389,10 +389,12 @@ Node.prototype.renderTree = function (cam, maxZoom) {
 
     if (inExcFrustum || this._cameraInside) {
 
-        let inFrustum = inExcFrustum && cam.frustum.containsSphereButtom(seg.bsphere),
-            altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(cam._lonLat.height);
+        let h = cam._lonLat.height;
 
-        if (inFrustum && (altVis || cam._lonLat.height > 10000.0) || this._cameraInside) {
+        let inFrustum = inExcFrustum && cam.frustum.containsSphereButtom(seg.bsphere),
+            altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(h);
+
+        if (inFrustum && (altVis || h > 10000.0) || this._cameraInside) {
             seg._collectVisibleNodes();
         }
 
@@ -437,9 +439,7 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
 
 Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
 
-    const h = cam._lonLat.height;
-
-    if (h < VISIBLE_HEIGHT) {
+    if (cam._lonLat.height < VISIBLE_HEIGHT) {
 
         if (altVis) {
             this.renderNode(!inFrustum);
@@ -488,14 +488,14 @@ Node.prototype.renderNode = function (onlyTerrain) {
         }
     }
 
-    if (onlyTerrain) {
-        this.state = RENDERING/*NOTRENDERING*/;
-        return;
-    }
-
     //Create normal map texture
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
+    }
+
+    if (onlyTerrain) {
+        this.state = RENDERING/*NOTRENDERING*/;
+        return;
     }
 
     //Calculate minimal and maximal zoom index on the screen

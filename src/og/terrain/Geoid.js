@@ -72,7 +72,7 @@ class Geoid {
 
         options = options || {}
 
-        this.model = null;
+        this.model = options.model || null;
         this.src = options.src || null;
 
         this._cached_ix = null;
