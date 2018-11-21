@@ -74,6 +74,15 @@ class EmptyTerrain {
         return this._maxNodeZoom;
     }
 
+    set geoid(geoid) {
+        this._geoid = geoid;
+        //...this._planet
+    }
+
+    get geoid() {
+        return this._geoid;
+    }
+
     /**
      * Loads or creates segment elevation data.
      * @public
@@ -84,11 +93,6 @@ class EmptyTerrain {
         segment.terrainIsLoading = false;
         segment.terrainReady = true;
         segment.terrainExists = true;
-    }
-
-    setGeoid(geoid) {
-        this._geoid = geoid;
-        //...this._planet
     }
 
     isReady() {
