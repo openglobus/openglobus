@@ -152,10 +152,10 @@ class Camera {
          */
         this._n = new Vec3(0, 0, 1); //eye - look - FORWARD
 
-        this._pu = this._u;
-        this._pv = this._v;
-        this._pn = this._n;
-        this._peye = this.eye;
+        this._pu = this._u.clone();
+        this._pv = this._v.clone();
+        this._pn = this._n.clone();
+        this._peye = this.eye.clone();
         this._moved = false;
 
         this._tanViewAngle_hrad = 0;
@@ -204,10 +204,10 @@ class Camera {
             }
         }
 
-        this._pu = u;
-        this._pv = v;
-        this._pn = n;
-        this._peye = eye;
+        this._pu.copy(u);
+        this._pv.copy(v);
+        this._pn.copy(n);
+        this._peye.copy(eye);
     }
 
     /**
