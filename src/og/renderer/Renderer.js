@@ -162,11 +162,6 @@ const Renderer = function (handler, params) {
 
     this._tempPickingColor_ = new Uint8Array(4);
 
-    /**
-     * @private
-     */
-    this._fnScreenFrame = null;
-
     this._initialized = false;
 
     if (params.autoActivate || isEmpty(params.autoActivate)) {
@@ -372,20 +367,8 @@ Renderer.prototype.initialize = function () {
             }'
     }));
 
-    //Append multiframebuffer(WEBGL_draw_buffers) extension.
-    this._drawBuffersExtension = this.handler.initializeExtension("WEBGL_draw_buffers");
-
-    if (this._drawBuffersExtension) {
-        this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });
-        this.sceneFramebuffer.init();
-
-        this._fnScreenFrame = this._multiframebufferScreenFrame;
-    } else {
-        this.sceneFramebuffer = new Framebuffer(this.handler);
-        this.sceneFramebuffer.init();
-
-        this._fnScreenFrame = this._singleframebufferScreenFrame;
-    }
+    this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });
+    this.sceneFramebuffer.init();
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
@@ -459,7 +442,7 @@ Renderer.prototype.draw = function () {
     this._drawPickingBuffer();
 
     //Rendering on the screen
-    this._fnScreenFrame();
+    this._multiframebufferScreenFrame();
 
     e.mouseState.moving = false;
     e.touchState.moving = false;
@@ -484,25 +467,6 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     gl.enable(gl.DEPTH_TEST);
 }
 
-Renderer.prototype._singleframebufferScreenFrame = function () {
-    var h = this.handler;
-    var sh = h.programs.screenFrame,
-        p = sh._program,
-        gl = h.gl;
-
-    gl.disable(gl.DEPTH_TEST);
-    sh.activate();
-    gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
-    //gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.texture);
-    gl.uniform1i(p.uniforms.texture, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.enable(gl.DEPTH_TEST);
-}
-
 /**
  * Returns picking object by screen coordinates
  * @param {number} x - X position
@@ -511,22 +475,8 @@ Renderer.prototype._singleframebufferScreenFrame = function () {
  */
 Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c = this._tempPickingColor_;
-    if (this._drawBuffersExtension) {
-        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
-    } else {
-        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height);
-    }
+    var c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-}
-
-/** 
- * Returns true if 'WEBGL_draw_buffers' extension initialized.
- * @public
- * @returns {Boolean} -
- */
-Renderer.prototype.isMultiFramebufferCompatible = function () {
-    return (this._drawBuffersExtension ? true : false);
 }
 
 /**
@@ -565,11 +515,11 @@ Renderer.prototype._drawPickingBuffer = function () {
         var pc = this._currPickingColor;
         if (ts.x || ts.y) {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
+            if (!(pc[0] || pc[1] || pc[2]))
                 this.sceneFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
+            if (!(pc[0] || pc[1] || pc[2]))
                 this.sceneFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
         }
     }

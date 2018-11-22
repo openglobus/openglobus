@@ -31,7 +31,7 @@ const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
  * @param {number} [params.width] - Hidden handler width. 256 is default.
  * @param {number} [params.height] - Hidden handler height. 256 is default.
  * @param {Object} [param.scontext] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
- * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: OES_standard_derivatives, EXT_texture_filter_anisotropic.
+ * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 const Handler = function (id, params) {
 
@@ -169,8 +169,7 @@ Handler.getExtension = function (gl, name) {
 Handler.getContext = function (canvas, contextAttributes) {
     var ctx;
     try {
-        ctx = canvas.getContext("webgl", contextAttributes) ||
-            canvas.getContext("experimental-webgl", contextAttributes);
+        ctx = canvas.getContext("webgl2", contextAttributes);
     }
     catch (ex) {
         cons.logErr("exception during the GL context initialization");
@@ -525,15 +524,7 @@ Handler.prototype.initialize = function () {
     this._initialized = true;
 
     /** Sets deafult extensions */
-    this._params.extensions.push("OES_standard_derivatives");
     this._params.extensions.push("EXT_texture_filter_anisotropic");
-    this._params.extensions.push("OES_element_index_uint");
-
-    //this._params.extensions.push('OES_texture_half_float');
-    //this._params.extensions.push('OES_texture_half_float_linear');
-
-    //this._params.extensions.push('OES_texture_float');
-    //this._params.extensions.push('OES_texture_float_linear');
 
     var i = this._params.extensions.length;
     while (i--) {
