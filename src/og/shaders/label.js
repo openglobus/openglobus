@@ -118,11 +118,11 @@ export function label() {
 
             uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
-            out float v_fontIndex;
-            out vec2 v_texCoords;
-            out vec4 v_rgba;
-            out vec3 v_bufferAA;
-            out vec3 v_pickingColor;
+            in float v_fontIndex;
+            in vec2 v_texCoords;
+            in vec4 v_rgba;
+            in vec3 v_bufferAA;
+            in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
             layout(location = 1) out vec4 outPickingMask;
