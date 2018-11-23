@@ -343,28 +343,28 @@ Renderer.prototype.initialize = function () {
 
     this.handler.addProgram(new Program("screenFrame", {
         uniforms: {
-            texture: { type: types.SAMPLER2D }
+            texture: "sampler2d"
         },
         attributes: {
-            corners: { type: types.VEC3, enableArray: true },
+            corners: "vec3",
         },
         vertexShader:
-            'attribute vec2 corners;\
-            \
-            varying vec2 tc;\
-            void main(void) {\
-                gl_Position = vec4(corners, 0.0, 1.0);\
-                tc = corners * 0.5 + 0.5;\
-            }',
+            `attribute vec2 corners;
+            
+            varying vec2 tc;
+            void main(void) {
+                gl_Position = vec4(corners, 0.0, 1.0);
+                tc = corners * 0.5 + 0.5;
+            }`,
         fragmentShader:
-            'precision highp float;\
-            uniform sampler2D texture;\
-            \
-            varying vec2 tc;\
-            \
-            void main(void) {\
-                gl_FragColor = texture2D( texture, tc );\
-            }'
+            `precision highp float;
+            uniform sampler2D texture;
+            
+            varying vec2 tc;
+            
+            void main(void) {
+                gl_FragColor = texture2D( texture, tc );
+            }`
     }));
 
     this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });

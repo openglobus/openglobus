@@ -94,8 +94,7 @@ class BillboardHandler {
     initProgram() {
         if (this._renderer.handler) {
             if (!this._renderer.handler.programs.billboard) {
-                var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
-                this._renderer.handler.addProgram(shaders.billboard(isSingleBuffer));
+                this._renderer.handler.addProgram(shaders.billboard());
             }
             if (!this._renderer.handler.programs.billboardPicking) {
                 this._renderer.handler.addProgram(shaders.billboardPicking());

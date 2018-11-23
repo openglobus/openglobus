@@ -5,8 +5,6 @@
 'use sctrict';
 
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
-
 
 export function drawnode_nl() {
     return new Program("drawnode_nl", {
@@ -15,8 +13,8 @@ export function drawnode_nl() {
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
-            samplerArr: { type: types.SAMPLER2DXX },
-            pickingMaskArr: { type: types.SAMPLER2DXX },
+            samplerArr: "sampler2dxx",
+            pickingMaskArr: "sampler2dxx",
             transparentColorArr: "vec4",
             pickingColorArr: "vec4",
             defaultTexture: "sampler2d",
@@ -168,19 +166,19 @@ export function drawnode_wl() {
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
-            samplerArr: { type: types.SAMPLER2DXX },
-            pickingMaskArr: { type: types.SAMPLER2DXX },
+            samplerArr: "sampler2dxx",
+            pickingMaskArr: "sampler2dxx",
             transparentColorArr: "vec4",
             pickingColorArr: "vec4",
-            defaultTexture: { type: types.SAMPLER2D },
+            defaultTexture: "sampler2d",
             height: "float",
             cameraPosition: "vec3",
             uGlobalTextureCoord: "vec4",
             normalMatrix: "mat3",
-            uNormalMap: { type: types.SAMPLER2D },
+            uNormalMap: "sampler2d",
             uNormalMapBias: "vec3",
-            nightTexture: { type: types.SAMPLER2D },
-            specularTexture: { type: types.SAMPLER2D },
+            nightTexture: "sampler2d",
+            specularTexture: "sampler2d",
             lightsPositions: "vec4",
             diffuseMaterial: "vec3",
             ambientMaterial: "vec3",
