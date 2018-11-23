@@ -1233,11 +1233,7 @@ class Planet extends RenderNode {
             this._viewChanged = false;
             var cnv = this.renderer.handler.canvas;
 
-            if (this.renderer._drawBuffersExtension) {
-                this.renderer.sceneFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2);
-            } else {
-                this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
-            }
+            this.renderer.sceneFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2);
 
             var color = Vec4.fromVec(this._tempPickingPix_);
 

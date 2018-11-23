@@ -98,9 +98,9 @@ export function drawnode_nl() {
             const vec2 TOPRIGHT = vec2(1.0);
 
             void main(void) {
-                gl_FragData[0] = texture( defaultTexture, vTextureCoord );
-                gl_FragData[1] = vec4(0.0);
-                gl_FragData[2] = vec4(encode24(range), gl_FragData[0].a);
+                outScreen = texture( defaultTexture, vTextureCoord );
+                outPicking = vec4(0.0);
+                outDistance = vec4(encode24(range), outScreen.a);
                 if( samplerCount == 0 ) return;
 
                 vec2 tc = tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw;
@@ -108,10 +108,10 @@ export function drawnode_nl() {
                 vec4 t = texture( samplerArr[0], tc ) * ins;
                 vec4 p = texture( pickingMaskArr[0], tc ) * ins;
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb, 1.0), transparentColorArr[0].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb, 1.0), transparentColorArr[0].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), emptiness * pickingColorArr[0].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(encode24(range), 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), emptiness * pickingColorArr[0].a);
+                outDistance = mix( outDistance, vec4(encode24(range), 1.0), emptiness);
                 if( samplerCount == 1 ) return;
 
                 tc = tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw;
@@ -119,10 +119,10 @@ export function drawnode_nl() {
                 t = texture( samplerArr[1], tc ) * ins;
                 p = texture( pickingMaskArr[1], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb, 1.0), transparentColorArr[1].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb, 1.0), transparentColorArr[1].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), emptiness * pickingColorArr[1].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(encode24(range), 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), emptiness * pickingColorArr[1].a);
+                outDistance = mix( outDistance, vec4(encode24(range), 1.0), emptiness);
                 if( samplerCount == 2 ) return;
 
                 tc = tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw;
@@ -130,10 +130,10 @@ export function drawnode_nl() {
                 t = texture( samplerArr[2], tc ) * ins;
                 p = texture( pickingMaskArr[2], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb, 1.0), transparentColorArr[2].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb, 1.0), transparentColorArr[2].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), emptiness * pickingColorArr[2].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(encode24(range), 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), emptiness * pickingColorArr[2].a);
+                outDistance = mix( outDistance, vec4(encode24(range), 1.0), emptiness);
                 if( samplerCount == 3 ) return;
 
                 tc = tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw;
@@ -141,10 +141,10 @@ export function drawnode_nl() {
                 t = texture( samplerArr[3], tc ) * ins;
                 p = texture( pickingMaskArr[3], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb, 1.0), transparentColorArr[3].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb, 1.0), transparentColorArr[3].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), emptiness * pickingColorArr[3].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(encode24(range), 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), emptiness * pickingColorArr[3].a);
+                outDistance = mix( outDistance, vec4(encode24(range), 1.0), emptiness);
                 if( samplerCount == 4 ) return;
 
                 tc = tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw;
@@ -152,10 +152,10 @@ export function drawnode_nl() {
                 t = texture( samplerArr[4], tc ) * ins;
                 p = texture( pickingMaskArr[4], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb, 1.0), transparentColorArr[4].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb, 1.0), transparentColorArr[4].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), emptiness * pickingColorArr[4].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(encode24(range), 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), emptiness * pickingColorArr[4].a);
+                outDistance = mix( outDistance, vec4(encode24(range), 1.0), emptiness);
             }`
     });
 };
@@ -308,9 +308,9 @@ export function drawnode_wl() {
                 vec3 lightWeighting = ambientMaterial[0] + diffuseMaterial[0] * diffuseLightWeighting + spec;
 
                 vec4 t = texture( defaultTexture, vTextureCoord.xy );
-                gl_FragData[0] = vec4(t.rgb * lightWeighting + night + spec, t.a);
-                gl_FragData[1] = vec4(0.0);
-                gl_FragData[2] = vec4(range24, gl_FragData[0].a);
+                outScreen = vec4(t.rgb * lightWeighting + night + spec, t.a);
+                outPicking = vec4(0.0);
+                outDistance = vec4(range24, outScreen.a);
                 if( samplerCount == 0 ) return;
 
 
@@ -323,10 +323,10 @@ export function drawnode_wl() {
                 t = texture( samplerArr[0], tc ) * ins;
                 vec4 p = texture( pickingMaskArr[0], tc ) * ins;
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[0].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[0].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), emptiness * pickingColorArr[0].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), emptiness * pickingColorArr[0].a);
+                outDistance = mix( outDistance, vec4(range24, 1.0), emptiness);
                 if( samplerCount == 1 ) return;
 
 
@@ -339,10 +339,10 @@ export function drawnode_wl() {
                 t = texture( samplerArr[1], tc ) * ins;
                 p = texture( pickingMaskArr[1], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[1].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[1].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), emptiness * pickingColorArr[1].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), emptiness * pickingColorArr[1].a);
+                outDistance = mix( outDistance, vec4(range24, 1.0), emptiness);
                 if( samplerCount == 2 ) return;
 
 
@@ -355,10 +355,10 @@ export function drawnode_wl() {
                 t = texture( samplerArr[2], tc ) * ins;
                 p = texture( pickingMaskArr[2], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[2].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[2].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), emptiness * pickingColorArr[2].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), emptiness * pickingColorArr[2].a);
+                outDistance = mix( outDistance, vec4(range24, 1.0), emptiness);
                 if( samplerCount == 3 ) return;
 
 
@@ -371,10 +371,10 @@ export function drawnode_wl() {
                 t = texture( samplerArr[3], tc ) * ins;
                 p = texture( pickingMaskArr[3], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[3].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[3].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), emptiness * pickingColorArr[3].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), emptiness * pickingColorArr[3].a);
+                outDistance = mix( outDistance, vec4(range24, 1.0), emptiness);
                 if( samplerCount == 4 ) return;
 
 
@@ -387,10 +387,10 @@ export function drawnode_wl() {
                 t = texture( samplerArr[4], tc ) * ins;
                 p = texture( pickingMaskArr[4], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                gl_FragData[0] = mix( gl_FragData[0], vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[4].a * t.a * emptiness);
+                outScreen = mix( outScreen, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[4].a * t.a * emptiness);
                 emptiness = 1.0 - step(0.0, -emptiness);
-                gl_FragData[1] = mix( gl_FragData[1], vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), emptiness * pickingColorArr[4].a);
-                gl_FragData[2] = mix( gl_FragData[2], vec4(range24, 1.0), emptiness);
+                outPicking = mix( outPicking, vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), emptiness * pickingColorArr[4].a);
+                outDistance = mix( outDistance, vec4(range24, 1.0), emptiness);
             }`
     });
 };
