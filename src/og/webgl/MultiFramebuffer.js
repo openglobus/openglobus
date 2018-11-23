@@ -102,23 +102,22 @@ MultiFramebuffer.prototype.destroy = function () {
  */
 MultiFramebuffer.prototype.init = function () {
     var gl = this.handler.gl;
-    var ext = this.handler.extensions.WEBGL_draw_buffers;
 
     this._fbo = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
     var fragDataArr = [];
     for (let i = 0; i < this._size; i++) {
-        fragDataArr[i] = ext.COLOR_ATTACHMENT0_WEBGL + i;
+        fragDataArr[i] = gl.COLOR_ATTACHMENT0 + i;
     }
-    ext.drawBuffersWEBGL(fragDataArr);
+    gl.drawBuffers(fragDataArr);
 
     for (let i = 0; i < this._size; i++) {
         this.textures[i] = this.handler.createEmptyTexture_l(this._width, this._height);
         gl.bindTexture(gl.TEXTURE_2D, this.textures[i]);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, ext.COLOR_ATTACHMENT0_WEBGL + i, gl.TEXTURE_2D, this.textures[i], 0);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, this.textures[i], 0);
         gl.bindTexture(gl.TEXTURE_2D, null);
-        fragDataArr[i] = ext.COLOR_ATTACHMENT0_WEBGL + i;
+        fragDataArr[i] = gl.COLOR_ATTACHMENT0 + i;
     }
 
     this._rbo = gl.createRenderbuffer();
