@@ -226,6 +226,9 @@ class Vector extends Layer {
      * @returns {og.layer.Vector} - Returns this layer.
      */
     add(entity, rightNow) {
+
+        let temp = this._hasImageryTiles;
+
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = this._entities.length;
@@ -269,6 +272,10 @@ class Vector extends Layer {
             }
 
             this._fitExtent(entity);
+
+            if (this._planet && this._hasImageryTiles !== temp) {
+                this._planet.updateVisibleLayers();
+            }
 
             this.events.dispatch(this.events.entityadd, entity);
         }

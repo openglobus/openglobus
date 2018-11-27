@@ -243,7 +243,7 @@ class SDFCreator {
         //HORIZ
         this._framebuffer1.activate();
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
+        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.textures[0]);
         gl.uniform1i(shu.uTex1, 0);
         gl.uniform1i(shu.uDistance, this._outsideDistance);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -252,7 +252,7 @@ class SDFCreator {
         //NEG HORIZ
         this._framebuffer0.activate();
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer2.texture);
+        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer2.textures[0]);
         gl.uniform1i(shu.uTex1, 0);
         gl.uniform1i(shu.uDistance, this._insideDistance);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -270,10 +270,10 @@ class SDFCreator {
             shu = sh.uniforms;
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer1.texture);
+        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer1.textures[0]);
         gl.uniform1i(shu.outside, 0);
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.texture);
+        gl.bindTexture(gl.TEXTURE_2D, this._framebuffer0.textures[0]);
         gl.uniform1i(shu.inside, 1);
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);

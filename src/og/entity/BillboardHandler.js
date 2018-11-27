@@ -305,6 +305,8 @@ class BillboardHandler {
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
+        gl.uniform1f(shu.pickingScale, ec.pickingScale);
+
         gl.uniform2fv(shu.uFloatParams, [ec.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);

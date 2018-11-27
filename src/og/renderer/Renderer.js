@@ -367,7 +367,7 @@ Renderer.prototype.initialize = function () {
             }`
     }));
 
-    this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });
+    this.sceneFramebuffer = new Framebuffer(this.handler, { size: 3 });
     this.sceneFramebuffer.init();
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
@@ -424,7 +424,9 @@ Renderer.prototype.draw = function () {
     var sfb = this.sceneFramebuffer;
     sfb.activate();
     var h = this.handler;
-    h.clearFrame();
+
+    h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
@@ -446,7 +448,9 @@ Renderer.prototype.draw = function () {
 
     e.mouseState.moving = false;
     e.touchState.moving = false;
-}
+};
+
+window.SCREEN = 0;
 
 Renderer.prototype._multiframebufferScreenFrame = function () {
     var h = this.handler;
@@ -457,9 +461,8 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    //MAYBE: Could be refactored with framebuf function like getTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);

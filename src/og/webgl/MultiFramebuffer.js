@@ -34,13 +34,6 @@ const MultiFramebuffer = function (handler, options) {
     this._fbo = null;
 
     /**
-     * Picking color framebuffers.
-     * @private
-     * @type {Object}
-     */
-    this._pFbo = [];
-
-    /**
      * Render buffer object.
      * @private
      */
@@ -74,7 +67,7 @@ const MultiFramebuffer = function (handler, options) {
      * @type {boolean}
      */
     this._active = false;
-}
+};
 
 /**
  * Destroy framebuffer instance.
@@ -88,55 +81,47 @@ MultiFramebuffer.prototype.destroy = function () {
     this._rbo = null;
     for (var i = 0; i < this._size; i++) {
         gl.deleteTexture(this.textures[i]);
-        gl.deleteFramebuffer(this._pFbo[i]);
     }
     this.textures.length = 0;
     this.textures = [];
-    this._pFbo.length = 0;
-    this._pFbo = [];
-}
+};
 
 /**
  * Framebuffer initialization.
  * @virtual
  */
 MultiFramebuffer.prototype.init = function () {
+    
     var gl = this.handler.gl;
 
-    this._fbo = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-    var fragDataArr = [];
-    for (let i = 0; i < this._size; i++) {
-        fragDataArr[i] = gl.COLOR_ATTACHMENT0 + i;
-    }
-    gl.drawBuffers(fragDataArr);
+    this._fbo = gl.createFramebuffer();
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    this._rbo = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, this._rbo);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._rbo);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+    var colorAttachments = [];
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
     for (let i = 0; i < this._size; i++) {
         this.textures[i] = this.handler.createEmptyTexture_l(this._width, this._height);
         gl.bindTexture(gl.TEXTURE_2D, this.textures[i]);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, this.textures[i], 0);
         gl.bindTexture(gl.TEXTURE_2D, null);
-        fragDataArr[i] = gl.COLOR_ATTACHMENT0 + i;
+        colorAttachments[i] = gl.COLOR_ATTACHMENT0 + i;
     }
 
-    this._rbo = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, this._rbo);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._rbo);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.drawBuffers(colorAttachments);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    for (var i = 0; i < this._size; i++) {
-        this._pFbo[i] = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[i]);
-        gl.bindTexture(gl.TEXTURE_2D, this.textures[i]);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.textures[i], 0);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-    }
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
+};
 
 /**
  * Sets framebuffer size. Must be before the activate method.
@@ -149,7 +134,7 @@ MultiFramebuffer.prototype.setSize = function (width, height) {
     this._height = height;
     this.destroy();
     this.init();
-}
+};
 
 /**
  * Gets pixel RBGA color from framebuffer by coordinates.
@@ -163,10 +148,11 @@ MultiFramebuffer.prototype.setSize = function (width, height) {
  */
 MultiFramebuffer.prototype.readPixels = function (res, nx, ny, index, w, h) {
     var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[index || 0]);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
     gl.readPixels(nx * this._width, ny * this._height, w || 1, h || 1, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
+};
 
 /**
  * Reads all pixels(RGBA colors) from framebuffer.
@@ -176,10 +162,11 @@ MultiFramebuffer.prototype.readPixels = function (res, nx, ny, index, w, h) {
  */
 MultiFramebuffer.prototype.readAllPixels = function (res, index) {
     var gl = this.handler.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._pFbo[index || 0]);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
     gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-}
+};
 
 /**
  * Returns framebuffer completed.
@@ -195,7 +182,7 @@ MultiFramebuffer.prototype.isComplete = function () {
     }
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return false;
-}
+};
 
 /**
  * Activate framebuffer frame to draw.

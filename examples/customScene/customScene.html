@@ -49,7 +49,7 @@
                 this.indicesBuffer = null;
             }
 
-            initialization() {
+            init() {
 
                 //Initialize shader program
                 this.renderer.handler.addProgram(new Program("myShader", {
@@ -237,7 +237,7 @@
 
         var renderer = new Renderer(handler);
         renderer.initialize();
-        renderer.addRenderNodes([new MyScene(), new Axes()]);
+        renderer.addNodes([new MyScene(), new Axes()]);
         renderer.addControls([
             new SimpleNavigation({ 'speed': 0.3 }),
             new ShowFps()

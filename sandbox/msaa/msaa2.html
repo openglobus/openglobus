@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - fbo_multisample</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+
+<script src="https://twgljs.org/dist/4.x/twgl.min.js"></script>
+
+<body>
+    <script>
+        const vs = `#version 300 es
+                    void main() {
+                        gl_PointSize = 10.0;
+                        gl_Position = vec4(0, 0, 0, 1);
+                    }`;
+
+        const fs = `#version 300 es
+                    precision mediump float;
+                    
+                    layout(location = 0) out vec4 color;
+                    layout(location = 1) out vec4 picking;
+
+                    void main() {
+                        color = vec4(1, 0, 0, 1);
+                        picking = vec4(0, 1, 0, 1);
+                    }`;
+
+        function main() {
+
+            const gl = document.createElement('canvas').getContext('webgl2', { antialias: false });
+            if (!gl) {
+                return log("need webgl2");
+            }
+
+            gl.viewport(0, 0, 1, 1);
+
+            const program = twgl.createProgram(gl, [vs, fs]);
+
+            const width = 1;
+            const height = 1;
+            const samples = 4;
+
+            const fbo0 = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);
+
+            let drawBuffersArr = [];
+
+            let rb0 = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, rb0);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb0);
+            drawBuffersArr.push(gl.COLOR_ATTACHMENT0);
+
+            let rb1 = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, rb1);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + 1, gl.RENDERBUFFER, rb1);
+            drawBuffersArr.push(gl.COLOR_ATTACHMENT0 + 1);
+
+            let dRb = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, dRb);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH_COMPONENT32F, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, dRb);
+
+            gl.drawBuffers(drawBuffersArr);
+
+            if (!isFBGood(gl)) {
+                return;
+            }
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+
+            const fbo1 = gl.createFramebuffer();
+
+            var t1 = gl.createTexture();
+            var t2 = gl.createTexture();
+
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1);
+
+            // gl.bindTexture(gl.TEXTURE_2D, t1);
+            // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t1, 0);
+            // gl.bindTexture(gl.TEXTURE_2D, null);
+
+            // gl.bindTexture(gl.TEXTURE_2D, t2);
+            // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + 1, gl.TEXTURE_2D, t2, 0);
+            // gl.bindTexture(gl.TEXTURE_2D, null);
+
+            // gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0 + 1]);
+
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            const fbo_t1 = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo_t1);
+            gl.bindTexture(gl.TEXTURE_2D, t1);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); //NEAREST
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); //NEAREST
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t1, 0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            const fbo_t2 = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo_t2);
+            gl.bindTexture(gl.TEXTURE_2D, t2);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); //NEAREST
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); //NEAREST
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t2, 0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+
+            //render pass
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);
+            gl.useProgram(program);
+            gl.drawArrays(gl.POINTS, 0, 1);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+            // Blit framebuffers, no Multisample texture 2d in WebGL 2
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo0);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo_t1);
+            gl.readBuffer(gl.COLOR_ATTACHMENT0 + 1);
+
+            gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
+
+            gl.blitFramebuffer(
+                0, 0, 1, 1,
+                0, 0, 1, 1,
+                gl.COLOR_BUFFER_BIT, gl.NEAREST
+            );
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo_t1);
+            const pixel1 = new Uint8Array(4);
+            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel1);
+            log(pixel1);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo_t1);
+            // gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb0);
+
+            // // bit to canvas
+            // gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+            // gl.blitFramebuffer(
+            //     0, 0, 1, 1,  // src rect
+            //     0, 0, 1, 1,  // dst rect
+            //     gl.COLOR_BUFFER_BIT, gl.LINEAR
+            // );
+            // // read from canvas
+            // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+            // const pixel1 = new Uint8Array(4);
+            // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel1);
+            // log(pixel1);
+
+
+            // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo_t2);
+            // gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb1);
+
+            // // bit to canvas
+            // gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+            // gl.blitFramebuffer(
+            //     0, 0, 1, 1,  // src rect
+            //     0, 0, 1, 1,  // dst rect
+            //     gl.COLOR_BUFFER_BIT, gl.LINEAR
+            // );
+            // // read from canvas
+            // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+            // const pixel2 = new Uint8Array(4);
+            // gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel2);
+            // log(pixel2);
+        }
+
+        function isFBGood(gl) {
+            const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            const good = status === gl.FRAMEBUFFER_COMPLETE;
+            if (!good) {
+                return log(`framebuffer not complete: ${glEnumToString(gl, status)}`);
+            }
+            return good;
+        }
+
+        function glEnumToString(gl, v) {
+            for (k in gl) {
+                if (gl[k] === v) {
+                    return k;
+                }
+            }
+            return `0x${v.toString(16)}`;
+        }
+
+        function log(...args) {
+            const elem = document.createElement('pre');
+            elem.textContent = [...args].join(' ');
+            document.body.appendChild(elem);
+        }
+
+        main();
+
+
+    </script>
+
+</body>
+
+</html>

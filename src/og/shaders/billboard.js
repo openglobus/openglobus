@@ -119,7 +119,8 @@ export function billboardPicking() {
             uCamPos: "vec3",
             uFloatParams: "vec2",
             uScaleByDistance: "vec3",
-            uOpacity: "float"
+            uOpacity: "float",
+            pickingScale: "float"
         },
         attributes: {
             a_vertices: "vec2",
@@ -149,6 +150,7 @@ export function billboardPicking() {
             uniform vec2 uFloatParams;
             uniform vec3 uScaleByDistance;
             uniform float uOpacity;
+            uniform float pickingScale;
 
             const vec3 ZERO3 = vec3(0.0);
             const float C = 0.1;
@@ -176,7 +178,7 @@ export function billboardPicking() {
                 float focalSize = 2.0 * dist * uFloatParams[1];
                 vec2 offset = a_offset.xy * focalSize;
                 float scd = a_positions.w * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) *(1.0 - step(uScaleByDistance[2], lookLength));
-                vec2 scale = a_size * focalSize * scd;
+                vec2 scale = a_size * focalSize * scd * pickingScale;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
                 vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + scd * offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + scd * offset.y) + a_positions.xyz;
