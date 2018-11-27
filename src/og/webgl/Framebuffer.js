@@ -17,6 +17,7 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Framebuffer = function (handler, options) {
+
     options = options || {};
 
     /**
@@ -38,7 +39,7 @@ const Framebuffer = function (handler, options) {
      * @private
      * @type {Object}
      */
-    this._depthRenderBuffer = null;
+    this._depthRenderbuffer = null;
 
     /**
      * Framebuffer width.
@@ -82,9 +83,9 @@ Framebuffer.prototype.destroy = function () {
     this.textures = new Array(this._size);
 
     gl.deleteFramebuffer(this._fbo);
-    gl.deleteRenderbuffer(this._depthRenderBuffer);
+    gl.deleteRenderbuffer(this._depthRenderbuffer);
 
-    this._depthRenderBuffer = null;
+    this._depthRenderbuffer = null;
     this._fbo = null;
 
     this._active = false;
@@ -102,24 +103,24 @@ Framebuffer.prototype.init = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
     if (this.textures.length === 0) {
-        this.bindOutputTexture(this.handler.createEmptyTexture_l(this._width, this._height));
+        this.bindOutputTexture(this.handler.createEmptyTexture_n(this._width, this._height));
         gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
     } else {
         let colorAttachments = [];
         for (var i = 0; i < this.textures.length; i++) {
             this.bindOutputTexture(
                 this.textures[i] ||
-                this.handler.createEmptyTexture_l(this._width, this._height), i);
+                this.handler.createEmptyTexture_n(this._width, this._height), i);
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
         }
         gl.drawBuffers(colorAttachments);
     }
 
     if (this._useDepth) {
-        this._depthRenderBuffer = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderBuffer);
+        this._depthRenderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderBuffer);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 
@@ -146,7 +147,7 @@ Framebuffer.prototype.bindOutputTexture = function (texture, attachmentIndex = 0
  * @param {number} width - Framebuffer width.
  * @param {number} height - Framebuffer height.
  */
-Framebuffer.prototype.setSize = function (width, height) {
+Framebuffer.prototype.setSize = function (width, height, forceDestroy) {
     this._width = width;
     this._height = height;
 
@@ -154,7 +155,7 @@ Framebuffer.prototype.setSize = function (width, height) {
         this.handler.gl.viewport(0, 0, this._width, this._height);
     }
 
-    if (this._useDepth) {
+    if (this._useDepth || forceDestroy) {
         this.destroy();
         this.init();
     }
