@@ -17,6 +17,7 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Framebuffer = function (handler, options) {
+
     options = options || {};
 
     /**
@@ -38,7 +39,7 @@ const Framebuffer = function (handler, options) {
      * @private
      * @type {Object}
      */
-    this._rbo = null;
+    this._depthRenderbuffer = null;
 
     /**
      * Framebuffer width.
@@ -63,22 +64,28 @@ const Framebuffer = function (handler, options) {
      */
     this._active = false;
 
+    this._size = options.size || 1;
+
     /**
      * Framebuffer texture.
      * @public
      * @type {number}
      */
-    this.texture = options.texture || null;
+    this.textures = options.textures || new Array(this._size);
 };
 
 Framebuffer.prototype.destroy = function () {
     var gl = this.handler.gl;
-    gl.deleteTexture(this.texture);
-    gl.deleteFramebuffer(this._fbo);
-    gl.deleteRenderbuffer(this._rbo);
 
-    this.texture = null;
-    this._rbo = null;
+    for (var i = 0; i < this.textures.length; i++) {
+        gl.deleteTexture(this.textures[i]);
+    }
+    this.textures = new Array(this._size);
+
+    gl.deleteFramebuffer(this._fbo);
+    gl.deleteRenderbuffer(this._depthRenderbuffer);
+
+    this._depthRenderbuffer = null;
     this._fbo = null;
 
     this._active = false;
@@ -95,15 +102,25 @@ Framebuffer.prototype.init = function () {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-    if (!this.texture) {
-        this.bindOutputTexture(this.handler.createEmptyTexture_l(this._width, this._height));
+    if (this.textures.length === 0) {
+        this.bindOutputTexture(this.handler.createEmptyTexture_n(this._width, this._height));
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+    } else {
+        let colorAttachments = [];
+        for (var i = 0; i < this.textures.length; i++) {
+            this.bindOutputTexture(
+                this.textures[i] ||
+                this.handler.createEmptyTexture_n(this._width, this._height), i);
+            colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+        }
+        gl.drawBuffers(colorAttachments);
     }
 
     if (this._useDepth) {
-        this._rbo = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, this._rbo);
+        this._depthRenderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._rbo);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 
@@ -114,13 +131,14 @@ Framebuffer.prototype.init = function () {
  * Bind buffer texture.
  * @public
  * @param{Object} texture - Output texture.
+ * @param {Number} [attachmentIndex=0] - color attachment index.
  */
-Framebuffer.prototype.bindOutputTexture = function (texture) {
+Framebuffer.prototype.bindOutputTexture = function (texture, attachmentIndex = 0) {
     var gl = this.handler.gl;
-    this.texture = texture;
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + attachmentIndex, gl.TEXTURE_2D, texture, 0);
     gl.bindTexture(gl.TEXTURE_2D, null);
+    this.textures[attachmentIndex] = texture;
 };
 
 /**
@@ -129,13 +147,15 @@ Framebuffer.prototype.bindOutputTexture = function (texture) {
  * @param {number} width - Framebuffer width.
  * @param {number} height - Framebuffer height.
  */
-Framebuffer.prototype.setSize = function (width, height) {
+Framebuffer.prototype.setSize = function (width, height, forceDestroy) {
     this._width = width;
     this._height = height;
+
     if (this._active) {
         this.handler.gl.viewport(0, 0, this._width, this._height);
     }
-    if (this._useDepth) {
+
+    if (this._useDepth || forceDestroy) {
         this.destroy();
         this.init();
     }
@@ -161,22 +181,26 @@ Framebuffer.prototype.isComplete = function () {
  * @param {number} ny - Normalized y - coordinate.
  * @param {number} [w=1] - Normalized width.
  * @param {number} [h=1] - Normalized height.
+ * @param {Number} [attachmentIndex=0] - color attachment index.
  */
-Framebuffer.prototype.readPixels = function (res, nx, ny, w, h) {
+Framebuffer.prototype.readPixels = function (res, nx, ny, index = 0, w = 1, h = 1) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    gl.readPixels(nx * this._width, ny * this._height, w || 1, h || 1, gl.RGBA, gl.UNSIGNED_BYTE, res);
+    gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
+    gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
 /**
  * Reads all pixels(RGBA colors) from framebuffer.
  * @public
- * @param {Uint8Array} res - Result array
+ * @param {Uint8Array} res - Result array.
+ * @param {Number} [attachmentIndex=0] - color attachment index.
  */
-Framebuffer.prototype.readAllPixels = function (res) {
+Framebuffer.prototype.readAllPixels = function (res, attachmentIndex = 0) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
+    gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
     gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };

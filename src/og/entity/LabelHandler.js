@@ -53,10 +53,11 @@ class LabelHandler extends BillboardHandler {
 
     initProgram() {
         if (this._renderer.handler) {
+
             if (!this._renderer.handler.programs.label) {
-                var isSingleBuffer = !this._renderer.isMultiFramebufferCompatible();
-                this._renderer.handler.addProgram(shaders.label(isSingleBuffer));
+                this._renderer.handler.addProgram(shaders.label());
             }
+
             if (!this._renderer.handler.programs.labelPicking) {
                 this._renderer.handler.addProgram(shaders.labelPicking());
             }

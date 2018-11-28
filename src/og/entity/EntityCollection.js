@@ -165,6 +165,8 @@ class EntityCollection {
          */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
+        this.pickingScale = options.pickingScale || 1.0;
+
         /**
          * Global opacity.
          * @protected

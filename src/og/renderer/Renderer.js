@@ -2,7 +2,7 @@
 
 import { Camera } from '../camera/Camera.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
-import { MultiFramebuffer } from '../webgl/MultiFramebuffer.js';
+import { Multisample } from '../webgl/Multisample.js';
 import { randomi } from '../math.js';
 import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
@@ -142,9 +142,9 @@ const Renderer = function (handler, params) {
     /**
      * Whole scene rendering framebuffer.
      * @public
-     * @type {og.webgl.Framebuffer|og.webgl.MultiFramebuffer}
+     * @type {Array.<og.webgl.Framebuffer|og.webgl.Framebuffer>}
      */
-    this.sceneFramebuffer = null;
+    this.sceneFramebuffers = [];
 
     /**
      * Stores current picking rgb color.
@@ -161,11 +161,6 @@ const Renderer = function (handler, params) {
     this._prevPickingColor = [0, 0, 0];
 
     this._tempPickingColor_ = new Uint8Array(4);
-
-    /**
-     * @private
-     */
-    this._fnScreenFrame = null;
 
     this._initialized = false;
 
@@ -335,10 +330,41 @@ Renderer.prototype.initialize = function () {
     });
 
     this.handler.onCanvasResize = function (obj) {
+        
         that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        that.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        that.sceneRenderbuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        for (var i = 0; i < that.sceneFramebuffers.length; i++) {
+            that.sceneFramebuffers[i].setSize(obj.clientWidth, obj.clientHeight, true);
+        }
+
         that.events.dispatch(that.events.resize, obj);
     };
+
+    this.handler.addProgram(new Program("screenFrame", {
+        uniforms: {
+            texture: "sampler2d"
+        },
+        attributes: {
+            corners: "vec3",
+        },
+        vertexShader:
+            `attribute vec2 corners;
+            
+            varying vec2 tc;
+            void main(void) {
+                gl_Position = vec4(corners, 0.0, 1.0);
+                tc = corners * 0.5 + 0.5;
+            }`,
+        fragmentShader:
+            `precision highp float;
+            uniform sampler2D texture;
+            
+            varying vec2 tc;
+            
+            void main(void) {
+                gl_FragColor = texture2D( texture, tc );
+            }`
+    }));
 
     this.pickingFramebuffer = new Framebuffer(this.handler, {
         'width': 640,
@@ -346,45 +372,16 @@ Renderer.prototype.initialize = function () {
     });
     this.pickingFramebuffer.init();
 
-    this.handler.addProgram(new Program("screenFrame", {
-        uniforms: {
-            texture: { type: types.SAMPLER2D }
-        },
-        attributes: {
-            corners: { type: types.VEC3, enableArray: true },
-        },
-        vertexShader:
-            'attribute vec2 corners;\
-            \
-            varying vec2 tc;\
-            void main(void) {\
-                gl_Position = vec4(corners, 0.0, 1.0);\
-                tc = corners * 0.5 + 0.5;\
-            }',
-        fragmentShader:
-            'precision highp float;\
-            uniform sampler2D texture;\
-            \
-            varying vec2 tc;\
-            \
-            void main(void) {\
-                gl_FragColor = texture2D( texture, tc );\
-            }'
-    }));
+    let BUFFER_COUNT = 3;
 
-    //Append multiframebuffer(WEBGL_draw_buffers) extension.
-    this._drawBuffersExtension = this.handler.initializeExtension("WEBGL_draw_buffers");
+    this.sceneRenderbuffer = new Multisample(this.handler, { size: BUFFER_COUNT });
+    this.sceneRenderbuffer.init();
 
-    if (this._drawBuffersExtension) {
-        this.sceneFramebuffer = new MultiFramebuffer(this.handler, { size: 3 });
-        this.sceneFramebuffer.init();
-
-        this._fnScreenFrame = this._multiframebufferScreenFrame;
-    } else {
-        this.sceneFramebuffer = new Framebuffer(this.handler);
-        this.sceneFramebuffer.init();
-
-        this._fnScreenFrame = this._singleframebufferScreenFrame;
+    for (let i = 0; i < BUFFER_COUNT; i++) {
+        this.sceneFramebuffers[i] = new Framebuffer(this.handler, {
+            useDepth: false
+        });
+        this.sceneFramebuffers[i].init();
     }
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
@@ -438,10 +435,13 @@ Renderer.prototype.draw = function () {
     e.handleEvents();
     e.dispatch(e.draw, this);
 
-    var sfb = this.sceneFramebuffer;
-    sfb.activate();
+    let srb = this.sceneRenderbuffer;
+    srb.activate();
+
     var h = this.handler;
-    h.clearFrame();
+
+    h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
@@ -453,17 +453,23 @@ Renderer.prototype.draw = function () {
         rn[i].drawNode();
     }
 
-    sfb.deactivate();
+    srb.deactivate();
+
+    for (let i = 0; i < this.sceneFramebuffers.length; i++) {
+        srb.blit(this.sceneFramebuffers[i], i);
+    }
 
     //Rendering picking callbacks and refresh pickingColor
     this._drawPickingBuffer();
 
     //Rendering on the screen
-    this._fnScreenFrame();
+    this._multiframebufferScreenFrame();
 
     e.mouseState.moving = false;
     e.touchState.moving = false;
-}
+};
+
+window.SCREEN = 0;
 
 Renderer.prototype._multiframebufferScreenFrame = function () {
     var h = this.handler;
@@ -474,28 +480,8 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    //MAYBE: Could be refactored with framebuf function like getTexture()
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
-    gl.uniform1i(p.uniforms.texture, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.enable(gl.DEPTH_TEST);
-}
-
-Renderer.prototype._singleframebufferScreenFrame = function () {
-    var h = this.handler;
-    var sh = h.programs.screenFrame,
-        p = sh._program,
-        gl = h.gl;
-
-    gl.disable(gl.DEPTH_TEST);
-    sh.activate();
-    gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.texture);
-    //gl.bindTexture(gl.TEXTURE_2D, globus.planet._heightPickingFramebuffer.texture);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffers[window.SCREEN].textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -511,22 +497,8 @@ Renderer.prototype._singleframebufferScreenFrame = function () {
  */
 Renderer.prototype.getPickingObject = function (x, y) {
     var cnv = this.renderer.handler.canvas;
-    var c = this._tempPickingColor_;
-    if (this._drawBuffersExtension) {
-        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
-    } else {
-        c = this.sceneFramebuffer.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height);
-    }
+    var c = this.sceneFramebuffers[1].readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-}
-
-/** 
- * Returns true if 'WEBGL_draw_buffers' extension initialized.
- * @public
- * @returns {Boolean} -
- */
-Renderer.prototype.isMultiFramebufferCompatible = function () {
-    return (this._drawBuffersExtension ? true : false);
 }
 
 /**
@@ -565,12 +537,12 @@ Renderer.prototype._drawPickingBuffer = function () {
         var pc = this._currPickingColor;
         if (ts.x || ts.y) {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
-                this.sceneFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+            if (!(pc[0] || pc[1] || pc[2]))
+                this.sceneFramebuffers[1].readPixels(pc, ts.nx, 1.0 - ts.ny);
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-            if (!(pc[0] || pc[1] || pc[2]) && this._drawBuffersExtension)
-                this.sceneFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+            if (!(pc[0] || pc[1] || pc[2]))
+                this.sceneFramebuffers[1].readPixels(pc, ms.nx, 1.0 - ms.ny);
         }
     }
 };
