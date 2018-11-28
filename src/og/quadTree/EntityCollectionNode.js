@@ -248,6 +248,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 
     ec._fadingOpacity = l._fadingOpacity;
     ec.scaleByDistance = l.scaleByDistance;
+    ec.pickingScale = l.pickingScale;
 
     ec.polygonOffsetFactor = l.polygonOffsetFactor;
     ec.polygonOffsetUnits = l.polygonOffsetUnits;
@@ -370,8 +371,8 @@ EntityCollectionNodeWGS84.prototype.renderCollection = function (outArr, visible
     }
 
     this.entityCollection._fadingOpacity = this.layer._fadingOpacity;
-    //this.entityCollection._visibility = this.layer._fadingOpacity > 0.0 && this.layer._visibility;    
     this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
+    this.entityCollection.pickingScale = this.layer.pickingScale;
 
     outArr.push(this.entityCollection);
 };

@@ -92,6 +92,8 @@ class Vector extends Layer {
          */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
+        this.pickingScale = options.pickingScale || 1;
+
         /**
          * Asynchronous data handling before rendering.
          * @public
