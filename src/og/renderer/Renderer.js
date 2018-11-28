@@ -9,9 +9,11 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { cons } from '../cons.js';
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
 import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
+
+window.SCREEN = 0;
+const BUFFER_COUNT = 3;
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -139,12 +141,15 @@ const Renderer = function (handler, params) {
      */
     this.pickingFramebuffer = null;
 
+    this._msaa = params.msaa || 0;
     /**
      * Whole scene rendering framebuffer.
      * @public
      * @type {Array.<og.webgl.Framebuffer|og.webgl.Framebuffer>}
      */
     this.sceneFramebuffers = [];
+
+    this.sceneFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -186,7 +191,6 @@ Renderer.prototype.addPickingCallback = function (sender, callback) {
 
 /**
  * Removes picking rendering callback function.
- * @param {object} sender - Callback context.
  * @param {Number} id - Handler id to remove.
  */
 Renderer.prototype.removePickingCallback = function (id) {
@@ -197,7 +201,6 @@ Renderer.prototype.removePickingCallback = function (id) {
         }
     }
 };
-
 
 Renderer.prototype.getPickingObjectByColor = function (r, g, b) {
     return this.colorObjects[r + "_" + g + "_" + b];
@@ -242,7 +245,7 @@ Renderer.prototype.clearPickingColor = function (obj) {
             c.x = c.y = c.z = 0;
         }
     }
-}
+};
 
 /**
  * Get the client width.
@@ -293,11 +296,10 @@ Renderer.prototype.addControls = function (cArr) {
 /**
  * Remove control from the renderer.
  * @param {og.control.Control} control  - Control.
- * @return {og.Renderer} -
  */
 Renderer.prototype.removeControl = function (control) {
     control.remove();
-}
+};
 
 /**
  * Renderer initialization.
@@ -328,17 +330,6 @@ Renderer.prototype.initialize = function () {
     this.events.on("charkeypress", input.KEY_APOSTROPHE, function () {
         cons.setVisibility(!cons.getVisibility());
     });
-
-    this.handler.onCanvasResize = function (obj) {
-        
-        that.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        that.sceneRenderbuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-        for (var i = 0; i < that.sceneFramebuffers.length; i++) {
-            that.sceneFramebuffers[i].setSize(obj.clientWidth, obj.clientHeight, true);
-        }
-
-        that.events.dispatch(that.events.resize, obj);
-    };
 
     this.handler.addProgram(new Program("screenFrame", {
         uniforms: {
@@ -372,17 +363,35 @@ Renderer.prototype.initialize = function () {
     });
     this.pickingFramebuffer.init();
 
-    let BUFFER_COUNT = 3;
-
-    this.sceneRenderbuffer = new Multisample(this.handler, { size: BUFFER_COUNT });
-    this.sceneRenderbuffer.init();
-
-    for (let i = 0; i < BUFFER_COUNT; i++) {
-        this.sceneFramebuffers[i] = new Framebuffer(this.handler, {
-            useDepth: false
+    if (this._msaa) {
+        this.sceneFramebuffer = new Multisample(this.handler, {
+            size: BUFFER_COUNT,
+            msaa: this._msaa
         });
-        this.sceneFramebuffers[i].init();
+        this.sceneFramebuffer.init();
+        for (let i = 0; i < BUFFER_COUNT; i++) {
+            this.sceneFramebuffers[i] = new Framebuffer(this.handler, { useDepth: false });
+            this.sceneFramebuffers[i].init();
+        }
+        this.readPixels = this._readPixelsMSAA;
+        this._fnScreenFrame = this._screenFrameMSAA;
+    } else {
+        this.sceneFramebuffer = new Framebuffer(this.handler, { size: BUFFER_COUNT });
+        this.sceneFramebuffer.init();
+        this.readPixels = this._readPixelsNoMSAA;
+        this._fnScreenFrame = this._screenFrameNoMSAA;
     }
+
+    this.handler.onCanvasResize = (obj) => {
+        this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
+
+        this.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+        for (var i = 0; i < this.sceneFramebuffers.length; i++) {
+            this.sceneFramebuffers[i].setSize(obj.clientWidth, obj.clientHeight, true);
+        }
+
+        this.events.dispatch(this.events.resize, obj);
+    };
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
@@ -391,7 +400,7 @@ Renderer.prototype.initialize = function () {
     for (let i in temp) {
         this.addControl(temp[i]);
     }
-}
+};
 
 Renderer.prototype.removeNode = function (renderNode) {
     renderNode.remove();
@@ -410,7 +419,7 @@ Renderer.prototype.addNode = function (renderNode) {
     } else {
         cons.logWrn("og.Renderer(370) - node name: " + renderNode.name + " allready exists.");
     }
-}
+};
 
 /**
  * Adds render nodes array to the renderer.
@@ -421,7 +430,11 @@ Renderer.prototype.addNodes = function (nodesArr) {
     for (var i = 0; i < nodesArr.length; i++) {
         this.addNode(nodesArr[i]);
     }
-}
+};
+
+Renderer.prototype.getMSAA = function(){
+    return this._msaa;
+};
 
 /**
  * Draw nodes.
@@ -435,8 +448,8 @@ Renderer.prototype.draw = function () {
     e.handleEvents();
     e.dispatch(e.draw, this);
 
-    let srb = this.sceneRenderbuffer;
-    srb.activate();
+    let sfb = this.sceneFramebuffer;
+    sfb.activate();
 
     var h = this.handler;
 
@@ -453,25 +466,23 @@ Renderer.prototype.draw = function () {
         rn[i].drawNode();
     }
 
-    srb.deactivate();
+    sfb.deactivate();
 
     for (let i = 0; i < this.sceneFramebuffers.length; i++) {
-        srb.blit(this.sceneFramebuffers[i], i);
+        sfb.blit(this.sceneFramebuffers[i], i);
     }
 
     //Rendering picking callbacks and refresh pickingColor
     this._drawPickingBuffer();
 
     //Rendering on the screen
-    this._multiframebufferScreenFrame();
+    this._fnScreenFrame();
 
     e.mouseState.moving = false;
     e.touchState.moving = false;
 };
 
-window.SCREEN = 0;
-
-Renderer.prototype._multiframebufferScreenFrame = function () {
+Renderer.prototype._screenFrameMSAA = function () {
     var h = this.handler;
     var sh = h.programs.screenFrame,
         p = sh._program,
@@ -487,7 +498,33 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.enable(gl.DEPTH_TEST);
-}
+};
+
+Renderer.prototype._screenFrameNoMSAA = function () {
+    var h = this.handler;
+    var sh = h.programs.screenFrame,
+        p = sh._program,
+        gl = h.gl;
+
+    gl.disable(gl.DEPTH_TEST);
+    sh.activate();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    gl.uniform1i(p.uniforms.texture, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.enable(gl.DEPTH_TEST);
+};
+
+Renderer.prototype._readPixelsMSAA = function (res, x, y, screen = 0) {
+    this.sceneFramebuffers[screen].readPixels(res, x, y);
+};
+
+Renderer.prototype._readPixelsNoMSAA = function (res, x, y, screen = 0) {
+    this.sceneFramebuffer.readPixels(res, x, y, screen);
+};
 
 /**
  * Returns picking object by screen coordinates
@@ -496,10 +533,11 @@ Renderer.prototype._multiframebufferScreenFrame = function () {
  * @return {Object} -
  */
 Renderer.prototype.getPickingObject = function (x, y) {
-    var cnv = this.renderer.handler.canvas;
-    var c = this.sceneFramebuffers[1].readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height);
+    let cnv = this.renderer.handler.canvas,
+        c = new Uint8Array(3);
+    this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
     return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-}
+};
 
 /**
  * Draw picking objects framebuffer.
@@ -538,11 +576,13 @@ Renderer.prototype._drawPickingBuffer = function () {
         if (ts.x || ts.y) {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                this.sceneFramebuffers[1].readPixels(pc, ts.nx, 1.0 - ts.ny);
+                this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+            //this.sceneFramebuffers[1].readPixels(pc, ts.nx, 1.0 - ts.ny);
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                this.sceneFramebuffers[1].readPixels(pc, ms.nx, 1.0 - ms.ny);
+                this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+            //this.sceneFramebuffers[1].readPixels(pc, ms.nx, 1.0 - ms.ny);
         }
     }
 };

@@ -1233,7 +1233,7 @@ class Planet extends RenderNode {
             this._viewChanged = false;
             var cnv = this.renderer.handler.canvas;
 
-            this.renderer.sceneFramebuffers[2].readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
+            this.renderer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2);
 
             var color = Vec4.fromVec(this._tempPickingPix_);
 
@@ -1314,6 +1314,7 @@ class Planet extends RenderNode {
      * Fly camera to the planet geographical extent.
      * @public
      * @param {og.Extent} extent - Geographical extent.
+     * @param {Number} [height] - Height on the end of the flight route.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      */
     flyExtent(extent, height, up, startCallback, endCallback) {
