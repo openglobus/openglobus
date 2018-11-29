@@ -168,12 +168,15 @@ Handler.getExtension = function (gl, name) {
  */
 Handler.getContext = function (canvas, contextAttributes) {
     var ctx;
+
     try {
-        ctx = canvas.getContext("webgl2", contextAttributes);
+        ctx = canvas.getContext("webgl2", contextAttributes) ||
+            canvas.getContext("webgl", contextAttributes);
     }
     catch (ex) {
         cons.logErr("exception during the GL context initialization");
     }
+
     if (!ctx) {
         cons.logErr("could not initialise WebGL");
     }
@@ -525,6 +528,10 @@ Handler.prototype.initialize = function () {
 
     /** Sets deafult extensions */
     this._params.extensions.push("EXT_texture_filter_anisotropic");
+
+    //webgl1
+    // this._params.extensions.push("OES_standard_derivatives");
+    // this._params.extensions.push("OES_element_index_uint");
 
     var i = this._params.extensions.length;
     while (i--) {

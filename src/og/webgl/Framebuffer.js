@@ -104,7 +104,7 @@ Framebuffer.prototype.init = function () {
 
     if (this.textures.length === 0) {
         this.bindOutputTexture(this.handler.createEmptyTexture_n(this._width, this._height));
-        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
     } else {
         let colorAttachments = [];
         for (var i = 0; i < this.textures.length; i++) {
@@ -113,7 +113,7 @@ Framebuffer.prototype.init = function () {
                 this.handler.createEmptyTexture_n(this._width, this._height), i);
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
         }
-        gl.drawBuffers(colorAttachments);
+        gl.drawBuffers && gl.drawBuffers(colorAttachments);
     }
 
     if (this._useDepth) {
@@ -186,7 +186,7 @@ Framebuffer.prototype.isComplete = function () {
 Framebuffer.prototype.readPixels = function (res, nx, ny, index = 0, w = 1, h = 1) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
+    gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
     gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
@@ -200,7 +200,7 @@ Framebuffer.prototype.readPixels = function (res, nx, ny, index = 0, w = 1, h = 
 Framebuffer.prototype.readAllPixels = function (res, attachmentIndex = 0) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-    gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
+    gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
     gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
