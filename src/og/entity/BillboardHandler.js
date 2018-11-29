@@ -93,9 +93,14 @@ class BillboardHandler {
 
     initProgram() {
         if (this._renderer.handler) {
+            
             if (!this._renderer.handler.programs.billboard) {
-                this._renderer.handler.addProgram(shaders.billboard());
+                if (this._renderer.handler.gl.type === "webgl2")
+                    this._renderer.handler.addProgram(shaders.billboard());
+                else
+                    this._renderer.handler.addProgram(shaders.billboard_screen());
             }
+
             if (!this._renderer.handler.programs.billboardPicking) {
                 this._renderer.handler.addProgram(shaders.billboardPicking());
             }

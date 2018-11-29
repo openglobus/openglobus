@@ -158,7 +158,9 @@ Handler.getExtension = function (gl, name) {
         }
     }
     return null;
-}
+};
+
+const CONTEXT_TYPE = ["webgl", "webgl"];
 
 /**
  * Returns a drawing context on the canvas, or null if the context identifier is not supported.
@@ -167,11 +169,16 @@ Handler.getExtension = function (gl, name) {
  * @returns {Object} -
  */
 Handler.getContext = function (canvas, contextAttributes) {
-    var ctx;
+    var ctx = null;
 
     try {
-        ctx = canvas.getContext("webgl2", contextAttributes) ||
-            canvas.getContext("webgl", contextAttributes);
+        for (let i = 0; i < CONTEXT_TYPE.length; i++) {
+            ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
+            if (ctx) {
+                ctx.type = CONTEXT_TYPE[i];
+                break;
+            }
+        }
     }
     catch (ex) {
         cons.logErr("exception during the GL context initialization");
@@ -180,6 +187,7 @@ Handler.getContext = function (canvas, contextAttributes) {
     if (!ctx) {
         cons.logErr("could not initialise WebGL");
     }
+
     return ctx;
 }
 
@@ -529,9 +537,10 @@ Handler.prototype.initialize = function () {
     /** Sets deafult extensions */
     this._params.extensions.push("EXT_texture_filter_anisotropic");
 
-    //webgl1
-    // this._params.extensions.push("OES_standard_derivatives");
-    // this._params.extensions.push("OES_element_index_uint");
+    if (this.gl.type === "webgl") {
+        this._params.extensions.push("OES_standard_derivatives");
+        this._params.extensions.push("OES_element_index_uint");
+    }
 
     var i = this._params.extensions.length;
     while (i--) {

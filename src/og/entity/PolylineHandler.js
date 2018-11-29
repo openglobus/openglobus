@@ -32,7 +32,10 @@ class PolylineHandler {
     _initProgram() {
         if (this._renderer.handler) {
             if (!this._renderer.handler.programs.polyline) {
-                this._renderer.handler.addProgram(shaders.polyline());
+                if (this._renderer.handler.gl.type === "webgl2")
+                    this._renderer.handler.addProgram(shaders.polyline());
+                else
+                    this._renderer.handler.addProgram(shaders.polyline_screen());
             }
         }
     }

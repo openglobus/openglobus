@@ -1093,7 +1093,9 @@ class Polyline {
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
-            gl.uniform3fv(shu.pickingColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
+            if (gl.type === "webgl2") {
+                gl.uniform3fv(shu.pickingColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
+            }
 
             gl.uniform4fv(shu.color, this.color.toVec());
             gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
