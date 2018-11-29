@@ -254,7 +254,7 @@ Renderer.prototype.clearPickingColor = function (obj) {
  */
 Renderer.prototype.getWidth = function () {
     return this.handler.canvas.width;
-}
+};
 
 /**
  * Get the client height.
@@ -263,7 +263,7 @@ Renderer.prototype.getWidth = function () {
  */
 Renderer.prototype.getHeight = function () {
     return this.handler.canvas.height;
-}
+};
 
 /**
  * Get center of the screen
@@ -273,7 +273,7 @@ Renderer.prototype.getHeight = function () {
 Renderer.prototype.getCenter = function () {
     var cnv = this.handler.canvas;
     return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
-}
+};
 
 /**
  * Add the given control to the renderer.
@@ -281,7 +281,7 @@ Renderer.prototype.getCenter = function () {
  */
 Renderer.prototype.addControl = function (control) {
     control.addTo(this);
-}
+};
 
 /**
  * Add the given controls array to the planet node.
@@ -291,7 +291,7 @@ Renderer.prototype.addControls = function (cArr) {
     for (var i = 0; i < cArr.length; i++) {
         cArr[i].addTo(this);
     }
-}
+};
 
 /**
  * Remove control from the renderer.
@@ -336,7 +336,7 @@ Renderer.prototype.initialize = function () {
             texture: "sampler2d"
         },
         attributes: {
-            corners: "vec3",
+            corners: "vec3"
         },
         vertexShader:
             `attribute vec2 corners;
@@ -363,7 +363,12 @@ Renderer.prototype.initialize = function () {
     });
     this.pickingFramebuffer.init();
 
-    if (this._msaa) {
+    if (this.handler.gl.type === "webgl") {
+        this.sceneFramebuffer = new Framebuffer(this.handler);
+        this.sceneFramebuffer.init();
+        this.readPixels = () => { };
+        this._fnScreenFrame = this._screenFrameNoMSAA;
+    } else if (this._msaa) {
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: BUFFER_COUNT,
             msaa: this._msaa
@@ -386,6 +391,7 @@ Renderer.prototype.initialize = function () {
         this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
 
         this.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
+
         for (var i = 0; i < this.sceneFramebuffers.length; i++) {
             this.sceneFramebuffers[i].setSize(obj.clientWidth, obj.clientHeight, true);
         }
@@ -432,7 +438,7 @@ Renderer.prototype.addNodes = function (nodesArr) {
     }
 };
 
-Renderer.prototype.getMSAA = function(){
+Renderer.prototype.getMSAA = function () {
     return this._msaa;
 };
 
@@ -577,12 +583,10 @@ Renderer.prototype._drawPickingBuffer = function () {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
             if (!(pc[0] || pc[1] || pc[2]))
                 this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
-            //this.sceneFramebuffers[1].readPixels(pc, ts.nx, 1.0 - ts.ny);
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
             if (!(pc[0] || pc[1] || pc[2]))
                 this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
-            //this.sceneFramebuffers[1].readPixels(pc, ms.nx, 1.0 - ms.ny);
         }
     }
 };
@@ -593,7 +597,7 @@ Renderer.prototype._drawPickingBuffer = function () {
  */
 Renderer.prototype.start = function () {
     this.handler.start();
-}
+};
 
 
 export { Renderer };
