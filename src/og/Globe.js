@@ -66,7 +66,7 @@ class Globe {
         this._canvas = document.createElement("canvas");
         this._canvas.id = _canvasId;
         this._canvas.style.width = "100%";
-        this._canvas.style.height = "100%";        
+        this._canvas.style.height = "100%";
         this._canvas.style.display = "block";
         this._canvas.style.opacity = "0.0";
         this._canvas.style.transition = "opacity 1.0s";
@@ -89,10 +89,14 @@ class Globe {
          * @public
          * @type {og.Renderer}
          */
-        this.renderer = new Renderer(new Handler(_canvasId, {
-            'alpha': false,
-            'antialias': false
-        }), {
+        this.renderer = new Renderer(
+            new Handler(_canvasId, {
+                'context': {
+                    'alpha': false,
+                    'antialias': false,
+                    'powerPreference': "high-performance"
+                }
+            }), {
                 'autoActivate': false
             });
         this.renderer.initialize();
