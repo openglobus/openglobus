@@ -196,7 +196,7 @@ export function billboardPicking() {
 }
 
 export function billboard_screen() {
-    return new ShaderProgram("billboard", {
+    return new Program("billboard", {
         uniforms: {
             u_texture: "sampler2d",
             projectionMatrix: "mat4",

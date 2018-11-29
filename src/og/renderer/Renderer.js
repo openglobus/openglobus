@@ -366,9 +366,8 @@ Renderer.prototype.initialize = function () {
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
         this.sceneFramebuffer.init();
-        //this.readPixels = this._readPixelsNoMSAA;
+        this.readPixels = () => { };
         this._fnScreenFrame = this._screenFrameNoMSAA;
-        //...
     } else if (this._msaa) {
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: BUFFER_COUNT,
@@ -516,8 +515,8 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
+    gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -583,11 +582,11 @@ Renderer.prototype._drawPickingBuffer = function () {
         if (ts.x || ts.y) {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                this.readPixels && this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+                this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
             if (!(pc[0] || pc[1] || pc[2]))
-                this.readPixels && this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+                this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
         }
     }
 };
@@ -598,7 +597,7 @@ Renderer.prototype._drawPickingBuffer = function () {
  */
 Renderer.prototype.start = function () {
     this.handler.start();
-}
+};
 
 
 export { Renderer };

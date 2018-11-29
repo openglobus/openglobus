@@ -651,7 +651,7 @@ export function drawnode_colorPicking() {
             samplerArr: "sampler2dxx",
             pickingMaskArr: "sampler2dxx",
             transparentColorArr: "vec4",
-            pickingColorArr: "vec3",
+            pickingColorArr: "vec4",
             height: "float"
         },
         attributes: {
@@ -679,7 +679,7 @@ export function drawnode_colorPicking() {
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
-            uniform vec3 pickingColorArr[5];
+            uniform vec4 pickingColorArr[5];
             uniform sampler2D samplerArr[5];
             uniform sampler2D pickingMaskArr[5];
             uniform int samplerCount;
@@ -700,7 +700,8 @@ export function drawnode_colorPicking() {
                 vec4 t = texture2D( samplerArr[0], tc ) * ins;
                 vec4 p = texture2D( pickingMaskArr[0], tc ) * ins;
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                gl_FragColor = vec4(max(pickingColorArr[0], p.rgb), 1.0 - step(0.0, -emptiness));
+                emptiness = 1.0 - step(0.0, -emptiness);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), emptiness * pickingColorArr[0].a);
                 if( samplerCount == 1 ) return;
 
                 tc = tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw;
@@ -708,7 +709,8 @@ export function drawnode_colorPicking() {
                 t = texture2D( samplerArr[1], tc ) * ins;
                 p = texture2D( pickingMaskArr[1], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[1], p.rgb), 1.0), 1.0 - step(0.0, -emptiness));
+                emptiness = 1.0 - step(0.0, -emptiness);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), emptiness * pickingColorArr[1].a);
                 if( samplerCount == 2 ) return;
 
                 tc = tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw;
@@ -716,7 +718,8 @@ export function drawnode_colorPicking() {
                 t = texture2D( samplerArr[2], tc ) * ins;
                 p = texture2D( pickingMaskArr[2], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[2], p.rgb), 1.0), 1.0 - step(0.0, -emptiness));
+                emptiness = 1.0 - step(0.0, -emptiness);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), emptiness * pickingColorArr[2].a);
                 if( samplerCount == 3 ) return;
 
                 tc = tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw;
@@ -724,7 +727,8 @@ export function drawnode_colorPicking() {
                 t = texture2D( samplerArr[3], tc ) * ins;
                 p = texture2D( pickingMaskArr[3], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[3], p.rgb), 1.0), 1.0 - step(0.0, -emptiness));
+                emptiness = 1.0 - step(0.0, -emptiness);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), emptiness * pickingColorArr[3].a);
                 if( samplerCount == 4 ) return;
 
                 tc = tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw;
@@ -732,7 +736,8 @@ export function drawnode_colorPicking() {
                 t = texture2D( samplerArr[4], tc ) * ins;
                 p = texture2D( pickingMaskArr[4], tc ) * ins;
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[4], p.rgb), 1.0), 1.0 - step(0.0, -emptiness));
+                emptiness = 1.0 - step(0.0, -emptiness);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), emptiness * pickingColorArr[4].a);
             }`
     });
 }

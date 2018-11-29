@@ -303,7 +303,7 @@ export function polyline_screen() {
                 varying vec3 vPos;
                 void main() {
                     vec3 look = vPos - uCamPos;
-                    float lookLength = length(look)
+                    float lookLength = length(look);
                     float a = vColor.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));
                     gl_FragColor = vec4(vColor.rgb, a);
                 }`

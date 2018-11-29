@@ -1263,8 +1263,8 @@ class Planet extends RenderNode {
         //gl.polygonOffset(0, 0);
         //gl.enable(gl.DEPTH_TEST);
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        gl.polygonOffset(0, -637000);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.polygonOffset(0, -637000);
 
         h.programs.drawnode_colorPicking.activate();
         sh = h.programs.drawnode_colorPicking._program;
@@ -1282,7 +1282,7 @@ class Planet extends RenderNode {
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1; j < sl.length; j++) {
             i = rn.length;
-            gl.polygonOffset(0, -637000 - j);
+            gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment._colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
