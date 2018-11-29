@@ -378,11 +378,13 @@ class RenderNode extends BaseNode {
             gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);
 
-            ////polylines pass
-            //i = ec.length;
-            //while (i--) {
-            //    ec[i]._visibility && ec[i].polylineHandler.drawPicking();
-            //}
+            //polylines pass
+            if (gl.type !== "webgl2") {
+                i = ec.length;
+                while (i--) {
+                    ec[i]._visibility && ec[i].polylineHandler.drawPicking();
+                }
+            }
 
             ////shapes pass
             //i = ec.length;

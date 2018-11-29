@@ -1120,6 +1120,8 @@ class Polyline {
     drawPicking() {
         if (this.visibility && this._path3v.length) {
 
+            this._update();
+
             var rn = this._renderNode;
             var r = rn.renderer;
             var sh = r.handler.programs.polyline;
@@ -1132,7 +1134,9 @@ class Polyline {
 
             gl.polygonOffset(this._handler._entityCollection.polygonOffsetFactor, this._handler._entityCollection.polygonOffsetUnits);
 
-            gl.disable(gl.BLEND);
+            gl.enable(gl.BLEND);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.disable(gl.CULL_FACE);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
@@ -1155,9 +1159,6 @@ class Polyline {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
-            gl.enable(gl.CULL_FACE);
-            gl.enable(gl.BLEND);
         }
     }
 

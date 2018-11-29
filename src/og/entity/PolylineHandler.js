@@ -77,9 +77,18 @@ class PolylineHandler {
     }
 
     draw() {
-        var i = this._polylines.length;
+        let i = this._polylines.length;
         while (i--) {
             this._polylines[i].draw();
+        }
+
+        this.drawPicking();
+    }
+
+    drawPicking() {        
+        let i = this._polylines.length;
+        while (i--) {
+            this._polylines[i].drawPicking();
         }
     }
 

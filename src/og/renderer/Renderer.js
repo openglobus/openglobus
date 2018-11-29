@@ -515,8 +515,8 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
-    gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
