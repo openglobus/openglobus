@@ -1,7 +1,3 @@
-/**
- * @module og/utils/TerrainWorker
- */
-
 'use sctrict';
 
 import { QueueArray } from '../QueueArray.js';

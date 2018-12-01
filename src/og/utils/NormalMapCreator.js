@@ -74,7 +74,7 @@ NormalMapCreator.prototype._init = function () {
             "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
             "}",
         fragmentShader:
-            "precision highp float;\n\
+            "precision lowp float;\n\
                         uniform sampler2D s_texture; \n\
                         \n\
                         varying vec2 blurCoordinates[5]; \n\
@@ -303,9 +303,6 @@ NormalMapCreator.prototype.frame = function () {
 
         var deltaTime = 0,
             startTime = window.performance.now();
-
-        var width = this._width,
-            height = this._height;
 
         while (this._lock.isFree() && this._queue.length && deltaTime < 0.25) {
             var segment = this._queue.shift();

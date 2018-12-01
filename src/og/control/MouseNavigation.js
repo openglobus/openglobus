@@ -221,7 +221,7 @@ class MouseNavigation extends Control {
 
                 var cam = this.renderer.activeCamera;
 
-                if (cam.slope > 0.28) {
+                if (cam.slope > 0.2) {
                     var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
                     if (targetPoint) {
                         this.scaleRot = 1;
