@@ -56,6 +56,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Array.<og.Layer>} [options.layers] - Planet layers.
  * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
+ * @param {DOMElement} [options.attributionContainer] - Container for attribution list.
  */
 class Globe {
     constructor(options) {
@@ -102,8 +103,12 @@ class Globe {
         this.renderer.initialize();
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
-        this.renderer.div.attributions.classList.add("ogAttribution");
-        this.div.appendChild(this.renderer.div.attributions);
+        if (options.attributionContainer) {
+            options.attributionContainer.appendChild(this.renderer.div.attributions);
+        } else {
+            this.renderer.div.attributions.classList.add("ogAttribution");
+            this.div.appendChild(this.renderer.div.attributions);
+        }
 
         //Skybox
         if (options.skybox) {
