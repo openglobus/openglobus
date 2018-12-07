@@ -285,7 +285,7 @@ Node.prototype.createBounds = function () {
 };
 
 Node.prototype.getState = function () {
-    if(this.state === -1){
+    if (this.state === -1) {
         return this.state;
     }
     var pn = this.parentNode;
@@ -383,14 +383,13 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         this._cameraInside = true;
     }
 
-    let inExcFrustum = cam.frustum.containsSphereBottomExc(seg.bsphere);
+    let inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
-    if (inExcFrustum || this._cameraInside) {
+    if (inFrustum || this._cameraInside) {
 
         let h = cam._lonLat.height;
 
-        let inFrustum = inExcFrustum && cam.frustum.containsSphereButtom(seg.bsphere),
-            altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
+        let altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
 
         if (inFrustum && (altVis || h > 10000.0) || this._cameraInside) {
             seg._collectVisibleNodes();
@@ -401,7 +400,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             this.traverseNodes(cam, maxZoom);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum);
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom) {
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
             this.traverseNodes(cam, maxZoom);
         } else {
             this.prepareForRendering(cam, altVis, inFrustum);
