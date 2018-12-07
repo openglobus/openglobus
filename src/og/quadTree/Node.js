@@ -1,7 +1,3 @@
-/**
- * @module og/quadTree/Node
- */
-
 'use strict';
 
 import { Extent } from '../Extent.js';
@@ -387,14 +383,13 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         this._cameraInside = true;
     }
 
-
     let inFrustum = cam.frustum.containsSphere(seg.bsphere);
 
     if (inFrustum || this._cameraInside) {
 
         let h = cam._lonLat.height;
 
-        let altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < 3570.0 * Math.sqrt(h);
+        let altVis = cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
 
         if (inFrustum && (altVis || h > 10000.0) || this._cameraInside) {
             seg._collectVisibleNodes();

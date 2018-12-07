@@ -230,7 +230,7 @@ class TouchNavigation extends Control {
             var targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
             if (targetPoint) {
-                if (cam._n.dot(cam.eye.normal()) > 0.28) {
+                if (cam.slope > 0.2) {
                     this.qRot = Quat.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
                     var rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
