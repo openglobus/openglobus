@@ -10,8 +10,6 @@ class Strip extends RenderNode {
 
         super("strip-node-" + Strip._staticCounter++);
 
-        //this._positionData = [];
-        //this._positionBuffer = null;
         this._renderNode = null;
 
         this._verticesBuffer = null;
@@ -260,19 +258,29 @@ class Strip extends RenderNode {
     }
 
     removeEdge(index) {
-        //let ind0 = index * 3 * 2;
-        //this._positionData.splice(ind0, 6);
-        //this._createBuffers();
+        this._path.splice(index, 1);
+        this.setPath([].concat(this._path));
     }
 
-    setCoordinates(vertArr) {
-        //this._positionData = vertArr;
-        //this._createBuffers();
+    setGridSize(gridSize) {
+        this._gridSize = gridSize;
+        this.setPath([].concat(this._path));
+    }
+
+    setPath(path) {
+        this._vertices = [];
+        this._indexes = [];
+        this._path = [];
+        for (let i = 0; i < path.length; i++) {
+            this.addEdge(path[i][0], path[i][1]);
+        }
     }
 
     onremove() {
-        //this.renderer.handler.gl.deleteBuffer(this._positionBuffer);
-        //this._positionBuffer = null;
+        this.renderer.handler.gl.deleteBuffer(this._indexBuffer);
+        this.renderer.handler.gl.deleteBuffer(this._verticesBuffer);
+        this._verticesBuffer = null;
+        this._indexBuffer = null;
     }
 
     frame() {
@@ -287,27 +295,16 @@ class Strip extends RenderNode {
                 shu = p.uniforms;
 
             gl.disable(gl.CULL_FACE);
-
             gl.blendEquation(gl.FUNC_ADD);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
-
-
             sh.activate();
-
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
-
             gl.uniform4fv(shu.uColor, this.color);
-
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBuffer);
             gl.vertexAttribPointer(sha.aVertexPosition, this._verticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-
             gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
-            gl.drawElements(r.handler.gl.LINE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
             gl.enable(gl.CULL_FACE);
         }
     }
