@@ -395,12 +395,22 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             seg._collectVisibleNodes();
         }
 
+        // let tReady = seg.terrainReady,
+        //     p = this;
+
+        // for (var i = 0; i < 0, !tReady; i++) {
+        //     p = p.parentNode;
+        //     tReady = p.segment.terrainReady;
+        // }
+
+        let tReady = seg.terrainReady;
+
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum);
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && tReady) {
             this.traverseNodes(cam, maxZoom);
         } else {
             this.prepareForRendering(cam, altVis, inFrustum);
@@ -447,6 +457,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
     } else {
 
         let seg = this.segment;
+
         if (seg.tileZoom < MAX_NORMAL_ZOOM && (
             seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
