@@ -69,19 +69,11 @@ class Strip extends RenderNode {
                 }'
             }));
 
-        //this._createBuffers();
     }
 
     _createBuffers() {
-
-        //var h = this.renderer.handler;
-        //var gl = h.gl;
-
-        //gl.deleteBuffer(this._positionBuffer);
-
-        //if (this._positionData.length) {
-        //    this._positionBuffer = h.createArrayBuffer(new Float32Array(this._positionData), 3, this._positionData.length / 3);
-        //}
+        this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
+        this._indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(this._indexes), 1, this._indexes.length);
     }
 
     addEdge(p2, p3) {
@@ -105,7 +97,93 @@ class Strip extends RenderNode {
 
             let p = new Vec3();
 
+            let last = this._vertices.length / 3,
+                ind = last;
+
+            for (let i = 0; i < gs1; i++) {
+                for (let j = 0; j < gs1; j++) {
+
+                    let di = i / gs,
+                        dj = j / gs;
+
+                    let p02 = p0.lerp(p2, di),
+                        p13 = p1.lerp(p3, di),
+                        p01 = p0.lerp(p1, dj),
+                        p23 = p2.lerp(p3, dj);
+
+                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                    ind = last + i * gs1 + j;
+
+                    v[ind * 3] = p.x;
+                    v[ind * 3 + 1] = p.y;
+                    v[ind * 3 + 2] = p.z;
+
+                    if (i < gs) {
+                        this._indexes.push(ind, ind + gs1);
+                    }
+                }
+
+                if (i < gs) {
+                    this._indexes.push(ind + gs1, ind + 1);
+                }
+            }
+
+            this._createBuffers();
+        }
+    }
+
+    setEdge(p2, p3, index) {
+
+        let gs = this._gridSize,
+            gs1 = gs + 1;
+
+        let vSize = gs1 * gs1;
+
+        let p = new Vec3(),
+            v = this._vertices;
+
+        this._path[index][0] = p2;
+        this._path[index][1] = p3;
+
+        if (index === this._path.length - 1) {
+
+            let p0 = this._path[index - 1][0],
+                p1 = this._path[index - 1][1];
+
+            let prev = this._vertices.length / 3 - vSize,
+                ind = prev;
+
+            for (let i = 0; i < gs1; i++) {
+                for (let j = 0; j < gs1; j++) {
+
+                    let di = i / gs,
+                        dj = j / gs;
+
+                    let p02 = p0.lerp(p2, di),
+                        p13 = p1.lerp(p3, di),
+                        p01 = p0.lerp(p1, dj),
+                        p23 = p2.lerp(p3, dj);
+
+                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                    ind = prev + i * gs1 + j;
+
+                    v[ind * 3] = p.x;
+                    v[ind * 3 + 1] = p.y;
+                    v[ind * 3 + 2] = p.z;
+                }
+            }
+
+        } else if (index === 0) {
+
             let ind = 0;
+
+            let p0 = p2,
+                p1 = p3;
+
+            p2 = this._path[1][0];
+            p3 = this._path[1][1];
 
             for (let i = 0; i < gs1; i++) {
                 for (let j = 0; j < gs1; j++) {
@@ -125,35 +203,60 @@ class Strip extends RenderNode {
                     v[ind * 3] = p.x;
                     v[ind * 3 + 1] = p.y;
                     v[ind * 3 + 2] = p.z;
-
-                    if (i < gs) {
-                        this._indexes.push(ind, ind + gs1);
-                    }
-                }
-
-                if (i < gs) {
-                    this._indexes.push(ind + gs1, ind + gs1, ind + 1, ind + 1);
                 }
             }
+        } else if (index > 0 && index < this._path.length) {
 
-            this._verticesBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
-            this._indexBuffer = this.renderer.handler.createElementArrayBuffer(new Uint16Array(this._indexes), 1, this._indexes.length);
+            let p0 = this._path[index - 1][0],
+                p1 = this._path[index - 1][1];
+
+            let p4 = this._path[index + 1][0],
+                p5 = this._path[index + 1][1];
+
+            let next = index * vSize,
+                prev = (index - 1) * vSize,
+                ind = prev;
+
+            for (let i = 0; i < gs1; i++) {
+                for (let j = 0; j < gs1; j++) {
+
+                    let di = i / gs,
+                        dj = j / gs;
+
+                    //prev
+                    let p02 = p0.lerp(p2, di),
+                        p13 = p1.lerp(p3, di),
+                        p01 = p0.lerp(p1, dj),
+                        p23 = p2.lerp(p3, dj);
+
+                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                    let ij = i * gs1 + j;
+
+                    ind = prev + ij;
+
+                    v[ind * 3] = p.x;
+                    v[ind * 3 + 1] = p.y;
+                    v[ind * 3 + 2] = p.z;
+
+                    //next
+                    let p24 = p2.lerp(p4, di),
+                        p35 = p3.lerp(p5, di),
+                        p45 = p4.lerp(p5, dj);
+                    p23 = p2.lerp(p3, dj);
+
+                    (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
+
+                    ind = next + ij;
+
+                    v[ind * 3] = p.x;
+                    v[ind * 3 + 1] = p.y;
+                    v[ind * 3 + 2] = p.z;
+                }
+            }
         }
-    }
 
-    setEdgeCoordinates3v(p0, p1, index) {
-        //let ind0 = index * 3 * 2,
-        //    a = this._positionData;
-
-        //a[ind0] = p0.x;
-        //a[ind0 + 1] = p0.y;
-        //a[ind0 + 2] = p0.z;
-
-        //a[ind0 + 3] = p1.x;
-        //a[ind0 + 4] = p1.y;
-        //a[ind0 + 5] = p1.z;
-
-        //this._createBuffers();
+        this._createBuffers();
     }
 
     removeEdge(index) {
@@ -184,7 +287,11 @@ class Strip extends RenderNode {
                 shu = p.uniforms;
 
             gl.disable(gl.CULL_FACE);
+
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
+
 
             sh.activate();
 
@@ -196,7 +303,9 @@ class Strip extends RenderNode {
             gl.vertexAttribPointer(sha.aVertexPosition, this._verticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            //gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+            gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
             gl.drawElements(r.handler.gl.LINE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
             gl.enable(gl.CULL_FACE);
