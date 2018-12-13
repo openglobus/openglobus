@@ -1,14 +1,11 @@
-/**
- * @module og/math/Line3
- */
-
 'use strict';
 
+import * as math from '../math.js';
 import { Vec3 } from './Vec3.js';
 
 const Line3 = function (p0, p1) {
-    this.p0 = (p0 ? p0.clone() : new Vec3());
-    this.p1 = (p1 ? p1.clone() : new Vec3());
+    this.p0 = p0 || new Vec3();
+    this.p1 = p1 || new Vec3();
 };
 
 Line3.prototype.getSphereIntersection = function (sphere) {
@@ -61,6 +58,50 @@ Line3.prototype.getSphereIntersection = function (sphere) {
     }
 
     return [solution2, solution1];
+};
+
+Line3.prototype.intersects = function (line, pa, pb) {
+
+    let p13 = this.p0.sub(line.p0),
+        p43 = line.p1.sub(line.p0);
+
+    if (Math.abs(p43.x) < math.EPSILON10 && Math.abs(p43.y) < math.EPSILON10 && Math.abs(p43.z) < math.EPSILON10)
+        return false;
+
+    let p21 = this.p1.sub(this.p0);
+
+    if (Math.abs(p21.x) < math.EPSILON10 && Math.abs(p21.y) < math.EPSILON10 && Math.abs(p21.z) < math.EPSILON10)
+        return false;
+
+    let d1343 = p13.x * p43.x + p13.y * p43.y + p13.z * p43.z,
+        d4321 = p43.x * p21.x + p43.y * p21.y + p43.z * p21.z,
+        d1321 = p13.x * p21.x + p13.y * p21.y + p13.z * p21.z,
+        d4343 = p43.x * p43.x + p43.y * p43.y + p43.z * p43.z,
+        d2121 = p21.x * p21.x + p21.y * p21.y + p21.z * p21.z;
+
+    let denom = d2121 * d4343 - d4321 * d4321;
+
+    if (Math.abs(denom) < math.EPSILON10)
+        return false;
+
+    let numer = d1343 * d4321 - d1321 * d4343;
+
+    let mua = numer / denom;
+
+    pa.x = this.p0.x + mua * p21.x;
+    pa.y = this.p0.y + mua * p21.y;
+    pa.z = this.p0.z + mua * p21.z;
+
+    if (pb) {
+
+        let mub = (d1343 + d4321 * mua) / d4343;
+
+        pb.x = line.p0.x + mub * p43.x;
+        pb.y = line.p0.y + mub * p43.y;
+        pb.z = line.p0.z + mub * p43.z;
+    }
+
+    return true;
 };
 
 export { Line3 };
