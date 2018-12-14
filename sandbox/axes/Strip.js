@@ -1,9 +1,9 @@
 'use strict';
 
-import { Program } from '../../src/og/webgl/Program.js';
-import { RenderNode } from '../../src/og/scene/RenderNode.js';
-import { Vec3 } from '../../src/og/math/Vec3.js';
-import { Line3 } from '../../src/og/math/Line3.js';
+import { Program } from '../../external/og/src/og/webgl/Program.js';
+import { RenderNode } from '../../external/og/src/og/scene/RenderNode.js';
+import { Vec3 } from '../../external/og/src/og/math/Vec3.js';
+import { Line3 } from '../../external/og/src/og/math/Line3.js';
 
 class Strip extends RenderNode {
     constructor(options) {
@@ -18,7 +18,7 @@ class Strip extends RenderNode {
         this._indexes = [];
         this._path = [];
 
-        this._gridSize = 4;
+        this._gridSize = 8;
 
         this.color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
     }
@@ -133,128 +133,136 @@ class Strip extends RenderNode {
 
     setEdge(p2, p3, index) {
 
-        let gs = this._gridSize,
-            gs1 = gs + 1;
-
-        let vSize = gs1 * gs1;
-
-        let p = new Vec3(),
-            v = this._vertices;
+        if (index === this._path.length) {
+            this.addEdge(p2, p3);
+            return;
+        }
 
         this._path[index][0] = p2;
         this._path[index][1] = p3;
 
-        if (index === this._path.length - 1) {
+        if (this._path.length > 1) {
 
-            let p0 = this._path[index - 1][0],
-                p1 = this._path[index - 1][1];
+            let gs = this._gridSize,
+                gs1 = gs + 1;
 
-            let prev = this._vertices.length / 3 - vSize,
-                ind = prev;
+            let vSize = gs1 * gs1;
 
-            for (let i = 0; i < gs1; i++) {
-                for (let j = 0; j < gs1; j++) {
+            let p = new Vec3(),
+                v = this._vertices;
 
-                    let di = i / gs,
-                        dj = j / gs;
+            if (index === this._path.length - 1) {
 
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di),
-                        p01 = p0.lerp(p1, dj),
+                let p0 = this._path[index - 1][0],
+                    p1 = this._path[index - 1][1];
+
+                let prev = this._vertices.length / 3 - vSize,
+                    ind = prev;
+
+                for (let i = 0; i < gs1; i++) {
+                    for (let j = 0; j < gs1; j++) {
+
+                        let di = i / gs,
+                            dj = j / gs;
+
+                        let p02 = p0.lerp(p2, di),
+                            p13 = p1.lerp(p3, di),
+                            p01 = p0.lerp(p1, dj),
+                            p23 = p2.lerp(p3, dj);
+
+                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                        ind = prev + i * gs1 + j;
+
+                        v[ind * 3] = p.x;
+                        v[ind * 3 + 1] = p.y;
+                        v[ind * 3 + 2] = p.z;
+                    }
+                }
+
+            } else if (index === 0) {
+
+                let ind = 0;
+
+                let p0 = p2,
+                    p1 = p3;
+
+                p2 = this._path[1][0];
+                p3 = this._path[1][1];
+
+                for (let i = 0; i < gs1; i++) {
+                    for (let j = 0; j < gs1; j++) {
+
+                        let di = i / gs,
+                            dj = j / gs;
+
+                        let p02 = p0.lerp(p2, di),
+                            p13 = p1.lerp(p3, di),
+                            p01 = p0.lerp(p1, dj),
+                            p23 = p2.lerp(p3, dj);
+
+                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                        ind = i * gs1 + j;
+
+                        v[ind * 3] = p.x;
+                        v[ind * 3 + 1] = p.y;
+                        v[ind * 3 + 2] = p.z;
+                    }
+                }
+            } else if (index > 0 && index < this._path.length) {
+
+                let p0 = this._path[index - 1][0],
+                    p1 = this._path[index - 1][1];
+
+                let p4 = this._path[index + 1][0],
+                    p5 = this._path[index + 1][1];
+
+                let next = index * vSize,
+                    prev = (index - 1) * vSize,
+                    ind = prev;
+
+                for (let i = 0; i < gs1; i++) {
+                    for (let j = 0; j < gs1; j++) {
+
+                        let di = i / gs,
+                            dj = j / gs;
+
+                        //prev
+                        let p02 = p0.lerp(p2, di),
+                            p13 = p1.lerp(p3, di),
+                            p01 = p0.lerp(p1, dj),
+                            p23 = p2.lerp(p3, dj);
+
+                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                        let ij = i * gs1 + j;
+
+                        ind = prev + ij;
+
+                        v[ind * 3] = p.x;
+                        v[ind * 3 + 1] = p.y;
+                        v[ind * 3 + 2] = p.z;
+
+                        //next
+                        let p24 = p2.lerp(p4, di),
+                            p35 = p3.lerp(p5, di),
+                            p45 = p4.lerp(p5, dj);
                         p23 = p2.lerp(p3, dj);
 
-                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                        (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
 
-                    ind = prev + i * gs1 + j;
+                        ind = next + ij;
 
-                    v[ind * 3] = p.x;
-                    v[ind * 3 + 1] = p.y;
-                    v[ind * 3 + 2] = p.z;
+                        v[ind * 3] = p.x;
+                        v[ind * 3 + 1] = p.y;
+                        v[ind * 3 + 2] = p.z;
+                    }
                 }
             }
 
-        } else if (index === 0) {
-
-            let ind = 0;
-
-            let p0 = p2,
-                p1 = p3;
-
-            p2 = this._path[1][0];
-            p3 = this._path[1][1];
-
-            for (let i = 0; i < gs1; i++) {
-                for (let j = 0; j < gs1; j++) {
-
-                    let di = i / gs,
-                        dj = j / gs;
-
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di),
-                        p01 = p0.lerp(p1, dj),
-                        p23 = p2.lerp(p3, dj);
-
-                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
-
-                    ind = i * gs1 + j;
-
-                    v[ind * 3] = p.x;
-                    v[ind * 3 + 1] = p.y;
-                    v[ind * 3 + 2] = p.z;
-                }
-            }
-        } else if (index > 0 && index < this._path.length) {
-
-            let p0 = this._path[index - 1][0],
-                p1 = this._path[index - 1][1];
-
-            let p4 = this._path[index + 1][0],
-                p5 = this._path[index + 1][1];
-
-            let next = index * vSize,
-                prev = (index - 1) * vSize,
-                ind = prev;
-
-            for (let i = 0; i < gs1; i++) {
-                for (let j = 0; j < gs1; j++) {
-
-                    let di = i / gs,
-                        dj = j / gs;
-
-                    //prev
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di),
-                        p01 = p0.lerp(p1, dj),
-                        p23 = p2.lerp(p3, dj);
-
-                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
-
-                    let ij = i * gs1 + j;
-
-                    ind = prev + ij;
-
-                    v[ind * 3] = p.x;
-                    v[ind * 3 + 1] = p.y;
-                    v[ind * 3 + 2] = p.z;
-
-                    //next
-                    let p24 = p2.lerp(p4, di),
-                        p35 = p3.lerp(p5, di),
-                        p45 = p4.lerp(p5, dj);
-                    p23 = p2.lerp(p3, dj);
-
-                    (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
-
-                    ind = next + ij;
-
-                    v[ind * 3] = p.x;
-                    v[ind * 3 + 1] = p.y;
-                    v[ind * 3 + 2] = p.z;
-                }
-            }
+            this._createBuffers();
         }
-
-        this._createBuffers();
     }
 
     removeEdge(index) {
