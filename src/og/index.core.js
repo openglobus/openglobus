@@ -54,14 +54,14 @@ import { Vec4 } from './math/Vec4.js';
 
 import { Framebuffer } from './webgl/Framebuffer.js';
 import { Handler } from './webgl/Handler.js';
-import { MultiFramebuffer } from './webgl/MultiFramebuffer.js';
+import { Multisample } from './webgl/Multisample.js';
 import { types } from './webgl/types.js';
 import { Program } from './webgl/Program.js';
 
 const webgl = {
     'Framebuffer': Framebuffer,
     'Handler': Handler,
-    'MultiFramebuffer': MultiFramebuffer,
+    'Multisample': Multisample,
     'types': types,
     'Program': Program
 };
