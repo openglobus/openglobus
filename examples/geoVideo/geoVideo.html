@@ -22,52 +22,54 @@
 
 
         document.getElementById("btnFlyImergac").onclick = function () {
-            globus.planet.flyExtent(imergac.getExtent());
+        globus.planet.flyExtent(imergac.getExtent());
         };
 
         document.getElementById("btnFlyLV").onclick = function () {
-            globus.planet.flyExtent(lv.getExtent());
+        globus.planet.flyExtent(lv.getExtent());
         };
 
         let sat = new XYZ("MapQuest Satellite", {
-            shininess: 20,
-            specular: [0.00048, 0.00037, 0.00035],
-            diffuse: [0.88, 0.85, 0.8],
-            ambient: [0.15, 0.1, 0.23],
-            isBaseLayer: true,
-            url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2giLCJhIjoiY2o0ZmVudncwMGZvbjJ3bGE0OGpsejBlZyJ9.RSRJLS0J_U9_lw1Ti1CmsQ",
-            visibility: true,
-            attribution: '�2014 MapQuest - Portions �2014 "Map data � <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+        shininess: 20,
+        specular: [0.00048, 0.00037, 0.00035],
+        diffuse: [0.88, 0.85, 0.8],
+        ambient: [0.15, 0.1, 0.23],
+        isBaseLayer: true,
+        url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
+        visibility: true,
+        attribution: `�2014 MapQuest - Portions �2014 "Map data �
+        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
         });
 
         let imergac = new GeoVideo("USA precipitation 08.05.2016", {
-            minZoom: 0,
-            maxZoom: 10,
-            src: "imergac_20160508_NASA.mp4",
-            corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]],
-            visibility: true,
-            isBaseLayer: false,
-            attribution: 'USA precipitation 08.05.2016, nasasearch.nasa.gov',
-            opacity: 0.7
+        minZoom: 0,
+        maxZoom: 10,
+        src: "imergac_20160508_NASA.mp4",
+        corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]],
+        visibility: true,
+        isBaseLayer: false,
+        attribution: 'USA precipitation 08.05.2016, nasasearch.nasa.gov',
+        opacity: 0.7
         });
 
         let lv = new GeoVideo("Las Vegas", {
-            minZoom: 10,
-            src: "SkyBox-LasVegas.mp4",
-            corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]],
-            visibility: true,
-            isBaseLayer: false,
-            attribution: 'SkyBox Imaging Inc.',
-            opacity: 1.0,
-            diffuse: [1.2, 1.2, 1.2]
+        minZoom: 10,
+        src: "SkyBox-LasVegas.mp4",
+        corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]],
+        visibility: true,
+        isBaseLayer: false,
+        attribution: 'SkyBox Imaging Inc.',
+        opacity: 1.0,
+        diffuse: [1.2, 1.2, 1.2]
         });
 
 
         let globus = new Globe({
-            "target": "globus",
-            "name": "Earth",
-            "terrain": new GlobusTerrain(),
-            "layers": [sat, imergac, lv]
+        "target": "globus",
+        "name": "Earth",
+        "terrain": new GlobusTerrain(),
+        "layers": [sat, imergac, lv]
         });
 
         globus.planet.flyExtent(imergac.getExtent());
