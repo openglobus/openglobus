@@ -168,7 +168,7 @@ class Vector extends Layer {
          * @public
          * @type {Number}
          */
-        this.polygonOffsetUnits = options.polygonOffsetUnits || 0.0;
+        this.polygonOffsetUnits = options.polygonOffsetUnits || -637000.0;
     }
 
     get instanceName() {
