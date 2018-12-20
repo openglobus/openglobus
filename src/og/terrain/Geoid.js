@@ -17,6 +17,23 @@
  * http://geographiclib.sourceforge.net/1.18/geoid.html
  */
 
+//window.myGeoid = new Geoid();
+
+//Geoid.loadModel("./res/egm84-30.pgm")
+//    .then(function (model) {
+//        myGeoid.setModel(model);
+
+//        globe.planet.renderer.events.on("lclick", (e) => {
+//            let c = globe.planet.getLonLatFromPixelTerrain(e);
+//            let h = myGeoid.getHeight(c.lon, c.lat);
+//            console.log(`${c.lat} ${c.lon} h=${h}`);
+//        });
+//    })
+//    .catch(function (err) {
+//        // If we get here, the model failed to load
+//        console.log(err);
+//    });
+
 'use strict';
 
 const c0 = 240;
