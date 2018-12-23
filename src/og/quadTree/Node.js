@@ -120,6 +120,8 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.state = null;
     this.appliedTerrainNodeId = -1;
     this.sideSize = [1, 1, 1, 1];
+    //let gs = planet.terrain.gridSizeByZoom[tileZoom] || 1;
+    //this.sideSize = [gs, gs, gs, gs];
     this.sideZoom = [0, 0, 0, 0];
     this.sideEqualize = [false, false, false, false];
     this.ready = false;
@@ -346,11 +348,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
     this.neighbors[2] = [];
     this.neighbors[3] = [];
 
-    this.hasNeighbor[0] = false;
-    this.hasNeighbor[1] = false;
-    this.hasNeighbor[2] = false;
-    this.hasNeighbor[3] = false;
-
+    this.hasNeighbor[0] = this.hasNeighbor[1] = this.hasNeighbor[2] = this.hasNeighbor[3] = false;
 
     let seg = this.segment,
         planet = this.planet;
@@ -410,7 +408,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             this.traverseNodes(cam, maxZoom);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum);
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && tReady) {
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && tReady && !maxZoom || maxZoom) {
             this.traverseNodes(cam, maxZoom);
         } else {
             this.prepareForRendering(cam, altVis, inFrustum);
@@ -427,15 +425,6 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
         this.createChildrenNodes();
     }
 
-    //let arr = this.nodes.concat().sort((a, b) => {
-    //    return cam.eye.distance(a.segment.bsphere.center) - cam.eye.distance(b.segment.bsphere.center);
-    //});
-
-    //arr[0].renderTree(cam, maxZoom);
-    //arr[1].renderTree(cam, maxZoom);
-    //arr[2].renderTree(cam, maxZoom);
-    //arr[3].renderTree(cam, maxZoom);
-
     let n = this.nodes;
 
     n[0].renderTree(cam, maxZoom);
@@ -446,7 +435,9 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
 
 Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
 
-    if (cam._lonLat.height < VISIBLE_HEIGHT) {
+    let seg = this.segment;
+
+    if (cam._lonLat.height < VISIBLE_HEIGHT/* && seg.tileZoom >= MAX_NORMAL_ZOOM*/) {
 
         if (altVis) {
             this.renderNode(!inFrustum);
@@ -455,8 +446,6 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
         }
 
     } else {
-
-        let seg = this.segment;
 
         if (seg.tileZoom < MAX_NORMAL_ZOOM && (
             seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
@@ -584,6 +573,43 @@ Node.prototype.addToRender = function () {
 
     nodes.push(node);
 };
+
+//Node.prototype.addToRender = function () {
+//    var node = this;
+//    var nodes = node.planet._renderedNodes;
+//    for (var i = 0; i < nodes.length; i++) {
+//        var ni = nodes[i];
+//        var cs = node.getCommonSide(ni);
+//        if (cs !== -1) {
+//            var opcs = OPSIDE[cs];
+
+//            node.neighbors[cs] = ni;
+//            ni.neighbors[opcs] = node;
+
+//            if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
+//                var ap = node.segment;
+//                var bp = ni.segment;
+//                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+
+//                node.hasNeighbor[cs] = true;
+//                ni.hasNeighbor[opcs] = true;
+
+//                if (ld > 1) {
+//                    node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
+//                    ni.sideSize[opcs] = bp.gridSize;
+//                }
+//                else if (ld < 1) {
+//                    node.sideSize[cs] = ap.gridSize;
+//                    ni.sideSize[opcs] = Math.ceil(bp.gridSize * ld);
+//                } else {
+//                    node.sideSize[cs] = ap.gridSize;
+//                    ni.sideSize[opcs] = bp.gridSize;
+//                }
+//            }
+//        }
+//    }
+//    nodes.push(node);
+//};
 
 Node.prototype.getCommonSide = function (b) {
 
