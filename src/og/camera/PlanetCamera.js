@@ -517,9 +517,9 @@ class PlanetCamera extends Camera {
         }
     }
 
-    getSurfaceVisibleDistance() {
+    getSurfaceVisibleDistance(d) {
         let R = this.planet.ellipsoid._a;
-        return R * Math.acos(R / (R + this._lonLat.height));
+        return R * Math.acos(R / (R + this._lonLat.height + d));
     }
 };
 
