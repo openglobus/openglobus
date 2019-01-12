@@ -50,11 +50,11 @@ Vec3.BACKWARD = new Vec3(0, 0, 1);
 /** @const */
 Vec3.ZERO = new Vec3();
 /** @const */
-Vec3.UNIT_X =new Vec3(1, 0, 0);
+Vec3.UNIT_X = new Vec3(1, 0, 0);
 /** @const */
-Vec3.UNIT_Y =new Vec3(0, 1, 0);
+Vec3.UNIT_Y = new Vec3(0, 1, 0);
 /** @const */
-Vec3.UNIT_Z =new Vec3(0, 0, 1);
+Vec3.UNIT_Z = new Vec3(0, 0, 1);
 
 /**
  * Vector 3d object creator.
@@ -702,6 +702,5 @@ Vec3.prototype.getRotationTo = function (dest, fallbackAxis) {
         return q;
     }
 };
-
 
 export { Vec3 };

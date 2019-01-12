@@ -638,12 +638,25 @@ Quat.prototype.getMat3 = function () {
  * @returns {og.Vec3} -
  */
 Quat.prototype.mulVec3 = function (v) {
-    var d = v.x, e = v.y, g = v.z;
-    var b = this.x, f = this.y, h = this.z, a = this.w;
+
+    //t = 2 * cross(q.xyz, v)
+    //v' = v + q.w * t + cross(q.xyz, t)
+
+    var d = v.x,
+        e = v.y,
+        g = v.z;
+
+    var b = this.x,
+        f = this.y,
+        h = this.z,
+        a = this.w;
+
     var i = a * d + f * g - h * e,
         j = a * e + h * d - b * g,
         k = a * g + b * e - f * d;
+
     d = -b * d - f * e - h * g;
+
     return new Vec3(
         i * a + d * -b + j * -h - k * -f,
         j * a + d * -f + k * -b - i * -h,
