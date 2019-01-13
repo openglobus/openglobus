@@ -564,35 +564,21 @@ Quat.prototype.setFromMatrix4 = function (m) {
  * @public
  * @returns {og.Mat4} -
  */
-Quat.prototype.getMat4 = function () {
-    var m = new Mat4();
-    var mx = m._m;
-    var c = this.x,
-        d = this.y,
-        e = this.z,
-        g = this.w,
-        f = c + c,
-        h = d + d,
-        i = e + e,
-        j = c * f,
-        k = c * h;
-
-    c = c * i;
-
-    var l = d * h;
-
-    d = d * i;
-    e = e * i;
-    f = g * f;
-    h = g * h;
-    g = g * i;
-
-    mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h; mx[3] = 0;
-    mx[4] = k + g; mx[5] = 1 - (j + e); mx[6] = d - f; mx[7] = 0;
-    mx[8] = c - h; mx[9] = d + f; mx[10] = 1 - (j + l); mx[11] = 0;
-    mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
-
-    return m;
+Quat.prototype.getMat4 = function (out) {
+    var xs = this.x + this.x;
+    var ys = this.y + this.y;
+    var zs = this.z + this.z;
+    var wx = this.w * xs;
+    var wy = this.w * ys;
+    var wz = this.w * zs;
+    var xx = this.x * xs;
+    var xy = this.x * ys;
+    var xz = this.x * zs;
+    var yy = this.y * ys;
+    var yz = this.y * zs;
+    var zz = this.z * zs;
+    var m = out || new Mat4();
+    return m.set([1 - (yy + zz), xy - wz, xz + wy, 0, xy + wz, 1 - (xx + zz), yz - wx, 0, xz - wy, yz + wx, 1 - (xx + yy), 0, 0, 0, 0, 1]);
 };
 
 /**

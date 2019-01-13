@@ -492,6 +492,60 @@ Vec3.prototype.normal = function () {
 };
 
 /**
+ * Returns normalized negate vector.
+ * @public
+ * @returns {og.Vec3} -
+ */
+Vec3.prototype.normalNegate = function () {
+    var res = new Vec3();
+    res.copy(this);
+
+    var length = -1.0 / res.length();
+
+    res.x *= length;
+    res.y *= length;
+    res.z *= length;
+
+    return res;
+};
+
+/**
+ * Returns normalized negate scale vector.
+ * @public
+ * @returns {og.Vec3} -
+ */
+Vec3.prototype.normalNegateScale = function (scale) {
+    var res = new Vec3();
+    res.copy(this);
+
+    var length = -scale / res.length();
+
+    res.x *= length;
+    res.y *= length;
+    res.z *= length;
+
+    return res;
+};
+
+/**
+ * Returns normalized scale vector.
+ * @public
+ * @returns {og.Vec3} -
+ */
+Vec3.prototype.normalScale = function (scale) {
+    var res = new Vec3();
+    res.copy(this);
+
+    var length = scale / res.length();
+
+    res.x *= length;
+    res.y *= length;
+    res.z *= length;
+
+    return res;
+};
+
+/**
  * Normalize current vector.
  * @public
  * @returns {og.Vec3} -
