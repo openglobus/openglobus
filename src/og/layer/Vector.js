@@ -61,7 +61,7 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  * @param {Number} [options.polygonOffsetFactor=0.0] - The scale factor for the variable depth offset. The default value is 0.
- * @param {Number} [options.polygonOffsetUnit=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
+ * @param {Number} [options.polygonOffsetUnits=-637000.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
  *
  * @fires og.layer.Vector#entitymove
  * @fires og.layer.Vector#draw
@@ -161,14 +161,14 @@ class Vector extends Layer {
          * @public
          * @type {Number}
          */
-        this.polygonOffsetFactor = options.polygonOffsetFactor || 0.0;
+        this.polygonOffsetFactor = options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
 
         /**
          * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
          * @public
          * @type {Number}
          */
-        this.polygonOffsetUnits = options.polygonOffsetUnits || -637000.0;
+        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : -637000.0;
     }
 
     get instanceName() {
