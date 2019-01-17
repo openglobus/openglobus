@@ -97,6 +97,10 @@ class Rectangle {
     fit(width, height) {
         return (this.getWidth() == width && this.getHeight() == height);
     }
+
+    isInside(x, y) {
+        return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom;
+    }
 }
 
 export { Rectangle };
