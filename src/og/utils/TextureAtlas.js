@@ -189,7 +189,7 @@ class TextureAtlas {
     createTexture() {
         if (this._handler) {
             this._handler.gl.deleteTexture(this.texture);
-            this.texture = this._handler.createTexture_l(this.canvas._canvas);
+            this.texture = this._handler.createTexture_n(this.canvas._canvas);
         }
     }
 
