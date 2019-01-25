@@ -378,6 +378,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             }
         }
     } else {
+        cam._insideSegment = seg;
         this._cameraInside = true;
     }
 

@@ -859,6 +859,8 @@ class Planet extends RenderNode {
      */
     _collectRenderNodes() {
 
+        this.camera._insideSegment = null;
+        
         //clear first
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
@@ -918,10 +920,10 @@ class Planet extends RenderNode {
                 this.camera.slope,
             this._maxLodRatio, this._minLodRatio
         );
+        
+        this._collectRenderNodes();
 
         this.renderer.activeCamera.prepareFrame();
-
-        this._collectRenderNodes();
 
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);
