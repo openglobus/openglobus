@@ -23,9 +23,7 @@
     "email": "mgevlich@gmail.com"
   },
   "homepage": "http://www.openglobus.org",
-  "dependencies": {
-    "webpack-cli": "^2.0.11"
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-eslint": "^8.0.0",
     "copy-webpack-plugin": "^4.5.1",
@@ -36,7 +34,8 @@
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
     "style-loader": "^0.20.3",
-    "webpack": "^4.25.1"
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.2.1"
   },
   "keywords": [
     "map",
