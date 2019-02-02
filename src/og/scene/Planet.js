@@ -1571,9 +1571,12 @@ class Planet extends RenderNode {
      * @param {og.Extent} extent - Geographical extent.
      * @param {Number} [height] - Height on the end of the flight route.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {cameraCallback} [startCallback] - Callback that calls after flying when flying is finished.
+     * @param {cameraCallback} [endCallback] - Callback that calls befor the flying begins.     
      */
-    flyExtent(extent, height, up, startCallback, endCallback) {
-        this.renderer.activeCamera.flyExtent(extent, height, up, startCallback, endCallback);
+    flyExtent(extent, height, up, ampl, startCallback, endCallback) {
+        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, startCallback, endCallback);
     }
 
     /**
@@ -1582,9 +1585,10 @@ class Planet extends RenderNode {
      * @param {og.Vec3} cartesian - Fly coordiantes.
      * @param {og.Vec3} [look] - Camera "look at" point.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
      */
-    flyCartesian(cartesian, look, up) {
-        this.renderer.activeCamera.flyCartesian(cartesian, look, up);
+    flyCartesian(cartesian, look, up, ampl) {
+        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl);
     }
 
     /**
@@ -1593,9 +1597,10 @@ class Planet extends RenderNode {
      * @param {og.LonLat} lonlat - Fly geographical coordiantes.
      * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
      */
-    flyLonLat(lonlat, look, up) {
-        this.renderer.activeCamera.flyLonLat(lonlat, look, up);
+    flyLonLat(lonlat, look, up, ampl) {
+        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl);
     }
 
     /**

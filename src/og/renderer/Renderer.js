@@ -227,6 +227,8 @@ Renderer.prototype.assignPickingColor = function (obj) {
         else
             obj._pickingColor.set(r, g, b);
 
+        obj._pickingColorU = new Float32Array([r / 255, g / 255, b / 255]);
+
         this.colorObjects[str] = obj;
     }
 }

@@ -301,12 +301,13 @@ class PlanetCamera extends Camera {
      * @public
      * @param {og.Extent} extent - Current extent.
      * @param {og.Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
+     * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyExtent(extent, height, up, completeCallback, startCallback) {
+    flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
         this.flyCartesian(this.getExtentPosition(extent, height), Vec3.ZERO,
-            up, completeCallback, startCallback);
+            up, ampl, completeCallback, startCallback);
     }
 
     /**
@@ -315,10 +316,11 @@ class PlanetCamera extends Camera {
      * @param {og.Vec3} cartesian - Finish cartesian coordinates.
      * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {Number} [ampl=1.0] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyCartesian(cartesian, look, up, completeCallback, startCallback) {
+    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback) {
 
         //???????
         //if (this.eye.distance(cartesian) < 23000) {
@@ -355,7 +357,7 @@ class PlanetCamera extends Camera {
         var an = ground_a.normal();
         var bn = ground_b.normal();
         var anbn = 1.0 - an.dot(bn);
-        var hM_a = math.SQRT_HALF * Math.sqrt((anbn) > 0.0 ? anbn : 0.0);
+        var hM_a = ampl * math.SQRT_HALF * Math.sqrt((anbn) > 0.0 ? anbn : 0.0);
 
         var maxHeight = 6639613;
         var currMaxHeight = Math.max(this._lonLat.height, lonlat_b.height);
@@ -405,12 +407,13 @@ class PlanetCamera extends Camera {
      * @param {og.LonLat} lonlat - Finish coordinates.
      * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyLonLat(lonlat, look, up, completeCallback, startCallback) {
+    flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback) {
         var _lonlat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
-        this.flyCartesian(this.planet.ellipsoid.lonLatToCartesian(_lonlat), look, up, completeCallback, startCallback);
+        this.flyCartesian(this.planet.ellipsoid.lonLatToCartesian(_lonlat), look, up, ampl, completeCallback, startCallback);
     }
 
     /**
