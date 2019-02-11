@@ -19,6 +19,7 @@ const INDEX_BUFFER = 1;
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {og.Vec4} [options.color] - RGBA color.
+ * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
  * @param {Array.<Array.<number,number,number>>} [options.pathLonLat] - Polyline geodetic coordinates array.
@@ -52,6 +53,8 @@ class Polyline {
          * @type {og.Vec4}
          */
         this.color = utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+
+        this.color.w = options.opacity != undefined ? options.opacity : this.color.w;
 
         /**
          * Polyline visibility.
@@ -1097,7 +1100,7 @@ class Polyline {
                 gl.uniform3fv(shu.pickingColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
             }
 
-            gl.uniform4fv(shu.color, this.color.toVec());
+            gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
             gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
             gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);

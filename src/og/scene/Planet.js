@@ -1303,8 +1303,15 @@ class Planet extends RenderNode {
 
         var i = this.visibleVectorLayers.length;
         while (i--) {
-            this.visibleVectorLayers[i].collectVisibleCollections(this._frustumEntityCollections);
-            this.visibleVectorLayers[i].update();
+
+            let vi = this.visibleVectorLayers[i];
+
+            if (vi._fading && vi._refreshFadingOpacity()) {
+                this.visibleVectorLayers.splice(i, 1);
+            }
+
+            vi.collectVisibleCollections(this._frustumEntityCollections);
+            vi.update();
         }
 
         //3d entities(billnoards, labesl, shapes etc.) rendering

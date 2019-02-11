@@ -13,7 +13,7 @@ import { Material } from './Material.js';
 import { Vec3 } from '../math/Vec3.js';
 
 
-export const FADING_FACTOR = 0.33;
+export const FADING_FACTOR = 0.29;
 
 /**
  * @classdesc

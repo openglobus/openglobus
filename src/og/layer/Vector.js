@@ -591,6 +591,10 @@ class Vector extends Layer {
 
         var ec = this._polylineEntityCollection;
 
+        ec._fadingOpacity = this._fadingOpacity;
+        ec.scaleByDistance = this.scaleByDistance;
+        ec.pickingScale = this.pickingScale;
+
         ec.polygonOffsetFactor = this.polygonOffsetFactor;
         ec.polygonOffsetUnits = this.polygonOffsetUnits;
 

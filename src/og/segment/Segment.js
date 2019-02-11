@@ -223,6 +223,7 @@ Segment.prototype.acceptForRendering = function (camera) {
  * @public
  * @param {og.Entity} entity - Entity.
  * @param {og.Vec3} res - Point coordinates.
+ * @param {og.Vec3} [normal] - Terrain point normal.
  * @returns {og.Vec3} -
  */
 Segment.prototype.getEntityTerrainPoint = function (entity, res, normal) {
@@ -236,9 +237,10 @@ Segment.prototype.isEntityInside = function (e) {
 /**
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
- * @param {og.Vec3} res - Result cartesian coordiantes on the terrain.
  * @param {og.Vec3} xyz - Cartesian object position.
  * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
+ * @param {og.Vec3} [res] - Result cartesian coordiantes on the terrain.
+ * @param {og.Vec3} [normal] - Terrain point normal.
  * @returns {number} -
  */
 Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
