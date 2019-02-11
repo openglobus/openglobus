@@ -86,8 +86,7 @@ class Ellipsoid {
      * @param {Number} height - Height.
      * @returns {og.Vec3} -
      */
-    geodeticToCartesian(lon, lat, height) {
-        height = height || 0;
+    geodeticToCartesian(lon, lat, height = 0) {
         var latrad = math.RADIANS * lat,
             lonrad = math.RADIANS * lon;
 
