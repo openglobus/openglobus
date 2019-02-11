@@ -546,7 +546,7 @@ class Layer {
 
     _refreshFadingOpacity() {
         var p = this._planet;
-        if (this._visibility && p._viewExtent.overlaps(this._extent) &&
+        if (this._visibility && p._viewExtent && p._viewExtent.overlaps(this._extent) &&
             p.maxCurrZoom >= this.minZoom && p.minCurrZoom <= this.maxZoom) {
 
             this._fadingOpacity += this._fadingFactor;
