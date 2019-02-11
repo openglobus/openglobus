@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Experimental GLSL Image Processing</title>
+    <link rel="stylesheet" href="glimp.css" />
+    <script src='jquery-1.11.0.min.js'></script>
+</head>
+<body>
+    <h1>GLSL Iterative Dilation Demo</h1>
+    <a href="./index.html"><- Return to Experimental GLSL Image Processing</a>
+    <p>
+        Many image processing filters require iterative execution, with the result from the previous iteration serving as the input to the next iteration.  Here, we use morphological dilation as an exemplar for algorithms that iterate to produce a final filtered image. This GLSL example uses multiple framebuffers and multiple textures to manage the iteration.
+    </p>
+    <p>
+        The management of framebuffers and textures in this example is modeled off of <a href="http://webglfundamentals.org/webgl/lessons/webgl-image-processing-continued.html">this work on chaining filters</a>.
+    </p>
+    <h2>Source Image</h2>
+    <img id="sourceImage" src="./temp.png"></img>
+
+    <h2>Processed Image</h2>
+    <canvas id=renderCanvas></canvas>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        precision highp float;
+
+        attribute vec3 coordinate;
+        attribute vec2 textureCoordinate;
+
+        varying vec2 varyingTextureCoordinate;
+
+        void main(void) {
+        gl_Position = vec4(coordinate,1.);
+        varyingTextureCoordinate = textureCoordinate;
+        }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        precision highp float;
+
+        // Dilate filter.
+        //
+        //
+
+        uniform sampler2D sourceTextureSampler;
+        uniform vec2 sourceTextureSize;
+        uniform vec2 sourceTexelSize;
+        uniform vec2 focusPoint;
+
+        varying vec2 varyingTextureCoordinate;
+
+        void main(void) {
+        vec4 c = texture2D(sourceTextureSampler, varyingTextureCoordinate);
+        vec4 dc = c;
+
+        // only dilate to the right of the mouse
+        if (varyingTextureCoordinate.x > focusPoint.x)
+        {
+        vec3 cc;
+        //read out the texels
+        for (int i=-1; i <= 1; ++i)
+        {
+        for (int j=-1; j <= 1; ++j)
+        {
+        // color at pixel in the neighborhood
+        vec2 coord = varyingTextureCoordinate.xy + vec2(float(i), float(j))*sourceTexelSize.xy;
+        cc = texture2D(sourceTextureSampler, coord).rgb;
+
+        // dilate = max, erode = min
+        dc.rgb = max(cc.rgb, dc.rgb);
+        }
+        }
+        }
+
+        gl_FragColor = dc;
+        }
+
+    </script>
+    <script>
+        'use strict'
+
+        var focusPoint = [0., 0.]; // holds a value to be passed as a uniform to the shader
+
+        var sourceTextureSize = [0, 0];
+
+
+        //
+        // set up webgl
+        //
+        var renderCanvas = document.querySelector('#renderCanvas');
+        var gl = renderCanvas.getContext('webgl');
+        gl.clearColor(0.0, 0.0, 0.0, 1.0); // black, fully opaque
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+
+        // buffers for the textured plane in normalized space
+        var renderImageCoordinatesBuffer = gl.createBuffer();
+        var renderImageTexureCoordinatesBuffer = gl.createBuffer();
+        var renderImageVertices = [-1., -1., 0., 1., -1., 0., -1., 1., 0., 1., 1., 0.,];
+        gl.bindBuffer(gl.ARRAY_BUFFER, renderImageCoordinatesBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(renderImageVertices), gl.STATIC_DRAW);
+
+        var renderImageTextureCoordinates = [0, 0, 1, 0, 0, 1, 1, 1];
+        gl.bindBuffer(gl.ARRAY_BUFFER, renderImageTexureCoordinatesBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(renderImageTextureCoordinates), gl.STATIC_DRAW);
+
+        // the source texture
+        var sourceTextureImage = new Image();
+        var sourceTexture = gl.createTexture();
+        var setupSourceTexture = function () {
+            gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceTextureImage);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            //gl.bindTexture(gl.TEXTURE_2D, null); // is this call needed? jvm
+
+            sourceTextureSize[0] = sourceTextureImage.width;
+            sourceTextureSize[1] = sourceTextureImage.height;
+        };
+
+        // extra textures and framebuffers for intermediate results of iterative filters and pipelines
+        var textures = [];
+        var framebuffers = [];
+        var setupFrameBuffers = function () {
+            for (var ii = 0; ii < 2; ++ii) {
+                // create a texture for the framebuffer
+                var texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); // do this now at end? or not needed for intermediates? jvm
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, sourceTextureImage.width, sourceTextureImage.height, 0,
+                    gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                textures.push(texture);
+
+                // create a framebuffer
+                var fbo = gl.createFramebuffer();
+                framebuffers.push(fbo);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+                // attach texture to frame buffer
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+            }
+        }
+
+        // the program and shaders
+        var glProgram = gl.createProgram();
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, document.getElementById("vertexShader").innerHTML);
+        gl.compileShader(vertexShader);
+        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            alert('Could not compile vertexShader');
+            console.log(gl.getShaderInfoLog(vertexShader));
+        }
+        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, document.getElementById("fragmentShader").innerHTML);
+        gl.compileShader(fragmentShader);
+        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            alert('Could not compile fragmentShader');
+            console.log(gl.getShaderInfoLog(fragmentShader));
+        }
+        gl.attachShader(glProgram, vertexShader);
+        gl.deleteShader(vertexShader);
+        gl.attachShader(glProgram, fragmentShader);
+        gl.deleteShader(fragmentShader);
+        gl.linkProgram(glProgram);
+
+        // render a frame
+        function render() {
+            gl.viewport(0, 0, renderCanvas.width, renderCanvas.height);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.useProgram(glProgram);
+
+            // set up the focus point (pointer position)
+            gl.uniform2f(gl.getUniformLocation(glProgram, "focusPoint"), focusPoint[0], focusPoint[1]);
+
+            // set up the sourceTextureSize
+            gl.uniform2f(gl.getUniformLocation(glProgram, "sourceTextureSize"), sourceTextureSize[0], sourceTextureSize[1]);
+
+            // set up the sourceTexelSize
+            gl.uniform2f(gl.getUniformLocation(glProgram, "sourceTexelSize"), 1.0 / sourceTextureSize[0], 1.0 / sourceTextureSize[1]);
+
+            // the sourceTexture
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
+            gl.uniform1i(gl.getUniformLocation(glProgram, "sourceTextureSampler"), 0);
+
+            // the coordinate attribute
+            gl.bindBuffer(gl.ARRAY_BUFFER, renderImageCoordinatesBuffer);
+            var coordinateLocation = gl.getAttribLocation(glProgram, "coordinate");
+            gl.enableVertexAttribArray(coordinateLocation);
+            gl.vertexAttribPointer(coordinateLocation, 3, gl.FLOAT, false, 0, 0);
+
+            // the textureCoordinate attribute
+            gl.bindBuffer(gl.ARRAY_BUFFER, renderImageTexureCoordinatesBuffer);
+            var textureCoordinateLocation = gl.getAttribLocation(glProgram, "textureCoordinate");
+            gl.enableVertexAttribArray(textureCoordinateLocation);
+            gl.vertexAttribPointer(textureCoordinateLocation, 2, gl.FLOAT, false, 0, 0);
+
+            // (debug - run once. uncomment these lines and set "last" to -1)
+            //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            //gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+
+            var last = 5;
+            var i;
+            for (i = 0; i < last; ++i) {
+                // set the frame buffer to render into
+                if (i < last - 1) {
+                    // render into one of the texture framebuffers
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i % 2]);
+                } else {
+                    // use the canvas frame buffer for last render
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                }
+                //gl.viewport(0, 0, renderCanvas.width, renderCanvas.height); is this needed for the intermediate results?
+
+                // the primitive, triggers the fragment shader
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                // switch the source texture
+                gl.bindTexture(gl.TEXTURE_2D, textures[i % 2]);
+            }
+        }
+
+        // initialize after load is complete
+        $(function () {
+            // once the image is loaded, setup the texture and start the loop
+            sourceTextureImage.src = "./temp.png";
+            sourceTextureImage.onload = function () {
+                setupSourceTexture();
+                setupFrameBuffers();  // 2 extra framebuffers for intermediate results in iterative filters and pipelines
+                renderCanvas.height = sourceTextureImage.height;
+                renderCanvas.width = sourceTextureImage.width;
+                render();
+            };
+
+            // pass the mouse location as a uniform variable to the fragment shader
+            var updateFocus = function (event) {
+                focusPoint = [event.offsetX / sourceTextureImage.width, 1. - (event.offsetY / sourceTextureImage.height)];
+                render();
+            };
+            $('#renderCanvas').mousedown(updateFocus);
+            $('#renderCanvas').mousemove(updateFocus);
+        });
+
+    </script>
+    <p>
+        Move pointer over the lower image. As you move the mouse, the left side of the image is unfiltered, the right side is grayscale dilated 2 times.
+        <br><br>
+        Check out <a href='https://github.com/millerjv/sites/tree/gh-pages/glimp'>the source code</a>.
+    </p>
+    <p>
+        This demo uses WebGL.  Not all devices and browsers are supported.
+    </p>
+</body>
+</html>
