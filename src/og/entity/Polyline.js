@@ -187,13 +187,13 @@ class Polyline {
         for (var j = 0; j < path3v.length; j++) {
             var path = path3v[j];
 
-            if (path.length === 0) {
-                continue;
-            }
-
             outTransformedPathLonLat[j] = [];
             outTransformedPathMerc[j] = [];
             outPath3v[j] = [];
+
+            if (path.length === 0) {
+                continue;
+            }
 
             var startIndex = index;
 
@@ -268,7 +268,7 @@ class Polyline {
             outVertices.push(first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z);
             outOrders.push(1, -1, 2, -2);
 
-            if (j < path3v.length - 1) {
+            if (j < path3v.length - 1 && path3v[j + 1].length !== 0) {
                 index += 8;
                 outIndexes.push(index, index);
             }
@@ -299,46 +299,80 @@ class Polyline {
 
         path.push(point3v);
 
-        var startIndex = index;
+        if (path.length === 1) {
 
-        if (ellipsoid) {
+            index += 8;
+            outIndexes.push(index, index);
 
-            var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
-                transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
+            var last;
+            if (isClosed) {
+                last = path[path.length - 1];
+                if (last.constructor === Array) {
+                    last = new Vec3(last[0], last[1], last[2]);
+                }
+            } else {
+                var p0 = path[0],
+                    p1 = path[1] || p0;
+                if (p0.constructor === Array) {
+                    p0 = new Vec3(p0[0], p0[1], p0[2]);
+                }
+                if (p1.constructor === Array) {
+                    p1 = new Vec3(p1[0], p1[1], p1[2]);
+                }
+                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
 
-            let lonLat = ellipsoid.cartesianToLonLat(point3v);
-            transformedPathLonLat.push(lonLat);
-            transformedPathMerc.push(lonLat.forwardMercator());
+            outVertices.push(last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z, last.x, last.y, last.z);
+            outOrders.push(1, -1, 2, -2);
 
-            if (lonLat.lon < outExtent.southWest.lon)
-                outExtent.southWest.lon = lonLat.lon;
-            if (lonLat.lat < outExtent.southWest.lat)
-                outExtent.southWest.lat = lonLat.lat;
-            if (lonLat.lon > outExtent.northEast.lon)
-                outExtent.northEast.lon = lonLat.lon;
-            if (lonLat.lat > outExtent.northEast.lat)
-                outExtent.northEast.lat = lonLat.lat;
+            outVertices.push(point3v.x, point3v.y, point3v.z, point3v.x, point3v.y, point3v.z, point3v.x, point3v.y, point3v.z, point3v.x, point3v.y, point3v.z);
+            outOrders.push(1, -1, 2, -2);
+            outIndexes.push(index++, index++, index++, index++);
+
+        } else {
+
+            var startIndex = index;
+
+            if (ellipsoid) {
+
+                var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
+                    transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
+
+                let lonLat = ellipsoid.cartesianToLonLat(point3v);
+                transformedPathLonLat.push(lonLat);
+                transformedPathMerc.push(lonLat.forwardMercator());
+
+                if (lonLat.lon < outExtent.southWest.lon)
+                    outExtent.southWest.lon = lonLat.lon;
+                if (lonLat.lat < outExtent.southWest.lat)
+                    outExtent.southWest.lat = lonLat.lat;
+                if (lonLat.lon > outExtent.northEast.lon)
+                    outExtent.northEast.lon = lonLat.lon;
+                if (lonLat.lat > outExtent.northEast.lat)
+                    outExtent.northEast.lat = lonLat.lat;
+            }
+
+            let vi = outVertices.length - 12;
+
+            outVertices[vi] = point3v.x;
+            outVertices[vi + 1] = point3v.y;
+            outVertices[vi + 2] = point3v.z;
+            outVertices[vi + 3] = point3v.x;
+            outVertices[vi + 4] = point3v.y;
+            outVertices[vi + 5] = point3v.z;
+            outVertices[vi + 6] = point3v.x;
+            outVertices[vi + 7] = point3v.y;
+            outVertices[vi + 8] = point3v.z;
+            outVertices[vi + 9] = point3v.x;
+            outVertices[vi + 10] = point3v.y;
+            outVertices[vi + 11] = point3v.z;
+
+            outIndexes[ii] = index++;
+            outIndexes[ii + 1] = index++;
+            outIndexes[ii + 2] = index++;
+            outIndexes[ii + 3] = index++;
+
         }
-
-        let vi = outVertices.length - 12;
-
-        outVertices[vi] = point3v.x;
-        outVertices[vi + 1] = point3v.y;
-        outVertices[vi + 2] = point3v.z;
-        outVertices[vi + 3] = point3v.x;
-        outVertices[vi + 4] = point3v.y;
-        outVertices[vi + 5] = point3v.z;
-        outVertices[vi + 6] = point3v.x;
-        outVertices[vi + 7] = point3v.y;
-        outVertices[vi + 8] = point3v.z;
-        outVertices[vi + 9] = point3v.x;
-        outVertices[vi + 10] = point3v.y;
-        outVertices[vi + 11] = point3v.z;
-
-        outIndexes[ii] = index++;
-        outIndexes[ii + 1] = index++;
-        outIndexes[ii + 2] = index++;
-        outIndexes[ii + 3] = index++;
 
         //
         // Close path
@@ -391,15 +425,15 @@ class Polyline {
         for (var j = 0; j < pathLonLat.length; j++) {
             var path = pathLonLat[j];
 
+            outTransformedPathCartesian[j] = [];
+            outTransformedPathMerc[j] = [];
+            outPathLonLat[j] = [];
+
             if (path.length === 0) {
                 continue;
             }
 
             var startIndex = index;
-
-            outTransformedPathCartesian[j] = [];
-            outTransformedPathMerc[j] = [];
-            outPathLonLat[j] = [];
 
             var last;
             if (isClosed) {
@@ -889,9 +923,9 @@ class Polyline {
      * @public
      * @param {og.Vec3} point3v - New coordinate.
      */
-    appendPoint3v(point3v) {
+    appendPoint3v(point3v, skipEllipsoid) {
         Polyline.appendPoint3v(this._path3v, point3v, this._closedLine, this._vertices, this._orders, this._indexes,
-            this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc, this._extent);
+            !skipEllipsoid && this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc, this._extent);
 
         this._changedBuffers[VERTICES_BUFFER] = true;
         this._changedBuffers[INDEX_BUFFER] = true;
