@@ -154,7 +154,7 @@ class Polyline {
 
 
     /**
-     * Appends to the line arrays new data from cartesian coordinates.
+     * Appends to the line array new cartesian coordinates line data.
      * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
      * @param {Boolean} isClosed - Identificator for the closed line data creation.
      * @param {Number[]} outVertices - Out vertices data array.
@@ -169,7 +169,9 @@ class Polyline {
      */
     static appendLineData3v(path3v, isClosed, outVertices, outOrders, outIndexes,
         ellipsoid, outTransformedPathLonLat, outPath3v, outTransformedPathMerc, outExtent) {
+
         var index = 0;
+
         if (outExtent) {
             outExtent.southWest.set(180, 90);
             outExtent.northEast.set(-180, -90);
@@ -221,10 +223,12 @@ class Polyline {
                 if (cur.constructor === Array) {
                     cur = new Vec3(cur[0], cur[1], cur[2]);
                 }
+
+                outPath3v[j].push(cur);
+
                 if (ellipsoid) {
                     var lonLat = ellipsoid.cartesianToLonLat(cur);
                     outTransformedPathLonLat[j].push(lonLat);
-                    outPath3v[j].push(cur);
                     outTransformedPathMerc[j].push(lonLat.forwardMercator());
 
                     if (lonLat.lon < outExtent.southWest.lon)
@@ -272,7 +276,91 @@ class Polyline {
     }
 
     /**
-     * Appends to the line arrays new data from geodetic coordinates.
+     * Appends to the line new cartesian coordinates point data.
+     * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
+     * @param {Boolean} isClosed - Identificator for the closed line data creation.
+     * @param {Number[]} outVertices - Out vertices data array.
+     * @param {Number[]} outOrders - Out vertices orders data array.
+     * @param {Number[]} outIndexes - Out vertices indexes data array.
+     * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.<Array.<og.LonLat>>} [outPath3v] - Cartesian coordinates out array.
+     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+     * @param {og.Extent} outExtent - Geodetic line extent.
+     * @static
+     */
+    static appendPoint3v(path3v, point3v, isClosed, outVertices, outOrders, outIndexes,
+        ellipsoid, outTransformedPathLonLat, outTransformedPathMerc, outExtent) {
+
+        var ii = outIndexes.length - 4,
+            index = outIndexes[ii - 1] + 1;
+
+        var path = path3v[path3v.length - 1];
+
+        path.push(point3v);
+
+        var startIndex = index;
+
+        if (ellipsoid) {
+
+            var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
+                transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
+
+            let lonLat = ellipsoid.cartesianToLonLat(point3v);
+            transformedPathLonLat.push(lonLat);
+            transformedPathMerc.push(lonLat.forwardMercator());
+
+            if (lonLat.lon < outExtent.southWest.lon)
+                outExtent.southWest.lon = lonLat.lon;
+            if (lonLat.lat < outExtent.southWest.lat)
+                outExtent.southWest.lat = lonLat.lat;
+            if (lonLat.lon > outExtent.northEast.lon)
+                outExtent.northEast.lon = lonLat.lon;
+            if (lonLat.lat > outExtent.northEast.lat)
+                outExtent.northEast.lat = lonLat.lat;
+        }
+
+        let vi = outVertices.length - 12;
+
+        outVertices[vi] = point3v.x;
+        outVertices[vi + 1] = point3v.y;
+        outVertices[vi + 2] = point3v.z;
+        outVertices[vi + 3] = point3v.x;
+        outVertices[vi + 4] = point3v.y;
+        outVertices[vi + 5] = point3v.z;
+        outVertices[vi + 6] = point3v.x;
+        outVertices[vi + 7] = point3v.y;
+        outVertices[vi + 8] = point3v.z;
+        outVertices[vi + 9] = point3v.x;
+        outVertices[vi + 10] = point3v.y;
+        outVertices[vi + 11] = point3v.z;
+
+        outIndexes[ii] = index++;
+        outIndexes[ii + 1] = index++;
+        outIndexes[ii + 2] = index++;
+        outIndexes[ii + 3] = index++;
+
+        //
+        // Close path
+        //
+        var first;
+        if (isClosed) {
+            first = path[0];
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            let p0 = path[path.length - 1],
+                p1 = path[path.length - 2] || p0;
+
+            first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
+
+        outVertices.push(first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z, first.x, first.y, first.z);
+        outOrders.push(1, -1, 2, -2);
+    }
+
+    /**
+     * Appends to the line array new geodetic coordinates line data.
      * @param {Array.<Array.<number, number, number>>} pathLonLat - Line geodetic coordinates path array.
      * @param {Boolean} isClosed - Identificator for the closed line data creation.
      * @param {Number[]} outVertices - Out vertices data array.
@@ -789,11 +877,24 @@ class Polyline {
 
     removePoint(index, multiLineIndex) {
         //
-        //TODO: could be optimized
+        //TODO: could be optimized. Partially see appendPoint3v.
         //
         multiLineIndex = multiLineIndex || 0;
         this._path3v[multiLineIndex].splice(index, 1);
         this.setPath3v([].concat(this._path3v));
+    }
+
+    /**
+     * Adds a new cartesian point in the end of the path in a last line segment.
+     * @public
+     * @param {og.Vec3} point3v - New coordinate.
+     */
+    appendPoint3v(point3v) {
+        Polyline.appendPoint3v(this._path3v, point3v, this._closedLine, this._vertices, this._orders, this._indexes,
+            this._renderNode.ellipsoid, this._pathLonLat, this._pathLonLatMerc, this._extent);
+
+        this._changedBuffers[VERTICES_BUFFER] = true;
+        this._changedBuffers[INDEX_BUFFER] = true;
     }
 
     /**

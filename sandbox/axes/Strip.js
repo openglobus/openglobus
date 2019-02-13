@@ -1,12 +1,14 @@
 'use strict';
 
-import { Program } from '../../external/og/src/og/webgl/Program.js';
-import { RenderNode } from '../../external/og/src/og/scene/RenderNode.js';
-import { Vec3 } from '../../external/og/src/og/math/Vec3.js';
-import { Line3 } from '../../external/og/src/og/math/Line3.js';
+import { Program } from '../../src/og/webgl/Program.js';
+import { RenderNode } from '../../src/og/scene/RenderNode.js';
+import { Vec3 } from '../../src/og/math/Vec3.js';
+import { Line3 } from '../../src/og/math/Line3.js';
 
 class Strip extends RenderNode {
     constructor(options) {
+
+        options = options || {};
 
         super("strip-node-" + Strip._staticCounter++);
 
@@ -18,9 +20,17 @@ class Strip extends RenderNode {
         this._indexes = [];
         this._path = [];
 
-        this._gridSize = 8;
+        this._gridSize = 16;
 
         this.color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
+
+        if (options.color) {
+            this.setColor(options.color[0], options.color[1], options.color[2], options.color[3]);
+        }
+
+        if (options.opacity) {
+            this.setOpacity(options.opacity);
+        }
     }
 
     static get _staticCounter() {
@@ -32,6 +42,18 @@ class Strip extends RenderNode {
 
     static set _staticCounter(n) {
         this.__counter__ = n;
+    }
+
+    setColor(r, g, b, a) {
+        a = a || this.color[3];
+        this.color[0] = r;
+        this.color[1] = g;
+        this.color[2] = b;
+        this.color[3] = a;
+    }
+
+    setOpacity(opacity) {
+        this.color[3] = opacity || 0;
     }
 
     setVisibility(visibility) {
