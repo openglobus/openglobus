@@ -448,17 +448,34 @@ class EntityCollection {
                 renderNode.entityCollections.push(this);
             }
             renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
-            this.setRenderer(renderNode.renderer);
 
-            this.shapeHandler.setRenderNode(renderNode);
-            this.polylineHandler.setRenderNode(renderNode);
-            this.pointCloudHandler.setRenderNode(renderNode);
+            this.bindRenderNode(renderNode);
 
             this.events.dispatch(this.events.add, this);
         }
         return this;
     }
 
+    /**
+     * This function is called in the RenderNode assign function.
+     * @param {og.RenderNode} renderNode
+     */
+    bindRenderNode(renderNode) {
+
+        if (renderNode.renderer) {
+
+            this.billboardHandler.setRenderer(renderNode.renderer);
+            this.labelHandler.setRenderer(renderNode.renderer);
+
+            this.shapeHandler.setRenderNode(renderNode);
+            this.polylineHandler.setRenderNode(renderNode);
+            this.pointCloudHandler.setRenderNode(renderNode);
+
+            this.updateBillboardsTextureAtlas();
+            this.updateLabelsFontAtlas();
+            this.createPickingColors();
+        }
+    }
     /**
      * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
      * @private
@@ -470,22 +487,6 @@ class EntityCollection {
         while (i--) {
             var ei = e[i];
             ei._lonlat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonlat));
-        }
-    }
-
-    /**
-     * Sets renderer. Used in renderer initialization, when entity collection starts before renderer has initialized.
-     * @public
-     * @param {og.Renderer} renderer - Renderer.
-     */
-    setRenderer(renderer) {
-        //todo: better to replace to setRenderNode function
-        if (renderer) {
-            this.billboardHandler.setRenderer(renderer);
-            this.labelHandler.setRenderer(renderer);
-            this.updateBillboardsTextureAtlas();
-            this.updateLabelsFontAtlas();
-            this.createPickingColors();
         }
     }
 

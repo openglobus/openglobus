@@ -100,7 +100,7 @@ class RenderNode extends BaseNode {
         this._pickingId = renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
 
         for (var i = 0; i < this.entityCollections.length; i++) {
-            this.entityCollections[i].setRenderer(renderer);
+            this.entityCollections[i].bindRenderNode(this);
         }
 
         this.init && this.init();
