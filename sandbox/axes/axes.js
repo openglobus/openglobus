@@ -4,7 +4,6 @@ import { Handler } from '../../src/og/webgl/Handler.js';
 import { Renderer } from '../../src/og/renderer/Renderer.js';
 import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
 import { Axes } from '../../src/og/scene/Axes.js';
-import { Strip } from './Strip.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { RenderNode } from '../../src/og/scene/RenderNode.js';
 import { Entity } from '../../src/og/Entity/Entity.js';
@@ -27,9 +26,18 @@ class MyScene extends RenderNode {
                     'path3v': [[[0, 0, 0], [10, 10, 10]]],
                     'thickness': 10
                 }
+            }),
+            new Entity({
+                'strip': {
+                    'path':
+                        [
+                            [[0, 0, 0], [0, 10, 0]],
+                            [[10, 0, 0], [10, 10, 0]]
+                        ]
+                }
             })]
         });
-    }    
+    }
 
     init() {
         this.ec.addTo(this);
@@ -40,14 +48,12 @@ class MyScene extends RenderNode {
     }
 };
 
-let strip = new Strip();
 let myScene = new MyScene();
 
-renderer.addNodes([new Axes(), strip, myScene]);
+renderer.addNodes([new Axes(), myScene]);
 
 window.Vec3 = Vec3;
 window.renderer = renderer;
-window.strip = strip;
 
 function test() {
 

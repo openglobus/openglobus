@@ -329,15 +329,25 @@ class RenderNode extends BaseNode {
                 var eci = ec[i];
                 if (eci._fadingOpacity) {
                     eci.shapeHandler.draw();
-                    //post draw event
-                    eci.events.dispatch(eci.events.drawend, eci);
                 }
             }
 
             //pointClouds pass
             i = ec.length;
             while (i--) {
-                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+                if (ec[i]._fadingOpacity) {
+                    ec[i].pointCloudHandler.draw();
+                }
+            }
+
+            //Strip pass
+            i = ec.length;
+            while (i--) {
+                if (ec[i]._fadingOpacity) {
+                    ec[i].stripHandler.draw();
+                    //post draw event
+                    eci.events.dispatch(eci.events.drawend, eci);
+                }
             }
 
             //gl.polygonOffset(0.0, 0.0);
@@ -396,6 +406,12 @@ class RenderNode extends BaseNode {
             //i = ec.length;
             //while (i--) {
             //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
+            //}
+
+            ////Strip pass
+            //i = ec.length;
+            //while (i--) {
+            //    ec[i]._visibility && ec[i].stripHandler.drawPicking();
             //}
         }
     }

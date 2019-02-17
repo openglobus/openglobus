@@ -10,6 +10,7 @@ import { Events } from '../Events.js';
 import { LabelHandler } from './LabelHandler.js';
 import { PolylineHandler } from './PolylineHandler.js';
 import { PointCloudHandler } from './PointCloudHandler.js';
+import { StripHandler } from './StripHandler.js';
 import { ShapeHandler } from './ShapeHandler.js';
 
 /**
@@ -142,6 +143,13 @@ class EntityCollection {
          * @type {og.PointCloudHandler}
          */
         this.pointCloudHandler = new PointCloudHandler(this);
+
+        /**
+         * Strip handler
+         * @public
+         * @type {og.StripHandler}
+         */
+        this.stripHandler = new StripHandler(this);
         //
         //...
 
@@ -248,6 +256,7 @@ class EntityCollection {
         this.polylineHandler.pickingEnabled = enable;
         this.shapeHandler.pickingEnabled = enable;
         this.pointCloudHandler.pickingEnabled = enable;
+        this.stripHandler.pickingEnabled = enable;
     }
 
     /**
@@ -288,6 +297,9 @@ class EntityCollection {
 
         //pointCloud
         entity.pointCloud && this.pointCloudHandler.add(entity.pointCloud);
+
+        //strip
+        entity.strip && this.stripHandler.add(entity.strip);
 
         this.events.dispatch(this.events.entityadd, entity);
 
@@ -364,6 +376,9 @@ class EntityCollection {
 
         //pointCloud
         entity.pointCloud && this.pointCloudHandler.remove(entity.pointCloud);
+
+        //strip
+        entity.strip && this.stripHandler.remove(entity.strip);
 
         for (var i = 0; i < entity.childrenNodes.length; i++) {
             this._removeRecursively(entity.childrenNodes[i]);
@@ -470,6 +485,7 @@ class EntityCollection {
             this.shapeHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
+            this.stripHandler.setRenderNode(renderNode);
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
@@ -568,6 +584,7 @@ class EntityCollection {
         this.shapeHandler.clear();
         this.polylineHandler.clear();
         this.pointCloudHandler.clear();
+        this.stripHandler.clear();
 
         var i = this._entities.length;
         while (i--) {

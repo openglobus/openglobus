@@ -7,6 +7,7 @@
 import * as mercator from '../mercator.js';
 import * as utils from '../utils/shared.js';
 import { Billboard } from './Billboard.js';
+import { Strip } from './Strip.js';
 //import { Box } from '../shapes/Box.js';
 import { Extent } from '../Extent.js';
 import { Geometry } from './Geometry.js';
@@ -158,6 +159,7 @@ class Entity {
             "polyline": [Polyline, this.setPolyline],
             "pointCloud": [PointCloud, this.setPointCloud],
             "geometry": [Geometry, this.setGeometry],
+            "strip": [Strip, this.setStrip]
         };
 
         /**
@@ -196,12 +198,18 @@ class Entity {
         this.pointCloud = this._createOptionFeature('pointCloud', options.pointCloud);
 
         /**
-         * Geometry entity(available only for vector layer).
+         * Geometry entity(available for vector layer only).
          * @public
          * @type {og.Geometry}
          */
         this.geometry = this._createOptionFeature('geometry', options.geometry);
 
+        /**
+         * Strip entity.
+         * @public
+         * @type {og.Strip}
+         */
+        this.strip = this._createOptionFeature('strip', options.strip);
 
         //this.model = null;
         //...
@@ -553,6 +561,23 @@ class Entity {
         return geometry;
     }
 
+    /**
+     * Sets entity strip.
+     * @public
+     * @param {og.Strip} strip - Strip object.
+     * @returns {og.Strip} -
+     */
+    setStrip(strip) {
+        if (this.strip) {
+            this.strip.remove();
+        }
+        this.strip = strip;
+        this.strip._entity = this;
+        this.strip.setVisibility(this._visibility);
+        this._entityCollection && this._entityCollection._stripHandler.add(strip);
+        return strip;
+    }
+
     get layer() {
         return this._layer;
     }
@@ -589,6 +614,9 @@ class Entity {
 
         //polyline
         this.polyline && this.polyline.setPickingColor3v(c);
+
+        //strip
+        this.strip && this.strip.setPickingColor3v(c);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPickingColor();
