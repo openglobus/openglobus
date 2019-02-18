@@ -13,8 +13,8 @@ import { Line3 } from '../math/Line3.js';
  *     strip: {
  *         gridSize: 10,
  *         path: [
- *             [],
- *             []
+ *             [[],[]],
+ *             [[],[]]
  *         ]
  *     }
  * });

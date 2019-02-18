@@ -133,6 +133,11 @@ class Vector extends Layer {
          */
         this._entities = _entitiesConstructor(options.entities || []);
 
+        this._stripEntityCollection = new EntityCollection({
+            'pickingEnabled': this.pickingEnabled
+        });
+        this._bindEventsDefault(this._stripEntityCollection);
+
         this._polylineEntityCollection = new EntityCollection({
             'pickingEnabled': this.pickingEnabled
         });
@@ -189,6 +194,7 @@ class Vector extends Layer {
         this._assignPlanet(planet);
         this._geometryHandler.assignHandler(planet.renderer.handler);
         this._polylineEntityCollection.addTo(planet, true);
+        this._stripEntityCollection.addTo(planet, true);
         this.setEntities(this._entities);
         return this;
     }
@@ -239,6 +245,10 @@ class Vector extends Layer {
             //
             //...pointCloud, shape, model etc.
             //
+
+            if (entity.strip) {
+                this._stripEntityCollection.add(entity);
+            }
 
             if (entity.polyline) {
                 this._polylineEntityCollection.add(entity);
@@ -365,6 +375,8 @@ class Vector extends Layer {
     set pickingEnabled(picking) {
         this._pickingEnabled = picking ? 1.0 : 0.0;
 
+        this._stripEntityCollection.setPickingEnabled(picking);
+
         this._polylineEntityCollection.setPickingEnabled(picking);
 
         this._entityCollectionsTree.traverseTree(function (ec) {
@@ -462,7 +474,9 @@ class Vector extends Layer {
             ei._layer = this;
             ei._layerIndex = i;
 
-            if (ei.polyline) {
+            if (ei.strip) {
+                this._stripEntityCollection.add(ei);
+            } else if (ei.polyline) {
                 this._polylineEntityCollection.add(ei);
             } else if (ei.billboard || ei.label || ei.shape) {
                 entitiesForTree.push(ei);
@@ -587,6 +601,23 @@ class Vector extends Layer {
         });
     }
 
+    _collectStripCollectionPASS(outArr) {
+
+        var ec = this._stripEntityCollection;
+
+        ec._fadingOpacity = this._fadingOpacity;
+        ec.scaleByDistance = this.scaleByDistance;
+        ec.pickingScale = this.pickingScale;
+
+        ec.polygonOffsetFactor = this.polygonOffsetFactor;
+        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+
+        outArr.push(ec);
+        //
+        //...TODO: extent
+        //
+    }
+
     _collectPolylineCollectionPASS(outArr) {
 
         var ec = this._polylineEntityCollection;
@@ -647,7 +678,9 @@ class Vector extends Layer {
             this._renderingNodesNorth = {};
             this._renderingNodesSouth = {};
 
-            //Common collection first
+            //Common collections first
+            this._collectStripCollectionPASS(outArr);
+
             this._collectPolylineCollectionPASS(outArr);
 
             //Merc nodes
