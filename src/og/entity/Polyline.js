@@ -295,6 +295,10 @@ class Polyline {
         var ii = outIndexes.length - 4,
             index = outIndexes[ii - 1] + 1;
 
+        if (path3v.length === 0) {
+            path3v.push([]);
+        }
+
         var path = path3v[path3v.length - 1];
 
         path.push(point3v);
@@ -972,14 +976,7 @@ class Polyline {
      * @public
      */
     clear() {
-        this._vertices.length = 0;
-        this._orders.length = 0;
-        this._indexes.length = 0;
-        this._vertices = [];
-        this._orders = [];
-        this._indexes = [];
-
-        this._deleteBuffers();
+        this._clearData();
     }
 
     /**
@@ -1129,7 +1126,16 @@ class Polyline {
      */
     remove() {
         this._entity = null;
-        this.clear();
+
+        this._vertices.length = 0;
+        this._orders.length = 0;
+        this._indexes.length = 0;
+        this._vertices = [];
+        this._orders = [];
+        this._indexes = [];
+
+        this._deleteBuffers();
+
         this._handler && this._handler.remove(this);
     }
 

@@ -468,6 +468,10 @@ class Strip {
         this.setPath([].concat(this._path));
     }
 
+    getPath() {
+        return this._path;
+    }
+
     setPath(path) {
 
         this._vertices = [];
