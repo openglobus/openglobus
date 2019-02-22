@@ -272,14 +272,14 @@ class Strip {
 
         if (length === 0) {
 
-            this._path.push([p2, p3]);
+            this._path.push([p2.clone(), p3.clone()]);
 
         } else {
 
             let p0 = this._path[length - 1][0],
                 p1 = this._path[length - 1][1];
 
-            this._path.push([p2, p3]);
+            this._path.push([p2.clone(), p3.clone()]);
 
             let v = this._vertices;
 
@@ -291,18 +291,25 @@ class Strip {
             let last = this._vertices.length / 3,
                 ind = last;
 
+            let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
+
             for (let i = 0; i < gs1; i++) {
+
+                let di = i / gs;
+                let p02 = p0.lerp(p2, di),
+                    p13 = p1.lerp(p3, di);
+
                 for (let j = 0; j < gs1; j++) {
 
-                    let di = i / gs,
-                        dj = j / gs;
-
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di),
-                        p01 = p0.lerp(p1, dj),
+                    let dj = j / gs;
+                    let p01 = p0.lerp(p1, dj),
                         p23 = p2.lerp(p3, dj);
 
-                    (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                    if (d !== 1.0) {
+                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                    } else {
+                        p = p23;
+                    }
 
                     ind = last + i * gs1 + j;
 
@@ -352,18 +359,25 @@ class Strip {
                 let prev = this._vertices.length / 3 - vSize,
                     ind = prev;
 
+                let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
+
                 for (let i = 0; i < gs1; i++) {
+
+                    let di = i / gs;
+                    let p02 = p0.lerp(p2, di),
+                        p13 = p1.lerp(p3, di);
+
                     for (let j = 0; j < gs1; j++) {
 
-                        let di = i / gs,
-                            dj = j / gs;
-
-                        let p02 = p0.lerp(p2, di),
-                            p13 = p1.lerp(p3, di),
-                            p01 = p0.lerp(p1, dj),
+                        let dj = j / gs;
+                        let p01 = p0.lerp(p1, dj),
                             p23 = p2.lerp(p3, dj);
 
-                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                        if (d !== 1.0) {
+                            (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                        } else {
+                            p = p23;
+                        }
 
                         ind = prev + i * gs1 + j;
 
@@ -384,14 +398,15 @@ class Strip {
                 p3 = this._path[1][1];
 
                 for (let i = 0; i < gs1; i++) {
+
+                    let di = i / gs;
+                    let p02 = p0.lerp(p2, di),
+                        p13 = p1.lerp(p3, di);
+
                     for (let j = 0; j < gs1; j++) {
 
-                        let di = i / gs,
-                            dj = j / gs;
-
-                        let p02 = p0.lerp(p2, di),
-                            p13 = p1.lerp(p3, di),
-                            p01 = p0.lerp(p1, dj),
+                        let dj = j / gs;
+                        let p01 = p0.lerp(p1, dj),
                             p23 = p2.lerp(p3, dj);
 
                         (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
@@ -416,17 +431,20 @@ class Strip {
                     ind = prev;
 
                 for (let i = 0; i < gs1; i++) {
+
+                    let di = i / gs;
+                    let p02 = p0.lerp(p2, di),
+                        p35 = p3.lerp(p5, di),
+                        p24 = p2.lerp(p4, di),
+                        p13 = p1.lerp(p3, di);
+
                     for (let j = 0; j < gs1; j++) {
 
-                        let di = i / gs,
-                            dj = j / gs;
-
-                        //prev
-                        let p02 = p0.lerp(p2, di),
-                            p13 = p1.lerp(p3, di),
-                            p01 = p0.lerp(p1, dj),
+                        let dj = j / gs;
+                        let p01 = p0.lerp(p1, dj),
                             p23 = p2.lerp(p3, dj);
 
+                        //prev
                         (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
 
                         let ij = i * gs1 + j;
@@ -438,9 +456,8 @@ class Strip {
                         v[ind * 3 + 2] = p.z;
 
                         //next
-                        let p24 = p2.lerp(p4, di),
-                            p35 = p3.lerp(p5, di),
-                            p45 = p4.lerp(p5, dj);
+                        let p45 = p4.lerp(p5, dj);
+
                         p23 = p2.lerp(p3, dj);
 
                         (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
