@@ -568,29 +568,22 @@ class Planet extends RenderNode {
      */
     _initializeShaders() {
         var h = this.renderer.handler;
-        if (h.gl.type === "webgl2") {
-            h.addProgram(shaders.drawnode_nl(), true);
-            h.addProgram(shaders.drawnode_wl(), true);
 
-            this._fnRendering = this._multiframebufferRendering;
+        h.addProgram(shaders.drawnode_screen_nl(), true);
+        h.addProgram(shaders.drawnode_screen_wl(), true);
+        h.addProgram(shaders.drawnode_colorPicking(), true);
+        h.addProgram(shaders.drawnode_heightPicking(), true);
 
-        } else {
-            h.addProgram(shaders.drawnode_screen_nl(), true);
-            h.addProgram(shaders.drawnode_screen_wl(), true);
-            h.addProgram(shaders.drawnode_colorPicking(), true);
-            h.addProgram(shaders.drawnode_heightPicking(), true);
+        this._fnRendering = this._singleframebufferRendering;
 
-            this._fnRendering = this._singleframebufferRendering;
+        this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
-            this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
+        this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
+            'width': 320,
+            'height': 240
+        });
 
-            this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
-                'width': 320,
-                'height': 240
-            });
-
-            this._heightPickingFramebuffer.init();
-        }
+        this._heightPickingFramebuffer.init();
     }
 
     /**
@@ -866,7 +859,7 @@ class Planet extends RenderNode {
     _collectRenderNodes() {
 
         this.camera._insideSegment = null;
-        
+
         //clear first
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
@@ -926,7 +919,7 @@ class Planet extends RenderNode {
                 this.camera.slope,
             this._maxLodRatio, this._minLodRatio
         );
-        
+
         this._collectRenderNodes();
 
         this.renderer.activeCamera.prepareFrame();
@@ -953,142 +946,10 @@ class Planet extends RenderNode {
      * @virtual
      * @protected
      */
-    _multiframebufferRendering() {
-        this._multiRenderNodesPASS();
-        this._renderVectorLayersPASS();
-    }
-
-    /**
-     * @virtual
-     * @protected
-     */
     _singleframebufferRendering() {
         this._renderScreenNodesPASS();
         this._renderHeightPickingFramebufferPASS();
         this._renderVectorLayersPASS();
-    }
-
-    /**
-     * @protected
-     */
-    _multiRenderNodesPASS() {
-
-        let sh, shu;
-        let renderer = this.renderer;
-        let h = renderer.handler;
-        let gl = h.gl;
-
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
-        if (this.lightEnabled) {
-            h.programs.drawnode_wl.activate();
-            sh = h.programs.drawnode_wl._program;
-            shu = sh.uniforms;
-
-            gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
-
-            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera._projectionMatrix._m);
-
-            //bind night glowing material
-            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2);
-            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture) || this.transparentTexture);
-            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE * 2);
-
-            //bind specular material
-            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE * 2 + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE * 2 + 1);
-
-            var b = this.baseLayer;
-            if (b) {
-                this._diffuseMaterialArr[0] = b.diffuse.x;
-                this._diffuseMaterialArr[1] = b.diffuse.y;
-                this._diffuseMaterialArr[2] = b.diffuse.z;
-
-                this._ambientMaterialArr[0] = b.ambient.x;
-                this._ambientMaterialArr[1] = b.ambient.y;
-                this._ambientMaterialArr[2] = b.ambient.z;
-
-                this._specularMaterialArr[0] = b.specular.x;
-                this._specularMaterialArr[1] = b.specular.y;
-                this._specularMaterialArr[2] = b.specular.z;
-                this._specularMaterialArr[3] = b.shininess;
-            } else {
-                this._diffuseMaterialArr[0] = 0.89;
-                this._diffuseMaterialArr[1] = 0.9;
-                this._diffuseMaterialArr[2] = 0.83;
-
-                this._ambientMaterialArr[0] = 0.0;
-                this._ambientMaterialArr[1] = 0.0;
-                this._ambientMaterialArr[2] = 0.0;
-
-                this._specularMaterialArr[0] = 0.0003;
-                this._specularMaterialArr[1] = 0.00012;
-                this._specularMaterialArr[2] = 0.00001;
-                this._specularMaterialArr[3] = 20.0;
-            }
-        } else {
-            h.programs.drawnode_nl.activate();
-            sh = h.programs.drawnode_nl._program;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
-        }
-
-        h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
-
-        //draw planet's nodes
-        var rn = this._renderedNodes,
-            sl = this._visibleTileLayerSlices;
-
-        if (sl.length) {
-            let sli = sl[0];
-            for (var i = sli.length - 1; i >= 0; --i) {
-                let li = sli[i];
-                if (li._fading && li._refreshFadingOpacity()) {
-                    sli.splice(i, 1);
-                }
-            }
-        }
-
-        i = rn.length;
-        while (i--) {
-
-            if (rn[i].segment.readyToEngage) {
-                rn[i].segment.engage();
-            }
-
-            // if (rn[i].segment.readyToEqualize) {
-            //     rn[i].segment.equalize();
-            // }
-
-            rn[i].segment._multiRendering(sh, sl[0]);
-        }
-
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-
-        for (let j = 1; j < sl.length; j++) {
-
-            let slj = sl[j];
-            for (i = slj.length - 1; i >= 0; --i) {
-                let li = slj[i];
-                if (li._fading && li._refreshFadingOpacity()) {
-                    slj.splice(i, 1);
-                }
-            }
-
-            i = rn.length;
-            gl.polygonOffset(0, -j);
-            while (i--) {
-                rn[i].segment._multiRendering(sh, slj, this.transparentTexture, true);
-            }
-        }
-
-        gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
     }
 
     /**
@@ -1497,11 +1358,7 @@ class Planet extends RenderNode {
             this._viewChanged = false;
             var cnv = this.renderer.handler.canvas;
 
-            if (this.renderer.handler.gl.type === "webgl2") {
-                this.renderer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 2);
-            } else {
-                this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
-            }
+            this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
 
             var color = Vec4.fromVec(this._tempPickingPix_);
 

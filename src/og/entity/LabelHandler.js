@@ -55,10 +55,11 @@ class LabelHandler extends BillboardHandler {
         if (this._renderer.handler) {
 
             if (!this._renderer.handler.programs.label) {
-                if (this._renderer.handler.gl.type === "webgl2")
-                    this._renderer.handler.addProgram(shaders.label());
-                else
+                if (this._renderer.handler.gl.type === "webgl2") {
+                    this._renderer.handler.addProgram(shaders.label_webgl2());
+                } else {
                     this._renderer.handler.addProgram(shaders.label_screen());
+                }
             }
 
             if (!this._renderer.handler.programs.labelPicking) {

@@ -141,15 +141,11 @@ const Renderer = function (handler, params) {
      */
     this.pickingFramebuffer = null;
 
-    this._msaa = params.msaa || 0;
-    /**
-     * Whole scene rendering framebuffer.
-     * @public
-     * @type {Array.<og.webgl.Framebuffer|og.webgl.Framebuffer>}
-     */
-    this.sceneFramebuffers = [];
+    this._msaa = params.msaa || 8;
 
     this.sceneFramebuffer = null;
+
+    this.blitFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -365,28 +361,23 @@ Renderer.prototype.initialize = function () {
     });
     this.pickingFramebuffer.init();
 
+    this.readPixels = () => { };
+
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
         this.sceneFramebuffer.init();
-        this.readPixels = () => { };
         this._fnScreenFrame = this._screenFrameNoMSAA;
-    } else if (this._msaa) {
+    } else {
         this.sceneFramebuffer = new Multisample(this.handler, {
-            size: BUFFER_COUNT,
+            size: 1,
             msaa: this._msaa
         });
         this.sceneFramebuffer.init();
-        for (let i = 0; i < BUFFER_COUNT; i++) {
-            this.sceneFramebuffers[i] = new Framebuffer(this.handler, { useDepth: false });
-            this.sceneFramebuffers[i].init();
-        }
-        this.readPixels = this._readPixelsMSAA;
+
+        this.blitFramebuffer = new Framebuffer(this.handler, { useDepth: false });
+        this.blitFramebuffer.init();
+
         this._fnScreenFrame = this._screenFrameMSAA;
-    } else {
-        this.sceneFramebuffer = new Framebuffer(this.handler, { size: BUFFER_COUNT });
-        this.sceneFramebuffer.init();
-        this.readPixels = this._readPixelsNoMSAA;
-        this._fnScreenFrame = this._screenFrameNoMSAA;
     }
 
     this.handler.onCanvasResize = (obj) => {
@@ -394,9 +385,7 @@ Renderer.prototype.initialize = function () {
 
         this.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
 
-        for (var i = 0; i < this.sceneFramebuffers.length; i++) {
-            this.sceneFramebuffers[i].setSize(obj.clientWidth, obj.clientHeight, true);
-        }
+        this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
         this.events.dispatch(this.events.resize, obj);
     };
@@ -476,9 +465,7 @@ Renderer.prototype.draw = function () {
 
     sfb.deactivate();
 
-    for (let i = 0; i < this.sceneFramebuffers.length; i++) {
-        sfb.blit(this.sceneFramebuffers[i], i);
-    }
+    this.blitFramebuffer && sfb.blit(this.blitFramebuffer);
 
     //Rendering picking callbacks and refresh pickingColor
     this._drawPickingBuffer();
@@ -499,7 +486,7 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffers[window.SCREEN].textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
@@ -524,14 +511,6 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.enable(gl.DEPTH_TEST);
-};
-
-Renderer.prototype._readPixelsMSAA = function (res, x, y, screen = 0) {
-    this.sceneFramebuffers[screen].readPixels(res, x, y);
-};
-
-Renderer.prototype._readPixelsNoMSAA = function (res, x, y, screen = 0) {
-    this.sceneFramebuffer.readPixels(res, x, y, screen);
 };
 
 /**

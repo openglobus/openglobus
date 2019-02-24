@@ -32,10 +32,7 @@ class PolylineHandler {
     _initProgram() {
         if (this._renderer.handler) {
             if (!this._renderer.handler.programs.polyline) {
-                if (this._renderer.handler.gl.type === "webgl2")
-                    this._renderer.handler.addProgram(shaders.polyline());
-                else
-                    this._renderer.handler.addProgram(shaders.polyline_screen());
+                this._renderer.handler.addProgram(shaders.polyline_screen());
             }
         }
     }
@@ -85,7 +82,7 @@ class PolylineHandler {
         this.drawPicking();
     }
 
-    drawPicking() {        
+    drawPicking() {
         let i = this._polylines.length;
         while (i--) {
             this._polylines[i].drawPicking();

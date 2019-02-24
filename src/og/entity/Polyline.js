@@ -1237,10 +1237,6 @@ class Polyline {
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
-            if (gl.type === "webgl2") {
-                gl.uniform3fv(shu.pickingColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2]]);
-            }
-
             gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
             gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
             gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);

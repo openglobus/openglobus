@@ -353,33 +353,26 @@ Node.prototype.renderTree = function (cam, maxZoom) {
     let seg = this.segment,
         planet = this.planet;
 
+    this._cameraInside = false;
 
-    if (this.parentNode) {
-
-        this._cameraInside = false;
-
-        //Search a node which the camera is flying over.
-        if (this.parentNode._cameraInside) {
-            var inside;
-            if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
-                seg._projection.id === EPSG3857.id) {
-                inside = seg._extent.isInside(cam._lonLatMerc);
-                cam._insideSegmentPosition.lon = cam._lonLatMerc.lon;
-                cam._insideSegmentPosition.lat = cam._lonLatMerc.lat;
-            } else if (seg._projection.id === EPSG4326.id) {
-                inside = seg._extent.isInside(cam._lonLat);
-                cam._insideSegmentPosition.lon = cam._lonLat.lon;
-                cam._insideSegmentPosition.lat = cam._lonLat.lat;
-            }
-
-            if (inside) {
-                cam._insideSegment = seg;
-                this._cameraInside = true;
-            }
+    //Search a node which the camera is flying over.
+    if (!this.parentNode || this.parentNode._cameraInside) {
+        var inside;
+        if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
+            seg._projection.id === EPSG3857.id) {
+            inside = seg._extent.isInside(cam._lonLatMerc);
+            cam._insideSegmentPosition.lon = cam._lonLatMerc.lon;
+            cam._insideSegmentPosition.lat = cam._lonLatMerc.lat;
+        } else if (seg._projection.id === EPSG4326.id) {
+            inside = seg._extent.isInside(cam._lonLat);
+            cam._insideSegmentPosition.lon = cam._lonLat.lon;
+            cam._insideSegmentPosition.lat = cam._lonLat.lat;
         }
-    } else {
-        cam._insideSegment = seg;
-        this._cameraInside = true;
+
+        if (inside) {
+            cam._insideSegment = seg;
+            this._cameraInside = true;
+        }
     }
 
     let inFrustum = cam.frustum.containsSphere(seg.bsphere);
