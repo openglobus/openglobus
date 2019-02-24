@@ -6,7 +6,7 @@
 
 import { Program } from '../webgl/Program.js';
 
-export function label() {
+export function label_webgl2() {
 
     return new Program("label", {
         uniforms: {
@@ -125,7 +125,6 @@ export function label() {
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
-            layout(location = 1) out vec4 outPickingMask;
 
             void main () {
                 int fi = int(v_fontIndex);
@@ -158,7 +157,6 @@ export function label() {
                 if( alpha < 0.2 )
                     discard;
                 outScreen = vec4(v_rgba.rgb, alpha * v_rgba.a);
-                outPickingMask = vec4(0.0);
             }`
     });
 }
