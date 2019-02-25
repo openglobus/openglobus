@@ -319,20 +319,20 @@ class RenderNode extends BaseNode {
 
             gl.enable(gl.CULL_FACE);
 
+            //pointClouds pass
+            i = ec.length;
+            while (i--) {
+                if (ec[i]._fadingOpacity) {
+                    ec[i].pointCloudHandler.draw();
+                }
+            }
+
             //shapes pass
             i = ec.length;
             while (i--) {
                 var eci = ec[i];
                 if (eci._fadingOpacity) {
                     eci.shapeHandler.draw();
-                }
-            }
-
-            //pointClouds pass
-            i = ec.length;
-            while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].pointCloudHandler.draw();
                 }
             }
 

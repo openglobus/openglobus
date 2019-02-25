@@ -16,6 +16,8 @@ class PolylineHandler {
         this._polylines = [];
 
         this.__staticId = PolylineHandler._staticCounter++;
+
+        this.pickingEnabled = true;
     }
 
     static get _staticCounter() {
@@ -78,14 +80,14 @@ class PolylineHandler {
         while (i--) {
             this._polylines[i].draw();
         }
-
-        this.drawPicking();
     }
 
     drawPicking() {
-        let i = this._polylines.length;
-        while (i--) {
-            this._polylines[i].drawPicking();
+        if (this.pickingEnabled) {
+            let i = this._polylines.length;
+            while (i--) {
+                this._polylines[i].drawPicking();
+            }
         }
     }
 

@@ -174,6 +174,8 @@ class Vector extends Layer {
          * @type {Number}
          */
         this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : -637000.0;
+
+        this.pickingEnabled = this._pickingEnabled;
     }
 
     get instanceName() {
@@ -373,21 +375,26 @@ class Vector extends Layer {
      * @param {boolean} picking - Picking enable flag.
      */
     set pickingEnabled(picking) {
-        this._pickingEnabled = picking ? 1.0 : 0.0;
+        this._pickingEnabled = picking;
 
         this._stripEntityCollection.setPickingEnabled(picking);
 
         this._polylineEntityCollection.setPickingEnabled(picking);
 
-        this._entityCollectionsTree.traverseTree(function (ec) {
-            ec.setPickingEnabled(picking);
-        });
-        this._entityCollectionsTreeNorth.traverseTree(function (ec) {
-            ec.setPickingEnabled(picking);
-        });
-        this._entityCollectionsTreeSouth.traverseTree(function (ec) {
-            ec.setPickingEnabled(picking);
-        });
+        this._entityCollectionsTree &&
+            this._entityCollectionsTree.traverseTree(function (ec) {
+                ec.setPickingEnabled(picking);
+            });
+
+        this._entityCollectionsTreeNorth &&
+            this._entityCollectionsTreeNorth.traverseTree(function (ec) {
+                ec.setPickingEnabled(picking);
+            });
+
+        this._entityCollectionsTreeSouth &&
+            this._entityCollectionsTreeSouth.traverseTree(function (ec) {
+                ec.setPickingEnabled(picking);
+            });
     }
 
     /**

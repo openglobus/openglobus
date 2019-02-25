@@ -330,6 +330,7 @@ class EntityCollection {
                 }
             }
             this._addRecursively(entity);
+            entity.setPickingColor();
         }
         return this;
     }

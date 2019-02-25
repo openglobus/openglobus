@@ -199,7 +199,7 @@ class Layer {
          */
         this._pickingColor = new Vec3();
 
-        this._pickingEnabled = options.pickingEnabled !== undefined ? (options.pickingEnabled ? 1.0 : 0.0) : 1.0;
+        this._pickingEnabled = options.pickingEnabled !== undefined ? options.pickingEnabled : true;
 
         /**
          * Events handler.
