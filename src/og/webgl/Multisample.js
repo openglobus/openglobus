@@ -25,6 +25,8 @@ const Multisample = function (handler, options) {
      */
     this.handler = handler;
 
+    this._internalFormat = options.format ? options.format.toUpperCase() : "RGBA8";
+
     /**
      * Framebuffer object.
      * @private
@@ -101,7 +103,7 @@ Multisample.prototype.init = function () {
     if (this.renderbuffers.length === 0) {
         let rb = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl.RGBA8, this._width, this._height);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._internalFormat], this._width, this._height);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb);
         this.renderbuffers.push(rb);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -111,7 +113,7 @@ Multisample.prototype.init = function () {
         for (var i = 0; i < this.renderbuffers.length; i++) {
             let rb = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl.RGBA8, this._width, this._height);
+            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._internalFormat], this._width, this._height);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, rb);
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
             this.renderbuffers[i] = rb;
