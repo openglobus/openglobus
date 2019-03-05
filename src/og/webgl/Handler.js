@@ -225,6 +225,7 @@ Handler.prototype.createTexture_n = function (image) {
  * @public
  * @param {Number} [width=1] - Specifies the width of the texture image..
  * @param {Number} [height=1] - Specifies the width of the texture image..
+ * @param {String} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
  * @param {String} [internalFormat="RGBA"] - Specifies the color components in the texture.
  * @param {String} [format="RGBA"] - Specifies the format of the texel data.
  * @param {String} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
@@ -234,6 +235,7 @@ Handler.prototype.createTexture_n = function (image) {
 Handler.prototype.createEmptyTexture2DExt = function (
     width = 1,
     height = 1,
+    filter = "NEAREST",
     internalFormat = "RGBA",
     format = "RGBA",
     type = "UNSIGNED_BYTE",
@@ -243,56 +245,56 @@ Handler.prototype.createEmptyTexture2DExt = function (
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl[internalFormat], width, height, 0, gl[format], gl[type], null);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, level, gl[internalFormat.toUpperCase()], width, height, 0, gl[format.toUpperCase()], gl[type.toUpperCase()], null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[filter.toUpperCase()]);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[filter.toUpperCase()]);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 }
 
-/**
- * Creates Empty half float texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL half float texture object.
- */
-Handler.prototype.createEmptyTexture_hf = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-}
+///**
+// * Creates Empty half float texture.
+// * @public
+// * @param {number} width - Empty texture width.
+// * @param {number} height - Empty texture height.
+// * @returns {Object} - WebGL half float texture object.
+// */
+//Handler.prototype.createEmptyTexture_hf = function (width, height) {
+//    var gl = this.gl;
+//    var texture = gl.createTexture();
+//    gl.bindTexture(gl.TEXTURE_2D, texture);
+//    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+//    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//    gl.bindTexture(gl.TEXTURE_2D, null);
+//    return texture;
+//}
 
-/**
- * Creates Empty float texture.
- * @public
- * @param {number} width - Empty texture width.
- * @param {number} height - Empty texture height.
- * @returns {Object} - WebGL float texture object.
- */
-Handler.prototype.createEmptyTexture_f = function (width, height) {
-    var gl = this.gl;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return texture;
-}
+///**
+// * Creates Empty float texture.
+// * @public
+// * @param {number} width - Empty texture width.
+// * @param {number} height - Empty texture height.
+// * @returns {Object} - WebGL float texture object.
+// */
+//Handler.prototype.createEmptyTexture_f = function (width, height) {
+//    var gl = this.gl;
+//    var texture = gl.createTexture();
+//    gl.bindTexture(gl.TEXTURE_2D, texture);
+//    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+//    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+//    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//    gl.bindTexture(gl.TEXTURE_2D, null);
+//    return texture;
+//}
 
 /**
  * Creates Empty NEAREST filtered texture.

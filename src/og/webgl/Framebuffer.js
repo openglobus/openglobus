@@ -13,7 +13,10 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {Object} [options] - Framebuffer options:
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
- * @param {Object} [options.texture] - Texture to render.
+ * @param {number} [options.size] - Color attachment size.
+ * @param {String} [options.internalFormat="RGBA"] - Specifies the color components in the texture.
+ * @param {String} [options.format="RGBA"] - Specifies the format of the texel data.
+ * @param {String} [options.type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Framebuffer = function (handler, options) {
@@ -40,6 +43,12 @@ const Framebuffer = function (handler, options) {
      * @type {Object}
      */
     this._depthRenderbuffer = null;
+
+    this._internalFormat = options.internalFormat || "RGBA";
+
+    this._format = options.format || "RGBA";
+
+    this._type = options.type || "UNSIGNED_BYTE";
 
     /**
      * Framebuffer width.
@@ -103,14 +112,28 @@ Framebuffer.prototype.init = function () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
     if (this.textures.length === 0) {
-        this.bindOutputTexture(this.handler.createEmptyTexture_n(this._width, this._height));
+        this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
+            this._width,
+            this._height,
+            "NEAREST",
+            this._internalFormat,
+            this._format,
+            this._type
+        ));
         gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
     } else {
         let colorAttachments = [];
         for (var i = 0; i < this.textures.length; i++) {
             this.bindOutputTexture(
                 this.textures[i] ||
-                this.handler.createEmptyTexture_n(this._width, this._height), i);
+                this.handler.createEmptyTexture2DExt(
+                    this._width,
+                    this._height,
+                    "NEAREST",
+                    this._internalFormat,
+                    this._format,
+                    this._type
+                ), i);
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
         }
         gl.drawBuffers && gl.drawBuffers(colorAttachments);
