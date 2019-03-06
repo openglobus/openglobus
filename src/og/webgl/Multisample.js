@@ -12,6 +12,7 @@
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
  * @param {Object} [options.texture] - Texture to render.
+ * @param {String} [options.depthComponent="DEPTH_COMPONENT16"] - Specifies depth buffer size.
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Multisample = function (handler, options) {
@@ -25,7 +26,7 @@ const Multisample = function (handler, options) {
      */
     this.handler = handler;
 
-    this._internalFormat = options.format ? options.format.toUpperCase() : "RGBA8";
+    this._internalFormat = options.internalFormat ? options.internalFormat.toUpperCase() : "RGBA8";
 
     /**
      * Framebuffer object.
@@ -58,6 +59,8 @@ const Multisample = function (handler, options) {
     this._msaa = options.msaa != undefined ? options.msaa : 4;
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
+
+    this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
     /**
      * Framebuffer activity. 
@@ -125,7 +128,7 @@ Multisample.prototype.init = function () {
     if (this._useDepth) {
         this._depthRenderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl.DEPTH_COMPONENT16, this._width, this._height);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._depthComponent], this._width, this._height);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }

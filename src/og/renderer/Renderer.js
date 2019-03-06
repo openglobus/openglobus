@@ -370,11 +370,17 @@ Renderer.prototype.initialize = function () {
     } else {
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: 1,
-            msaa: this._msaa
+            msaa: this._msaa,
+            internalFormat: "RGBA32F"
         });
         this.sceneFramebuffer.init();
 
-        this.blitFramebuffer = new Framebuffer(this.handler, { useDepth: false });
+        this.blitFramebuffer = new Framebuffer(this.handler, {
+            useDepth: false,
+            internalFormat: "RGBA32F",
+            format: "RGBA",
+            type: "FLOAT"
+        });
         this.blitFramebuffer.init();
 
         this._fnScreenFrame = this._screenFrameMSAA;
