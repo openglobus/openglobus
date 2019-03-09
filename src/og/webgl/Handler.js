@@ -246,12 +246,6 @@ Handler.prototype.createEmptyTexture2DExt = function (
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-    //if (internalFormat.toUpperCase() === "RGBA32F") {
-    //    gl.texStorage2D(gl.TEXTURE_2D, 1, gl[internalFormat.toUpperCase()], width, height);
-    //} else {
-    //    gl.texImage2D(gl.TEXTURE_2D, levels, gl[internalFormat.toUpperCase()], width, height, 0, gl[format.toUpperCase()], gl[type.toUpperCase()], null);
-    //}
-
     gl.texImage2D(gl.TEXTURE_2D, level, gl[internalFormat.toUpperCase()], width, height, 0,
         gl[format.toUpperCase()], gl[type.toUpperCase()], null);
 
@@ -259,6 +253,7 @@ Handler.prototype.createEmptyTexture2DExt = function (
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[filter.toUpperCase()]);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 }

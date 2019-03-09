@@ -45,6 +45,8 @@ const Framebuffer = function (handler, options) {
      */
     this._depthRenderbuffer = null;
 
+    this._filter = options.filter || "NEAREST";
+
     this._internalFormat = options.internalFormat || "RGBA";
 
     this._format = options.format || "RGBA";
@@ -118,7 +120,7 @@ Framebuffer.prototype.init = function () {
         this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
             this._width,
             this._height,
-            "NEAREST",
+            this._filter,
             this._internalFormat,
             this._format,
             this._type
@@ -132,7 +134,7 @@ Framebuffer.prototype.init = function () {
                 this.handler.createEmptyTexture2DExt(
                     this._width,
                     this._height,
-                    "NEAREST",
+                    this._filter,
                     this._internalFormat,
                     this._format,
                     this._type
@@ -151,6 +153,8 @@ Framebuffer.prototype.init = function () {
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    return this;
 };
 
 /**

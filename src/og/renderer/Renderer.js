@@ -11,6 +11,8 @@ import { cons } from '../cons.js';
 import { Program } from '../webgl/Program.js';
 import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
+import { toneMapping } from '../shaders/toneMapping.js';
+import { screenFrame } from '../shaders/screenFrame.js';
 
 window.SCREEN = 0;
 const BUFFER_COUNT = 3;
@@ -65,6 +67,10 @@ const Renderer = function (handler, params) {
      * @type {og.webgl.Handler}
      */
     this.handler = handler;
+
+    this.exposure = 1.0;
+
+    this.gamma = 1.0;
 
     /**
      * Render nodes drawing queue.
@@ -329,37 +335,12 @@ Renderer.prototype.initialize = function () {
         cons.setVisibility(!cons.getVisibility());
     });
 
-    this.handler.addProgram(new Program("screenFrame", {
-        uniforms: {
-            texture: "sampler2d"
-        },
-        attributes: {
-            corners: "vec3"
-        },
-        vertexShader:
-            `attribute vec2 corners;
-            
-            varying vec2 tc;
-            void main(void) {
-                gl_Position = vec4(corners, 0.0, 1.0);
-                tc = corners * 0.5 + 0.5;
-            }`,
-        fragmentShader:
-            `precision highp float;
-            uniform sampler2D texture;
-            
-            varying vec2 tc;
-            
-            void main(void) {
-                gl_FragColor = texture2D( texture, tc );
-            }`
-    }));
+    this.handler.addProgram(screenFrame());
 
     this.pickingFramebuffer = new Framebuffer(this.handler, {
         'width': 640,
         'height': 480
-    });
-    this.pickingFramebuffer.init();
+    }).init();
 
     this.readPixels = () => { };
 
@@ -368,20 +349,44 @@ Renderer.prototype.initialize = function () {
         this.sceneFramebuffer.init();
         this._fnScreenFrame = this._screenFrameNoMSAA;
     } else {
+
+        this.handler.addProgram(toneMapping());
+
+        let internalFormat = "RGBA32F",
+            format = "RGBA",
+            type = "FLOAT";
+
+        this._luminanceTexture = this.handler.createEmptyTexture2DExt(
+            640,
+            480,
+            "LINEAR",
+            internalFormat,
+            format,
+            type
+        );
+
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: 1,
             msaa: this._msaa,
-            internalFormat: "RGBA32F"
-        });
-        this.sceneFramebuffer.init();
+            internalFormat: internalFormat,
+            filter: "LINEAR"
+        }).init();
 
         this.blitFramebuffer = new Framebuffer(this.handler, {
             useDepth: false,
-            internalFormat: "RGBA32F",
+            internalFormat: internalFormat,
+            format: format,
+            type: type,
+            filter: "LINEAR"
+        }).init();
+
+        this.preScreenFramebuffer = new Framebuffer(this.handler, {
+            useDepth: false,
+            internalFormat: "RGBA",
             format: "RGBA",
-            type: "FLOAT"
-        });
-        this.blitFramebuffer.init();
+            type: "UNSIGNED_BYTE",
+            filter: "LINEAR"
+        }).init();
 
         this._fnScreenFrame = this._screenFrameMSAA;
     }
@@ -390,8 +395,8 @@ Renderer.prototype.initialize = function () {
         this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
 
         this.sceneFramebuffer.setSize(obj.clientWidth, obj.clientHeight);
-
         this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.preScreenFramebuffer && this.preScreenFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
         this.events.dispatch(this.events.resize, obj);
     };
@@ -485,19 +490,35 @@ Renderer.prototype.draw = function () {
 
 Renderer.prototype._screenFrameMSAA = function () {
     var h = this.handler;
-    var sh = h.programs.screenFrame,
+
+    var sh = h.programs.toneMapping,
         p = sh._program,
         gl = h.gl;
 
     gl.disable(gl.DEPTH_TEST);
+
+    this.preScreenFramebuffer.activate();
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
-    gl.uniform1i(p.uniforms.texture, 0);
+    gl.uniform1i(p.uniforms.hdrBuffer, 0);
+    gl.uniform1f(p.uniforms.exposure, this.exposure);
+    gl.uniform1f(p.uniforms.gamma, this.gamma);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    this.preScreenFramebuffer.deactivate();
+
+    sh = h.programs.screenFrame;
+    sh.activate();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.preScreenFramebuffer.textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    gl.uniform1i(p.uniforms.texture, 0);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+    //gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
     gl.enable(gl.DEPTH_TEST);
 };
 

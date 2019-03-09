@@ -71,6 +71,10 @@ const Multisample = function (handler, options) {
 
     this._size = options.size || 1;
 
+    this._filter = options.filter || "NEAREST";
+
+    this._glFilter = null;
+
     this.renderbuffers = new Array(this._size);
 };
 
@@ -98,6 +102,8 @@ Multisample.prototype.destroy = function () {
 Multisample.prototype.init = function () {
 
     var gl = this.handler.gl;
+
+    this._glFilter = gl[this._filter];
 
     this._fbo = gl.createFramebuffer();
 
@@ -134,6 +140,8 @@ Multisample.prototype.init = function () {
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    return this;
 };
 
 Multisample.prototype.blit = function (framebuffer, attachmentIndex = 0) {
@@ -149,7 +157,7 @@ Multisample.prototype.blit = function (framebuffer, attachmentIndex = 0) {
     gl.blitFramebuffer(
         0, 0, this._width, this._height,
         0, 0, framebuffer._width, framebuffer._height,
-        gl.COLOR_BUFFER_BIT, gl.NEAREST
+        gl.COLOR_BUFFER_BIT, this._glFilter
     );
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
