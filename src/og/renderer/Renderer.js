@@ -364,8 +364,6 @@ Renderer.prototype.initialize = function () {
             toneMapping()
         ]);
 
-        this._blurKernel = blur.buildKernel(4);
-
         let internalFormat = "RGBA32F",
             format = "RGBA",
             type = "FLOAT";
