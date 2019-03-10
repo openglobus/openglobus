@@ -13,9 +13,9 @@ import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
 import { toneMapping } from '../shaders/toneMapping.js';
 import { screenFrame } from '../shaders/screenFrame.js';
-import { lumFilter } from '../shaders/lumFilter.js';
-import * as blur from '../shaders/blur.js';
-import { bloom } from '../shaders/bloom.js';
+//import { lumFilter } from '../shaders/lumFilter.js';
+//import * as blur from '../shaders/blur.js';
+//import { bloom } from '../shaders/bloom.js';
 
 window.SCREEN = 0;
 const BUFFER_COUNT = 3;
