@@ -26,6 +26,10 @@ export function toneMapping() {
         fragmentShader:
             `#version 300 es
 
+            #ifndef saturate
+	            #define saturate(a) clamp( a, 0.0, 1.0 )
+            #endif
+
             precision highp float;
 
             uniform sampler2D hdrBuffer;

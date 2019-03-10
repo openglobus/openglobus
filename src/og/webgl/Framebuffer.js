@@ -38,6 +38,8 @@ const Framebuffer = function (handler, options) {
      */
     this._fbo = null;
 
+    this._isBare = options.isBare || false;
+
     /**
      * Renderbuffer object.
      * @private
@@ -116,32 +118,34 @@ Framebuffer.prototype.init = function () {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-    if (this.textures.length === 0) {
-        this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
-            this._width,
-            this._height,
-            this._filter,
-            this._internalFormat,
-            this._format,
-            this._type
-        ));
-        gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    } else {
-        let colorAttachments = [];
-        for (var i = 0; i < this.textures.length; i++) {
-            this.bindOutputTexture(
-                this.textures[i] ||
-                this.handler.createEmptyTexture2DExt(
-                    this._width,
-                    this._height,
-                    this._filter,
-                    this._internalFormat,
-                    this._format,
-                    this._type
-                ), i);
-            colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+    if (!this._isBare) {
+        if (this.textures.length === 0) {
+            this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
+                this._width,
+                this._height,
+                this._filter,
+                this._internalFormat,
+                this._format,
+                this._type
+            ));
+            gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        } else {
+            let colorAttachments = [];
+            for (var i = 0; i < this.textures.length; i++) {
+                this.bindOutputTexture(
+                    this.textures[i] ||
+                    this.handler.createEmptyTexture2DExt(
+                        this._width,
+                        this._height,
+                        this._filter,
+                        this._internalFormat,
+                        this._format,
+                        this._type
+                    ), i);
+                colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+            }
+            gl.drawBuffers && gl.drawBuffers(colorAttachments);
         }
-        gl.drawBuffers && gl.drawBuffers(colorAttachments);
     }
 
     if (this._useDepth) {
