@@ -17,6 +17,7 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {String} [options.internalFormat="RGBA"] - Specifies the color components in the texture.
  * @param {String} [options.format="RGBA"] - Specifies the format of the texel data.
  * @param {String} [options.type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
+ * @param {String} [options.depthComponent="DEPTH_COMPONENT16"] - Specifies depth buffer size.
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 const Framebuffer = function (handler, options) {
@@ -37,12 +38,16 @@ const Framebuffer = function (handler, options) {
      */
     this._fbo = null;
 
+    this._isBare = options.isBare || false;
+
     /**
      * Renderbuffer object.
      * @private
      * @type {Object}
      */
     this._depthRenderbuffer = null;
+
+    this._filter = options.filter || "NEAREST";
 
     this._internalFormat = options.internalFormat || "RGBA";
 
@@ -63,6 +68,8 @@ const Framebuffer = function (handler, options) {
      * @type {number}
      */
     this._height = options.height || handler.canvas.height;
+
+    this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
@@ -111,43 +118,47 @@ Framebuffer.prototype.init = function () {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-    if (this.textures.length === 0) {
-        this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
-            this._width,
-            this._height,
-            "NEAREST",
-            this._internalFormat,
-            this._format,
-            this._type
-        ));
-        gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    } else {
-        let colorAttachments = [];
-        for (var i = 0; i < this.textures.length; i++) {
-            this.bindOutputTexture(
-                this.textures[i] ||
-                this.handler.createEmptyTexture2DExt(
-                    this._width,
-                    this._height,
-                    "NEAREST",
-                    this._internalFormat,
-                    this._format,
-                    this._type
-                ), i);
-            colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+    if (!this._isBare) {
+        if (this.textures.length === 0) {
+            this.bindOutputTexture(this.handler.createEmptyTexture2DExt(
+                this._width,
+                this._height,
+                this._filter,
+                this._internalFormat,
+                this._format,
+                this._type
+            ));
+            gl.drawBuffers && gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+        } else {
+            let colorAttachments = [];
+            for (var i = 0; i < this.textures.length; i++) {
+                this.bindOutputTexture(
+                    this.textures[i] ||
+                    this.handler.createEmptyTexture2DExt(
+                        this._width,
+                        this._height,
+                        this._filter,
+                        this._internalFormat,
+                        this._format,
+                        this._type
+                    ), i);
+                colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+            }
+            gl.drawBuffers && gl.drawBuffers(colorAttachments);
         }
-        gl.drawBuffers && gl.drawBuffers(colorAttachments);
     }
 
     if (this._useDepth) {
         this._depthRenderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._width, this._height);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl[this._depthComponent], this._width, this._height);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    return this;
 };
 
 /**
@@ -210,7 +221,7 @@ Framebuffer.prototype.readPixels = function (res, nx, ny, index = 0, w = 1, h = 
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-    gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl.UNSIGNED_BYTE, res);
+    gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl[this._type], res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 
@@ -224,7 +235,7 @@ Framebuffer.prototype.readAllPixels = function (res, attachmentIndex = 0) {
     var gl = this.handler.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
     gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl.UNSIGNED_BYTE, res);
+    gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl[this._type], res);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 };
 

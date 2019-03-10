@@ -229,7 +229,7 @@ Handler.prototype.createTexture_n = function (image) {
  * @param {String} [internalFormat="RGBA"] - Specifies the color components in the texture.
  * @param {String} [format="RGBA"] - Specifies the format of the texel data.
  * @param {String} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
- * @param {Number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
+ * @param {Number} [levels=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
  * @returns {Object} - WebGL texture object.
  */
 Handler.prototype.createEmptyTexture2DExt = function (
@@ -245,11 +245,15 @@ Handler.prototype.createEmptyTexture2DExt = function (
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, level, gl[internalFormat.toUpperCase()], width, height, 0, gl[format.toUpperCase()], gl[type.toUpperCase()], null);
+
+    gl.texImage2D(gl.TEXTURE_2D, level, gl[internalFormat.toUpperCase()], width, height, 0,
+        gl[format.toUpperCase()], gl[type.toUpperCase()], null);
+
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[filter.toUpperCase()]);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[filter.toUpperCase()]);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
 }
@@ -576,6 +580,7 @@ Handler.prototype.initialize = function () {
         this._params.extensions.push("OES_element_index_uint");
     } else {
         this._params.extensions.push("EXT_color_buffer_float");
+        this._params.extensions.push("OES_texture_float_linear");
     }
 
     var i = this._params.extensions.length;
