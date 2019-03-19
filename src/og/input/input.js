@@ -24,6 +24,7 @@ export const input = {
     KEY_V: 86,
     KEY_W: 87,
     KEY_X: 88,
+    KEY_Z: 90,
     KEY_F1: 112,
     KEY_APOSTROPHE: 192,
     MB_LEFT: 0,
