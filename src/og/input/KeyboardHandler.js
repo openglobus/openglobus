@@ -26,6 +26,12 @@ const KeyboardHandler = function () {
         return a.priority < b.priority;
     };
 
+    this.removeEvent = function (events, callback) {
+        //
+        //TODO:...
+        //
+    };
+
     this.addEvent = function (event, sender, callback, keyCode, priority) {
         if (priority === undefined) {
             priority = 1600;
