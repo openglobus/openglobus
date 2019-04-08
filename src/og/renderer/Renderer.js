@@ -429,7 +429,7 @@ Renderer.prototype.addNode = function (renderNode) {
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
-        cons.logWrn("og.Renderer(370) - node name: " + renderNode.name + " allready exists.");
+        cons.logWrn("og.Renderer(432) - node name: " + renderNode.name + " allready exists.");
     }
 };
 

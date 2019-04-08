@@ -12,6 +12,7 @@ import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
 import { Mat4 } from '../math/Mat4.js';
 import { Ray } from '../math/Ray.js';
+import { Quat } from '../math/Quat.js';
 
 /**
  * Planet camera.
@@ -310,6 +311,21 @@ class PlanetCamera extends Camera {
             up, ampl, completeCallback, startCallback);
     }
 
+    viewDistance(cartesian, distance = 10000.0) {
+        let _rot = Quat.getRotationBetweenVectors(this.eye.normal(), cartesian.normal()),
+            newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
+            newUp = newPos.normal();
+        this.set(newPos, cartesian, newUp);
+        this.update();
+    }
+
+    flyDistance(cartesian, distance = 10000.0) {
+        let _rot = Quat.getRotationBetweenVectors(this.eye.normal(), cartesian.normal()),
+            newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
+            newUp = newPos.normal();
+        this.flyCartesian(newPos, cartesian, newUp, 0.0);
+    }
+
     /**
      * Flies to the cartesian coordinates.
      * @public
@@ -524,6 +540,7 @@ class PlanetCamera extends Camera {
         let R = this.planet.ellipsoid._a;
         return R * Math.acos(R / (R + this._lonLat.height + d));
     }
+
 };
 
 export { PlanetCamera };
