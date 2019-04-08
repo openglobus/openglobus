@@ -319,11 +319,11 @@ class PlanetCamera extends Camera {
         this.update();
     }
 
-    flyDistance(cartesian, distance = 10000.0) {
+    flyDistance(cartesian, distance = 10000.0, ampl = 0.0, completeCallback, startCallback) {
         let _rot = Quat.getRotationBetweenVectors(this.eye.normal(), cartesian.normal()),
             newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
             newUp = newPos.normal();
-        this.flyCartesian(newPos, cartesian, newUp, 0.0);
+        this.flyCartesian(newPos, cartesian, newUp, ampl, completeCallback, startCallback);
     }
 
     /**
