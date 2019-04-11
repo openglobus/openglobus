@@ -49,5 +49,5 @@ export function doubleToTwoFloats(value) {
         high = Math.fround(-doubleHigh);
         low = Math.fround(value + doubleHigh);
     }
-    return [high, low];
+    return new Float32Array([high, low]);
 };
