@@ -12,6 +12,7 @@ import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { LonLat } from '../../src/og/LonLat.js';
 import { doubleToTwoFloats } from '../../src/og/math/coder.js';
+import { print2d } from '../../src/og/utils/shared.js';
 
 class Planemarker {
     constructor(options) {
@@ -21,12 +22,12 @@ class Planemarker {
         this.position = options.position ? options.position : new Vec3();
         this.scale = options.scale || 0.02;
 
-        this._mxModel = new Mat4().setIdentity();
+        this.modelMatrix = new Mat4().setIdentity();
         this._position = new Float32Array([0, 0, 0]);
         this._vericesBuffer = null;
         this._indicesBuffer = null;
 
-        this._lonLatAlt = new LonLat(45, 45, 10000);
+        this._lonLatAlt = new LonLat(10, 10, 10000);
         this._speed = 0.0;
         this._heading = 0.0;
 
@@ -99,11 +100,11 @@ class Planemarker {
     }
 
     update() {
+        this._planet.renderer.controls.mouseNavigation.deactivate();
+
         this.position.copy(this._planet.ellipsoid.lonLatToCartesian(this._lonLatAlt));
 
-        this._mxModel = new Mat4().setIdentity();
-
-        this._mxModel.translate(new Vec3(this.position.x, this.position.y, this.position.z));
+        //this.modelMatrix.translate(new Vec3(this.position.x, this.position.y, this.position.z));
     }
 
     init() {
@@ -112,29 +113,48 @@ class Planemarker {
         this._scene.renderer.handler.addProgram(new Program("AirplaneShader", {
             uniforms: {
                 projectionMatrix: { type: 'mat4' },
-                viewMatrix: {type: 'mat4' },
-                modelMatrix: { type: 'mat4' },
-                scale: { type: 'float' }
+                modelViewMatrix: { type: 'mat4' },
+                scale: { type: 'float' },
+                //eyePosition: "vec3",
+                positionHigh: "vec3",
+                positionLow: "vec3",
+                eyePositionHigh: "vec3",
+                eyePositionLow: "vec3"
             },
             attributes: {
                 aVertexPosition: 'vec3'
             },
             vertexShader:
-                'attribute vec3 aVertexPosition;\
-                \
-                uniform mat4 projectionMatrix;\
-                uniform mat4 viewMatrix;\
-                uniform mat4 modelMatrix;\
-                uniform float scale;\
-                \
-                const float C = 0.1;\
-                const float far = 149.6e+9;\
-                float logc = 2.0 / log( C * far + 1.0 );\
-                \
-                void main(void) {\
-                    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aVertexPosition * scale, 1.0);\
-                    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;\
-                }'
+                `attribute vec3 aVertexPosition;
+                
+                uniform mat4 projectionMatrix;
+                uniform mat4 modelViewMatrix;
+
+                //uniform mat4 viewMatrix;
+                //uniform mat4 modelMatrix;
+
+                uniform vec3 eyePositionHigh;
+                uniform vec3 eyePositionLow;
+
+                uniform vec3 positionHigh;
+                uniform vec3 positionLow;
+
+                uniform float scale;
+                
+                const float C = 0.1;
+                const float far = 149.6e+9;
+                float logc = 2.0 / log( C * far + 1.0 );
+                
+                void main(void) {
+
+                    vec3 highDiff = positionHigh - eyePositionHigh;
+                    vec3 lowDiff = positionLow + aVertexPosition * scale - eyePositionLow;
+
+                    vec3 vert = highDiff + lowDiff;
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(vert, 1.0);
+                    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                }`
             ,
             fragmentShader:
                 'precision mediump float;\
@@ -172,12 +192,33 @@ class Planemarker {
 
         sh.activate();
 
-        gl.uniform1f(p.uniforms.scale, this.scale * this.position.distance(r.activeCamera.eye));
+        let d = this.position.distance(r.activeCamera.eye);
 
-        gl.uniformMatrix4fv(p.uniforms.modelMatrix, false, this._mxModel._m);
+        gl.uniform1f(p.uniforms.scale, this.scale * d);
 
+        print2d("lbDistance", d, 100, 100);
+
+        this.modelViewMatrix = r.activeCamera._viewMatrix.mul(this.modelMatrix);
+
+        this.modelViewMatrix._m[12] = this.modelViewMatrix._m[13] = this.modelViewMatrix._m[14] = 0;
+
+        gl.uniformMatrix4fv(p.uniforms.modelViewMatrix, false, this.modelViewMatrix._m);
         gl.uniformMatrix4fv(p.uniforms.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
-        gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        //gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera._viewMatrix._m);
+
+        let px = doubleToTwoFloats(this.position.x),
+            py = doubleToTwoFloats(this.position.y),
+            pz = doubleToTwoFloats(this.position.z);
+
+        let ex = doubleToTwoFloats(r.activeCamera.eye.x),
+            ey = doubleToTwoFloats(r.activeCamera.eye.y),
+            ez = doubleToTwoFloats(r.activeCamera.eye.z);
+
+        gl.uniform3fv(p.uniforms.positionHigh, [px[0], py[0], pz[0]]);
+        gl.uniform3fv(p.uniforms.positionLow, [px[1], py[1], pz[1]]);
+
+        gl.uniform3fv(p.uniforms.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(p.uniforms.eyePositionLow, [ex[1], ey[1], ez[1]]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vericesBuffer);
         gl.vertexAttribPointer(p.attributes.aVertexPosition, this._vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
