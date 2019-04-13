@@ -1212,145 +1212,6 @@ Segment.prototype._getLayerExtentOffset = function (layer) {
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-// Segment.prototype._multiRendering = function (sh, layerSlice, defaultTexture, isOverlay) {
-
-//     var gl = this.handler.gl;
-//     var sha = sh.attributes,
-//         shu = sh.uniforms;
-
-//     var pm = this.materials,
-//         p = this.planet;
-
-//     //First always draw whole planet base layer segment with solid texture.
-//     gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE * 2 + 2);
-//     gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
-//     gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE * 2 + 2);
-
-//     var currHeight, li;
-//     if (layerSlice) {
-//         li = layerSlice[0];
-//         currHeight = li._height;
-//     } else {
-//         currHeight = 0;
-//     }
-
-//     var n = 0,
-//         i = 0;
-
-//     var notEmpty = false;
-
-//     while (li) {
-//         if (this.layerOverlap(li) &&
-//             (li._fading && li._fadingOpacity > 0.0 ||
-//                 li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom)) {
-
-//             notEmpty = true;
-//             var m = pm[li._id];
-
-//             if (!m) {
-//                 m = pm[li._id] = li.createMaterial(this);
-//             }
-
-//             var n4 = n * 4,
-//                 n3 = n * 3;
-
-//             var arr = li.applyMaterial(m);
-//             p._tileOffsetArr[n4] = arr[0];
-//             p._tileOffsetArr[n4 + 1] = arr[1];
-//             p._tileOffsetArr[n4 + 2] = arr[2];
-//             p._tileOffsetArr[n4 + 3] = arr[3];
-
-//             arr = this._getLayerExtentOffset(li);
-//             p._visibleExtentOffsetArr[n4] = arr[0];
-//             p._visibleExtentOffsetArr[n4 + 1] = arr[1];
-//             p._visibleExtentOffsetArr[n4 + 2] = arr[2];
-//             p._visibleExtentOffsetArr[n4 + 3] = arr[3];
-
-//             p._transparentColorArr[n4] = li.transparentColor[0];
-//             p._transparentColorArr[n4 + 1] = li.transparentColor[1];
-//             p._transparentColorArr[n4 + 2] = li.transparentColor[2];
-//             p._transparentColorArr[n4 + 3] = li._fadingOpacity;
-
-//             p._pickingColorArr[n4] = li._pickingColor.x / 255.0;
-//             p._pickingColorArr[n4 + 1] = li._pickingColor.y / 255.0;
-//             p._pickingColorArr[n4 + 2] = li._pickingColor.z / 255.0;
-//             p._pickingColorArr[n4 + 3] = li._pickingEnabled;
-
-//             p._diffuseMaterialArr[n3 + 3] = li.diffuse.x;
-//             p._diffuseMaterialArr[n3 + 1 + 3] = li.diffuse.y;
-//             p._diffuseMaterialArr[n3 + 2 + 3] = li.diffuse.z;
-
-//             p._ambientMaterialArr[n3 + 3] = li.ambient.x;
-//             p._ambientMaterialArr[n3 + 1 + 3] = li.ambient.y;
-//             p._ambientMaterialArr[n3 + 2 + 3] = li.ambient.z;
-
-//             p._specularMaterialArr[n4 + 4] = li.specular.x;
-//             p._specularMaterialArr[n4 + 1 + 4] = li.specular.y;
-//             p._specularMaterialArr[n4 + 2 + 4] = li.specular.z;
-//             p._specularMaterialArr[n4 + 3 + 4] = li.shininess;
-
-//             p._samplerArr[n] = n;
-//             gl.activeTexture(gl.TEXTURE0 + n);
-//             gl.bindTexture(gl.TEXTURE_2D, m.texture && gl.isTexture(m.texture) && m.texture || this.planet.transparentTexture);
-
-
-//             p._pickingMaskArr[n] = n + p.SLICE_SIZE;
-//             gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
-//             gl.bindTexture(gl.TEXTURE_2D, m.pickingMask && gl.isTexture(m.pickingMask) && m.pickingMask || this.planet.transparentTexture);
-
-//             n++;
-//         }
-//         i++;
-//         li = layerSlice[i];
-//     }
-
-//     if (notEmpty || !isOverlay) {
-
-//         //bind normalmap texture
-//         if (p.lightEnabled) {
-//             gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
-//             gl.activeTexture(gl.TEXTURE0 + (p.SLICE_SIZE << 1) + 3);
-//             gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || this.planet.transparentTexture);
-//             gl.uniform1i(shu.uNormalMap, (p.SLICE_SIZE << 1) + 3);
-
-//             //bind segment specular and night material texture coordinates
-//             gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
-
-//             gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
-//             gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
-//             gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
-//         }
-
-//         gl.uniform1i(shu.samplerCount, n);
-//         gl.uniform1f(shu.height, currHeight);
-//         gl.uniform1iv(shu.samplerArr, p._samplerArr);
-//         gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
-//         gl.uniform4fv(shu.tileOffsetArr, p._tileOffsetArr);
-//         gl.uniform4fv(shu.visibleExtentOffsetArr, p._visibleExtentOffsetArr);
-//         gl.uniform4fv(shu.transparentColorArr, p._transparentColorArr);
-//         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
-//         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-//         gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-//         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-//         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
-
-//         if (!isOverlay) {
-//             this._indexBuffer = this._getIndexBuffer();
-//         }
-
-//         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-//         gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-//     }
-
-//     //???????????????????????????????????
-//     //???????????????????????????????????
-//     //this.node.sideSize[0] = this.gridSize;
-//     //this.node.sideSize[1] = this.gridSize;
-//     //this.node.sideSize[2] = this.gridSize;
-//     //this.node.sideSize[3] = this.gridSize;
-// };
-
 Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
     var gl = this.handler.gl;
     var sha = sh.attributes,
@@ -1470,9 +1331,9 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -1529,8 +1390,10 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
@@ -1580,11 +1443,12 @@ Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex
         gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
         gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);

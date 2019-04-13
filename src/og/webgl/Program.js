@@ -321,9 +321,11 @@ class Program {
             this.uniforms[u] = this._p[u];
         }
 
-        //Maybe it will be better to deleteProgram...
         gl.detachShader(this._p, fs);
         gl.detachShader(this._p, vs);
+
+        gl.deleteShader(fs);
+        gl.deleteShader(vs);
     }
 
     /**

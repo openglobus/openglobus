@@ -101,6 +101,22 @@ class Clock {
          * @type {boolean}
          */
         this.active = true;
+
+        this._intervalDelay = 0;
+        this._intervalStart = 0;
+        this._intervalCallback = null;
+    }
+
+    clearInterval() {
+        this._intervalDelay = 0;
+        this._intervalStart = 0;
+        this._intervalCallback = null;
+    }
+
+    setInterval(delay, callback) {
+        this._intervalStart = this.currentDate;
+        this._intervalDelay = delay * jd.ONE_BY_MILLISECONDS_PER_DAY;
+        this._intervalCallback = callback;
     }
 
     /**
@@ -153,6 +169,14 @@ class Clock {
                     this.currentDate = cd;
                 }
             }
+
+            if (this._intervalCallback) {
+                if (this.currentDate - this._intervalStart >= this._intervalDelay) {
+                    this._intervalStart = this.currentDate;
+                    this._intervalCallback(this);
+                }
+            }
+
             this.events.dispatch(this.events.tick, this);
         }
     }

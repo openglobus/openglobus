@@ -206,6 +206,23 @@ class RendererEvents extends Events {
     }
 
     /**
+     * TODO: DOESNT WORK!!!
+     * @param {any} name
+     * @param {any} callback
+     */
+    off(name, callback) {
+        if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
+            this._keyboardHandler.removeEvent(name, callback);
+        } else {
+            super.off(name, callback);
+        }
+    }
+
+    isKeyPressed(keyCode) {
+        return this._keyboardHandler.isKeyPressed(keyCode);
+    }
+
+    /**
      * Check key is pressed.
      * @public
      * @param {number} keyCode - Key code
