@@ -71,6 +71,8 @@ const Renderer = function (handler, params) {
 
     this.gamma = 0.37;
 
+    this.whitepoint = 1.0;
+
     this.brightThreshold = 0.9;
 
     /**
@@ -513,6 +515,7 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.uniform1i(p.uniforms.hdrBuffer, 0);
     gl.uniform1f(p.uniforms.gamma, this.gamma);
     gl.uniform1f(p.uniforms.exposure, this.exposure);
+    gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     this.bloomFramebuffer.deactivate();
