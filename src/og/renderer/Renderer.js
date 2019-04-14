@@ -460,7 +460,6 @@ Renderer.prototype.draw = function () {
 
     var e = this.events;
     e.handleEvents();
-    e.dispatch(e.draw, this);
 
     let sfb = this.sceneFramebuffer;
     sfb.activate();
@@ -470,13 +469,18 @@ Renderer.prototype.draw = function () {
     h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
+    e.dispatch(e.draw, this);
+
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
     //Rendering scene nodes
     var rn = this._renderNodesArr;
-    var i = rn.length;
-    while (i--) {
+    //var i = rn.length;
+    // while (i--) {
+    //     rn[i].drawNode();
+    // }
+    for (let i = 0; i < rn.length; i++) {
         rn[i].drawNode();
     }
 

@@ -1260,7 +1260,7 @@ class Polyline {
     drawPicking() {
         if (this.visibility && this._path3v.length) {
 
-            this._update();
+            //this._update();
 
             var rn = this._renderNode;
             var r = rn.renderer;
