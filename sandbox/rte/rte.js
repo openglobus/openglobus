@@ -113,7 +113,8 @@ class Planemarker {
         this._scene.renderer.handler.addProgram(new Program("AirplaneShader", {
             uniforms: {
                 projectionMatrix: { type: 'mat4' },
-                modelViewMatrix: { type: 'mat4' },
+                modelMatrix: { type: 'mat4' },
+                viewMatrix: { type: 'mat4' },
                 scale: { type: 'float' },
                 //eyePosition: "vec3",
                 positionHigh: "vec3",
@@ -125,13 +126,13 @@ class Planemarker {
                 aVertexPosition: 'vec3'
             },
             vertexShader:
-                `attribute vec3 aVertexPosition;
+                `precision highp float;
+                attribute vec3 aVertexPosition;
                 
                 uniform mat4 projectionMatrix;
-                uniform mat4 modelViewMatrix;
 
-                //uniform mat4 viewMatrix;
-                //uniform mat4 modelMatrix;
+                uniform mat4 viewMatrix;
+                uniform mat4 modelMatrix;
 
                 uniform vec3 eyePositionHigh;
                 uniform vec3 eyePositionLow;
@@ -152,12 +153,16 @@ class Planemarker {
 
                     vec3 vert = highDiff + lowDiff;
 
+                    mat4 modelViewMatrix = viewMatrix * modelMatrix;
+
+                    modelViewMatrix[3] = vec4(0.0);
+
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(vert, 1.0);
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 }`
             ,
             fragmentShader:
-                'precision mediump float;\
+                'precision highp float;\
                 \
                 void main(void) {\
                     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\
@@ -200,11 +205,11 @@ class Planemarker {
 
         this.modelViewMatrix = r.activeCamera._viewMatrix.mul(this.modelMatrix);
 
-        this.modelViewMatrix._m[12] = this.modelViewMatrix._m[13] = this.modelViewMatrix._m[14] = 0;
-
-        gl.uniformMatrix4fv(p.uniforms.modelViewMatrix, false, this.modelViewMatrix._m);
+        //this.modelViewMatrix._m[12] = this.modelViewMatrix._m[13] = this.modelViewMatrix._m[14] = 0;
+        //gl.uniformMatrix4fv(p.uniforms.modelViewMatrix, false, this.modelViewMatrix._m);
         gl.uniformMatrix4fv(p.uniforms.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
-        //gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(p.uniforms.modelMatrix, false, this.modelMatrix._m);
 
         let px = doubleToTwoFloats(this.position.x),
             py = doubleToTwoFloats(this.position.y),
