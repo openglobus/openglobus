@@ -14,6 +14,14 @@ import { LonLat } from '../../src/og/LonLat.js';
 import { doubleToTwoFloats } from '../../src/og/math/coder.js';
 import { print2d } from '../../src/og/utils/shared.js';
 
+const MODEL_DIRECTION = new Vec3(0.0, 0.0, -1.0);
+
+function getNorthBearingRotationFrame(cartesian) {
+    let n = cartesian.normal();
+    let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+    return Quat.getLookRotation(t, n);
+}
+
 class Planemarker {
     constructor(options) {
         options = options || {};
@@ -28,19 +36,14 @@ class Planemarker {
         this._indicesBuffer = null;
 
         this._lonLatAlt = new LonLat(10, 10, 10000);
-        this._speed = 0.0;
-        this._heading = 0.0;
+
+        this._neDir = [0, 0, 0];
+        this._vel = new Vec3(0.0, 1.0, 0.0);
 
         this._planet = null;
         this._scene = null;
 
         this._lockDistance = 1000.0;
-    }
-
-    static getNorthBearingRotationFrame(cartesian) {
-        let n = cartesian.normal();
-        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
-        return Quat.getLookRotation(t, n);
     }
 
     set(lon, lat, alt, heading, speed) {
@@ -103,8 +106,9 @@ class Planemarker {
         this._planet.renderer.controls.mouseNavigation.deactivate();
 
         this.position.copy(this._planet.ellipsoid.lonLatToCartesian(this._lonLatAlt));
-
-        //this.modelMatrix.translate(new Vec3(this.position.x, this.position.y, this.position.z));
+        this._orientation = Quat.yRotation(Math.atan2(this._vel.y, this._vel.x)).mul(getNorthBearingRotationFrame(this.position));
+        let d = this._orientation.conjugate().mulVec3(MODEL_DIRECTION).normalize();
+        this._neDir = [d.x, d.y, d.z];
     }
 
     init() {
@@ -113,14 +117,13 @@ class Planemarker {
         this._scene.renderer.handler.addProgram(new Program("AirplaneShader", {
             uniforms: {
                 projectionMatrix: { type: 'mat4' },
-                modelMatrix: { type: 'mat4' },
                 viewMatrix: { type: 'mat4' },
                 scale: { type: 'float' },
-                //eyePosition: "vec3",
                 positionHigh: "vec3",
                 positionLow: "vec3",
                 eyePositionHigh: "vec3",
-                eyePositionLow: "vec3"
+                eyePositionLow: "vec3",
+                direction: 'vec3'
             },
             attributes: {
                 aVertexPosition: 'vec3'
@@ -132,7 +135,7 @@ class Planemarker {
                 uniform mat4 projectionMatrix;
 
                 uniform mat4 viewMatrix;
-                uniform mat4 modelMatrix;
+                uniform vec3 direction;
 
                 uniform vec3 eyePositionHigh;
                 uniform vec3 eyePositionLow;
@@ -148,16 +151,34 @@ class Planemarker {
                 
                 void main(void) {
 
+                    vec3 position = positionHigh + positionLow;
+                    vec3 r = cross(normalize(-position), direction);
+                    vec3 u = cross(direction, r);
+
+                    //mat4 modelMatrix = mat4(
+                    //    r.x, r.y, r.z, 0,
+                    //    -u.x, -u.y, -u.z, 0,
+                    //    -direction.x, -direction.y, -direction.z, 0,
+                    //    0, 0, 0, 1
+                    //);
+
+                    //vec3 highDiff = positionHigh - eyePositionHigh;
+                    //vec3 lowDiff = positionLow + (modelMatrix * vec4(aVertexPosition * scale, 1.0)).xyz - eyePositionLow;
+
+                    mat3 modelMatrix = mat3(
+                        r.x, r.y, r.z,
+                        -u.x, -u.y, -u.z,
+                        -direction.x, -direction.y, -direction.z
+                    );
+
                     vec3 highDiff = positionHigh - eyePositionHigh;
-                    vec3 lowDiff = positionLow + aVertexPosition * scale - eyePositionLow;
+                    vec3 lowDiff = positionLow + modelMatrix * aVertexPosition * scale - eyePositionLow;
 
-                    vec3 vert = highDiff + lowDiff;
+                    mat4 viewMatrixRTE = viewMatrix;
 
-                    mat4 modelViewMatrix = viewMatrix * modelMatrix;
+                    viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                    modelViewMatrix[3] = vec4(0.0);
-
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(vert, 1.0);
+                    gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 }`
             ,
@@ -203,13 +224,9 @@ class Planemarker {
 
         print2d("lbDistance", d, 100, 100);
 
-        this.modelViewMatrix = r.activeCamera._viewMatrix.mul(this.modelMatrix);
-
-        //this.modelViewMatrix._m[12] = this.modelViewMatrix._m[13] = this.modelViewMatrix._m[14] = 0;
-        //gl.uniformMatrix4fv(p.uniforms.modelViewMatrix, false, this.modelViewMatrix._m);
         gl.uniformMatrix4fv(p.uniforms.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
         gl.uniformMatrix4fv(p.uniforms.viewMatrix, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(p.uniforms.modelMatrix, false, this.modelMatrix._m);
+        gl.uniform3fv(p.uniforms.direction, this._neDir);
 
         let px = doubleToTwoFloats(this.position.x),
             py = doubleToTwoFloats(this.position.y),
