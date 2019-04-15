@@ -476,10 +476,6 @@ Renderer.prototype.draw = function () {
 
     //Rendering scene nodes
     var rn = this._renderNodesArr;
-    //var i = rn.length;
-    // while (i--) {
-    //     rn[i].drawNode();
-    // }
     for (let i = 0; i < rn.length; i++) {
         rn[i].drawNode();
     }
