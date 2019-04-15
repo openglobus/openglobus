@@ -6,7 +6,6 @@
 
 import { BaseBillboard } from './BaseBillboard.js';
 
-
 /**
  * Represents basic quad billboard image.
  * @class

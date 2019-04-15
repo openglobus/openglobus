@@ -22,7 +22,8 @@ export function label_webgl2() {
         attributes: {
             a_vertices: "vec2",
             a_texCoord: "vec4",
-            a_positions: "vec4",
+            a_positionsHigh: "vec3",
+            a_positionsLow: "vec3",
             a_size: "float",
             a_offset: "vec3",
             a_rgba: "vec4",
@@ -36,7 +37,8 @@ export function label_webgl2() {
 
             in vec2 a_vertices;
             in vec4 a_texCoord;
-            in vec4 a_positions;
+            in vec3 a_positionsHigh;
+            in vec3 a_positionsLow;
             in vec3 a_offset;
             in float a_size;
             in float a_rotation;
@@ -65,6 +67,7 @@ export function label_webgl2() {
             float logc = 2.0 / log( C * far + 1.0 );
 
             void main() {
+                vec3 a_positions = a_positionsHigh + a_positionsLow;
 
                 if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
                     gl_Position = vec4(0.0);
@@ -73,11 +76,11 @@ export function label_webgl2() {
 
                 v_fontIndex = a_fontIndex;
                 v_texCoords = vec2(a_texCoord.xy);
-                vec3 look = a_positions.xyz - uCamPos;
+                vec3 look = a_positions - uCamPos;
                 float lookDist = length(look);
                 v_rgba = a_rgba;
-                /*v_rgba.a *= uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]));*/
-                if(uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]))==0.0){
+                /*v_rgba.a *= uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions,a_positions) - uFloatParams[0]));*/
+                if(uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions,a_positions) - uFloatParams[0]))==0.0){
                     return;
                 }
 
@@ -95,15 +98,15 @@ export function label_webgl2() {
                 }
 
                 v_bufferAA = vec3(a_bufferAA, 8.0 * a_bufferAA.y / a_size);
-                float dist = dot(uCamPos - a_positions.xyz, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+                float dist = dot(uCamPos - a_positions, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * uFloatParams[1];
                 vec2 offset = a_offset.xy * focalSize;
 
-                float scd = a_positions.w * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookDist)) * (1.0 - step(uScaleByDistance[2], lookDist));
+                float scd = (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookDist)) * (1.0 - step(uScaleByDistance[2], lookDist));
                 float scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions.xyz;
+                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
 
                 gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
@@ -174,7 +177,8 @@ export function labelPicking() {
         attributes: {
             a_vertices: "vec2",
             a_texCoord: "vec4",
-            a_positions: "vec4",
+            a_positionsHigh: "vec3",
+            a_positionsLow: "vec3",
             a_size: "float",
             a_offset: "vec3",
             a_pickingColor: "vec3",
@@ -185,7 +189,8 @@ export function labelPicking() {
             `precision highp float;
             attribute vec2 a_vertices;
             attribute vec4 a_texCoord;
-            attribute vec4 a_positions;
+            attribute vec3 a_positionsHigh;
+            attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute float a_size;
             attribute float a_rotation;
@@ -204,6 +209,8 @@ export function labelPicking() {
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
             void main() {
+                vec3 a_positions = a_positionsHigh + a_positionsLow;
+
                 if( uOpacity == 0.0 ){
                     gl_Position = vec4(0.0);
                     return;
@@ -212,9 +219,9 @@ export function labelPicking() {
                     gl_Position = vec4(0.0);
                     return;
                 }
-                vec3 look = a_positions.xyz - uCamPos;
+                vec3 look = a_positions - uCamPos;
                 float lookLength = length(look);
-                v_color = vec4(a_pickingColor.rgb, 1.0) * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz, a_positions.xyz) - uFloatParams[0]));
+                v_color = vec4(a_pickingColor.rgb, 1.0) * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions, a_positions) - uFloatParams[0]));
                 vec3 right, up;
                 if(a_alignedAxis == ZERO3){
                     up = vec3( viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1] );
@@ -224,14 +231,14 @@ export function labelPicking() {
                     right = normalize(cross(look,up));
                     look = cross(up,right);
                 }
-                float dist = dot(uCamPos - a_positions.xyz, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+                float dist = dot(uCamPos - a_positions, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * uFloatParams[1];
                 vec2 offset = a_offset.xy * focalSize;
-                float scd = a_positions.w * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) *(1.0 - step(uScaleByDistance[2], lookLength));
+                float scd = (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) *(1.0 - step(uScaleByDistance[2], lookLength));
                 float scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions.xyz;
+                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
                 gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z;
@@ -260,7 +267,8 @@ export function label_screen() {
         attributes: {
             a_vertices: "vec2",
             a_texCoord: "vec4",
-            a_positions: "vec4",
+            a_positionsHigh: "vec3",
+            a_positionsLow: "vec3",
             a_size: "float",
             a_offset: "vec3",
             a_rgba: "vec4",
@@ -273,7 +281,8 @@ export function label_screen() {
         vertexShader:
             `attribute vec2 a_vertices;
             attribute vec4 a_texCoord;
-            attribute vec4 a_positions;
+            attribute vec3 a_positionsHigh;
+            attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute float a_size;
             attribute float a_rotation;
@@ -298,17 +307,20 @@ export function label_screen() {
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
             void main() {
+
+                vec3 a_positions = a_positionsHigh + a_positionsLow;
+
                 if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
                     gl_Position = vec4(0.0);
                     return;
                 }
                 v_fontIndex = a_fontIndex;
                 v_texCoords = vec2(a_texCoord.xy);
-                vec3 look = a_positions.xyz - uCamPos;
+                vec3 look = a_positions - uCamPos;
                 float lookDist = length(look);                
                 v_rgba = a_rgba;
-                /*v_rgba.a *= uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]));*/
-                if(uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions.xyz,a_positions.xyz) - uFloatParams[0]))==0.0){
+                /*v_rgba.a *= uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions,a_positions) - uFloatParams[0]));*/
+                if(uOpacity * step(lookDist, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_positions,a_positions) - uFloatParams[0]))==0.0){
                     return;
                 }
                 v_rgba.a *= uOpacity;
@@ -322,14 +334,14 @@ export function label_screen() {
                     look = cross(up,right);
                 }
                 v_bufferAA = vec3(a_bufferAA, 8.0 * a_bufferAA.y / a_size);
-                float dist = dot(uCamPos - a_positions.xyz, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+                float dist = dot(uCamPos - a_positions, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * uFloatParams[1];
                 vec2 offset = a_offset.xy * focalSize;
-                float scd = a_positions.w * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookDist)) * (1.0 - step(uScaleByDistance[2], lookDist));
+                float scd = (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookDist)) * (1.0 - step(uScaleByDistance[2], lookDist));
                 float scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions.xyz;
+                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
                 gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z + uZ;

@@ -5,6 +5,7 @@
 'use strict';
 
 import * as utils from '../utils/shared.js';
+import { Vec3 } from '../math/Vec3.js';
 
 /**
  * Base prototype for billboard and label classes.
@@ -35,6 +36,12 @@ class BaseBillboard {
          * @type {og.Vec3}
          */
         this._position = utils.createVector3(options.position);
+
+        this._positionHigh = new Vec3();
+        
+        this._positionLow = new Vec3();
+        
+        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
 
         /**
          * Screen space rotation angle.
@@ -70,13 +77,6 @@ class BaseBillboard {
          * @type {boolean}
          */
         this._visibility = options.visibility != undefined ? options.visibility : true;
-
-        /**
-         * Billboard scale.
-         * @protected
-         * @type {number}
-         */
-        this._scale = options.scale || 1.0;
 
         /**
          * Entity instance that holds this billboard.
@@ -121,8 +121,9 @@ class BaseBillboard {
     setPosition(x, y, z) {
         this._position.x = x;
         this._position.y = y;
-        this._position.z = z;
-        this._handler && this._handler.setPositionArr(this._handlerIndex, this._position);
+        this._position.z = z;        
+        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
+        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -134,7 +135,8 @@ class BaseBillboard {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
-        this._handler && this._handler.setPositionArr(this._handlerIndex, position);
+        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
+        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -158,25 +160,6 @@ class BaseBillboard {
         this._offset.y = y;
         (z != undefined) && (this._offset.z = z);
         this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
-    }
-
-    /**
-     * Sets billboard scale.
-     * @public
-     * @param {number} scale - Scale.
-     */
-    setScale(scale) {
-        this._scale = scale;
-        this._handler && this._handler.setScaleArr(this._handlerIndex, scale);
-    }
-
-    /**
-     * Gets billboard scale.
-     * @public
-     * @returns {number}
-     */
-    getScale() {
-        return this._scale;
     }
 
     /**
