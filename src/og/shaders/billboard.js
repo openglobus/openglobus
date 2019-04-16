@@ -12,7 +12,9 @@ export function billboardPicking() {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            uCamPos: "vec3",
+            //uCamPos: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uFloatParams: "vec2",
             uScaleByDistance: "vec3",
             uOpacity: "float",
@@ -44,7 +46,9 @@ export function billboardPicking() {
 
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec3 uCamPos;
+            //uniform vec3 uCamPos;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             uniform vec2 uFloatParams;
             uniform vec3 uScaleByDistance;
             uniform float uOpacity;
@@ -58,6 +62,7 @@ export function billboardPicking() {
             void main() {
                 
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 uCamPos = eyePositionHigh + eyePositionLow;
 
                 vec3 look = a_positions - uCamPos;
                 float lookLength = length(look);
@@ -102,7 +107,9 @@ export function billboard_screen() {
             u_texture: "sampler2d",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            uCamPos: "vec3",
+            //uCamPos: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uFloatParams: "vec2",
             uScaleByDistance: "vec3",
             uOpacity: "float"
@@ -129,20 +136,29 @@ export function billboard_screen() {
             attribute float a_rotation;
             attribute vec4 a_rgba;
             attribute vec3 a_alignedAxis;
+
             varying vec2 v_texCoords;
             varying vec4 v_rgba;
+
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec3 uCamPos;
+            //uniform vec3 uCamPos;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             uniform vec2 uFloatParams;
             uniform vec3 uScaleByDistance;
             uniform float uOpacity;
+
             const vec3 ZERO3 = vec3(0.0);
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
+
             void main() {
+                
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 uCamPos = eyePositionHigh + eyePositionLow;
+
                 v_texCoords = a_texCoord;
                 vec3 look = a_positions - uCamPos;
                 float lookLength = length(look);
@@ -167,8 +183,15 @@ export function billboard_screen() {
                 vec2 scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + scd * offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + scd * offset.y) + a_positions;
-                gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
+                vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + scd * offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + scd * offset.y);
+
+                vec3 highDiff = a_positionsHigh - eyePositionHigh;
+                vec3 lowDiff = a_positionsLow + rr - eyePositionLow;
+
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z;
             }`,

@@ -13,7 +13,9 @@ export function label_webgl2() {
             u_fontTextureArr: "sampler2dxx",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            uCamPos: "vec3",
+            //uCamPos: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uFloatParams: "vec2",
             uZ: "float",
             uScaleByDistance: "vec3",
@@ -54,7 +56,9 @@ export function label_webgl2() {
 
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec3 uCamPos;
+            //uniform vec3 uCamPos;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             /*0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio*/
             uniform vec2 uFloatParams;
             uniform float uZ;
@@ -68,6 +72,7 @@ export function label_webgl2() {
 
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 uCamPos = eyePositionHigh + eyePositionLow;
 
                 if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
                     gl_Position = vec4(0.0);
@@ -106,9 +111,15 @@ export function label_webgl2() {
                 float scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
+                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y);
 
-                gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
+                vec3 highDiff = a_positionsHigh - eyePositionHigh;
+                vec3 lowDiff = a_positionsLow + rr - eyePositionLow;
+
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z + uZ;
             }`,
@@ -169,7 +180,9 @@ export function labelPicking() {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            uCamPos: "vec3",
+            //uCamPos: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uFloatParams: "vec2",
             uScaleByDistance: "vec3",
             uOpacity: "float"
@@ -199,7 +212,9 @@ export function labelPicking() {
             varying vec4 v_color;
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec3 uCamPos;
+            //uniform vec3 uCamPos;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             /*0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio*/
             uniform vec2 uFloatParams;
             uniform vec3 uScaleByDistance;
@@ -210,6 +225,7 @@ export function labelPicking() {
             float logc = 2.0 / log( C * far + 1.0 );
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 uCamPos = eyePositionHigh + eyePositionLow;
 
                 if( uOpacity == 0.0 ){
                     gl_Position = vec4(0.0);
@@ -258,7 +274,9 @@ export function label_screen() {
             u_fontTextureArr: "sampler2dxx",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            uCamPos: "vec3",
+            //uCamPos: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             uFloatParams: "vec2",
             uZ: "float",
             uScaleByDistance: "vec3",
@@ -296,7 +314,9 @@ export function label_screen() {
             varying vec3 v_bufferAA;
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            uniform vec3 uCamPos;
+            //uniform vec3 uCamPos;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             /*0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio*/
             uniform vec2 uFloatParams;
             uniform float uZ;
@@ -309,6 +329,7 @@ export function label_screen() {
             void main() {
 
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 uCamPos = eyePositionHigh + eyePositionLow;
 
                 if(a_texCoord.z == -1.0 || a_bufferAA.x == 1.0){
                     gl_Position = vec4(0.0);
@@ -341,8 +362,15 @@ export function label_screen() {
                 float scale = a_size * focalSize * scd;
                 float cosRot = cos(a_rotation);
                 float sinRot = sin(a_rotation);
-                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
-                gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
+                vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y);
+
+                vec3 highDiff = a_positionsHigh - eyePositionHigh;
+                vec3 lowDiff = a_positionsLow + rr - eyePositionLow;
+
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z + uZ;
             }`,
