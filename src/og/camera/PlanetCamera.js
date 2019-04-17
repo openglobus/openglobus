@@ -517,7 +517,9 @@ class PlanetCamera extends Camera {
             this._u = this._framesArr[c].u;
             this._v = this._framesArr[c].v;
             this._n = this._framesArr[c].n;
+
             this.update();
+            
             this._framesCounter--;
 
             if (this._framesCounter < 0) {

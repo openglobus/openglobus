@@ -77,6 +77,16 @@ class RenderNode extends BaseNode {
         this.events = new Events(null, this);
     }
 
+    /**
+     * Adds node to the current hierarchy.
+     * @public
+     * @type {og.RenderNode}
+     */
+    addNode(node) {
+        super.addNode(node);
+        node.assign(this.renderer);
+    }
+
     setFontAtlas(fontAtlas) {
         this.fontAtlas = fontAtlas;
         if (this.renderer) {

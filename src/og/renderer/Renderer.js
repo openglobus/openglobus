@@ -475,8 +475,9 @@ Renderer.prototype.draw = function () {
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
     //Rendering scene nodes
-    var rn = this._renderNodesArr;
-    for (let i = 0; i < rn.length; i++) {
+    var rn = this._renderNodesArr,
+        i = rn.length;
+    while (i--) {
         rn[i].drawNode();
     }
 
