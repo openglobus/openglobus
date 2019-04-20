@@ -773,8 +773,8 @@ class BillboardHandler {
 
     refreshTexCoordsArr() {
         var bc = this._entityCollection;
-        if (bc && bc.renderNode) {
-            var ta = bc.renderNode.billboardsTextureAtlas;
+        if (bc && this._renderer) {
+            var ta = this._renderer.billboardsTextureAtlas;
             for (var i = 0; i < this._billboards.length; i++) {
                 var bi = this._billboards[i];
                 var img = bi._image;

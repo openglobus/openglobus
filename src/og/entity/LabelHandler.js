@@ -81,8 +81,8 @@ class LabelHandler extends BillboardHandler {
     }
 
     assignFontAtlas(label) {
-        if (this._entityCollection && this._entityCollection.renderNode) {
-            label.assignFontAtlas(this._entityCollection.renderNode.fontAtlas);
+        if (this._entityCollection && this._renderer) {
+            label.assignFontAtlas(this._renderer.fontAtlas);
         }
     }
 
@@ -221,7 +221,7 @@ class LabelHandler extends BillboardHandler {
 
         var rn = ec.renderNode;
 
-        gl.uniform1iv(shu.u_fontTextureArr, rn.fontAtlas.samplerArr);
+        gl.uniform1iv(shu.u_fontTextureArr, r.fontAtlas.samplerArr);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
@@ -391,7 +391,7 @@ class LabelHandler extends BillboardHandler {
 
     setText(index, text, fontIndex, align) {
 
-        var fa = this._entityCollection.renderNode.fontAtlas.atlasesArr[fontIndex];
+        var fa = this._renderer.fontAtlas.atlasesArr[fontIndex];
 
         if (!fa) return;
 
