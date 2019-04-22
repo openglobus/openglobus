@@ -329,6 +329,16 @@ Quat.prototype.scaleTo = function (scale) {
 };
 
 /**
+ * Multiplies the provided Quat componentwise.
+ * @public
+ * @param {Number} scale - The scalar to multiply with.
+ * @returns {og.Quat} -
+ */
+Quat.prototype.scale = function (scale) {
+    return this.x * scale, this.y * scale, this.z * scale, this.w * scale;
+};
+
+/**
  * Converts Quat values to array.
  * @public
  * @returns {Array.<number,number,number,number>} -
@@ -508,8 +518,25 @@ Quat.prototype.setFromEulerAngles = function (pitch, yaw, roll) {
  * @returns {Object} -
  */
 Quat.prototype.getEulerAngles = function () {
-    var matrix = this.getMat4();
-    return matrix.getEulerAngles();
+
+    let x = this.x, y = this.y, z = this.z, w = this.w;
+
+    let sqy = y * y;
+
+    let roll = Math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + sqy));
+
+    let a = w * y - z * x;
+
+    if (a < -1.0) {
+        a = -1.0;
+    } else if (a > 1.0) {
+        a = 1.0;
+    }
+    let pitch = Math.asin(2.0 * a);
+
+    let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
+
+    return { roll, pitch, yaw };
 };
 
 /**
