@@ -44,7 +44,7 @@ class PlanetCamera extends Camera {
          * @public
          * @type {number}
          */
-        this.minAltitude = options.minAltitude || 50;
+        this.minAltitude = options.minAltitude || 1;
 
         /**
          * Current geographical degree position.
