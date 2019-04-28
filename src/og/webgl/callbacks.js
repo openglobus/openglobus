@@ -1,3 +1,7 @@
+/**
+ * @module og/webgl/callbacks
+ */
+
 'use strict';
 
 import { types } from './types.js';

@@ -870,9 +870,6 @@ class Planet extends RenderNode {
         this._visibleNodesNorth = {};
         this._visibleNodesSouth = {};
 
-        this._frustumEntityCollections.length = 0;
-        this._frustumEntityCollections = [];
-
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
@@ -1167,6 +1164,9 @@ class Planet extends RenderNode {
      * @protected
      */
     _renderVectorLayersPASS() {
+
+        this._frustumEntityCollections.length = 0;
+        this._frustumEntityCollections = [];
 
         var i = this.visibleVectorLayers.length;
         while (i--) {

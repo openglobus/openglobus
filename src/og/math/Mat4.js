@@ -515,9 +515,5 @@ Mat4.prototype.eulerToMatrix = function (ax, ay, az) {
     return this;
 };
 
-Mat4.prototype.getEulerAngles = function () {
-    //TODO
-};
-
 export { Mat4 };
 

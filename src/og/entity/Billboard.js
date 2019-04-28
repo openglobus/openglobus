@@ -6,7 +6,6 @@
 
 import { BaseBillboard } from './BaseBillboard.js';
 
-
 /**
  * Represents basic quad billboard image.
  * @class
@@ -44,6 +43,8 @@ class Billboard extends BaseBillboard {
          */
         this._image = options.image || null;
 
+        this._scale = 1.0;
+
         /**
          * Billboard screen width.
          * @protected
@@ -70,7 +71,7 @@ class Billboard extends BaseBillboard {
         if (bh && src) {
             var rn = bh._entityCollection.renderNode;
             if (rn) {
-                var ta = rn.billboardsTextureAtlas;
+                var ta = rn.renderer.billboardsTextureAtlas;
                 var that = this;
                 ta.loadImage(src, function (img) {
                     if (ta.nodes[img.__nodeIndex]) {

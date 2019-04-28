@@ -72,6 +72,9 @@ class DebugInfo extends Control {
                 'label': "lodRatio",
                 'frame': () => p._lodRatio
             }, {
+                'label': "deltaTime",
+                'frame': () => p.renderer.handler.deltaTime
+            }, {
                 'label': "-------------------------"
             }, {
                 'label': "PlainWorker",

@@ -61,7 +61,7 @@ class BaseNode {
     /**
      * Adds node to the current hierarchy.
      * @public
-     * @type {og.RenderNode}
+     * @type {og.BaseNode}
      */
     addNode(node) {
         if (this.parentNode == null) {

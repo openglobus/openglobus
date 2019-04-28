@@ -130,7 +130,7 @@ class Label extends BaseBillboard {
      * It can't be bigger than maximum labelHandler _maxLetters value.
      */
     setText(text) {
-        this._text = text;
+        this._text = text.toString();
         this._handler && this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
     }
 

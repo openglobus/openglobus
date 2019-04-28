@@ -13,6 +13,8 @@ import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
 import { toneMapping } from '../shaders/toneMapping.js';
 import { screenFrame } from '../shaders/screenFrame.js';
+import { FontAtlas } from '../utils/FontAtlas.js';
+import { TextureAtlas } from '../utils/TextureAtlas.js';
 
 window.SCREEN = 0;
 
@@ -178,6 +180,22 @@ const Renderer = function (handler, params) {
 
     this._initialized = false;
 
+    /**
+     * Texture atlas for the billboards images. One atlas per node.
+     * @protected
+     * @type {og.utils.TextureAtlas}
+     */
+    this.billboardsTextureAtlas = new TextureAtlas();
+
+    /**
+     * Texture font atlas for the font families and styles. One atlas per node.
+     * @public
+     * @type {og.utils.FontAtlas}
+     */
+    this.fontAtlas = new FontAtlas();
+
+    this._entityCollections = [];
+
     if (params.autoActivate || isEmpty(params.autoActivate)) {
         this.initialize();
         this.start();
@@ -330,6 +348,10 @@ Renderer.prototype.initialize = function () {
 
     var that = this;
 
+    this.billboardsTextureAtlas.assignHandler(this.handler);
+
+    this.fontAtlas.assignHandler(this.handler);
+
     this.handler.setFrameCallback(function () {
         that.draw();
     });
@@ -407,9 +429,7 @@ Renderer.prototype.initialize = function () {
 };
 
 Renderer.prototype._resize = function () {
-
     let obj = this.handler.canvas;
-
     this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
     this.sceneFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale);
     this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale, true);
@@ -431,7 +451,7 @@ Renderer.prototype.addNode = function (renderNode) {
         this._renderNodesArr.unshift(renderNode);
         this.renderNodes[renderNode.name] = renderNode;
     } else {
-        cons.logWrn("og.Renderer(432) - node name: " + renderNode.name + " allready exists.");
+        cons.logWrn("Node name " + renderNode.name + " allready exists.");
     }
 };
 
@@ -450,6 +470,101 @@ Renderer.prototype.getMSAA = function () {
     return this._msaa;
 };
 
+Renderer.prototype.enqueueEntityCollectionsToDraw = function (ecArr) {
+    this._entityCollections.push.apply(this._entityCollections, ecArr);
+};
+
+/**
+ * Draws entity collections.
+ * @public
+ * @param {Array<og.EntityCollection>} ec - Entity collection array.
+ */
+Renderer.prototype._drawEntityCollections = function () {
+
+    let ec = this._entityCollections;
+
+    if (ec.length) {
+
+        var gl = this.handler.gl;
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+        gl.disable(gl.CULL_FACE);
+
+        //Z-buffer offset
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(0.0, 0.0);
+
+        //billboards pass
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+
+        var i = ec.length;
+        while (i--) {
+            var eci = ec[i];
+            if (eci._fadingOpacity) {
+                //first begin draw event
+                eci.events.dispatch(eci.events.draw, eci);
+                eci.billboardHandler.draw();
+            }
+        }
+
+        //labels pass
+        var fa = this.fontAtlas.atlasesArr;
+        for (i = 0; i < fa.length; i++) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+        }
+
+        i = ec.length;
+        while (i--) {
+            ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+        }
+
+        //polyline pass
+        i = ec.length;
+        while (i--) {
+            ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+        }
+
+        gl.enable(gl.CULL_FACE);
+
+        //pointClouds pass
+        i = ec.length;
+        while (i--) {
+            if (ec[i]._fadingOpacity) {
+                ec[i].pointCloudHandler.draw();
+            }
+        }
+
+        //shapes pass
+        i = ec.length;
+        while (i--) {
+            var eci = ec[i];
+            if (eci._fadingOpacity) {
+                eci.shapeHandler.draw();
+            }
+        }
+
+        //Strip pass
+        i = ec.length;
+        while (i--) {
+            if (ec[i]._fadingOpacity) {
+                ec[i].stripHandler.draw();
+                //post draw event
+                eci.events.dispatch(eci.events.drawend, eci);
+            }
+        }
+
+        //gl.polygonOffset(0.0, 0.0);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+
+        this._entityCollections.length = 0;
+        this._entityCollections = [];
+    }
+}
+
 /**
  * Draw nodes.
  * @public
@@ -460,7 +575,6 @@ Renderer.prototype.draw = function () {
 
     var e = this.events;
     e.handleEvents();
-    e.dispatch(e.draw, this);
 
     let sfb = this.sceneFramebuffer;
     sfb.activate();
@@ -470,15 +584,19 @@ Renderer.prototype.draw = function () {
     h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
+    e.dispatch(e.draw, this);
+
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
     //Rendering scene nodes
-    var rn = this._renderNodesArr;
-    var i = rn.length;
+    var rn = this._renderNodesArr,
+        i = rn.length;
     while (i--) {
         rn[i].drawNode();
     }
+
+    this._drawEntityCollections();
 
     sfb.deactivate();
 

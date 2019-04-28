@@ -44,7 +44,7 @@ class PlanetCamera extends Camera {
          * @public
          * @type {number}
          */
-        this.minAltitude = options.minAltitude || 50;
+        this.minAltitude = options.minAltitude || 1;
 
         /**
          * Current geographical degree position.
@@ -517,7 +517,9 @@ class PlanetCamera extends Camera {
             this._u = this._framesArr[c].u;
             this._v = this._framesArr[c].v;
             this._n = this._framesArr[c].n;
+
             this.update();
+            
             this._framesCounter--;
 
             if (this._framesCounter < 0) {

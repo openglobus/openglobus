@@ -176,6 +176,10 @@ class Camera {
             n = this._n,
             eye = this.eye;
 
+        // let ex = doubleToTwoFloats(eye.x),
+        //     ey = doubleToTwoFloats(eye.y),
+        //     ez = doubleToTwoFloats(eye.z);
+
         this._viewMatrix.set([
             u.x, v.x, n.x, 0,
             u.y, v.y, n.y, 0,

@@ -7,6 +7,7 @@
 import * as shaders from '../shaders/label.js';
 import { ALIGN } from './Label.js';
 import { BillboardHandler } from './BillboardHandler.js';
+import { doubleToTwoFloats } from '../math/coder.js';
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -80,8 +81,8 @@ class LabelHandler extends BillboardHandler {
     }
 
     assignFontAtlas(label) {
-        if (this._entityCollection && this._entityCollection.renderNode) {
-            label.assignFontAtlas(this._entityCollection.renderNode.fontAtlas);
+        if (this._entityCollection && this._renderer) {
+            label.assignFontAtlas(this._renderer.fontAtlas);
         }
     }
 
@@ -89,7 +90,8 @@ class LabelHandler extends BillboardHandler {
 
         this._texCoordArr.length = 0;
         this._vertexArr.length = 0;
-        this._positionArr.length = 0;
+        this._positionHighArr.length = 0;
+        this._positionLowArr.length = 0;
         this._sizeArr.length = 0;
         this._offsetArr.length = 0;
         this._rgbaArr.length = 0;
@@ -102,7 +104,8 @@ class LabelHandler extends BillboardHandler {
 
         this._texCoordArr = [];
         this._vertexArr = [];
-        this._positionArr = [];
+        this._positionHighArr = [];
+        this._positionLowArr = [];
         this._sizeArr = [];
         this._offsetArr = [];
         this._rgbaArr = [];
@@ -126,7 +129,8 @@ class LabelHandler extends BillboardHandler {
         gl.deleteBuffer(this._outlineBuffer);
         gl.deleteBuffer(this._noOutlineBuffer);
         gl.deleteBuffer(this._outlineColorBuffer);
-        gl.deleteBuffer(this._positionBuffer);
+        gl.deleteBuffer(this._positionHighBuffer);
+        gl.deleteBuffer(this._positionLowBuffer);
         gl.deleteBuffer(this._sizeBuffer);
         gl.deleteBuffer(this._offsetBuffer);
         gl.deleteBuffer(this._rgbaBuffer);
@@ -141,7 +145,8 @@ class LabelHandler extends BillboardHandler {
         this._texCoordBuffer = null;
         this._outlineBuffer = null;
         this._outlineColorBuffer = null;
-        this._positionBuffer = null;
+        this._positionHighBuffer = null;
+        this._positionLowBuffer = null;
         this._sizeBuffer = null;
         this._offsetBuffer = null;
         this._rgbaBuffer = null;
@@ -163,8 +168,11 @@ class LabelHandler extends BillboardHandler {
 
             BillboardHandler.concArr(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
 
-            var x = label._position.x, y = label._position.y, z = label._position.z, w = label._scale;
-            BillboardHandler.concArr(this._positionArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+            var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
+            BillboardHandler.concArr(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+            x = label._positionLow.x, y = label._positionLow.y, z = label._positionLow.z;
+            BillboardHandler.concArr(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = label._size;
             BillboardHandler.concArr(this._sizeArr, [x, x, x, x, x, x]);
@@ -213,12 +221,18 @@ class LabelHandler extends BillboardHandler {
 
         var rn = ec.renderNode;
 
-        gl.uniform1iv(shu.u_fontTextureArr, rn.fontAtlas.samplerArr);
+        gl.uniform1iv(shu.u_fontTextureArr, r.fontAtlas.samplerArr);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+        //gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+        let ex = doubleToTwoFloats(r.activeCamera.eye.x),
+            ey = doubleToTwoFloats(r.activeCamera.eye.y),
+            ez = doubleToTwoFloats(r.activeCamera.eye.z);
+
+        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
 
         gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 
@@ -232,8 +246,11 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(sha.a_positions, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
+        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -288,7 +305,13 @@ class LabelHandler extends BillboardHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+        //gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+        let ex = doubleToTwoFloats(r.activeCamera.eye.x),
+            ey = doubleToTwoFloats(r.activeCamera.eye.y),
+            ez = doubleToTwoFloats(r.activeCamera.eye.z);
+
+        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
 
         gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 
@@ -302,8 +325,11 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(sha.a_positions, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
+        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -333,10 +359,11 @@ class LabelHandler extends BillboardHandler {
         this._rgbaArr.splice(i, ml);
         this._outlineColorArr.splice(i, ml);
         this._texCoordArr.splice(i, ml);
-        this._positionArr.splice(i, ml);
 
         ml = 18 * this._maxLetters;
         i = li * ml;
+        this._positionHighArr.splice(i, ml);
+        this._positionLowArr.splice(i, ml);
         this._offsetArr.splice(i, ml);
         this._alignedAxisArr.splice(i, ml);
         this._pickingColorArr.splice(i, ml);
@@ -364,7 +391,7 @@ class LabelHandler extends BillboardHandler {
 
     setText(index, text, fontIndex, align) {
 
-        var fa = this._entityCollection.renderNode.fontAtlas.atlasesArr[fontIndex];
+        var fa = this._renderer.fontAtlas.atlasesArr[fontIndex];
 
         if (!fa) return;
 
@@ -454,52 +481,61 @@ class LabelHandler extends BillboardHandler {
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    setPositionArr(index, position) {
-        var i = index * 24 * this._maxLetters;
-        var a = this._positionArr, x = position.x, y = position.y, z = position.z;
+    setPositionArr(index, positionHigh, positionLow) {
+        var i = index * 18 * this._maxLetters;
+        var a = this._positionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z,
+            b = this._positionLowArr, xl = positionLow.x, yl = positionLow.y, zl = positionLow.z
 
         for (var q = 0; q < this._maxLetters; q++) {
-            var j = i + q * 24;
+            var j = i + q * 18;
             a[j] = x;
             a[j + 1] = y;
             a[j + 2] = z;
 
-            a[j + 4] = x;
-            a[j + 5] = y;
-            a[j + 6] = z;
+            a[j + 3] = x;
+            a[j + 4] = y;
+            a[j + 5] = z;
 
-            a[j + 8] = x;
-            a[j + 9] = y;
-            a[j + 10] = z;
+            a[j + 6] = x;
+            a[j + 7] = y;
+            a[j + 8] = z;
+
+            a[j + 9] = x;
+            a[j + 10] = y;
+            a[j + 11] = z;
 
             a[j + 12] = x;
             a[j + 13] = y;
             a[j + 14] = z;
 
-            a[j + 16] = x;
-            a[j + 17] = y;
-            a[j + 18] = z;
+            a[j + 15] = x;
+            a[j + 16] = y;
+            a[j + 17] = z;
 
-            a[j + 20] = x;
-            a[j + 21] = y;
-            a[j + 22] = z;
-        }
+            //low
+            b[j] = xl;
+            b[j + 1] = yl;
+            b[j + 2] = zl;
 
-        this._changedBuffers[POSITION_BUFFER] = true;
-    }
+            b[j + 3] = xl;
+            b[j + 4] = yl;
+            b[j + 5] = zl;
 
-    setScaleArr(index, scale) {
+            b[j + 6] = xl;
+            b[j + 7] = yl;
+            b[j + 8] = zl;
 
-        var i = index * 24 * this._maxLetters;
-        var a = this._positionArr;
-        for (var q = 0; q < this._maxLetters; q++) {
-            var j = i + q * 24;
-            a[j + 3] = scale;
-            a[j + 7] = scale;
-            a[j + 11] = scale;
-            a[j + 15] = scale;
-            a[j + 19] = scale;
-            a[j + 23] = scale;
+            b[j + 9] = xl;
+            b[j + 10] = yl;
+            b[j + 11] = zl;
+
+            b[j + 12] = xl;
+            b[j + 13] = yl;
+            b[j + 14] = zl;
+
+            b[j + 15] = xl;
+            b[j + 16] = yl;
+            b[j + 17] = zl;
         }
 
         this._changedBuffers[POSITION_BUFFER] = true;

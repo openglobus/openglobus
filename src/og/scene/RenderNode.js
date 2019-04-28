@@ -2,8 +2,6 @@
 
 import { BaseNode } from './BaseNode.js';
 import { Events } from '../Events.js';
-import { FontAtlas } from '../utils/FontAtlas.js';
-import { TextureAtlas } from '../utils/TextureAtlas.js';
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -60,21 +58,17 @@ class RenderNode extends BaseNode {
          */
         this.entityCollections = [];
 
-        /**
-         * Texture atlas for the billboards images. One atlas per node.
-         * @protected
-         * @type {og.utils.TextureAtlas}
-         */
-        this.billboardsTextureAtlas = new TextureAtlas();
-
-        /**
-         * Texture font atlas for the font families and styles. One atlas per node.
-         * @public
-         * @type {og.utils.FontAtlas}
-         */
-        this.fontAtlas = new FontAtlas();
-
         this.events = new Events(null, this);
+    }
+
+    /**
+     * Adds node to the current hierarchy.
+     * @public
+     * @type {og.RenderNode}
+     */
+    addNode(node) {
+        super.addNode(node);
+        node.assign(this.renderer);
     }
 
     setFontAtlas(fontAtlas) {
@@ -91,8 +85,6 @@ class RenderNode extends BaseNode {
      */
     assign(renderer) {
         this.renderer = renderer;
-        this.billboardsTextureAtlas.assignHandler(renderer.handler);
-        this.fontAtlas.assignHandler(renderer.handler);
         this._pickingId = renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
 
         for (var i = 0; i < this.entityCollections.length; i++) {
@@ -267,88 +259,8 @@ class RenderNode extends BaseNode {
         }
     }
 
-    /**
-     * Draws entity collections.
-     * @public
-     * @param {Array<og.EntityCollection>} ec - Entity collection array.
-     */
     drawEntityCollections(ec) {
-        if (ec.length) {
-            var gl = this.renderer.handler.gl;
-
-            gl.enable(gl.BLEND);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-            gl.disable(gl.CULL_FACE);
-
-            //Z-buffer offset
-            gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0.0, 0.0);
-
-            //billboards pass
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
-
-            var i = ec.length;
-            while (i--) {
-                var eci = ec[i];
-                if (eci._fadingOpacity) {
-                    //first begin draw event
-                    eci.events.dispatch(eci.events.draw, eci);
-                    eci.billboardHandler.draw();
-                }
-            }
-
-            //labels pass
-            var fa = this.fontAtlas.atlasesArr;
-            for (i = 0; i < fa.length; i++) {
-                gl.activeTexture(gl.TEXTURE0 + i);
-                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
-            }
-
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-            }
-
-            //polyline pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
-            }
-
-            gl.enable(gl.CULL_FACE);
-
-            //pointClouds pass
-            i = ec.length;
-            while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].pointCloudHandler.draw();
-                }
-            }
-
-            //shapes pass
-            i = ec.length;
-            while (i--) {
-                var eci = ec[i];
-                if (eci._fadingOpacity) {
-                    eci.shapeHandler.draw();
-                }
-            }
-
-            //Strip pass
-            i = ec.length;
-            while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].stripHandler.draw();
-                    //post draw event
-                    eci.events.dispatch(eci.events.drawend, eci);
-                }
-            }
-
-            //gl.polygonOffset(0.0, 0.0);
-            gl.disable(gl.POLYGON_OFFSET_FILL);
-        }
+        this.renderer.enqueueEntityCollectionsToDraw(ec);
     }
 
     /**

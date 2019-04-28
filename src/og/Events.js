@@ -109,23 +109,25 @@ class Events {
      * @param {eventCallback} callback - Attached  event callback.
      */
     off(name, callback) {
-        var st = name + "_" + this.__id + "_" + callback._openglobus_id;
-        if (callback._openglobus_id && this._stampCache[st]) {
-            var h = this[name].handlers;
-            var i = h.length;
-            var indexToRemove = -1;
-            while (i--) {
-                var hi = h[i];
-                if (hi._openglobus_id === callback._openglobus_id) {
-                    indexToRemove = i;
-                    break;
+        if (callback) {
+            var st = name + "_" + this.__id + "_" + callback._openglobus_id;
+            if (callback._openglobus_id && this._stampCache[st]) {
+                var h = this[name].handlers;
+                var i = h.length;
+                var indexToRemove = -1;
+                while (i--) {
+                    var hi = h[i];
+                    if (hi._openglobus_id === callback._openglobus_id) {
+                        indexToRemove = i;
+                        break;
+                    }
                 }
-            }
 
-            if (indexToRemove !== -1) {
-                h.splice(indexToRemove, 1);
-                this._stampCache[st] = undefined;
-                delete this._stampCache[st];
+                if (indexToRemove !== -1) {
+                    h.splice(indexToRemove, 1);
+                    this._stampCache[st] = undefined;
+                    delete this._stampCache[st];
+                }
             }
         }
     }
