@@ -38,7 +38,7 @@ class Planemarker {
         this._lonLatAlt = new LonLat(10, 10, 10000);
 
         this._neDir = [0, 0, 0];
-        this._vel = new Vec3(0.0, 1.0, 0.0);
+        this._vel = new Vec3(1.0, 1.0, 0.0);
 
         this._planet = null;
         this._scene = null;
@@ -78,8 +78,7 @@ class Planemarker {
 
     bindPlanet(planet) {
         this._planet = planet;
-        this.update();
-
+        this._planet.renderer.controls.mouseNavigation.deactivate();
         planet.renderer.events.on("mousewheel", this._onMouseWheel, this);
         planet.renderer.events.on("rhold", this._onMouseHold, this);
     }
@@ -103,12 +102,15 @@ class Planemarker {
     }
 
     update() {
-        this._planet.renderer.controls.mouseNavigation.deactivate();
-
         this.position.copy(this._planet.ellipsoid.lonLatToCartesian(this._lonLatAlt));
+
         this._orientation = Quat.yRotation(Math.atan2(this._vel.y, this._vel.x)).mul(getNorthBearingRotationFrame(this.position));
         let d = this._orientation.conjugate().mulVec3(MODEL_DIRECTION).normalize();
         this._neDir = [d.x, d.y, d.z];
+
+        this._neVel = Math.sqrt(this._vel.x * this._vel.x + this._vel.y * this._vel.y);
+        let upVel = this.position.normalNegateScale(this._vel.z);
+        this._dir = d.scaleTo(this._neVel).add(upVel).normalize();
     }
 
     init() {
@@ -208,6 +210,8 @@ class Planemarker {
     }
 
     draw() {
+
+        this.update();
 
         var r = this._scene.renderer;
         var sh = r.handler.programs.AirplaneShader;

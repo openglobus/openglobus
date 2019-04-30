@@ -72,6 +72,8 @@ export function vec3(x, y, z) {
  * Separate 63 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
+ * @param {Vec3} high - Out vector high values.
+ * @param {Vec3} low - Out vector low values.
  * @returns {Array.<number,number>} Encoded array.
  */
 Vec3.doubleToTwoFloats = function(v, high, low) {

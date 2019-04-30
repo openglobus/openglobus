@@ -19,6 +19,9 @@ import { Vec3 } from '../math/Vec3.js';
 
 export const MAX_NORMAL_ZOOM = 7;
 
+let _tempHigh = new Vec3(),
+    _tempLow = new Vec3();
+
 var _RenderingSlice = function (p) {
     this.layers = [];
     this.tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
@@ -178,18 +181,31 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     //this.plainIndexes = null;
     this.plainVertices = null;
+    this.plainVerticesHigh = null;
+    this.plainVerticesLow = null;
+
     this.plainNormals = null;
+
     this.terrainVertices = null;
+    this.terrainVerticesHigh = null;
+    this.terrainVerticesLow = null;
+
     this.tempVertices = null;
+    this.tempVerticesHigh = null;
+    this.tempVerticesLow = null;
 
     this.normalMapTexture = null;
     this.normalMapTextureBias = new Float32Array(3);
     this.normalMapVertices = null;
+    this.normalMapVerticesHigh = null;
+    this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
     this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
+    this.vertexPositionBufferHigh = null;
+    this.vertexPositionBufferLow = null;
     this.vertexTextureCoordBuffer = null;
 
     this._globalTextureCoordinates = new Float32Array(4);
@@ -525,7 +541,7 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    this.createCoordsBuffers(v, tgs);
+    this.createCoordsBuffers(new Float32Array(v), tgs);
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function (data) {
@@ -535,11 +551,20 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
     if (this.initialized && !this.terrainReady) {
 
         this.plainVertices = data.plainVertices;
+        this.plainVerticesHigh = data.plainVerticesHigh;
+        this.plainVerticesLow = data.plainVerticesLow;
+
         this.plainNormals = data.plainNormals;
-        this.normalMapVertices = data.normalMapVertices;
+
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
+        this.normalMapVertices = data.normalMapVertices;
+        this.normalMapVerticesHigh = data.normalMapVerticesHigh;
+        this.normalMapVerticesLow = data.normalMapVerticesLow;
+
         this.terrainVertices = this.plainVertices;
+        this.terrainVerticesHigh = this.plainVerticesHigh;
+        this.terrainVerticesLow = this.plainVerticesLow;
 
         this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
 
@@ -554,15 +579,33 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         this.normalMapNormals = null;
         this.normalMapNormalsRaw = null;
+
         this.normalMapVertices = null;
+        this.normalMapVerticesHigh = null;
+        this.normalMapVerticesLow = null;
+
         this.terrainVertices = null;
+        this.terrainVerticesHigh = null;
+        this.terrainVerticesLow = null;
+
         this.tempVertices = null;
+        this.tempVerticesHigh = null;
+        this.tempVerticesLow = null;
+
 
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
+        this.normalMapVerticesHigh = data.normalMapVerticesHigh;
+        this.normalMapVerticesLow = data.normalMapVerticesLow;
+
         this.terrainVertices = data.terrainVertices;
+        this.terrainVerticesHigh = data.terrainVerticesHigh;
+        this.terrainVerticesLow = data.terrainVerticesLow;
+
         this.tempVertices = data.terrainVertices;
+        this.tempVerticesHigh = data.terrainVerticesHigh;
+        this.tempVerticesLow = data.terrainVerticesLow;
 
         var b = data.bounds;
         this.setBoundingSphere(
@@ -734,10 +777,14 @@ Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
     gl.deleteBuffer(this.vertexNormalBuffer);
     gl.deleteBuffer(this.vertexPositionBuffer);
+    gl.deleteBuffer(this.vertexPositionBufferHigh);
+    gl.deleteBuffer(this.vertexPositionBufferLow);
     gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
+    this.vertexPositionBufferHigh = null;
+    this.vertexPositionBufferLow = null;
     this.vertexTextureCoordBuffer = null;
 };
 
@@ -764,11 +811,24 @@ Segment.prototype.deleteElevations = function () {
     this.terrainIsLoading = false;
 
     this.normalMapVertices = null;
+    this.normalMapVerticesHigh = null;
+    this.normalMapVerticesLow = null;
+
     this.normalMapNormals = null;
     this.normalMapNormalsRaw = null;
+
     this.tempVertices = null;
+    this.tempVerticesHigh = null;
+    this.tempVerticesLow = null;
+
     this.terrainVertices = null;
+    this.terrainVerticesHigh = null;
+    this.terrainVerticesLow = null;
+
     this.plainVertices = null;
+    this.plainVerticesHigh = null;
+    this.plainVerticesLow = null;
+
     this.plainNormals = null;
 
     if (this.normalMapReady) {
@@ -830,18 +890,30 @@ Segment.prototype.destroySegment = function () {
 
     //this.plainIndexes = null;
     this.plainVertices = null;
+    this.plainVerticesHigh = null;
+    this.plainVerticesLow = null;
     this.plainNormals = null;
+
     this.terrainVertices = null;
+    this.terrainVerticesHigh = null;
+    this.terrainVerticesLow = null;
+
     this.tempVertices = null;
+    this.tempVerticesHigh = null;
+    this.tempVerticesLow = null;
 
     this.normalMapTexture = null;
     this.normalMapTextureBias = null;
     this.normalMapVertices = null;
+    this.normalMapVerticesHigh = null;
+    this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
     this.normalMapNormalsRaw = null;
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
+    this.vertexPositionBufferHigh = null;
+    this.vertexPositionBufferLow = null;
     this.vertexTextureCoordBuffer = null;
 
     this._tileOffsetArr = null;
@@ -926,13 +998,17 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         let hgsOne = 0.5 * gs + 0.5;
 
-        this.terrainVertices = new Float32Array(sgs3);
-        this.normalMapVertices = new Float32Array(gs3);
+        this.terrainVertices = new Float64Array(sgs3);
+        this.normalMapVertices = new Float64Array(gs3);
+        this.normalMapVerticesHigh = new Float32Array(gs3);
+        this.normalMapVerticesLow = new Float32Array(gs3);
         this.normalMapNormals = new Float32Array(gs3);
         this.normalMapNormalsRaw = new Float32Array(gs3);
 
         let verts = this.terrainVertices,
             nmVerts = this.normalMapVertices,
+            nmVertsHigh = this.normalMapVerticesHigh,
+            nmVertsLow = this.normalMapVerticesLow,
             nmNorms = this.normalMapNormals;
 
         for (let i = 0; i < gs; i++) {
@@ -1017,6 +1093,8 @@ Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
     var h = this.handler;
 
     h.gl.deleteBuffer(this.vertexPositionBuffer);
+    h.gl.deleteBuffer(this.vertexPositionBufferHigh);
+    h.gl.deleteBuffer(this.vertexPositionBufferLow);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexTextureCoordBuffer = h.createArrayBuffer(textureCoordsTable[gridSize], 2, gsgs);
@@ -1138,14 +1216,22 @@ Segment.prototype._createPlainVertices = function () {
     var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
     this.plainNormals = new Float32Array(gridSize3);
-    this.plainVertices = new Float32Array(gridSize3);
+    this.plainVertices = new Float64Array(gridSize3);
+    this.plainVerticesHigh = new Float32Array(gridSize3);
+    this.plainVerticesLow = new Float32Array(gridSize3);
 
     this.normalMapNormals = new Float32Array(gsgs * 3);
-    this.normalMapVertices = new Float32Array(gsgs * 3);
+    this.normalMapVertices = new Float64Array(gsgs * 3);
+    this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
+    this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
     var verts = this.plainVertices,
+        vertsHigh = this.plainVerticesHigh,
+        vertsLow = this.plainVerticesLow,
         norms = this.plainNormals,
         nmVerts = this.normalMapVertices,
+        nmVertsHigh = this.normalMapVerticesHigh,
+        nmVertsLow = this.normalMapVerticesLow,
         nmNorms = this.normalMapNormals;
 
     for (var k = 0; k < gsgs; k++) {
@@ -1158,30 +1244,45 @@ Segment.prototype._createPlainVertices = function () {
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         var nxl = nx * l, nyl = ny * l, nzl = nz * l;
 
+        Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+
         nmVerts[nmInd] = v.x;
+        nmVertsHigh[nmInd] = _tempHigh.x;
+        nmVertsLow[nmInd] = _tempLow.x;
         nmNorms[nmInd++] = nxl;
 
         nmVerts[nmInd] = v.y;
+        nmVertsHigh[nmInd] = _tempHigh.y;
+        nmVertsLow[nmInd] = _tempLow.y;
         nmNorms[nmInd++] = nyl;
 
         nmVerts[nmInd] = v.z;
+        nmVertsHigh[nmInd] = _tempHigh.z;
+        nmVertsLow[nmInd] = _tempLow.z;
         nmNorms[nmInd++] = nzl;
 
         if (i % dg === 0 && j % dg === 0) {
+
             verts[ind] = v.x;
+            vertsHigh[ind] = _tempHigh.x;
+            vertsLow[ind] = _tempLow.x;
             norms[ind++] = nxl;
 
             verts[ind] = v.y;
+            vertsHigh[ind] = _tempHigh.y;
+            vertsLow[ind] = _tempLow.y;
             norms[ind++] = nyl;
 
             verts[ind] = v.z;
+            vertsHigh[ind] = _tempHigh.z;
+            vertsLow[ind] = _tempLow.z;
             norms[ind++] = nzl;
         }
     }
 
-    //if (this.tileZoom < this.planet.terrain.minZoom) {
     this.terrainVertices = verts;
-    //}
+    this.terrainVerticesHigh = vertsHigh;
+    this.terrainVerticesLow = vertsLow;
 
     //store raw normals
     this.normalMapNormalsRaw = new Float32Array(nmNorms.length);

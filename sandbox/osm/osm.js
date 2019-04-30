@@ -87,7 +87,9 @@ const tg = new CanvasTiles("Tile grid", {
         let size;
 
         //Draw text
-        if (material.segment.tileZoom > 14) {
+        if (material.segment.tileZoom > 17) {
+            size = "18";
+        } else if (material.segment.tileZoom > 14) {
             size = "26";
         } else {
             size = "32";
@@ -130,7 +132,7 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),//new MapboxTerrain(),
-    'layers': [osm, sat]
+    'layers': [osm, sat, tg]
 });
 
 globe.planet.addControl(new DebugInfo());

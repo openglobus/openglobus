@@ -546,7 +546,6 @@ class Planet extends RenderNode {
 
         this.terrain = terrain;
         this.terrain._planet = this;
-        this.terrain._maxNodeZoom = terrain.gridSizeByZoom.length - 1;
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
 
         if (terrain._geoid) {
@@ -903,6 +902,8 @@ class Planet extends RenderNode {
                 }
             }
         }
+
+        this._renderedNodes.push(this.camera._insideSegment.node);
     }
 
     /**
