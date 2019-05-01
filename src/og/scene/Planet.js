@@ -37,6 +37,7 @@ import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Plane } from '../math/Plane.js';
 import { Geoid } from '../terrain/Geoid.js';
+import { doubleToTwoFloats } from '../math/coder.js';
 
 const MAX_LOD = 0.98;
 const MIN_LOD = MAX_LOD - 0.35;
@@ -1019,6 +1020,13 @@ class Planet extends RenderNode {
             gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
+        let eye = renderer.activeCamera.eye;
+        let ex = doubleToTwoFloats(eye.x),
+            ey = doubleToTwoFloats(eye.y),
+            ez = doubleToTwoFloats(eye.z);
+        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
+
         //draw planet's nodes
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
@@ -1087,9 +1095,18 @@ class Planet extends RenderNode {
 
         h.programs.drawnode_heightPicking.activate();
         sh = h.programs.drawnode_heightPicking._program;
+        let shu = sh.uniforms;
+
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
 
-        h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
+        let eye = renderer.activeCamera.eye;
+        let ex = doubleToTwoFloats(eye.x),
+            ey = doubleToTwoFloats(eye.y),
+            ez = doubleToTwoFloats(eye.z);
+        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
+
+        //h.gl.uniform3fv(sh.uniforms.cameraPosition, renderer.activeCamera.eye.toVec());
 
         //draw planet's nodes
         var rn = this._renderedNodes,
@@ -1137,6 +1154,15 @@ class Planet extends RenderNode {
         h.programs.drawnode_colorPicking.activate();
         sh = h.programs.drawnode_colorPicking._program;
         gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
+
+        let shu = sh.uniforms;
+
+        let eye = renderer.activeCamera.eye;
+        let ex = doubleToTwoFloats(eye.x),
+            ey = doubleToTwoFloats(eye.y),
+            ez = doubleToTwoFloats(eye.z);
+        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
 
         //draw planet's nodes
         var rn = this._renderedNodes,

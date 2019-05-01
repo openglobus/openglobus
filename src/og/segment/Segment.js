@@ -17,6 +17,15 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
+function checkArrays(arr, arrHigh, arrLow) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arrHigh[i] + arrLow[i] !== arr[i]) {
+            console.log("double precission error");
+            debugger;
+        }
+    }
+};
+
 export const MAX_NORMAL_ZOOM = 7;
 
 let _tempHigh = new Vec3(),
@@ -471,8 +480,10 @@ Segment.prototype.equalize = function () {
 Segment.prototype.engage = function () {
     this.readyToEngage = false;
 
-    let v = this.terrainVertices;
-    const tgsOne = Math.sqrt(v.length / 3);
+    let vHigh = this.terrainVerticesHigh,
+        vLow = this.terrainVerticesLow;
+
+    const tgsOne = Math.sqrt(vHigh.length / 3);
     const tgs = tgsOne - 1;
 
     // if (this.planet.terrain.equalizeVertices && this.terrainReady) {
@@ -541,7 +552,7 @@ Segment.prototype.engage = function () {
     //     }
     // }
 
-    this.createCoordsBuffers(new Float32Array(v), tgs);
+    this.createCoordsBuffers(vHigh, vLow, tgs);
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function (data) {
@@ -1056,8 +1067,8 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         this.normalMapNormalsRaw.set(nmNorms);
 
-        //this.createCoordsBuffers(this.terrainVertices, this.gridSize);
         this.readyToEngage = true;
+
         this.setBoundingSphere(
             xmin + (xmax - xmin) * 0.5,
             ymin + (ymax - ymin) * 0.5,
@@ -1087,18 +1098,20 @@ Segment.prototype.createTerrainFromChildNodes = function () {
     return true;
 };
 
-Segment.prototype.createCoordsBuffers = function (vertices, gridSize) {
+Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
 
     var gsgs = (gridSize + 1) * (gridSize + 1);
     var h = this.handler;
 
-    h.gl.deleteBuffer(this.vertexPositionBuffer);
+    //h.gl.deleteBuffer(this.vertexPositionBuffer);
     h.gl.deleteBuffer(this.vertexPositionBufferHigh);
     h.gl.deleteBuffer(this.vertexPositionBufferLow);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexTextureCoordBuffer = h.createArrayBuffer(textureCoordsTable[gridSize], 2, gsgs);
-    this.vertexPositionBuffer = h.createArrayBuffer(vertices, 3, gsgs);
+    //this.vertexPositionBuffer = h.createArrayBuffer(vertices, 3, gsgs);
+    this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
+    this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
 };
 
 Segment.prototype._addViewExtent = function () {
@@ -1407,6 +1420,7 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
     }
 
     if (notEmpty || !isOverlay) {
+
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1430,8 +1444,12 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
             gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
         }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
+        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
+        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1483,6 +1501,7 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
     }
 
     if (notEmpty || !isOverlay) {
+
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1492,8 +1511,12 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
+        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
+        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1538,6 +1561,7 @@ Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex
     }
 
     if (notEmpty || !isOverlay) {
+
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1545,8 +1569,12 @@ Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
+        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
+        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);

@@ -10,6 +10,8 @@ export function drawnode_screen_nl() {
     return new Program("drawnode_screen_nl", {
         uniforms: {
             projectionViewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
@@ -19,21 +21,33 @@ export function drawnode_screen_nl() {
             height: "float"
         },
         attributes: {
-            aVertexPosition: "vec3",
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
 
         vertexShader:
-        `attribute vec3 aVertexPosition;
+            `attribute vec3 aVertexPositionHigh;
+            attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
+
             uniform mat4 projectionViewMatrix;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             uniform float height;
+
             varying vec2 vTextureCoord;
+
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
+
             void main(void) {
                 vTextureCoord = aTextureCoord;
+
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);
+
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
@@ -90,17 +104,21 @@ export function drawnode_screen_wl() {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            height: "float",
+
+            uGlobalTextureCoord: "vec4",
+            uNormalMapBias: "vec3",
+
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
             samplerArr: "sampler2dxx",
             transparentColorArr: "vec4",
             defaultTexture: "sampler2d",
-            height: "float",
             normalMatrix: "mat3",
             uNormalMap: "sampler2d",
-            uNormalMapBias: "vec3",
-            uGlobalTextureCoord: "vec4",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
             lightsPositions: "vec4",
@@ -109,26 +127,37 @@ export function drawnode_screen_wl() {
             specularMaterial: "vec4"
         },
         attributes: {
-            aVertexPosition: "vec3",
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
 
         vertexShader:
-        `attribute vec3 aVertexPosition;
+            `attribute vec3 aVertexPositionHigh;
+            attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
+
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             uniform float height;
             uniform vec4 uGlobalTextureCoord;
             uniform vec3 uNormalMapBias;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
+
             varying vec4 vTextureCoord;
             varying vec2 vGlobalTextureCoord;
             varying vec4 v_vertex;
             varying float v_height;
+
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
             void main(void) {
+
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);;
+
                 v_height = height;
                 vec3 heightVertex = aVertexPosition + normalize(aVertexPosition) * height;
                 v_vertex = viewMatrix * vec4(heightVertex, 1.0);
@@ -258,6 +287,8 @@ export function drawnode_colorPicking() {
     return new Program("drawnode_colorPicking", {
         uniforms: {
             projectionViewMatrix: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
@@ -268,20 +299,32 @@ export function drawnode_colorPicking() {
             height: "float"
         },
         attributes: {
-            aVertexPosition: "vec3",
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
 
         vertexShader:
-        `attribute vec3 aVertexPosition;
+            `attribute vec3 aVertexPositionHigh;
+            attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
+
             uniform mat4 projectionViewMatrix;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             uniform float height;
+
             varying vec2 vTextureCoord;
+
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
+
             void main(void) {
+
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);;
+
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
@@ -366,25 +409,37 @@ export function drawnode_heightPicking() {
             transparentColorArr: "vec4",
             defaultTexture: "sampler2d",
             height: "float",
-            cameraPosition: "vec3"
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3"
         },
         attributes: {
-            aVertexPosition: "vec3",
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
 
         vertexShader:
-        `attribute vec3 aVertexPosition;
+            `attribute vec3 aVertexPositionHigh;
+            attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
+
             uniform mat4 projectionViewMatrix;
             uniform float height;
-            uniform vec3 cameraPosition;
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
+
             varying vec2 vTextureCoord;
             varying float range;
+
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
+
             void main(void) {
+
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);
+
                 range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
