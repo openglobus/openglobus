@@ -78,29 +78,64 @@ const _programm =
     `
     'use strict';
 
-    var Vector3 = function(x, y, z) {
+    var Vec3 = function(x, y, z) {
         this.x = x;
         this.y = y;
         this.z = z;
     };
 
-    Vector3.prototype.sub = function(v) {
-        return new Vector3(this.x - v.x, this.y - v.y, this.z - v.z);
+    var doubleToTwoFloats = function(v, high, low) {
+
+        let x = v.x, y = v.y, z = v.z;
+    
+        if (x >= 0.0) {
+            var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+            high.x = Math.fround(doubleHigh);
+            low.x = Math.fround(x - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+            high.x = Math.fround(-doubleHigh);
+            low.x = Math.fround(x + doubleHigh);
+        }
+
+        if (y >= 0.0) {
+            var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+            high.y = Math.fround(doubleHigh);
+            low.y = Math.fround(y - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+            high.y = Math.fround(-doubleHigh);
+            low.y = Math.fround(y + doubleHigh);
+        }
+
+        if (z >= 0.0) {
+            var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+            high.z = Math.fround(doubleHigh);
+            low.z = Math.fround(z - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+            high.z = Math.fround(-doubleHigh);
+            low.z = Math.fround(z + doubleHigh);
+        }
     };
 
-    Vector3.prototype.add = function(v) {
-        return new Vector3(this.x + v.x, this.y + v.y, this.z + v.z);
+    Vec3.prototype.sub = function(v) {
+        return new Vec3(this.x - v.x, this.y - v.y, this.z - v.z);
     };
 
-    Vector3.prototype.cross = function(v) {
-        return new Vector3(
+    Vec3.prototype.add = function(v) {
+        return new Vec3(this.x + v.x, this.y + v.y, this.z + v.z);
+    };
+
+    Vec3.prototype.cross = function(v) {
+        return new Vec3(
             this.y * v.z - this.z * v.y,
             this.z * v.x - this.x * v.z,
             this.x * v.y - this.y * v.x
         );
     };
 
-    Vector3.prototype.normalize = function(v) {
+    Vec3.prototype.normalize = function(v) {
         var x = this.x, y = this.y, z = this.z;
         var length = 1.0 / Math.sqrt(x * x + y * y + z * z);
         this.x = x * length;
@@ -112,6 +147,11 @@ const _programm =
     var slice = function (t, h1, h0) {
       return t * (h1 - h0);
     };
+
+    var _tempVec = new Vec3(0.0, 0.0, 0.0);
+
+    var _tempHigh = new Vec3(0.0, 0.0, 0.0),
+        _tempLow = new Vec3(0.0, 0.0, 0.0);
 
     self.onmessage = function (e) {         
         var elevations = e.data.elevations,
@@ -137,12 +177,16 @@ const _programm =
         const gs = tgs + 1;
         const hf = heightFactor;
 
-        var nmvInd = 0;
-        var vInd = 0;
+        var nmvInd = 0,
+            vInd = 0;
 
-        var terrainVertices = new Float32Array(gs * gs * 3);
-        var normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
-        var normalMapVertices = new Float32Array(fileGridSize_one_x2 * 3);
+        var terrainVertices = new Float64Array(gs * gs * 3),
+            terrainVerticesHigh = new Float32Array(gs * gs * 3),
+            terrainVerticesLow = new Float32Array(gs * gs * 3),
+            normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3),
+            normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3),
+            normalMapVerticesHigh = new Float32Array(fileGridSize_one_x2 * 3),
+            normalMapVerticesLow = new Float32Array(fileGridSize_one_x2 * 3);
 
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
@@ -154,17 +198,40 @@ const _programm =
                     var j = k % fileGridSize_one,
                         i = ~~(k / fileGridSize_one);
 
+                    //
+                    // V0
+                    //
                     var hInd0 = k;
                     var vInd0 = hInd0 * 3;
                     var h0 = hf * elevations[hInd0];
-                    var v0 = new Vector3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
+                    var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
+
+                    doubleToTwoFloats(v0, _tempHigh, _tempLow);
+
                     normalMapVertices[vInd0] = v0.x;
                     normalMapVertices[vInd0 + 1] = v0.y;
                     normalMapVertices[vInd0 + 2] = v0.z;
 
+                    normalMapVerticesHigh[vInd0] = _tempHigh.x;
+                    normalMapVerticesHigh[vInd0 + 1] = _tempHigh.y;
+                    normalMapVerticesHigh[vInd0 + 2] = _tempHigh.z;
+
+                    normalMapVerticesLow[vInd0] = _tempLow.x;
+                    normalMapVerticesLow[vInd0 + 1] = _tempLow.y;
+                    normalMapVerticesLow[vInd0 + 2] = _tempLow.z;
+
                     if (i % dg === 0 && j % dg === 0) {
+
+                        terrainVerticesHigh[vInd] = _tempHigh.x;
+                        terrainVerticesLow[vInd] = _tempLow.x;
                         terrainVertices[vInd++] = v0.x;
+
+                        terrainVerticesHigh[vInd] = _tempHigh.y;
+                        terrainVerticesLow[vInd] = _tempLow.y;
                         terrainVertices[vInd++] = v0.y;
+
+                        terrainVerticesHigh[vInd] = _tempHigh.z;
+                        terrainVerticesLow[vInd] = _tempLow.z;
                         terrainVertices[vInd++] = v0.z;
 
                         if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
@@ -173,33 +240,79 @@ const _programm =
                     }
 
                     if (i !== fileGridSize && j !== fileGridSize) {
+
+                        //
+                        //  V1
+                        //
                         var hInd1 = k + 1;
                         var vInd1 = hInd1 * 3;
                         var h1 = hf * elevations[hInd1];
-                        var v1 = new Vector3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
+                        var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
+
+                        doubleToTwoFloats(v1, _tempHigh, _tempLow);
+
                         normalMapVertices[vInd1] = v1.x;
                         normalMapVertices[vInd1 + 1] = v1.y;
                         normalMapVertices[vInd1 + 2] = v1.z;
 
+                        normalMapVerticesHigh[vInd1] = _tempHigh.x;
+                        normalMapVerticesHigh[vInd1 + 1] = _tempHigh.y;
+                        normalMapVerticesHigh[vInd1 + 2] = _tempHigh.z;
+
+                        normalMapVerticesLow[vInd1] = _tempLow.x;
+                        normalMapVerticesLow[vInd1 + 1] = _tempLow.y;
+                        normalMapVerticesLow[vInd1 + 2] = _tempLow.z;
+
+                        //
+                        //  V2
+                        //
                         var hInd2 = k + fileGridSize_one;
                         var vInd2 = hInd2 * 3;
                         var h2 = hf * elevations[hInd2];
-                        var v2 = new Vector3(
+                        var v2 = new Vec3(
                             nv[vInd2] + h2 * nn[vInd2],
                             nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
                             nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
+
+                        doubleToTwoFloats(v2, _tempHigh, _tempLow);
+
                         normalMapVertices[vInd2] = v2.x;
                         normalMapVertices[vInd2 + 1] = v2.y;
                         normalMapVertices[vInd2 + 2] = v2.z;
 
+                        normalMapVerticesHigh[vInd2] = _tempHigh.x;
+                        normalMapVerticesHigh[vInd2 + 1] = _tempHigh.y;
+                        normalMapVerticesHigh[vInd2 + 2] = _tempHigh.z;
+
+                        normalMapVerticesLow[vInd2] = _tempLow.x;
+                        normalMapVerticesLow[vInd2 + 1] = _tempLow.y;
+                        normalMapVerticesLow[vInd2 + 2] = _tempLow.z;
+
+                        //
+                        //  V3
+                        //
                         var hInd3 = k + fileGridSize_one + 1;
                         var vInd3 = hInd3 * 3;
                         var h3 = hf * elevations[hInd3];
-                        var v3 = new Vector3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
+                        var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
+
+                        doubleToTwoFloats(v3, _tempHigh, _tempLow);
+
                         normalMapVertices[vInd3] = v3.x;
                         normalMapVertices[vInd3 + 1] = v3.y;
                         normalMapVertices[vInd3 + 2] = v3.z;
 
+                        normalMapVerticesHigh[vInd3] = _tempHigh.x;
+                        normalMapVerticesHigh[vInd3 + 1] = _tempHigh.y;
+                        normalMapVerticesHigh[vInd3 + 2] = _tempHigh.z;
+
+                        normalMapVerticesLow[vInd3] = _tempLow.x;
+                        normalMapVerticesLow[vInd3 + 1] = _tempLow.y;
+                        normalMapVerticesLow[vInd3 + 2] = _tempLow.z;
+
+                        //
+                        // Normal
+                        //
                         var e10 = v1.sub(v0),
                             e20 = v2.sub(v0),
                             e30 = v3.sub(v0);
@@ -264,19 +377,29 @@ const _programm =
                         h = hf * (hvrb + slice((oneSize - inside_j) / oneSize, hvlb, hvrb) + slice((oneSize - inside_i) / oneSize, hvrt, hvrb));
                     }
 
-                    var x = plain_verts[vInd] + h * plainNormals[vInd],
-                        y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
-                        z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
+                    _tempVec.x = plain_verts[vInd] + h * plainNormals[vInd],
+                    _tempVec.y = plain_verts[vInd + 1] + h * plainNormals[vInd + 1],
+                    _tempVec.z = plain_verts[vInd + 2] + h * plainNormals[vInd + 2];
 
-                    terrainVertices[vInd] = x;
-                    terrainVertices[vInd + 1] = y;
-                    terrainVertices[vInd + 2] = z;
+                    doubleToTwoFloats(_tempVec, _tempHigh, _tempLow);
+
+                    terrainVertices[vInd] = _tempVec.x;
+                    terrainVertices[vInd + 1] = _tempVec.y;
+                    terrainVertices[vInd + 2] = _tempVec.z;
+
+                    terrainVerticesHigh[vInd] = _tempHigh.x;
+                    terrainVerticesHigh[vInd + 1] = _tempHigh.y;
+                    terrainVerticesHigh[vInd + 2] = _tempHigh.z;
+
+                    terrainVerticesLow[vInd] = _tempLow.x;
+                    terrainVerticesLow[vInd + 1] = _tempLow.y;
+                    terrainVerticesLow[vInd + 2] = _tempLow.z;
 
                     vInd += 3;
 
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+                    if (_tempVec.x < xmin) xmin = _tempVec.x; if (_tempVec.x > xmax) xmax = _tempVec.x;
+                    if (_tempVec.y < ymin) ymin = _tempVec.y; if (_tempVec.y > ymax) ymax = _tempVec.y;
+                    if (_tempVec.z < zmin) zmin = _tempVec.z; if (_tempVec.z > zmax) zmax = _tempVec.z;
 
                 }
             }
@@ -292,12 +415,21 @@ const _programm =
                 normalMapNormals: normalMapNormals,
                 normalMapNormalsRaw: normalMapNormalsRaw,
                 normalMapVertices: normalMapVertices,
+                normalMapVerticesHigh: normalMapVerticesHigh,
+                normalMapVerticesLow: normalMapVerticesLow,
                 terrainVertices: terrainVertices,
+                terrainVerticesHigh: terrainVerticesHigh,
+                terrainVerticesLow: terrainVerticesLow,
                 bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
-             }, [normalMapNormals.buffer, 
-                normalMapNormalsRaw.buffer, 
-                normalMapVertices.buffer, 
-                terrainVertices.buffer
+             }, [
+                    normalMapNormals.buffer, 
+                    normalMapNormalsRaw.buffer, 
+                    normalMapVertices.buffer, 
+                    normalMapVerticesHigh.buffer, 
+                    normalMapVerticesLow.buffer, 
+                    terrainVertices.buffer,
+                    terrainVerticesHigh.buffer,
+                    terrainVerticesLow.buffer
             ]);
     }`;
 
