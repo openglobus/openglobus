@@ -903,6 +903,8 @@ class Planet extends RenderNode {
                 }
             }
         }
+
+        this._renderedNodes.push(this.camera._insideSegment.node);
     }
 
     /**
