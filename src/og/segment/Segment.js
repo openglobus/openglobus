@@ -19,7 +19,7 @@ import { Vec3 } from '../math/Vec3.js';
 
 function checkArrays(arr, arrHigh, arrLow) {
     for (var i = 0; i < arr.length; i++) {
-        if (arrHigh[i] + arrLow[i] !== arr[i]) {
+        if (Math.abs(arrHigh[i] + arrLow[i] - arr[i]) > 0.01) {
             console.log("double precission error");
             debugger;
         }
@@ -577,6 +577,8 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
         this.terrainVerticesHigh = this.plainVerticesHigh;
         this.terrainVerticesLow = this.plainVerticesLow;
 
+        checkArrays(this.terrainVertices, this.terrainVerticesHigh, this.terrainVerticesLow);
+
         this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
 
         this.plainReady = true;
@@ -617,6 +619,8 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVertices = data.terrainVertices;
         this.tempVerticesHigh = data.terrainVerticesHigh;
         this.tempVerticesLow = data.terrainVerticesLow;
+
+        checkArrays(this.terrainVertices, this.terrainVerticesHigh, this.terrainVerticesLow);
 
         var b = data.bounds;
         this.setBoundingSphere(
@@ -1292,6 +1296,8 @@ Segment.prototype._createPlainVertices = function () {
             norms[ind++] = nzl;
         }
     }
+
+    checkArrays(verts, vertsHigh, vertsLow);
 
     this.terrainVertices = verts;
     this.terrainVerticesHigh = vertsHigh;

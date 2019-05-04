@@ -9,12 +9,15 @@ import { inherits } from '../inherits.js';
 import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
 import { Segment } from './Segment.js';
+import { Vec3 } from '../math/Vec3.js';
 
 
 const _heightLat = 90.0 - mercator.MAX_LAT;
 const _maxPoleZoom = 7;
 const _pieceSize = _heightLat / Math.pow(2, _maxPoleZoom);
 
+let _tempHigh = new Vec3(),
+    _tempLow = new Vec3();
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
@@ -109,14 +112,22 @@ SegmentLonLat.prototype._createPlainVertices = function () {
     var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
     this.plainNormals = new Float32Array(gridSize3);
-    this.plainVertices = new Float32Array(gridSize3);
+    this.plainVertices = new Float64Array(gridSize3);
+    this.plainVerticesHigh = new Float32Array(gridSize3);
+    this.plainVerticesLow = new Float32Array(gridSize3);
 
     this.normalMapNormals = new Float32Array(gsgs * 3);
-    this.normalMapVertices = new Float32Array(gsgs * 3);
+    this.normalMapVertices = new Float64Array(gsgs * 3);
+    this.normalMapVerticesHigh = new Float64Array(gsgs * 3);
+    this.normalMapVerticesLow = new Float64Array(gsgs * 3);
 
     var verts = this.plainVertices,
+        vertsHigh = this.plainVerticesHigh,
+        vertsLow = this.plainVerticesLow,
         norms = this.plainNormals,
         nmVerts = this.normalMapVertices,
+        nmVertsHigh = this.normalMapVerticesHigh,
+        nmVertsLow = this.normalMapVerticesLow,
         nmNorms = this.normalMapNormals;
 
     for (var k = 0; k < gsgs; k++) {
@@ -129,30 +140,44 @@ SegmentLonLat.prototype._createPlainVertices = function () {
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         var nxl = nx * l, nyl = ny * l, nzl = nz * l;
 
+        Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+
         nmVerts[nmInd] = v.x;
+        nmVertsHigh[nmInd] = _tempHigh.x;
+        nmVertsLow[nmInd] = _tempLow.x;
         nmNorms[nmInd++] = nxl;
 
         nmVerts[nmInd] = v.y;
+        nmVertsHigh[nmInd] = _tempHigh.y;
+        nmVertsLow[nmInd] = _tempLow.y;
         nmNorms[nmInd++] = nyl;
 
         nmVerts[nmInd] = v.z;
+        nmVertsHigh[nmInd] = _tempHigh.z;
+        nmVertsLow[nmInd] = _tempLow.z;
         nmNorms[nmInd++] = nzl;
 
         if (i % dg === 0 && j % dg === 0) {
             verts[ind] = v.x;
+            vertsHigh[ind] = _tempHigh.x;
+            vertsLow[ind] = _tempLow.x;
             norms[ind++] = nxl;
 
             verts[ind] = v.y;
+            vertsHigh[ind] = _tempHigh.y;
+            vertsLow[ind] = _tempLow.y;
             norms[ind++] = nyl;
 
             verts[ind] = v.z;
+            vertsHigh[ind] = _tempHigh.z;
+            vertsLow[ind] = _tempLow.z;
             norms[ind++] = nzl;
         }
     }
 
-    //if (this.tileZoom < this.planet.terrain.minZoom) {
     this.terrainVertices = verts;
-    //}
+    this.terrainVerticesHigh = vertsHigh;
+    this.terrainVerticesLow = vertsLow;
 
     //store raw normals
     this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
