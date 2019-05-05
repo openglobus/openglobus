@@ -668,9 +668,11 @@ Segment.prototype.elevationsNotExists = function () {
             this.readyToEngage = true;
         }
 
-        var v = this.terrainVertices = this.plainVertices;
+        this.terrainVertices = this.plainVertices;
+        this.terrainVerticesHigh = this.plainVerticesHigh;
+        this.terrainVerticesLow = this.plainVerticesLow;
 
-        this.fileGridSize = Math.sqrt(v.length / 3) - 1;
+        this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.terrainReady = true;
         this.terrainExists = false;
     }
@@ -1013,17 +1015,27 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         let hgsOne = 0.5 * gs + 0.5;
 
+
         this.terrainVertices = new Float64Array(sgs3);
+        this.terrainVerticesHigh = new Float32Array(sgs3);
+        this.terrainVerticesLow = new Float32Array(sgs3);
+
         this.normalMapVertices = new Float64Array(gs3);
         this.normalMapVerticesHigh = new Float32Array(gs3);
         this.normalMapVerticesLow = new Float32Array(gs3);
+
         this.normalMapNormals = new Float32Array(gs3);
         this.normalMapNormalsRaw = new Float32Array(gs3);
 
+
         let verts = this.terrainVertices,
+            vertsHigh = this.terrainVerticesHigh,
+            vertsLow = this.terrainVerticesLow,
+
             nmVerts = this.normalMapVertices,
             nmVertsHigh = this.normalMapVerticesHigh,
             nmVertsLow = this.normalMapVerticesLow,
+
             nmNorms = this.normalMapNormals;
 
         for (let i = 0; i < gs; i++) {
@@ -1042,24 +1054,49 @@ Segment.prototype.createTerrainFromChildNodes = function () {
                 let n_index = 3 * (nii * gs + njj);
 
                 let n_nmVerts = n.segment.normalMapVertices,
+                    n_nmVertsHigh = n.segment.normalMapVerticesHigh,
+                    n_nmVertsLow = n.segment.normalMapVerticesLow,
                     n_nmNormsRaw = n.segment.normalMapNormalsRaw;
 
                 let x = n_nmVerts[n_index],
                     y = n_nmVerts[n_index + 1],
-                    z = n_nmVerts[n_index + 2];
+                    z = n_nmVerts[n_index + 2],
+
+                    xHigh = n_nmVertsHigh[n_index],
+                    yHigh = n_nmVertsHigh[n_index + 1],
+                    zHigh = n_nmVertsHigh[n_index + 2],
+
+                    xLow = n_nmVertsLow[n_index],
+                    yLow = n_nmVertsLow[n_index + 1],
+                    zLow = n_nmVertsLow[n_index + 2];
 
                 nmVerts[nmInd] = x;
+                nmVertsHigh[nmInd] = xHigh;
+                nmVertsLow[nmInd] = xLow;
                 nmNorms[nmInd++] = n_nmNormsRaw[n_index];
 
                 nmVerts[nmInd] = y;
+                nmVertsHigh[nmInd] = yHigh;
+                nmVertsLow[nmInd] = yLow;
                 nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
 
                 nmVerts[nmInd] = z;
+                nmVertsHigh[nmInd] = zHigh;
+                nmVertsLow[nmInd] = zLow;
                 nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
 
                 if (i % dg === 0 && j % dg === 0) {
+
+                    vertsHigh[ind] = xHigh;
+                    vertsLow[ind] = xLow;
                     verts[ind++] = x;
+
+                    vertsHigh[ind] = yHigh;
+                    vertsLow[ind] = yLow;
                     verts[ind++] = y;
+
+                    vertsHigh[ind] = zHigh;
+                    vertsLow[ind] = zLow;
                     verts[ind++] = z;
 
                     if (x < xmin) xmin = x; if (x > xmax) xmax = x;

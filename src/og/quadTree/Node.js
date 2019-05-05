@@ -23,6 +23,9 @@ import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
 
+let _tempHigh = new Vec3(),
+    _tempLow = new Vec3();
+
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -57,41 +60,85 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 };
 
 
+///**
+// * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
+// * @static
+// * @param {Array.<number>} sourceArr - Source array
+// * @param {number} gridSize - Source array square matrix size
+// * @param {number} i0 - First row index source array matrix
+// * @param {number} j0 - First column index
+// * @param {number} size - Square matrix result size.
+// * @return{Array.<number>} Triangle coordinates array from the source array.
+// * @TODO: optimization
+// */
+//function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow) {
+
+//    const i0size = i0 + size + 1;
+//    const j0size = j0 + size + 1;
+
+//    var vInd = 0;
+//    for (var i = i0; i < i0size; i++) {
+//        for (var j = j0; j < j0size; j++) {
+//            var ind = 3 * (i * (gridSize + 1) + j);
+
+//            outArrLow[vInd] = sourceArrLow[ind];
+//            outArrHigh[vInd++] = sourceArrHigh[ind];
+
+//            outArrLow[vInd] = sourceArrLow[ind + 1];
+//            outArrHigh[vInd++] = sourceArrHigh[ind + 1];
+
+//            outArrLow[vInd] = sourceArrLow[ind + 2];
+//            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
+//        }
+//    }
+//};
+
+///**
+// * Returns triangle coordinate array from inside of the source triangle array.
+// * @static
+// * @param {Array.<number>} sourceArr - Source array
+// * @param {number} gridSize - Source array square matrix size
+// * @param {number} i0 - First row index source array matrix
+// * @param {number} j0 - First column index
+// * @param {number} size - Square matrix result size.
+// * @param {object} outBounds - Output bounds.
+// * @return{Array.<number>} Triangle coordinates array from the source array.
+// * @TODO: optimization
+// */
+//function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
+
+//    const size_1 = size + 1;
+//    const i0size = i0 + size_1;
+//    const j0size = j0 + size_1;
+
+//    var res = new Float64Array(size_1 * size_1 * 3);
+
+//    var vInd = 0;
+//    for (var i = i0; i < i0size; i++) {
+//        for (var j = j0; j < j0size; j++) {
+//            var ind = 3 * (i * (gridSize + 1) + j);
+
+//            let x = sourceArr[ind],
+//                y = sourceArr[ind + 1],
+//                z = sourceArr[ind + 2];
+
+//            if (x < outBounds.xmin) outBounds.xmin = x;
+//            if (x > outBounds.xmax) outBounds.xmax = x;
+//            if (y < outBounds.ymin) outBounds.ymin = y;
+//            if (y > outBounds.ymax) outBounds.ymax = y;
+//            if (z < outBounds.zmin) outBounds.zmin = z;
+//            if (z > outBounds.zmax) outBounds.zmax = z;
+
+//            res[vInd++] = x;
+//            res[vInd++] = y;
+//            res[vInd++] = z;
+//        }
+//    }
+//    return res;
+//};
+
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
- * @static
- * @param {Array.<number>} sourceArr - Source array
- * @param {number} gridSize - Source array square matrix size
- * @param {number} i0 - First row index source array matrix
- * @param {number} j0 - First column index
- * @param {number} size - Square matrix result size.
- * @return{Array.<number>} Triangle coordinates array from the source array.
- * @TODO: optimization
- */
-function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow) {
-
-    const i0size = i0 + size + 1;
-    const j0size = j0 + size + 1;
-
-    var vInd = 0;
-    for (var i = i0; i < i0size; i++) {
-        for (var j = j0; j < j0size; j++) {
-            var ind = 3 * (i * (gridSize + 1) + j);
-
-            outArrLow[vInd] = sourceArrLow[ind];
-            outArrHigh[vInd++] = sourceArrHigh[ind];
-
-            outArrLow[vInd] = sourceArrLow[ind + 1];
-            outArrHigh[vInd++] = sourceArrHigh[ind + 1];
-
-            outArrLow[vInd] = sourceArrLow[ind + 2];
-            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
-        }
-    }
-};
-
-/**
- * Returns triangle coordinate array from inside of the source triangle array.
  * @static
  * @param {Array.<number>} sourceArr - Source array
  * @param {number} gridSize - Source array square matrix size
@@ -102,13 +149,10 @@ function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, siz
  * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
+function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArr, outArrHigh, outArrLow, outBounds) {
 
-    const size_1 = size + 1;
-    const i0size = i0 + size_1;
-    const j0size = j0 + size_1;
-
-    var res = new Float64Array(size_1 * size_1 * 3);
+    const i0size = i0 + size + 1;
+    const j0size = j0 + size + 1;
 
     var vInd = 0;
     for (var i = i0; i < i0size; i++) {
@@ -126,53 +170,15 @@ function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
             if (z < outBounds.zmin) outBounds.zmin = z;
             if (z > outBounds.zmax) outBounds.zmax = z;
 
-            res[vInd++] = x;
-            res[vInd++] = y;
-            res[vInd++] = z;
-        }
-    }
-    return res;
-};
-
-/**
- * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
- * @static
- * @param {Array.<number>} sourceArr - Source array
- * @param {number} gridSize - Source array square matrix size
- * @param {number} i0 - First row index source array matrix
- * @param {number} j0 - First column index
- * @param {number} size - Square matrix result size.
- * @param {object} outBounds - Output bounds.
- * @return{Array.<number>} Triangle coordinates array from the source array.
- * @TODO: optimization
- */
-function getMatrixSubArrayBoundsExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow, outBounds) {
-
-    const i0size = i0 + size + 1;
-    const j0size = j0 + size + 1;
-
-    var vInd = 0;
-    for (var i = i0; i < i0size; i++) {
-        for (var j = j0; j < j0size; j++) {
-            var ind = 3 * (i * (gridSize + 1) + j);
-
-            let x = sourceArrHigh[ind] + sourceArrLow[ind],
-                y = sourceArrHigh[ind + 1] + sourceArrLow[ind + 1],
-                z = sourceArrHigh[ind + 2] + sourceArrLow[ind + 2];
-
-            if (x < outBounds.xmin) outBounds.xmin = x;
-            if (x > outBounds.xmax) outBounds.xmax = x;
-            if (y < outBounds.ymin) outBounds.ymin = y;
-            if (y > outBounds.ymax) outBounds.ymax = y;
-            if (z < outBounds.zmin) outBounds.zmin = z;
-            if (z > outBounds.zmax) outBounds.zmax = z;
-
+            outArr[vInd] = x;
             outArrLow[vInd] = sourceArrLow[ind];
             outArrHigh[vInd++] = sourceArrHigh[ind];
 
+            outArr[vInd] = y;
             outArrLow[vInd] = sourceArrLow[ind + 1];
             outArrHigh[vInd++] = sourceArrHigh[ind + 1];
 
+            outArr[vInd] = z;
             outArrLow[vInd] = sourceArrLow[ind + 2];
             outArrHigh[vInd++] = sourceArrHigh[ind + 2];
         }
@@ -803,7 +809,7 @@ Node.prototype.whileTerrainLoading = function () {
 
         let pseg = pn.segment;
 
-        let tempVertices = null,
+        let tempVertices,
             tempVerticesHigh,
             tempVerticesLow;
 
@@ -826,16 +832,19 @@ Node.prototype.whileTerrainLoading = function () {
                 seg.gridSize = gridSize;
 
                 let len = (gridSize + 1) * (gridSize + 1) * 3;
+                tempVertices = new Float64Array(len);
                 tempVerticesHigh = new Float32Array(len);
                 tempVerticesLow = new Float32Array(len);
 
-                tempVertices = getMatrixSubArrayBoundsExt(
+                getMatrixSubArrayBoundsExt(
+                    pseg.terrainVertices,
                     pseg.terrainVerticesHigh,
                     pseg.terrainVerticesLow,
                     pseg.gridSize,
                     gridSize * offsetY,
                     gridSize * offsetX,
                     gridSize,
+                    tempVertices,
                     tempVerticesHigh,
                     tempVerticesLow,
                     BOUNDS);
@@ -845,16 +854,19 @@ Node.prototype.whileTerrainLoading = function () {
                 seg.gridSize = gridSizeExt;
 
                 let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
+                tempVertices = new Float64Array(len);
                 tempVerticesHigh = new Float32Array(len);
                 tempVerticesLow = new Float32Array(len);
 
-                tempVertices = getMatrixSubArrayBoundsExt(
+                getMatrixSubArrayBoundsExt(
+                    pseg.normalMapVertices,
                     pseg.normalMapVerticesHigh,
                     pseg.normalMapVerticesLow,
                     pn.segment.planet.terrain.fileGridSize,
                     gridSizeExt * offsetY,
                     gridSizeExt * offsetX,
                     gridSizeExt,
+                    tempVertices,
                     tempVerticesHigh,
                     tempVerticesLow,
                     BOUNDS);
@@ -883,7 +895,9 @@ Node.prototype.whileTerrainLoading = function () {
 
                 let coords = new Vec3();
 
-                tempVertices = new Float32Array(3 * _vertOrder.length);
+                tempVertices = new Float64Array(3 * _vertOrder.length);
+                tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
+                tempVerticesLow = new Float32Array(3 * _vertOrder.length);
 
                 for (var i = 0; i < _vertOrder.length; i++) {
                     let vi_y = _vertOrder[i].y + t_i0,
@@ -898,11 +912,21 @@ Node.prototype.whileTerrainLoading = function () {
                         coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
                     }
 
+                    Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
+
                     let i3 = i * 3;
 
                     tempVertices[i3] = coords.x;
                     tempVertices[i3 + 1] = coords.y;
                     tempVertices[i3 + 2] = coords.z;
+
+                    tempVerticesHigh[i3] = _tempHigh.x;
+                    tempVerticesHigh[i3 + 1] = _tempHigh.y;
+                    tempVerticesHigh[i3 + 2] = _tempHigh.z;
+
+                    tempVerticesLow[i3] = _tempLow.x;
+                    tempVerticesLow[i3 + 1] = _tempLow.y;
+                    tempVerticesLow[i3 + 2] = _tempLow.z;
 
                     if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
                     if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
@@ -936,7 +960,10 @@ Node.prototype.whileTerrainLoading = function () {
 
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
+
                 seg.terrainVertices = tempVertices;
+                seg.terrainVerticesHigh = tempVerticesHigh;
+                seg.terrainVerticesLow = tempVerticesLow;
 
                 this.appliedTerrainNodeId = this.nodeId;
 

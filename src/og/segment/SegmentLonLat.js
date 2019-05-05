@@ -118,8 +118,8 @@ SegmentLonLat.prototype._createPlainVertices = function () {
 
     this.normalMapNormals = new Float32Array(gsgs * 3);
     this.normalMapVertices = new Float64Array(gsgs * 3);
-    this.normalMapVerticesHigh = new Float64Array(gsgs * 3);
-    this.normalMapVerticesLow = new Float64Array(gsgs * 3);
+    this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
+    this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
     var verts = this.plainVertices,
         vertsHigh = this.plainVerticesHigh,
