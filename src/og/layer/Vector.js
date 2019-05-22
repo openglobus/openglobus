@@ -469,7 +469,7 @@ class Vector extends Layer {
 
         this.clear();
 
-        var e = this._extent = new Extent(new LonLat(180, 90), new LonLat(-180, -90));
+        var e = this._extent;
 
         this._entities = new Array(entities.length);
 

@@ -555,6 +555,7 @@ class Layer {
                 this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity) {
                 this._fadingOpacity = this._opacity;
             }
+            return false;
         } else {
 
             this._fadingOpacity -= FADING_FACTOR;
