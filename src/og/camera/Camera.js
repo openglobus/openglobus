@@ -52,6 +52,10 @@ class Camera {
          */
         this.eye = new Vec3();
 
+        this.eyeHigh = new Float32Array(3);
+
+        this.eyeLow = new Float32Array(3);
+
         /**
          * Camera frustum. 
          * @public
@@ -176,9 +180,7 @@ class Camera {
             n = this._n,
             eye = this.eye;
 
-        // let ex = doubleToTwoFloats(eye.x),
-        //     ey = doubleToTwoFloats(eye.y),
-        //     ez = doubleToTwoFloats(eye.z);
+        Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
             u.x, v.x, n.x, 0,

@@ -292,7 +292,13 @@ const _programm =
 
     let _projFunc = null;
 
-    var lonLatToCartesian = function (lon, lat) {
+    const Vec3 = function (x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    };
+
+    var lonLatToCartesian = function (lon, lat, res) {
 
         let h = getHeight(lon, lat);
 
@@ -304,17 +310,55 @@ const _programm =
         let N = A / Math.sqrt(1.0 - E2 * slt * slt);
         let nc = (N + h) * Math.cos(latrad);       
         
-        return {
-            'x': nc * Math.sin(lonrad),
-            'y': (N * (1.0 - E2) + h) * slt,
-            'z': nc * Math.cos(lonrad)
-        }
+        res.x = nc * Math.sin(lonrad);
+        res.y = (N * (1.0 - E2) + h) * slt;
+        res.z = nc * Math.cos(lonrad);
     };
 
-    var lonLatToCartesianInverse = function (lon, lat){
-        return lonLatToCartesian(
+    var lonLatToCartesianInverse = function (lon, lat, res){
+        lonLatToCartesian(
             lon * INV_POLE_BY_180,
-            INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI);
+            INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
+            res);
+    };
+
+    var v = new Vec3(0.0, 0.0, 0.0);
+    var _tempHigh = new Vec3(0.0, 0.0, 0.0);
+    var _tempLow = new Vec3(0.0, 0.0, 0.0);
+
+    var doubleToTwoFloats = function(v, high, low) {
+
+        let x = v.x, y = v.y, z = v.z;
+    
+        if (x >= 0.0) {
+            var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+            high.x = Math.fround(doubleHigh);
+            low.x = Math.fround(x - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+            high.x = Math.fround(-doubleHigh);
+            low.x = Math.fround(x + doubleHigh);
+        }
+
+        if (y >= 0.0) {
+            var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+            high.y = Math.fround(doubleHigh);
+            low.y = Math.fround(y - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+            high.y = Math.fround(-doubleHigh);
+            low.y = Math.fround(y + doubleHigh);
+        }
+
+        if (z >= 0.0) {
+            var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+            high.z = Math.fround(doubleHigh);
+            low.z = Math.fround(z - doubleHigh);
+        } else {
+            var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+            high.z = Math.fround(-doubleHigh);
+            low.z = Math.fround(z + doubleHigh);
+        }
     };
 
     self.onmessage = function (msg) {
@@ -353,9 +397,16 @@ const _programm =
             const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
             let plainNormals = new Float32Array(gridSize3);
-            let plainVertices = new Float32Array(gridSize3);
+
+            let plainVertices = new Float64Array(gridSize3);
+            let plainVerticesHigh = new Float32Array(gridSize3);
+            let plainVerticesLow = new Float32Array(gridSize3);
+
             let normalMapNormals = new Float32Array(gsgs * 3);
-            let normalMapVertices = new Float32Array(gsgs * 3);
+
+            let normalMapVertices = new Float64Array(gsgs * 3);
+            let normalMapVerticesHigh = new Float32Array(gsgs * 3);
+            let normalMapVerticesLow = new Float32Array(gsgs * 3);
 
             let ind = 0,
                 nmInd = 0;
@@ -365,7 +416,7 @@ const _programm =
                 let j = k % gs,
                     i = ~~(k / gs);
 
-                let v =_projFunc(esw_lon + j * llStep, ene_lat - i * ltStep);
+                _projFunc(esw_lon + j * llStep, ene_lat - i * ltStep, v);
 
                 let nx = v.x * r2_x, ny = v.y * r2_y, nz = v.z * r2_z;
                 let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);            
@@ -373,23 +424,37 @@ const _programm =
                     nyl = ny * l,
                     nzl = nz * l;
 
+                doubleToTwoFloats(v, _tempHigh, _tempLow);
+
                 normalMapVertices[nmInd] = v.x;
+                normalMapVerticesHigh[nmInd] = _tempHigh.x;
+                normalMapVerticesLow[nmInd] = _tempLow.x;
                 normalMapNormals[nmInd++] = nxl;
 
                 normalMapVertices[nmInd] = v.y;
+                normalMapVerticesHigh[nmInd] = _tempHigh.y;
+                normalMapVerticesLow[nmInd] = _tempLow.y;
                 normalMapNormals[nmInd++] = nyl;
 
                 normalMapVertices[nmInd] = v.z;
+                normalMapVerticesHigh[nmInd] = _tempHigh.z;
+                normalMapVerticesLow[nmInd] = _tempLow.z;
                 normalMapNormals[nmInd++] = nzl;
 
                 if (i % dg === 0 && j % dg === 0) {
                     plainVertices[ind] = v.x;
+                    plainVerticesHigh[ind] = _tempHigh.x;
+                    plainVerticesLow[ind] = _tempLow.x;
                     plainNormals[ind++] = nxl;
 
                     plainVertices[ind] = v.y;
+                    plainVerticesHigh[ind] = _tempHigh.y;
+                    plainVerticesLow[ind] = _tempLow.y;
                     plainNormals[ind++] = nyl;
 
                     plainVertices[ind] = v.z;
+                    plainVerticesHigh[ind] = _tempHigh.z;
+                    plainVerticesLow[ind] = _tempLow.z;
                     plainNormals[ind++] = nzl;
                 }
             }
@@ -400,15 +465,23 @@ const _programm =
             self.postMessage({
                 id: msg.data.params[0],
                 plainVertices: plainVertices,
+                plainVerticesHigh: plainVerticesHigh,
+                plainVerticesLow: plainVerticesLow,
                 plainNormals: plainNormals,
                 normalMapNormals: normalMapNormals,
                 normalMapVertices: normalMapVertices,
+                normalMapVerticesHigh: normalMapVerticesHigh,
+                normalMapVerticesLow: normalMapVerticesLow,
                 normalMapNormalsRaw: normalMapNormalsRaw
              }, [
                 plainVertices.buffer,
+                plainVerticesHigh.buffer,
+                plainVerticesLow.buffer,
                 plainNormals.buffer,
                 normalMapNormals.buffer,
                 normalMapVertices.buffer,
+                normalMapVerticesHigh.buffer,
+                normalMapVerticesLow.buffer,
                 normalMapNormalsRaw.buffer
             ]);
         }

@@ -2,6 +2,7 @@
 
 import { Globe } from '../../src/og/Globe.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
@@ -87,7 +88,9 @@ const tg = new CanvasTiles("Tile grid", {
         let size;
 
         //Draw text
-        if (material.segment.tileZoom > 14) {
+        if (material.segment.tileZoom > 17) {
+            size = "18";
+        } else if (material.segment.tileZoom > 14) {
             size = "26";
         } else {
             size = "32";
@@ -107,10 +110,23 @@ let osm = new XYZ("OSM", {
     'shininess': 20,
     'diffuse': [0.89, 0.9, 0.83],
     'isBaseLayer': true,
-    'url': "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     'visibility': true,
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
 });
+
+//let sat = new XYZ("MapQuest Satellite", {
+//    shininess: 20,
+//    specular: [0.00048, 0.00037, 0.00035],
+//    diffuse: [0.88, 0.85, 0.8],
+//    ambient: [0.15, 0.1, 0.23],
+//    isBaseLayer: true,
+//    url: "//api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
+//    visibility: false,
+//    attribution: `@2014 MapQuest - Portions @2014 "Map data @
+//        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+//        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+//});
 
 let sat = new XYZ("MapQuest Satellite", {
     shininess: 20,
@@ -118,18 +134,17 @@ let sat = new XYZ("MapQuest Satellite", {
     diffuse: [0.88, 0.85, 0.8],
     ambient: [0.15, 0.1, 0.23],
     isBaseLayer: true,
-    url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
+    url: "http://api.tomtom.com/map/1/tile/basic/night/{z}/{x}/{y}.png?key=44LDLhblEzN2HswvgkU7wRFIOmoNUqFe",
     visibility: false,
     attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
 });
-
 
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new GlobusTerrain(),//new MapboxTerrain(),
+    'terrain': new EmptyTerrain(),//new MapboxTerrain(),
     'layers': [osm, sat]
 });
 

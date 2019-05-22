@@ -49,13 +49,11 @@ carrots.events.on("draw", function (c) {
 
 carrots.events.on("mouseenter", function (e) {
     let b = e.pickingObject.billboard;
-    b.setScale(3);
     b.setColor(1, 1, 1);
 });
 
 carrots.events.on("mouseleave", function (e) {
     let b = e.pickingObject.billboard;
-    b.setScale(1);
     b.setColorHTML(e.pickingObject.properties.color);
 });
 
@@ -65,9 +63,9 @@ let sat = new XYZ("MapQuest Satellite", {
     diffuse: new Vec3(0.88, 0.85, 0.8),
     ambient: new Vec3(0.15, 0.1, 0.23),
     isBaseLayer: true,
-    url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
+    url: "//tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
     visibility: true,
-    attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+    attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
 });
 
 
