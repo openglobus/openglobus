@@ -36,7 +36,7 @@ const EVENT_NAMES = [
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
- * @param {string} [options.url="http://earth3.openglobus.org/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
+ * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.fileGridSize=32] - Elevation tile grid size. Default is 32x32.
  * @param {string} [options.responseType="arraybuffer"] - Ajax responce type.
@@ -85,7 +85,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.url = options.url || "//earth3.openglobus.org/{z}/{y}/{x}.ddm";
+        this.url = options.url || "//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm";
 
         this._dataType = "arrayBuffer";
 
@@ -94,8 +94,10 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2];
+        this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
         //this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4, 2, 2];
+
+        this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
         /**
          * Elevation tile grid size.

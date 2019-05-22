@@ -155,8 +155,12 @@ export function drawnode_screen_wl() {
             float logc = 2.0 / log( C * far + 1.0 );
             void main(void) {
 
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 v_height = height;
                 vec3 heightVertex = aVertexPosition + normalize(aVertexPosition) * height;
@@ -164,7 +168,7 @@ export function drawnode_screen_wl() {
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
-                gl_Position = projectionMatrix * v_vertex;
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
 
@@ -322,11 +326,15 @@ export function drawnode_colorPicking() {
 
             void main(void) {
 
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);;
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+
+                mat4 projectionViewMatrixRTE = projectionViewMatrix;
+                projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 vTextureCoord = aTextureCoord;
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
+                gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
 
@@ -438,11 +446,18 @@ export function drawnode_heightPicking() {
             void main(void) {
 
                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+
+                mat4 projectionViewMatrixRTE = projectionViewMatrix;
+                projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
                 vTextureCoord = aTextureCoord;
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
+                //gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
+                gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
             

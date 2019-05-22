@@ -69,7 +69,7 @@ export function vec3(x, y, z) {
 };
 
 /**
- * Separate 63 bit value to two 32 bit float values.
+ * Separate 63 bit Vec3 to two Vec3 32 bit float values.
  * @function
  * @param {number} value - Double type value.
  * @param {Vec3} high - Out vector high values.
@@ -108,6 +108,49 @@ Vec3.doubleToTwoFloats = function(v, high, low) {
         var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
         high.z = Math.fround(-doubleHigh);
         low.z = Math.fround(z + doubleHigh);
+    }
+};
+
+/**
+ * Separate 63 bit Vec3 to two Vec3 32 bit float values.
+ * @function
+ * @param {number} value - Double type value.
+ * @param {Float32Array} high - Out vector high values.
+ * @param {Float32Array} low - Out vector low values.
+ * @returns {Array.<number,number>} Encoded array.
+ */
+Vec3.doubleToTwoFloat32Array = function (v, high, low) {
+
+    let x = v.x, y = v.y, z = v.z;
+
+    if (x >= 0.0) {
+        var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+        high[0] = Math.fround(doubleHigh);
+        low[0] = Math.fround(x - doubleHigh);
+    } else {
+        var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+        high[0] = Math.fround(-doubleHigh);
+        low[0] = Math.fround(x + doubleHigh);
+    }
+
+    if (y >= 0.0) {
+        var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+        high[1] = Math.fround(doubleHigh);
+        low[1] = Math.fround(y - doubleHigh);
+    } else {
+        var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+        high[1] = Math.fround(-doubleHigh);
+        low[1] = Math.fround(y + doubleHigh);
+    }
+
+    if (z >= 0.0) {
+        var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+        high[2] = Math.fround(doubleHigh);
+        low[2] = Math.fround(z - doubleHigh);
+    } else {
+        var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+        high[2] = Math.fround(-doubleHigh);
+        low[2] = Math.fround(z + doubleHigh);
     }
 };
 

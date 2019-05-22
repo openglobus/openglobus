@@ -22,7 +22,7 @@
         var osm = new XYZ("OpenStreetMap", {
         fading: true,
         isBaseLayer: true,
-        url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         visibility: true,
         attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
@@ -37,8 +37,8 @@
         url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: false,
         attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
         });
 
         var sat2 = new XYZ("MapQuest Satellite With Labels", {
@@ -51,8 +51,8 @@
         url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: false,
         attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
         });
 
         var dark = new XYZ("MapQuest Dark", {
@@ -65,8 +65,8 @@
         url: "https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: false,
         attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
         });
 
         var light = new XYZ("MapQuest Light", {
@@ -79,8 +79,8 @@
         url: "https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: false,
         attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
+        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
         });
 
         var states = new WMS("USA Population", {
@@ -88,7 +88,7 @@
         extent: [[-128, 24], [-66, 49]],
         visibility: false,
         isBaseLayer: false,
-        url: "http://openglobus.org/geoserver/",
+        url: "//openglobus.org/geoserver/",
         layers: "topp:states",
         opacity: 0.4,
         attribution: 'Hi!',

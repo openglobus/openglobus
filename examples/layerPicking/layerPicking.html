@@ -35,7 +35,7 @@
             shininess: 20,
             diffuse: [0.89, 0.9, 0.83],
             isBaseLayer: false,
-            url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
@@ -47,9 +47,9 @@
             diffuse: [0.88, 0.85, 0.8],
             ambient: [0.15, 0.1, 0.23],
             isBaseLayer: false,
-            url: "http://tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
+            url: "//tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
             visibility: true,
-            attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
+            attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
         });
 
         var states = new WMS("USA Population", {
@@ -57,7 +57,7 @@
             opacity: 0.7,
             visibility: true,
             isBaseLayer: false,
-            url: "http://openglobus.org/geoserver/",
+            url: "//openglobus.org/geoserver/",
             layers: "topp:states",
             transparentColor: [1.0, 1.0, 1.0]
         });
