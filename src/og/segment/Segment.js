@@ -1144,13 +1144,11 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
     var gsgs = (gridSize + 1) * (gridSize + 1);
     var h = this.handler;
 
-    //h.gl.deleteBuffer(this.vertexPositionBuffer);
     h.gl.deleteBuffer(this.vertexPositionBufferHigh);
     h.gl.deleteBuffer(this.vertexPositionBufferLow);
     h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexTextureCoordBuffer = h.createArrayBuffer(textureCoordsTable[gridSize], 2, gsgs);
-    //this.vertexPositionBuffer = h.createArrayBuffer(vertices, 3, gsgs);
     this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
     this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
 };
@@ -1487,8 +1485,6 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
             gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
         }
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
@@ -1554,8 +1550,6 @@ Segment.prototype._colorPickingRendering = function (sh, layerSlice, sliceIndex,
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
@@ -1612,8 +1606,6 @@ Segment.prototype._heightPickingRendering = function (sh, layerSlice, sliceIndex
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-        //gl.vertexAttribPointer(sha.aVertexPosition, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);

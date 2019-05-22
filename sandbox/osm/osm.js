@@ -1,8 +1,8 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
+//import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
@@ -144,8 +144,8 @@ let sat = new XYZ("MapQuest Satellite", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new EmptyTerrain(),//new MapboxTerrain(),
-    'layers': [osm, sat]
+    'terrain': new GlobusTerrain(),//new MapboxTerrain(),
+    'layers': [osm, sat, tg]
 });
 
 globe.planet.addControl(new DebugInfo());
