@@ -318,8 +318,8 @@ class MouseNavigation extends Control {
                 return;
 
             this.scaleRot -= this.inertia;
-            if (this.scaleRot <= 0) {
-                this.scaleRot = 0;
+            if (this.scaleRot <= 0.0) {
+                this.scaleRot = 0.0;
             } else {
                 r.controlsBag.scaleRot = this.scaleRot;
                 var rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
