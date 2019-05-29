@@ -224,7 +224,7 @@ class MouseNavigation extends Control {
                 if (cam.slope > 0.2) {
                     var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
                     if (targetPoint) {
-                        this.scaleRot = 1;
+                        this.scaleRot = 1.0;
                         this.qRot = Quat.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
                         var rot = this.qRot;
                         cam.eye = rot.mulVec3(cam.eye);
@@ -321,6 +321,7 @@ class MouseNavigation extends Control {
             if (this.scaleRot <= 0.0) {
                 this.scaleRot = 0.0;
             } else {
+
                 r.controlsBag.scaleRot = this.scaleRot;
                 var rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
                 if (!(rot.x || rot.y || rot.z)) {
