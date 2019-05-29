@@ -27,7 +27,7 @@
   "devDependencies": {
     "babel-eslint": "^8.0.0",
     "copy-webpack-plugin": "^4.5.1",
-    "css-loader": "^0.28.10",
+    "css-loader": "^2.1.1",
     "eslint": "^4.0.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
