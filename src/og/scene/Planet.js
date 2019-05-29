@@ -40,7 +40,7 @@ import { Geoid } from '../terrain/Geoid.js';
 import { doubleToTwoFloats } from '../math/coder.js';
 
 const MAX_LOD = 1.0;
-const MIN_LOD = 0.7;
+const MIN_LOD = 0.5;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -879,7 +879,7 @@ class Planet extends RenderNode {
         this._quadTree.renderTree(this.camera);
 
         //TODO:Abolish "magic" numbers
-        if (this.renderer.activeCamera.slope > 0.5 &&
+        if (this.renderer.activeCamera.slope > 0.6 &&
             this.renderer.activeCamera._lonLat.height < 850000.0 &&
             this.renderer.activeCamera._lonLat.height > 7000.0) {
 

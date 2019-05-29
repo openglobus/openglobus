@@ -16,15 +16,7 @@ import { textureCoordsTable } from './segmentHelper.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
-
-function checkArrays(arr, arrHigh, arrLow) {
-    for (var i = 0; i < arr.length; i++) {
-        if (Math.abs(arrHigh[i] + arrLow[i] - arr[i]) > 0.01) {
-            console.log("double precission error");
-            debugger;
-        }
-    }
-};
+import { cons } from '../cons.js';
 
 export const MAX_NORMAL_ZOOM = 7;
 
@@ -577,8 +569,6 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
         this.terrainVerticesHigh = this.plainVerticesHigh;
         this.terrainVerticesLow = this.plainVerticesLow;
 
-        checkArrays(this.terrainVertices, this.terrainVerticesHigh, this.terrainVerticesLow);
-
         this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
 
         this.plainReady = true;
@@ -619,8 +609,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVertices = data.terrainVertices;
         this.tempVerticesHigh = data.terrainVerticesHigh;
         this.tempVerticesLow = data.terrainVerticesLow;
-
-        checkArrays(this.terrainVertices, this.terrainVerticesHigh, this.terrainVerticesLow);
 
         var b = data.bounds;
         this.setBoundingSphere(
@@ -1332,8 +1320,6 @@ Segment.prototype._createPlainVertices = function () {
         }
     }
 
-    checkArrays(verts, vertsHigh, vertsLow);
-
     this.terrainVertices = verts;
     this.terrainVerticesHigh = vertsHigh;
     this.terrainVerticesLow = vertsLow;
@@ -1483,6 +1469,20 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
             gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
             gl.uniform3fv(shu.ambientMaterial, p._ambientMaterialArr);
             gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
+        }
+
+        if (!this.vertexPositionBufferHigh) {
+            var s = this.node.sideSize;
+            cons.logErr(`${this.gridSize},${s[0]},${s[1]},${s[2]},${s[3]}`);
+            cons.logErr(this.initialized);
+            cons.logErr("parentNormalMapReady:" + this.parentNormalMapReady);
+            cons.logErr("terrainReady:" + this.terrainReady);
+            cons.logErr("plainProcessing:" + this.plainProcessing);
+            cons.logErr("terrainIsLoading:" + this.terrainIsLoading);
+            cons.logErr("terrainExists:" + this.terrainExists);
+            cons.logErr("readyToEngage:" + this.readyToEngage);
+            cons.logErr(this.tileIndex);
+            debugger;
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);

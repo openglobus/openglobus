@@ -328,7 +328,12 @@ Node.prototype.createBounds = function () {
                 let t_i0 = offsetY - insideSize * i0,
                     t_j0 = offsetX - insideSize * j0;
 
-                let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                let bigOne;
+                if (pseg.gridSize === 1) {
+                    bigOne = pseg.terrainVertices;
+                } else {
+                    bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                }
 
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
@@ -364,6 +369,12 @@ Node.prototype.createBounds = function () {
                     coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
                     coords_lt
                 );
+
+                // var ddd = this.segment.planet.camera.eye.distance(seg.bsphere.center);
+                // if (ddd > 100000) {
+                //     debugger;
+                //     let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                // }
             }
         } else {
             seg.createBoundsByExtent();
@@ -442,7 +453,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
 
     //Search a node which the camera is flying over.
     if (!this.parentNode || this.parentNode._cameraInside) {
-        var inside;
+        let inside;
         if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
             seg._projection.id === EPSG3857.id) {
             inside = seg._extent.isInside(cam._lonLatMerc);
@@ -480,6 +491,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         //     tReady = p.segment.terrainReady;
         // }
 
+
         let tReady = seg.terrainReady;
 
         //First skip lowest zoom nodes
@@ -491,6 +503,12 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             this.traverseNodes(cam, maxZoom);
         } else {
             this.prepareForRendering(cam, altVis, inFrustum);
+        }
+
+        if (this._cameraInside && !this.initialized && !this.ready && !this.segment.plainVertices && !this.segment.vertexPositionBufferHigh) {
+            console.log(altVis);
+            console.log(inFrustum);
+            debugger;
         }
 
     } else {
@@ -516,7 +534,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
 
     let seg = this.segment;
 
-    if (cam._lonLat.height < VISIBLE_HEIGHT/* && seg.tileZoom >= MAX_NORMAL_ZOOM*/) {
+    if (cam._lonLat.height < VISIBLE_HEIGHT) {
 
         if (altVis) {
             this.renderNode(!inFrustum);
@@ -878,7 +896,14 @@ Node.prototype.whileTerrainLoading = function () {
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
 
-                let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                //let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+
+                let bigOne;
+                if (pseg.gridSize === 1) {
+                    bigOne = pseg.terrainVertices;
+                } else {
+                    bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                }
 
                 let insideSize = 1.0 / gridSize;
 
