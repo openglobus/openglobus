@@ -505,12 +505,6 @@ Node.prototype.renderTree = function (cam, maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum);
         }
 
-        if (this._cameraInside && !this.initialized && !this.ready && !this.segment.plainVertices && !this.segment.vertexPositionBufferHigh) {
-            console.log(altVis);
-            console.log(inFrustum);
-            debugger;
-        }
-
     } else {
         this.state = NOTRENDERING;
     }
