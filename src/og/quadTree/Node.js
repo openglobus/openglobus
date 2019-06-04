@@ -26,7 +26,6 @@ const VISIBLE_HEIGHT = 3000000.0;
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
 
-
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
  * @static
@@ -431,7 +430,7 @@ Node.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
-Node.prototype.renderTree = function (cam, maxZoom) {
+Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment) {
 
     if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
         return;
@@ -491,18 +490,19 @@ Node.prototype.renderTree = function (cam, maxZoom) {
         //     tReady = p.segment.terrainReady;
         // }
 
-
-        let tReady = seg.terrainReady;
-
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
-            this.traverseNodes(cam, maxZoom);
+            this.traverseNodes(cam, maxZoom, terrainReadySegment);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
-            this.prepareForRendering(cam, altVis, inFrustum);
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && tReady && !maxZoom || maxZoom) {
-            this.traverseNodes(cam, maxZoom);
+            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment);
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && !maxZoom || maxZoom) {
+            if (seg.terrainReady) {
+                this.traverseNodes(cam, maxZoom, seg);
+            } else {
+                this.traverseNodes(cam, maxZoom, terrainReadySegment);
+            }
         } else {
-            this.prepareForRendering(cam, altVis, inFrustum);
+            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment);
         }
 
     } else {
@@ -510,7 +510,7 @@ Node.prototype.renderTree = function (cam, maxZoom) {
     }
 };
 
-Node.prototype.traverseNodes = function (cam, maxZoom) {
+Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment) {
 
     if (!this.ready) {
         this.createChildrenNodes();
@@ -518,20 +518,20 @@ Node.prototype.traverseNodes = function (cam, maxZoom) {
 
     let n = this.nodes;
 
-    n[0].renderTree(cam, maxZoom);
-    n[1].renderTree(cam, maxZoom);
-    n[2].renderTree(cam, maxZoom);
-    n[3].renderTree(cam, maxZoom);
+    n[0].renderTree(cam, maxZoom, terrainReadySegment);
+    n[1].renderTree(cam, maxZoom, terrainReadySegment);
+    n[2].renderTree(cam, maxZoom, terrainReadySegment);
+    n[3].renderTree(cam, maxZoom, terrainReadySegment);
 };
 
-Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
+Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainReadySegment) {
 
     let seg = this.segment;
 
     if (cam._lonLat.height < VISIBLE_HEIGHT) {
 
         if (altVis) {
-            this.renderNode(!inFrustum);
+            this.renderNode(!inFrustum, terrainReadySegment);
         } else {
             this.state = NOTRENDERING;
         }
@@ -543,7 +543,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)) {
-            this.renderNode(!inFrustum);
+            this.renderNode(!inFrustum, terrainReadySegment);
         } else {
             this.state = NOTRENDERING;
         }
@@ -551,7 +551,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum) {
     }
 };
 
-Node.prototype.renderNode = function (onlyTerrain) {
+Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment) {
 
     var seg = this.segment;
 
@@ -564,7 +564,7 @@ Node.prototype.renderNode = function (onlyTerrain) {
 
         if (seg.createTerrainFromChildNodes()) {
 
-            this.whileTerrainLoading();
+            this.whileTerrainLoading(terrainReadySegment);
 
             if (!seg.plainProcessing) {
                 seg.createPlainSegmentAsync();
@@ -802,18 +802,24 @@ let BOUNDS = {
     'zmax': 0.0
 };
 
-Node.prototype.whileTerrainLoading = function () {
+Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
 
     const seg = this.segment;
     const terrain = this.planet.terrain;
 
-    let pn = this;
+    // let pn = this;
 
-    while (pn.parentNode && !pn.segment.terrainReady) {
-        pn = pn.parentNode;
-    }
+    // if (terrainReadySegment) {
+    //     pn = terrainReadySegment.node;
+    // } else {
+    //     while (pn.parentNode && !pn.segment.terrainReady) {
+    //         pn = pn.parentNode;
+    //     }
+    // }
 
-    if (pn.segment.terrainReady) {
+    if (terrainReadySegment && terrainReadySegment.terrainReady) {
+
+        let pn = terrainReadySegment.node;
 
         let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
