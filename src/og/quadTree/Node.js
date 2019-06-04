@@ -807,19 +807,17 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
     const seg = this.segment;
     const terrain = this.planet.terrain;
 
-    // let pn = this;
+    let pn = this;
 
-    // if (terrainReadySegment) {
-    //     pn = terrainReadySegment.node;
-    // } else {
-    //     while (pn.parentNode && !pn.segment.terrainReady) {
-    //         pn = pn.parentNode;
-    //     }
-    // }
+    if (terrainReadySegment) {
+        pn = terrainReadySegment.node;
+    } else {
+        while (pn.parentNode && !pn.segment.terrainReady) {
+            pn = pn.parentNode;
+        }
+    }
 
-    if (terrainReadySegment && terrainReadySegment.terrainReady) {
-
-        let pn = terrainReadySegment.node;
+    if (pn.segment.terrainReady) {
 
         let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
