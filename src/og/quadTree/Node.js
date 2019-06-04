@@ -430,7 +430,7 @@ Node.prototype.isBrother = function (node) {
         this.parentNode.id === node.parentNode.id;
 };
 
-Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment) {
+Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoading) {
 
     if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
         return;
@@ -494,15 +494,18 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment) {
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom, terrainReadySegment);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
-            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment);
+            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom && !maxZoom || maxZoom) {
             if (seg.terrainReady) {
                 this.traverseNodes(cam, maxZoom, seg);
             } else {
-                this.traverseNodes(cam, maxZoom, terrainReadySegment);
+                if (!stopLoading) {
+                    this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
+                }
+                this.traverseNodes(cam, maxZoom, terrainReadySegment, true);
             }
         } else {
-            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment);
+            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
         }
 
     } else {
@@ -510,7 +513,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment) {
     }
 };
 
-Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment) {
+Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment, stopLoading) {
 
     if (!this.ready) {
         this.createChildrenNodes();
@@ -518,20 +521,20 @@ Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment) {
 
     let n = this.nodes;
 
-    n[0].renderTree(cam, maxZoom, terrainReadySegment);
-    n[1].renderTree(cam, maxZoom, terrainReadySegment);
-    n[2].renderTree(cam, maxZoom, terrainReadySegment);
-    n[3].renderTree(cam, maxZoom, terrainReadySegment);
+    n[0].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+    n[1].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+    n[2].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+    n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
 };
 
-Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainReadySegment) {
+Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainReadySegment, stopLoading) {
 
     let seg = this.segment;
 
     if (cam._lonLat.height < VISIBLE_HEIGHT) {
 
         if (altVis) {
-            this.renderNode(!inFrustum, terrainReadySegment);
+            this.renderNode(!inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
         }
@@ -543,7 +546,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)) {
-            this.renderNode(!inFrustum, terrainReadySegment);
+            this.renderNode(!inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
         }
@@ -551,7 +554,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
     }
 };
 
-Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment) {
+Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoading) {
 
     var seg = this.segment;
 
@@ -570,7 +573,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment) {
                 seg.createPlainSegmentAsync();
             }
 
-            if (seg.plainReady) {
+            if (seg.plainReady && !stopLoading) {
                 seg.loadTerrain();
             }
         }
@@ -598,7 +601,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment) {
     seg._addViewExtent();
 
     //Finally this node proceeds to rendering.
-    this.addToRender();
+    !stopLoading && this.addToRender();
 };
 
 /**
