@@ -580,28 +580,30 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
     }
 
     if (onlyTerrain) {
-        this.state = -1/*NOTRENDERING*/;
+        this.state = -1;
         return;
     }
 
-    //Create normal map texture
-    if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
-        this.whileNormalMapCreating();
+    if (!stopLoading) {
+        //Create normal map texture
+        if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
+            this.whileNormalMapCreating();
+        }
+
+        //Calculate minimal and maximal zoom index on the screen
+        if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
+            this.planet.maxCurrZoom = seg.tileZoom;
+        }
+
+        if (seg.tileZoom < this.planet.minCurrZoom) {
+            this.planet.minCurrZoom = seg.tileZoom;
+        }
+
+        seg._addViewExtent();
+
+        //Finally this node proceeds to rendering.
+        this.addToRender();
     }
-
-    //Calculate minimal and maximal zoom index on the screen
-    if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
-        this.planet.maxCurrZoom = seg.tileZoom;
-    }
-
-    if (seg.tileZoom < this.planet.minCurrZoom) {
-        this.planet.minCurrZoom = seg.tileZoom;
-    }
-
-    seg._addViewExtent();
-
-    //Finally this node proceeds to rendering.
-    !stopLoading && this.addToRender();
 };
 
 /**
@@ -667,43 +669,6 @@ Node.prototype.addToRender = function () {
 
     nodes.push(node);
 };
-
-//Node.prototype.addToRender = function () {
-//    var node = this;
-//    var nodes = node.planet._renderedNodes;
-//    for (var i = 0; i < nodes.length; i++) {
-//        var ni = nodes[i];
-//        var cs = node.getCommonSide(ni);
-//        if (cs !== -1) {
-//            var opcs = OPSIDE[cs];
-
-//            node.neighbors[cs] = ni;
-//            ni.neighbors[opcs] = node;
-
-//            if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
-//                var ap = node.segment;
-//                var bp = ni.segment;
-//                var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
-
-//                node.hasNeighbor[cs] = true;
-//                ni.hasNeighbor[opcs] = true;
-
-//                if (ld > 1) {
-//                    node.sideSize[cs] = Math.ceil(ap.gridSize / ld);
-//                    ni.sideSize[opcs] = bp.gridSize;
-//                }
-//                else if (ld < 1) {
-//                    node.sideSize[cs] = ap.gridSize;
-//                    ni.sideSize[opcs] = Math.ceil(bp.gridSize * ld);
-//                } else {
-//                    node.sideSize[cs] = ap.gridSize;
-//                    ni.sideSize[opcs] = bp.gridSize;
-//                }
-//            }
-//        }
-//    }
-//    nodes.push(node);
-//};
 
 Node.prototype.getCommonSide = function (b) {
 

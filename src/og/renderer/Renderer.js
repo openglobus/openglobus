@@ -71,7 +71,7 @@ const Renderer = function (handler, params) {
 
     this.exposure = 2.7;
 
-    this.gamma = 0.37;
+    this.gamma = 0.43;
 
     this.whitepoint = 1.0;
 
