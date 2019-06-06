@@ -482,7 +482,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             seg._collectVisibleNodes();
         }
 
-        // let tReady = seg.terrainReady,
+        //let tReady = seg.terrainReady;
         //     p = this;
 
         // for (var i = 0; i < 0, !tReady; i++) {

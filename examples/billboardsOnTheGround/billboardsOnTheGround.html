@@ -22,7 +22,7 @@
         import { LonLat } from '../../src/og/LonLat.js';
 
         let points = new Array();
-
+        
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
                 let coords = new LonLat(8.5 + i * 0.023, 46.3 + j * 0.023);
@@ -70,7 +70,7 @@
         ).update();
 
         //Rotate points around the center
-        let center = pointLayer.getExtent().getCenter();
+        let center = new LonLat(8.5, 46.3);
         let angle = 0.1 * RADIANS;
         globus.renderer.events.on("draw", function () {
             pointLayer.each(function (e) {
