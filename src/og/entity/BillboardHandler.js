@@ -5,7 +5,6 @@
 'use strict';
 
 import * as shaders from '../shaders/billboard.js';
-import { doubleToTwoFloats } from '../math/coder.js';
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -258,13 +257,8 @@ class BillboardHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        //gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
-        let ex = doubleToTwoFloats(r.activeCamera.eye.x),
-            ey = doubleToTwoFloats(r.activeCamera.eye.y),
-            ez = doubleToTwoFloats(r.activeCamera.eye.z);
-
-        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
-        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
+        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
         gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 
@@ -320,13 +314,8 @@ class BillboardHandler {
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
 
-        //gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
-        let ex = doubleToTwoFloats(r.activeCamera.eye.x),
-            ey = doubleToTwoFloats(r.activeCamera.eye.y),
-            ez = doubleToTwoFloats(r.activeCamera.eye.z);
-
-        gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
-        gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
+        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
         gl.uniform3fv(shu.uScaleByDistance, ec.scaleByDistance);
 

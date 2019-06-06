@@ -1583,13 +1583,15 @@ class Polyline {
 
             gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
 
-            let ex = doubleToTwoFloats(r.activeCamera.eye.x),
-                ey = doubleToTwoFloats(r.activeCamera.eye.y),
-                ez = doubleToTwoFloats(r.activeCamera.eye.z);
+            //let ex = doubleToTwoFloats(r.activeCamera.eye.x),
+            //    ey = doubleToTwoFloats(r.activeCamera.eye.y),
+            //    ez = doubleToTwoFloats(r.activeCamera.eye.z);
 
-            gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
-            gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
-            //gl.uniform3fv(shu.uCamPos, r.activeCamera.eye.toVec());
+            //gl.uniform3fv(shu.eyePositionHigh, [ex[0], ey[0], ez[0]]);
+            //gl.uniform3fv(shu.eyePositionLow, [ex[1], ey[1], ez[1]]);
+
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
             gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
