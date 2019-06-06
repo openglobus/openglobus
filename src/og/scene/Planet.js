@@ -860,6 +860,8 @@ class Planet extends RenderNode {
 
         this.camera._insideSegment = null;
 
+        this._nodeCounterError_ = 0;
+
         //clear first
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
@@ -874,7 +876,7 @@ class Planet extends RenderNode {
         this.maxCurrZoom = math.MIN;
 
         this._quadTreeNorth.renderTree(this.camera, 0, this._quadTreeNorth.segment);
-        this._quadTreeSouth.renderTree(this.camera, 0, this._quadTreeNorth.segment);
+        this._quadTreeSouth.renderTree(this.camera, 0, this._quadTreeSouth.segment);
         this._quadTree.renderTree(this.camera, 0, this._quadTree.segment);
 
         //TODO:Abolish "magic" numbers

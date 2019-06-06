@@ -236,6 +236,16 @@ Quat.getRotationBetweenVectorsUp = function (source, dest, up) {
 };
 
 /**
+ * Returns true if the components are zero.
+ * @public
+ * @param {og.Quat} q - Quat to subtract.
+ * @returns {og.Quat} -
+ */
+Quat.prototype.isZero = function () {
+    return this.x === 0.0 && this.y === 0.0 && this.z === 0.0 && this.w === 0.0;
+};
+
+/**
  * Clear Quat. Sets zeroes.
  * @public
  * @returns {og.Quat} -

@@ -276,7 +276,7 @@ Node.prototype.createBounds = function () {
         let offsetX = this.segment.tileX - pn.segment.tileX * dZ2,
             offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
-        if (pn.segment.terrainReady) {
+        if (pn.segment.terrainReady && pn.segment.tileZoom >= seg.planet.terrain.minZoom) {
 
             let gridSize = pn.segment.gridSize / dZ2;
 
@@ -368,12 +368,6 @@ Node.prototype.createBounds = function () {
                     coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
                     coords_lt
                 );
-
-                // var ddd = this.segment.planet.camera.eye.distance(seg.bsphere.center);
-                // if (ddd > 100000) {
-                //     debugger;
-                //     let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
-                // }
             }
         } else {
             seg.createBoundsByExtent();
@@ -432,9 +426,12 @@ Node.prototype.isBrother = function (node) {
 
 Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoading) {
 
-    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
+    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES ||
+        this.planet._nodeCounterError_ > 2000) {
         return;
     }
+
+    this.planet._nodeCounterError_ ++;
 
     this.state = WALKTHROUGH;
 
@@ -481,14 +478,6 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         if (inFrustum && (altVis || h > 10000.0) || this._cameraInside) {
             seg._collectVisibleNodes();
         }
-
-        //let tReady = seg.terrainReady;
-        //     p = this;
-
-        // for (var i = 0; i < 0, !tReady; i++) {
-        //     p = p.parentNode;
-        //     tReady = p.segment.terrainReady;
-        // }
 
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {

@@ -312,16 +312,21 @@ class PlanetCamera extends Camera {
     }
 
     viewDistance(cartesian, distance = 10000.0) {
-        let p0 = this.eye.add(this.getForward().scaleTo(distance));        
+        let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.normal(), cartesian.normal());
-        let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
-            newUp = newPos.normal();
-        this.set(newPos, cartesian, newUp);
+        if (_rot.isZero()) {
+            let newPos = cartesian.add(this.getBackward().scaleTo(distance));
+            this.set(newPos, cartesian);
+        } else {
+            let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
+                newUp = newPos.normal();
+            this.set(newPos, cartesian, newUp);
+        }
         this.update();
     }
 
     flyDistance(cartesian, distance = 10000.0, ampl = 0.0, completeCallback, startCallback) {
-        let p0 = this.eye.add(this.getForward().scaleTo(distance));        
+        let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.normal(), cartesian.normal());
         let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
             newUp = newPos.normal();
@@ -519,7 +524,7 @@ class PlanetCamera extends Camera {
             this._n = this._framesArr[c].n;
 
             this.update();
-            
+
             this._framesCounter--;
 
             if (this._framesCounter < 0) {
