@@ -141,7 +141,7 @@ class XYZ extends Layer {
         }
 
         if (this._planet.layerLock.isFree()) {
-            
+
             material.isReady = false;
             material.isLoading = true;
 
@@ -183,11 +183,15 @@ class XYZ extends Layer {
      */
     _createUrl(segment) {
         return stringTemplate(this.url, {
-            "s": this._s[Math.floor(Math.random() * this._s.length)],
+            "s": this._getSubdomain(),
             "x": segment.tileX.toString(),
             "y": segment.tileY.toString(),
             "z": segment.tileZoom.toString()
         });
+    }
+
+    _getSubdomain() {
+        return this._s[Math.floor(Math.random() * this._s.length)];
     }
 
     /**
@@ -197,8 +201,7 @@ class XYZ extends Layer {
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
-        var url = this._createUrl(segment);
-        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, url) : url;
+        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
     }
 
     /**
