@@ -14,6 +14,8 @@ const Material = function (segment, layer) {
     this.image = null;
     this.textureExists = false;
     this.appliedNodeId = 0;
+    this.texOffset = [0.0, 0.0, 1.0, 1.0];
+    this.loadingAttempts = 0;
 
     //vector data
     this._updateTexture = null;
@@ -39,6 +41,7 @@ Material.prototype.applyImage = function (img) {
         this.pickingReady = true;
         this.textureExists = true;
         this.isLoading = false;
+        this.texOffset = [0.0, 0.0, 1.0, 1.0];
     }
 };
 
@@ -53,17 +56,21 @@ Material.prototype.applyTexture = function (texture, pickingMask) {
         this.textureExists = true;
         this.isLoading = false;
         this.appliedNodeId = this.segment.node.nodeId;
+        this.texOffset = [0.0, 0.0, 1.0, 1.0];
     }
 };
 
 Material.prototype.textureNotExists = function () {
-    if (this.initialized) {
-        this.isLoading = true;
+    if (this.segment.initialized) {
+        this.pickingReady = true;
+        this.isLoading = false;
+        this.isReady = true;
         this.textureExists = false;
     }
 };
 
 Material.prototype.clear = function () {
+    this.loadingAttempts = 0;
     this.layer.clearMaterial(this);
 };
 

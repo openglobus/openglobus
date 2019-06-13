@@ -23,6 +23,8 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * @param {Array.<string>} [options.subdomains=['a','b','c']] - Subdomains of the tile service.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
+ * @param {number} [options.minNativeZoom=0] - Minimal available zoom level.
+ * @param {number} [options.maxNativeZoom=25] - Maximal available zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
@@ -63,6 +65,20 @@ class XYZ extends Layer {
          * @protected
          */
         this._s = options.subdomains || ['a', 'b', 'c'];
+
+        /**
+         * Minimal native zoom level when tiles are available.
+         * @public
+         * @type {number}
+         */
+        this.minNativeZoom = options.minNativeZoom || 0;
+
+        /**
+         * Maximal native zoom level when tiles are available.
+         * @public
+         * @type {number}
+         */
+        this.maxNativeZoom = options.maxNativeZoom || 25;
 
         /**
          * @protected
@@ -130,7 +146,7 @@ class XYZ extends Layer {
      * @virtual
      * @param {og.planetSegment.Material} material - Loads current material.
      */
-    loadMaterial(material) {
+    loadMaterial(material, forceLoading) {
 
         let seg = material.segment;
 
@@ -140,16 +156,23 @@ class XYZ extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
+        if (material.segment.tileZoom > material.layer.maxNativeZoom) {
+            debugger;
+        }
+
         if (this._planet.layerLock.isFree()) {
 
             material.isReady = false;
             material.isLoading = true;
 
             if (this._checkSegment(seg)) {
+
+                material.loadingAttempts++;
+
                 this._planet._tileLoader.load({
                     'src': this._getHTTPRequestString(material.segment),
                     'type': 'imageBitmap',
-                    'filter': () => seg.initialized && seg.node.getState() === RENDERING,
+                    'filter': () => seg.initialized && seg.node.getState() === RENDERING || forceLoading,
                     'options': {}
                 }, (response) => {
                     if (response.status === "ready") {
@@ -214,20 +237,23 @@ class XYZ extends Layer {
     }
 
     applyMaterial(material) {
+
         if (material.isReady) {
-            return [0, 0, 1, 1];
+            return material.texOffset;
         } else {
 
-            !material.isLoading && this.loadMaterial(material);
+            // if (material.loadingAttempts > 5) {
+            //     debugger;
+            // }
 
-            var segment = material.segment;
-            var pn = segment.node,
+            let segment = material.segment,
+                pn = segment.node,
                 notEmpty = false;
 
-            var mId = this._id;
-            var psegm = material;
+            let mId = this._id;
+            let psegm = material;
             while (pn.parentNode) {
-                if (psegm && psegm.isReady) {
+                if (psegm && psegm.textureExists) {
                     notEmpty = true;
                     break;
                 }
@@ -235,34 +261,68 @@ class XYZ extends Layer {
                 psegm = pn.segment.materials[mId];
             }
 
+            let maxNativeZoom = material.layer.maxNativeZoom
+
+            if (pn.segment.tileZoom === maxNativeZoom) {
+                material.textureNotExists();
+            } else if (material.segment.tileZoom <= maxNativeZoom) {
+                !material.isLoading && !material.isReady && this.loadMaterial(material);
+            } else {
+                let pn = segment.node;
+                while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
+                    pn = pn.parentNode;
+                }
+                let pnm = pn.segment.materials[material.layer._id];
+                if (pnm) {
+                    !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
+                } else {
+                    pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
+                    this.loadMaterial(pnm, true);
+                }
+            }
+            // if (segment.tileZoom > material.layer.maxNativeZoom) {
+            //     let pn = segment.node;
+            //     while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
+            //         pn = pn.parentNode;
+            //     }
+            //     let pnm = pn.segment.materials[material.layer._id];
+            //     !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
+            //     material.textureNotExists();
+            // } else {
+            //     !material.isLoading && !material.isReady && this.loadMaterial(material);
+            // }
+
             if (notEmpty) {
+                material.appliedNode = pn;
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [
-                    segment.tileX * dZ2 - pn.segment.tileX,
-                    segment.tileY * dZ2 - pn.segment.tileY,
-                    dZ2,
-                    dZ2
-                ];
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+                material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+                material.texOffset[2] = dZ2;
+                material.texOffset[3] = dZ2;
             } else {
                 material.texture = segment.planet.transparentTexture;
-                return [0, 0, 1, 1];
+                material.texOffset[0] = 0.0;
+                material.texOffset[1] = 0.0;
+                material.texOffset[2] = 1.0;
+                material.texOffset[3] = 1.0;
             }
         }
+
+        return material.texOffset;
     }
 
     clearMaterial(material) {
-        if (material.isReady) {
-            material.isReady = false;
+        if (material.isReady && material.textureExists) {
             !material.texture.default &&
                 material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
-        } else {
-            //this.abortMaterialLoading(material);
         }
 
+        material.isReady = false;
         material.textureExists = false;
+        material.isLoading = false;
 
         if (material.image) {
             material.image.src = '';
