@@ -242,7 +242,7 @@ class XYZ extends Layer {
             return material.texOffset;
         } else {
 
-            // if (material.loadingAttempts > 5) {
+            // if (material.loadingAttempts > 20) {
             //     debugger;
             // }
 
@@ -280,17 +280,6 @@ class XYZ extends Layer {
                     this.loadMaterial(pnm, true);
                 }
             }
-            // if (segment.tileZoom > material.layer.maxNativeZoom) {
-            //     let pn = segment.node;
-            //     while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
-            //         pn = pn.parentNode;
-            //     }
-            //     let pnm = pn.segment.materials[material.layer._id];
-            //     !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
-            //     material.textureNotExists();
-            // } else {
-            //     !material.isLoading && !material.isReady && this.loadMaterial(material);
-            // }
 
             if (notEmpty) {
                 material.appliedNode = pn;
