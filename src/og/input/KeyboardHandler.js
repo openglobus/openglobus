@@ -13,13 +13,15 @@ const KeyboardHandler = function () {
     var _anykeyCallback = null;
     var _event = null;
 
+    var _active = true;
+
     if (KeyboardHandler.prototype._instance) {
         return KeyboardHandler.prototype._instance;
     } else {
         KeyboardHandler.prototype._instance = this;
 
-        document.onkeydown = function (event) { _event = event; _that.handleKeyDown.call(_that) };
-        document.onkeyup = function (event) { _event = event; _that.handleKeyUp.call(_that) };
+        document.onkeydown = function (event) { _event = event; _active && _that.handleKeyDown.call(_that) };
+        document.onkeyup = function (event) { _event = event; _active && _that.handleKeyUp.call(_that) };
     }
 
     var _sortByPriority = function (a, b) {
@@ -30,6 +32,10 @@ const KeyboardHandler = function () {
         //
         //TODO:...
         //
+    };
+
+    this.setActivity = function (activity) {
+        _active = activity;
     };
 
     this.addEvent = function (event, sender, callback, keyCode, priority) {

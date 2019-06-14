@@ -431,7 +431,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         return;
     }
 
-    this.planet._nodeCounterError_ ++;
+    this.planet._nodeCounterError_++;
 
     this.state = WALKTHROUGH;
 

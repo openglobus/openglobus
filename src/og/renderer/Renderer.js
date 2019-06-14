@@ -205,6 +205,14 @@ const Renderer = function (handler, params) {
 Renderer.__pickingCallbackCounter__ = 0;
 
 /**
+ * Sets renderer events activity.
+ * @param {Boolean} activity - Events activity.
+ */
+Renderer.prototype.setEventsActivity = function (activity) {
+    this.events.active = activity;
+};
+
+/**
  * Adds picking rendering callback function.
  * @param {object} sender - Callback context.
  * @param {og.Renderer~pickingCallback} callback - Rendering callback.

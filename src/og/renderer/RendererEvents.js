@@ -50,6 +50,8 @@ class RendererEvents extends Events {
          */
         this._keyboardHandler = new KeyboardHandler();
 
+        this._active = true;
+
         /**
          * Current mouse state.
          * @public
@@ -176,16 +178,27 @@ class RendererEvents extends Events {
         this._mclickY = 0;
     }
 
+    get active() {
+        return this._active;
+    }
+
+    set active(act) {
+        this._active = act;
+        this._keyboardHandler.setActivity(act);
+    }
+
     /**
      * Used in render node frame.
      * @public
      */
     handleEvents() {
-        this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
-        this.entityPickingEvents();
-        this._keyboardHandler.handleEvents();
-        this.handleMouseEvents();
-        this.handleTouchEvents();
+        if (this._active) {
+            this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
+            this.entityPickingEvents();
+            this._keyboardHandler.handleEvents();
+            this.handleMouseEvents();
+            this.handleTouchEvents();
+        }
     }
 
     /**
