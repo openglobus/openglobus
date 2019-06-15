@@ -209,7 +209,6 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.sideZoom = [0, 0, 0, 0];
     this.sideEqualize = [false, false, false, false];
     this.ready = false;
-    this.hasNeighbor = [false, false, false, false];
     this.neighbors = [[], [], [], []];
     this.nodes = [null, null, null, null];
     this.segment = new segmentPrototype(this, planet, tileZoom, extent);
@@ -440,8 +439,6 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     this.neighbors[2] = [];
     this.neighbors[3] = [];
 
-    this.hasNeighbor[0] = this.hasNeighbor[1] = this.hasNeighbor[2] = this.hasNeighbor[3] = false;
-
     let seg = this.segment,
         planet = this.planet;
 
@@ -554,7 +551,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
             seg.initialize();
         }
 
-        if (seg.createTerrainFromChildNodes()) {
+        if (/*seg.createTerrainFromChildNodes()*/true) {
 
             this.whileTerrainLoading(terrainReadySegment);
 
@@ -615,13 +612,7 @@ Node.prototype.addToRender = function () {
 
             var opcs = OPSIDE[cs];
 
-            node.neighbors[cs].push(ni);
-            ni.neighbors[opcs].push(node);
-
-            if (!(node.hasNeighbor[cs] && ni.hasNeighbor[opcs])) {
-
-                node.hasNeighbor[cs] = true;
-                ni.hasNeighbor[opcs] = true;
+            if (!(node.neighbors[cs].length !== 0 && ni.neighbors[opcs].length !== 0)) {
 
                 var ap = node.segment;
                 var bp = ni.segment;
@@ -653,6 +644,10 @@ Node.prototype.addToRender = function () {
                     bp.readyToEqualize = true;
                 }
             }
+
+            node.neighbors[cs].push(ni);
+            ni.neighbors[opcs].push(node);
+
         }
     }
 
@@ -917,10 +912,12 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
                 }
             }
 
-            //seg.createCoordsBuffers(tempVertices, seg.gridSize);
             seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
-
             seg.readyToEngage = false;
+
+            // seg.terrainVertices = tempVertices;
+            // seg.terrainVerticesHigh = tempVerticesHigh;
+            // seg.terrainVerticesLow = tempVerticesLow;
 
             //is used for earth point calculation(see segment object)
             seg.tempVertices = tempVertices;
@@ -992,7 +989,6 @@ Node.prototype.destroy = function () {
     n[S] && n[S].neighbors && (n[S].neighbors[N] = []);
     n[W] && n[W].neighbors && (n[W].neighbors[E] = []);
     this.neighbors = null;
-    this.hasNeighbors = null;
     this.parentNode = null;
     this.sideSize = null;
     this.segment = null;
