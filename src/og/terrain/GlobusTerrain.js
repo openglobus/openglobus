@@ -161,7 +161,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @virtual
      * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
      */
-    loadTerrain(segment) {
+    loadTerrain(segment, forceLoading) {
         if (this._planet.terrainLock.isFree()) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
@@ -175,7 +175,7 @@ class GlobusTerrain extends EmptyTerrain {
                         'src': this._getHTTPRequestString(segment),
                         'segment': segment,
                         'type': this._dataType,
-                        'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING
+                        'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING || forceLoading
                     }, response => {
                         if (response.status === "ready") {
                             this._elevationCache[segment.tileIndex] = response.data;

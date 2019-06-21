@@ -350,7 +350,7 @@ Segment.prototype.projectNative = function (lonlat) {
     return lonlat.forwardMercator();
 };
 
-Segment.prototype.loadTerrain = function () {
+Segment.prototype.loadTerrain = function (forceLoading) {
     if (this.tileZoom < this.planet.terrain.minZoom) {
 
         this.terrainIsLoading = true;
@@ -369,7 +369,7 @@ Segment.prototype.loadTerrain = function () {
 
         } else if (!this.terrainIsLoading && !this.terrainReady) {
 
-            this.planet.terrain.loadTerrain(this);
+            this.planet.terrain.loadTerrain(this, forceLoading);
         }
 
     }
