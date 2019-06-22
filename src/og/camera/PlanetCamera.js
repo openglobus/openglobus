@@ -319,7 +319,7 @@ class PlanetCamera extends Camera {
             this.set(newPos, cartesian);
         } else {
             let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
-                newUp = newPos.normal();
+                newUp = _rot.mulVec3(this.getUp());
             this.set(newPos, cartesian, newUp);
         }
         this.update();
@@ -333,7 +333,7 @@ class PlanetCamera extends Camera {
             this.set(newPos, cartesian);
         } else {
             let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
-                newUp = newPos.normal();
+                newUp = _rot.mulVec3(this.getUp());
             this.flyCartesian(newPos, cartesian, newUp, ampl, completeCallback, startCallback);
         }
     }
