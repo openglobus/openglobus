@@ -384,7 +384,7 @@ class Layer {
      */
     setAttribution(html) {
         this._attribution = html;
-        this._planet.updateAttributionsList();
+        this._planet && this._planet.updateAttributionsList();
     }
 
     /**
@@ -394,7 +394,7 @@ class Layer {
      */
     setHeight(height) {
         this._height = height;
-        this._planet.updateVisibleLayers();
+        this._planet && this._planet.updateVisibleLayers();
     }
 
     /**
@@ -413,7 +413,7 @@ class Layer {
      */
     setZIndex(zIndex) {
         this._zIndex = zIndex;
-        this._planet.updateVisibleLayers();
+        this._planet && this._planet.updateVisibleLayers();
     }
 
     /**
@@ -455,12 +455,12 @@ class Layer {
      */
     setBaseLayer(flag) {
         this._isBaseLayer = flag;
-
-        if (this._planet && !flag && this.isEqual(this._planet.baseLayer)) {
-            this._planet.baseLayer = null;
+        if (this._planet) {
+            if (!flag && this.isEqual(this._planet.baseLayer)) {
+                this._planet.baseLayer = null;
+            }
+            this._planet.updateVisibleLayers();
         }
-
-        this._planet.updateVisibleLayers();
     }
 
     /**
@@ -471,15 +471,13 @@ class Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
-
             this._visibility = visibility;
-
-            if (this._isBaseLayer && visibility) {
-                this._planet.setBaseLayer(this);
+            if (this._planet) {
+                if (this._isBaseLayer && visibility) {
+                    this._planet.setBaseLayer(this);
+                }
+                this._planet.updateVisibleLayers();
             }
-
-            this._planet.updateVisibleLayers();
-
             this.events.dispatch(this.events.visibilitychange, this);
         }
     }
