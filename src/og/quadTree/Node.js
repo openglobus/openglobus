@@ -932,6 +932,11 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
             );
         }
 
+        // if (isNaN(normalMapNormals[0]) || isNaN(terrainVertices[0]) || isNaN(seg.normalMapNormals[0]) ||
+        //     isNaN(tempVerticesHigh[0]) || isNaN(seg.terrainVertices[0]) || isNaN(seg.terrainVerticesHigh[0])) {
+        //     debugger;
+        // }
+
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {
 
