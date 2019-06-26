@@ -590,7 +590,7 @@ Renderer.prototype.draw = function () {
     var h = this.handler;
 
     //h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    h.gl.clearColor(47 / 255, 112 / 255, 206 / 255, 1.0);
+    h.gl.clearColor(115 / 255, 203 / 255, 249 / 255, 1.0);
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     e.dispatch(e.draw, this);
