@@ -476,17 +476,19 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             seg._collectVisibleNodes();
         }
 
+        //renderNode = function (onlyTerrain, terrainReadySegment, stopLoading)
+
         //First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
-            this.traverseNodes(cam, maxZoom, terrainReadySegment);
+            this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
         } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom && !maxZoom || maxZoom) {
             if (seg.terrainReady) {
-                this.traverseNodes(cam, maxZoom, seg);
+                this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else {
                 if (!stopLoading) {
-                    this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
+                    this.prepareForRendering(cam, altVis, false, terrainReadySegment);
                 }
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, true);
             }
@@ -553,7 +555,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
 
         if (/*seg.createTerrainFromChildNodes()*/true) {
 
-            this.whileTerrainLoading(terrainReadySegment);
+            this.whileTerrainLoading(terrainReadySegment, stopLoading);
 
             if (!seg.plainProcessing) {
                 seg.createPlainSegmentAsync();
@@ -570,26 +572,24 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
         return;
     }
 
-    if (!stopLoading) {
-        //Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
-            this.whileNormalMapCreating();
-        }
-
-        //Calculate minimal and maximal zoom index on the screen
-        if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
-            this.planet.maxCurrZoom = seg.tileZoom;
-        }
-
-        if (seg.tileZoom < this.planet.minCurrZoom) {
-            this.planet.minCurrZoom = seg.tileZoom;
-        }
-
-        seg._addViewExtent();
-
-        //Finally this node proceeds to rendering.
-        this.addToRender();
+    //Create normal map texture
+    if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
+        this.whileNormalMapCreating();
     }
+
+    //Calculate minimal and maximal zoom index on the screen
+    if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
+        this.planet.maxCurrZoom = seg.tileZoom;
+    }
+
+    if (seg.tileZoom < this.planet.minCurrZoom) {
+        this.planet.minCurrZoom = seg.tileZoom;
+    }
+
+    seg._addViewExtent();
+
+    //Finally this node proceeds to rendering.
+    this.addToRender();
 };
 
 /**
@@ -754,14 +754,14 @@ let BOUNDS = {
     'zmax': 0.0
 };
 
-Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
+Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading) {
 
     const seg = this.segment;
     const terrain = this.planet.terrain;
 
     let pn = this;
 
-    if (terrainReadySegment) {
+    if (terrainReadySegment && terrainReadySegment.terrainReady) {
         pn = terrainReadySegment.node;
     } else {
         while (pn.parentNode && !pn.segment.terrainReady) {
@@ -977,7 +977,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment) {
                     pn.segment.createPlainSegmentAsync();
                 }
 
-                if (pns.plainReady) {
+                if (pns.plainReady && !stopLoading) {
                     pns.loadTerrain(true);
                 }
             }

@@ -875,9 +875,9 @@ class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTreeNorth.renderTree(this.camera, 0, this._quadTreeNorth.segment);
-        this._quadTreeSouth.renderTree(this.camera, 0, this._quadTreeSouth.segment);
-        this._quadTree.renderTree(this.camera, 0, this._quadTree.segment);
+        this._quadTreeNorth.renderTree(this.camera, 0, null);
+        this._quadTreeSouth.renderTree(this.camera, 0, null);
+        this._quadTree.renderTree(this.camera, 0, null);
 
         //TODO:Abolish "magic" numbers
         if (this.renderer.activeCamera.slope > 0.6 &&

@@ -8,7 +8,7 @@ class PlainSegmentWorker {
         this._id = 0;
         this._segments = {};
 
-        this._workerQueue = new QueueArray(numWorkers);
+        this._workerQueue = [];
         var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
 
         var _this = this;
@@ -29,7 +29,7 @@ class PlainSegmentWorker {
             this._workerQueue.push(w);
         }
 
-        this._pendingQueue = new QueueArray(512);
+        this._pendingQueue = [];
     }
 
     check() {
@@ -52,7 +52,7 @@ class PlainSegmentWorker {
             'i': m.i
         };
 
-        this._workerQueue.each((w) => {
+        this._workerQueue.forEach((w) => {
 
             let rawfile = new Uint8Array(m.rawfile.length);
             rawfile.set(m.rawfile);
