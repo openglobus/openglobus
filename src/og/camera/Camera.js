@@ -648,10 +648,10 @@ const EVENT_NAMES = [
 const defaultOptions = {
     'viewAngle': 30,
     'near': 1,
-    'far': 50000000,
-    'eye': new Vec3(0, 0, 0),
-    'look': new Vec3(0, 0, 0),
-    'up': new Vec3(0, 1, 0)
+    'far': 10000000,
+    'eye': new Vec3(),
+    'look': new Vec3(),
+    'up': new Vec3(0.0, 1.0, 0.0)
 };
 
 export { Camera };
