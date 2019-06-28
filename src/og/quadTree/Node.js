@@ -567,14 +567,14 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
         }
     }
 
-    if (onlyTerrain) {
-        this.state = -1;
-        return;
-    }
-
     //Create normal map texture
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
+    }
+
+    if (onlyTerrain) {
+        this.state = -1;
+        return;
     }
 
     //Calculate minimal and maximal zoom index on the screen
