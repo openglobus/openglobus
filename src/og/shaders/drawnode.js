@@ -153,11 +153,20 @@ export function drawnode_screen_wl() {
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
+
+            bool isnan( float val )
+            {
+                return ( val < 0.0 || 0.0 < val || val == 0.0 ) ? false : true;
+                // important: some nVidias failed to cope with version below.
+                // Probably wrong optimization.
+                /*return ( val <= 0.0 || 0.0 <= val ) ? false : true;*/
+            }
+
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -328,7 +337,7 @@ export function drawnode_colorPicking() {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
                 mat4 projectionViewMatrixRTE = projectionViewMatrix;
                 projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -449,7 +458,7 @@ export function drawnode_heightPicking() {
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow - normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
                 mat4 projectionViewMatrixRTE = projectionViewMatrix;
                 projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
