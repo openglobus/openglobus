@@ -7,7 +7,7 @@ class TerrainWorker {
         this._id = 0;
         this._segments = {};
 
-        this._workerQueue = new QueueArray(numWorkers);
+        this._workerQueue = [];//new QueueArray(numWorkers);
         var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
 
         var that = this;
@@ -26,7 +26,7 @@ class TerrainWorker {
             this._workerQueue.push(w);
         }
 
-        this._pendingQueue = new QueueArray(512);
+        this._pendingQueue = [];//new QueueArray(512);
     }
 
     check() {
