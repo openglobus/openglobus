@@ -138,12 +138,12 @@ class Events {
      * @param {Object} event - Event instance property that created by event name.
      * @param {Object} [obj] - Event object.
      */
-    dispatch(event, obj) {
+    dispatch(event, ...args) {
         if (event && event.active) {
             var h = event.handlers;
             var i = h.length;
             while (i-- && !this._stopPropagation) {
-                h[i](obj);
+                h[i](...args);
             }
         }
         this._stopPropagation = false;
