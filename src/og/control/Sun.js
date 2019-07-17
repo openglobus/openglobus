@@ -124,9 +124,9 @@ class Sun extends Control {
                     this._k -= 0.01;
                     var rot = Quat.getRotationBetweenVectors(this.sunlight._position.normal(), pos.normal());
                     var r = rot.slerp(Quat.IDENTITY, this._k).normalize();
-                    this.sunlight.setPosition(r.mulVec3(this.sunlight._position));
+                    this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
-                    this.sunlight.setPosition(pos);
+                    this.sunlight.setPosition3v(pos);
                 }
             } else {
                 this._k = 1;
@@ -134,18 +134,18 @@ class Sun extends Control {
                     this._f -= 0.01;
                     var rot = Quat.getRotationBetweenVectors(this.sunlight._position.normal(), getSunPosition(this._currDate).normal());
                     var r = rot.slerp(Quat.IDENTITY, this._f).normalize();
-                    this.sunlight.setPosition(r.mulVec3(this.sunlight._position));
+                    this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
                     if (Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active || this._lightOn) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
-                        this.sunlight.setPosition(getSunPosition(this._currDate));
+                        this.sunlight.setPosition3v(getSunPosition(this._currDate));
                         this._f = 0;
                     }
                 }
             }
         } else {
-            this.sunlight.setPosition(getSunPosition(this._currDate));
+            this.sunlight.setPosition3v(getSunPosition(this._currDate));
         }
     }
 }

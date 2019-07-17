@@ -161,10 +161,23 @@ class LightSource {
      * @param {og.Vec3} position - Light position or direction vector.
      * @returns {og.LightSource}
      */
-    setPosition(position) {
+    setPosition3v(position) {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
+        return this;
+    }
+
+    /**
+     * Set light source position, or if it is a directional type sets light direction vector.
+     * @public
+     * @param {og.Vec3} position - Light position or direction vector.
+     * @returns {og.LightSource}
+     */
+    setPosition(x, y, z) {
+        this._position.x = x;
+        this._position.y = y;
+        this._position.z = z;
         return this;
     }
 
