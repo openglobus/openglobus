@@ -196,18 +196,8 @@ class LightSource {
      * @param {og.Vec3} rgb - Ambient color.
      * @returns {og.LightSource}
      */
-    setAmbient(rgb) {
-        this._ambient = rgb;
-        var rn = this._renderNode;
-        if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
-            if (index != -1) {
-                rn._lightsParamsv[index] = rgb.x;
-                rn._lightsParamsv[index + 1] = rgb.y;
-                rn._lightsParamsv[index + 2] = rgb.z;
-            }
-        }
-        return this;
+    setAmbient3v(rgb) {
+        return this.setAmbient(rgb.x, rgb.y, rgb.z);
     }
 
     /**
@@ -216,18 +206,8 @@ class LightSource {
      * @param {og.Vec3} rgb - Diffuse color.
      * @returns {og.LightSource}
      */
-    setDiffuse(rgb) {
-        this._diffuse = rgb;
-        var rn = this._renderNode;
-        if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
-            if (index != -1) {
-                rn._lightsParamsv[index + 3] = rgb.x;
-                rn._lightsParamsv[index + 4] = rgb.y;
-                rn._lightsParamsv[index + 5] = rgb.z;
-            }
-        }
-        return this;
+    setDiffuse3v(rgb) {
+        return this.setDiffuse(rgb.x, rgb.y, rgb.z);
     }
 
     /**
@@ -236,15 +216,63 @@ class LightSource {
      * @param {og.Vec3} rgb - Specular color.
      * @returns {og.LightSource}
      */
-    setSpecular(rgb) {
-        this._specular = rgb;
+    setSpecular3v(rgb) {
+        return this.setSpecular(rgb.x, rgb.y, rgb.z);
+    }
+
+    /**
+ * Set ambient color.
+ * @public
+ * @param {og.Vec3} rgb - Ambient color.
+ * @returns {og.LightSource}
+ */
+    setAmbient(r, g, b) {
+        this._ambient.set(r, g, b);
         var rn = this._renderNode;
         if (rn) {
             var index = 9 * rn._lightsNames.indexOf(this._name);
             if (index != -1) {
-                rn._lightsParamsv[index + 6] = rgb.x;
-                rn._lightsParamsv[index + 7] = rgb.y;
-                rn._lightsParamsv[index + 8] = rgb.z;
+                rn._lightsParamsv[index] = r;
+                rn._lightsParamsv[index + 1] = g;
+                rn._lightsParamsv[index + 2] = b;
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Set diffuse color.
+     * @public
+     * @returns {og.LightSource}
+     */
+    setDiffuse(r, g, b) {
+        this._diffuse.set(r, g, b);
+        var rn = this._renderNode;
+        if (rn) {
+            var index = 9 * rn._lightsNames.indexOf(this._name);
+            if (index != -1) {
+                rn._lightsParamsv[index + 3] = r;
+                rn._lightsParamsv[index + 4] = g;
+                rn._lightsParamsv[index + 5] = b;
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Set specular color.
+     * @public
+     * @returns {og.LightSource}
+     */
+    setSpecular(r, g, b) {
+        this._specular.set(r, g, b);
+        var rn = this._renderNode;
+        if (rn) {
+            var index = 9 * rn._lightsNames.indexOf(this._name);
+            if (index != -1) {
+                rn._lightsParamsv[index + 6] = r;
+                rn._lightsParamsv[index + 7] = g;
+                rn._lightsParamsv[index + 8] = b;
             }
         }
         return this;
@@ -253,7 +281,6 @@ class LightSource {
     /**
      * Set material shininess.
      * @public
-     * @param {number} shininess - Material shininess.
      * @returns {og.LightSource}
      */
     setShininess(shininess) {
