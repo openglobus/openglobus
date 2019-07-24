@@ -13,10 +13,10 @@ import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
 if (!('createImageBitmap' in window)) {
-    window.createImageBitmap = function(blob) {
-        return new Promise((resolve,reject) => {
+    window.createImageBitmap = function (blob) {
+        return new Promise((resolve, reject) => {
             let img = document.createElement('img');
-            img.addEventListener('load', function() {
+            img.addEventListener('load', function () {
                 resolve(this);
             });
             img.src = URL.createObjectURL(blob);
@@ -89,6 +89,11 @@ export function htmlColorToRgba(htmlColor, opacity) {
         var m = htmlColor.split(",");
         return new Vec4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, !isEmpty(m[3]) ? parseFloat(m[3]) : opacity);
     }
+};
+
+export function htmlColorToFloat32Array(htmlColor, opacity) {
+    let c = htmlColorToRgba(htmlColor, opacity);
+    return new Float32Array([c.x, c.y, c.z, c.w]);
 };
 
 /**
