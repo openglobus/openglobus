@@ -14,6 +14,17 @@ import { QueueArray } from '../QueueArray.js';
 import { stringTemplate } from '../utils/shared.js';
 import { Geoid } from './Geoid.js';
 
+const ELL = 0;
+const MSL = 1;
+const GND = 2;
+
+export const heightMode = {
+    "ell": ELL,
+    "msl": MSL,
+    "gnd": GND
+};
+
+
 const EVENT_NAMES = [
     /**
     * Triggered when current elevation tile has loaded but before rendereing.
@@ -125,6 +136,30 @@ class GlobusTerrain extends EmptyTerrain {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = null;
+
+        this._ellToAltFn = [
+            (lonLat, altEll, callback) => callback(altEll),
+            (lonLat, altEll, callback) => callback(altEll - this._geoid.getHeightLonLat(lonLat)),
+            (lonLat, altEll, callback) => {
+
+                let x = mercator.getTileX(lonLat.lon, this.maxZoom),
+                    y = mercator.getTileY(lonLat.lat, this.maxZoom);
+
+                let mslAlt = altEll - this._geoid.getHeight(lon, lat);
+
+                if (true) {
+
+                } else {
+
+                }
+
+                return callback(mslAlt);
+            },
+        ];
+    }
+
+    getHeightAsync(heightMode = ELL, lonLat, callback, altEll = 0.0) {
+        this._ellToAltFn[heightMode](lonLat, altEll, callback);
     }
 
     /**

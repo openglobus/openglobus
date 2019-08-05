@@ -294,6 +294,8 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
             var ind_v0 = ((size + 1) * indY + indX) * 3;
             var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
 
+            //
+            //TODO: replace with temp variables            
             var v0 = new Vec3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
                 v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
                 v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);

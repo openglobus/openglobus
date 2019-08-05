@@ -4,6 +4,7 @@
 
 'use strict';
 
+
 /**
  * Class represents terrain provider without elevation data.
  * @class
@@ -61,6 +62,26 @@ class EmptyTerrain {
         this._planet = null;
 
         this._geoid = null;
+
+        // const _ellToAltFn = [
+        //     (lon, lat, alt, callback) => callback(alt),
+        //     (lon, lat, alt, callback) => callback(alt - this._geoid.getHeight(lon, lat)),
+        //     (lon, lat, alt, callback) => {
+                
+        //         let x = mercator.getTileX(lon, zoom),
+        //             y = mercator.getTileY(lat, zoom);
+        
+        //         let mslAlt = alt - this._geoid.getHeight(lon, lat);
+        
+        //         if (true) {
+        
+        //         } else {
+        
+        //         }
+        
+        //         return callback(mslAlt);
+        //     },
+        // ];
     }
 
     set maxNodeZoom(val) {

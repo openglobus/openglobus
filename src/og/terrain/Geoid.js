@@ -249,7 +249,7 @@ class Geoid {
 
     getHeight(lon, lat, cubic) {
 
-        if (!this.model) return;
+        if (!this.model) return 0;
 
         let model = this.model;
 
