@@ -13,6 +13,7 @@ import { NOTRENDERING } from '../quadTree/quadTree.js';
 import { QueueArray } from '../QueueArray.js';
 import { stringTemplate } from '../utils/shared.js';
 import { Geoid } from './Geoid.js';
+import { Layer } from '../layer/Layer.js';
 
 const ELL = 0;
 const MSL = 1;
@@ -125,6 +126,8 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._elevationCache = {};
 
+        this._fetchCache = {};
+
         this._loader = new Loader();
 
         /**
@@ -142,20 +145,59 @@ class GlobusTerrain extends EmptyTerrain {
             (lonLat, altEll, callback) => callback(altEll - this._geoid.getHeightLonLat(lonLat)),
             (lonLat, altEll, callback) => {
 
-                let x = mercator.getTileX(lonLat.lon, this.maxZoom),
-                    y = mercator.getTileY(lonLat.lat, this.maxZoom);
+                let mslAlt = altEll - this._geoid.getHeightLonLat(lonLat);
 
-                let mslAlt = altEll - this._geoid.getHeight(lon, lat);
+                let z = this.maxZoom,
+                    x = mercator.getTileX(lonLat.lon, z),
+                    y = mercator.getTileY(lonLat.lat, z);
 
-                if (true) {
+                let tileIndex = Layer.getTileIndex(x, y, z);
 
+                let cache = this._elevationCache[tileIndex];
+
+                if (cache) {
+                    callback(altEll - mslAlt - this._getHeight(lonLat, cache));
                 } else {
 
+                    if (!this._fetchCache[tileIndex]) {
+                        let url = stringTemplate(this.url, {
+                            "x": x,
+                            "y": y,
+                            "z": z
+                        });
+                        this._fetchCache[tileIndex] = this._loader.fetch({
+                            'src': url,
+                            'type': this._dataType
+                        });
+                    }
+
+                    this._fetchCache[tileIndex].then((response) => {
+                        if (response.status === "ready") {
+                            let cache = {
+                                heights: this._createHeights(response.data),
+                                extent: mercator.getTileExtent(x, y, z)
+                            };
+                            this._elevationCache[tileIndex] = cache;
+                            callback(altEll - mslAlt - this._getHeight(lonLat, cache));
+                        } else if (response.status === "abort") {
+                            //...
+                        } else if (response.status === "error") {
+                            //...
+                        } else {
+                            //...
+                        }
+                    });
                 }
 
                 return callback(mslAlt);
             },
         ];
+    }
+
+    _getHeight(lonLat, chache) {
+        let merc = mercator.forward(lonLat);
+        //...
+        return 0;
     }
 
     getHeightAsync(heightMode = ELL, lonLat, callback, altEll = 0.0) {
@@ -201,9 +243,9 @@ class GlobusTerrain extends EmptyTerrain {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
             if (segment._projection.id === EPSG3857.id) {
-                let data = this._elevationCache[segment.tileIndex];
-                if (data) {
-                    this._applyElevationsData(segment, data);
+                let cache = this._elevationCache[segment.tileIndex];
+                if (cache) {
+                    this._applyElevationsData(segment, cache.heights);
                 } else {
 
                     this._loader.load({
@@ -213,8 +255,12 @@ class GlobusTerrain extends EmptyTerrain {
                         'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING || forceLoading
                     }, response => {
                         if (response.status === "ready") {
-                            this._elevationCache[segment.tileIndex] = response.data;
-                            this._applyElevationsData(segment, response.data);
+                            let heights = this._createHeights(response.data);
+                            this._elevationCache[segment.tileIndex] = {
+                                heights: heights,
+                                extent: segment.getExtent()
+                            };
+                            this._applyElevationsData(segment, heights);
                         } else if (response.status === "abort") {
                             segment.terrainIsLoading = false;
                         } else if (response.status === "error") {
@@ -223,7 +269,6 @@ class GlobusTerrain extends EmptyTerrain {
                             segment.terrainIsLoading = false;
                         }
                     });
-
                 }
             } else {
                 //TODO: poles elevation
@@ -275,7 +320,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {*} data - Loaded elevation data.
      * @returns {Array.<number>} -
      */
-    getElevations(data) {
+    _createHeights(data) {
         return new Float32Array(data);
     }
 
@@ -284,9 +329,8 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {og.planetSegment.Segment} segment -
      * @param {*} data -
      */
-    _applyElevationsData(segment, data) {
+    _applyElevationsData(segment, elevations) {
         if (segment) {
-            var elevations = this.getElevations(data, segment);
             var e = this.events.load;
             if (e.handlers.length) {
                 this.events.dispatch(e, {

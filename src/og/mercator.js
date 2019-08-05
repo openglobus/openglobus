@@ -4,6 +4,9 @@
 
 'use strict';
 
+import { Extent } from "./Extent.js";
+import { LonLat } from './LonLat.js';
+
 /**
  * Mercator size.
  * @const
@@ -27,6 +30,8 @@ const PI_BY_180 = Math.PI / 180.0;
 
 const INV_PI_BY_180 = 180.0 / Math.PI;
 
+const POLE2 = POLE * 2.0;
+
 /**
  * Double mercator size.
  * @const
@@ -41,6 +46,10 @@ export const POLE_DOUBLE = 2.0 * POLE;
  */
 export const ONE_BY_POLE_DOUBLE = 1.0 / POLE_DOUBLE;
 
+export function forward(lonLat) {
+    return new LonLat(lonLat.lon * POLE / 180.0, Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * POLE_BY_PI);
+};
+
 /**
  * Converts degrees longitude to mercator coordinate.
  * @function
@@ -48,7 +57,7 @@ export const ONE_BY_POLE_DOUBLE = 1.0 / POLE_DOUBLE;
  * @returns {number} -
  */
 export function forward_lon(lon) {
-    return lon * POLE / 180;
+    return lon * POLE / 180.0;
 };
 
 /**
@@ -58,7 +67,7 @@ export function forward_lon(lon) {
  * @returns {number} -
  */
 export function forward_lat(lat) {
-    return Math.log(Math.tan((90 + lat) * PI_BY_360)) * POLE_BY_PI;
+    return Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * POLE_BY_PI;
 };
 
 /**
@@ -117,6 +126,12 @@ export function forwardArray(lonlatArr) {
         res.push(lonlatArr[i].forwardMercator());
     }
     return res;
+};
+
+export function getTileExtent(x, y, z) {
+    let size = POLE2 / Math.pow(2, z),
+        sw = new LonLat(-POLE + x * size, POLE - y * (size + 1));
+    return new Extent(sw, new LonLat(sw.lon + size, sw.lat + size));
 };
 
 /**

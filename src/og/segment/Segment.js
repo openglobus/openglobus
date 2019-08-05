@@ -770,7 +770,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
 
 
 Segment.prototype.applyTerrain = function (elevations) {
-    if (elevations.length) {
+    if (elevations) {
         this.elevationsExists(elevations);
     } else {
         this.elevationsNotExists();

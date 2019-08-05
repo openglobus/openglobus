@@ -28,6 +28,23 @@ Loader.prototype.load = function (params, callback) {
     this._exec();
 };
 
+Loader.prototype.fetch = function (params) {
+    return fetch(params.src, params.options || {})
+        .then(response => {
+            if (!response.ok) {
+                throw Error(`Unable to load '${params.src}'`);
+            }
+            return this._promises[params.type || "blob"](response);
+        })
+        .then(data => {
+            return { 'status': "ready", 'data': data };
+
+        })
+        .catch(err => {
+            return { 'status': "error", 'msg': err.toString() };
+        });
+};
+
 Loader.prototype._exec = function () {
 
     if (this._queue.length > 0 && this._loading < this.MAX_REQUESTS) {
