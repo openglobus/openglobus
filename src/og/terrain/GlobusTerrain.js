@@ -146,8 +146,8 @@ class GlobusTerrain extends EmptyTerrain {
         this._urlRewriteCallback = null;
 
         this._ellToAltFn = [
-            (lonLat, altEll, callback) => callback(altEll),
-            (lonLat, altEll, callback) => callback(altEll - this._geoid.getHeightLonLat(lonLat)),
+            (lonLat, altEll, callback) => { callback(altEll); return true; },
+            (lonLat, altEll, callback) => { callback(altEll - this._geoid.getHeightLonLat(lonLat)); return true; },
             (lonLat, altEll, callback) => {
 
                 let z = this.maxZoom;
@@ -165,7 +165,8 @@ class GlobusTerrain extends EmptyTerrain {
                 let altMsl = this._geoid.getHeightLonLat(lonLat);
 
                 if (cache) {
-                    return callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
+                    callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
+                    return true;
                 } else {
 
                     if (!this._fetchCache[tileIndex]) {
@@ -204,6 +205,8 @@ class GlobusTerrain extends EmptyTerrain {
                         }
                     });
                 }
+
+                return false;
             },
         ];
     }
