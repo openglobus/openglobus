@@ -14,6 +14,8 @@ import { LonLat } from './LonLat.js';
  */
 export const POLE = 20037508.34;
 
+export const POLE2 = POLE * 2.0;
+
 export const PI_BY_POLE = Math.PI / POLE;
 
 export const POLE_BY_PI = POLE / Math.PI;
@@ -29,8 +31,6 @@ const PI_BY_360 = Math.PI / 360.0;
 const PI_BY_180 = Math.PI / 180.0;
 
 const INV_PI_BY_180 = 180.0 / Math.PI;
-
-const POLE2 = POLE * 2.0;
 
 /**
  * Double mercator size.

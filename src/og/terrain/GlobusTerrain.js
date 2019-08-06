@@ -150,26 +150,22 @@ class GlobusTerrain extends EmptyTerrain {
             (lonLat, altEll, callback) => callback(altEll - this._geoid.getHeightLonLat(lonLat)),
             (lonLat, altEll, callback) => {
 
-                //TODO: if heights above ellipsoid wgs84 do
-                let altMsl = this._geoid.getHeightLonLat(lonLat);
+                let z = this.maxZoom;
 
-                let z = this.maxZoom,
-                    x = mercator.getTileX(lonLat.lon, z),
-                    y = mercator.getTileY(lonLat.lat, z);
-
-                // OPTIMIZATION
-                // let z2 = Math.pow(2, z);
-                // let size = mercator.POLE * 2 / z2;
-                // let merc = mercator.forward(lonLat);
-                // x = Math.floor((mercator.POLE + merc.lon) / size);
-                // y = z2 - Math.floor((mercator.POLE??? + merc.lat) / size) - 1;
+                let z2 = Math.pow(2, z);
+                let size = mercator.POLE2 / z2;
+                let merc = mercator.forward(lonLat);
+                let x = Math.floor((mercator.POLE + merc.lon) / size),
+                    y = Math.floor((mercator.POLE - merc.lat) / size);
 
                 let tileIndex = Layer.getTileIndex(x, y, z);
 
                 let cache = this._elevationCache[tileIndex];
 
+                let altMsl = this._geoid.getHeightLonLat(lonLat);
+
                 if (cache) {
-                    return callback(altEll - (this._getGroundHeight(lonLat, cache) + altMsl));
+                    return callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
                 } else {
 
                     if (!this._fetchCache[tileIndex]) {
@@ -191,7 +187,7 @@ class GlobusTerrain extends EmptyTerrain {
                                 extent: mercator.getTileExtent(x, y, z)
                             };
                             this._elevationCache[tileIndex] = cache;
-                            callback(altEll - (this._getGroundHeight(lonLat, cache) + altMsl));
+                            callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
                         } else if (response.status === "abort") {
                             this._fetchCache[tileIndex] = null;
                             delete this._fetchCache[tileIndex];
@@ -212,8 +208,7 @@ class GlobusTerrain extends EmptyTerrain {
         ];
     }
 
-    _getGroundHeight(lonLat, tileData) {
-        let merc = mercator.forward(lonLat);
+    _getGroundHeightMerc(merc, tileData) {
 
         let w = tileData.extent.getWidth(),
             gs = Math.sqrt(tileData.heights.length);
