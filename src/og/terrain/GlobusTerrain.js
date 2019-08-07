@@ -140,7 +140,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     getHeightAsync(lonLat, callback, zoom) {
 
-        if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
         }
@@ -201,7 +201,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     getTileCache(lonLat, z) {
 
-        if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             return;
         }
 
