@@ -20,16 +20,6 @@ import { Vec3 } from '../math/Vec3.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 
-const ELL = 0;
-const MSL = 1;
-const GND = 2;
-
-export const heightMode = {
-    "ell": ELL,
-    "msl": MSL,
-    "gnd": GND
-};
-
 
 const EVENT_NAMES = [
     /**
@@ -144,72 +134,67 @@ class GlobusTerrain extends EmptyTerrain {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = null;
+    }
 
-        this._ellToAltFn = [
-            (lonLat, altEll, callback) => { callback(altEll); return true; },
-            (lonLat, altEll, callback) => { callback(altEll - this._geoid.getHeightLonLat(lonLat)); return true; },
-            (lonLat, altEll, callback) => {
+    getHeightAsync(lonLat, callback, zoom) {
 
-                let altMsl = this._geoid.getHeightLonLat(lonLat);
+        if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+            callback(0);
+            return true;
+        }
 
-                if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
-                    callback(altEll - altMsl);
-                    return true;
-                }
+        let z = zoom || this.maxZoom,
+            z2 = Math.pow(2, z),
+            size = mercator.POLE2 / z2,
+            merc = mercator.forward(lonLat),
+            x = Math.floor((mercator.POLE + merc.lon) / size),
+            y = Math.floor((mercator.POLE - merc.lat) / size);
 
-                let z = this.maxZoom,
-                    z2 = Math.pow(2, z),
-                    size = mercator.POLE2 / z2,
-                    merc = mercator.forward(lonLat),
-                    x = Math.floor((mercator.POLE + merc.lon) / size),
-                    y = Math.floor((mercator.POLE - merc.lat) / size);
 
-                let tileIndex = Layer.getTileIndex(x, y, z);
+        let tileIndex = Layer.getTileIndex(x, y, z);
 
-                let cache = this._elevationCache[tileIndex];
+        let cache = this._elevationCache[tileIndex];
 
-                if (cache) {
-                    callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
-                    return true;
+        if (cache) {
+            callback(this._getGroundHeightMerc(merc, cache));
+            return true;
+        } else {
+
+            if (!this._fetchCache[tileIndex]) {
+                let url = stringTemplate(this.url, {
+                    "x": x,
+                    "y": y,
+                    "z": z
+                });
+                this._fetchCache[tileIndex] = this._loader.fetch({
+                    'src': url,
+                    'type': this._dataType
+                });
+            }
+
+            this._fetchCache[tileIndex].then((response) => {
+                if (response.status === "ready") {
+                    let cache = {
+                        heights: this._createHeights(response.data),
+                        extent: mercator.getTileExtent(x, y, z)
+                    };
+                    this._elevationCache[tileIndex] = cache;
+                    callback(this._getGroundHeightMerc(merc, cache));
+                } else if (response.status === "error") {
+                    let cache = {
+                        heights: null,
+                        extent: mercator.getTileExtent(x, y, z)
+                    };
+                    this._elevationCache[tileIndex] = cache;
+                    callback(0.0);
                 } else {
-
-                    if (!this._fetchCache[tileIndex]) {
-                        let url = stringTemplate(this.url, {
-                            "x": x,
-                            "y": y,
-                            "z": z
-                        });
-                        this._fetchCache[tileIndex] = this._loader.fetch({
-                            'src': url,
-                            'type': this._dataType
-                        });
-                    }
-
-                    this._fetchCache[tileIndex].then((response) => {
-                        if (response.status === "ready") {
-                            let cache = {
-                                heights: this._createHeights(response.data),
-                                extent: mercator.getTileExtent(x, y, z)
-                            };
-                            this._elevationCache[tileIndex] = cache;
-                            callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
-                        } else if (response.status === "error") {
-                            let cache = {
-                                heights: null,
-                                extent: mercator.getTileExtent(x, y, z)
-                            };
-                            this._elevationCache[tileIndex] = cache;
-                            callback(altEll - altMsl);
-                        } else {
-                            this._fetchCache[tileIndex] = null;
-                            delete this._fetchCache[tileIndex];
-                        }
-                    });
+                    this._fetchCache[tileIndex] = null;
+                    delete this._fetchCache[tileIndex];
                 }
+            });
+        }
 
-                return false;
-            },
-        ];
+        return false;
     }
 
     getTileCache(lonLat, z) {
@@ -287,10 +272,6 @@ class GlobusTerrain extends EmptyTerrain {
             console.log("GlobusTerrain.js 266 - error!");
             debugger;
         }
-    }
-
-    getHeightAsync(heightMode = ELL, lonLat, callback, altEll = 0.0) {
-        this._ellToAltFn[heightMode](lonLat, altEll, callback);
     }
 
     /**
