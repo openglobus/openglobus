@@ -508,3 +508,26 @@ export function cartesianToBarycentricLonLat(p, v1, v2, v3, res) {
 
     return 0 <= res[0] && res[0] <= 1 && 0 <= lambda1 && lambda1 <= 1 && 0 <= lambda2 && lambda2 <= 1;
 };
+
+export function throttle(func, limit, skip) {
+    let lastFunc
+    let lastRan
+    return function () {
+        const context = this
+        const args = arguments
+        if (!lastRan) {
+            func.apply(context, args)
+            lastRan = Date.now()
+        } else {
+            if (skip) {
+                clearTimeout(lastFunc);
+            }
+            lastFunc = setTimeout(function () {
+                if ((Date.now() - lastRan) >= limit) {
+                    func.apply(context, args)
+                    lastRan = Date.now()
+                }
+            }, limit - (Date.now() - lastRan))
+        }
+    }
+};

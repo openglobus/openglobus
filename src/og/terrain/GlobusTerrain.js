@@ -150,19 +150,23 @@ class GlobusTerrain extends EmptyTerrain {
             (lonLat, altEll, callback) => { callback(altEll - this._geoid.getHeightLonLat(lonLat)); return true; },
             (lonLat, altEll, callback) => {
 
-                let z = this.maxZoom;
+                let altMsl = this._geoid.getHeightLonLat(lonLat);
 
-                let z2 = Math.pow(2, z);
-                let size = mercator.POLE2 / z2;
-                let merc = mercator.forward(lonLat);
-                let x = Math.floor((mercator.POLE + merc.lon) / size),
+                if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+                    callback(altEll - altMsl);
+                    return true;
+                }
+
+                let z = this.maxZoom,
+                    z2 = Math.pow(2, z),
+                    size = mercator.POLE2 / z2,
+                    merc = mercator.forward(lonLat),
+                    x = Math.floor((mercator.POLE + merc.lon) / size),
                     y = Math.floor((mercator.POLE - merc.lat) / size);
 
                 let tileIndex = Layer.getTileIndex(x, y, z);
 
                 let cache = this._elevationCache[tileIndex];
-
-                let altMsl = this._geoid.getHeightLonLat(lonLat);
 
                 if (cache) {
                     callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
@@ -189,12 +193,9 @@ class GlobusTerrain extends EmptyTerrain {
                             };
                             this._elevationCache[tileIndex] = cache;
                             callback(altEll - (this._getGroundHeightMerc(merc, cache) + altMsl));
-                        } else if (response.status === "abort") {
-                            this._fetchCache[tileIndex] = null;
-                            delete this._fetchCache[tileIndex];
                         } else if (response.status === "error") {
                             let cache = {
-                                heights: [],
+                                heights: null,
                                 extent: mercator.getTileExtent(x, y, z)
                             };
                             this._elevationCache[tileIndex] = cache;
@@ -211,7 +212,28 @@ class GlobusTerrain extends EmptyTerrain {
         ];
     }
 
+    getTileCache(lonLat, z) {
+
+        if (lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+            return;
+        }
+
+        let z2 = Math.pow(2, z),
+            size = mercator.POLE2 / z2,
+            merc = mercator.forward(lonLat),
+            x = Math.floor((mercator.POLE + merc.lon) / size),
+            y = Math.floor((mercator.POLE - merc.lat) / size);
+
+        let tileIndex = Layer.getTileIndex(x, y, z);
+
+        return this._elevationCache[tileIndex];
+    }
+
     _getGroundHeightMerc(merc, tileData) {
+
+        if (!tileData.heights) {
+            return 0;
+        }
 
         let w = tileData.extent.getWidth(),
             gs = Math.sqrt(tileData.heights.length);
