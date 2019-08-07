@@ -20,6 +20,8 @@ import { Vec3 } from '../math/Vec3.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 
+import { Ray } from '../math/Ray.js';
+
 
 const EVENT_NAMES = [
     /**
@@ -214,6 +216,66 @@ class GlobusTerrain extends EmptyTerrain {
         return this._elevationCache[tileIndex];
     }
 
+    // _getGroundHeightMerc(merc, tileData) {
+
+    //     if (!tileData.heights) {
+    //         return 0;
+    //     }
+
+    //     let w = tileData.extent.getWidth(),
+    //         gs = Math.sqrt(tileData.heights.length);
+
+    //     if (!tileData.extent.isInside(merc)) {
+    //         console.log("GlobusTerrain.js 221 - error!");
+    //         debugger;
+    //     }
+
+    //     let size = w / (gs - 1);
+
+    //     /*
+    //     v2-----------v3
+    //     |            |
+    //     |            |
+    //     |            |
+    //     v0-----------v1
+    //     */
+
+    //     let i = gs - Math.ceil((merc.lat - tileData.extent.southWest.lat) / size) - 1,
+    //         j = Math.floor((merc.lon - tileData.extent.southWest.lon) / size);
+
+    //     let v0Ind = (i + 1) * gs + j,
+    //         v1Ind = v0Ind + 1,
+    //         v2Ind = i * gs + j,
+    //         v3Ind = v2Ind + 1;
+
+    //     let h0 = tileData.heights[v0Ind],
+    //         h1 = tileData.heights[v1Ind],
+    //         h2 = tileData.heights[v2Ind],
+    //         h3 = tileData.heights[v3Ind];
+
+    //     let v0 = new LonLat(tileData.extent.southWest.lon + size * j, tileData.extent.northEast.lat - size * i - size),
+    //         v1 = new LonLat(v0.lon + size, v0.lat),
+    //         v2 = new LonLat(v0.lon, v0.lat + size),
+    //         v3 = new LonLat(v0.lon + size, v0.lat + size);
+
+    //     let TEST = new Extent(v0, v3);
+    //     if (!TEST.isInside(merc)) {
+    //         console.log("GlobusTerrain.js 251 - error!");
+    //         debugger;
+    //     }
+
+    //     let c = new Array(3);
+
+    //     if (cartesianToBarycentricLonLat(merc, v0, v1, v2, c)) {
+    //         return h0 * c[0] + h1 * c[1] + h2 * c[2];
+    //     } else if (cartesianToBarycentricLonLat(merc, v1, v2, v3, c)) {
+    //         return h1 * c[0] + h2 * c[1] + h3 * c[2];
+    //     } else {
+    //         console.log("GlobusTerrain.js 266 - error!");
+    //         debugger;
+    //     }
+    // }
+
     _getGroundHeightMerc(merc, tileData) {
 
         if (!tileData.heights) {
@@ -251,25 +313,28 @@ class GlobusTerrain extends EmptyTerrain {
             h2 = tileData.heights[v2Ind],
             h3 = tileData.heights[v3Ind];
 
-        let v0 = new LonLat(tileData.extent.southWest.lon + size * j, tileData.extent.northEast.lat - size * i - size),
-            v1 = new LonLat(v0.lon + size, v0.lat),
-            v2 = new LonLat(v0.lon, v0.lat + size),
-            v3 = new LonLat(v0.lon + size, v0.lat + size);
+        let v0 = new Vec3(tileData.extent.southWest.lon + size * j, h0, tileData.extent.northEast.lat - size * i - size),
+            v1 = new Vec3(v0.x + size, h1, v0.z),
+            v2 = new Vec3(v0.x, h2, v0.z + size),
+            v3 = new Vec3(v0.x + size, h3, v0.z + size);
 
-        let TEST = new Extent(v0, v3);
-        if (!TEST.isInside(merc)) {
-            console.log("GlobusTerrain.js 251 - error!");
-            debugger;
+        let xyz = new Vec3(merc.lon, 100000.0, merc.lat),
+            ray = new Ray(xyz, new Vec3(0, -1, 0));
+
+        let res = new Vec3();
+        let d = ray.hitTriangle(v0, v1, v2, res);
+
+        if (d === Ray.INSIDE) {
+            return res.y;
         }
 
-        let c = new Array(3);
+        d = ray.hitTriangle(v1, v3, v2, res);
+        if (d === Ray.INSIDE) {
+            return res.y;
+        }
 
-        if (cartesianToBarycentricLonLat(merc, v0, v1, v2, c)) {
-            return h0 * c[0] + h1 * c[1] + h2 * c[2];
-        } else if (cartesianToBarycentricLonLat(merc, v1, v2, v3, c)) {
-            return h1 * c[0] + h2 * c[1] + h3 * c[2];
-        } else {
-            console.log("GlobusTerrain.js 266 - error!");
+        if (d === Ray.AWAY) {
+            console.log("GlobusTerrain.js 337 - error!");
             debugger;
         }
     }
