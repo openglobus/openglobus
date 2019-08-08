@@ -52,20 +52,36 @@ class StripHandler {
             !this._renderer.handler.programs.strip &&
                 this._renderer.handler.addProgram(new Program("strip", {
                     uniforms: {
-                        projectionViewMatrix: { type: 'mat4' },
+                        projectionMatrix: { type: 'mat4' },
+                        viewMatrix: { type: 'mat4' },
+                        eyePositionHigh: "vec3",
+                        eyePositionLow: "vec3",
                         uColor: { type: 'vec4' }
                     },
                     attributes: {
-                        aVertexPosition: { type: 'vec3' }
+                        aVertexPositionHigh: { type: 'vec3' },
+                        aVertexPositionLow: { type: 'vec3' }
                     },
                     vertexShader:
-                        `attribute vec3 aVertexPosition;
-                        uniform mat4 projectionViewMatrix;
+                        `attribute vec3 aVertexPositionHigh;
+                        attribute vec3 aVertexPositionLow;
+                        uniform mat4 projectionMatrix;
+                        uniform mat4 viewMatrix;
+                        uniform vec3 eyePositionHigh;
+                        uniform vec3 eyePositionLow;
                         const float C = 0.1;
                         const float far = 149.6e+9;
                         float logc = 2.0 / log( C * far + 1.0 );
                         void main(void) {
-                            gl_Position = projectionViewMatrix  * vec4(aVertexPosition, 1.0);
+
+                            vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                            vec3 lowDiff = aVertexPositionLow - eyePositionLow;
+
+                            mat4 viewMatrixRTE = viewMatrix;
+                            viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                            gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                            //gl_Position = projectionViewMatrix  * vec4(aVertexPositionHigh + aVertexPositionLow, 1.0);
                             gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                         }`,
                     fragmentShader:

@@ -3,6 +3,10 @@
 import { Vec3 } from '../math/Vec3.js';
 import { Line3 } from '../math/Line3.js';
 
+
+let _tempHigh = new Vec3(),
+    _tempLow = new Vec3();
+
 /**
  * Strip object.
  * @class
@@ -63,11 +67,13 @@ class Strip {
          */
         this._entity = null;
 
-        this._verticesBuffer = null;
+        this._verticesHighBuffer = null;
+        this._verticesLowBuffer = null;
 
         this._indexesBuffer = null;
 
-        this._vertices = [];
+        this._verticesHigh = [];
+        this._verticesLow = [];
 
         this._indexes = [];
 
@@ -122,11 +128,11 @@ class Strip {
         this._path.length = 0;
         this._path = [];
 
-        this._vertices.length = 0;
-        this._vertices = [];
+        this._verticesHigh.length = 0;
+        this._verticesHigh = [];
 
-        this._indexes.length = 0;
-        this._indexes = [];
+        this._verticesLow.length = 0;
+        this._verticesLow = [];
 
         this._indexes.length = 0;
         this._indexes = [];
@@ -187,7 +193,7 @@ class Strip {
     }
 
     draw() {
-        if (this.visibility && this._vertices.length) {
+        if (this.visibility && this._verticesHigh.length) {
             var r = this._renderNode.renderer;
 
             var gl = r.handler.gl;
@@ -202,10 +208,18 @@ class Strip {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
             sh.activate();
-            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+
             gl.uniform4fv(shu.uColor, this.color);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this._verticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);
+            gl.vertexAttribPointer(sha.aVertexPositionHigh, this._verticesHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
+            gl.vertexAttribPointer(sha.aVertexPositionLow, this._verticesLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
             gl.enable(gl.CULL_FACE);
@@ -213,7 +227,7 @@ class Strip {
     }
 
     drawPicking() {
-        if (this.visibility && this._vertices.length) {
+        if (this.visibility && this._verticesHigh.length) {
             var r = this._renderNode.renderer;
 
             var gl = r.handler.gl;
@@ -228,10 +242,18 @@ class Strip {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             gl.enable(gl.BLEND);
             sh.activate();
-            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+
             gl.uniform4fv(shu.uColor, this._pickingColor);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBuffer);
-            gl.vertexAttribPointer(sha.aVertexPosition, this._verticesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);
+            gl.vertexAttribPointer(sha.aVertexPositionHigh, this._verticesHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
+            gl.vertexAttribPointer(sha.aVertexPositionLow, this._verticesLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
             gl.enable(gl.CULL_FACE);
@@ -248,10 +270,11 @@ class Strip {
                 gl = r.handler.gl;
 
             gl.deleteBuffer(this._indexBuffer);
-            gl.deleteBuffer(this._verticesBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer);
         }
-
-        this._verticesBuffer = null;
+        this._verticesHighBuffer = null;
+        this._verticesLowBuffer = null;
         this._indexBuffer = null;
     }
 
@@ -260,9 +283,11 @@ class Strip {
             var gl = this._renderNode.renderer.handler.gl;
 
             gl.deleteBuffer(this._indexBuffer);
-            gl.deleteBuffer(this._verticesBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer);
 
-            this._verticesBuffer = this._renderNode.renderer.handler.createArrayBuffer(new Float32Array(this._vertices), 3, this._vertices.length / 3);
+            this._verticesHighBuffer = this._renderNode.renderer.handler.createArrayBuffer(new Float32Array(this._verticesHigh), 3, this._verticesHigh.length / 3);
+            this._verticesLowBuffer = this._renderNode.renderer.handler.createArrayBuffer(new Float32Array(this._verticesLow), 3, this._verticesLow.length / 3);
             this._indexBuffer = this._renderNode.renderer.handler.createElementArrayBuffer(new Uint16Array(this._indexes), 1, this._indexes.length);
         }
     }
@@ -281,14 +306,15 @@ class Strip {
 
             this._path.push([p2.clone(), p3.clone()]);
 
-            let v = this._vertices;
+            let vHigh = this._verticesHigh,
+                vLow = this._verticesLow;
 
             let gs = this._gridSize,
                 gs1 = gs + 1;
 
             let p = new Vec3();
 
-            let last = this._vertices.length / 3,
+            let last = this._verticesHigh.length / 3,
                 ind = last;
 
             let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
@@ -313,9 +339,17 @@ class Strip {
 
                     ind = last + i * gs1 + j;
 
-                    v[ind * 3] = p.x;
-                    v[ind * 3 + 1] = p.y;
-                    v[ind * 3 + 2] = p.z;
+                    Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                    let ind3 = ind * 3;
+
+                    vHigh[ind3] = _tempHigh.x;
+                    vHigh[ind3 + 1] = _tempHigh.y;
+                    vHigh[ind3 + 2] = _tempHigh.z;
+
+                    vLow[ind3] = _tempLow.x;
+                    vLow[ind3 + 1] = _tempLow.y;
+                    vLow[ind3 + 2] = _tempLow.z;
 
                     if (i < gs) {
                         this._indexes.push(ind, ind + gs1);
@@ -348,15 +382,17 @@ class Strip {
 
             let vSize = gs1 * gs1;
 
-            let p = new Vec3(),
-                v = this._vertices;
+            let p = new Vec3();
+
+            let vHigh = this._verticesHigh,
+                vLow = this._verticesLow;
 
             if (index === this._path.length - 1) {
 
                 let p0 = this._path[index - 1][0],
                     p1 = this._path[index - 1][1];
 
-                let prev = this._vertices.length / 3 - vSize,
+                let prev = this._verticesHigh.length / 3 - vSize,
                     ind = prev;
 
                 let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
@@ -381,9 +417,17 @@ class Strip {
 
                         ind = prev + i * gs1 + j;
 
-                        v[ind * 3] = p.x;
-                        v[ind * 3 + 1] = p.y;
-                        v[ind * 3 + 2] = p.z;
+                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                        let ind3 = ind * 3;
+
+                        vHigh[ind3] = _tempHigh.x;
+                        vHigh[ind3 + 1] = _tempHigh.y;
+                        vHigh[ind3 + 2] = _tempHigh.z;
+
+                        vLow[ind3] = _tempLow.x;
+                        vLow[ind3 + 1] = _tempLow.y;
+                        vLow[ind3 + 2] = _tempLow.z;
                     }
                 }
 
@@ -413,9 +457,17 @@ class Strip {
 
                         ind = i * gs1 + j;
 
-                        v[ind * 3] = p.x;
-                        v[ind * 3 + 1] = p.y;
-                        v[ind * 3 + 2] = p.z;
+                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                        let ind3 = ind * 3;
+
+                        vHigh[ind3] = _tempHigh.x;
+                        vHigh[ind3 + 1] = _tempHigh.y;
+                        vHigh[ind3 + 2] = _tempHigh.z;
+
+                        vLow[ind3] = _tempLow.x;
+                        vLow[ind3 + 1] = _tempLow.y;
+                        vLow[ind3 + 2] = _tempLow.z;
                     }
                 }
             } else if (index > 0 && index < this._path.length) {
@@ -451,9 +503,17 @@ class Strip {
 
                         ind = prev + ij;
 
-                        v[ind * 3] = p.x;
-                        v[ind * 3 + 1] = p.y;
-                        v[ind * 3 + 2] = p.z;
+                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                        let ind3 = ind * 3;
+
+                        vHigh[ind3] = _tempHigh.x;
+                        vHigh[ind3 + 1] = _tempHigh.y;
+                        vHigh[ind3 + 2] = _tempHigh.z;
+
+                        vLow[ind3] = _tempLow.x;
+                        vLow[ind3 + 1] = _tempLow.y;
+                        vLow[ind3 + 2] = _tempLow.z;
 
                         //next
                         let p45 = p4.lerp(p5, dj);
@@ -464,9 +524,17 @@ class Strip {
 
                         ind = next + ij;
 
-                        v[ind * 3] = p.x;
-                        v[ind * 3 + 1] = p.y;
-                        v[ind * 3 + 2] = p.z;
+                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                        ind3 = ind * 3;
+
+                        vHigh[ind3] = _tempHigh.x;
+                        vHigh[ind3 + 1] = _tempHigh.y;
+                        vHigh[ind3 + 2] = _tempHigh.z;
+
+                        vLow[ind3] = _tempLow.x;
+                        vLow[ind3 + 1] = _tempLow.y;
+                        vLow[ind3 + 2] = _tempLow.z;
                     }
                 }
             }
@@ -491,7 +559,8 @@ class Strip {
 
     setPath(path) {
 
-        this._vertices = [];
+        this._verticesHigh = [];
+        this._verticesLow = [];
         this._indexes = [];
         this._path = [];
 
