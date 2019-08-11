@@ -153,6 +153,15 @@ const Renderer = function (handler, params) {
     this.pickingFramebuffer = null;
 
     this._msaa = params.msaa || 8;
+    this._internalFormat = "RGBA16F";
+    this._format = "RGBA";
+    this._type = "FLOAT";
+
+    let _maxMSAA = this.getMaxMSAA(this._internalFormat);
+
+    if (this._msaa > _maxMSAA) {
+        this._msaa = _maxMSAA;
+    }
 
     this._screenScale = params.screenScale || 1.0;
 
@@ -396,22 +405,18 @@ Renderer.prototype.initialize = function () {
             toneMapping()
         ]);
 
-        let internalFormat = "RGBA32F",
-            format = "RGBA",
-            type = "FLOAT";
-
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: 1,
             msaa: this._msaa,
-            internalFormat: internalFormat,
+            internalFormat: this._internalFormat,
             filter: "LINEAR"
         }).init();
 
         this.blitFramebuffer = new Framebuffer(this.handler, {
             useDepth: false,
-            internalFormat: internalFormat,
-            format: format,
-            type: type,
+            internalFormat: this._internalFormat,
+            format: this._format,
+            type: this._type,
             filter: "LINEAR"
         }).init();
 
@@ -472,6 +477,12 @@ Renderer.prototype.addNodes = function (nodesArr) {
     for (var i = 0; i < nodesArr.length; i++) {
         this.addNode(nodesArr[i]);
     }
+};
+
+Renderer.prototype.getMaxMSAA = function (internalFormat) {
+    var gl = this.handler.gl;
+    let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
+    return samples[0];
 };
 
 Renderer.prototype.getMSAA = function () {
