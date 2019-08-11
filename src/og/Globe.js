@@ -151,9 +151,9 @@ class Globe {
             this.planet.addControls(options.controls);
         } else {
             this.planet.addControls([
+                new ZoomControl(),
                 new MouseNavigation(),
                 new TouchNavigation(),
-                new ZoomControl(),
                 new EarthCoordinates()
             ]);
         }

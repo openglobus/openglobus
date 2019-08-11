@@ -1375,7 +1375,9 @@ class Planet extends RenderNode {
             this._viewChanged = false;
             var cnv = this.renderer.handler.canvas;
 
+            this._heightPickingFramebuffer.activate();
             this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
+            this._heightPickingFramebuffer.deactivate();
 
             var color = Vec4.fromVec(this._tempPickingPix_);
 
