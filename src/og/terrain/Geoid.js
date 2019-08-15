@@ -36,54 +36,6 @@
 
 'use strict';
 
-const c0 = 240;
-const c3 = [
-    [9, -18, -88, 0, 96, 90, 0, 0, -60, -20],
-    [-9, 18, 8, 0, -96, 30, 0, 0, 60, -20],
-    [9, -88, -18, 90, 96, 0, -20, -60, 0, 0],
-    [186, -42, -42, -150, -96, -150, 60, 60, 60, 60],
-    [54, 162, -78, 30, -24, -90, -60, 60, -60, 60],
-    [-9, -32, 18, 30, 24, 0, 20, -60, 0, 0],
-    [-9, 8, 18, 30, -96, 0, -20, 60, 0, 0],
-    [54, -78, 162, -90, -24, 30, 60, -60, 60, -60],
-    [-54, 78, 78, 90, 144, 90, -60, -60, -60, -60],
-    [9, -8, -18, -30, -24, 0, 20, 60, 0, 0],
-    [-9, 18, -32, 0, 24, 30, 0, 0, -60, 20],
-    [9, -18, -8, 0, -24, -30, 0, 0, 60, 20],
-];
-
-const c0n = 372;
-const c3n = [
-    [0, 0, -131, 0, 138, 144, 0, 0, -102, -31],
-    [0, 0, 7, 0, -138, 42, 0, 0, 102, -31],
-    [62, 0, -31, 0, 0, -62, 0, 0, 0, 31],
-    [124, 0, -62, 0, 0, -124, 0, 0, 0, 62],
-    [124, 0, -62, 0, 0, -124, 0, 0, 0, 62],
-    [62, 0, -31, 0, 0, -62, 0, 0, 0, 31],
-    [0, 0, 45, 0, -183, -9, 0, 93, 18, 0],
-    [0, 0, 216, 0, 33, 87, 0, -93, 12, -93],
-    [0, 0, 156, 0, 153, 99, 0, -93, -12, -93],
-    [0, 0, -45, 0, -3, 9, 0, 93, -18, 0],
-    [0, 0, -55, 0, 48, 42, 0, 0, -84, 31],
-    [0, 0, -7, 0, -48, -42, 0, 0, 84, 31],
-];
-
-const c0s = 372;
-const c3s = [
-    [18, -36, -122, 0, 120, 135, 0, 0, -84, -31],
-    [-18, 36, -2, 0, -120, 51, 0, 0, 84, -31],
-    [36, -165, -27, 93, 147, -9, 0, -93, 18, 0],
-    [210, 45, -111, -93, -57, -192, 0, 93, 12, 93],
-    [162, 141, -75, -93, -129, -180, 0, 93, -12, 93],
-    [-36, -21, 27, 93, 39, 9, 0, -93, -18, 0],
-    [0, 0, 62, 0, 0, 31, 0, 0, 0, -31],
-    [0, 0, 124, 0, 0, 62, 0, 0, 0, -62],
-    [0, 0, 124, 0, 0, 62, 0, 0, 0, -62],
-    [0, 0, 62, 0, 0, 31, 0, 0, 0, -31],
-    [-18, 36, -64, 0, 66, 51, 0, 0, -102, 31],
-    [18, -36, 2, 0, -66, -51, 0, 0, 102, 31],
-];
-
 class Geoid {
     constructor(options) {
 
@@ -243,11 +195,11 @@ class Geoid {
         return (model.rawfile[k] << 8) | model.rawfile[k + 1];
     }
 
-    getHeightLonLat(lonlat, cubic) {
-        return this.getHeight(lonlat.lon, lonlat.lat, cubic);
+    getHeightLonLat(lonlat) {
+        return this.getHeight(lonlat.lon, lonlat.lat);
     }
 
-    getHeight(lon, lat, cubic) {
+    getHeight(lon, lat) {
 
         if (!this.model) return 0;
 
@@ -272,68 +224,18 @@ class Geoid {
             this._cached_ix = ix;
             this._cached_iy = iy;
 
-            if (cubic) {
-
-                var c3x = c3;
-                var c0x = c0;
-
-                if (iy === 0) {
-                    c3x = c3n;
-                    c0x = c0n;
-                } else if (iy === (model.height - 2)) {
-                    c3x = c3s;
-                    c0x = c0s;
-                }
-
-                var v = [
-                    this._rawval(ix, iy - 1),
-                    this._rawval(ix + 1, iy - 1),
-                    this._rawval(ix - 1, iy),
-                    this._rawval(ix, iy),
-                    this._rawval(ix + 1, iy),
-                    this._rawval(ix + 2, iy),
-                    this._rawval(ix - 1, iy + 1),
-                    this._rawval(ix, iy + 1),
-                    this._rawval(ix + 1, iy + 1),
-                    this._rawval(ix + 2, iy + 1),
-                    this._rawval(ix, iy + 2),
-                    this._rawval(ix + 1, iy + 2)
-                ];
-
-                this._t = Array.apply(null, Array(10)).map(function (_, i, arr) {
-                    return v.reduce(function (acc, vj, j, arr) {
-                        return acc + vj * c3x[j][i];
-                    }) / c0x;
-                });
-
-            } else {
-                this._v00 = this._rawval(ix, iy);
-                this._v01 = this._rawval(ix + 1, iy);
-                this._v10 = this._rawval(ix, iy + 1);
-                this._v11 = this._rawval(ix + 1, iy + 1);
-            }
+            this._v00 = this._rawval(ix, iy);
+            this._v01 = this._rawval(ix + 1, iy);
+            this._v10 = this._rawval(ix, iy + 1);
+            this._v11 = this._rawval(ix + 1, iy + 1);
         }
 
         let h = null;
 
-        if (cubic) {
+        var a = (1 - fx) * this._v00 + fx * this._v01;
+        var b = (1 - fx) * this._v10 + fx * this._v11;
 
-            let t = this._t;
-
-            h = t[0] +
-                fx * (t[1] + fx * (t[3] + fx * t[6])) +
-                fy * (
-                    t[2] + fx * (t[4] + fx * t[7]) +
-                    fy * (t[5] + fx * t[8] + fy * t[9])
-                );
-
-        } else {
-
-            var a = (1 - fx) * this._v00 + fx * this._v01;
-            var b = (1 - fx) * this._v10 + fx * this._v11;
-
-            h = (1 - fy) * a + fy * b;
-        }
+        h = (1 - fy) * a + fy * b;
 
         return model.offset + model.scale * h;
     }
