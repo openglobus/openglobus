@@ -157,12 +157,6 @@ const Renderer = function (handler, params) {
     this._format = "RGBA";
     this._type = "FLOAT";
 
-    let _maxMSAA = this.getMaxMSAA(this._internalFormat);
-
-    if (this._msaa > _maxMSAA) {
-        this._msaa = _maxMSAA;
-    }
-
     this._screenScale = params.screenScale || 1.0;
 
     this.sceneFramebuffer = null;
@@ -400,6 +394,12 @@ Renderer.prototype.initialize = function () {
         this.sceneFramebuffer.init();
         this._fnScreenFrame = this._screenFrameNoMSAA;
     } else {
+
+        let _maxMSAA = this.getMaxMSAA(this._internalFormat);
+
+        if (this._msaa > _maxMSAA) {
+            this._msaa = _maxMSAA;
+        }
 
         this.handler.addPrograms([
             toneMapping()
