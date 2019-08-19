@@ -50,6 +50,8 @@ const MIN_LOD = 0.65;
  */
 const MAX_NODES = 500;
 
+const GLOBAL_DRAW_PRIORITY = -math.MAX;
+
 const EVENT_NAMES = [
     /**
      * Triggered before globe frame begins to render.
@@ -693,6 +695,8 @@ class Planet extends RenderNode {
             blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
         });
 
+        this.renderer.events.on("draw", this._globalPreDraw, this, -100);
+
         //Loads first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
     }
@@ -908,12 +912,7 @@ class Planet extends RenderNode {
         //this._renderedNodes.push(this.camera._insideSegment.node);
     }
 
-    /**
-     * Render node callback.
-     * @public
-     */
-    frame() {
-
+    _globalPreDraw() {
         this._lodRatio = math.lerp(
             this.camera.slope < 0.0 ? 0.0 :
                 this.camera.slope,
@@ -922,12 +921,22 @@ class Planet extends RenderNode {
 
         this._collectRenderNodes();
 
-        this.renderer.activeCamera.prepareFrame();
+        this.renderer.activeCamera.checkFly();
+
+        this.renderer.activeCamera.checkTerrainCollision();
+
+        this.transformLights();
+    }
+
+    /**
+     * Render node callback.
+     * @public
+     */
+    frame() {
+
 
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);
-
-        this.transformLights();
 
         this._normalMapCreator.frame();
 

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { stamp } from './utils/shared.js';
+import { stamp, binaryInsert } from './utils/shared.js';
 
 /**
  * Base events class to handle custom events.
@@ -96,12 +96,16 @@ class Events {
      * @param {eventCallback} callback - Event callback function.
      * @param {Object} sender - Event callback function owner. 
      */
-    on(name, callback, sender) {
+    on(name, callback, sender, priority = 0) {
         if (this._stamp(name, callback)) {
             if (this[name]) {
                 let c = callback.bind(sender || this._sender);
                 c._openglobus_id = callback._openglobus_id;
-                this[name].handlers.unshift(c);
+                c._openglobus_priority = priority;
+                binaryInsert(this[name].handlers, c, (a, b) => {
+                    return b._openglobus_priority - a._openglobus_priority;
+                });
+                //this[name].handlers.unshift(c);
             }
         }
     }
