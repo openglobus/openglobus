@@ -64,6 +64,10 @@ class Events {
         }
     }
 
+    _getStamp(name, id, ogid) {
+        return `${name}_${id}_${ogid}`;
+    }
+
     /**
      * Returns true if event callback has stamped.
      * @protected
@@ -75,7 +79,7 @@ class Events {
 
         var ogid = stamp(obj);
 
-        var st = name + "_" + this.__id + "_" + ogid;
+        var st = this._getStamp(name, this.__id, ogid);//name + "_" + this.__id + "_" + ogid;
 
         if (!this._stampCache[st]) {
             this._stampCache[st] = ogid;
@@ -110,7 +114,7 @@ class Events {
      */
     off(name, callback) {
         if (callback) {
-            var st = name + "_" + this.__id + "_" + callback._openglobus_id;
+            var st = this._getStamp(name, this.__id, callback._openglobus_id);//name + "_" + this.__id + "_" + callback._openglobus_id;
             if (callback._openglobus_id && this._stampCache[st]) {
                 var h = this[name].handlers;
                 var i = h.length;
