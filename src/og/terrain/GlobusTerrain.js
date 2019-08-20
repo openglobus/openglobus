@@ -218,7 +218,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     _getGroundHeightMerc(merc, tileData) {
 
-        if (!tileData.heights) {
+        if (!(tileData.extent && tileData.heights)) {
             return 0;
         }
 
