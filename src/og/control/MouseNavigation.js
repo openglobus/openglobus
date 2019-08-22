@@ -231,6 +231,9 @@ class MouseNavigation extends Control {
                         cam._v = rot.mulVec3(cam._v);
                         cam._u = rot.mulVec3(cam._u);
                         cam._n = rot.mulVec3(cam._n);
+
+                        cam.checkTerrainCollision();
+
                         cam.update();
                     }
                 } else {
@@ -241,6 +244,9 @@ class MouseNavigation extends Control {
                     var px = new Vec3();
                     if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
+
+                        cam.checkTerrainCollision();
+
                         cam.update();
                     }
                 }
@@ -267,6 +273,9 @@ class MouseNavigation extends Control {
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
             cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);
+
+            cam.checkTerrainCollision();
+
             cam.update();
         }
     }
@@ -303,6 +312,9 @@ class MouseNavigation extends Control {
                 cam._v = sf.v;
                 cam._u = sf.u;
                 cam._n = sf.n;
+
+                cam.checkTerrainCollision();
+
                 cam.update();
             } else {
                 if (this._deactivate) {
@@ -331,6 +343,9 @@ class MouseNavigation extends Control {
                 cam._v = rot.mulVec3(cam._v);
                 cam._u = rot.mulVec3(cam._u);
                 cam._n = rot.mulVec3(cam._n);
+
+                cam.checkTerrainCollision();
+
                 cam.update();
             }
 

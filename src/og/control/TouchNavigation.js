@@ -207,6 +207,7 @@ class TouchNavigation extends Control {
                 if (l > 0.007) l = 0.007;
                 cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
                 cam.rotateVertical(l * t0.dY(), this.pointOnEarth);
+                cam.checkTerrainCollision();
                 cam.update();
             }
 
@@ -237,6 +238,7 @@ class TouchNavigation extends Control {
                     cam._v = rot.mulVec3(cam._v);
                     cam._u = rot.mulVec3(cam._u);
                     cam._n = rot.mulVec3(cam._n);
+                    cam.checkTerrainCollision();
                     cam.update();
                     this.scaleRot = 1;
                 } else {
@@ -247,6 +249,7 @@ class TouchNavigation extends Control {
                     var px = new Vec3();
                     if (new Ray(cam.eye, dir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
+                        cam.checkTerrainCollision();
                         cam.update();
                         this.scaleRot = 0;
                     }
@@ -274,6 +277,7 @@ class TouchNavigation extends Control {
             cam._v = sf.v;
             cam._u = sf.u;
             cam._n = sf.n;
+            cam.checkTerrainCollision();
             cam.update();
         }
 
@@ -294,6 +298,7 @@ class TouchNavigation extends Control {
             cam._v = rot.mulVec3(cam._v);
             cam._u = rot.mulVec3(cam._u);
             cam._n = rot.mulVec3(cam._n);
+            cam.checkTerrainCollision();
             cam.update();
         }
 

@@ -36,27 +36,31 @@ class KeyboardNavigation extends Control {
     }
 
     onCameraMoveForward(event) {
-        var camera = this.renderer.activeCamera;
-        camera.slide(0, 0, -camera._lonLat.height / 30);
-        camera.update();
+        var cam = this.renderer.activeCamera;
+        cam.slide(0, 0, -cam._lonLat.height / 30);
+        cam.checkTerrainCollision();
+        cam.update();
     }
 
     onCameraMoveBackward(event) {
-        var camera = this.renderer.activeCamera;
-        camera.slide(0, 0, camera._lonLat.height / 30);
-        camera.update();
+        var cam = this.renderer.activeCamera;
+        cam.slide(0, 0, cam._lonLat.height / 30);
+        cam.checkTerrainCollision();
+        cam.update();
     }
 
     onCameraStrifeLeft(event) {
-        var camera = this.renderer.activeCamera;
-        camera.slide(-camera._lonLat.height / 30, 0, 0);
-        camera.update();
+        var cam = this.renderer.activeCamera;
+        cam.slide(-cam._lonLat.height / 30, 0, 0);
+        cam.checkTerrainCollision();
+        cam.update();
     }
 
     onCameraStrifeRight(event) {
-        var camera = this.renderer.activeCamera;
-        camera.slide(camera._lonLat.height / 30, 0, 0);
-        camera.update();
+        var cam = this.renderer.activeCamera;
+        cam.slide(cam._lonLat.height / 30, 0, 0);
+        cam.checkTerrainCollision();
+        cam.update();
     }
 
     onCameraLookUp(event) {

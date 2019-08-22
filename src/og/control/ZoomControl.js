@@ -103,6 +103,7 @@ class ZoomControl extends Control {
             var d = cam.eye.distance(
                 this.planet.getCartesianFromPixelTerrain(this._targetPoint, true)) * 0.075;
             cam.eye.addA(cam.getForward().scale(this._move * d));
+            cam.checkTerrainCollision();
             cam.update();
         }
     }

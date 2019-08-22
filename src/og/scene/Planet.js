@@ -924,8 +924,6 @@ class Planet extends RenderNode {
 
         this.renderer.activeCamera.checkFly();
 
-        this.renderer.activeCamera.checkTerrainCollision();
-
         this.transformLights();
     }
 
@@ -934,7 +932,6 @@ class Planet extends RenderNode {
      * @public
      */
     frame() {
-
 
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);

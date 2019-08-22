@@ -169,7 +169,6 @@ class PlanetCamera extends Camera {
         this.eye.y = n.y * alt + t.y;
         this.eye.z = n.z * alt + t.z;
         this._terrainAltitude = alt;
-        this.update();
     }
 
     /**
