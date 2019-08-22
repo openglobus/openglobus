@@ -50,7 +50,7 @@ SegmentLonLat.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, 
     if (normal) {
         normal.copy(res.normal());
     }
-    return  xyz.length() - res.length();
+    return xyz.length() - res.length();
 };
 
 SegmentLonLat.prototype.acceptForRendering = function (camera) {
@@ -223,8 +223,8 @@ SegmentLonLat.prototype.layerOverlap = function (layer) {
     return this._extent.overlaps(layer._extent);
 };
 
-SegmentLonLat.prototype._getDefaultTexture = function () {
-    return this.planet.solidTextureTwo;
+SegmentLonLat.prototype.getDefaultTexture = function () {
+    return this._isNorth ? this.planet.solidTextureOne : this.planet.solidTextureTwo;
 };
 
 SegmentLonLat.prototype.getExtentLonLat = function () {

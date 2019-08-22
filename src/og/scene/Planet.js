@@ -786,6 +786,7 @@ class Planet extends RenderNode {
             if (li._visibility) {
 
                 if (li._isBaseLayer) {
+                    this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
                     this.baseLayer = li;
                 }
 

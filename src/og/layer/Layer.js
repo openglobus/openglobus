@@ -151,6 +151,8 @@ class Layer {
          */
         this._isBaseLayer = options.isBaseLayer || false;
 
+        this._defaultTextures = options.defaultTextures || [null, null];
+
         /**
          * Layer visibility.
          * @protected

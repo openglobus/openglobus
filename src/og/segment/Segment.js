@@ -1373,7 +1373,7 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
 
     //First always draw whole planet base layer segment with solid texture.
     gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
-    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this._getDefaultTexture());
+    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this.getDefaultTexture());
     gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE + 2);
 
     var n = 0,
@@ -1638,7 +1638,7 @@ Segment.prototype.layerOverlap = function (layer) {
     return this._extent.overlaps(layer._extentMerc);
 };
 
-Segment.prototype._getDefaultTexture = function () {
+Segment.prototype.getDefaultTexture = function () {
     return this.planet.solidTextureOne;
 };
 

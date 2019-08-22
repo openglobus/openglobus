@@ -151,13 +151,9 @@ class XYZ extends Layer {
         let seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+            material.texture = seg.getDefaultTexture();
         } else {
             material.texture = seg.planet.transparentTexture;
-        }
-
-        if (material.segment.tileZoom > material.layer.maxNativeZoom) {
-            debugger;
         }
 
         if (this._planet.layerLock.isFree()) {
