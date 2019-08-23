@@ -580,8 +580,6 @@ class Planet extends RenderNode {
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
-        this._fnRendering = this._singleframebufferRendering;
-
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
         this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
@@ -615,8 +613,6 @@ class Planet extends RenderNode {
                         !this._indexesCache[c][w][n][e] && (this._indexesCache[c][w][n][e] = []);
                         for (var q = 0; q <= TABLESIZE; q++) {
                             var s = Math.pow(2, q);
-
-                            //!this._indexesCache[c][w][n][e][s] && (this._indexesCache[c][w][n][e][s] = []);
 
                             var indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
 
@@ -946,7 +942,7 @@ class Planet extends RenderNode {
 
         this._normalMapCreator.frame();
 
-        this._fnRendering();
+        this._singleframebufferRendering();
 
         //Creates geoImages textures.
         this._geoImageCreator.frame();
@@ -1065,7 +1061,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (let j = 1; j < sl.length; j++) {
+        for (let j = 1, len = sl.length; j < len; j++) {
 
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
@@ -1126,7 +1122,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (let j = 1; j < sl.length; j++) {
+        for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
@@ -1179,7 +1175,7 @@ class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (let j = 1; j < sl.length; j++) {
+        for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
