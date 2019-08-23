@@ -392,6 +392,10 @@ class Planet extends RenderNode {
         this.events.registerNames(EVENT_NAMES);
 
         this._tempPickingPix_ = new Uint8Array(4);
+
+        this._distBeforeMemClear = 0.0;
+
+        this._prevCamEye = new Vec3();
     }
 
     /**
@@ -863,6 +867,12 @@ class Planet extends RenderNode {
      */
     _collectRenderNodes() {
 
+        this._lodRatio = math.lerp(
+            this.camera.slope < 0.0 ? 0.0 :
+                this.camera.slope,
+            this._maxLodRatio, this._minLodRatio
+        );
+
         this.camera._insideSegment = null;
 
         this._nodeCounterError_ = 0;
@@ -887,7 +897,7 @@ class Planet extends RenderNode {
         //TODO:Abolish "magic" numbers
         if (this.renderer.activeCamera.slope > 0.8 &&
             this.renderer.activeCamera._lonLat.height < 850000.0 &&
-            this.renderer.activeCamera._lonLat.height > 7000.0) {
+            this.renderer.activeCamera._lonLat.height > 10000.0) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
@@ -914,13 +924,9 @@ class Planet extends RenderNode {
     }
 
     _globalPreDraw() {
-        this._lodRatio = math.lerp(
-            this.camera.slope < 0.0 ? 0.0 :
-                this.camera.slope,
-            this._maxLodRatio, this._minLodRatio
-        );
 
-        this._collectRenderNodes();
+        this._distBeforeMemClear += this._prevCamEye.distance(this.camera.eye);
+        this._prevCamEye.copy(this.camera.eye);
 
         this.renderer.activeCamera.checkFly();
 
@@ -933,6 +939,8 @@ class Planet extends RenderNode {
      */
     frame() {
 
+        this._collectRenderNodes();
+
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);
 
@@ -944,7 +952,7 @@ class Planet extends RenderNode {
         this._geoImageCreator.frame();
 
         //free memory
-        if (this._createdNodesCount > MAX_NODES) {
+        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
             this.memClear();
         }
     }
@@ -1225,6 +1233,8 @@ class Planet extends RenderNode {
      * @public
      */
     memClear() {
+        this._distBeforeMemClear = 0;
+
         this.layerLock.lock(this._memKey);
         this.terrainLock.lock(this._memKey);
         this._normalMapCreator.lock(this._memKey);
