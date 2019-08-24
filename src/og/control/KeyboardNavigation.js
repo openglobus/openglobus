@@ -66,7 +66,7 @@ class KeyboardNavigation extends Control {
     onCameraLookUp(event) {
         var cam = this.renderer.activeCamera;
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-            cam.pitch(5);
+            cam.pitch(15 / this.renderer.handler.deltaTime);
         } else {
             cam.rotateVertical(cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
         }
@@ -76,7 +76,7 @@ class KeyboardNavigation extends Control {
     onCameraLookDown(event) {
         var cam = this.renderer.activeCamera;
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-            cam.pitch(-5);
+            cam.pitch(-15 / this.renderer.handler.deltaTime);
         } else {
             cam.rotateVertical(-cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
         }
@@ -86,7 +86,7 @@ class KeyboardNavigation extends Control {
     onCameraTurnLeft(event) {
         var cam = this.renderer.activeCamera;
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-            cam.yaw(5);
+            cam.yaw(15 / this.renderer.handler.deltaTime);
         } else {
             cam.rotateHorizontal(cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
         }
@@ -96,7 +96,7 @@ class KeyboardNavigation extends Control {
     onCameraTurnRight(event) {
         var cam = this.renderer.activeCamera;
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-            cam.yaw(-5);
+            cam.yaw(-15 / this.renderer.handler.deltaTime);
         } else {
             cam.rotateHorizontal(-cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
         }
@@ -104,12 +104,12 @@ class KeyboardNavigation extends Control {
     }
 
     onCameraRollLeft(event) {
-        this.renderer.activeCamera.roll(-5);
+        this.renderer.activeCamera.roll(-15 / this.renderer.handler.deltaTime);
         this.renderer.activeCamera.update();
     }
 
     onCameraRollRight(event) {
-        this.renderer.activeCamera.roll(5);
+        this.renderer.activeCamera.roll(15 / this.renderer.handler.deltaTime);
         this.renderer.activeCamera.update();
     }
 };

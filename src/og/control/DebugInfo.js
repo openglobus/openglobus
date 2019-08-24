@@ -60,6 +60,9 @@ class DebugInfo extends Control {
                 'label': "createdNodes",
                 'frame': () => p._createdNodesCount
             }, {
+                'label': "distBeforeMemClear",
+                'frame': () => p._distBeforeMemClear
+            },{
                 'label': "maxZoom/minZoom",
                 'frame': () => p.maxCurrZoom + '/' + p.minCurrZoom
             }, {

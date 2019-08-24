@@ -17,20 +17,20 @@ export function createSegmentIndexes(size, sidesSizes) {
             e = skirtsIndexesTable[quadTree.E][size][sidesSizes[quadTree.E]],
             s = skirtsIndexesTable[quadTree.S][size][sidesSizes[quadTree.S]];
         var indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
-        var k = 0, i = 0;
-        for (k = 0; k < c.length; k++) {
+        var k = 0, i = 0, len = c.length;
+        for (k = 0; k < len; k++) {
             indexes[i++] = c[k];
         }
-        for (k = 0; k < w.length; k++) {
+        for (k = 0, len = w.length; k < len; k++) {
             indexes[i++] = w[k];
         }
-        for (k = 0; k < n.length; k++) {
+        for (k = 0, len = n.length; k < len; k++) {
             indexes[i++] = n[k];
         }
-        for (k = 0; k < e.length; k++) {
+        for (k = 0, len = e.length; k < len; k++) {
             indexes[i++] = e[k];
         }
-        for (k = 0; k < s.length; k++) {
+        for (k = 0, len = s.length; k < len; k++) {
             indexes[i++] = s[k];
         }
         return indexes;
