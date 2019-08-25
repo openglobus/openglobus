@@ -58,6 +58,7 @@ export function polyline_screen() {
                 const float C = 0.1;
                 const float far = 149.6e+9;
                 float logc = 2.0 / log( C * far + 1.0 );
+                const float Fcoef = 2.0 / log2(far + 1.0);
                 
                 const float NEAR = -1.0;
                 
@@ -176,6 +177,7 @@ export function polyline_screen() {
                     }
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                    //gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
                 }`,
                 
         fragmentShader:

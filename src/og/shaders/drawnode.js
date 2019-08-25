@@ -150,8 +150,10 @@ export function drawnode_screen_wl() {
             varying vec4 v_vertex;
             varying float v_height;
 
-            const float C = 0.1;
             const float far = 149.6e+9;
+            float Fcoef = 2.0 / log2(far + 1.0);
+
+            const float C = 0.1;
             float logc = 2.0 / log( C * far + 1.0 );
 
             void main(void) {
@@ -170,9 +172,8 @@ export function drawnode_screen_wl() {
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                //gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-                float Fcoef = 2.0 / log2(far + 1.0);
-                gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
+                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                //gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
             }`,
 
         fragmentShader:
@@ -327,6 +328,8 @@ export function drawnode_colorPicking() {
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
 
+            const float Fcoef = 2.0 / log2(far + 1.0);
+
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
@@ -339,6 +342,7 @@ export function drawnode_colorPicking() {
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                //gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
             }`,
 
         fragmentShader:
@@ -446,6 +450,8 @@ export function drawnode_heightPicking() {
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
 
+            const float Fcoef = 2.0 / log2(far + 1.0);
+
             void main(void) {
 
                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
@@ -462,6 +468,7 @@ export function drawnode_heightPicking() {
                 //gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
                 gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                //gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
             }`,
             
         fragmentShader:
