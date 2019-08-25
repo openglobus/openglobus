@@ -976,6 +976,7 @@ class Planet extends RenderNode {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
+        gl.enable(gl.CULL_FACE);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1148,12 +1149,7 @@ class Planet extends RenderNode {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
-
-        //gl.polygonOffset(0, 0);
-        //gl.enable(gl.DEPTH_TEST);
-
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
-        //gl.polygonOffset(0, -637000);
+        gl.enable(gl.CULL_FACE);
 
         h.programs.drawnode_colorPicking.activate();
         sh = h.programs.drawnode_colorPicking._program;

@@ -22,7 +22,7 @@ export function ray_screen() {
             viewMatrix: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            uFloatParams: "vec2",
+            resolution: "float",
             uOpacity: "float"
         },
         attributes: {
@@ -36,7 +36,6 @@ export function ray_screen() {
         vertexShader:
             `precision highp float;
             attribute vec2 a_vertices;
-            attribute vec2 a_texCoord;
             attribute vec3 a_posHigh;
             attribute vec3 a_posLow;
             attribute vec3 a_direction;
@@ -51,36 +50,34 @@ export function ray_screen() {
             //uniform vec3 uCamPos;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
-            uniform vec2 uFloatParams;
-            uniform float uOpacity;
+            uniform float resolution;
 
-            const vec3 ZERO3 = vec3(0.0);
             const float C = 0.1;
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
 
+            const float NEAR = -1.0;
+
             void main() {
 
-                vec3 a_position = a_posHigh + a_posLow;
+                v_rgba = a_rgba;
+
+
                 vec3 uCamPos = eyePositionHigh + eyePositionLow;
 
-                v_texCoords = a_texCoord;
-                vec3 look = a_position - uCamPos;
-                float lookLength = length(look);
-                v_rgba = a_rgba;
-                /*v_rgba.a *= uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_position, a_position) - uFloatParams[0]));*/
-                if(uOpacity * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(a_position, a_position) - uFloatParams[0])) == 0.0){
-                    return;
-                }
+                vec3 a_position = a_posHigh + a_posLow;
+
+                vec3 endPos = a_position + a_vertices.y * normalize(a_direction) * a_size.y;
+
+                vec3 look = endPos - uCamPos;
 
                 vec3 up = normalize(a_direction);
                 vec3 right = normalize(cross(look,up));
-                look = cross(up,right);
 
-                float dist = dot(uCamPos - a_position, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
-                float focalSize = 2.0 * dist * uFloatParams[1];
-                vec2 scale = a_size * focalSize;
-                vec3 rr = right * scale.x * a_vertices.x + up * scale.y * a_vertices.y;
+                float dist = dot(uCamPos - endPos, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+                float focalSize = 2.0 * dist * resolution;
+                float thickness = a_size.x * focalSize;
+                vec3 rr = right * thickness * a_vertices.x + up * a_size.y * a_vertices.y;
 
                 vec3 highDiff = a_posHigh - eyePositionHigh;
                 vec3 lowDiff = a_posLow + rr - eyePositionLow;
@@ -88,15 +85,21 @@ export function ray_screen() {
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                vec4 pos = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                
+                gl_Position = projectionMatrix * pos;
+                //gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                float Fcoef = 2.0 / log2(far + 1.0);
+                gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
+
             }`,
         fragmentShader:
             `precision highp float;
+            uniform float uOpacity;
             varying vec2 v_texCoords;
             varying vec4 v_rgba;
             void main () {
-                gl_FragColor = v_rgba;
+                gl_FragColor = v_rgba * uOpacity;
             }`
     });
 }
@@ -121,10 +124,12 @@ class MyScene extends RenderNode {
         let posHigh = new Vec3(),
             posLow = new Vec3();
 
+        Vec3.doubleToTwoFloats(pos, posHigh, posLow);
+
         let direction = new Vec3(0, 1, 0);
 
-        let width = 5,
-            height = 50;
+        let width = 10,
+            height = 500;
 
         let color = new Vec4(1, 1, 1, 1);
 
@@ -135,7 +140,7 @@ class MyScene extends RenderNode {
         this._rgbaArr = [];
         this._dirArr = [];
 
-        concArr(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
+        concArr(this._vertexArr, [-0.5, 1, -0.5, 0, 0.5, 0, 0.5, 0, 0.5, 1, -0.5, 1]);
 
         var x = posHigh.x, y = posHigh.y, z = posHigh.z, w;
         concArr(this._posHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
@@ -193,7 +198,7 @@ class MyScene extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
-        gl.uniform2fv(shu.uFloatParams, [0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform1f(shu.resolution, r.activeCamera._tanViewAngle_hradOneByHeight);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._posHighBuffer);
         gl.vertexAttribPointer(sha.a_posHigh, this._posHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -214,6 +219,7 @@ class MyScene extends RenderNode {
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
     }
 };
 
