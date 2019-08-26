@@ -158,7 +158,11 @@ class GlobusTerrain extends EmptyTerrain {
         let cache = this._elevationCache[tileIndex];
 
         if (cache) {
-            callback(this._getGroundHeightMerc(merc, cache));
+            if (!cache.heights) {
+                callback(this._geoid.getHeightLonLat(lonLat));
+            } else {
+                callback(this._getGroundHeightMerc(merc, cache));
+            }
             return true;
         } else {
 
