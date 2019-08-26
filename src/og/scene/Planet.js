@@ -925,8 +925,6 @@ class Planet extends RenderNode {
         this._prevCamEye.copy(this.camera.eye);
 
         this.renderer.activeCamera.checkFly();
-
-        this.transformLights();
     }
 
     /**
@@ -940,6 +938,8 @@ class Planet extends RenderNode {
         //Here is the planet node dispatches a draw event before rendering begins.
         this.events.dispatch(this.events.draw, this);
 
+        this.transformLights();
+        
         this._normalMapCreator.frame();
 
         this._singleframebufferRendering();

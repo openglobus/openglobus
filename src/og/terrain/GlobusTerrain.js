@@ -188,7 +188,7 @@ class GlobusTerrain extends EmptyTerrain {
                         extent: mercator.getTileExtent(x, y, z)
                     };
                     this._elevationCache[tileIndex] = cache;
-                    callback(0.0);
+                    callback(this._geoid.getHeightLonLat(lonLat));
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];
