@@ -158,7 +158,11 @@ class GlobusTerrain extends EmptyTerrain {
         let cache = this._elevationCache[tileIndex];
 
         if (cache) {
-            callback(this._getGroundHeightMerc(merc, cache));
+            if (!cache.heights) {
+                callback(this._geoid.getHeightLonLat(lonLat));
+            } else {
+                callback(this._getGroundHeightMerc(merc, cache));
+            }
             return true;
         } else {
 
@@ -188,7 +192,7 @@ class GlobusTerrain extends EmptyTerrain {
                         extent: mercator.getTileExtent(x, y, z)
                     };
                     this._elevationCache[tileIndex] = cache;
-                    callback(0.0);
+                    callback(this._geoid.getHeightLonLat(lonLat));
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];

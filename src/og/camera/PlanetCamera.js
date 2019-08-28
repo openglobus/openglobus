@@ -556,6 +556,17 @@ class PlanetCamera extends Camera {
         return R * Math.acos(R / (R + this._lonLat.height + d));
     }
 
+    getHeading() {
+        let u = this.eye.normal();
+        let f = Vec3.proj_b_to_plane(this.slope >= 0.97 ? this.getUp() : this.getForward(), u).normalize(),
+            n = Vec3.proj_b_to_plane(Vec3.UP, u).normalize();
+        let res = Math.sign(u.dot(f.cross(n))) * Math.acos(f.dot(n)) * math.DEGREES;
+        if (res < 0.0) {
+            return 360.0 + res;
+        }
+        return res;
+    }
+
 };
 
 export { PlanetCamera };
