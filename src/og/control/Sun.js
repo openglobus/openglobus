@@ -115,9 +115,17 @@ class Sun extends Control {
             if (cam.getHeight() < ACTIVATION_HEIGHT || !this._active) {
                 this._lightOn = true;
                 this._f = 1;
-                var n = cam.eye.normal();
-                var tu = Vec3.proj_b_to_plane(cam._v, n, cam._v).normalize().scale(this.offsetVertical);
-                var tr = Vec3.proj_b_to_plane(cam._u, n, cam._u).normalize().scale(this.offsetHorizontal);
+                var n = cam.eye.normal(),
+                    u = cam.getForward();
+
+                u.scale(Math.sign(cam._v.dot(n))); // up
+
+                if (cam.slope > 0.99) {
+                    u = cam._v;
+                }
+
+                var tu = Vec3.proj_b_to_plane(u, n, u).normalize().scale(this.offsetVertical);
+                var tr = Vec3.proj_b_to_plane(cam._u, n, cam._u).normalize().scale(this.offsetHorizontal); // right
                 var d = tu.add(tr);
                 var pos = cam.eye.add(d);
                 if (this._k > 0) {
