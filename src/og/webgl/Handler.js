@@ -482,7 +482,7 @@ Handler.prototype.addProgram = function (program, notActivate) {
         if (notActivate)
             sc._activated = false;
     } else {
-        !COMPILED && cons.logWrn("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
+        console.log("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
     }
     return program;
 }
@@ -549,7 +549,7 @@ Handler.prototype.initializeExtension = function (extensionStr, showLog) {
         if (ext) {
             this.extensions[extensionStr] = ext;
         } else if (showLog) {
-            !COMPILED && cons.logWrn("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
+            console.log("og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize.");
         }
     }
     return this.extensions && this.extensions[extensionStr];

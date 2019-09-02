@@ -20,22 +20,15 @@ class MyScene extends RenderNode {
         super("MyScene");
 
         this.ec = new EntityCollection({
-            'entities': [new Entity({
-                'name': 'test line',
-                'polyline': {
-                    'path3v': [[[0, 0, 0], [10, 10, 10]]],
-                    'thickness': 10
-                }
-            }),
-            new Entity({
-                'strip': {
-                    'path':
-                        [
-                            [[5, 0, 0], [5, 10, 0]],
-                            [[5, 1, 0], [5, 20, 0]]
-                        ]
-                }
-            })]
+            'entities': [
+                new Entity({
+                    'name': 'test line',
+                    'polyline': {
+                        'path3v': [[[0, 0, 0], [10, 10, 10], [20, 0, 0], [40, 40, 0]]],
+                        'thickness': 10,
+                        'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1, 1]]]
+                    }
+                })]
         });
     }
 
@@ -71,4 +64,4 @@ function test() {
     //strip.addEdge(new Vec3(15, 10, 10), new Vec3(15, 0, 10));
 }
 
-test();
+//test();
