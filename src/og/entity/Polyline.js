@@ -247,7 +247,10 @@ class Polyline {
             outVerticesLow.push(v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z);
 
             let r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
-            //outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+            if (j > 0) {
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            }
 
             outOrders.push(1, -1, 2, -2);
 
@@ -288,7 +291,7 @@ class Polyline {
                 outVerticesLow.push(v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z, v_low.x, v_low.y, v_low.z);
 
                 r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
-                outColors.push(r, g, b, a,  r, g, b, a,  r, g, b, a,  r, g, b, a);
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
 
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);

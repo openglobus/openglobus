@@ -24,9 +24,10 @@ class MyScene extends RenderNode {
                 new Entity({
                     'name': 'test line',
                     'polyline': {
-                        'path3v': [[[0, 0, 0], [10, 10, 10], [20, 0, 0], [40, 40, 0]]],
+                        'isClosed': false,
+                        'path3v': [[[0, 0, 0]], [[0, 0, 0], [0, 10, 20]]],
                         'thickness': 10,
-                        'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1, 1]]]
+                        'pathColors': [[[1, 0, 0], [0, 1, 0]], [[0, 0, 1], [1, 1, 0]]]
                     }
                 })]
         });
