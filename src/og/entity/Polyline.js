@@ -434,7 +434,7 @@ class Polyline {
             Vec3.doubleToTwoFloats(last, v_high, v_low);
 
             let vi = outVerticesHigh.length - 3 * 12;
-    
+
             outVerticesHigh[vi] = v_high.x;
             outVerticesHigh[vi + 1] = v_high.y;
             outVerticesHigh[vi + 2] = v_high.z;
@@ -447,7 +447,7 @@ class Polyline {
             outVerticesHigh[vi + 9] = v_high.x;
             outVerticesHigh[vi + 10] = v_high.y;
             outVerticesHigh[vi + 11] = v_high.z;
-    
+
             outVerticesLow[vi] = v_low.x;
             outVerticesLow[vi + 1] = v_low.y;
             outVerticesLow[vi + 2] = v_low.z;
@@ -460,7 +460,7 @@ class Polyline {
             outVerticesLow[vi + 9] = v_low.x;
             outVerticesLow[vi + 10] = v_low.y;
             outVerticesLow[vi + 11] = v_low.z;
-    
+
         }
 
         var startIndex = index;
@@ -1626,7 +1626,10 @@ class Polyline {
      * @param {Array.<Array.<number,number,number>>} path3v - Polyline path cartesian coordinates.
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
-    setPath3v(path3v, forceEqual) {
+    setPath3v(path3v, pathColors, forceEqual) {
+        if (pathColors) {
+            this._pathColors = [].concat(pathColors);
+        }
         if (this._renderNode) {
             if (forceEqual) {
                 this._setEqualPath3v(path3v);
