@@ -25,9 +25,12 @@ class MyScene extends RenderNode {
                     'name': 'test line',
                     'polyline': {
                         'isClosed': false,
-                        'path3v': [[[0, 0, 0]], [[0, 0, 0], [0, 10, 20]]],
+                        'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
                         'thickness': 10,
-                        'pathColors': [[[1, 0, 0], [0, 1, 0]], [[0, 0, 1], [1, 1, 0]]]
+                        'pathColors': [[[1, 1, 1], [0, 0, 0]], [[1, 0, 0]]]
+                        //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
+                        //'thickness': 10,
+                        //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
                     }
                 })]
         });
@@ -50,19 +53,8 @@ window.Vec3 = Vec3;
 window.renderer = renderer;
 
 function test() {
-
-    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(20, 0, 0));
-    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(20, 20, 20));
-    //strip.addEdge(new Vec3(-2, 10, 0), new Vec3(0, 0, 0));
-    //strip.addEdge(new Vec3(10, 11, 0), new Vec3(10, 5, 0));
-    //strip.addEdge(new Vec3(20, 5, 10), new Vec3(20, 0, 10));
-    //strip.addEdge(new Vec3(30, 20, 0), new Vec3(30, 0, 0))
-    //strip.addEdge(new Vec3(60, 10, 0), new Vec3(60, 0, 10))
-    //strip.addEdge(new Vec3(0, 20, 40), new Vec3(0, 0, 40))
-
-    //strip.addEdge(new Vec3(0, 10, 0), new Vec3(0, 0, 0));
-    //strip.addEdge(new Vec3(10, 10, 0), new Vec3(10, 0, 0));
-    //strip.addEdge(new Vec3(15, 10, 10), new Vec3(15, 0, 10));
+    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(60, 60, 60), [0, 1, 0]);
+    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(0, 0, 100), [0, 0, 1]);
 }
 
-//test();
+test();
