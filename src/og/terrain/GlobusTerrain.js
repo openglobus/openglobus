@@ -19,7 +19,6 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
-
 import { Ray } from '../math/Ray.js';
 
 
