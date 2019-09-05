@@ -27,27 +27,27 @@ export function ray_screen() {
         },
         attributes: {
             a_vertices: "vec2",
-            a_posHigh: "vec3",
-            a_posLow: "vec3",
-            a_direction: "vec3",
-            a_size: "vec2",
+            a_startPosHigh: "vec3",
+            a_startPosLow: "vec3",
+            a_endPosHigh: "vec3",
+            a_endPosLow: "vec3",
+            a_thickness: "float",
             a_rgba: "vec4"
         },
         vertexShader:
             `precision highp float;
             attribute vec2 a_vertices;
-            attribute vec3 a_posHigh;
-            attribute vec3 a_posLow;
-            attribute vec3 a_direction;
-            attribute vec2 a_size;
+            attribute vec3 a_startPosHigh;
+            attribute vec3 a_startPosLow;
+            attribute vec3 a_endPosHigh;
+            attribute vec3 a_endPosLow;
+            attribute float a_thickness;
             attribute vec4 a_rgba;
 
-            varying vec2 v_texCoords;
             varying vec4 v_rgba;
 
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            //uniform vec3 uCamPos;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float resolution;
@@ -59,25 +59,22 @@ export function ray_screen() {
 
                 v_rgba = a_rgba;
 
+                vec3 camPos = eyePositionHigh + eyePositionLow;
 
-                vec3 uCamPos = eyePositionHigh + eyePositionLow;
+                vec3 startPos = a_startPosHigh + a_startPosLow;
+                vec3 direction = (a_endPosHigh + a_endPosLow) - startPos;
+                vec3 vertPos = startPos + a_vertices.y * direction;
 
-                vec3 a_position = a_posHigh + a_posLow;
-
-                vec3 endPos = a_position + a_vertices.y * normalize(a_direction) * a_size.y;
-
-                vec3 look = endPos - uCamPos;
-
-                vec3 up = normalize(a_direction);
+                vec3 look = vertPos - camPos;
+                vec3 up = normalize(direction);
                 vec3 right = normalize(cross(look,up));
-
-                float dist = dot(uCamPos - endPos, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
+ 
+                float dist = dot(camPos - vertPos, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * resolution;
-                float thickness = a_size.x * focalSize;
-                vec3 rr = right * thickness * a_vertices.x + up * a_size.y * a_vertices.y;
+                vec3 rr = right * a_thickness * focalSize * a_vertices.x + up * length(direction) * a_vertices.y;
 
-                vec3 highDiff = a_posHigh - eyePositionHigh;
-                vec3 lowDiff = a_posLow + rr - eyePositionLow;
+                vec3 highDiff = a_startPosHigh - eyePositionHigh;
+                vec3 lowDiff = a_startPosLow + rr - eyePositionLow;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -85,12 +82,10 @@ export function ray_screen() {
                 vec4 pos = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 
                 gl_Position = projectionMatrix * pos;
-                gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
             }`,
         fragmentShader:
             `precision highp float;
             uniform float uOpacity;
-            varying vec2 v_texCoords;
             varying vec4 v_rgba;
             void main () {
                 gl_FragColor = v_rgba * uOpacity;
@@ -113,65 +108,72 @@ class MyScene extends RenderNode {
     init() {
         this.renderer.handler.addProgram(ray_screen());
 
-        let pos = new Vec3(0, 0, 0);
+        let startPos = new Vec3(0, 0, 0),
+            endPos = new Vec3(10, 10, 10);
 
-        let posHigh = new Vec3(),
-            posLow = new Vec3();
+        let startPosHigh = new Vec3(),
+            startPosLow = new Vec3(),
+            endPosHigh = new Vec3(),
+            endPosLow = new Vec3();
 
-        Vec3.doubleToTwoFloats(pos, posHigh, posLow);
+        Vec3.doubleToTwoFloats(startPos, startPosHigh, startPosLow);
+        Vec3.doubleToTwoFloats(endPos, endPosHigh, endPosLow);
 
-        let direction = new Vec3(0, 1, 0);
-
-        let width = 10,
-            height = 500;
+        let thickness = 10;
 
         let color = new Vec4(1, 1, 1, 1);
 
         this._vertexArr = [];
-        this._posHighArr = [];
-        this._posLowArr = [];
-        this._sizeArr = [];
+        this._startPosHighArr = [];
+        this._startPosLowArr = [];
+        this._endPosHighArr = [];
+        this._endPosLowArr = [];
+        this._thicknessArr = [];
         this._rgbaArr = [];
-        this._dirArr = [];
 
         concArr(this._vertexArr, [-0.5, 1, -0.5, 0, 0.5, 0, 0.5, 0, 0.5, 1, -0.5, 1]);
 
-        var x = posHigh.x, y = posHigh.y, z = posHigh.z, w;
-        concArr(this._posHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        var x = startPosHigh.x, y = startPosHigh.y, z = startPosHigh.z, w;
+        concArr(this._startPosHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = posLow.x, y = posLow.y, z = posLow.z;
-        concArr(this._posLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = startPosLow.x, y = startPosLow.y, z = startPosLow.z;
+        concArr(this._startPosLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = width; y = height;
-        concArr(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+        var x = endPosHigh.x, y = endPosHigh.y, z = endPosHigh.z, w;
+        concArr(this._endPosHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+        x = endPosLow.x, y = endPosLow.y, z = endPosLow.z;
+        concArr(this._endPosLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+        x = thickness;
+        concArr(this._thicknessArr, [x, x, x, x, x, x]);
 
         x = color.x; y = color.y; z = color.z; w = color.w;
         concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-        x = direction.x, y = direction.y, z = direction.z;
-        concArr(this._dirArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        this._posHighBuffer = null;
-        this._posLowBuffer = null;
-        this._sizeBuffer = null;
+        this._startPosHighBuffer = null;
+        this._startPosLowBuffer = null;
+        this._lowPosHighBuffer = null;
+        this._lowPosLowBuffer = null;
+        this._thicknessBuffer = null;
         this._rgbaBuffer = null;
         this._vertexBuffer = null;
-        this._dirBuffer = null;
 
         var h = this.renderer.handler;
 
-        this._posHighBuffer = h.createArrayBuffer(new Float32Array(this._posHighArr), 3, this._posHighArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._startPosHighBuffer = h.createArrayBuffer(new Float32Array(this._startPosHighArr), 3, this._startPosHighArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._startPosLowBuffer = h.createArrayBuffer(new Float32Array(this._startPosLowArr), 3, this._startPosLowArr.length / 3, h.gl.DYNAMIC_DRAW);
 
-        this._posLowBuffer = h.createArrayBuffer(new Float32Array(this._posLowArr), 3, this._posLowArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._endPosHighBuffer = h.createArrayBuffer(new Float32Array(this._endPosHighArr), 3, this._endPosHighArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._endPosLowBuffer = h.createArrayBuffer(new Float32Array(this._endPosLowArr), 3, this._endPosLowArr.length / 3, h.gl.DYNAMIC_DRAW);
 
-
-        this._sizeBuffer = h.createArrayBuffer(new Float32Array(this._sizeArr), 2, this._sizeArr.length / 2);
+        this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessArr), 1, this._thicknessArr.length);
 
         this._rgbaBuffer = h.createArrayBuffer(new Float32Array(this._rgbaArr), 4, this._rgbaArr.length / 4);
 
         this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 2, this._vertexArr.length / 2, h.gl.DYNAMIC_DRAW);
 
-        this._dirBuffer = h.createArrayBuffer(new Float32Array(this._dirArr), 3, this._dirArr.length / 3);
     }
 
     frame() {
@@ -194,20 +196,28 @@ class MyScene extends RenderNode {
 
         gl.uniform1f(shu.resolution, r.activeCamera._tanViewAngle_hradOneByHeight);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._posHighBuffer);
-        gl.vertexAttribPointer(sha.a_posHigh, this._posHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._posLowBuffer);
-        gl.vertexAttribPointer(sha.a_posLow, this._posLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPosHighBuffer);
+        gl.vertexAttribPointer(sha.a_startPosHigh, this._startPosHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPosLowBuffer);
+        gl.vertexAttribPointer(sha.a_startPosLow, this._startPosLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPosHighBuffer);
+        gl.vertexAttribPointer(sha.a_endPosHigh, this._endPosHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPosLowBuffer);
+        gl.vertexAttribPointer(sha.a_endPosLow, this._endPosLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
-        gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._dirBuffer);
-        gl.vertexAttribPointer(sha.a_direction, this._dirBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
+        gl.vertexAttribPointer(sha.a_thickness, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
