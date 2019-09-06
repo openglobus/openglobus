@@ -31,6 +31,7 @@ export function ray_screen() {
             a_startPosLow: "vec3",
             a_endPosHigh: "vec3",
             a_endPosLow: "vec3",
+            a_length: "float",
             a_thickness: "float",
             a_rgba: "vec4"
         },
@@ -42,6 +43,7 @@ export function ray_screen() {
             attribute vec3 a_endPosHigh;
             attribute vec3 a_endPosLow;
             attribute float a_thickness;
+            attribute float a_length;
             attribute vec4 a_rgba;
 
             varying vec4 v_rgba;
@@ -62,8 +64,8 @@ export function ray_screen() {
                 vec3 camPos = eyePositionHigh + eyePositionLow;
 
                 vec3 startPos = a_startPosHigh + a_startPosLow;
-                vec3 direction = (a_endPosHigh + a_endPosLow) - startPos;
-                vec3 vertPos = startPos + a_vertices.y * direction;
+                vec3 direction = normalize((a_endPosHigh + a_endPosLow) - startPos);
+                vec3 vertPos = startPos + a_vertices.y * direction * a_length;
 
                 vec3 look = vertPos - camPos;
                 vec3 up = normalize(direction);
@@ -71,7 +73,7 @@ export function ray_screen() {
  
                 float dist = dot(camPos - vertPos, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * resolution;
-                vec3 rr = right * a_thickness * focalSize * a_vertices.x + up * length(direction) * a_vertices.y;
+                vec3 rr = right * a_thickness * focalSize * a_vertices.x + up * a_length * a_vertices.y;
 
                 vec3 highDiff = a_startPosHigh - eyePositionHigh;
                 vec3 lowDiff = a_startPosLow + rr - eyePositionLow;
@@ -121,7 +123,15 @@ class MyScene extends RenderNode {
 
         let thickness = 10;
 
-        let color = new Vec4(1, 1, 1, 1);
+        let length = 100;
+
+        let colorStart = [1, 0, 0, 1],
+            colorEnd = [0, 1, 0, 1];
+
+        const R = 0;
+        const G = 1;
+        const B = 2;
+        const A = 3;
 
         this._vertexArr = [];
         this._startPosHighArr = [];
@@ -129,6 +139,7 @@ class MyScene extends RenderNode {
         this._endPosHighArr = [];
         this._endPosLowArr = [];
         this._thicknessArr = [];
+        this._lengthArr = [];
         this._rgbaArr = [];
 
         concArr(this._vertexArr, [-0.5, 1, -0.5, 0, 0.5, 0, 0.5, 0, 0.5, 1, -0.5, 1]);
@@ -148,15 +159,19 @@ class MyScene extends RenderNode {
         x = thickness;
         concArr(this._thicknessArr, [x, x, x, x, x, x]);
 
-        x = color.x; y = color.y; z = color.z; w = color.w;
-        concArr(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        x = length;
+        concArr(this._lengthArr, [x, x, x, x, x, x]);
 
+        let r0 = colorStart[R], g0 = colorStart[G], b0 = colorStart[B], a0 = colorStart[A];
+        let r1 = colorEnd[R], g1 = colorEnd[G], b1 = colorEnd[B], a1 = colorEnd[A];
+        concArr(this._rgbaArr, [r1, g1, b1, a1, r0, g0, b0, a0, r0, g0, b0, a0, r0, g0, b0, a0, r1, g1, b1, a1, r1, g1, b1, a1]);
 
         this._startPosHighBuffer = null;
         this._startPosLowBuffer = null;
         this._lowPosHighBuffer = null;
         this._lowPosLowBuffer = null;
         this._thicknessBuffer = null;
+        this._lengthBuffer = null;
         this._rgbaBuffer = null;
         this._vertexBuffer = null;
 
@@ -169,6 +184,8 @@ class MyScene extends RenderNode {
         this._endPosLowBuffer = h.createArrayBuffer(new Float32Array(this._endPosLowArr), 3, this._endPosLowArr.length / 3, h.gl.DYNAMIC_DRAW);
 
         this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessArr), 1, this._thicknessArr.length);
+
+        this._lengthBuffer = h.createArrayBuffer(new Float32Array(this._lengthArr), 1, this._lengthArr.length);
 
         this._rgbaBuffer = h.createArrayBuffer(new Float32Array(this._rgbaArr), 4, this._rgbaArr.length / 4);
 
@@ -218,6 +235,9 @@ class MyScene extends RenderNode {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer);
         gl.vertexAttribPointer(sha.a_thickness, this._thicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._lengthBuffer);
+        gl.vertexAttribPointer(sha.a_length, this._lengthBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
