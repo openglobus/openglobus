@@ -7,7 +7,7 @@
 import { Program } from '../webgl/Program.js';
 
 export function polyline_screen() {
-    return new Program("polyline", {
+    return new Program("polyline_screen", {
         uniforms: {
             'viewport': "vec2",
             'proj': "mat4",
@@ -177,9 +177,9 @@ export function polyline_screen() {
                             m = sCurrent + normalNext * d;
                         }
                     }
+
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
-                    //gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
                 }`,
                 
         fragmentShader:
@@ -361,7 +361,8 @@ export function polyline_picking() {
                             }else if(occw == 2.0){
                                 m = sCurrent + normalPrev * d;
                             }
-                        }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
+                        }
+                        else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
                             m = sCurrent + normalNext * d;
                         }
                     }
