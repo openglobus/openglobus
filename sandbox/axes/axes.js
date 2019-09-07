@@ -26,8 +26,8 @@ class MyScene extends RenderNode {
                     'polyline': {
                         'isClosed': false,
                         'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
-                        'thickness': 10,
-                        'pathColors': [[[1, 1, 1], [0, 0, 0]], [[1, 0, 0]]]
+                        'thickness': 50,
+                        'pathColors': [[[1, 1, 0], [0, 0, 0]], [[1, 0, 0]]]
                         //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
                         //'thickness': 10,
                         //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
@@ -53,8 +53,13 @@ window.Vec3 = Vec3;
 window.renderer = renderer;
 
 function test() {
-    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(60, 60, 60), [0, 1, 0]);
-    myScene.ec._entities[0].polyline.appendPoint3v(new Vec3(0, 0, 100), [0, 0, 1]);
+    let p = myScene.ec._entities[0].polyline;
+    p.appendPoint3v(new Vec3(60, 60, 60), [0, 1, 0]);
+    p.appendPoint3v(new Vec3(0, 0, 100), [0, 0, 1]);
+
+    p.setPointColor([1, 1, 1, 1], 0, 0);
+
+
 }
 
 test();

@@ -543,7 +543,7 @@ class PlanetCamera extends Camera {
 
     checkTerrainCollision() {
         this._terrainAltitude = this._lonLat.height;
-        if (this._lonLat.height < 1000000 && this._insideSegment) {
+        if (this._lonLat.height < 1000000 && this._insideSegment && this._insideSegment.planet) {
             this._terrainAltitude = this._insideSegment.getTerrainPoint(this.eye, this._insideSegmentPosition, this._terrainPoint);
             if (this._terrainAltitude < this.minAltitude) {
                 this.setAltitude(this.minAltitude);
