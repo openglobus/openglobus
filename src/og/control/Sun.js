@@ -88,10 +88,6 @@ class Sun extends Control {
         var that = this;
         this.renderer.events.on("draw", this._draw, this);
 
-        //this.renderer.events.on("charkeypress", input.KEY_L, function () {
-        //    that.planet.lightEnabled = !that.planet.lightEnabled;
-        //});
-
         if (!this._clockPtr)
             this._clockPtr = this.renderer.handler.defaultClock;
     }

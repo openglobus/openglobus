@@ -39,8 +39,8 @@ import { Plane } from '../math/Plane.js';
 import { Geoid } from '../terrain/Geoid.js';
 import { doubleToTwoFloats } from '../math/coder.js';
 
-const MAX_LOD = 1.0;
-const MIN_LOD = 0.65;
+const MAX_LOD = 0.88;
+const MIN_LOD = 0.55;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -1031,6 +1031,7 @@ class Planet extends RenderNode {
         } else {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
+            shu = sh.uniforms;
             gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
