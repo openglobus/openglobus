@@ -933,9 +933,15 @@ class Planet extends RenderNode {
      */
     frame() {
 
+        //free memory
+        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
+            this.memClear();
+        }
+
         this._collectRenderNodes();
 
-        //Here is the planet node dispatches a draw event before rendering begins.
+        //Here is the planet node dispatches a draw event before
+        //rendering begins and we have got render nodes.
         this.events.dispatch(this.events.draw, this);
 
         this.transformLights();
@@ -946,11 +952,6 @@ class Planet extends RenderNode {
 
         //Creates geoImages textures.
         this._geoImageCreator.frame();
-
-        //free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
-            this.memClear();
-        }
     }
 
     /**
@@ -1227,6 +1228,9 @@ class Planet extends RenderNode {
     memClear() {
         this._distBeforeMemClear = 0;
 
+        //??? private ???
+        this.camera._insideSegment = null;
+
         this.layerLock.lock(this._memKey);
         this.terrainLock.lock(this._memKey);
         this._normalMapCreator.lock(this._memKey);
@@ -1236,7 +1240,7 @@ class Planet extends RenderNode {
         this._tileLoader.abort();
 
         var that = this;
-        setTimeout(function () {
+        //setTimeout(function () {
             that._quadTree.clearTree();
             that._quadTreeNorth.clearTree();
             that._quadTreeSouth.clearTree();
@@ -1244,7 +1248,7 @@ class Planet extends RenderNode {
             that.layerLock.free(that._memKey);
             that.terrainLock.free(that._memKey);
             that._normalMapCreator.free(that._memKey);
-        }, 0);
+        //}, 0);
 
         this._createdNodesCount = 0;
     }

@@ -38,7 +38,7 @@ class MouseNavigation extends Control {
         this.grabbedSpheroid = new Sphere();
         this.planet = null;
         this.qRot = new Quat();
-        this.scaleRot = 0;
+        this.scaleRot = 0.0;
 
         this.distDiff = 0.33;
         this.stepsCount = 5;
@@ -208,6 +208,9 @@ class MouseNavigation extends Control {
 
     onMouseLeftButtonUp(e) {
         this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
+        if (e.x === e.prev_x && e.y === e.prev_y) {
+            this.scaleRot = 0.0;
+        }
     }
 
     onMouseLeftButtonDown(e) {
@@ -237,6 +240,7 @@ class MouseNavigation extends Control {
                         cam.update();
                     }
                 } else {
+
                     var p0 = this.grabbedPoint,
                         p1 = Vec3.add(p0, cam._u),
                         p2 = Vec3.add(p0, p0.normal());
@@ -250,8 +254,6 @@ class MouseNavigation extends Control {
                         cam.update();
                     }
                 }
-            } else {
-                this.scaleRot = 0;
             }
         }
     }
@@ -268,7 +270,7 @@ class MouseNavigation extends Control {
     onMouseRightButtonDown(e) {
         var cam = this.renderer.activeCamera;
         if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
-            this.renderer.controlsBag.scaleRot = 1;
+            this.renderer.controlsBag.scaleRot = 1.0;
             var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
@@ -306,7 +308,7 @@ class MouseNavigation extends Control {
             var prevEye = cam.eye.clone();
 
             if (this.stepIndex) {
-                r.controlsBag.scaleRot = 1;
+                r.controlsBag.scaleRot = 1.0;
                 var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
                 cam.eye = sf.eye;
                 cam._v = sf.v;
@@ -335,9 +337,9 @@ class MouseNavigation extends Control {
             } else {
 
                 r.controlsBag.scaleRot = this.scaleRot;
-                var rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
+                var rot = this.qRot.slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
                 if (!(rot.x || rot.y || rot.z)) {
-                    this.scaleRot = 0;
+                    this.scaleRot = 0.0;
                 }
                 cam.eye = rot.mulVec3(cam.eye);
                 cam._v = rot.mulVec3(cam._v);
