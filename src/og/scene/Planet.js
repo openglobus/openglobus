@@ -39,8 +39,8 @@ import { Plane } from '../math/Plane.js';
 import { Geoid } from '../terrain/Geoid.js';
 import { doubleToTwoFloats } from '../math/coder.js';
 
-const MAX_LOD = 1.0;
-const MIN_LOD = 0.65;
+const MAX_LOD = 0.88;
+const MIN_LOD = 0.55;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -933,9 +933,15 @@ class Planet extends RenderNode {
      */
     frame() {
 
+        //free memory
+        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
+            this.memClear();
+        }
+
         this._collectRenderNodes();
 
-        //Here is the planet node dispatches a draw event before rendering begins.
+        //Here is the planet node dispatches a draw event before
+        //rendering begins and we have got render nodes.
         this.events.dispatch(this.events.draw, this);
 
         this.transformLights();
@@ -946,11 +952,6 @@ class Planet extends RenderNode {
 
         //Creates geoImages textures.
         this._geoImageCreator.frame();
-
-        //free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
-            this.memClear();
-        }
     }
 
     /**
@@ -976,6 +977,7 @@ class Planet extends RenderNode {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
+        gl.enable(gl.CULL_FACE);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1029,6 +1031,7 @@ class Planet extends RenderNode {
         } else {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
+            shu = sh.uniforms;
             gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
         }
 
@@ -1148,12 +1151,7 @@ class Planet extends RenderNode {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
-
-        //gl.polygonOffset(0, 0);
-        //gl.enable(gl.DEPTH_TEST);
-
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
-        //gl.polygonOffset(0, -637000);
+        gl.enable(gl.CULL_FACE);
 
         h.programs.drawnode_colorPicking.activate();
         sh = h.programs.drawnode_colorPicking._program;
@@ -1231,6 +1229,9 @@ class Planet extends RenderNode {
     memClear() {
         this._distBeforeMemClear = 0;
 
+        //??? private ???
+        this.camera._insideSegment = null;
+
         this.layerLock.lock(this._memKey);
         this.terrainLock.lock(this._memKey);
         this._normalMapCreator.lock(this._memKey);
@@ -1240,7 +1241,7 @@ class Planet extends RenderNode {
         this._tileLoader.abort();
 
         var that = this;
-        setTimeout(function () {
+        //setTimeout(function () {
             that._quadTree.clearTree();
             that._quadTreeNorth.clearTree();
             that._quadTreeSouth.clearTree();
@@ -1248,7 +1249,7 @@ class Planet extends RenderNode {
             that.layerLock.free(that._memKey);
             that.terrainLock.free(that._memKey);
             that._normalMapCreator.free(that._memKey);
-        }, 0);
+        //}, 0);
 
         this._createdNodesCount = 0;
     }

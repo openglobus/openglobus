@@ -1350,53 +1350,62 @@ class Polyline {
         this._clearData();
     }
 
-    /**
-     * Sets Polyline color.
-     * @public
-     * @param {String} htmlColor - HTML color.
-     * @param {number} opacity - Opacity.
-     */
-    setColorHTML(htmlColor, opacity) {
-        this.color = utils.htmlColorToRgba(htmlColor);
-        opacity && (this.color.w = opacity);
-    }
+    setPointColor(color, index, segmentIndex = 0) {
 
-    /**
-     * Sets Polyline RGBA color.
-     * @public
-     * @param {number} r - Red color.
-     * @param {number} g - Green color.
-     * @param {number} b - Blue color.
-     * @param {number} [a] - Opacity.
-     */
-    setColor(r, g, b, a) {
-        this.color.x = r;
-        this.color.y = g;
-        this.color.z = b;
-        a && (this.color.w = a);
-    }
+        if (this._renderNode) {
 
-    /**
-     * Sets Polyline RGB color.
-     * @public
-     * @param {og.Vec3} color - RGB color.
-     */
-    setColor3v(color) {
-        this.color.x = color.x;
-        this.color.y = color.y;
-        this.color.z = color.z;
-    }
+            let colors = this._pathColors[segmentIndex];
 
-    /**
-     * Sets Polyline RGBA color.
-     * @public
-     * @param {og.Vec4} color - RGBA color.
-     */
-    setColor4v(color) {
-        this.color.x = color.x;
-        this.color.y = color.y;
-        this.color.z = color.z;
-        this.color.w = color.w;
+            if (!colors) {
+                if (this._path3v[segmentIndex] && index < this._path3v[segmentIndex].length) {
+                    this._pathColors[segmentIndex] = new Array(this._path3v[segmentIndex].length);
+                } else {
+                    return;
+                }
+            }
+
+            if (!colors[index]) {
+                colors[index] = new Array(color[R], color[G], color[B], color[A] || 1.0);
+            } else {
+                colors[index][R] = color[R];
+                colors[index][G] = color[G];
+                colors[index][B] = color[B];
+                colors[index][A] = color[A] || 1.0;
+            }
+
+            let c = this._colors,
+                k = 0, kk = 0;
+
+            for (var i = 0; i < segmentIndex; i++) {
+                kk += this._path3v[i].length * 16 + 32;
+            }
+
+            k = kk;
+
+            let r = color[R], g = color[G], b = color[B], a = color[A] || 1.0;
+
+            c[k] = r;
+            c[k + 1] = g;
+            c[k + 2] = b;
+            c[k + 3] = a;
+            c[k + 4] = r;
+            c[k + 5] = g;
+            c[k + 6] = b;
+            c[k + 7] = a;
+            c[k + 8] = r;
+            c[k + 9] = g;
+            c[k + 10] = b;
+            c[k + 11] = a;
+            c[k + 12] = r;
+            c[k + 13] = g;
+            c[k + 14] = b;
+            c[k + 15] = a;
+
+            this._changedBuffers[COLORS_BUFFER] = true;
+        } else {
+            let pathColors = this._pathColors[segmentIndex];
+            pathColors[index] = color;
+        }
     }
 
     /**
@@ -1653,7 +1662,7 @@ class Polyline {
 
             var rn = this._renderNode;
             var r = rn.renderer;
-            var sh = r.handler.programs.polyline;
+            var sh = r.handler.programs.polyline_screen;
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,
@@ -1708,52 +1717,52 @@ class Polyline {
     drawPicking() {
         if (this.visibility && this._path3v.length) {
 
-            //var rn = this._renderNode;
-            //var r = rn.renderer;
-            //var sh = r.handler.programs.polyline;
-            //var p = sh._program;
-            //var gl = r.handler.gl,
-            //    sha = p.attributes,
-            //    shu = p.uniforms;
+            var rn = this._renderNode;
+            var r = rn.renderer;
+            var sh = r.handler.programs.polyline_picking;
+            var p = sh._program;
+            var gl = r.handler.gl,
+                sha = p.attributes,
+                shu = p.uniforms;
 
-            //sh.activate();
+            sh.activate();
 
-            //gl.polygonOffset(this._handler._entityCollection.polygonOffsetFactor, this._handler._entityCollection.polygonOffsetUnits);
+            gl.polygonOffset(this._handler._entityCollection.polygonOffsetFactor, this._handler._entityCollection.polygonOffsetUnits);
 
-            //gl.enable(gl.BLEND);
-            //gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-            //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-            //gl.disable(gl.CULL_FACE);
+            gl.enable(gl.BLEND);
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.disable(gl.CULL_FACE);
 
-            //gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
-            //gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
-            //gl.uniform4fv(shu.color, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
+            gl.uniform4fv(shu.color, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
 
-            //gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-            //gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
-            //gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
-            //gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
-            //gl.uniform1f(shu.thickness, this.thickness * 0.5);
+            gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5);
 
-            //var v = this._verticesHighBuffer;
-            //gl.bindBuffer(gl.ARRAY_BUFFER, v);
-            //gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
-            //gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
-            //gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
+            var v = this._verticesHighBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            //v = this._verticesLowBuffer;
-            //gl.bindBuffer(gl.ARRAY_BUFFER, v);
-            //gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
-            //gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
-            //gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
+            v = this._verticesLowBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            //gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
-            //gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
 
-            //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
-            //gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
         }
     }
 
