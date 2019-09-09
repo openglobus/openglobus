@@ -154,14 +154,6 @@ export function drawnode_screen_wl() {
             const float far = 149.6e+9;
             float logc = 2.0 / log( C * far + 1.0 );
 
-            bool isnan( float val )
-            {
-                return ( val < 0.0 || 0.0 < val || val == 0.0 ) ? false : true;
-                // important: some nVidias failed to cope with version below.
-                // Probably wrong optimization.
-                /*return ( val <= 0.0 || 0.0 <= val ) ? false : true;*/
-            }
-
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
