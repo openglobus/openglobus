@@ -59,70 +59,77 @@ class MouseNavigation extends Control {
 
         var a = planet.getCartesianFromPixelTerrain(point, true);
 
-        if (!dir) {
-            dir = Vec3.sub(a, cam.eye).normalize();
+        if (!a) {
+            a = planet.getCartesianFromPixelTerrain(planet.renderer.handler.getCenter(), true);
         }
 
-        var d = a ? delta * cam.eye.distance(a) / stepsCount : 1000;
+        if (a) {
 
-        if (forward) {
-            d = -d;
-        } else {
-            d *= 2;
-        }
-
-        var scaled_n = n.scaleTo(d);
-
-        if (a && cam._lonLat.height > 9000 && cam.slope > 0.6) {
-            var grabbedSpheroid = new Sphere();
-            grabbedSpheroid.radius = a.length();
-
-            var rotArr = [],
-                eyeArr = []
-
-            var breaked = false;
-            for (var i = 0; i < stepsCount; i++) {
-                eye.addA(scaled_n);
-                var b = new Ray(eye, dir).hitSphere(grabbedSpheroid);
-                eyeArr[i] = eye.clone();
-                if (b) {
-                    rotArr[i] = new Mat4().rotateBetweenVectors(a.normal(), b.normal());
-                } else {
-                    breaked = true;
-                    break;
-                }
+            if (!dir) {
+                dir = Vec3.sub(a, cam.eye).normalize();
             }
 
-            if (!breaked) {
+            var d = a ? delta * cam.eye.distance(a) / stepsCount : 1000;
+
+            if (forward) {
+                d = -d;
+            } else {
+                d *= 2;
+            }
+
+            var scaled_n = n.scaleTo(d);
+
+            if (a && cam.slope >= 0.0) {
+                var grabbedSpheroid = new Sphere();
+                grabbedSpheroid.radius = a.length();
+
+                var rotArr = [],
+                    eyeArr = []
+
+                var breaked = false;
                 for (var i = 0; i < stepsCount; i++) {
-                    var rot = rotArr[i];
-                    steps[i] = {};
-                    steps[i].eye = rot.mulVec3(eyeArr[i]);
-                    steps[i].v = rot.mulVec3(v);
-                    steps[i].u = rot.mulVec3(u);
-                    steps[i].n = rot.mulVec3(n);
+                    eye.addA(scaled_n);
+                    var b = new Ray(eye, dir).hitSphere(grabbedSpheroid);
+                    eyeArr[i] = eye.clone();
+                    if (b) {
+                        rotArr[i] = new Mat4().rotateBetweenVectors(a.normal(), b.normal());
+                    } else {
+                        breaked = true;
+                        break;
+                    }
+                }
+
+                if (!breaked) {
+                    for (var i = 0; i < stepsCount; i++) {
+                        var rot = rotArr[i];
+                        steps[i] = {};
+                        steps[i].eye = rot.mulVec3(eyeArr[i]);
+                        steps[i].v = rot.mulVec3(v);
+                        steps[i].u = rot.mulVec3(u);
+                        steps[i].n = rot.mulVec3(n);
+                    }
+                } else {
+                    eye = cam.eye.clone();
+                    for (var i = 0; i < stepsCount; i++) {
+                        steps[i] = {};
+                        steps[i].eye = eye.addA(scaled_n).clone();
+                        steps[i].v = v;
+                        steps[i].u = u;
+                        steps[i].n = n;
+                    }
                 }
             } else {
-                eye = cam.eye.clone();
                 for (var i = 0; i < stepsCount; i++) {
                     steps[i] = {};
-                    steps[i].eye = eye.addA(scaled_n).clone();
+                    steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
                     steps[i].v = v;
                     steps[i].u = u;
                     steps[i].n = n;
                 }
             }
-        } else {
-            for (var i = 0; i < stepsCount; i++) {
-                steps[i] = {};
-                steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
-                steps[i].v = v;
-                steps[i].u = u;
-                steps[i].n = n;
-            }
-        }
 
-        return steps;
+            return steps;
+        }
     }
 
     onactivate() {
@@ -164,9 +171,11 @@ class MouseNavigation extends Control {
         this.planet._normalMapCreator.lock(this._keyLock);
 
         var ms = this.renderer.events.mouseState;
-        this.stepIndex = this.stepsCount;
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
             this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
+        if (this.stepsForward) {
+            this.stepIndex = this.stepsCount;
+        }
     }
 
     oninit() {
