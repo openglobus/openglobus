@@ -15,8 +15,6 @@ const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
 
-const DEFAULT_COLOR = [0.0, 0.0, 0.0, 1.0];
-
 const R = 0;
 const G = 1;
 const B = 2;
@@ -60,11 +58,9 @@ class Polyline {
         /**
          * Polyline RGBA color.
          * @public
-         * @type {og.Vec4}
+         * @type {Array<Number,Number,Number,Number>}
          */
-        this.color = utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
-
-        this.color.w = options.opacity != undefined ? options.opacity : this.color.w;
+        this._defaultColor = utils.htmlColorToFloat32Array(options.color, options.opacity);//utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
 
         /**
          * Polyline visibility.
@@ -187,6 +183,7 @@ class Polyline {
     static appendLineData3v(
         path3v,
         pathColors,
+        defaultColor,
         isClosed,
         outVerticesHigh,
         outVerticesLow,
@@ -250,7 +247,7 @@ class Polyline {
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
 
-            let color = DEFAULT_COLOR;
+            let color = defaultColor;
 
             if (pathColors_j && pathColors_j[0]) {
                 color = pathColors_j[0];
@@ -578,7 +575,7 @@ class Polyline {
      * @param {og.Extent} outExtent - Geodetic line extent.
      * @static
      */
-    static appendLineDataLonLat(pathLonLat, pathColors, isClosed, outVerticesHigh, outVerticesLow, outOrders, outIndexes,
+    static appendLineDataLonLat(pathLonLat, pathColors, defaultColor, isClosed, outVerticesHigh, outVerticesLow, outOrders, outIndexes,
         ellipsoid, outTransformedPathCartesian, outPathLonLat, outTransformedPathMerc, outExtent, outColors) {
 
         var index = 0;
@@ -645,7 +642,7 @@ class Polyline {
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
 
-            let color = DEFAULT_COLOR;
+            let color = defaultColor;
 
             if (pathColors_j && pathColors_j[0]) {
                 color = pathColors_j[0];
@@ -1498,6 +1495,7 @@ class Polyline {
         Polyline.appendLineData3v(
             path3v,
             this._pathColors,
+            this._defaultColor,
             this._closedLine,
             this._verticesHigh,
             this._verticesLow,
@@ -1517,6 +1515,7 @@ class Polyline {
         Polyline.appendLineDataLonLat(
             pathLonlat,
             this._pathColors,
+            this._defaultColor,
             this._closedLine,
             this._verticesHigh,
             this._verticesLow,
