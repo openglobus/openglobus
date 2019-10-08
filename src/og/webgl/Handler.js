@@ -602,7 +602,7 @@ Handler.prototype.initialize = function () {
  */
 Handler.prototype._setDefaults = function () {
     this.activateDepthTest();
-    this.setSize(this._params.width, this._params.height);
+    this.setSize(this.canvas.clientWidth || this._params.width, this.canvas.clientHeight || this._params.height);
     this.gl.frontFace(this.gl.CCW);
     this.gl.cullFace(this.gl.BACK);
     this.activateFaceCulling();

@@ -16,6 +16,7 @@ const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
 
 const DEFAULT_COLOR = [0.0, 0.0, 0.0, 1.0];
+
 const R = 0;
 const G = 1;
 const B = 2;
