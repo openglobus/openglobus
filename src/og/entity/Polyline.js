@@ -15,6 +15,8 @@ const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
 
+const DEFAULT_COLOR = "#0000FF";
+
 const R = 0;
 const G = 1;
 const B = 2;
@@ -60,7 +62,7 @@ class Polyline {
          * @public
          * @type {Array<Number,Number,Number,Number>}
          */
-        this._defaultColor = utils.htmlColorToFloat32Array(options.color, options.opacity);//utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+        this._defaultColor = utils.htmlColorToFloat32Array(options.color || DEFAULT_COLOR, options.opacity);//utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
 
         /**
          * Polyline visibility.
