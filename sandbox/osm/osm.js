@@ -144,7 +144,8 @@ let sat = new XYZ("MapQuest Satellite", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new GlobusTerrain(),//new MapboxTerrain(),
+    'terrain': new GlobusTerrain(),
+    //'terrain': new MapboxTerrain(),
     'layers': [osm, sat, tg]
 });
 

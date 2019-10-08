@@ -26,8 +26,6 @@ const NormalMapCreator = function (planet, options) {
     this._width = options.width || 128;
     this._height = options.height || 128;
 
-    this.MAX_FRAMES = options.maxFrames || 5;
-    this._currentFrame = 0;
     this._queue = new QueueArray(1024);
 
     this._lock = new Lock();
@@ -106,7 +104,6 @@ NormalMapCreator.prototype._init = function () {
                       varying vec3 v_color; \
                       \
                       void main() { \
-                          gl_PointSize = 1.0; \
                           gl_Position = vec4(a_position, 0, 1); \
                           v_color = normalize(a_normal) * 0.5 + 0.5; \
                       }",
