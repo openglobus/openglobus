@@ -180,18 +180,26 @@ const _programm =
         var nmvInd = 0,
             vInd = 0;
 
-        var terrainVertices = new Float64Array(gs * gs * 3),
-            terrainVerticesHigh = new Float32Array(gs * gs * 3),
-            terrainVerticesLow = new Float32Array(gs * gs * 3),
-            normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3),
-            normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3),
-            normalMapVerticesHigh = new Float32Array(fileGridSize_one_x2 * 3),
-            normalMapVerticesLow = new Float32Array(fileGridSize_one_x2 * 3);
+        var gsgs3 = gs * gs * 3;
+
+        var terrainVertices = new Float64Array(gsgs3),
+            terrainVerticesHigh = new Float32Array(gsgs3),
+            terrainVerticesLow = new Float32Array(gsgs3);
+
+        var normalMapNormals,
+            normalMapVertices,
+            normalMapVerticesHigh,
+            normalMapVerticesLow;
 
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
 
         if (fileGridSize >= tgs) {
+
+            normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3),
+            normalMapVertices = new Float64Array(fileGridSize_one_x2 * 3),
+            normalMapVerticesHigh = new Float32Array(fileGridSize_one_x2 * 3),
+            normalMapVerticesLow = new Float32Array(fileGridSize_one_x2 * 3);
 
                 for (var k = 0; k < fileGridSize_one_x2; k++) {
 
@@ -342,6 +350,11 @@ const _programm =
 
         } else {
 
+            normalMapNormals = new Float32Array(gsgs3),
+            normalMapVertices = new Float64Array(gsgs3),
+            normalMapVerticesHigh = new Float32Array(gsgs3),
+            normalMapVerticesLow = new Float32Array(gsgs3);
+
             var plain_verts = this_plainVertices;
             var plainNormals = this_plainNormals;
 
@@ -407,7 +420,53 @@ const _programm =
                 }
             }
 
-            normalMapNormals = this_plainNormals;
+            normalMapNormals = new Float32Array(terrainVertices.length);
+
+            var gridSize = tgs + 1;
+            for(var k=0;k < terrainVertices.length / 3; k++) {
+
+                var j = k % gridSize,
+                    i = ~~(k / gridSize);
+
+                if (i !== tgs && j !== tgs) {
+                    var v0ind = k * 3,
+                        v1ind = v0ind + 3,
+                        v2ind = v0ind + gridSize * 3,
+                        v3ind = v2ind + 3;
+
+                        var v0 = new Vec3(terrainVertices[v0ind], terrainVertices[v0ind + 1], terrainVertices[v0ind + 2]),
+                            v1 = new Vec3(terrainVertices[v1ind], terrainVertices[v1ind + 1], terrainVertices[v1ind + 2]),
+                            v2 = new Vec3(terrainVertices[v2ind], terrainVertices[v2ind + 1], terrainVertices[v2ind + 2]),
+                            v3 = new Vec3(terrainVertices[v3ind], terrainVertices[v3ind + 1], terrainVertices[v3ind + 2]);
+
+                            var e10 = v1.sub(v0).normalize(),
+                                e20 = v2.sub(v0).normalize(),
+                                e30 = v3.sub(v0).normalize();
+
+                            var sw = e20.cross(e30).normalize();
+                            var ne = e30.cross(e10).normalize();
+                            var n0 = ne.add(sw).normalize();
+
+                            normalMapNormals[v0ind] += n0.x;
+                            normalMapNormals[v0ind + 1] += n0.y;
+                            normalMapNormals[v0ind + 2] += n0.z;
+
+                            normalMapNormals[v1ind] += ne.x;
+                            normalMapNormals[v1ind + 1] += ne.y;
+                            normalMapNormals[v1ind + 2] += ne.z;
+
+                            normalMapNormals[v2ind] += sw.x;
+                            normalMapNormals[v2ind + 1] += sw.y;
+                            normalMapNormals[v2ind + 2] += sw.z;
+
+                            normalMapNormals[v3ind] += n0.x;
+                            normalMapNormals[v3ind + 1] += n0.y;
+                            normalMapNormals[v3ind + 2] += n0.z;
+                    }
+            }
+
+            //normalMapNormals = this_plainNormals;
+
         }
         
         var normalMapNormalsRaw = new Float32Array(normalMapNormals.length);

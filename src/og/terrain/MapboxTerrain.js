@@ -11,7 +11,7 @@ class MapboxTerrain extends GlobusTerrain {
         options = options || {};
         
         this.blur = false;
-        this.equalizeVertices = true;
+        //this.equalizeVertices = true;
         this.equalizeNormals = false;
         this.minZoom = 2;
         this.maxZoom = 15;
@@ -25,7 +25,7 @@ class MapboxTerrain extends GlobusTerrain {
         }
     }
 
-    getElevations(data, segment) {
+    _createHeights(data, segment) {
 
         if (data) {
 
@@ -43,13 +43,6 @@ class MapboxTerrain extends GlobusTerrain {
             if (!this.tileCache[segment.tileZoom][segment.tileX]) {
                 this.tileCache[segment.tileZoom][segment.tileX] = {};
             }
-
-            //const nN = this.tileCache[segment.tileZoom][segment.tileX][segment.tileYN];
-            //const nE = this.tileCache[segment.tileZoom][segment.tileXE] &&
-            //    this.tileCache[segment.tileZoom][segment.tileXE][segment.tileY];
-            //const nS = this.tileCache[segment.tileZoom][segment.tileX][segment.tileYS];
-            //const nW = this.tileCache[segment.tileZoom][segment.tileXW] &&
-            //    this.tileCache[segment.tileZoom][segment.tileXW][segment.tileY];
 
             const fgs = this.fileGridSize;
             const fgsOne = fgs + 1;
@@ -69,22 +62,6 @@ class MapboxTerrain extends GlobusTerrain {
                 let src = (src_i * SIZE + src_j) * 4;
 
                 let height = -10000 + (idata[src] * 256 * 256 + idata[src + 1] * 256 + idata[src + 2]) * 0.1;
-
-                //if (nN && i === 0) {
-                //    height = 0.5 * (height + nN[fgs * fgsOne + j]);
-                //}
-
-                //if (nE && j === fgs) {
-                //    height = 0.5 * (height + nE[i * fgsOne]);
-                //}
-
-                //if (nS && i === fgs) {
-                //    height = 0.5 * (height + nS[j]);
-                //}
-
-                //if (nW && j === 0) {
-                //    height = 0.5 * (height + nW[i * fgsOne + fgs]);
-                //}
 
                 res[k] = height;
             }

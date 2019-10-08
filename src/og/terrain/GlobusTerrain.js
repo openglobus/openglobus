@@ -60,8 +60,10 @@ class GlobusTerrain extends EmptyTerrain {
         options = options || {};
 
         this.blur = true;
-
         this.equalizeNormals = true;
+
+        //this.blur = false;
+        //this.equalizeNormals = false;
 
         /**
          * Provider name.
@@ -103,6 +105,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {Array.<number>}
          */
         this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+        //this.gridSizeByZoom = options.gridSizeByZoom || [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
@@ -333,7 +336,7 @@ class GlobusTerrain extends EmptyTerrain {
                         'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING || forceLoading
                     }, response => {
                         if (response.status === "ready") {
-                            let heights = this._createHeights(response.data);
+                            let heights = this._createHeights(response.data, segment);
                             this._elevationCache[segment.tileIndex] = {
                                 heights: heights,
                                 extent: segment.getExtent()
