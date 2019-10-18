@@ -1608,6 +1608,31 @@ class Polyline {
         //...
     }
 
+    setColorHTML(htmlColor) {
+        let color = utils.htmlColorToRgba(htmlColor),
+            p = this._pathColors;
+
+        for (let i = 0, len = p.length; i < len; i++) {
+            let s = p[i];
+            for (let j = 0, slen = s.length; j < slen; j++) {
+                s[j][0] = color.x;
+                s[j][1] = color.y;
+                s[j][2] = color.z;
+                s[j][3] = color.w;
+            }
+        }
+
+        let c = this._colors;
+        for (let i = 0, len = c.length; i < len; i += 4) {
+            c[i] = color.x;
+            c[i + 1] = color.y;
+            c[i + 2] = color.z;
+            c[i + 3] = color.w;
+        }
+
+        this._changedBuffers[COLORS_BUFFER] = true;
+    }
+
     /**
      * Sets geodetic coordinates.
      * @public
