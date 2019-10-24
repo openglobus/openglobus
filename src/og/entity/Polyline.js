@@ -1268,6 +1268,14 @@ class Polyline {
         }
     }
 
+    removeSegment(index) {
+        //
+        //TODO: could be optimized. Partially see appendPoint3v.
+        //
+        this._path3v.splice(index, 1);
+        this.setPath3v([].concat(this._path3v));
+    }
+
     removePoint(index, multiLineIndex) {
         //
         //TODO: could be optimized. Partially see appendPoint3v.
