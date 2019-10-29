@@ -205,10 +205,10 @@ class Ellipsoid {
     }
 
     /**
- * Gets ellipsoid equatorial size.
- * @public
- * @returns {number} -
- */
+     * Gets ellipsoid equatorial size.
+     * @public
+     * @returns {number} -
+     */
     getEquatorialSize() {
         return this._a;
     }
