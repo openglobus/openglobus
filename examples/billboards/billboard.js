@@ -7,6 +7,7 @@ import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { LonLat } from '../../src/og/LonLat.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
+import { Ellipsoid } from '../../src/og/ellipsoid/Ellipsoid.js';
 
 function rnd(min, max) {
     return Math.random() * (max - min) + min;
@@ -41,7 +42,7 @@ carrots.events.on("draw", function (c) {
     c.each(function (e) {
         let c = e.getLonLat();
         let ll = globus.planet.ellipsoid.getBearingDestination(c, e.properties.bearing, 2000);
-        e.properties.bearing = globus.planet.ellipsoid.getFinalBearing(c, ll);
+        e.properties.bearing = Ellipsoid.getFinalBearing(c, ll);
         e.setLonLat(new LonLat(ll.lon, ll.lat, c.height));
         e.billboard.setRotation(e.billboard.getRotation() + 0.01);
     });
