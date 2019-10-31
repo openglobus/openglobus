@@ -291,6 +291,12 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
             }
 
+            //ray pass
+            var i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
+            }
+
             gl.polygonOffset(0.0, 0.0);
 
             gl.disable(gl.POLYGON_OFFSET_FILL);

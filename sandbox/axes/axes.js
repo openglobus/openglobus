@@ -21,16 +21,38 @@ class MyScene extends RenderNode {
 
         this.ec = new EntityCollection({
             'entities': [
+                //new Entity({
+                //    'name': 'test line',
+                //    'polyline': {
+                //        'isClosed': false,
+                //        'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
+                //        'thickness': 50,
+                //        'pathColors': [[[1, 1, 0], [0, 0, 0]], [[1, 0, 0]]]
+                //        //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
+                //        //'thickness': 10,
+                //        //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
+                //    }
+                //}),
                 new Entity({
                     'name': 'test line',
-                    'polyline': {
-                        'isClosed': false,
-                        'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
-                        'thickness': 50,
-                        'pathColors': [[[1, 1, 0], [0, 0, 0]], [[1, 0, 0]]]
-                        //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
-                        //'thickness': 10,
-                        //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
+                    'ray': {
+                        'startPosition': [0, 0, 0],
+                        'endPosition': [100, 100, 100],
+                        'length': 100,
+                        'thickness': 15,
+                        'startColor': "#ffffff",
+                        'endColor': "#ff0000"
+                    }
+                }),
+                new Entity({
+                    'name': 'test line',
+                    'ray': {
+                        'startPosition': [10, 100, 0],
+                        'endPosition': [100, 100, 0],
+                        'length': 10,
+                        'thickness': 5,
+                        'startColor': "#0000ff",
+                        'endColor': "#00ff00"
                     }
                 })]
         });
@@ -62,4 +84,4 @@ function test() {
 
 }
 
-test();
+//test();

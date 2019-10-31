@@ -51,3 +51,22 @@ export function doubleToTwoFloats(value) {
     }
     return new Float32Array([high, low]);
 };
+
+/**
+ * Separate 63 bit value to two 32 bit float values.
+ * @function
+ * @param {number} value - Double type value.
+ * @returns {Array.<number,number>} Encoded array.
+ */
+export function doubleToTwoFloats2(value, highLowArr) {
+    if (value >= 0.0) {
+        var doubleHigh = Math.floor(value / 65536.0) * 65536.0;
+        highLowArr[0] = Math.fround(doubleHigh);
+        highLowArr[1] = Math.fround(value - doubleHigh);
+    } else {
+        var doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
+        highLowArr[0] = Math.fround(-doubleHigh);
+        highLowArr[1] = Math.fround(value + doubleHigh);
+    }
+    return highLowArr;
+};

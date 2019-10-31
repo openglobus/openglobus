@@ -541,6 +541,12 @@ Renderer.prototype._drawEntityCollections = function () {
             ec[i]._fadingOpacity && ec[i].labelHandler.draw();
         }
 
+        //rays
+        i = ec.length;
+        while (i--) {
+            ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+        }
+
         //polyline pass
         i = ec.length;
         while (i--) {
