@@ -95,7 +95,7 @@ class Ray {
         this._startPosition.x = x;
         this._startPosition.y = y;
         this._startPosition.z = z;
-        Vec3.doubleToTwoFloats(position, this._startPositionHigh, this._startPositionLow);
+        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler && this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
     }
 
@@ -108,7 +108,7 @@ class Ray {
         this._startPosition.x = position.x;
         this._startPosition.y = position.y;
         this._startPosition.z = position.z;
-        Vec3.doubleToTwoFloats(position, this._startPositionHigh, this._startPositionLow);
+        Vec3.doubleToTwoFloats(this._startPosition, this._startPositionHigh, this._startPositionLow);
         this._handler && this._handler.setStartPositionArr(this._handlerIndex, this._startPositionHigh, this._startPositionLow);
     }
 
@@ -123,7 +123,7 @@ class Ray {
         this._endPosition.x = x;
         this._endPosition.y = y;
         this._endPosition.z = z;
-        Vec3.doubleToTwoFloats(position, this._endPositionHigh, this._endPositionLow);
+        Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler && this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
 
@@ -136,14 +136,14 @@ class Ray {
         this._endPosition.x = position.x;
         this._endPosition.y = position.y;
         this._endPosition.z = position.z;
-        Vec3.doubleToTwoFloats(position, this._endPositionHigh, this._endPositionLow);
+        Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler && this._handler.setEndPositionArr(this._handlerIndex, this._endPositionHigh, this._endPositionLow);
     }
 
     setLength(length) {
         this._length = length;
-        doubleToTwoFloats2(this._length, this._lengthHighLow);
-        this._handler && this._handler.setLengthArr(this._handlerIndex, this._lengthHighLow);
+        //doubleToTwoFloats2(this._length, this._lengthHighLow);
+        this._handler && this._handler.setLengthArr(this._handlerIndex, length);
     }
 
     setThickness(thickness) {
@@ -151,7 +151,7 @@ class Ray {
         this._handler && this._handler.setThicknessArr(this._handlerIndex, thickness);
     }
 
-    setColors(startColor, endColor) {
+    setColors4v(startColor, endColor) {
         if (startColor) {
             this._startColor.x = startColor.x;
             this._startColor.y = startColor.y;
@@ -164,6 +164,19 @@ class Ray {
             this._endColor.y = endColor.y;
             this._endColor.z = endColor.z;
             this._endColor.w = endColor.w;
+        }
+
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+    }
+
+    setColorsHTML(startColor, endColor) {
+
+        if (startColor) {
+            this._startColor = utils.htmlColorToRgba(startColor);
+        }
+
+        if (endColor) {
+            this._endColor = utils.htmlColorToRgba(endColor);
         }
 
         this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);

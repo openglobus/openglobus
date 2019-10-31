@@ -110,7 +110,7 @@ class MyScene extends RenderNode {
     init() {
         this.renderer.handler.addProgram(ray_screen());
 
-        let startPos = new Vec3(0, 0, 0),
+        let startPos = new Vec3(0, 10, 0),
             endPos = new Vec3(10, 10, 10);
 
         let startPosHigh = new Vec3(),

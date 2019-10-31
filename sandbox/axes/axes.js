@@ -37,7 +37,7 @@ class MyScene extends RenderNode {
                     'name': 'test line',
                     'ray': {
                         'startPosition': [0, 0, 0],
-                        'endPosition': [1, 1, 1],
+                        'endPosition': [100, 100, 100],
                         'length': 100,
                         'thickness': 15,
                         'startColor': "#ffffff",

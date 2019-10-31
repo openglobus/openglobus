@@ -343,9 +343,6 @@ class Entity {
         //labels
         this.label && this.label.setPosition3v(p);
 
-        //rayss
-        this.ray && this.ray.setPosition3v(p);
-
         //shape
         this.shape && this.shape.setPosition3v(p);
 
@@ -388,9 +385,6 @@ class Entity {
 
         //labels
         this.label && this.label.setPosition3v(p);
-
-        //rays
-        this.ray && this.ray.setPosition3v(p);
 
         //shape
         this.shape && this.shape.setPosition3v(p);
@@ -523,7 +517,6 @@ class Entity {
         }
         this.ray = ray;
         this.ray._entity = this;
-        this.ray.setStartPosition3v(this._cartesian);
         this.ray.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection._rayHandler.add(ray);
         return ray;

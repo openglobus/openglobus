@@ -170,7 +170,7 @@ class EntityCollection {
          * @protected
          * @type {Array.<og.Entity>}
          */
-        this._entities = options.entities || [];
+        this._entities = [];
 
         /**
          * First index - near distance to the entity, after entity becomes full scale.
@@ -205,7 +205,7 @@ class EntityCollection {
         this.events = new Events(EVENT_NAMES, this);
 
         //initialize current entities
-        this.addEntities(this._entities);
+        this.addEntities(options.entities);
     }
 
     static get _staticCounter() {
