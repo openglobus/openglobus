@@ -205,7 +205,8 @@ class EntityCollection {
         this.events = new Events(EVENT_NAMES, this);
 
         //initialize current entities
-        this.addEntities(options.entities);
+        if (options.entities)
+            this.addEntities(options.entities);
     }
 
     static get _staticCounter() {
