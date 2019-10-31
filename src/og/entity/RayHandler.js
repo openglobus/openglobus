@@ -309,21 +309,21 @@ class RayHandler {
         var i = ri * 24;
         this._rgbaArr.splice(i, 24);
 
-        i = bi * 18;
+        i = ri * 18;
         this._startPositionHighArr.splice(i, 18);
         this._startPositionLowArr.splice(i, 18);
         this._endPositionHighArr.splice(i, 18);
         this._endPositionLowArr.splice(i, 18);
         this._pickingColorArr.splice(i, 18);
 
-        i = bi * 12;
+        i = ri * 12;
         this._vertexArr.splice(i, 12);
 
-        i = bi * 6;
+        i = ri * 6;
         this._thicknessArr.splice(i, 6);
         this._lengthArr.splice(i, 6);
 
-        this.reindexRaysArray(bi);
+        this.reindexRaysArray(ri);
         this.refresh();
 
         ray._handlerIndex = -1;
