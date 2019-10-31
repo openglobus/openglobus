@@ -45,8 +45,9 @@ export function rayScreen() {
             uniform vec3 eyePositionLow;
             uniform float resolution;
 
+            const float C = 0.1;
             const float far = 149.6e+9;
-            const float Fcoef = 2.0 / log2(far + 1.0);
+            float logc = 2.0 / log( C * far + 1.0 );
 
             void main() {
 
@@ -75,6 +76,7 @@ export function rayScreen() {
                 vec4 pos = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 
                 gl_Position = projectionMatrix * pos;
+                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
         fragmentShader:
             `precision highp float;
