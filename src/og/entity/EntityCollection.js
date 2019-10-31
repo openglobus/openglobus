@@ -354,8 +354,7 @@ class EntityCollection {
      * @returns {og.EntityCollection} -
      */
     addEntities(entities) {
-        var i = entities.length;
-        while (i--) {
+        for (let i = 0, len = entities.length; i < len; i++) {
             this.add(entities[i]);
         }
         return this;
