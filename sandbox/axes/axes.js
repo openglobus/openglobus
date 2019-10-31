@@ -21,16 +21,27 @@ class MyScene extends RenderNode {
 
         this.ec = new EntityCollection({
             'entities': [
+                //new Entity({
+                //    'name': 'test line',
+                //    'polyline': {
+                //        'isClosed': false,
+                //        'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
+                //        'thickness': 50,
+                //        'pathColors': [[[1, 1, 0], [0, 0, 0]], [[1, 0, 0]]]
+                //        //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
+                //        //'thickness': 10,
+                //        //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
+                //    }
+                //}),
                 new Entity({
                     'name': 'test line',
-                    'polyline': {
-                        'isClosed': false,
-                        'path3v': [[[0, 0, 0], [20, 20, 0]], [[0, 0, 0]]],
-                        'thickness': 50,
-                        'pathColors': [[[1, 1, 0], [0, 0, 0]], [[1, 0, 0]]]
-                        //'path3v': [[[0, 0, 0], [20, 20, 0], [40, 0, 20], [40, 20, 60]]],
-                        //'thickness': 10,
-                        //'pathColors': [[[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 1]]]
+                    'ray': {
+                        'startPosition': [0, 0, 0],
+                        'endPosition': [1, 1, 1],
+                        'length': 100,
+                        'thickness': 15,
+                        'startColor': "#ffffff",
+                        'endColor': "#ff0000"
                     }
                 })]
         });
@@ -62,4 +73,4 @@ function test() {
 
 }
 
-test();
+//test();

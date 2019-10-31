@@ -9,6 +9,7 @@ import { BillboardHandler } from './BillboardHandler.js';
 import { Events } from '../Events.js';
 import { LabelHandler } from './LabelHandler.js';
 import { PolylineHandler } from './PolylineHandler.js';
+import { RayHandler } from './RayHandler.js';
 import { PointCloudHandler } from './PointCloudHandler.js';
 import { StripHandler } from './StripHandler.js';
 import { ShapeHandler } from './ShapeHandler.js';
@@ -138,6 +139,13 @@ class EntityCollection {
         this.polylineHandler = new PolylineHandler(this);
 
         /**
+         * Ray handler
+         * @public
+         * @type {og.RayHandler}
+         */
+        this.rayHandler = new RayHandler(this);
+
+        /**
          * PointCloud handler
          * @public
          * @type {og.PointCloudHandler}
@@ -254,6 +262,7 @@ class EntityCollection {
         this.billboardHandler.pickingEnabled = enable;
         this.labelHandler.pickingEnabled = enable;
         this.polylineHandler.pickingEnabled = enable;
+        this.rayHandler.pickingEnabled = enable;
         this.shapeHandler.pickingEnabled = enable;
         this.pointCloudHandler.pickingEnabled = enable;
         this.stripHandler.pickingEnabled = enable;
@@ -294,6 +303,9 @@ class EntityCollection {
 
         //polyline
         entity.polyline && this.polylineHandler.add(entity.polyline);
+
+        //ray
+        entity.ray && this.rayHandler.add(entity.ray);
 
         //pointCloud
         entity.pointCloud && this.pointCloudHandler.add(entity.pointCloud);
@@ -374,6 +386,9 @@ class EntityCollection {
 
         //polyline
         entity.polyline && this.polylineHandler.remove(entity.polyline);
+
+        //ray
+        entity.ray && this.rayHandler.remove(entity.ray);
 
         //pointCloud
         entity.pointCloud && this.pointCloudHandler.remove(entity.pointCloud);
@@ -482,6 +497,7 @@ class EntityCollection {
 
             this.billboardHandler.setRenderer(renderNode.renderer);
             this.labelHandler.setRenderer(renderNode.renderer);
+            this.rayHandler.setRenderer(renderNode.renderer);
 
             this.shapeHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
@@ -584,6 +600,7 @@ class EntityCollection {
         this.labelHandler.clear();
         this.shapeHandler.clear();
         this.polylineHandler.clear();
+        this.rayHandler.clear();
         this.pointCloudHandler.clear();
         this.stripHandler.clear();
 

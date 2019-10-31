@@ -14,6 +14,7 @@ import { Geometry } from './Geometry.js';
 import { Label } from './Label.js';
 import { LonLat } from '../LonLat.js';
 import { Polyline } from './Polyline.js';
+import { Ray } from './Ray.js';
 import { PointCloud } from './PointCloud.js';
 import { Sphere } from '../shapes/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
@@ -34,7 +35,8 @@ import { Vec3 } from '../math/Vec3.js';
  * @param {*} [options.label] - Label options(see {@link og.Label}).
  * @param {*} [options.sphere] - Sphere options(see {@link og.shape.Sphere}).
  * @param {*} [options.box] - Sphere options(see {@link og.shape.Box}).
- * @param {*} [options.Polyline] - Polyline options(see {@link og.Polyline}).
+ * @param {*} [options.polyline] - Polyline options(see {@link og.Polyline}).
+ * @param {*} [options.ray] - Ray options(see {@link og.Ray}).
  * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
  * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
  * @param {*} [options.properties] - Entity custom properties.
@@ -159,7 +161,8 @@ class Entity {
             "polyline": [Polyline, this.setPolyline],
             "pointCloud": [PointCloud, this.setPointCloud],
             "geometry": [Geometry, this.setGeometry],
-            "strip": [Strip, this.setStrip]
+            "strip": [Strip, this.setStrip],
+            "ray": [Ray, this.setRay]
         };
 
         /**
@@ -189,6 +192,13 @@ class Entity {
          * @type {og.Polyline}
          */
         this.polyline = this._createOptionFeature('polyline', options.polyline);
+
+        /**
+         * Ray entity.
+         * @public
+         * @type {og.ray}
+         */
+        this.ray = this._createOptionFeature('ray', options.ray);
 
         /**
          * PointCloud entity.
@@ -283,6 +293,9 @@ class Entity {
         //polyline
         this.polyline && this.polyline.setVisibility(visibility);
 
+        //ray
+        this.ray && this.ray.setVisibility(visibility);
+
         //geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
@@ -330,6 +343,9 @@ class Entity {
         //labels
         this.label && this.label.setPosition3v(p);
 
+        //rayss
+        this.ray && this.ray.setPosition3v(p);
+
         //shape
         this.shape && this.shape.setPosition3v(p);
 
@@ -372,6 +388,9 @@ class Entity {
 
         //labels
         this.label && this.label.setPosition3v(p);
+
+        //rays
+        this.ray && this.ray.setPosition3v(p);
 
         //shape
         this.shape && this.shape.setPosition3v(p);
@@ -490,6 +509,24 @@ class Entity {
         this.label.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection._labelHandler.add(label);
         return label;
+    }
+
+    /**
+     * Sets entity ray.
+     * @public
+     * @param {og.Ray} ray - Ray object.
+     * @returns {og.Ray} -
+     */
+    setRay(ray) {
+        if (this.ray) {
+            this.ray.remove();
+        }
+        this.ray = ray;
+        this.ray._entity = this;
+        this.ray.setStartPosition3v(this._cartesian);
+        this.ray.setVisibility(this._visibility);
+        this._entityCollection && this._entityCollection._rayHandler.add(ray);
+        return ray;
     }
 
     /**
@@ -614,6 +651,9 @@ class Entity {
 
         //polyline
         this.polyline && this.polyline.setPickingColor3v(c);
+
+        //ray
+        this.ray && this.ray.setPickingColor3v(c);
 
         //strip
         this.strip && this.strip.setPickingColor3v(c);
