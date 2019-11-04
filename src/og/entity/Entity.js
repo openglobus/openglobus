@@ -698,6 +698,10 @@ class Entity {
 
         return res;
     }
+
+    isEqual(entity) {
+        return this.id === entity.id;
+    }
 };
 
 export { Entity };

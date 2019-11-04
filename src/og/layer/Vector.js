@@ -252,7 +252,7 @@ class Vector extends Layer {
                 this._stripEntityCollection.add(entity);
             }
 
-            if (entity.polyline) {
+            if (entity.polyline || entity.ray) {
                 this._polylineEntityCollection.add(entity);
             }
 
@@ -483,7 +483,7 @@ class Vector extends Layer {
 
             if (ei.strip) {
                 this._stripEntityCollection.add(ei);
-            } else if (ei.polyline) {
+            } else if (ei.polyline || ei.ray) {
                 this._polylineEntityCollection.add(ei);
             } else if (ei.billboard || ei.label || ei.shape) {
                 entitiesForTree.push(ei);
