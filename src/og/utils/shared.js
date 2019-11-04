@@ -480,35 +480,41 @@ export function base64toBlob(base64Data, contentType) {
     return new Blob(byteArrays, { type: contentType });
 };
 
+///**
+// * 
+// * @param {LonLat} p
+// * @param {LonLat} v1 
+// * @param {LonLat} v2
+// * @param {LonLat} v3
+// * @param {Array<Number>} res 
+// */
+//export function cartesianToBarycentricLonLat(p, v1, v2, v3, res) {
+
+//    const y2y3 = v2.lat - v3.lat,
+//        x3x2 = v3.lon - v2.lon,
+//        x1x3 = v1.lon - v3.lon,
+//        y1y3 = v1.lat - v3.lat,
+//        y3y1 = v3.lat - v1.lat,
+//        xx3 = p.lon - v3.lon,
+//        yy3 = p.lat - v3.lat;
+
+//    const d = y2y3 * x1x3 + x3x2 * y1y3,
+//        lambda1 = (y2y3 * xx3 + x3x2 * yy3) / d,
+//        lambda2 = (y3y1 * xx3 + x1x3 * yy3) / d;
+
+//    res[0] = lambda1;
+//    res[1] = lambda2;
+//    res[2] = 1 - lambda1 - lambda2;
+
+//    return 0 <= res[0] && res[0] <= 1 && 0 <= lambda1 && lambda1 <= 1 && 0 <= lambda2 && lambda2 <= 1;
+//};
+
 /**
- * 
- * @param {Vec2} p 
- * @param {Vec2} v1 
- * @param {Vec2} v2 
- * @param {Vec2} v3 
- * @param {Array<Number>} res 
+ * Callback throttling
+ * @param {any} func
+ * @param {Number} limit
+ * @param {Number} skip
  */
-export function cartesianToBarycentricLonLat(p, v1, v2, v3, res) {
-
-    const y2y3 = v2.lat - v3.lat,
-        x3x2 = v3.lon - v2.lon,
-        x1x3 = v1.lon - v3.lon,
-        y1y3 = v1.lat - v3.lat,
-        y3y1 = v3.lat - v1.lat,
-        xx3 = p.lon - v3.lon,
-        yy3 = p.lat - v3.lat;
-
-    const d = y2y3 * x1x3 + x3x2 * y1y3,
-        lambda1 = (y2y3 * xx3 + x3x2 * yy3) / d,
-        lambda2 = (y3y1 * xx3 + x1x3 * yy3) / d;
-
-    res[0] = lambda1;
-    res[1] = lambda2;
-    res[2] = 1 - lambda1 - lambda2;
-
-    return 0 <= res[0] && res[0] <= 1 && 0 <= lambda1 && lambda1 <= 1 && 0 <= lambda2 && lambda2 <= 1;
-};
-
 export function throttle(func, limit, skip) {
     let lastFunc
     let lastRan

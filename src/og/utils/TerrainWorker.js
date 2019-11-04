@@ -75,8 +75,10 @@ class TerrainWorker {
 };
 
 const _programm =
-    `
-    'use strict';
+    `'use strict';
+    //
+    //Terrain worker
+    //
 
     var Vec3 = function(x, y, z) {
         this.x = x;

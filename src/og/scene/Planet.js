@@ -647,6 +647,8 @@ class Planet extends RenderNode {
             up: new Vec3(0, 1, 0)
         });
 
+        this.camera.update();
+
         //Creating quad trees nodes
         this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
         this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]));

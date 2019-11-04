@@ -32,14 +32,14 @@ const NormalMapCreator = function (planet, options) {
 
     this._blur = options.blur != undefined ? options.blur : true;
 
-    this._drawNormalMap = this._blur ? this._drawNormalMapBlur : this._drawNormalMapNotBlur;
+    this._drawNormalMap = this._blur ? this._drawNormalMapBlur : this._drawNormalMapNoBlur;
 
     this._init();
 };
 
 NormalMapCreator.prototype.setBlur = function (isBlur) {
     this._blur = blur;
-    this._drawNormalMap = isBlur ? this._drawNormalMapBlur : this._drawNormalMapNotBlur;
+    this._drawNormalMap = isBlur ? this._drawNormalMapBlur : this._drawNormalMapNoBlur;
 };
 
 NormalMapCreator.prototype._init = function () {
@@ -217,7 +217,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
 };
 
 
-NormalMapCreator.prototype._drawNormalMapNotBlur = function (segment) {
+NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
     var normals = segment.normalMapNormals;
     if (segment.node &&
         segment.node.getState() !== quadTree.NOTRENDERING &&

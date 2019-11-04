@@ -536,7 +536,6 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
         } else {
             this.state = NOTRENDERING;
         }
-
     }
 };
 
