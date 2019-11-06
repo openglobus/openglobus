@@ -469,6 +469,27 @@ Renderer.prototype.addNode = function (renderNode) {
 };
 
 /**
+ * Adds render node to the renderer before specific node.
+ * @public
+ * @param {og.scene.RenderNode} renderNode - Render node.
+ */
+Renderer.prototype.addNodeBefore = function (renderNode, renderNodeBefore) {
+    if (!this.renderNodes[renderNode.name]) {
+        renderNode.assign(this);
+        this.renderNodes[renderNode.name] = renderNode;
+        for (let i = 0; i < this._renderNodesArr.length; i++) {
+            if (this._renderNodesArr[i].isEqual(renderNodeBefore)) {
+                this._renderNodesArr.splice(i, 0, renderNode);
+                break;
+            }
+        }
+        this._renderNodesArr.unshift(renderNode);
+    } else {
+        cons.logWrn("Node name " + renderNode.name + " allready exists.");
+    }
+};
+
+/**
  * Adds render nodes array to the renderer.
  * @public
  * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
@@ -623,6 +644,8 @@ Renderer.prototype.draw = function () {
     }
 
     this._drawEntityCollections();
+
+    e.dispatch(e.postdraw, this);
 
     sfb.deactivate();
 
