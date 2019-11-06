@@ -437,7 +437,7 @@ class Entity {
                 this._lonlatMerc = null;
             }
 
-            this._cartesian = ec.renderNode.ellipsoid.lonLatToCartesian(lonlat);
+            ec.renderNode.ellipsoid.lonLatToCartesianRes(lonlat, this._cartesian);
             this.setCartesian3v(this._cartesian);
         }
     }
