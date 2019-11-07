@@ -8,7 +8,7 @@ import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { cons } from '../cons.js';
-import { Program } from '../webgl/Program.js';
+//import { Program } from '../webgl/Program.js';
 import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
 import { toneMapping } from '../shaders/toneMapping.js';
