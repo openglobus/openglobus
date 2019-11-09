@@ -612,6 +612,14 @@ class Entity {
         return this._layer;
     }
 
+    get rendererEvents() {
+        if (this._layer) {
+            return this._layer.events;
+        } else if (this._entityCollection) {
+            return this._entityCollection.events;
+        }
+    }
+
     /**
      * Append child entity.
      * @public

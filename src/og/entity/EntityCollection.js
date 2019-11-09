@@ -204,6 +204,8 @@ class EntityCollection {
          */
         this.events = new Events(EVENT_NAMES, this);
 
+        this.rendererEvents = this.events;
+
         //initialize current entities
         if (options.entities)
             this.addEntities(options.entities);

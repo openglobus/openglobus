@@ -513,8 +513,7 @@ class RendererEvents extends Events {
                 if (!(c[0] || c[1] || c[2])) {
                     let po = o[p[0] + "_" + p[1] + "_" + p[2]];
                     if (po) {
-                        //TODO: make eventPtr for all kind of entity storages
-                        let pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                        let pe = po.rendererEvents;
                         ms.pickingObject = po;
                         pe && pe.dispatch(pe.mouseleave, ms);
                         ts.pickingObject = po;
@@ -527,7 +526,7 @@ class RendererEvents extends Events {
                     if (p[0] || p[1] || p[2]) {
                         let po = o[p[0] + "_" + p[1] + "_" + p[2]];
                         if (po) {
-                            let pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                            let pe = po.rendererEvents;
                             ms.pickingObject = po;
                             pe && pe.dispatch(pe.mouseleave, ms);
                             ts.pickingObject = po;
@@ -536,7 +535,7 @@ class RendererEvents extends Events {
                     }
 
                     if (co) {
-                        var ce = co.events || co._entityCollection && co._entityCollection.events || co._layer && co._layer.events;
+                        var ce = co.rendererEvents;
                         ms.pickingObject = co;
                         ce && ce.dispatch(ce.mouseenter, ms);
                         ts.pickingObject = co;
@@ -557,7 +556,7 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.lclick, ms);
             }
             this.dispatch(this.lclick, ms);
@@ -566,7 +565,7 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rclick, ms);
             }
             this.dispatch(this.rclick, ms);
@@ -575,7 +574,7 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mclick, ms);
             }
             this.dispatch(this.mclick, ms);
@@ -585,14 +584,14 @@ class RendererEvents extends Events {
         if (ms.leftButtonDown) {
             if (ms.leftButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.lhold, ms);
                 }
                 this.dispatch(this.lhold, ms);
             } else {
                 ms.leftButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.ldown, ms);
                 }
                 this.dispatch(this.ldown, ms);
@@ -602,14 +601,14 @@ class RendererEvents extends Events {
         if (ms.rightButtonDown) {
             if (ms.rightButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.rhold, ms);
                 }
                 this.dispatch(this.rhold, ms);
             } else {
                 ms.rightButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.rdown, ms);
                 }
                 this.dispatch(this.rdown, ms);
@@ -619,14 +618,14 @@ class RendererEvents extends Events {
         if (ms.middleButtonDown) {
             if (ms.middleButtonHold) {
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.mhold, ms);
                 }
                 this.dispatch(this.mhold, ms);
             } else {
                 ms.middleButtonHold = true;
                 if (po) {
-                    pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                    pe = po.rendererEvents;
                     pe && pe.dispatch(pe.mdown, ms);
                 }
                 this.dispatch(this.mdown, ms);
@@ -635,7 +634,7 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.lup, ms);
             }
             this.dispatch(this.lup, ms);
@@ -645,7 +644,7 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rup, ms);
             }
             this.dispatch(this.rup, ms);
@@ -655,7 +654,7 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonUp) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mup, ms);
             }
             this.dispatch(this.mup, ms);
@@ -665,7 +664,7 @@ class RendererEvents extends Events {
 
         if (ms.leftButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.ldblclick, ms);
             }
             this.dispatch(this.ldblclick, ms);
@@ -674,7 +673,7 @@ class RendererEvents extends Events {
 
         if (ms.rightButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rdblclick, ms);
             }
             this.dispatch(this.rdblclick, ms);
@@ -683,7 +682,7 @@ class RendererEvents extends Events {
 
         if (ms.middleButtonDoubleClick) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mdblclick, ms);
             }
             this.dispatch(this.mdblclick, ms);
@@ -692,7 +691,7 @@ class RendererEvents extends Events {
 
         if (ms.wheelDelta) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mousewheel, ms);
             }
             this.dispatch(this.mousewheel, ms);
@@ -701,7 +700,7 @@ class RendererEvents extends Events {
 
         if (ms.moving) {
             if (po) {
-                pe = po.events || po._entityCollection && po._entityCollection.events || po._layer && po._layer.events;
+                pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mousemove, ms);
             }
             this.dispatch(this.mousemove, ms);
@@ -739,7 +738,7 @@ class RendererEvents extends Events {
             var co = o[c[0] + "_" + c[1] + "_" + c[2]];
             tpo = ts.pickingObject = co;
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchstart, ts);
             }
             this.dispatch(this.touchstart, ts);
@@ -748,7 +747,7 @@ class RendererEvents extends Events {
 
         if (ts.doubleTouch) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.doubletouch, ts);
             }
             this.dispatch(this.doubletouch, ts);
@@ -757,7 +756,7 @@ class RendererEvents extends Events {
 
         if (ts.touchEnd) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchend, ts);
             }
             this.dispatch(this.touchend, ts);
@@ -768,7 +767,7 @@ class RendererEvents extends Events {
 
         if (ts.moving) {
             if (tpo) {
-                tpe = tpo.events || tpo._entityCollection && tpo._entityCollection.events || tpo._layer && tpo._layer.events;
+                tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchmove, ts);
             }
             this.dispatch(this.touchmove, ts);
