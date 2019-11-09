@@ -247,6 +247,10 @@ class Layer {
         return "Layer";
     }
 
+    get rendererEvents() {
+        return this.events;
+    }
+
     set opacity(opacity) {
         if (this._fading) {
             if (opacity > this._opacity) {
