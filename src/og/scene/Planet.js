@@ -39,8 +39,8 @@ import { Plane } from '../math/Plane.js';
 import { Geoid } from '../terrain/Geoid.js';
 import { doubleToTwoFloats } from '../math/coder.js';
 
-const MAX_LOD = 0.88;
-const MIN_LOD = 0.55;
+const MAX_LOD = 1.0;
+const MIN_LOD = 0.95;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
