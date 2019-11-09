@@ -58,6 +58,8 @@ class RenderNode extends BaseNode {
          */
         this.entityCollections = [];
 
+        this._pickingId = -1;
+
         this.events = new Events(null, this);
     }
 
@@ -116,7 +118,7 @@ class RenderNode extends BaseNode {
         }
 
         this.renderer.removePickingCallback(this._pickingId);
-        this._pickingId = null;
+        this._pickingId = -1;
         this.onremove && this.onremove();
     }
 
@@ -196,6 +198,16 @@ class RenderNode extends BaseNode {
      */
     setActive(isActive) {
         this._isActive = isActive;
+
+        if (this.renderer) {
+            if (this._isActive && this._pickingId === -1) {
+                this._pickingId = this.renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+            } else if (!this._isActive && this._pickingId !== -1) {
+                this.renderer.removePickingCallback(this._pickingId);
+                this._pickingId = -1;
+            }
+        }
+
         for (var i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].setActive(isActive);
         }

@@ -786,6 +786,12 @@ const EVENT_NAMES = [
     "draw",
 
     /**
+     * Triggered after scene frame is rendered(after render nodes).
+     * @event og.RendererEvents#postdraw
+     */
+    "postdraw",
+
+    /**
      * Triggered when screen is resized.
      * @event og.RendererEvents#resize
      */

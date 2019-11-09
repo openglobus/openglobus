@@ -246,6 +246,29 @@ class Ellipsoid {
     /**
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
+     * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {og.Vec3} res - Output result.
+     * @returns {og.Vec3} - 
+     */
+    lonLatToCartesianRes(lonlat, res) {
+        var latrad = math.RADIANS * lonlat.lat,
+            lonrad = math.RADIANS * lonlat.lon;
+
+        var slt = Math.sin(latrad);
+
+        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
+        var nc = (N + lonlat.height) * Math.cos(latrad);
+
+        res.x = nc * Math.sin(lonrad);
+        res.y = (N * (1.0 - this._e2) + lonlat.height) * slt;
+        res.z = nc * Math.cos(lonrad);
+
+        return res;
+    }
+
+    /**
+     * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
+     * @public
      * @param {Number} lon - Longitude.
      * @param {Number} lat - Latitude.
      * @param {Number} height - Height.
