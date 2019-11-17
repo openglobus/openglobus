@@ -59,11 +59,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         options = options || {};
 
-        this.blur = true;
         this.equalizeNormals = true;
-
-        //this.blur = false;
-        //this.equalizeNormals = false;
 
         /**
          * Provider name.
@@ -104,8 +100,8 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        //this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2];
-        this.gridSizeByZoom = options.gridSizeByZoom || [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
+        this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+        //this.gridSizeByZoom = options.gridSizeByZoom || [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
@@ -138,6 +134,13 @@ class GlobusTerrain extends EmptyTerrain {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = null;
+    }
+
+    isBlur(segment) {
+        if (segment.tileZoom >= 8) {
+            return true;
+        }
+        return false;
     }
 
     getHeightAsync(lonLat, callback, zoom) {
