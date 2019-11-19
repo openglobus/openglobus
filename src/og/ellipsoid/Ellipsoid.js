@@ -345,9 +345,9 @@ class Ellipsoid {
     getGreatCircleDistance(lonLat1, lonLat2) {
         var dLat = (lonLat2.lat - lonLat1.lat) * math.RADIANS;
         var dLon = (lonLat2.lon - lonLat1.lon) * math.RADIANS;
-        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lonLat1.lat * math.RADIANS) * Math.cos(lonLat2.lat * math.RADIANS);
-        return this._a * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var a = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
+            Math.sin(dLon / 2.0) * Math.sin(dLon / 2) * Math.cos(lonLat1.lat * math.RADIANS) * Math.cos(lonLat2.lat * math.RADIANS);
+        return this._a * 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
     }
 
     getBearingDestination(lonLat1, bearing, distance) {
