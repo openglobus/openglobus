@@ -59,11 +59,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         options = options || {};
 
-        this.blur = true;
         this.equalizeNormals = true;
-
-        //this.blur = false;
-        //this.equalizeNormals = false;
 
         /**
          * Provider name.
@@ -138,6 +134,13 @@ class GlobusTerrain extends EmptyTerrain {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = null;
+    }
+
+    isBlur(segment) {
+        if (segment.tileZoom >= 8) {
+            return true;
+        }
+        return false;
     }
 
     getHeightAsync(lonLat, callback, zoom) {

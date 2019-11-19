@@ -30,16 +30,7 @@ const NormalMapCreator = function (planet, options) {
 
     this._lock = new Lock();
 
-    this._blur = options.blur != undefined ? options.blur : true;
-
-    this._drawNormalMap = this._blur ? this._drawNormalMapBlur : this._drawNormalMapNoBlur;
-
     this._init();
-};
-
-NormalMapCreator.prototype.setBlur = function (isBlur) {
-    this._blur = blur;
-    this._drawNormalMap = isBlur ? this._drawNormalMapBlur : this._drawNormalMapNoBlur;
 };
 
 NormalMapCreator.prototype._init = function () {
@@ -159,8 +150,9 @@ NormalMapCreator.prototype._init = function () {
 
 NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
     var normals = segment.normalMapNormals;
-    if (segment.node && segment.node.getState() !== quadTree.NOTRENDERING
-        && normals && normals.length) {
+    if (segment.node &&
+        segment.node.getState() !== quadTree.NOTRENDERING &&
+        normals && normals.length) {
 
         if (segment.planet.terrain.equalizeNormals) {
             segment._normalMapEdgeEqualize(quadTree.N);
@@ -221,13 +213,14 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
     var normals = segment.normalMapNormals;
     if (segment.node &&
         segment.node.getState() !== quadTree.NOTRENDERING &&
-        normals && 
-        normals.length) {
+        normals && normals.length) {
 
-        segment._normalMapEdgeEqualize(quadTree.N);
-        segment._normalMapEdgeEqualize(quadTree.S);
-        segment._normalMapEdgeEqualize(quadTree.W);
-        segment._normalMapEdgeEqualize(quadTree.E);
+        //if (segment.planet.terrain.equalizeNormals) {
+        //    segment._normalMapEdgeEqualize(quadTree.N);
+        //    segment._normalMapEdgeEqualize(quadTree.S);
+        //    segment._normalMapEdgeEqualize(quadTree.W);
+        //    segment._normalMapEdgeEqualize(quadTree.E);
+        //}
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
@@ -260,6 +253,16 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
         return true;
     }
     return false;
+};
+
+NormalMapCreator.prototype._drawNormalMap = function (segment) {
+    let t = segment.planet.terrain;
+
+    if (t.isBlur && t.isBlur(segment)) {
+        return this._drawNormalMapBlur(segment);
+    } else {
+        return this._drawNormalMapNoBlur(segment);
+    }
 };
 
 NormalMapCreator.prototype.drawSingle = function (segment) {

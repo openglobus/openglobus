@@ -362,10 +362,6 @@ const _programm =
             normalMapVerticesLow = new Float32Array(gsgs3);
             normalMapNormals = new Float32Array(gsgs3);
 
-
-            var plain_verts = this_plainVertices;
-            var plainNormals = this_plainNormals;
-
             var oneSize = tgs / fileGridSize;
             var h, inside_i, inside_j, v_i, v_j;
             var gsgs = gsgs3 / 3;
@@ -403,9 +399,9 @@ const _programm =
 
                 let i3 = i * 3;
 
-                _tempVec.x = plain_verts[i3] + hi * plainNormals[i3],
-                _tempVec.y = plain_verts[i3 + 1] + hi * plainNormals[i3 + 1],
-                _tempVec.z = plain_verts[i3 + 2] + hi * plainNormals[i3 + 2];
+                _tempVec.x = this_plainVertices[i3] + hi * this_plainNormals[i3],
+                _tempVec.y = this_plainVertices[i3 + 1] + hi * this_plainNormals[i3 + 1],
+                _tempVec.z = this_plainVertices[i3 + 2] + hi * this_plainNormals[i3 + 2];
 
                 doubleToTwoFloats(_tempVec, _tempHigh, _tempLow);
 
