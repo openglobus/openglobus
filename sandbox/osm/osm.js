@@ -13,7 +13,6 @@ import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
 import * as math from '../../src/og/math.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 
-
 // document.getElementById("ambient-r").addEventListener("input", function (e) {
 //     osm.ambient.x = this.value;
 //     document.querySelector(".value.ambient-r").innerHTML = this.value;

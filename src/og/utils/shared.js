@@ -537,3 +537,40 @@ export function throttle(func, limit, skip) {
         }
     }
 };
+
+
+/**
+ * 
+ * y2-----Q12--------------Q22---
+ * |       |     |          |
+ * |       |     |          |
+ * y-------|-----P----------|----
+ * |       |     |          |
+ * |       |     |          |
+ * |       |     |          |
+ * |       |     |          |
+ * |       |     |          |
+ * y1-----Q11----|---------Q21---
+ *         |     |          |
+ *         |     |          |
+ *         x1    x          x2
+ *        
+ * 
+ * @param {Number} x -
+ * @param {Number} y -
+ * @param {Number} fQ11 -
+ * @param {Number} fQ21 -
+ * @param {Number} fQ12 -
+ * @param {Number} fQ22 -
+ * @param {Number} [x1=0.0] -
+ * @param {Number} [x2=1.0] -
+ * @param {Number} [y1=0.0] -
+ * @param {Number} [y2=1.0] -
+ */
+export function blerp(x, y, fQ11, fQ21, fQ12, fQ22, x1 = 0.0, x2 = 1.0, y1 = 0.0, y2 = 1.0) {
+    return (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1)) / ((x2 - x1) * (y2 - y1));
+};
+
+export function blerp2(x, y, fQ11, fQ21, fQ12, fQ22) {
+    return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
+};
