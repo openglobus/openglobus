@@ -104,8 +104,8 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        //this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2];
-        this.gridSizeByZoom = options.gridSizeByZoom || [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
+        this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+        //this.gridSizeByZoom = options.gridSizeByZoom || [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
