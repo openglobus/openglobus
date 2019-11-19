@@ -215,12 +215,12 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
         segment.node.getState() !== quadTree.NOTRENDERING &&
         normals && normals.length) {
 
-        if (segment.planet.terrain.equalizeNormals) {
-            segment._normalMapEdgeEqualize(quadTree.N);
-            segment._normalMapEdgeEqualize(quadTree.S);
-            segment._normalMapEdgeEqualize(quadTree.W);
-            segment._normalMapEdgeEqualize(quadTree.E);
-        }
+        //if (segment.planet.terrain.equalizeNormals) {
+        //    segment._normalMapEdgeEqualize(quadTree.N);
+        //    segment._normalMapEdgeEqualize(quadTree.S);
+        //    segment._normalMapEdgeEqualize(quadTree.W);
+        //    segment._normalMapEdgeEqualize(quadTree.E);
+        //}
 
         var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
