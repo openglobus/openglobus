@@ -827,7 +827,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                     pseg.normalMapVertices,
                     pseg.normalMapVerticesHigh,
                     pseg.normalMapVerticesLow,
-                    pn.segment.planet.terrain.fileGridSize,
+                    pn.segment.fileGridSize,//pn.segment.planet.terrain.fileGridSize,
                     gridSizeExt * offsetY,
                     gridSizeExt * offsetX,
                     gridSizeExt,
@@ -952,11 +952,16 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                     seg.normalMapVertices = tempVertices;
                     seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                    let fgs = terrain.fileGridSize,
+                    let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,//terrain.fileGridSize,
                         fgsZ = fgs / dZ2;
 
-                    seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals,
-                        fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                    if (fgs > 1) {
+                        seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals,
+                            fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                    } else {
+                        //TODO: interpolation
+                        seg.normalMapNormals = pseg.normalMapNormals;
+                    }
                 }
             } else {
                 pn = this;
