@@ -1478,10 +1478,10 @@ class Planet extends RenderNode {
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [startCallback] - Callback that calls after flying when flying is finished.
-     * @param {cameraCallback} [endCallback] - Callback that calls befor the flying begins.     
+     * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.     
      */
-    flyExtent(extent, height, up, ampl, startCallback, endCallback) {
-        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, startCallback, endCallback);
+    flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
+        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
     }
 
     /**
@@ -1492,8 +1492,8 @@ class Planet extends RenderNode {
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      */
-    flyCartesian(cartesian, look, up, ampl) {
-        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl);
+    flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
+        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1504,8 +1504,8 @@ class Planet extends RenderNode {
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      */
-    flyLonLat(lonlat, look, up, ampl) {
-        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl);
+    flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
+        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**

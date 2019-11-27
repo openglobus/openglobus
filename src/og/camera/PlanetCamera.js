@@ -305,9 +305,9 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
+    flyExtent(extent, height, up, ampl, completeCallback, startCallback, frameCallback) {
         this.flyCartesian(this.getExtentPosition(extent, height), Vec3.ZERO,
-            up, ampl, completeCallback, startCallback);
+            up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     viewDistance(cartesian, distance = 10000.0) {
@@ -324,7 +324,7 @@ class PlanetCamera extends Camera {
         this.update();
     }
 
-    flyDistance(cartesian, distance = 10000.0, ampl = 0.0, completeCallback, startCallback) {
+    flyDistance(cartesian, distance = 10000.0, ampl = 0.0, completeCallback, startCallback, frameCallback) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.normal(), cartesian.normal());
         if (_rot.isZero()) {
@@ -333,7 +333,7 @@ class PlanetCamera extends Camera {
         } else {
             let newPos = cartesian.add(_rot.mulVec3(this.getBackward()).scale(distance)),
                 newUp = _rot.mulVec3(this.getUp());
-            this.flyCartesian(newPos, cartesian, newUp, ampl, completeCallback, startCallback);
+            this.flyCartesian(newPos, cartesian, newUp, ampl, completeCallback, startCallback, frameCallback);
         }
     }
 
@@ -347,7 +347,7 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback) {
+    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback, frameCallback) {
 
         //???????
         //if (this.eye.distance(cartesian) < 23000) {
@@ -357,6 +357,8 @@ class PlanetCamera extends Camera {
         this.stopFlying();
 
         this._completeCallback = completeCallback;
+
+        this._frameCallback = frameCallback;
 
         if (startCallback) {
             startCallback.call(this);
@@ -457,6 +459,7 @@ class PlanetCamera extends Camera {
         this._framesArr.length = 0;
         this._framesArr = [];
         this._framesCounter = -1;
+        this._frameCallback = null;
     }
 
     /**
@@ -526,6 +529,10 @@ class PlanetCamera extends Camera {
             this._u = this._framesArr[c].u;
             this._v = this._framesArr[c].v;
             this._n = this._framesArr[c].n;
+
+            if (this._frameCallback) {
+                this._frameCallback();
+            }
 
             this.update();
 
