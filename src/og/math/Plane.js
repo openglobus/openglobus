@@ -12,7 +12,7 @@ import { Vec3 } from './Vec3.js';
 class Plane {
     constructor(p, n) {
         this.p = (p ? p.clone() : new Vec3());
-        this.n = (n ? n.clone() : new Vec3());
+        this.n = (n ? n.clone() : this.p.normal());
     }
 
     set(p, n) {
@@ -24,8 +24,21 @@ class Plane {
         return this.n.clone();
     }
 
-    getProjection(v, def){
+    getProjection(v, def) {
         return Vec3.proj_b_to_plane(v, this.n, def);
+    }
+
+    getProjectionPoint(p, vh) {
+        let v = p.sub(this.p),
+            n = this.n,
+            dist = v.dot(n);
+
+        if (vh) {
+            vh.copy(n.scale(dist));
+        } else {
+            vh = n.scale(dist);
+        }
+        return p.sub(vh);
     }
 
     getIntersection(Pn1, Pn2, L) {

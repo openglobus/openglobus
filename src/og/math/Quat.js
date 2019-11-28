@@ -209,6 +209,19 @@ Quat.getRotationBetweenVectors = function (u, v) {
 };
 
 /**
+ * Compute rotation between two vectors.
+ * @static
+ * @param {og.Vec3} u - First vector.
+ * @param {og.Vec3} v - Second vector.
+ * @returns {og.Quat} -
+ */
+Quat.getRotationBetweenVectorsRes = function (u, v, res) {
+    var w = u.cross(v);
+    res.set(w.x, w.y, w.z, 1.0 + u.dot(v));
+    return res.normalize();
+};
+
+/**
  * Compute rotation between two vectors with around vector up 
  * for exactly opposite vectors. If vectors exaclty in the same
  * direction than returns identity Quat.
