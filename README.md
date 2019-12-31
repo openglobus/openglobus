@@ -15,14 +15,14 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
   
 ### Build Complete Library
 
-Run **/build.all.bat** or **npm run build** see package.json scripts
+Run **npm run build** or **npm run build** see package.json scripts
 
 ### Build og.core (rendering engine) stand-alone
 
-Run **/build.core.bat**
+Run **npm run core**
 
 ### Build og.webgl (webgl wrap) stand-alone
 
-Run **/build.webgl.bat**
+Run **npm run webgl**
 
 

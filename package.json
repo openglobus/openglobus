@@ -10,11 +10,16 @@
   "scripts": {
     "dev": "webpack --mode=development",
     "build": "webpack --mode=production",
+<<<<<<< HEAD
 <<<<<<< webpack-optimization
 =======
     "webgl": "webpack --lib=webgl --mode=production",
     "core": "webpack --lib=core --mode=production",
 >>>>>>> local
+=======
+    "webgl": "webpack --config webpack.config.webgl.js --mode=production",
+    "core": "webpack --config webpack.config.core.js --mode=production",
+>>>>>>> e0cf9d347d6050f72dbe17694ca0b21edbb069fc
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -30,10 +35,9 @@
   "homepage": "http://www.openglobus.org",
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "^8.0.0",
-    "copy-webpack-plugin": "^4.5.1",
+    "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^2.1.1",
-    "eslint": "^4.0.0",
+    "eslint": "^6.8.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",

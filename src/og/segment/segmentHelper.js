@@ -1,6 +1,6 @@
 'use sctrict';
 
-import * as quadTree from '../quadTree/quadTree.js';
+import { N, W, S, E } from '../quadTree/quadTree.js';
 
 export const TABLESIZE = 7;
 
@@ -12,10 +12,10 @@ export const textureCoordsTable = initTextureCoordsTable(TABLESIZE);
 export function createSegmentIndexes(size, sidesSizes) {
     if (size !== 1) {
         var c = centerIndexesTable[size],
-            w = skirtsIndexesTable[quadTree.W][size][sidesSizes[quadTree.W]],
-            n = skirtsIndexesTable[quadTree.N][size][sidesSizes[quadTree.N]],
-            e = skirtsIndexesTable[quadTree.E][size][sidesSizes[quadTree.E]],
-            s = skirtsIndexesTable[quadTree.S][size][sidesSizes[quadTree.S]];
+            w = skirtsIndexesTable[W][size][sidesSizes[W]],
+            n = skirtsIndexesTable[N][size][sidesSizes[N]],
+            e = skirtsIndexesTable[E][size][sidesSizes[E]],
+            s = skirtsIndexesTable[S][size][sidesSizes[S]];
         var indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
         var k = 0, i = 0, len = c.length;
         for (k = 0; k < len; k++) {
@@ -137,38 +137,42 @@ function createSouthNeighborSkirt(size, deltaGr, indexes) {
 
 function initIndexesBodySkirts(pow) {
     var table = [];
-    table[quadTree.N] = [];
-    table[quadTree.W] = [];
-    table[quadTree.S] = [];
-    table[quadTree.E] = [];
 
-    table[quadTree.N][0] = [];
-    table[quadTree.W][0] = [];
-    table[quadTree.S][0] = [];
-    table[quadTree.E][0] = [];
+    table[N] = [];
+    table[W] = [];
+    table[S] = [];
+    table[E] = [];
+
+    table[N][0] = [];
+    table[W][0] = [];
+    table[S][0] = [];
+    table[E][0] = [];
 
     for (var i = 0; i <= pow; i++) {
-        var d = Math.pow(2, i);
-        table[quadTree.N][d] = [];
-        table[quadTree.W][d] = [];
-        table[quadTree.S][d] = [];
-        table[quadTree.E][d] = [];
+        var d = Math.pow(2, i),
+            d1 = d + 1;
 
-        table[quadTree.N][d][0] = [];
-        table[quadTree.W][d][0] = [];
-        table[quadTree.S][d][0] = [];
-        table[quadTree.E][d][0] = [];
+        table[N][d] = [];
+        table[W][d] = [];
+        table[S][d] = [];
+        table[E][d] = [];
+
+        table[N][d][0] = [];
+        table[W][d][0] = [];
+        table[S][d][0] = [];
+        table[E][d][0] = [];
 
         for (var j = 0; j <= pow; j++) {
-            var dd = Math.pow(2, j);
-            var nt = table[quadTree.N][d][dd] = [];
-            var wt = table[quadTree.W][d][dd] = [];
-            var st = table[quadTree.S][d][dd] = [];
-            var et = table[quadTree.E][d][dd] = [];
-            createWestNeighborSkirt(d + 1, dd, wt);
-            createNorthNeighborSkirt(d + 1, dd, nt);
-            createEastNeighborSkirt(d + 1, dd, et);
-            createSouthNeighborSkirt(d + 1, dd, st);
+            var dd = Math.pow(2, j),
+                nt = table[N][d][dd] = [],
+                wt = table[W][d][dd] = [],
+                st = table[S][d][dd] = [],
+                et = table[E][d][dd] = [];
+
+            createWestNeighborSkirt(d1, dd, wt);
+            createNorthNeighborSkirt(d1, dd, nt);
+            createEastNeighborSkirt(d1, dd, et);
+            createSouthNeighborSkirt(d1, dd, st);
         }
     }
     return table;
