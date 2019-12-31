@@ -10,6 +10,11 @@
   "scripts": {
     "dev": "webpack --mode=development",
     "build": "webpack --mode=production",
+<<<<<<< webpack-optimization
+=======
+    "webgl": "webpack --lib=webgl --mode=production",
+    "core": "webpack --lib=core --mode=production",
+>>>>>>> local
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
