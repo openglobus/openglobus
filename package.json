@@ -13,7 +13,7 @@
     "build": "node_modules/.bin/webpack --mode=production",
     "webgl": "node_modules/.bin/webpack --lib=webgl --mode=production",
     "core": "node_modules/.bin/webpack --lib=core --mode=production",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -28,13 +28,17 @@
   "homepage": "http://www.openglobus.org",
   "dependencies": {},
   "devDependencies": {
+    "@babel/preset-env": "^7.7.7",
+    "babel-preset-env": "^1.7.0",
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^2.1.1",
+    "enhanced-resolve": "^4.1.1",
     "eslint": "^6.8.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
+    "jest": "^24.9.0",
     "local-web-server": "^3.0.7",
     "mini-css-extract-plugin": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
