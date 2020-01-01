@@ -29,4 +29,4 @@ Run **npm run webgl**
 
 Run **npm run web**, then open url **http://127.0.0.1:8181/sandbox/osm/osm.html**
 
-[![Build Status](https://travis-ci.org/openglobus/openglobus.svg?branch=master)](https://travis-ci.org/openglobus/openglobus)
+[![Build Status](https://travis-ci.com/openglobus/openglobus.svg?branch=master)](https://travis-ci.com/openglobus/openglobus)
