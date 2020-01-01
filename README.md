@@ -25,4 +25,8 @@ Run **npm run core**
 
 Run **npm run webgl**
 
+### Run local web server (for example http://127.0.0.1:8181/examples/baseLayers/baseLayers.html)
+
+Run **npm run web**, then open url **http://127.0.0.1:8181/sandbox/osm/osm.html**
+
 
