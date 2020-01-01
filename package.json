@@ -8,10 +8,11 @@
     "example": "./sandbox"
   },
   "scripts": {
-    "dev": "webpack --mode=development",
-    "build": "webpack --mode=production",
-    "webgl": "webpack --lib=webgl --mode=production",
-    "core": "webpack --lib=core --mode=production",
+    "web": "node_modules/.bin/ws",
+    "dev": "node_modules/.bin/webpack --mode=development",
+    "build": "node_modules/.bin/webpack --mode=production",
+    "webgl": "node_modules/.bin/webpack --lib=webgl --mode=production",
+    "core": "node_modules/.bin/webpack --lib=core --mode=production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -34,6 +35,7 @@
     "eslint-plugin-react": "^7.3.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
+    "local-web-server": "^3.0.7",
     "mini-css-extract-plugin": "^0.9.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "style-loader": "^0.20.3",
