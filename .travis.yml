@@ -2,8 +2,16 @@ sudo: false
 
 language: node_js
 node_js:
-  - 10
+  - node
 
 branches:
   only:
     - master
+
+script:
+  - npm test
+
+after_success:
+  - npm run build
+  - npm run webgl
+  - npm run core 
