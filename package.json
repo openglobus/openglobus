@@ -8,7 +8,8 @@
     "example": "./sandbox"
   },
   "scripts": {
-    "web": "node_modules/.bin/ws",
+    "api": "./node_modules/.bin/jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
+    "serve": "node_modules/.bin/ws",
     "dev": "node_modules/.bin/webpack --mode=development",
     "build": "node_modules/.bin/webpack --mode=production",
     "webgl": "node_modules/.bin/webpack --lib=webgl --mode=production",
@@ -38,6 +39,7 @@
     "eslint-plugin-react": "^7.3.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
+    "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^24.9.0",
     "jsdoc": "^3.6.3",
     "local-web-server": "^3.0.7",
