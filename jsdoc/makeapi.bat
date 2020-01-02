@@ -1,1 +1,0 @@
-jsdoc -t ./ -r ../src/ -c conf.json -d ./api
