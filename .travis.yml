@@ -10,4 +10,4 @@ branches:
 
 script:
   - npm test
-  - npm build
+  - npm run-script build
