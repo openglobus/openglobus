@@ -5,10 +5,6 @@ os: linux
 node_js:
   - node
 
-branches:
-  only:
-    - master
-
 script:
   - npm test
   - npm run-script build
