@@ -17,7 +17,8 @@ deploy:
   provider: releases
   token: $GITHUB_API_KEY
   file_glob: true
-  file: "dist/*"
+  file: 
+    - dist/*/**
   cleanup: true
   on:
     tags: true
