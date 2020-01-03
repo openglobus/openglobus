@@ -15,9 +15,9 @@ script:
 
 deploy:
   provider: releases
-  api_key: $GITHUB_API_KEY
+  token: $GITHUB_API_KEY
   file_glob: true
   file: "dist/*"
-  skip_cleanup: true
+  cleanup: true
   on:
     tags: true
