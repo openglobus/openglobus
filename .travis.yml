@@ -17,7 +17,7 @@ deploy:
   provider: releases
   token: ${MY_TRAVIS_TOKEN}
   file_glob: true
-  file: dist/*
+  file: /home/travis/build/openglobus/openglobus/dist/*
   cleanup: true
   on:
     tags: true
