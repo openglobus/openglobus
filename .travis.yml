@@ -1,19 +1,16 @@
 language: node_js
-
 os: linux
-
 node_js:
-  - node
-
+- node
 script:
-  - npm test
-  - npm run-script build
-
+- npm test
+- npm run-script build
 deploy:
   provider: releases
-  token: $MY_TRAVIS_TOKEN
+  token: 
+    secure: S2ncDMJyjpuI/qB3xoF+Ho7IKeDSXxGmZZD930y4dIFJ6NOakiYCjcvldwGv3/ppeHMEIbKMWFK5LtpCCzMbtc1qidBVxP6rN9qTks95AzqtxsMctqoLzzaZcnInAcyvXqxaFsl7nGbTT5eKh416I43VNq8NRKivx113PR0Szd1R+chPZduHPvAujDfzkuYnoXbgjwj1nup1ZZYvbBrB2GidILUvWMr49vwwfu8kq+dcbJPezCtCfa5xNUIPj4mM00jIT2E5YX4/etPHCveb4EmLTp0WklBzgLX5FA4Rw7r3Jdwf8WKbn0k6gW7DHhBxTCB37PyizU+2yltv4djZ7dwK74lsNa3yyVrAqnn2INVePkU7xkzK0JgUMCi+VYH9qJ1jPh11sd4hEU2RhTXcYsN4rLbBUddnXl3FCFknFRhLcHqhKeun62SR0eFIxfM2HY+Ps2EqsdXMB3W4wdgy6OhdBtoBkwMD5Wl4OOdTWqHIMxXfTlPnj8p2fGQDS4v0vPwAXpmHTizZuHtC5l7RHgcvdQMepG+l/OwTexp55K1An8lReE6K26DAMbWLh6maDxSNRFAcmM6A4huP9SqZdEcOmuenmTcKSGDHNbVD4vcoZ/mMQlVoJQOGSWE+Y5Ti49r42ISih7KT0d4xuepPKmL0RSEFEkraTc1pk6fl8Ys=
   file_glob: true
-  file: /home/travis/build/openglobus/openglobus/dist/*
+  file: "/home/travis/build/openglobus/openglobus/dist/*"
   cleanup: true
   on:
     tags: true
