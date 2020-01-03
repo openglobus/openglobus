@@ -14,14 +14,14 @@ script:
   - npm run-script build
 
 before_deploy:
-  - cd dist
-  - tar -zcf ${TRAVIS_BUILD_DIR}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz .
+  - cd ..
+  - tar -zcf ${TRAVIS_BUILD_DIR}x${BUILD_ENV}-${TRAVIS_TAG}.tar.gz .
 
 deploy:
   provider: releases
   token: ${GITHUB_API_KEY}
   file_glob: true
-  file: ${TRAVIS_BUILD_DIR}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz
+  file: ${TRAVIS_BUILD_DIR}x${BUILD_ENV}-${TRAVIS_TAG}.tar.gz
   cleanup: true
   on:
     tags: true
