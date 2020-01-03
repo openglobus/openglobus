@@ -15,7 +15,7 @@ script:
 
 deploy:
   provider: releases
-  token: ${GITHUB_API_KEY}
+  token: ${MY_TRAVIS_TOKEN}
   file_glob: true
   file: dist/*
   cleanup: true
