@@ -11,7 +11,7 @@ script:
 
 deploy:
   provider: releases
-  token: ${MY_TRAVIS_TOKEN}
+  token: $MY_TRAVIS_TOKEN
   file_glob: true
   file: /home/travis/build/openglobus/openglobus/dist/*
   cleanup: true
