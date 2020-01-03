@@ -13,12 +13,15 @@ script:
   - npm test
   - npm run-script build
 
+before_deploy:
+  - cd dist
+  - tar -zcf ${TRAVIS_BUILD_DIR}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz .
+
 deploy:
   provider: releases
-  token: $GITHUB_API_KEY
+  token: ${GITHUB_API_KEY}
   file_glob: true
-  file: 
-    - dist/*/**
+  file: ${TRAVIS_BUILD_DIR}-${BUILD_ENV}-${TRAVIS_TAG}.tar.gz
   cleanup: true
   on:
     tags: true
