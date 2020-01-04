@@ -4,23 +4,19 @@ node_js:
 - node
 script:
 - npm test
-branches:
-  # expected format: v1.0.0
+branches:  
   on:
-  - /^v\d+(\.\d+)+$/
+  - /^v\d+(\.\d+)+$/ # expected format: v1.0.0
   - master
 before_deploy:
 - npm run build
 - cd dist
- #- zip og-${TRAVIS_TAG}.zip *
+- zip ${TRAVIS_TAG}-dist.zip *
 deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  #file: og-${TRAVIS_TAG}.zip
-  file: 
-  - "*.js"
-  - "*.css"
+  file: ${TRAVIS_TAG}-dist.zip
   skip_cleanup: true
   on:
     tags: true
