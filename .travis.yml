@@ -11,7 +11,7 @@ deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  file: *
+  file: "*"
   cleanup: false
   on:
     tags: true
