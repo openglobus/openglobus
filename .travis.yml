@@ -4,4 +4,13 @@ node_js:
 - node
 script:
 - npm test
-- npm run-script build
+before_deploy:
+- npm run build
+deploy:
+  provider: releases
+  token: $GITHUB_TOKEN
+  file_glob: true
+  file: "/home/travis/build/openglobus/openglobus/dist/*"
+  cleanup: true
+  on:
+    tags: true
