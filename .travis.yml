@@ -12,12 +12,12 @@ branches:
 before_deploy:
 - npm run build
 - cd dist
-- zip files.zip *
+- zip og-${TRAVIS_TAG}.zip *
 deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  file: "files.zip"
+  file: og-${TRAVIS_TAG}.zip
   skip_cleanup: true
   on:
     tags: true
