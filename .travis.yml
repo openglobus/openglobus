@@ -6,11 +6,12 @@ script:
 - npm test
 before_deploy:
 - npm run build
+- cd dist
 deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  file: "/home/travis/build/openglobus/openglobus/dist/*"
-  cleanup: true
+  file: *
+  cleanup: false
   on:
     tags: true

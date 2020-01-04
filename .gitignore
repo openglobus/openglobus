@@ -18,3 +18,5 @@ api
 package-lock.json
 
 coverage
+
+dist
