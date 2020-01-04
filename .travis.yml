@@ -6,12 +6,12 @@ script:
 - npm test
 before_deploy:
 - npm run build
-- cd dist
+- ls -l
 deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  file: "*"
-  cleanup: false
+  file: "dist/*/**"
+  skip_cleanup: true
   on:
     tags: true
