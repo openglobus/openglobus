@@ -4,14 +4,20 @@ node_js:
 - node
 script:
 - npm test
+branches:
+  # expected format: v1.0.0
+  on:
+  - /^v\d+(\.\d+)+$/
+  - master
 before_deploy:
 - npm run build
-- ls -l
+- cd dist
+- zip files.zip *
 deploy:
   provider: releases
   token: $GITHUB_TOKEN
   file_glob: true
-  file: "dist/*/**"
+  file: "files.zip"
   skip_cleanup: true
   on:
     tags: true
