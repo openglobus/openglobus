@@ -1,5 +1,9 @@
 'use strict';
 
+const version = {
+    version: __VERSION__
+};
+
 import '../../css/og.css';
 
 import * as jd from './astro/jd.js';
@@ -143,6 +147,7 @@ const scene = {
 };
 
 export {
+    version,
     bv,
     jd,
     math,

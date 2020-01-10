@@ -5,21 +5,17 @@ const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const TerserJSPlugin = require('terser-webpack-plugin');
-const childProcess = require('child_process');
+const version = require('./package.json').version;
 
 const LIBRARY_NAME = 'og';
 
 var config = (lib) => {
 
-    //NOT SURE
-    let tag = childProcess.execSync('git tag --points-at HEAD --sort -version:refname').toString().trim();
-    tag = tag.substr(1, tag.length);
-
     return {
         entry: path.resolve(__dirname, 'src/og/index' + lib + '.js'),
         output: {
             path: path.resolve(__dirname, 'dist'),
-            filename: LIBRARY_NAME + lib + '-' + tag + '.js',
+            filename: LIBRARY_NAME + lib + '-' + version + '.js',
             library: LIBRARY_NAME,
             libraryTarget: 'umd',
             umdNamedDefine: true
@@ -27,11 +23,11 @@ var config = (lib) => {
         plugins: [
             new webpack.optimize.ModuleConcatenationPlugin(),
             new MiniCssExtractPlugin({
-                filename: LIBRARY_NAME + lib + '-' + tag + '.css',
-                chunkFilename: LIBRARY_NAME + lib + '-' + tag + '.css'
+                filename: LIBRARY_NAME + lib + '-' + version + '.css',
+                chunkFilename: LIBRARY_NAME + lib + '-' + version + '.css'
             }),
             new webpack.DefinePlugin({
-                __VERSION__: tag
+                __VERSION__: JSON.stringify(version)
             })
         ],
         optimization: {
