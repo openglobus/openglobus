@@ -499,6 +499,28 @@ Segment.prototype.engage = function () {
     //         }
     //     }
 
+    // }
+
+
+    // if (this.planet.terrain.equalizeVertices && this.terrainReady) {
+    //     let n = this.node.neighbors;
+
+    //     if (n[N].length) {
+
+    //         if (this.tileZoom === n[N][0].segment.tileZoom && n[N][0].segment.terrainReady) {
+
+    //             let _v = n[N][0].segment.terrainVertices;
+    //             const _tgsOne = Math.sqrt(_v.length / 3);
+    //             const _tgs = _tgsOne - 1;
+
+    //             for (let i = 0; i < tgsOne; i++) {
+    //                 v[i * 3] = _v[(_tgsOne * _tgs + i) * 3];
+    //                 v[i * 3 + 1] = _v[(_tgsOne * _tgs + i) * 3 + 1];
+    //                 v[i * 3 + 2] = _v[(_tgsOne * _tgs + i) * 3 + 2];
+    //             }
+    //         }
+    //     }
+
     //     if (n[E].length) {
 
     //         if (this.tileZoom === n[E][0].segment.tileZoom && n[E][0].segment.terrainReady) {
@@ -1473,19 +1495,19 @@ Segment.prototype._screenRendering = function (sh, layerSlice, sliceIndex, defau
             gl.uniform4fv(shu.specularMaterial, p._specularMaterialArr);
         }
 
-        if (!this.vertexPositionBufferHigh) {
-            var s = this.node.sideSize;
-            cons.logErr(`${this.gridSize},${s[0]},${s[1]},${s[2]},${s[3]}`);
-            cons.logErr(this.initialized);
-            cons.logErr("parentNormalMapReady:" + this.parentNormalMapReady);
-            cons.logErr("terrainReady:" + this.terrainReady);
-            cons.logErr("plainProcessing:" + this.plainProcessing);
-            cons.logErr("terrainIsLoading:" + this.terrainIsLoading);
-            cons.logErr("terrainExists:" + this.terrainExists);
-            cons.logErr("readyToEngage:" + this.readyToEngage);
-            cons.logErr(this.tileIndex);
-            debugger;
-        }
+        // if (!this.vertexPositionBufferHigh) {
+        //     var s = this.node.sideSize;
+        //     cons.logErr(`${this.gridSize},${s[0]},${s[1]},${s[2]},${s[3]}`);
+        //     cons.logErr(this.initialized);
+        //     cons.logErr("parentNormalMapReady:" + this.parentNormalMapReady);
+        //     cons.logErr("terrainReady:" + this.terrainReady);
+        //     cons.logErr("plainProcessing:" + this.plainProcessing);
+        //     cons.logErr("terrainIsLoading:" + this.terrainIsLoading);
+        //     cons.logErr("terrainExists:" + this.terrainExists);
+        //     cons.logErr("readyToEngage:" + this.readyToEngage);
+        //     cons.logErr(this.tileIndex);
+        //     debugger;
+        // }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);

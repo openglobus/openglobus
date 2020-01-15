@@ -19,7 +19,7 @@ cnv.height = 256;
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
-    isBaseLayer: false,
+    isBaseLayer: true,
     drawTile: function (material, applyCanvas) {
         //Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -61,51 +61,16 @@ let osm = new XYZ("OSM", {
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
 });
 
-let sat = new XYZ("MapQuest Satellite", {
-    shininess: 20,
-    specular: [0.00048, 0.00037, 0.00035],
-    diffuse: [0.88, 0.85, 0.8],
-    ambient: [0.15, 0.1, 0.23],
-    isBaseLayer: true,
-    url: "http://api.tomtom.com/map/1/tile/basic/night/{z}/{x}/{y}.png?key=44LDLhblEzN2HswvgkU7wRFIOmoNUqFe",
-    visibility: false,
-    attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
-});
 
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    //'terrain': new GlobusTerrain(),
     'terrain': new MapboxTerrain(),
-    'layers': [osm, sat, tg]
+    'layers': [osm, tg]
 });
 
 globe.planet.addControl(new DebugInfo());
-globe.planet.addControl(new ToggleWireframe());
+globe.planet.addControl(new ToggleWireframe({
+    isActive: false
+}));
 globe.planet.addControl(new LayerSwitcher());
-
-
-
-//var _inc = 0;
-
-//var List = function (next, data) {
-//    this.data = _inc++;
-//    this.next = next || null;
-//};
-
-//var head = new List(new List(new List(new List())));
-
-//function nthToLast(head, k) {
-//    if (head == null) {
-//        return 0;
-//    }
-//    var i = nthToLast(head.next, k) + 1;
-//    if (i == k) {
-//        console.log(head.data);
-//    }
-//    return i;
-//}
-
-//nthToLast(head, 2);

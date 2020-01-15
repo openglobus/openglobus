@@ -149,9 +149,13 @@ window.globe = new Globe({
 });
 
 globe.planet.addControl(new DebugInfo());
-globe.planet.addControl(new ToggleWireframe());
+globe.planet.addControl(new ToggleWireframe({
+    isActive: false
+}));
 
 globe.planet.addControl(new LayerSwitcher());
+
+globe.planet.viewExtentArr([12.97153, 46.81244, 13.13657, 46.86488]);
 
 //let townLabels = new Vector("town labels", {
 //    'nodeCapacity': 5000000,

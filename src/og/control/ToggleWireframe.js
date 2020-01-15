@@ -16,12 +16,15 @@ import { input } from '../input/input.js';
 class ToggleWireframe extends Control {
     constructor(options) {
         super(options);
+        this._isActive = options.isActive || false;
     }
 
 
     oninit() {
         this.renderer.events.on("charkeypress", input.KEY_X, this.toogleWireframe, this);
-        this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
+        if (this._isActive) {
+            this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
+        }
     }
 
     toogleWireframe(e) {

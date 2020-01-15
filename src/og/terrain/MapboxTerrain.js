@@ -11,10 +11,15 @@ class MapboxTerrain extends GlobusTerrain {
         options = options || {};
         
         this.blur = false;
-        //this.equalizeVertices = true;
+
+        this.equalizeVertices = true;
+
         this.equalizeNormals = false;
+
         this.minZoom = 2;
+
         this.maxZoom = 15;
+
         this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=" + (options.key || KEY);
         this.fileGridSize = 128;
         this._dataType = "imageBitmap";

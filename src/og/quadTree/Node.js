@@ -843,8 +843,6 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 let i0 = Math.floor(gridSize * offsetY),
                     j0 = Math.floor(gridSize * offsetX);
 
-                //let bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
-
                 let bigOne;
                 if (pseg.gridSize === 1) {
                     bigOne = pseg.terrainVertices;
@@ -909,8 +907,10 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 }
             }
 
-            seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
-            seg.readyToEngage = false;
+            //replace
+            //seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
+            //with
+            seg.readyToEngage = true;
 
             seg.terrainVertices = tempVertices;
             seg.terrainVerticesHigh = tempVerticesHigh;
