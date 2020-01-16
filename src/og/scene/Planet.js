@@ -947,7 +947,7 @@ class Planet extends RenderNode {
         this.events.dispatch(this.events.draw, this);
 
         this.transformLights();
-        
+
         this._normalMapCreator.frame();
 
         this._singleframebufferRendering();
@@ -1057,6 +1057,13 @@ class Planet extends RenderNode {
 
         i = rn.length;
         while (i--) {
+
+            let v = rn[i].segment.tempVerticesHigh,
+                s = rn[i].segment.gridSize;
+
+            if (Math.sqrt(v.length / 3) - 1 !== s) {
+                console.log(rn[i]);
+            }
 
             if (rn[i].segment.readyToEngage) {
                 rn[i].segment.engage();
@@ -1244,13 +1251,13 @@ class Planet extends RenderNode {
 
         var that = this;
         //setTimeout(function () {
-            that._quadTree.clearTree();
-            that._quadTreeNorth.clearTree();
-            that._quadTreeSouth.clearTree();
+        that._quadTree.clearTree();
+        that._quadTreeNorth.clearTree();
+        that._quadTreeSouth.clearTree();
 
-            that.layerLock.free(that._memKey);
-            that.terrainLock.free(that._memKey);
-            that._normalMapCreator.free(that._memKey);
+        that.layerLock.free(that._memKey);
+        that.terrainLock.free(that._memKey);
+        that._normalMapCreator.free(that._memKey);
         //}, 0);
 
         this._createdNodesCount = 0;

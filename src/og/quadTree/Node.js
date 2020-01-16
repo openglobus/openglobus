@@ -908,9 +908,9 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             }
 
             //replace
-            //seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
+            seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
             //with
-            seg.readyToEngage = true;
+            seg.readyToEngage = false;
 
             seg.terrainVertices = tempVertices;
             seg.terrainVerticesHigh = tempVerticesHigh;
@@ -929,10 +929,10 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             );
         }
 
-        // if (isNaN(normalMapNormals[0]) || isNaN(terrainVertices[0]) || isNaN(seg.normalMapNormals[0]) ||
-        //     isNaN(tempVerticesHigh[0]) || isNaN(seg.terrainVertices[0]) || isNaN(seg.terrainVerticesHigh[0])) {
-        //     debugger;
-        // }
+        if (tempVerticesHigh && seg.normalMapNormals && ((isNaN(seg.terrainVertices[0]) || isNaN(seg.normalMapNormals[0]) ||
+            isNaN(tempVerticesHigh[0]) || isNaN(seg.terrainVertices[0]) || isNaN(seg.terrainVerticesHigh[0])))) {
+            debugger;
+        }
 
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {

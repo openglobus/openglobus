@@ -671,7 +671,7 @@ Segment.prototype.elevationsNotExists = function () {
             this.terrainIsLoading = false;
 
             this.node.appliedTerrainNodeId = this.node.nodeId;
-            this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+            //this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
             if (this.planet.lightEnabled && !this._inTheQueue) {
                 this.planet._normalMapCreator.queue(this);
@@ -684,7 +684,12 @@ Segment.prototype.elevationsNotExists = function () {
         this.terrainVerticesHigh = this.plainVerticesHigh;
         this.terrainVerticesLow = this.plainVerticesLow;
 
+        this.tempVertices = this.terrainVertices;
+        this.tempVerticesHigh = this.terrainVerticesHigh;
+        this.tempVerticesLow = this.terrainVerticesLow;
+
         this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
+        this.gridSize = this.fileGridSize;
         this.terrainReady = true;
         this.terrainExists = false;
     }
