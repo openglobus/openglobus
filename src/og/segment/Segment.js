@@ -262,7 +262,7 @@ Segment.prototype.isEntityInside = function (e) {
  */
 Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
 
-    var verts = this.terrainReady ? this.terrainVertices : this.tempVertices,
+    var verts = this.tempVertices,//this.terrainReady ? this.terrainVertices : this.tempVertices,
         ray = new Ray(xyz, xyz.negateTo());
 
     if (verts) {
@@ -400,7 +400,7 @@ Segment.prototype.elevationsExists = function (elevations) {
 Segment.prototype.equalize = function () {
     this.readyToEqualize = false;
 
-    let v = this.terrainReady ? this.terrainVertices : this.tempVertices;
+    let v = this.tempVertices;//this.terrainReady ? this.terrainVertices : this.tempVertices;
     const tgsOne = Math.sqrt(v.length / 3);
     const tgs = tgsOne - 1;
 
@@ -411,7 +411,7 @@ Segment.prototype.equalize = function () {
     if (n.sideEqualize[N] && _n) {
         n.sideEqualize[N] = false;
         let _s = _n.segment;
-        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        let _v = _s.tempVertices;//_s.terrainReady ? _s.terrainVertices : _s.tempVertices;
         const _tgsOne = Math.sqrt(_v.length / 3);
         const _tgs = _tgsOne - 1;
         const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
@@ -426,7 +426,7 @@ Segment.prototype.equalize = function () {
     _n = n.neighbors[E][0];
     if (n.sideEqualize[E] && _n) {
         let _s = _n.segment;
-        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        let _v = _s.tempVertices;//_s.terrainReady ? _s.terrainVertices : _s.tempVertices;
         const _tgsOne = Math.sqrt(_v.length / 3);
         const _tgs = _tgsOne - 1;
         const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
@@ -441,7 +441,7 @@ Segment.prototype.equalize = function () {
     _n = n.neighbors[S][0];
     if (n.sideEqualize[S] && _n) {
         let _s = n.neighbors[S][0].segment;
-        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        let _v = _s.tempVertices;//_s.terrainReady ? _s.terrainVertices : _s.tempVertices;
         const _tgsOne = Math.sqrt(_v.length / 3);
         const _tgs = _tgsOne - 1;
         const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
@@ -456,7 +456,7 @@ Segment.prototype.equalize = function () {
     _n = n.neighbors[W][0];
     if (n.sideEqualize[W] && _n) {
         let _s = _n.segment;
-        let _v = _s.terrainReady ? _s.terrainVertices : _s.tempVertices;
+        let _v = _s.tempVertices;//_s.terrainReady ? _s.terrainVertices : _s.tempVertices;
         const _tgsOne = Math.sqrt(_v.length / 3);
         const _tgs = _tgsOne - 1;
         const pdz = Math.pow(2, this.tileZoom - _s.tileZoom);
@@ -477,17 +477,20 @@ Segment.prototype.engage = function () {
 
     let vHigh, vLow;
 
-    if (this.terrainReady) {
-        vHigh = this.terrainVerticesHigh;
-        vLow = this.terrainVerticesLow;
-    } else {
-        vHigh = this.tempVerticesHigh;
-        vLow = this.tempVerticesLow;
-    }
+    // if (this.terrainReady) {
+    //     vHigh = this.terrainVerticesHigh;
+    //     vLow = this.terrainVerticesLow;
+    // } else {
+    //     vHigh = this.tempVerticesHigh;
+    //     vLow = this.tempVerticesLow;
+    // }
 
+    vHigh = this.tempVerticesHigh;
+    vLow = this.tempVerticesLow;
+    const tgsOne = this.gridSize;
 
-    const tgsOne = Math.sqrt(vHigh.length / 3);
-    const tgs = tgsOne - 1;
+    //const tgsOne = Math.sqrt(vHigh.length / 3);
+    const tgs = tgsOne;
 
     // if (this.tempVertices.length !== vHigh.length) {
     //     debugger;
@@ -643,9 +646,9 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVerticesHigh = data.terrainVerticesHigh;
         this.terrainVerticesLow = data.terrainVerticesLow;
 
-        this.tempVertices = data.terrainVertices;
-        this.tempVerticesHigh = data.terrainVerticesHigh;
-        this.tempVerticesLow = data.terrainVerticesLow;
+        this.tempVertices = this.terrainVertices;
+        this.tempVerticesHigh = this.terrainVerticesHigh;
+        this.tempVerticesLow = this.terrainVerticesLow;
 
         var b = data.bounds;
         this.setBoundingSphere(

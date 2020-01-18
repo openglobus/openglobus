@@ -73,13 +73,6 @@ class RenderNode extends BaseNode {
         node.assign(this.renderer);
     }
 
-    setFontAtlas(fontAtlas) {
-        this.fontAtlas = fontAtlas;
-        if (this.renderer) {
-            this.fontAtlas.assignHandler(this.renderer.handler);
-        }
-    }
-
     /**
      * Assign render node with renderer.
      * @public

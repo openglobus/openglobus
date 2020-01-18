@@ -597,21 +597,20 @@ Node.prototype.addToRender = function () {
 
     this.state = RENDERING;
 
-    var node = this;
-    var nodes = node.planet._renderedNodes;
+    var nodes = this.planet._renderedNodes;
 
     for (var i = nodes.length - 1; i >= 0; --i) {
         var ni = nodes[i];
 
-        var cs = node.getCommonSide(ni);
+        var cs = this.getCommonSide(ni);
 
         if (cs !== -1) {
 
             var opcs = OPSIDE[cs];
 
-            if (!(node.neighbors[cs].length !== 0 && ni.neighbors[opcs].length !== 0)) {
+            if (!(this.neighbors[cs].length !== 0 && ni.neighbors[opcs].length !== 0)) {
 
-                var ap = node.segment;
+                var ap = this.segment;
                 var bp = ni.segment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
@@ -626,29 +625,29 @@ Node.prototype.addToRender = function () {
                     opcs_size = Math.ceil(bp.gridSize * ld);
                 }
 
-                node.sideSize[cs] = cs_size;
+                this.sideSize[cs] = cs_size;
                 ni.sideSize[opcs] = opcs_size;
 
-                if (ap.tileZoom >= bp.tileZoom &&
-                    node.sideZoom[cs] !== bp.tileZoom) {
-                    node.sideZoom[cs] = bp.tileZoom;
-                    node.sideEqualize[cs] = true;
-                    ap.readyToEqualize = true;
-                } else if (ap.tileZoom < bp.tileZoom &&
-                    ni.sideZoom[opcs] !== ap.tileZoom) {
-                    ni.sideZoom[opcs] = ap.tileZoom;
-                    ni.sideEqualize[opcs] = true;
-                    bp.readyToEqualize = true;
-                }
+                // if (ap.tileZoom >= bp.tileZoom &&
+                //     node.sideZoom[cs] !== bp.tileZoom) {
+                //     node.sideZoom[cs] = bp.tileZoom;
+                //     node.sideEqualize[cs] = true;
+                //     ap.readyToEqualize = true;
+                // } else if (ap.tileZoom < bp.tileZoom &&
+                //     ni.sideZoom[opcs] !== ap.tileZoom) {
+                //     ni.sideZoom[opcs] = ap.tileZoom;
+                //     ni.sideEqualize[opcs] = true;
+                //     bp.readyToEqualize = true;
+                // }
             }
 
-            node.neighbors[cs].push(ni);
-            ni.neighbors[opcs].push(node);
+            this.neighbors[cs].push(ni);
+            ni.neighbors[opcs].push(this);
 
         }
     }
 
-    nodes.push(node);
+    nodes.push(this);
 };
 
 Node.prototype.getCommonSide = function (b) {
@@ -766,7 +765,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
         }
     }
 
-    if (pn.segment.terrainReady) {
+    if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
 
         let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
@@ -778,156 +777,156 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVerticesHigh,
             tempVerticesLow;
 
-        if (this.appliedTerrainNodeId !== pn.nodeId) {
+        //if (this.appliedTerrainNodeId !== pn.nodeId) { //Replced to the first if 768
 
-            this.appliedTerrainNodeId = pn.nodeId;
+        this.appliedTerrainNodeId = pn.nodeId;
 
-            let gridSize = pn.segment.gridSize / dZ2,
-                gridSizeExt = pn.segment.fileGridSize / dZ2;
+        let gridSize = pn.segment.gridSize / dZ2,
+            gridSizeExt = pn.segment.fileGridSize / dZ2;
 
-            BOUNDS.xmin = MAX;
-            BOUNDS.xmax = MIN;
-            BOUNDS.ymin = MAX;
-            BOUNDS.ymax = MIN;
-            BOUNDS.zmin = MAX;
-            BOUNDS.zmax = MIN;
+        BOUNDS.xmin = MAX;
+        BOUNDS.xmax = MIN;
+        BOUNDS.ymin = MAX;
+        BOUNDS.ymax = MIN;
+        BOUNDS.zmin = MAX;
+        BOUNDS.zmax = MIN;
 
-            if (gridSize >= 1) {
+        if (gridSize >= 1) {
 
-                seg.gridSize = gridSize;
+            seg.gridSize = gridSize;
 
-                let len = (gridSize + 1) * (gridSize + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+            let len = (gridSize + 1) * (gridSize + 1) * 3;
+            tempVertices = new Float64Array(len);
+            tempVerticesHigh = new Float32Array(len);
+            tempVerticesLow = new Float32Array(len);
 
-                getMatrixSubArrayBoundsExt(
-                    pseg.terrainVertices,
-                    pseg.terrainVerticesHigh,
-                    pseg.terrainVerticesLow,
-                    pseg.gridSize,
-                    gridSize * offsetY,
-                    gridSize * offsetX,
-                    gridSize,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS);
+            getMatrixSubArrayBoundsExt(
+                pseg.terrainVertices,
+                pseg.terrainVerticesHigh,
+                pseg.terrainVerticesLow,
+                pseg.gridSize,
+                gridSize * offsetY,
+                gridSize * offsetX,
+                gridSize,
+                tempVertices,
+                tempVerticesHigh,
+                tempVerticesLow,
+                BOUNDS);
 
-            } else if (gridSizeExt >= 1) {
+        } else if (gridSizeExt >= 1) {
 
-                seg.gridSize = gridSizeExt;
+            seg.gridSize = gridSizeExt;
 
-                let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
-                tempVertices = new Float64Array(len);
-                tempVerticesHigh = new Float32Array(len);
-                tempVerticesLow = new Float32Array(len);
+            let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
+            tempVertices = new Float64Array(len);
+            tempVerticesHigh = new Float32Array(len);
+            tempVerticesLow = new Float32Array(len);
 
-                getMatrixSubArrayBoundsExt(
-                    pseg.normalMapVertices,
-                    pseg.normalMapVerticesHigh,
-                    pseg.normalMapVerticesLow,
-                    pn.segment.fileGridSize,//pn.segment.planet.terrain.fileGridSize,
-                    gridSizeExt * offsetY,
-                    gridSizeExt * offsetX,
-                    gridSizeExt,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS);
+            getMatrixSubArrayBoundsExt(
+                pseg.normalMapVertices,
+                pseg.normalMapVerticesHigh,
+                pseg.normalMapVerticesLow,
+                pn.segment.fileGridSize,//pn.segment.planet.terrain.fileGridSize,
+                gridSizeExt * offsetY,
+                gridSizeExt * offsetX,
+                gridSizeExt,
+                tempVertices,
+                tempVerticesHigh,
+                tempVerticesLow,
+                BOUNDS);
 
+        } else {
+
+            seg.gridSize = _neGridSize;
+
+            let i0 = Math.floor(gridSize * offsetY),
+                j0 = Math.floor(gridSize * offsetX);
+
+            let bigOne;
+            if (pseg.gridSize === 1) {
+                bigOne = pseg.terrainVertices;
             } else {
-
-                seg.gridSize = _neGridSize;
-
-                let i0 = Math.floor(gridSize * offsetY),
-                    j0 = Math.floor(gridSize * offsetX);
-
-                let bigOne;
-                if (pseg.gridSize === 1) {
-                    bigOne = pseg.terrainVertices;
-                } else {
-                    bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
-                }
-
-                let insideSize = 1.0 / gridSize;
-
-                let t_i0 = offsetY - insideSize * i0,
-                    t_j0 = offsetX - insideSize * j0;
-
-                let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
-                    v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
-
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
-
-                let coords = new Vec3();
-
-                tempVertices = new Float64Array(3 * _vertOrder.length);
-                tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
-                tempVerticesLow = new Float32Array(3 * _vertOrder.length);
-
-                for (var i = 0; i < _vertOrder.length; i++) {
-                    let vi_y = _vertOrder[i].y + t_i0,
-                        vi_x = _vertOrder[i].x + t_j0;
-
-                    let vi_x_is = vi_x * gridSize,
-                        vi_y_is = vi_y * gridSize;
-
-                    if (vi_y + vi_x < insideSize) {
-                        coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
-                    } else {
-                        coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
-                    }
-
-                    Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
-
-                    let i3 = i * 3;
-
-                    tempVertices[i3] = coords.x;
-                    tempVertices[i3 + 1] = coords.y;
-                    tempVertices[i3 + 2] = coords.z;
-
-                    tempVerticesHigh[i3] = _tempHigh.x;
-                    tempVerticesHigh[i3 + 1] = _tempHigh.y;
-                    tempVerticesHigh[i3 + 2] = _tempHigh.z;
-
-                    tempVerticesLow[i3] = _tempLow.x;
-                    tempVerticesLow[i3 + 1] = _tempLow.y;
-                    tempVerticesLow[i3 + 2] = _tempLow.z;
-
-                    if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
-                    if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
-                    if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
-                    if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
-                    if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
-                    if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
-                }
+                bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
             }
 
-            //replace
-            //seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
-            //with
-            seg.readyToEngage = true;
+            let insideSize = 1.0 / gridSize;
 
-            seg.terrainVertices = tempVertices;
-            seg.terrainVerticesHigh = tempVerticesHigh;
-            seg.terrainVerticesLow = tempVerticesLow;
+            let t_i0 = offsetY - insideSize * i0,
+                t_j0 = offsetX - insideSize * j0;
 
-            //is used for earth point calculation(see segment object)
-            seg.tempVertices = tempVertices;
-            seg.tempVerticesHigh = tempVerticesHigh;
-            seg.tempVerticesLow = tempVerticesLow;
+            let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-            seg.setBoundingSphere(
-                BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
-                BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
-                BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
-                new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
-            );
+            let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+
+            let coords = new Vec3();
+
+            tempVertices = new Float64Array(3 * _vertOrder.length);
+            tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
+            tempVerticesLow = new Float32Array(3 * _vertOrder.length);
+
+            for (var i = 0; i < _vertOrder.length; i++) {
+                let vi_y = _vertOrder[i].y + t_i0,
+                    vi_x = _vertOrder[i].x + t_j0;
+
+                let vi_x_is = vi_x * gridSize,
+                    vi_y_is = vi_y * gridSize;
+
+                if (vi_y + vi_x < insideSize) {
+                    coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
+                } else {
+                    coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
+                }
+
+                Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
+
+                let i3 = i * 3;
+
+                tempVertices[i3] = coords.x;
+                tempVertices[i3 + 1] = coords.y;
+                tempVertices[i3 + 2] = coords.z;
+
+                tempVerticesHigh[i3] = _tempHigh.x;
+                tempVerticesHigh[i3 + 1] = _tempHigh.y;
+                tempVerticesHigh[i3 + 2] = _tempHigh.z;
+
+                tempVerticesLow[i3] = _tempLow.x;
+                tempVerticesLow[i3 + 1] = _tempLow.y;
+                tempVerticesLow[i3 + 2] = _tempLow.z;
+
+                if (coords.x < BOUNDS.xmin) BOUNDS.xmin = coords.x;
+                if (coords.x > BOUNDS.xmax) BOUNDS.xmax = coords.x;
+                if (coords.y < BOUNDS.ymin) BOUNDS.ymin = coords.y;
+                if (coords.y > BOUNDS.ymax) BOUNDS.ymax = coords.y;
+                if (coords.z < BOUNDS.zmin) BOUNDS.zmin = coords.z;
+                if (coords.z > BOUNDS.zmax) BOUNDS.zmax = coords.z;
+            }
         }
+
+        //replace
+        //seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
+        //with
+        seg.readyToEngage = true;
+
+        seg.terrainVertices = tempVertices;
+        seg.terrainVerticesHigh = tempVerticesHigh;
+        seg.terrainVerticesLow = tempVerticesLow;
+
+        //is used for earth point calculation(see segment object)
+        seg.tempVertices = tempVertices;
+        seg.tempVerticesHigh = tempVerticesHigh;
+        seg.tempVerticesLow = tempVerticesLow;
+
+        seg.setBoundingSphere(
+            BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
+            BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
+            BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
+            new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
+        );
+        //}
 
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {
