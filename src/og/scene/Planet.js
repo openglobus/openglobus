@@ -1058,8 +1058,6 @@ class Planet extends RenderNode {
         i = rn.length;
         while (i--) {
 
-            rn[i].segment.equalize();
-
             if (rn[i].segment.readyToEngage) {
                 rn[i].segment.engage();
             }
