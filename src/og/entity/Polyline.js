@@ -467,6 +467,14 @@ class Polyline {
 
         if (ellipsoid) {
 
+            if (outTransformedPathLonLat.length === 0) {
+                outTransformedPathLonLat.push([]);
+            }
+
+            if (outTransformedPathMerc.length === 0) {
+                outTransformedPathMerc.push([]);
+            }
+
             var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
                 transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
 
@@ -1119,11 +1127,13 @@ class Polyline {
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
 
-            if (path.length === 1) return;
+            let _closedLine = this._closedLine || path.length === 1;
+
+            //if (path.length === 1) return;
 
             if (index === 0 || index === 1) {
                 var last;
-                if (this._closedLine) {
+                if (_closedLine) {
                     last = path[path.length - 1]
                 } else {
                     last = new Vec3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
@@ -1220,7 +1230,7 @@ class Polyline {
 
             if (index === path.length - 1 || index === path.length - 2) {
                 var first;
-                if (this._closedLine) {
+                if (_closedLine) {
                     first = path[0];
                 } else {
                     var l1 = path.length - 1;
@@ -1292,26 +1302,31 @@ class Polyline {
      */
     appendPoint3v(point3v, color, skipEllipsoid) {
 
-        Polyline.appendPoint3v(
-            this._path3v,
-            point3v,
-            this._pathColors,
-            color,
-            this._closedLine,
-            this._verticesHigh,
-            this._verticesLow,
-            this._colors,
-            this._orders,
-            this._indexes,
-            !skipEllipsoid && this._renderNode.ellipsoid,
-            this._pathLonLat,
-            this._pathLonLatMerc,
-            this._extent
-        );
+        if (this._path3v.length === 0) {
+            this._pathColors.push([this._defaultColor]);
+            this.addPoint3v(point3v);
+        } else {
+            Polyline.appendPoint3v(
+                this._path3v,
+                point3v,
+                this._pathColors,
+                color || this._defaultColor,
+                this._closedLine,
+                this._verticesHigh,
+                this._verticesLow,
+                this._colors,
+                this._orders,
+                this._indexes,
+                !skipEllipsoid && this._renderNode.ellipsoid,
+                this._pathLonLat,
+                this._pathLonLatMerc,
+                this._extent
+            );
 
-        this._changedBuffers[VERTICES_BUFFER] = true;
-        this._changedBuffers[COLORS_BUFFER] = true;
-        this._changedBuffers[INDEX_BUFFER] = true;
+            this._changedBuffers[VERTICES_BUFFER] = true;
+            this._changedBuffers[COLORS_BUFFER] = true;
+            this._changedBuffers[INDEX_BUFFER] = true;
+        }
     }
 
     /**
@@ -1320,11 +1335,10 @@ class Polyline {
      * @param {og.Vec3} point3v - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
-    addPoint3v(point3v, multiLineIndex) {
+    addPoint3v(point3v, multiLineIndex = 0) {
         //
         //TODO: could be optimized
         //
-        multiLineIndex = multiLineIndex || 0;
         if (multiLineIndex >= this._path3v.length) {
             this._path3v.push([]);
         }
@@ -1338,11 +1352,10 @@ class Polyline {
      * @param {og.LonLat} lonLat - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
-    addPointLonLat(lonLat, multiLineIndex) {
+    addPointLonLat(lonLat, multiLineIndex = 0) {
         //
         //TODO: could be optimized
         //
-        multiLineIndex = multiLineIndex || 0;
         if (multiLineIndex >= this._pathLonLat.length) {
             this._pathLonLat.push([]);
         }
@@ -1671,9 +1684,11 @@ class Polyline {
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
     setPath3v(path3v, pathColors, forceEqual) {
+
         if (pathColors) {
             this._pathColors = [].concat(pathColors);
         }
+
         if (this._renderNode) {
             if (forceEqual) {
                 this._setEqualPath3v(path3v);
