@@ -207,7 +207,7 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     //let gs = planet.terrain.gridSizeByZoom[tileZoom] || 1;
     //this.sideSize = [gs, gs, gs, gs];
     this.sideZoom = [0, 0, 0, 0];
-    this.sideEqualize = [false, false, false, false];
+    this.neighborsToEqualize = [null, null, null, null];
     this.ready = false;
     this.neighbors = [[], [], [], []];
     this.nodes = [null, null, null, null];
@@ -627,18 +627,6 @@ Node.prototype.addToRender = function () {
 
                 this.sideSize[cs] = cs_size;
                 ni.sideSize[opcs] = opcs_size;
-
-                // if (ap.tileZoom >= bp.tileZoom &&
-                //     node.sideZoom[cs] !== bp.tileZoom) {
-                //     node.sideZoom[cs] = bp.tileZoom;
-                //     node.sideEqualize[cs] = true;
-                //     ap.readyToEqualize = true;
-                // } else if (ap.tileZoom < bp.tileZoom &&
-                //     ni.sideZoom[opcs] !== ap.tileZoom) {
-                //     ni.sideZoom[opcs] = ap.tileZoom;
-                //     ni.sideEqualize[opcs] = true;
-                //     bp.readyToEqualize = true;
-                // }
             }
 
             this.neighbors[cs].push(ni);

@@ -1058,18 +1058,7 @@ class Planet extends RenderNode {
         i = rn.length;
         while (i--) {
 
-            // let v = rn[i].segment.tempVerticesHigh;
-
-            // if (rn[i].segment.terrainReady) {
-            //     v = rn[i].segment.terrainVerticesHigh;
-            // }
-
-            // let s = rn[i].segment.gridSize;
-
-            // if (Math.sqrt(v.length / 3) - 1 !== s) {
-            //     console.log(rn[i]);
-            //     debugger;
-            // }
+            rn[i].segment.equalize();
 
             if (rn[i].segment.readyToEngage) {
                 rn[i].segment.engage();
