@@ -23,13 +23,19 @@ class MyScene extends RenderNode {
             'entities': [
                 new Entity({
                     'name': 'test line',
-                    'polyline': {
-                        'isClosed': false,
-                        'path3v': [[[0, 0, 0], [100, 100, 0]]],
-                        'thickness': 10,
-                        'pathColors': [[[1, 0, 0], [0, 1, 0]]]
+                    'strip': {
+                        'path': [[[0, 0, 0], [0, 100, 0]], [[200, 0, 0], [200, 100, 0]], [[250, 0, 100], [250, 100, 100]]],
                     }
-                }),
+                })
+                //new Entity({
+                //    'name': 'test line',
+                //    'polyline': {
+                //        'isClosed': false,
+                //        'path3v': [[[0, 0, 0], [100, 100, 0], [200, 0, 0]]],
+                //        'thickness': 10,
+                //        'pathColors': [[[1, 0, 0], [0, 1, 0]]]
+                //    }
+                //}),
                 //new Entity({
                 //    'name': 'test line',
                 //    'ray': {
@@ -78,7 +84,11 @@ function test() {
     //p.appendPoint3v(new Vec3(0, 0, 100), [0, 0, 1]);
     //p.setPointColor([1, 1, 1, 1], 0, 0);
 
-    p.insertPoint3v(new Vec3(50, 0, 50), 0);
+    //p.insertPoint3v(new Vec3(50, 0, 50), 2, [0, 0, 1]);
+
+    p = myScene.ec._entities[0].strip;
+
+    p.insertEdge3v(new Vec3(20, 0, 50), new Vec3(20, 50, 50), 3);
 }
 
 window.test = test;

@@ -580,6 +580,16 @@ class Strip {
             this.addEdge3v(p0, p1);
         }
     }
+
+    insertEdge3v(p0, p1, index) {
+        if (index < this._path.length) {
+            let p = [].concat(this._path);
+            p.splice(index, 0, [p0, p1]);
+            this.setPath(p);
+        } else if (index === this._path.length) {
+            this.addEdge3v(p0, p1);
+        }
+    }
 }
 
 export { Strip };
