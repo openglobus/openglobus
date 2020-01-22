@@ -1295,6 +1295,26 @@ class Polyline {
         this.setPath3v([].concat(this._path3v));
     }
 
+    insertPoint3v(point3v, index = 0, color, multilineIndex = 0) {
+        let p = [].concat(this._path3v),
+            pp = p[multilineIndex];
+        if (pp) {
+            let c = [].concat(this._pathColors);
+
+            pp.splice(index, 0, point3v);
+
+            if (color) {
+                let cc = c[multilineIndex];
+                if (!cc) {
+                    cc = new Array(pp.length);
+                }
+                cc.splice(index, 0, color);
+            }
+
+            this.setPath3v(p, c);
+        }
+    }
+
     /**
      * Adds a new cartesian point in the end of the path in a last line segment.
      * @public
@@ -1303,7 +1323,7 @@ class Polyline {
     appendPoint3v(point3v, color, skipEllipsoid) {
 
         if (this._path3v.length === 0) {
-            this._pathColors.push([this._defaultColor]);
+            this._pathColors.push([color || this._defaultColor]);
             this.addPoint3v(point3v);
         } else {
             Polyline.appendPoint3v(
