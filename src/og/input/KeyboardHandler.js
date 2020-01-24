@@ -20,8 +20,8 @@ const KeyboardHandler = function () {
     } else {
         KeyboardHandler.prototype._instance = this;
 
-        document.onkeydown = function (event) { event.preventDefault(); _event = event; _active && _that.handleKeyDown.call(_that) };
-        document.onkeyup = function (event) { event.preventDefault(); _event = event; _active && _that.handleKeyUp.call(_that) };
+        document.onkeydown = function (event) { _event = event; _active && _that.handleKeyDown.call(_that) };
+        document.onkeyup = function (event) { _event = event; _active && _that.handleKeyUp.call(_that) };
     }
 
     var _sortByPriority = function (a, b) {
