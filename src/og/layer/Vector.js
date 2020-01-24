@@ -236,64 +236,90 @@ class Vector extends Layer {
      * @returns {og.layer.Vector} - Returns this layer.
      */
     add(entity, rightNow) {
-
-        let temp = this._hasImageryTiles;
-
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = this._entities.length;
             this._entities.push(entity);
-
-            //
-            //...pointCloud, shape, model etc.
-            //
-
-            if (entity.strip) {
-                this._stripEntityCollection.add(entity);
-            }
-
-            if (entity.polyline || entity.ray) {
-                this._polylineEntityCollection.add(entity);
-            }
-
-            if (entity.geometry) {
-                this._hasImageryTiles = true;
-                if (this._planet) {
-                    this._planet.renderer.assignPickingColor(entity);
-                    this._geometryHandler.add(entity.geometry);
-                }
-            }
-
-            if (entity.billboard || entity.label) {
-                if (this._planet) {
-
-                    if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
-                        entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonlat));
-                    } else {
-                        entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
-                    }
-
-                    //north tree
-                    if (entity._lonlat.lat > mercator.MAX_LAT) {
-                        this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
-                    } else if (entity._lonlat.lat < mercator.MIN_LAT) {
-                        //south tree
-                        this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
-                    } else {
-                        this._entityCollectionsTree.insertEntity(entity, rightNow);
-                    }
-                }
-            }
-
-            this._fitExtent(entity);
-
-            if (this._planet && this._hasImageryTiles !== temp) {
-                this._planet.updateVisibleLayers();
-            }
-
-            this.events.dispatch(this.events.entityadd, entity);
+            this._proceedEntity(entity, rightNow);
         }
         return this;
+    }
+
+    /**
+     * Adds entity to the layer in the index position.
+     * @public
+     * @param {og.Entity} entity - Entity.
+     * @param {Number} index - Index position.
+     * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
+     * @returns {og.layer.Vector} - Returns this layer.
+     */
+    insert(entity, index, rightNow) {
+        if (!(entity._layer || entity._entityCollection)) {
+            entity._layer = this;
+            entity._layerIndex = index;
+            this._entities.splice(index, 0, entity);
+            for (let i = index + 1, len = this._entities.length; i < len; i++) {
+                this._entities[i]._layerIndex = i;
+            }
+
+            this._proceedEntity(entity, rightNow);
+        }
+
+        return this;
+    }
+
+    _proceedEntity(entity, rightNow) {
+
+        let temp = this._hasImageryTiles;
+
+        //
+        //...pointCloud, shape, model etc.
+        //
+
+        if (entity.strip) {
+            this._stripEntityCollection.add(entity);
+        }
+
+        if (entity.polyline || entity.ray) {
+            this._polylineEntityCollection.add(entity);
+        }
+
+        if (entity.geometry) {
+            this._hasImageryTiles = true;
+            if (this._planet) {
+                this._planet.renderer.assignPickingColor(entity);
+                this._geometryHandler.add(entity.geometry);
+            }
+        }
+
+        if (entity.billboard || entity.label) {
+            if (this._planet) {
+
+                if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
+                    entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonlat));
+                } else {
+                    entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+                }
+
+                //north tree
+                if (entity._lonlat.lat > mercator.MAX_LAT) {
+                    this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
+                } else if (entity._lonlat.lat < mercator.MIN_LAT) {
+                    //south tree
+                    this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
+                } else {
+                    this._entityCollectionsTree.insertEntity(entity, rightNow);
+                }
+            }
+        }
+
+        this._fitExtent(entity);
+
+        if (this._planet && this._hasImageryTiles !== temp) {
+            this._planet.updateVisibleLayers();
+        }
+
+        this.events.dispatch(this.events.entityadd, entity);
     }
 
     /**
