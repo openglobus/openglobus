@@ -1056,13 +1056,11 @@ class Planet extends RenderNode {
         }
 
         i = rn.length;
-        while (i--) {
-
-            if (rn[i].segment.readyToEngage) {
-                rn[i].segment.engage();
-            }
-
-            rn[i].segment._screenRendering(sh, sl[0], 0);
+        while (i--) { 
+            let s = rn[i].segment;
+            s.equalize();
+            s.readyToEngage && s.engage();
+            s.screenRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1079,7 +1077,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].segment._screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1123,7 +1121,7 @@ class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            rn[i].segment._heightPickingRendering(sh, sl[0], 0);
+            rn[i].segment.heightPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1131,7 +1129,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].segment._heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1171,7 +1169,7 @@ class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            rn[i].segment._colorPickingRendering(sh, sl[0], 0);
+            rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -1179,7 +1177,7 @@ class Planet extends RenderNode {
             i = rn.length;
             gl.polygonOffset(0, -j);
             while (i--) {
-                rn[i].segment._colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+                rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
