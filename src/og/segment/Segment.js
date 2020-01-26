@@ -394,6 +394,13 @@ Segment.prototype.equalize = function () {
     let gs = this.gridSize,
         gsOne = gs + 1;
 
+    // if (nn[0] && nn[0].length > 2 ||
+    //     nn[1] && nn[1].length > 2 ||
+    //     nn[2] && nn[2].length > 2 ||
+    //     nn[3] && nn[3].length > 2) {
+    //     debugger;
+    // }
+
     if (n && !this.node.equalizedNeighbors[N] && this.tileZoom >= n.segment.tileZoom) {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[N]] = true;
@@ -425,17 +432,17 @@ Segment.prototype.equalize = function () {
         let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
-            v[(gsOne * k) * 3] = 0;
-            v[(gsOne * k) * 3 + 1] = 0;
-            v[(gsOne * k) * 3 + 2] = 0;
+            v[(gsOne * k + gs) * 3] = 0;
+            v[(gsOne * k + gs) * 3 + 1] = 0;
+            v[(gsOne * k + gs) * 3 + 2] = 0;
 
-            vHigh[(gsOne * k) * 3] = 0;
-            vHigh[(gsOne * k) * 3 + 1] = 0;
-            vHigh[(gsOne * k) * 3 + 2] = 0;
+            vHigh[(gsOne * k + gs) * 3] = 0;
+            vHigh[(gsOne * k + gs) * 3 + 1] = 0;
+            vHigh[(gsOne * k + gs) * 3 + 2] = 0;
 
-            vLow[(gsOne * k) * 3] = 0;
-            vLow[(gsOne * k) * 3 + 1] = 0;
-            vLow[(gsOne * k) * 3 + 2] = 0;
+            vLow[(gsOne * k + gs) * 3] = 0;
+            vLow[(gsOne * k + gs) * 3 + 1] = 0;
+            vLow[(gsOne * k + gs) * 3 + 2] = 0;
         }
     }
 
@@ -471,17 +478,17 @@ Segment.prototype.equalize = function () {
         let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
-            v[(gsOne * k + gs) * 3] = 0;
-            v[(gsOne * k + gs) * 3 + 1] = 0;
-            v[(gsOne * k + gs) * 3 + 2] = 0;
+            v[(gsOne * k) * 3] = 0;
+            v[(gsOne * k) * 3 + 1] = 0;
+            v[(gsOne * k) * 3 + 2] = 0;
 
-            vHigh[(gsOne * k + gs) * 3] = 0;
-            vHigh[(gsOne * k + gs) * 3 + 1] = 0;
-            vHigh[(gsOne * k + gs) * 3 + 2] = 0;
+            vHigh[(gsOne * k) * 3] = 0;
+            vHigh[(gsOne * k) * 3 + 1] = 0;
+            vHigh[(gsOne * k) * 3 + 2] = 0;
 
-            vLow[(gsOne * k + gs) * 3] = 0;
-            vLow[(gsOne * k + gs) * 3 + 1] = 0;
-            vLow[(gsOne * k + gs) * 3 + 2] = 0;
+            vLow[(gsOne * k) * 3] = 0;
+            vLow[(gsOne * k) * 3 + 1] = 0;
+            vLow[(gsOne * k) * 3 + 2] = 0;
         }
     }
 };
