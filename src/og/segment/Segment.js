@@ -389,16 +389,31 @@ Segment.prototype.elevationsExists = function (elevations) {
 
 Segment.prototype.equalize = function () {
     this.readyToEngage = true;
-    let nn = this.node.neighbors,
-        n = nn[N][0];
+    let nn = this.node.neighbors, n = nn[N][0];
+    let v = this.tempVertices, vHigh = this.tempVerticesHigh, vLow = this.tempVerticesLow;
+    let gs = this.gridSize,
+        gsOne = gs + 1;
 
     if (n && !this.node.equalizedNeighbors[N] && this.tileZoom >= n.segment.tileZoom) {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[N]] = true;
         this.node.equalizedNeighbors[N] = true;
-        //
-        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
-        //
+
+        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+
+        for (let k = 0; k < gsOne; k++) {
+            v[k * 3] = 0;
+            v[k * 3 + 1] = 0;
+            v[k * 3 + 2] = 0;
+
+            vHigh[k * 3] = 0;
+            vHigh[k * 3 + 1] = 0;
+            vHigh[k * 3 + 2] = 0;
+
+            vLow[k * 3] = 0;
+            vLow[k * 3 + 1] = 0;
+            vLow[k * 3 + 2] = 0;
+        }
     }
 
     n = nn[E][0];
@@ -406,9 +421,22 @@ Segment.prototype.equalize = function () {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[E]] = true;
         this.node.equalizedNeighbors[E] = true;
-        //
-        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
-        //
+
+        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+
+        for (let k = 0; k < gsOne; k++) {
+            v[(gsOne * k) * 3] = 0;
+            v[(gsOne * k) * 3 + 1] = 0;
+            v[(gsOne * k) * 3 + 2] = 0;
+
+            vHigh[(gsOne * k) * 3] = 0;
+            vHigh[(gsOne * k) * 3 + 1] = 0;
+            vHigh[(gsOne * k) * 3 + 2] = 0;
+
+            vLow[(gsOne * k) * 3] = 0;
+            vLow[(gsOne * k) * 3 + 1] = 0;
+            vLow[(gsOne * k) * 3 + 2] = 0;
+        }
     }
 
     n = nn[S][0];
@@ -416,9 +444,22 @@ Segment.prototype.equalize = function () {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[S]] = true;
         this.node.equalizedNeighbors[S] = true;
-        //
-        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
-        //
+
+        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+
+        for (let k = 0; k < gsOne; k++) {
+            v[(gsOne * gs + k) * 3] = 0;
+            v[(gsOne * gs + k) * 3 + 1] = 0;
+            v[(gsOne * gs + k) * 3 + 2] = 0;
+
+            vHigh[(gsOne * gs + k) * 3] = 0;
+            vHigh[(gsOne * gs + k) * 3 + 1] = 0;
+            vHigh[(gsOne * gs + k) * 3 + 2] = 0;
+
+            vLow[(gsOne * gs + k) * 3] = 0;
+            vLow[(gsOne * gs + k) * 3 + 1] = 0;
+            vLow[(gsOne * gs + k) * 3 + 2] = 0;
+        }
     }
 
     n = nn[W][0];
@@ -426,9 +467,22 @@ Segment.prototype.equalize = function () {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[W]] = true;
         this.node.equalizedNeighbors[W] = true;
-        //
-        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
-        //
+
+        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+
+        for (let k = 0; k < gsOne; k++) {
+            v[(gsOne * k + gs) * 3] = 0;
+            v[(gsOne * k + gs) * 3 + 1] = 0;
+            v[(gsOne * k + gs) * 3 + 2] = 0;
+
+            vHigh[(gsOne * k + gs) * 3] = 0;
+            vHigh[(gsOne * k + gs) * 3 + 1] = 0;
+            vHigh[(gsOne * k + gs) * 3 + 2] = 0;
+
+            vLow[(gsOne * k + gs) * 3] = 0;
+            vLow[(gsOne * k + gs) * 3 + 1] = 0;
+            vLow[(gsOne * k + gs) * 3 + 2] = 0;
+        }
     }
 };
 
