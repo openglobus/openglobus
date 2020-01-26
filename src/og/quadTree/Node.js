@@ -206,6 +206,7 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.sideSize = [1, 1, 1, 1];
     this.ready = false;
     this.neighbors = [[], [], [], []];
+    this.equalizedNeighbors = [false, false, false, false];
     this.nodes = [null, null, null, null];
     this.segment = new segmentPrototype(this, planet, tileZoom, extent);
     this._cameraInside = false;
@@ -434,6 +435,11 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     this.neighbors[1] = [];
     this.neighbors[2] = [];
     this.neighbors[3] = [];
+
+    this.equalizedNeighbors[0] = false;
+    this.equalizedNeighbors[1] = false;
+    this.equalizedNeighbors[2] = false;
+    this.equalizedNeighbors[3] = false;
 
     let seg = this.segment,
         planet = this.planet;

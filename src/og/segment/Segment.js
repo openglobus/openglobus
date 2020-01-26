@@ -389,7 +389,47 @@ Segment.prototype.elevationsExists = function (elevations) {
 
 Segment.prototype.equalize = function () {
     this.readyToEngage = true;
-    //TODO
+    let nn = this.node.neighbors,
+        n = nn[N][0];
+
+    if (n && !this.node.equalizedNeighbors[N] && this.tileZoom >= n.segment.tileZoom) {
+        this.readyToEngage = true;
+        n.equalizedNeighbors[OPSIDE[N]] = true;
+        this.node.equalizedNeighbors[N] = true;
+        //
+        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
+        //
+    }
+
+    n = nn[E][0];
+    if (n && !this.node.equalizedNeighbors[E] && this.tileZoom >= n.segment.tileZoom) {
+        this.readyToEngage = true;
+        n.equalizedNeighbors[OPSIDE[E]] = true;
+        this.node.equalizedNeighbors[E] = true;
+        //
+        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
+        //
+    }
+
+    n = nn[S][0];
+    if (n && !this.node.equalizedNeighbors[S] && this.tileZoom >= n.segment.tileZoom) {
+        this.readyToEngage = true;
+        n.equalizedNeighbors[OPSIDE[S]] = true;
+        this.node.equalizedNeighbors[S] = true;
+        //
+        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
+        //
+    }
+
+    n = nn[W][0];
+    if (n && !this.node.equalizedNeighbors[W] && this.tileZoom >= n.segment.tileZoom) {
+        this.readyToEngage = true;
+        n.equalizedNeighbors[OPSIDE[W]] = true;
+        this.node.equalizedNeighbors[W] = true;
+        //
+        //TODO: equalize segment i side with ni.neighbors[OPSIDE[i]]
+        //
+    }
 };
 
 Segment.prototype.engage = function () {
