@@ -45,6 +45,8 @@ class MouseNavigation extends Control {
         this.stepsForward = null;
         this.stepIndex = 0;
 
+        this._lmbDoubleClickActive = true;
+
         this._keyLock = new Key();
     }
 
@@ -139,10 +141,12 @@ class MouseNavigation extends Control {
         this.renderer.events.on("ldown", this.onMouseLeftButtonClick, this);
         this.renderer.events.on("lup", this.onMouseLeftButtonUp, this);
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
-        //this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
         this.renderer.events.on("draw", this.onDraw, this);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
-        this.activateDoubleClickZoom();
+
+        if (this._lmbDoubleClickActive) {
+            this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        }
     }
 
     ondeactivate() {
@@ -152,17 +156,22 @@ class MouseNavigation extends Control {
         this.renderer.events.off("ldown", this.onMouseLeftButtonClick);
         this.renderer.events.off("lup", this.onMouseLeftButtonUp);
         this.renderer.events.off("rdown", this.onMouseRightButtonClick);
-        //this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
         this.renderer.events.off("draw", this.onDraw);
-        this.deactivateDoubleClickZoom();
+        this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
     };
 
     activateDoubleClickZoom() {
-        this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        if (!this._lmbDoubleClickActive) {
+            this._lmbDoubleClickActive = true;
+            this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        }
     }
 
     deactivateDoubleClickZoom() {
-        this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        if (this._lmbDoubleClickActive) {
+            this._lmbDoubleClickActive = false;
+            this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        }
     }
 
     onMouseWheel(event) {
