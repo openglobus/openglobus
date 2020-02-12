@@ -15,7 +15,8 @@ import {
     WALKTHROUGH, NOTRENDERING,
     NEIGHBOUR, OPPART,
     VISIBLE_DISTANCE, RENDERING,
-    MAX_RENDERED_NODES
+    MAX_RENDERED_NODES,
+    PARTOFFSET
 } from './quadTree.js';
 
 import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
@@ -1038,6 +1039,20 @@ Node.prototype.traverseTree = function (callback) {
             this.nodes[i].traverseTree(callback);
         }
     }
+};
+
+Node.prototype.getOffsetOppositeNeighbourSide = function (neighbourNode, side) {
+
+    let pNode = this,
+        neighbourZoom = neighbourNode.segment.tileZoom,
+        offset = 0;
+
+    while (pNode.segment.tileZoom > neighbourZoom) {
+        offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
+        pNode = pNode.parentNode;
+    }
+
+    return offset;
 };
 
 export { Node };

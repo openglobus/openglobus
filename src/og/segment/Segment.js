@@ -406,7 +406,11 @@ Segment.prototype.equalize = function () {
         n.equalizedNeighbors[OPSIDE[N]] = true;
         this.node.equalizedNeighbors[N] = true;
 
-        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+        let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
+
+        let nv = n.segment.tempVertices,
+            nvHigh = n.segment.tempVerticesHigh,
+            nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
             v[k * 3] = 0;
@@ -429,7 +433,11 @@ Segment.prototype.equalize = function () {
         n.equalizedNeighbors[OPSIDE[E]] = true;
         this.node.equalizedNeighbors[E] = true;
 
-        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+        let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
+
+        let nv = n.segment.tempVertices,
+            nvHigh = n.segment.tempVerticesHigh,
+            nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
             v[(gsOne * k + gs) * 3] = 0;
@@ -452,7 +460,11 @@ Segment.prototype.equalize = function () {
         n.equalizedNeighbors[OPSIDE[S]] = true;
         this.node.equalizedNeighbors[S] = true;
 
-        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+        let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
+
+        let nv = n.segment.tempVertices,
+            nvHigh = n.segment.tempVerticesHigh,
+            nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
             v[(gsOne * gs + k) * 3] = 0;
@@ -475,7 +487,11 @@ Segment.prototype.equalize = function () {
         n.equalizedNeighbors[OPSIDE[W]] = true;
         this.node.equalizedNeighbors[W] = true;
 
-        let nv = n.segment.tempVertices, nvHigh = n.segment.tempVerticesHigh, nvLow = n.segment.tempVerticesLow;
+        let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
+
+        let nv = n.segment.tempVertices,
+            nvHigh = n.segment.tempVerticesHigh,
+            nvLow = n.segment.tempVerticesLow;
 
         for (let k = 0; k < gsOne; k++) {
             v[(gsOne * k) * 3] = 0;

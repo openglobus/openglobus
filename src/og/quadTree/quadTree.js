@@ -59,3 +59,15 @@ export const COMSIDE =
     [true, true, false, false],
     [false, false, true, true],
     [false, true, true, false]];
+
+/**
+ * Gets segment part left to right or up to downo ffset against neighbour side.
+ * Where 0 - no offset 1 - half segment size offset.
+ */
+export const PARTOFFSET = [
+    /*     N  E  S  W */
+    /*NW*/[0, 1, 0, 0],
+    /*NE*/[1, 0, 0, 0],
+    /*SW*/[0, 1, 0, 1],
+    /*SE*/[1, 1, 1, 1]
+];
