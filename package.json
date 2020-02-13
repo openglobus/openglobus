@@ -2,8 +2,6 @@
   "name": "og",
   "version": "0.1.1",
   "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
-  "main": "dist/og.min.js",
-  "style": "dist/og.min.css",
   "directories": {
     "example": "./sandbox"
   },
@@ -11,6 +9,8 @@
     "api": "./node_modules/.bin/jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "node_modules/.bin/ws",
     "build": "node_modules/.bin/rollup -c",
+    "webgl": "node_modules/.bin/rollup -c --environment entry:webgl",
+    "core": "node_modules/.bin/rollup -c --environment entry:core",
     "test": "jest --coverage"
   },
   "repository": {
@@ -29,26 +29,18 @@
     "@babel/preset-env": "^7.7.7",
     "@rollup/plugin-replace": "^2.3.1",
     "babel-preset-env": "^1.7.0",
-    "copy-webpack-plugin": "^5.1.1",
-    "css-loader": "^2.1.1",
     "enhanced-resolve": "^4.1.1",
     "eslint": "^6.8.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-plugin-react": "^7.3.0",
-    "extract-text-webpack-plugin": "^4.0.0-beta.0",
-    "file-loader": "^1.1.11",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^24.9.0",
     "jsdoc": "^3.6.3",
     "local-web-server": "^3.0.7",
-    "mini-css-extract-plugin": "^0.9.0",
-    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "rollup": "^1.31.0",
     "rollup-plugin-css-only": "^2.0.0",
     "rollup-plugin-css-porter": "^1.0.2",
-    "rollup-plugin-terser": "^5.2.0",
-    "style-loader": "^0.20.3",
-    "webpack": "^4.25.1",
-    "webpack-cli": "^3.2.1"
+    "rollup-plugin-terser": "^5.2.0"
   },
   "keywords": [
     "map",
