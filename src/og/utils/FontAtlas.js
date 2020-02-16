@@ -73,7 +73,7 @@ class FontAtlas {
 
     getFullIndex(face, style, weight) {
         face = face && face.trim().toLowerCase();
-        if (!face || face && !this.fontDetector.detect(face)) {
+        if (!face || (face && !this.fontDetector.detect(face))) {
             face = this.defaultFace;
         }
         return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
@@ -144,9 +144,10 @@ class FontAtlas {
     _dequeueRequest() {
         this._counter--;
         if (this._pendingsQueue.length && this._counter < 1) {
-            var obj;
-            if (obj = this._whilePendings())
+            var obj = this._whilePendings();
+            if (obj) {
                 this._exec(obj);
+            }
         }
     }
 

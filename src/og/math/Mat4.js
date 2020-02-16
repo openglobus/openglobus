@@ -21,32 +21,32 @@ const Mat4 = function () {
      * Projection frustum left value.
      * @public
      */
-    this.left;
+    this.left = 0.0;
     /**
      * Projection frustum right value.
      * @public
      */
-    this.right;
+    this.right = 0.0;
     /**
      * Projection frustum bottom value.
      * @public
      */
-    this.bottom;
+    this.bottom = 0.0;
     /**
      * Projection frustum top value.
      * @public
      */
-    this.top;
+    this.top = 0.0;
     /**
      * Projection frustum near value.
      * @public
      */
-    this.near;
+    this.near = 0.0;
     /**
      * Projection frustum far value.
      * @public
      */
-    this.far;
+    this.far = 0.0;
 };
 
 /**
@@ -184,8 +184,11 @@ Mat4.prototype.toInverseMatrix3 = function () {
         o = -k * g + h * i,
         m = j * g - f * i,
         n = c * l + d * o + e * m;
-    if (!n)
+
+    if (!n) {
         return null;
+    }
+
     n = 1 / n;
 
     var res = new Mat3();
@@ -376,7 +379,6 @@ Mat4.prototype.scale = function (v) {
     mx[0] = mx[0] * v.x; mx[1] = mx[1] * v.x; mx[2] = mx[2] * v.x; mx[3] = mx[3] * v.x;
     mx[4] = mx[4] * v.y; mx[5] = mx[5] * v.y; mx[6] = mx[6] * v.y; mx[7] = mx[7] * v.y;
     mx[8] = mx[8] * v.z; mx[9] = mx[9] * v.z; mx[10] = mx[10] * v.z; mx[11] = mx[11] * v.z;
-    mx[12] = mx[12]; mx[13] = mx[13]; mx[14] = mx[14]; mx[15] = mx[15];
     return this;
 };
 
@@ -392,13 +394,6 @@ Mat4.prototype.scale = function (v) {
  * @returns {og.Mat4} -
  */
 Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
-
-    //this.left = left;
-    //this.right = right;
-    //this.bottom = bottom;
-    //this.top = top;
-    //this.near = near;
-    //this.far = far;
 
     var h = right - left, i = top - bottom, j = far - near;
     this._m[0] = near * 2 / h;
@@ -432,7 +427,7 @@ Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
     angle = near * Math.tan(angle * Math.PI / 360);
     aspect = angle * aspect;
-    return this.setFrustum(-aspect, aspect, -angle, angle, near, far)
+    return this.setFrustum(-aspect, aspect, -angle, angle, near, far);
 };
 
 /**
@@ -447,13 +442,6 @@ Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
  * @return {og.Mat4} -
  */
 Mat4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
-
-    //this.left = left;
-    //this.right = right;
-    //this.bottom = bottom;
-    //this.top = top;
-    //this.near = near;
-    //this.far = far;
 
     var lr = 1.0 / (left - right),
         bt = 1.0 / (bottom - top),
@@ -516,4 +504,3 @@ Mat4.prototype.eulerToMatrix = function (ax, ay, az) {
 };
 
 export { Mat4 };
-

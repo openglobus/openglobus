@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-operators */
 goog.provide('og.utils.getPolyCenter');
 
 /*

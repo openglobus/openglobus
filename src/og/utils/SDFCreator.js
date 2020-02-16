@@ -38,7 +38,8 @@ class SDFCreator {
     _initHandler(width, height) {
 
         this._handler = new Handler(null, {
-            width: width, height: height,
+            width: width,
+            height: height,
             context: { alpha: true, depth: false }
         });
         this._handler.initialize();
@@ -55,6 +56,7 @@ class SDFCreator {
         this._framebuffer1.init();
         this._framebuffer2.init();
     }
+
     _initShaders() {
         var vfield = new Program("vfield", {
             uniforms: {
@@ -67,44 +69,44 @@ class SDFCreator {
                 aPos: { type: types.VEC2, enableArray: true }
             },
             vertexShader:
-            "precision highp float;\
-            attribute vec2 aPos;\
-            uniform vec2 uTexSize;\
-            varying vec2 TexCoord;\
-            varying vec2 vTexSize;\
-            void main() {\
-                TexCoord = (aPos + 1.0) * 0.5;\
-                TexCoord *= uTexSize;\
-                vTexSize = uTexSize;\
-                gl_Position.xy = aPos;\
-                gl_Position.zw = vec2(0.0, 1.0);\
-            }",
+                `precision highp float;
+            attribute vec2 aPos;
+            uniform vec2 uTexSize;
+            varying vec2 TexCoord;
+            varying vec2 vTexSize;
+            void main() {
+                TexCoord = (aPos + 1.0) * 0.5;
+                TexCoord *= uTexSize;
+                vTexSize = uTexSize;
+                gl_Position.xy = aPos;
+                gl_Position.zw = vec2(0.0, 1.0);
+            }`,
             fragmentShader:
-            "precision highp float;\
-            uniform sampler2D uTex1;\
-            uniform int uDistance;\
-            uniform vec2 uNeg;\
-            varying vec2 TexCoord;\
-            varying vec2 vTexSize;\
-            const int maxDistance = " + this._outsideDistance + ";\
-            void main() {\
-                if ( uNeg.x - uNeg.y * texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {\
-                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\
-                    return;\
-                }\
-                for ( int i=1; i <= maxDistance; i++ ) {\
-                    if(i > uDistance) break;\
-                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {\
-                        gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );\
-                        return;\
-                    }\
-                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {\
-                        gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);\
-                        return;\
-                    }\
-                }\
-                gl_FragColor = vec4(1.0);\
-            }"
+                `precision highp float;
+            uniform sampler2D uTex1;
+            uniform int uDistance;
+            uniform vec2 uNeg;
+            varying vec2 TexCoord;
+            varying vec2 vTexSize;
+            const int maxDistance = ` + this._outsideDistance + `;
+            void main() {
+                if ( uNeg.x - uNeg.y * texture2D(uTex1, TexCoord / vTexSize).r > 0.5 ) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                    return;
+                }
+                for ( int i=1; i <= maxDistance; i++ ) {
+                    if(i > uDistance) break;
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord + vec2(0.0, i) ) / vTexSize ).r > 0.5 ) {
+                        gl_FragColor = vec4( vec3(float(i)/float(uDistance)), 1.0 );
+                        return;
+                    }
+                    if ( uNeg.x - uNeg.y * texture2D(uTex1, ( TexCoord - vec2(0.0, i)) / vTexSize ).r > 0.5 ) {
+                        gl_FragColor = vec4(vec3(float(i)/float(uDistance)), 1.0);
+                        return;
+                    }
+                }
+                gl_FragColor = vec4(1.0);
+            }`
         });
 
         var hfield = new Program("hfield", {
@@ -117,39 +119,39 @@ class SDFCreator {
                 aPos: { type: types.VEC2, enableArray: true }
             },
             vertexShader:
-            "precision highp float;\
-            attribute vec2 aPos;\
-            uniform vec2 uTexSize;\
-            varying vec2 TexCoord;\
-            varying vec2 vTexSize;\
-            void main() {\n\
-                TexCoord = (aPos + 1.0) * 0.5;\
-                TexCoord *= uTexSize;\
-                vTexSize = uTexSize;\
-                gl_Position.xy = aPos;\
-                gl_Position.zw = vec2(0.0, 1.0);\
-            }",
+                `precision highp float;
+            attribute vec2 aPos;
+            uniform vec2 uTexSize;
+            varying vec2 TexCoord;
+            varying vec2 vTexSize;
+            void main() {
+                TexCoord = (aPos + 1.0) * 0.5;
+                TexCoord *= uTexSize;
+                vTexSize = uTexSize;
+                gl_Position.xy = aPos;
+                gl_Position.zw = vec2(0.0, 1.0);
+            }`,
             fragmentShader:
-            "precision highp float;\
-            uniform sampler2D uTex1;\
-            uniform int uDistance;\
-            varying vec2 TexCoord;\
-            varying vec2 vTexSize;\
-            const int maxDistance = " + this._outsideDistance + ";\
-            float CalcC(float H, float V) {\
-                return ( sqrt( H * H + V * V ) );\
-            }\
-            void main(){\
-                float dist = CalcC( 0.0, texture2D( uTex1, TexCoord / vTexSize ).r );\
-                for ( int i = 1; i <= maxDistance; i++ ) {\
-                    if(i > uDistance) break;\
-                    float H = float(i) / float(uDistance);\
-                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord + vec2( float(i), 0.0) ) / vTexSize ).r ) );\
-                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord - vec2( float(i), 0.0) ) / vTexSize ).r ) );\
-                }\
-                gl_FragColor = vec4(dist);\
-                gl_FragColor.w = 1.0;\
-            }"
+                `precision highp float;
+            uniform sampler2D uTex1;
+            uniform int uDistance;
+            varying vec2 TexCoord;
+            varying vec2 vTexSize;
+            const int maxDistance = ` + this._outsideDistance + `;
+            float CalcC(float H, float V) {
+                return ( sqrt( H * H + V * V ) );
+            }
+            void main(){
+                float dist = CalcC( 0.0, texture2D( uTex1, TexCoord / vTexSize ).r );
+                for ( int i = 1; i <= maxDistance; i++ ) {
+                    if(i > uDistance) break;
+                    float H = float(i) / float(uDistance);
+                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord + vec2( float(i), 0.0) ) / vTexSize ).r ) );
+                    dist = min( dist, CalcC( H, texture2D( uTex1, ( TexCoord - vec2( float(i), 0.0) ) / vTexSize ).r ) );
+                }
+                gl_FragColor = vec4(dist);
+                gl_FragColor.w = 1.0;
+            }`
         });
 
         var sum = new Program("sum", {
@@ -161,25 +163,25 @@ class SDFCreator {
             attributes: {
                 aPos: { type: types.VEC2, enableArray: true }
             },
-            vertexShader: "attribute vec2 aPos;\n\
-                        varying vec2 TexCoord;\n\
-                        void main(){\n\
-                            TexCoord = (aPos * vec2(1.0,-1.0) + 1.0) * 0.5;\n\
-                            gl_Position.xy = aPos;\n\
-                            gl_Position.zw = vec2(0.0, 1.0);\n\
-                        }",
+            vertexShader: `attribute vec2 aPos;
+                        varying vec2 TexCoord;
+                        void main(){
+                            TexCoord = (aPos * vec2(1.0,-1.0) + 1.0) * 0.5;
+                            gl_Position.xy = aPos;
+                            gl_Position.zw = vec2(0.0, 1.0);
+                        }`,
             fragmentShader:
-            "precision highp float;\n\
-                        uniform sampler2D outside;\n\
-                        uniform sampler2D inside;\n\
-                        uniform sampler2D source;\n\
-                        varying vec2 TexCoord;\n\
-                        void main(){\n\
-                            float o = texture2D(outside, TexCoord).r;\n\
-                            float i = 1.0 - texture2D(inside, TexCoord).r;\n\
-                            float s = texture2D(source, TexCoord).r;\n\
-                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * " + this._outsideMix + " + (1.0 - step(0.5, s)) * " + this._insideMix + " )), 1.0);\n\
-                        }"
+                `precision highp float;
+                        uniform sampler2D outside;
+                        uniform sampler2D inside;
+                        uniform sampler2D source;
+                        varying vec2 TexCoord;
+                        void main(){
+                            float o = texture2D(outside, TexCoord).r;
+                            float i = 1.0 - texture2D(inside, TexCoord).r;
+                            float s = texture2D(source, TexCoord).r;
+                            gl_FragColor = vec4( vec3(1.0 - mix(i, o, step(0.5, s) * ` + this._outsideMix + ` + (1.0 - step(0.5, s)) * ` + this._insideMix + ` )), 1.0);
+                        }`
         });
         this._handler.addPrograms([vfield, hfield, sum]);
     };
@@ -232,9 +234,9 @@ class SDFCreator {
         this._framebuffer2.deactivate();
 
         h.programs.hfield.activate();
-        var sh = h.programs.hfield._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
+        sh = h.programs.hfield._program;
+        sha = sh.attributes;
+        shu = sh.uniforms;
 
         gl.uniform2fv(shu.uTexSize, [this._width, this._height]);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
@@ -265,9 +267,9 @@ class SDFCreator {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         h.programs.sum.activate();
-        var sh = h.programs.sum._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
+        sh = h.programs.sum._program;
+        sha = sh.attributes;
+        shu = sh.uniforms;
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._framebuffer1.textures[0]);

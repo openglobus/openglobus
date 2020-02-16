@@ -9,7 +9,7 @@ class MapboxTerrain extends GlobusTerrain {
         super(name, options);
 
         options = options || {};
-        
+
         this.blur = false;
 
         this.equalizeVertices = true;
@@ -80,6 +80,5 @@ class MapboxTerrain extends GlobusTerrain {
         }
     }
 };
-
 
 export { MapboxTerrain };

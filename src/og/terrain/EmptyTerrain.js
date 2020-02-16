@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 /**
  * Class represents terrain provider without elevation data.
  * @class
@@ -117,7 +116,7 @@ class EmptyTerrain {
     }
 
     isReady() {
-        return this._geoid && this._geoid.model || !this._geoid;
+        return (this._geoid && this._geoid.model) || !this._geoid;
     }
 
     /**

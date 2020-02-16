@@ -358,7 +358,8 @@ Quat.prototype.scaleTo = function (scale) {
  * @returns {og.Quat} -
  */
 Quat.prototype.scale = function (scale) {
-    return this.x * scale, this.y * scale, this.z * scale, this.w * scale;
+    this.x *= scale; this.y *= scale; this.z *= scale; this.w *= scale;
+    return this;
 };
 
 /**
@@ -392,7 +393,6 @@ Quat.prototype.setFromSphericalCoords = function (lat, lon, angle) {
     return this;
 };
 
-
 /**
  * Sets rotation with the given heading and up vectors.
  * @static
@@ -414,22 +414,19 @@ Quat.prototype.setLookRotation = function (forward, up) {
         this.y = (s.z - f.x) * fd;
         this.z = (u.x - s.y) * fd;
         this.w = 0.25 / fd;
-    }
-    else if (s.x > u.y && s.x > f.z) {
+    } else if (s.x > u.y && s.x > f.z) {
         let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
         this.x = 0.25 / fd;
         this.y = (u.x + s.y) * fd;
         this.z = (s.z + f.x) * fd;
         this.w = (f.y - u.z) * fd;
-    }
-    else if (u.y > f.z) {
+    } else if (u.y > f.z) {
         let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
         this.x = (u.x + s.y) * fd;
         this.y = 0.25 / fd;
         this.z = (f.y + u.z) * fd;
         this.w = (s.z - f.x) * fd;
-    }
-    else {
+    } else {
         let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
         this.x = (s.z + f.x) * fd;
         this.y = (f.y + u.z) * fd;
@@ -448,20 +445,23 @@ Quat.prototype.setLookRotation = function (forward, up) {
 Quat.prototype.toSphericalCoords = function () {
     var cos_a = this.w;
     var sin_a = Math.sqrt(1.0 - cos_a * cos_a);
-    var angle = Math.acos(cos_a) * 2;
-    if (Math.abs(sin_a) < 0.0005)
+    // var angle = Math.acos(cos_a) * 2;
+    if (Math.abs(sin_a) < 0.0005) {
         sin_a = 1;
+    }
     var tx = this.x / sin_a;
     var ty = this.y / sin_a;
     var tz = this.z / sin_a;
 
     var lon, lat = -Math.asin(ty);
-    if (tx * tx + tz * tz < 0.0005)
+    if (tx * tx + tz * tz < 0.0005) {
         lon = 0;
-    else
+    } else {
         lon = Math.atan2(tx, tz);
-    if (lon < 0)
+    }
+    if (lon < 0) {
         lon += 360.0;
+    }
 
     return { lat: lat, lon: lon, alpha: Math.acos(cos_a) };
 };
@@ -492,10 +492,11 @@ Quat.prototype.getAxisAngle = function () {
     if (vl > 0.0000001) {
         var ivl = 1.0 / vl;
         axis = new Vec3(x * ivl, y * ivl, z * ivl);
-        if (this.w < 0)
-            angle = 2.0 * Math.atan2(-vl, -w); //-PI,0 
-        else
-            angle = 2.0 * Math.atan2(vl, w); //0,PI 
+        if (this.w < 0) {
+            angle = 2.0 * Math.atan2(-vl, -w); // -PI,0 
+        } else {
+            angle = 2.0 * Math.atan2(vl, w); // 0,PI 
+        }
     } else {
         axis = new Vec3(0, 0, 0);
         angle = 0;
@@ -675,8 +676,8 @@ Quat.prototype.getMat3 = function () {
  */
 Quat.prototype.mulVec3 = function (v) {
 
-    //t = 2 * cross(q.xyz, v)
-    //v' = v + q.w * t + cross(q.xyz, t)
+    // t = 2 * cross(q.xyz, v)
+    // v' = v + q.w * t + cross(q.xyz, t)
 
     var d = v.x,
         e = v.y,

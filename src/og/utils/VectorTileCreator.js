@@ -41,78 +41,78 @@ VectorTileCreator.prototype._initialize = function () {
                 'color': { type: types.VEC4 },
                 'thickness': { type: types.FLOAT }
             },
-            vertexShader: 'attribute vec2 prev;\
-                attribute vec2 current;\
-                attribute vec2 next;\
-                attribute float order;\
-                attribute float thickness;\
-                attribute vec4 color;\
-                uniform float thicknessOutline;\
-                uniform vec2 viewport;\
-                uniform vec4 extentParams;\
-                varying vec4 vColor;\
-                \
-                vec2 proj(vec2 coordinates){\
-                    return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);\
-                }\
-                \
-                void main(){\
-                    vColor = color;\
-                    vec2 _next = next;\
-                    vec2 _prev = prev;\
-                    if(prev == current){\
-                        if(next == current){\
-                            _next = current + vec2(1.0, 0.0);\
-                            _prev = current - next;\
-                        }else{\
-                            _prev = current + normalize(current - next);\
-                        }\
-                    }\
-                    if(next == current){\
-                        _next = current + normalize(current - _prev);\
-                    }\
-                    \
-                    vec2 sNext = proj(_next),\
-                         sCurrent = proj(current),\
-                         sPrev = proj(_prev);\
-                    vec2 dirNext = normalize(sNext - sCurrent);\
-                    vec2 dirPrev = normalize(sPrev - sCurrent);\
-                    float dotNP = dot(dirNext, dirPrev);\
-                    \
-                    vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));\
-                    vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));\
-                    vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;\
-                    \
-                    vec2 m;\
-                    if(dotNP >= 0.99991){\
-                        m = sCurrent - normalPrev * d;\
-                    }else{\
-                        vec2 dir = normalPrev + normalNext;\
-                        m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);\
-                        \
-                        if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){\
-                            float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);\
-                            if(occw == -1.0){\
-                                m = sCurrent + normalPrev * d;\
-                            }else if(occw == 1.0){\
-                                m = sCurrent + normalNext * d;\
-                            }else if(occw == -2.0){\
-                                m = sCurrent + normalNext * d;\
-                            }else if(occw == 2.0){\
-                                m = sCurrent + normalPrev * d;\
-                            }\
-                        }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){\
-                            m = sCurrent + normalNext * d;\
-                        }\
-                    }\
-                    gl_Position = vec4(m.x, m.y, 0.0, 1.0);\
-                }',
-            fragmentShader: 'precision highp float;\
-                uniform float alpha;\
-                varying vec4 vColor;\
-                void main() {\
-                    gl_FragColor = vec4(vColor.rgb, alpha * vColor.a);\
-                }'
+            vertexShader: `attribute vec2 prev;
+                attribute vec2 current;
+                attribute vec2 next;
+                attribute float order;
+                attribute float thickness;
+                attribute vec4 color;
+                uniform float thicknessOutline;
+                uniform vec2 viewport;
+                uniform vec4 extentParams;
+                varying vec4 vColor;
+                
+                vec2 proj(vec2 coordinates){
+                    return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);
+                }
+                
+                void main(){
+                    vColor = color;
+                    vec2 _next = next;
+                    vec2 _prev = prev;
+                    if(prev == current){
+                        if(next == current){
+                            _next = current + vec2(1.0, 0.0);
+                            _prev = current - next;
+                        }else{
+                            _prev = current + normalize(current - next);
+                        }
+                    }
+                    if(next == current){
+                        _next = current + normalize(current - _prev);
+                    }
+                    
+                    vec2 sNext = proj(_next),
+                         sCurrent = proj(current),
+                         sPrev = proj(_prev);
+                    vec2 dirNext = normalize(sNext - sCurrent);
+                    vec2 dirPrev = normalize(sPrev - sCurrent);
+                    float dotNP = dot(dirNext, dirPrev);
+                    
+                    vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
+                    vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
+                    vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;
+                    
+                    vec2 m;
+                    if(dotNP >= 0.99991){
+                        m = sCurrent - normalPrev * d;
+                    }else{
+                        vec2 dir = normalPrev + normalNext;
+                        m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);
+                        
+                        if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){
+                            float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
+                            if(occw == -1.0){
+                                m = sCurrent + normalPrev * d;
+                            }else if(occw == 1.0){
+                                m = sCurrent + normalNext * d;
+                            }else if(occw == -2.0){
+                                m = sCurrent + normalNext * d;
+                            }else if(occw == 2.0){
+                                m = sCurrent + normalPrev * d;
+                            }
+                        }else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
+                            m = sCurrent + normalNext * d;
+                        }
+                    }
+                    gl_Position = vec4(m.x, m.y, 0.0, 1.0);
+                }`,
+            fragmentShader: `precision highp float;
+                uniform float alpha;
+                varying vec4 vColor;
+                void main() {
+                    gl_FragColor = vec4(vColor.rgb, alpha * vColor.a);
+                }`
         }));
     }
 
@@ -126,19 +126,19 @@ VectorTileCreator.prototype._initialize = function () {
                 'coordinates': { type: types.VEC2 },
                 'colors': { type: types.VEC4 }
             },
-            vertexShader: 'attribute vec2 coordinates; \
-                      attribute vec4 colors; \
-                      uniform vec4 extentParams; \
-                      varying vec4 color;\
-                      void main() { \
-                          color = colors;\
-                          gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
-                      }',
-            fragmentShader: 'precision highp float;\
-                        varying vec4 color;\
-                        void main () {  \
-                            gl_FragColor = color; \
-                        }'
+            vertexShader: `attribute vec2 coordinates; 
+                      attribute vec4 colors; 
+                      uniform vec4 extentParams; 
+                      varying vec4 color;
+                      void main() { 
+                          color = colors;
+                          gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
+                      }`,
+            fragmentShader: `precision highp float;
+                        varying vec4 color;
+                        void main () {  
+                            gl_FragColor = color; 
+                        }`
         }));
     }
 
@@ -174,7 +174,7 @@ VectorTileCreator.prototype.frame = function () {
         var pickingMask = null,
             texture = null;
 
-        var prevLayerId = -1;
+        // var prevLayerId = -1;
 
         var extentParams = new Array(4);
 
@@ -195,7 +195,7 @@ VectorTileCreator.prototype.frame = function () {
                     height = _h;
                 }
 
-                texture = material._updateTexture && material._updateTexture || h.createEmptyTexture_l(width, height);
+                texture = (material._updateTexture && material._updateTexture) || h.createEmptyTexture_l(width, height);
 
                 f.setSize(width, height);
 
@@ -331,7 +331,7 @@ VectorTileCreator.prototype.frame = function () {
             }
 
             deltaTime = window.performance.now() - startTime;
-            prevLayerId = material.layer._id;
+            // prevLayerId = material.layer._id;
         }
 
         gl.disable(gl.BLEND);

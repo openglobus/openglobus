@@ -10,7 +10,7 @@ const MouseHandler = function (htmlObject) {
 
 MouseHandler.prototype.setEvent = function (event, sender, callback) {
     switch (event) {
-        case "mousewheel": {
+        case "mousewheel":
             this._htmlObject.addEventListener('mousewheel', function (evt) {
                 var delta = evt.deltaY || evt.detail || evt.wheelDelta;
                 if (evt.wheelDelta == undefined) {
@@ -28,8 +28,9 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
                 callback.call(sender, evt);
                 evt.preventDefault();
             }, false);
-        } break;
-        case "mousedown": {
+            break;
+
+        case "mousedown":
             this._htmlObject.addEventListener('mousedown', function (event) {
                 callback.call(sender, event);
             });
@@ -37,21 +38,23 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
                 event.preventDefault();
                 return false;
             });
-        } break;
-        case "mouseup": {
+            break;
+
+        case "mouseup":
             this._htmlObject.addEventListener('mouseup', function (event) {
                 callback.call(sender, event);
             });
-        } break;
-        case "mousemove": {
+            break;
+
+        case "mousemove":
             this._htmlObject.addEventListener('mousemove', function (event) {
                 var rect = this.getBoundingClientRect();
                 callback.call(sender, {
-                    'clientX': event.clientX - rect.left,
-                    'clientY': event.clientY - rect.top
+                    clientX: event.clientX - rect.left,
+                    clientY: event.clientY - rect.top
                 });
             });
-        } break;
+            break;
     }
 };
 

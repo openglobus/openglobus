@@ -46,13 +46,13 @@ class ZoomControl extends Control {
         btnZoomOut.addEventListener("mousedown", (e) => this.zoomOut());
         btnZoomOut.addEventListener("mouseup", (e) => this.stopZoom());
 
-        btnZoomIn.addEventListener('touchstart', (e) => { e.preventDefault(); this.zoomIn() });
-        btnZoomIn.addEventListener('touchend', (e) => { e.preventDefault(); this.stopZoom() });
-        btnZoomIn.addEventListener('touchcancel', (e) => { e.preventDefault(); this.stopZoom() });
+        btnZoomIn.addEventListener('touchstart', (e) => { e.preventDefault(); this.zoomIn(); });
+        btnZoomIn.addEventListener('touchend', (e) => { e.preventDefault(); this.stopZoom(); });
+        btnZoomIn.addEventListener('touchcancel', (e) => { e.preventDefault(); this.stopZoom(); });
 
-        btnZoomOut.addEventListener('touchstart', (e) => { e.preventDefault(); this.zoomOut() });
-        btnZoomOut.addEventListener('touchend', (e) => { e.preventDefault(); this.stopZoom() });
-        btnZoomOut.addEventListener('touchcancel', (e) => { e.preventDefault(); this.stopZoom() });
+        btnZoomOut.addEventListener('touchstart', (e) => { e.preventDefault(); this.zoomOut(); });
+        btnZoomOut.addEventListener('touchend', (e) => { e.preventDefault(); this.stopZoom(); });
+        btnZoomOut.addEventListener('touchcancel', (e) => { e.preventDefault(); this.stopZoom(); });
 
         this.renderer.events.on("draw", this._draw, this);
     }

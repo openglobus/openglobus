@@ -45,10 +45,10 @@ GeoImageCreator.prototype.createGridBuffer = function (c, toMerc) {
 
     var grid = new Float32Array((gs + 1) * (gs + 1) * 2);
     var k = 0;
-    for (var i = 0; i <= gs; i++) {
+    for (let i = 0; i <= gs; i++) {
         var P03i = new LonLat(c[0].lon + i * v03.lon, c[0].lat + i * v03.lat),
             P12i = new LonLat(c[1].lon + i * v12.lon, c[1].lat + i * v12.lat);
-        for (var j = 0; j <= gs; j++) {
+        for (let j = 0; j <= gs; j++) {
             var P01j = new LonLat(c[0].lon + j * v01.lon, c[0].lat + j * v01.lat),
                 P32j = new LonLat(c[3].lon + j * v32.lon, c[3].lat + j * v32.lat);
             var xx = utils.getLinesIntersectionLonLat(P03i, P12i, P01j, P32j);
@@ -58,8 +58,8 @@ GeoImageCreator.prototype.createGridBuffer = function (c, toMerc) {
     }
 
     if (toMerc) {
-        for (var i = 0; i < grid.length; i += 2) {
-            var c = new LonLat(grid[i], grid[i + 1]).forwardMercator();
+        for (let i = 0; i < grid.length; i += 2) {
+            let c = new LonLat(grid[i], grid[i + 1]).forwardMercator();
             grid[i] = c.lon;
             grid[i + 1] = c.lat;
         }
@@ -140,21 +140,21 @@ GeoImageCreator.prototype._initShaders = function () {
             corners: { type: types.VEC2, enableArray: true },
             texCoords: { type: types.VEC2, enableArray: true }
         },
-        vertexShader: 'attribute vec2 corners; \
-                      attribute vec2 texCoords; \
-                      varying vec2 v_texCoords; \
-                      uniform vec4 extentParams; \
-                      void main() { \
-                          v_texCoords = texCoords; \
-                          gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); \
-                      }',
+        vertexShader: `attribute vec2 corners; 
+                      attribute vec2 texCoords; 
+                      varying vec2 v_texCoords; 
+                      uniform vec4 extentParams; 
+                      void main() { 
+                          v_texCoords = texCoords; 
+                          gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
+                      }`,
         fragmentShader:
-        'precision highp float;\n\
-                        uniform sampler2D sourceTexture; \
-                        varying vec2 v_texCoords; \
-                        void main () {  \
-                            gl_FragColor = texture2D(sourceTexture, v_texCoords); \
-                        }'
+            `precision highp float;
+                        uniform sampler2D sourceTexture;
+                        varying vec2 v_texCoords;
+                        void main () { 
+                            gl_FragColor = texture2D(sourceTexture, v_texCoords);
+                        }`
     }));
 };
 

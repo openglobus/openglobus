@@ -16,7 +16,6 @@ import {
 } from '../quadTree/EntityCollectionNode.js';
 import { GeometryHandler } from '../entity/GeometryHandler.js';
 import { Layer } from './Layer.js';
-import { LonLat } from '../LonLat.js';
 import { QueueArray } from '../QueueArray.js';
 import { Vec3 } from '../math/Vec3.js';
 
@@ -134,12 +133,12 @@ class Vector extends Layer {
         this._entities = _entitiesConstructor(options.entities || []);
 
         this._stripEntityCollection = new EntityCollection({
-            'pickingEnabled': this.pickingEnabled
+            pickingEnabled: this.pickingEnabled
         });
         this._bindEventsDefault(this._stripEntityCollection);
 
         this._polylineEntityCollection = new EntityCollection({
-            'pickingEnabled': this.pickingEnabled
+            pickingEnabled: this.pickingEnabled
         });
         this._bindEventsDefault(this._polylineEntityCollection);
 
@@ -158,7 +157,7 @@ class Vector extends Layer {
 
         this._pendingsQueue = [];
 
-        /** Creates collections tree*/
+        // Creates collections tree
         this.setEntities(this._entities);
 
         /**
@@ -273,7 +272,7 @@ class Vector extends Layer {
         let temp = this._hasImageryTiles;
 
         //
-        //...pointCloud, shape, model etc.
+        // ...pointCloud, shape, model etc.
         //
 
         if (entity.strip) {
@@ -301,11 +300,11 @@ class Vector extends Layer {
                     entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
 
-                //north tree
+                // north tree
                 if (entity._lonlat.lat > mercator.MAX_LAT) {
                     this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
                 } else if (entity._lonlat.lat < mercator.MIN_LAT) {
-                    //south tree
+                    // south tree
                     this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
                 } else {
                     this._entityCollectionsTree.insertEntity(entity, rightNow);
@@ -362,7 +361,7 @@ class Vector extends Layer {
                     entity._nodePtr.deferredEntities.length === 0) {
                     entity._nodePtr.entityCollection = null;
                     //
-                    //...
+                    // ...
                     //
                 }
             } else if (entity._nodePtr &&
@@ -469,7 +468,7 @@ class Vector extends Layer {
      * @public
      */
     clear() {
-        //TODO
+        // TODO
     }
 
     /**
@@ -647,7 +646,7 @@ class Vector extends Layer {
 
         outArr.push(ec);
         //
-        //...TODO: extent
+        // ...TODO: extent
         //
     }
 
@@ -676,8 +675,8 @@ class Vector extends Layer {
             while (e_i--) {
                 var p = e[e_i].polyline;
                 if (visibleExtent.overlaps(p._extent)) {
-                    //TODO:this works only for mercator area.
-                    //So it needs to be working on poles.
+                    // TODO:this works only for mercator area.
+                    // needs to be working on poles.
                     let coords = p._pathLonLatMerc,
                         c_j = coords.length;
                     while (c_j--) {
@@ -690,7 +689,7 @@ class Vector extends Layer {
                                 if (seg._extent.isInside(ll)) {
                                     let cart = p._path3v[c_j][c_j_h];
                                     seg.getTerrainPoint(cart, ll, res);
-                                    p.setPoint3v(res.addA(res.normal().scale(rtg && p.altitude || 0.0)), c_j_h, c_j, true);
+                                    p.setPoint3v(res.addA(res.normal().scale((rtg && p.altitude) || 0.0)), c_j_h, c_j, true);
                                     break;
                                 }
                             }
@@ -704,19 +703,19 @@ class Vector extends Layer {
     collectVisibleCollections(outArr) {
         var p = this._planet;
 
-        if (this._fading && this._fadingOpacity > 0.0 ||
-            this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom) {
+        if ((this._fading && this._fadingOpacity > 0.0) ||
+            (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)) {
 
             this._renderingNodes = {};
             this._renderingNodesNorth = {};
             this._renderingNodesSouth = {};
 
-            //Common collections first
+            // Common collections first
             this._collectStripCollectionPASS(outArr);
 
             this._collectPolylineCollectionPASS(outArr);
 
-            //Merc nodes
+            // Merc nodes
             this._secondPASS = [];
             this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
             var i = this._secondPASS.length;
@@ -724,7 +723,7 @@ class Vector extends Layer {
                 this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
             }
 
-            //North nodes
+            // North nodes
             this._secondPASS = [];
             this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
             i = this._secondPASS.length;
@@ -732,7 +731,7 @@ class Vector extends Layer {
                 this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
             }
 
-            //South nodes
+            // South nodes
             this._secondPASS = [];
             this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
             i = this._secondPASS.length;
@@ -818,8 +817,8 @@ class Vector extends Layer {
 
             var mId = this._id;
             var psegm = material;
-            var i = 0;
-            while (pn.parentNode && i < 2) {
+
+            while (pn.parentNode) {
                 if (psegm && psegm.isReady) {
                     notEmpty = true;
                     break;

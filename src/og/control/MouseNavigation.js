@@ -15,7 +15,6 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
-
 /**
  * Mouse planet camera dragging control.
  * @class
@@ -52,7 +51,7 @@ class MouseNavigation extends Control {
 
     static getMovePointsFromPixelTerrain(cam, planet, stepsCount, delta, point, forward, dir) {
 
-        var steps = []
+        var steps = [];
 
         var eye = cam.eye.clone(),
             n = cam._n.clone(),
@@ -86,7 +85,7 @@ class MouseNavigation extends Control {
                 grabbedSpheroid.radius = a.length();
 
                 var rotArr = [],
-                    eyeArr = []
+                    eyeArr = [];
 
                 var breaked = false;
                 for (var i = 0; i < stepsCount; i++) {
@@ -102,7 +101,7 @@ class MouseNavigation extends Control {
                 }
 
                 if (!breaked) {
-                    for (var i = 0; i < stepsCount; i++) {
+                    for (let i = 0; i < stepsCount; i++) {
                         var rot = rotArr[i];
                         steps[i] = {};
                         steps[i].eye = rot.mulVec3(eyeArr[i]);
@@ -112,7 +111,7 @@ class MouseNavigation extends Control {
                     }
                 } else {
                     eye = cam.eye.clone();
-                    for (var i = 0; i < stepsCount; i++) {
+                    for (let i = 0; i < stepsCount; i++) {
                         steps[i] = {};
                         steps[i].eye = eye.addA(scaled_n).clone();
                         steps[i].v = v;
@@ -121,7 +120,7 @@ class MouseNavigation extends Control {
                     }
                 }
             } else {
-                for (var i = 0; i < stepsCount; i++) {
+                for (let i = 0; i < stepsCount; i++) {
                     steps[i] = {};
                     steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
                     steps[i].v = v;
@@ -176,8 +175,9 @@ class MouseNavigation extends Control {
 
     onMouseWheel(event) {
 
-        if (this.stepIndex)
+        if (this.stepIndex) {
             return;
+        }
 
         this.planet.stopFlying();
 
@@ -243,8 +243,10 @@ class MouseNavigation extends Control {
 
     onMouseLeftButtonDown(e) {
         if (this._active) {
-            if (!this.grabbedPoint)
+
+            if (!this.grabbedPoint) {
                 return;
+            }
 
             this.planet.stopFlying();
 
@@ -356,8 +358,9 @@ class MouseNavigation extends Control {
                 }
             }
 
-            if (r.events.mouseState.leftButtonDown || !this.scaleRot)
+            if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
                 return;
+            }
 
             this.scaleRot -= this.inertia;
             if (this.scaleRot <= 0.0) {

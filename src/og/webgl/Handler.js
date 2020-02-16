@@ -141,7 +141,7 @@ const Handler = function (id, params) {
     if (params.autoActivate || isEmpty(params.autoActivate)) {
         this.initialize();
     }
-}
+};
 
 /**
  * The return value is null if the extension is not supported, or an extension object otherwise.
@@ -179,8 +179,7 @@ Handler.getContext = function (canvas, contextAttributes) {
                 break;
             }
         }
-    }
-    catch (ex) {
+    } catch (ex) {
         cons.logErr("exception during the GL context initialization");
     }
 
@@ -189,7 +188,7 @@ Handler.getContext = function (canvas, contextAttributes) {
     }
 
     return ctx;
-}
+};
 
 /**
  * Sets animation frame function.
@@ -198,7 +197,7 @@ Handler.getContext = function (canvas, contextAttributes) {
  */
 Handler.prototype.setFrameCallback = function (callback) {
     callback && (this._frameCallback = callback);
-}
+};
 
 /**
  * Creates NEAREST filter texture.
@@ -218,7 +217,7 @@ Handler.prototype.createTexture_n = function (image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates empty texture.
@@ -256,7 +255,7 @@ Handler.prototype.createEmptyTexture2DExt = function (
 
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 ///**
 // * Creates Empty half float texture.
@@ -319,7 +318,7 @@ Handler.prototype.createEmptyTexture_n = function (width, height) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates empty LINEAR filtered texture.
@@ -340,7 +339,7 @@ Handler.prototype.createEmptyTexture_l = function (width, height) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates LINEAR filter texture.
@@ -359,7 +358,7 @@ Handler.prototype.createTexture_l = function (image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates MIPMAP filter texture.
@@ -379,7 +378,7 @@ Handler.prototype.createTexture_mm = function (image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates ANISOTROPY filter texture.
@@ -400,7 +399,7 @@ Handler.prototype.createTexture_a = function (image) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     return texture;
-}
+};
 
 /**
  * Creates DEFAULT filter texture, ANISOTROPY is default.
@@ -409,8 +408,8 @@ Handler.prototype.createTexture_a = function (image) {
  * @returns {Object} - WebGL texture object.
  */
 Handler.prototype.createTexture = function (image) {
-    return this.createTexture_a(image)
-}
+    return this.createTexture_a(image);
+};
 
 /**
  * Creates cube texture.
@@ -455,17 +454,17 @@ Handler.prototype.loadCubeMapTexture = function (params) {
         let face = faces[i][1];
         let image = new Image();
         image.crossOrigin = '';
-        image.onload = function (texture, face, image) {
+        image.onload = (function (texture, face, image) {
             return function () {
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                 gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            }
-        }(texture, face, image);
+            };
+        }(texture, face, image));
         image.src = faces[i][0];
     }
     return texture;
-}
+};
 
 /**
  * Adds shader program to the handler.
@@ -479,13 +478,14 @@ Handler.prototype.addProgram = function (program, notActivate) {
         var sc = new ProgramController(this, program);
         this.programs[program.name] = sc;
         this._initProgramController(sc);
-        if (notActivate)
+        if (notActivate) {
             sc._activated = false;
+        }
     } else {
         console.log("og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists.");
     }
     return program;
-}
+};
 
 /**
  * Removes shader program from handler.
@@ -494,7 +494,7 @@ Handler.prototype.addProgram = function (program, notActivate) {
  */
 Handler.prototype.removeProgram = function (name) {
     this.programs[name] && this.programs[name].remove();
-}
+};
 
 /**
  * Adds shader programs to the handler.
@@ -505,7 +505,7 @@ Handler.prototype.addPrograms = function (programsArr) {
     for (var i = 0; i < programsArr.length; i++) {
         this.addProgram(programsArr[i]);
     }
-}
+};
 
 /**
  * Used in addProgram
@@ -524,7 +524,7 @@ Handler.prototype._initProgramController = function (sc) {
             this.activeProgram._program.use();
         }
     }
-}
+};
 
 /**
  * Used in init function.
@@ -534,7 +534,7 @@ Handler.prototype._initPrograms = function () {
     for (var p in this.programs) {
         this._initProgramController(this.programs[p]);
     }
-}
+};
 
 /**
  * Initialize additional WebGL extensions.
@@ -553,7 +553,7 @@ Handler.prototype.initializeExtension = function (extensionStr, showLog) {
         }
     }
     return this.extensions && this.extensions[extensionStr];
-}
+};
 
 /**
  * Main function that initialize handler.
@@ -588,13 +588,14 @@ Handler.prototype.initialize = function () {
         this.initializeExtension(this._params.extensions[i], true);
     }
 
-    if (!this.extensions.EXT_texture_filter_anisotropic)
+    if (!this.extensions.EXT_texture_filter_anisotropic) {
         this.createTexture = this.createTexture_mm;
+    }
 
     /** Initilalize shaders and rendering parameters*/
     this._initPrograms();
     this._setDefaults();
-}
+};
 
 /**
  * Sets default gl render parameters. Used in init function.
@@ -611,7 +612,7 @@ Handler.prototype._setDefaults = function () {
     this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
         that.transparentTexture = t;
     });
-}
+};
 
 /**
  * Activate depth test.
@@ -619,7 +620,7 @@ Handler.prototype._setDefaults = function () {
  */
 Handler.prototype.activateDepthTest = function () {
     this.gl.enable(this.gl.DEPTH_TEST);
-}
+};
 
 /**
  * Deactivate depth test.
@@ -627,7 +628,7 @@ Handler.prototype.activateDepthTest = function () {
  */
 Handler.prototype.deactivateDepthTest = function () {
     this.gl.disable(this.gl.DEPTH_TEST);
-}
+};
 
 /**
  * Activate face culling.
@@ -635,7 +636,7 @@ Handler.prototype.deactivateDepthTest = function () {
  */
 Handler.prototype.activateFaceCulling = function () {
     this.gl.enable(this.gl.CULL_FACE);
-}
+};
 
 /**
  * Deactivate face cullting.
@@ -643,7 +644,7 @@ Handler.prototype.activateFaceCulling = function () {
  */
 Handler.prototype.deactivateFaceCulling = function () {
     this.gl.disable(this.gl.CULL_FACE);
-}
+};
 
 /**
  * Activate blending.
@@ -651,7 +652,7 @@ Handler.prototype.deactivateFaceCulling = function () {
  */
 Handler.prototype.activateBlending = function () {
     this.gl.enable(this.gl.BLEND);
-}
+};
 
 /**
  * Deactivate blending.
@@ -659,7 +660,7 @@ Handler.prototype.activateBlending = function () {
  */
 Handler.prototype.deactivateBlending = function () {
     this.gl.disable(this.gl.BLEND);
-}
+};
 
 /**
  * Creates ARRAY buffer.
@@ -681,7 +682,7 @@ Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage
     buffer.itemSize = itemSize;
     buffer.numItems = numItems;
     return buffer;
-}
+};
 
 /**
  * Creates ELEMENT ARRAY buffer.
@@ -700,7 +701,7 @@ Handler.prototype.createElementArrayBuffer = function (array, itemSize, numItems
     buffer.itemSize = itemSize;
     buffer.numItems = numItems || array.length;
     return buffer;
-}
+};
 
 /**
  * Sets handler canvas size.
@@ -726,7 +727,7 @@ Handler.prototype.setSize = function (w, h) {
 
     this.gl && this.gl.viewport(0, 0, w, h);
     this.onCanvasResize && this.onCanvasResize(this.canvas);
-}
+};
 
 /**
  * Returns context screen width.
@@ -744,7 +745,7 @@ Handler.prototype.getWidth = function () {
  */
 Handler.prototype.getHeight = function () {
     return this.canvas.height;
-}
+};
 
 /**
  * Returns canvas aspect ratio.
@@ -753,7 +754,7 @@ Handler.prototype.getHeight = function () {
  */
 Handler.prototype.getClientAspect = function () {
     return this.canvas.clientWidth / this.canvas.clientHeight;
-}
+};
 
 /**
  * Returns screen center coordinates.
@@ -763,7 +764,7 @@ Handler.prototype.getClientAspect = function () {
 Handler.prototype.getCenter = function () {
     var c = this.canvas;
     return new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
-}
+};
 
 /**
  * Draw single frame.
@@ -792,7 +793,7 @@ Handler.prototype.drawFrame = function () {
 
     /** Draw frame */
     this._frameCallback();
-}
+};
 
 /**
  * Clearing gl frame.
@@ -802,7 +803,7 @@ Handler.prototype.clearFrame = function () {
     var gl = this.gl;
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-}
+};
 
 /**
  * Starts animation loop.
@@ -815,14 +816,14 @@ Handler.prototype.start = function () {
         this.defaultClock.setDate(d);
         this._animationFrameCallback();
     }
-}
+};
 
 Handler.prototype.stop = function () {
     if (this._requestAnimationFrameId) {
         window.cancelAnimationFrame(this._requestAnimationFrameId);
         this._requestAnimationFrameId = null;
     }
-}
+};
 
 /**
  * Make animation.
@@ -833,7 +834,7 @@ Handler.prototype._animationFrameCallback = function () {
         this.drawFrame();
         this._animationFrameCallback();
     });
-}
+};
 
 /**
  * Creates default texture object
@@ -868,7 +869,7 @@ Handler.prototype.createDefaultTexture = function (params, success) {
         texture.default = true;
         success(texture);
     }
-}
+};
 
 /**
  * @public
@@ -934,20 +935,20 @@ Handler.prototype.destroy = function () {
     this.gl = null;
 
     this._initialized = false;
-}
+};
 
 Handler.prototype.addClock = function (clock) {
     if (!clock.__handler) {
         clock.__handler = this;
         this._clocks.push(clock);
     }
-}
+};
 
 Handler.prototype.addClocks = function (clockArr) {
     for (var i = 0; i < clockArr.length; i++) {
         this.addClock(clockArr[i]);
     }
-}
+};
 
 Handler.prototype.removeClock = function (clock) {
     if (clock.__handler) {
@@ -961,7 +962,6 @@ Handler.prototype.removeClock = function (clock) {
             }
         }
     }
-}
+};
 
 export { Handler };
-

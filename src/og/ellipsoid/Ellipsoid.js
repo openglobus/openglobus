@@ -43,8 +43,9 @@ class Ellipsoid {
             b_y = Math.cos(b), b_x = Math.sin(b);
         let c = a_y * b_x - b_y * a_x,
             d = a_x * b_x + a_y * b_y;
-        if (c > 0.0)
+        if (c > 0.0) {
             return Math.acos(d);
+        }
         return -Math.acos(d);
     }
 
@@ -110,8 +111,7 @@ class Ellipsoid {
         if (Math.abs(dLon) > Math.PI) {
             if (dLon > 0) {
                 dLon = (2 * Math.PI - dLon) * -1;
-            }
-            else {
+            } else {
                 dLon = 2 * Math.PI + dLon;
             }
         }
@@ -161,8 +161,7 @@ class Ellipsoid {
         var df = f2 - f1,
             dl = l2 - l1;
 
-        var d12 = 2 * Math.asin(Math.sqrt(Math.sin(df / 2) * Math.sin(df / 2)
-            + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)));
+        var d12 = 2 * Math.asin(Math.sqrt(Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)));
         if (d12 == 0) return null;
 
         // initial/final bearings between points
@@ -177,10 +176,10 @@ class Ellipsoid {
         var a2 = (D21 - D23 + Math.PI) % (2 * Math.PI) - Math.PI;
 
         if (Math.sin(a1) == 0 && Math.sin(a2) == 0) return null; // infinite intersections
-        if (Math.sin(a1) * Math.sin(a2) < 0) return null;      // ambiguous intersection
+        if (Math.sin(a1) * Math.sin(a2) < 0) return null; // ambiguous intersection
 
-        //a1 = Math.abs(a1);
-        //a2 = Math.abs(a2);
+        // a1 = Math.abs(a1);
+        // a2 = Math.abs(a2);
         // ... Ed Williams takes abs of a1/a2, but seems to break calculation?
 
         var a3 = Math.acos(-Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12));
@@ -311,13 +310,12 @@ class Ellipsoid {
         var q = Math.sqrt(1.0 + 2.0 * ecc22 * p);
         var recc2r0 = r - ecc2 * (-(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2));
         var recc2r02 = recc2r0 * recc2r0;
-        var u = Math.sqrt(recc2r02 + z2);
+        // var u = Math.sqrt(recc2r02 + z2);
         var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
         var z0 = this._b2 * z / (this._a * v);
         var lat = Math.atan((z + this._k2 * z0) / r) * math.DEGREES;
         var lon = Math.atan2(y, x) * math.DEGREES;
-        var c = this.geodeticToCartesian(lon, lat);
-        return new LonLat(lon, lat, cartesian.length() - c.length());
+        return new LonLat(lon, lat, cartesian.length() - this.geodeticToCartesian(lon, lat).length());
     }
 
     /**
@@ -334,7 +332,6 @@ class Ellipsoid {
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
         return new Vec3(nx * l, ny * l, nz * l);
     }
-
 
     /**
      * Returns the distance from one point to another(using haversine formula) on the great circle.
@@ -356,8 +353,7 @@ class Ellipsoid {
         var f1 = lonLat1.lat * math.RADIANS, l1 = nlon * math.RADIANS;
         var dR = distance / this._a;
         var f2 = Math.asin(Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing));
-        return new LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2)))
-            * math.DEGREES, f2 * math.DEGREES);
+        return new LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2))) * math.DEGREES, f2 * math.DEGREES);
     }
 
     /**

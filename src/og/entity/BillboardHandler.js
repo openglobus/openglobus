@@ -201,7 +201,7 @@ class BillboardHandler {
             this._billboards.push(billboard);
             this._addBillboardToArrays(billboard);
             this.refresh();
-            billboard.setSrc(billboard._src || billboard._image && billboard._image.src);
+            billboard.setSrc(billboard._src || (billboard._image && billboard._image.src));
         }
     }
 
@@ -217,7 +217,7 @@ class BillboardHandler {
         var x = billboard._positionHigh.x, y = billboard._positionHigh.y, z = billboard._positionHigh.z, w;
         BillboardHandler.concArr(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = billboard._positionLow.x, y = billboard._positionLow.y, z = billboard._positionLow.z;
+        x = billboard._positionLow.x; y = billboard._positionLow.y; z = billboard._positionLow.z;
         BillboardHandler.concArr(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = billboard._width; y = billboard._height;
@@ -232,10 +232,10 @@ class BillboardHandler {
         x = billboard._rotation;
         BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
 
-        x = billboard._alignedAxis.x, y = billboard._alignedAxis.y, z = billboard._alignedAxis.z;
+        x = billboard._alignedAxis.x; y = billboard._alignedAxis.y; z = billboard._alignedAxis.z;
         BillboardHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = billboard._entity._pickingColor.x / 255, y = billboard._entity._pickingColor.y / 255, z = billboard._entity._pickingColor.z / 255;
+        x = billboard._entity._pickingColor.x / 255; y = billboard._entity._pickingColor.y / 255; z = billboard._entity._pickingColor.z / 255;
         BillboardHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
@@ -303,8 +303,6 @@ class BillboardHandler {
         var sh = h.programs.billboardPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
-
-        var gl = h.gl;
 
         var gl = h.gl,
             ec = this._entityCollection;
@@ -412,7 +410,7 @@ class BillboardHandler {
 
         var i = index * 18;
 
-        //High
+        // High
         var a = this._positionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z;
 
         a[i] = x;
@@ -439,8 +437,8 @@ class BillboardHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        //Low
-        a = this._positionLowArr, x = positionLow.x, y = positionLow.y, z = positionLow.z;
+        // Low
+        a = this._positionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -609,7 +607,7 @@ class BillboardHandler {
         a[i + 4] = rotation;
         a[i + 5] = rotation;
 
-        this._changedBuffers[ROTATION_BUFFER] = true
+        this._changedBuffers[ROTATION_BUFFER] = true;
     }
 
     setTexCoordArr(index, tcoordArr) {

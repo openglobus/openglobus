@@ -10,10 +10,10 @@
  * @api
  */
 export const Units = {
-    "DEGREES": "degrees",
-    "FEET": "ft",
-    "METERS": "m",
-    "KILOMETERS": "km"
+    DEGREES: "degrees",
+    FEET: "ft",
+    METERS: "m",
+    KILOMETERS: "km"
 };
 
 /**

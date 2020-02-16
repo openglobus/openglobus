@@ -12,7 +12,6 @@ import { LonLat } from '../LonLat.js';
 import { Material } from './Material.js';
 import { Vec3 } from '../math/Vec3.js';
 
-
 export const FADING_FACTOR = 0.29;
 
 /**
@@ -191,7 +190,7 @@ class Layer {
          */
         this._extentMerc = null;
 
-        //Setting the extent up
+        // Setting the extent up
         this.setExtent(utils.createExtent(options.extent, new Extent(new LonLat(-180, -90), new LonLat(180, 90))));
 
         /**
@@ -273,7 +272,7 @@ class Layer {
     }
 
     get pickingEnabled() {
-        return this._pickingEnabled ? true : false;
+        return !!this._pickingEnabled;
     }
 
     /**
@@ -350,7 +349,6 @@ class Layer {
     remove() {
         var p = this._planet;
         if (p) {
-            var lid = this._id;
             for (var i = 0; i < p.layers.length; i++) {
                 if (this.isEqual(p.layers[i])) {
                     p.renderer.clearPickingColor(this);
@@ -530,22 +528,22 @@ class Layer {
      * @protected
      */
     _correctFullExtent() {
-        //var e = this._extent,
+        // var e = this._extent,
         //    em = this._extentMerc;
-        //var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
-        //var ENLARGE_MERCATOR_LAT = og.mercator.POLE + 50000;
-        //if (e.northEast.lat === 90.0) {
+        // var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
+        // var ENLARGE_MERCATOR_LAT = og.mercator.POLE + 50000;
+        // if (e.northEast.lat === 90.0) {
         //    em.northEast.lat = ENLARGE_MERCATOR_LAT;
-        //}
-        //if (e.northEast.lon === 180.0) {
+        // }
+        // if (e.northEast.lon === 180.0) {
         //    em.northEast.lon = ENLARGE_MERCATOR_LON;
-        //}
-        //if (e.southWest.lat === -90.0) {
+        // }
+        // if (e.southWest.lat === -90.0) {
         //    em.southWest.lat = -ENLARGE_MERCATOR_LAT;
-        //}
-        //if (e.southWest.lon === -180.0) {
+        // }
+        // if (e.southWest.lon === -180.0) {
         //    em.southWest.lon = -ENLARGE_MERCATOR_LON;
-        //}
+        // }
     }
 
     _refreshFadingOpacity() {
@@ -555,8 +553,8 @@ class Layer {
 
             this._fadingOpacity += this._fadingFactor;
 
-            if (this._fadingFactor > 0.0 && this._fadingOpacity > this._opacity ||
-                this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity) {
+            if ((this._fadingFactor > 0.0 && this._fadingOpacity > this._opacity) ||
+                (this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity)) {
                 this._fadingOpacity = this._opacity;
             }
             return false;

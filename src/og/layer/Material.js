@@ -17,7 +17,7 @@ const Material = function (segment, layer) {
     this.texOffset = [0.0, 0.0, 1.0, 1.0];
     this.loadingAttempts = 0;
 
-    //vector data
+    // vector data
     this._updateTexture = null;
     this._updatePickingMask = null;
     this.pickingReady = false;

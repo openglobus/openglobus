@@ -57,7 +57,6 @@ class BaseNode {
         this.__counter__ = n;
     }
 
-
     /**
      * Adds node to the current hierarchy.
      * @public
@@ -66,8 +65,7 @@ class BaseNode {
     addNode(node) {
         if (this.parentNode == null) {
             node.topNode = this;
-        }
-        else {
+        } else {
             node.topNode = this.topNode;
         }
         node.parentNode = this;

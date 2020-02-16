@@ -94,13 +94,13 @@ class GeoImage extends BaseGeoImage {
                 if (this._image.complete) {
                     this._onLoad(this._image);
                 } else if (this._image.src) {
-                    var that = this;
+                    let that = this;
                     this._image.addEventListener('load', function (e) {
                         that._onLoad(this);
                     });
                 }
             } else {
-                var that = this;
+                let that = this;
                 this._image = new Image();
                 this._image.addEventListener('load', function (e) {
                     that._onLoad(this);

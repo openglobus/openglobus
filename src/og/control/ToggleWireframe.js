@@ -19,7 +19,6 @@ class ToggleWireframe extends Control {
         this._isActive = options.isActive || false;
     }
 
-
     oninit() {
         this.renderer.events.on("charkeypress", input.KEY_X, this.toogleWireframe, this);
         if (this._isActive) {

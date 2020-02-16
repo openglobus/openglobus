@@ -1,9 +1,4 @@
-/**
- * @module og/astro/astro
- */
-
 'use strict';
-
 
 import * as jd from './jd.js';
 

@@ -10,8 +10,6 @@ import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
-import { MAX_RENDERED_NODES } from '../quadTree/quadTree.js';
-import { EPSG3857 } from '../proj/EPSG3857.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
@@ -32,12 +30,9 @@ import { PlainSegmentWorker } from '../segment/PlainSegmentWorker.js';
 import { TerrainWorker } from '../utils/TerrainWorker.js';
 import { VectorTileCreator } from '../utils/VectorTileCreator.js';
 import { wgs84 } from '../ellipsoid/wgs84.js';
-import { print2d } from '../utils/shared.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
-import { Plane } from '../math/Plane.js';
 import { Geoid } from '../terrain/Geoid.js';
-import { doubleToTwoFloats } from '../math/coder.js';
 
 const MAX_LOD = 1.0;
 const MIN_LOD = 0.95;
@@ -49,8 +44,6 @@ const MIN_LOD = 0.95;
  * @default
  */
 const MAX_NODES = 500;
-
-const GLOBAL_DRAW_PRIORITY = -math.MAX;
 
 const EVENT_NAMES = [
     /**
@@ -357,7 +350,6 @@ class Planet extends RenderNode {
         this._maxLodRatio = MAX_LOD;
         this._minLodRatio = MIN_LOD;
 
-
         this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
         this._specularMaterialArr = new Float32Array(this.SLICE_SIZE_4 + 4);
@@ -388,7 +380,6 @@ class Planet extends RenderNode {
 
         this._memKey = new Key();
 
-        //events initialization
         this.events.registerNames(EVENT_NAMES);
 
         this._tempPickingPix_ = new Uint8Array(4);
@@ -409,8 +400,9 @@ class Planet extends RenderNode {
 
     setRatioLod(maxLod, minLod) {
         this._maxLodRatio = maxLod;
-        if (minLod)
+        if (minLod) {
             this._minLodRatio = minLod;
+        }
     }
 
     /**
@@ -432,8 +424,9 @@ class Planet extends RenderNode {
     getLayerByName(name) {
         var i = this.layers.length;
         while (i--) {
-            if (this.layers[i].name === name)
+            if (this.layers[i].name === name) {
                 return this.layers[i];
+            }
         }
     }
 
@@ -548,7 +541,7 @@ class Planet extends RenderNode {
     setTerrain(terrain) {
 
         //
-        //TODO: Replace to terrain
+        // TODO: Replace to terrain
         //
 
         this.terrain = terrain;
@@ -583,8 +576,8 @@ class Planet extends RenderNode {
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
         this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
-            'width': 320,
-            'height': 240
+            width: 320,
+            height: 240
         });
 
         this._heightPickingFramebuffer.init();
@@ -595,10 +588,10 @@ class Planet extends RenderNode {
      * @public
      */
     init() {
-        //Initialization indexes table
+        // Initialization indexes table
         var TABLESIZE = segmentHelper.TABLESIZE;
 
-        //Iniytialize indexes buffers cache. It takes ~120mb RAM!
+        // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
             var c = Math.pow(2, i);
             !this._indexesCache[c] && (this._indexesCache[c] = []);
@@ -623,8 +616,8 @@ class Planet extends RenderNode {
                             }
 
                             this._indexesCache[c][w][n][e][s] = {
-                                'indexes': indexes,
-                                'buffer': buffer
+                                indexes: indexes,
+                                buffer: buffer
                             };
                         }
                     }
@@ -632,7 +625,7 @@ class Planet extends RenderNode {
             }
         }
 
-        //create empty textures
+        // creating empty textures
         var that = this;
         this.renderer.handler.createDefaultTexture(null, function (t) {
             that.solidTextureOne = t;
@@ -649,14 +642,14 @@ class Planet extends RenderNode {
 
         this.camera.update();
 
-        //Creating quad trees nodes
+        // Creating quad trees nodes
         this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
         this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]));
         this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]));
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
-        //Applying shaders
+        // Applying shaders
         this._initializeShaders();
 
         this.updateVisibleLayers();
@@ -675,15 +668,17 @@ class Planet extends RenderNode {
 
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
-        //load Earth night glowing texture
+        // loading Earth night glowing texture
         if (this._useNightTexture) {
+            // eslint-disable-next-line no-undef
             createImageBitmap(NIGHT).then((e) =>
                 this._nightTexture = this.renderer.handler.createTexture_mm(e)
             );
         }
 
-        //load water specular mask
+        // load water specular mask
         if (this._useSpecularTexture) {
+            // eslint-disable-next-line no-undef
             createImageBitmap(SPECULAR).then((e) =>
                 this._specularTexture = this.renderer.handler.createTexture_l(e)
             );
@@ -699,7 +694,7 @@ class Planet extends RenderNode {
 
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 
-        //Loads first nodes for better viewing if you have started on a lower altitude.
+        // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
     }
 
@@ -866,8 +861,7 @@ class Planet extends RenderNode {
     _collectRenderNodes() {
 
         this._lodRatio = math.lerp(
-            this.camera.slope < 0.0 ? 0.0 :
-                this.camera.slope,
+            this.camera.slope < 0.0 ? 0.0 : this.camera.slope,
             this._maxLodRatio, this._minLodRatio
         );
 
@@ -875,7 +869,7 @@ class Planet extends RenderNode {
 
         this._nodeCounterError_ = 0;
 
-        //clear first
+        // clear first
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
 
@@ -892,7 +886,7 @@ class Planet extends RenderNode {
         this._quadTreeSouth.renderTree(this.camera, 0, null);
         this._quadTree.renderTree(this.camera, 0, null);
 
-        //TODO:Abolish "magic" numbers
+        // TODO:Abolish "magic" numbers
         if (this.renderer.activeCamera.slope > 0.8 &&
             this.renderer.activeCamera._lonLat.height < 850000.0 &&
             this.renderer.activeCamera._lonLat.height > 10000.0) {
@@ -917,8 +911,6 @@ class Planet extends RenderNode {
                 }
             }
         }
-
-        //this._renderedNodes.push(this.camera._insideSegment.node);
     }
 
     _globalPreDraw() {
@@ -935,15 +927,15 @@ class Planet extends RenderNode {
      */
     frame() {
 
-        //free memory
+        // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
             this.memClear();
         }
 
         this._collectRenderNodes();
 
-        //Here is the planet node dispatches a draw event before
-        //rendering begins and we have got render nodes.
+        // Here is the planet node dispatches a draw event before
+        // rendering begins and we have got render nodes.
         this.events.dispatch(this.events.draw, this);
 
         this.transformLights();
@@ -952,7 +944,7 @@ class Planet extends RenderNode {
 
         this._singleframebufferRendering();
 
-        //Creates geoImages textures.
+        // Creating geoImages textures.
         this._geoImageCreator.frame();
     }
 
@@ -992,12 +984,12 @@ class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera._viewMatrix._m);
             gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera._projectionMatrix._m);
 
-            //bind night glowing material
+            // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture) || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, ((this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
-            //bind specular material
+            // bind specular material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
@@ -1041,7 +1033,7 @@ class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //draw planet's nodes
+        // drawing planet nodes
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
@@ -1056,9 +1048,9 @@ class Planet extends RenderNode {
         }
 
         i = rn.length;
-        while (i--) { 
+        while (i--) {
             let s = rn[i].segment;
-            //s.equalize();
+            // TODO: s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0);
         }
@@ -1115,7 +1107,7 @@ class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //draw planet's nodes
+        // drawing planet nodes
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
@@ -1163,7 +1155,7 @@ class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //draw planet's nodes
+        // drawing planet nodes
         var rn = this._renderedNodes,
             sl = this._visibleTileLayerSlices;
 
@@ -1207,10 +1199,10 @@ class Planet extends RenderNode {
             vi.update();
         }
 
-        //3d entities(billnoards, labesl, shapes etc.) rendering
+        // Entities(billnoards, labesl, shapes etc.) rendering
         this.drawEntityCollections(this._frustumEntityCollections);
 
-        //Vector tiles rasteriazation
+        // Vector tiles rasteriazation
         this._vectorTileCreator.frame();
     }
 
@@ -1229,7 +1221,6 @@ class Planet extends RenderNode {
     memClear() {
         this._distBeforeMemClear = 0;
 
-        //??? private ???
         this.camera._insideSegment = null;
 
         this.layerLock.lock(this._memKey);
@@ -1241,7 +1232,7 @@ class Planet extends RenderNode {
         this._tileLoader.abort();
 
         var that = this;
-        //setTimeout(function () {
+        // setTimeout(function () {
         that._quadTree.clearTree();
         that._quadTreeNorth.clearTree();
         that._quadTreeSouth.clearTree();
@@ -1249,7 +1240,7 @@ class Planet extends RenderNode {
         that.layerLock.free(that._memKey);
         that.terrainLock.free(that._memKey);
         that._normalMapCreator.free(that._memKey);
-        //}, 0);
+        // }, 0);
 
         this._createdNodesCount = 0;
     }
@@ -1357,8 +1348,9 @@ class Planet extends RenderNode {
      */
     getPixelFromLonLat(lonlat) {
         var coords = this.ellipsoid.lonLatToCartesian(lonlat);
-        if (coords)
+        if (coords) {
             return this.renderer.activeCamera.project(coords);
+        }
         return null;
     }
 

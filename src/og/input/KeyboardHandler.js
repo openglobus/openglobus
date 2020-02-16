@@ -20,8 +20,8 @@ const KeyboardHandler = function () {
     } else {
         KeyboardHandler.prototype._instance = this;
 
-        document.onkeydown = function (event) { _event = event; _active && _that.handleKeyDown.call(_that) };
-        document.onkeyup = function (event) { _event = event; _active && _that.handleKeyUp.call(_that) };
+        document.onkeydown = function (event) { _event = event; _active && _that.handleKeyDown(); };
+        document.onkeyup = function (event) { _event = event; _active && _that.handleKeyUp(); };
     }
 
     var _sortByPriority = function (a, b) {
@@ -30,7 +30,7 @@ const KeyboardHandler = function () {
 
     this.removeEvent = function (events, callback) {
         //
-        //TODO:...
+        // TODO:...
         //
     };
 
@@ -43,17 +43,17 @@ const KeyboardHandler = function () {
             priority = 1600;
         }
         switch (event) {
-            case "keyfree": {
+            case "keyfree":
                 if (!_unpressedKeysCallbacks[keyCode]) {
                     _unpressedKeysCallbacks[keyCode] = [];
                 }
                 _unpressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
                 _unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
-            } break;
+                break;
 
-            case "keypress": {
+            case "keypress":
                 if (keyCode == null) {
-                    _anykeyCallback = { "callback": callback, "sender": sender || _that };
+                    _anykeyCallback = { callback: callback, sender: sender || _that };
                 } else {
                     if (!_pressedKeysCallbacks[keyCode]) {
                         _pressedKeysCallbacks[keyCode] = [];
@@ -61,15 +61,15 @@ const KeyboardHandler = function () {
                     _pressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
                     _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                 }
-            } break;
+                break;
 
-            case "charkeypress": {
+            case "charkeypress":
                 if (!_charkeysCallbacks[keyCode]) {
                     _charkeysCallbacks[keyCode] = [];
                 }
                 _charkeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
                 _charkeysCallbacks[keyCode].sort(_sortByPriority);
-            } break;
+                break;
         }
     };
 

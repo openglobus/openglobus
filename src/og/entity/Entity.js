@@ -8,7 +8,6 @@ import * as mercator from '../mercator.js';
 import * as utils from '../utils/shared.js';
 import { Billboard } from './Billboard.js';
 import { Strip } from './Strip.js';
-//import { Box } from '../shapes/Box.js';
 import { Extent } from '../Extent.js';
 import { Geometry } from './Geometry.js';
 import { Label } from './Label.js';
@@ -18,7 +17,6 @@ import { Ray } from './Ray.js';
 import { PointCloud } from './PointCloud.js';
 import { Sphere } from '../shapes/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
-
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -154,15 +152,15 @@ class Entity {
         this._pickingColor = new Vec3(0, 0, 0);
 
         this._featureConstructorArray = {
-            "billboard": [Billboard, this.setBillboard],
-            "label": [Label, this.setLabel],
-            "sphere": [Sphere, this.setShape],
-            //"box": [Box, this.setShape],
-            "polyline": [Polyline, this.setPolyline],
-            "pointCloud": [PointCloud, this.setPointCloud],
-            "geometry": [Geometry, this.setGeometry],
-            "strip": [Strip, this.setStrip],
-            "ray": [Ray, this.setRay]
+            billboard: [Billboard, this.setBillboard],
+            label: [Label, this.setLabel],
+            sphere: [Sphere, this.setShape],
+            // box: [Box, this.setShape],
+            polyline: [Polyline, this.setPolyline],
+            pointCloud: [PointCloud, this.setPointCloud],
+            geometry: [Geometry, this.setGeometry],
+            strip: [Strip, this.setStrip],
+            ray: [Ray, this.setRay]
         };
 
         /**
@@ -220,9 +218,6 @@ class Entity {
          * @type {og.Strip}
          */
         this.strip = this._createOptionFeature('strip', options.strip);
-
-        //this.model = null;
-        //...
     }
 
     static get _staticCounter() {
@@ -281,22 +276,22 @@ class Entity {
     setVisibility(visibility) {
         this._visibility = visibility;
 
-        //billboards
+        // billboards
         this.billboard && this.billboard.setVisibility(visibility);
 
-        //labels
+        // labels
         this.label && this.label.setVisibility(visibility);
 
-        //shape
+        // shape
         this.shape && this.shape.setVisibility(visibility);
 
-        //polyline
+        // polyline
         this.polyline && this.polyline.setVisibility(visibility);
 
-        //ray
+        // ray
         this.ray && this.ray.setVisibility(visibility);
 
-        //geometry
+        // geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
@@ -337,13 +332,13 @@ class Entity {
         p.y = y;
         p.z = z;
 
-        //billboards
+        // billboards
         this.billboard && this.billboard.setPosition3v(p);
 
-        //labels
+        // labels
         this.label && this.label.setPosition3v(p);
 
-        //shape
+        // shape
         this.shape && this.shape.setPosition3v(p);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
@@ -380,13 +375,13 @@ class Entity {
         p.y = cartesian.y;
         p.z = cartesian.z;
 
-        //billboards
+        // billboards
         this.billboard && this.billboard.setPosition3v(p);
 
-        //labels
+        // labels
         this.label && this.label.setPosition3v(p);
 
-        //shape
+        // shape
         this.shape && this.shape.setPosition3v(p);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
@@ -641,22 +636,22 @@ class Entity {
 
         var c = this._pickingColor;
 
-        //billboard
+        // billboard
         this.billboard && this.billboard.setPickingColor3v(c);
 
-        //label
+        // label
         this.label && this.label.setPickingColor3v(c);
 
-        //shape
+        // shape
         this.shape && this.shape.setPickingColor3v(c);
 
-        //polyline
+        // polyline
         this.polyline && this.polyline.setPickingColor3v(c);
 
-        //ray
+        // ray
         this.ray && this.ray.setPickingColor3v(c);
 
-        //strip
+        // strip
         this.strip && this.strip.setPickingColor3v(c);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
@@ -681,7 +676,7 @@ class Entity {
             ne = res.northEast;
 
         if (this.polyline) {
-            var e = this.polyline.getExtent();
+            let e = this.polyline.getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
             if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;
@@ -689,7 +684,7 @@ class Entity {
         }
 
         if (this.geometry) {
-            var e = this.geometry.getExtent();
+            let e = this.geometry.getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
             if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;
@@ -697,7 +692,7 @@ class Entity {
         }
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
-            var e = this.childrenNodes[i].getExtent();
+            let e = this.childrenNodes[i].getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
             if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;

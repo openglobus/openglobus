@@ -122,7 +122,6 @@ Vec4.prototype.toVec = function () {
     return [this.x, this.y, this.z, this.w];
 };
 
-
 /**
  * Converts vector to a number array.
  * @public

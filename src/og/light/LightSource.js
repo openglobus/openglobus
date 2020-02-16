@@ -108,7 +108,7 @@ class LightSource {
      * @returns {og.LightSource}
      */
     clone() {
-        //TODO
+        // TODO
     }
 
     /**
