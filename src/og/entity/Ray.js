@@ -31,10 +31,10 @@ class Ray {
          */
         this.id = Entity._staticCounter++;
 
-        //Thickenss
+        // Thickenss
         this._thickness = options.thickness || 2.0;
 
-        //RTE length
+        // RTE length
         this._length = options.length || 0.0;
         this._lengthHighLow = new Float32Array(2);
         doubleToTwoFloats2(this._length, this._lengthHighLow);
@@ -51,7 +51,7 @@ class Ray {
         this._endPositionLow = new Vec3();
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
 
-        //start end point colors
+        // start end point colors
         this._startColor = utils.createColorRGBA(options.startColor);
         this._endColor = utils.createColorRGBA(options.endColor);
 
@@ -142,7 +142,6 @@ class Ray {
 
     setLength(length) {
         this._length = length;
-        //doubleToTwoFloats2(this._length, this._lengthHighLow);
         this._handler && this._handler.setLengthArr(this._handlerIndex, length);
     }
 

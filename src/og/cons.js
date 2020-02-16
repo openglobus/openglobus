@@ -106,4 +106,3 @@ export class Cons {
 }
 
 export const cons = new Cons();
-

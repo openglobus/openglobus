@@ -231,10 +231,6 @@ class RendererEvents extends Events {
         }
     }
 
-    isKeyPressed(keyCode) {
-        return this._keyboardHandler.isKeyPressed(keyCode);
-    }
-
     /**
      * Check key is pressed.
      * @public
@@ -299,7 +295,6 @@ class RendererEvents extends Events {
 
         //dispatch stop mouse event
         clearTimeout(this._mousestopThread);
-        var that = this;
         this._mousestopThread = setTimeout(function () {
             ms.justStopped = true;
         }, 100);
@@ -348,7 +343,7 @@ class RendererEvents extends Events {
                 (t - this._lClkBegins <= ms.clickDelay)) {
 
                 if (this._ldblClkBegins) {
-                    var deltatime = window.performance.now() - this._ldblClkBegins;
+                    let deltatime = window.performance.now() - this._ldblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.leftButtonDoubleClick = true;
                     }
@@ -370,7 +365,7 @@ class RendererEvents extends Events {
                 (t - this._rClkBegins <= ms.clickDelay)) {
 
                 if (this._rdblClkBegins) {
-                    var deltatime = window.performance.now() - this._rdblClkBegins;
+                    let deltatime = window.performance.now() - this._rdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.rightButtonDoubleClick = true;
                     }

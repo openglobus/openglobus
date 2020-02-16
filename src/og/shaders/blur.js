@@ -5,7 +5,7 @@ import { Program } from '../webgl/Program.js';
 export function buildKernel(sigma) {
 
     function gauss(x, sigma) {
-        return Math.exp(- (x * x) / (2.0 * sigma * sigma));
+        return Math.exp(-(x * x) / (2.0 * sigma * sigma));
     }
 
     var i, values, sum, halfWidth, kMaxKernelSize = 25, kernelSize = 2 * Math.ceil(sigma * 3.0) + 1;

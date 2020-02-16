@@ -7,7 +7,6 @@
 import * as math from '../math.js';
 import { Vec3 } from './Vec3.js';
 
-
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
  * @class
@@ -85,7 +84,6 @@ Ray.prototype.getPoint = function (distance) {
  *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
  */
 Ray.prototype.hitTriangle = function (v0, v1, v2, res, normal) {
-    var state;
     var u = v1.sub(v0);
     var v = v2.sub(v0);
     var n = u.cross(v);
@@ -112,8 +110,9 @@ Ray.prototype.hitTriangle = function (v0, v1, v2, res, normal) {
     res.copy(this.origin.add(this.direction.scaleTo(r)));
 
     // ray goes away from triangle
-    if (r < 0.0)
+    if (r < 0.0) {
         return Ray.AWAY;
+    }
 
     // is res point inside the triangle?
     var uu = u.dot(u);
@@ -125,12 +124,14 @@ Ray.prototype.hitTriangle = function (v0, v1, v2, res, normal) {
     var D = uv * uv - uu * vv;
 
     var s = (uv * wv - vv * wu) / D;
-    if (s < 0.0 || s > 1.0)
+    if (s < 0.0 || s > 1.0) {
         return Ray.OUTSIDE;
+    }
 
     var t = (uv * wu - uu * wv) / D;
-    if (t < 0.0 || (s + t) > 1.0)
+    if (t < 0.0 || (s + t) > 1.0) {
         return Ray.OUTSIDE;
+    }
 
     return Ray.INSIDE;
 };
@@ -195,27 +196,27 @@ Ray.prototype.hitSphere = function (sphere) {
         } else if (l === r) {
             return o.clone();
         }
-        var pc = c.projToRay(o, vpc);
+        let pc = c.projToRay(o, vpc);
         var lc = Vec3.sub(pc, c).length();
-        var dist = Math.sqrt(r * r - lc * lc);
-        var di1 = dist - Vec3.sub(pc, o).length();
-        var intersection = Vec3.add(o, d.scaleTo(di1));
+        let dist = Math.sqrt(r * r - lc * lc);
+        let di1 = dist - Vec3.sub(pc, o).length();
+        let intersection = Vec3.add(o, d.scaleTo(di1));
         return intersection;
     } else {
-        var pc = c.projToRay(o, d);
+        let pc = c.projToRay(o, d);
         var cpcl = Vec3.sub(c, pc).length();
         if (cpcl > sphere.radius) {
             return null;
         } else {
-            var dist = Math.sqrt(r * r - cpcl * cpcl);
-            var di1;
+            let dist = Math.sqrt(r * r - cpcl * cpcl);
+            let di1;
             pc.subA(o);
             if (vpc.length() > r) {
                 di1 = pc.length() - dist;
             } else {
                 di1 = pc.length() + dist;
             }
-            var intersection = Vec3.add(o, d.scaleTo(di1));
+            let intersection = Vec3.add(o, d.scaleTo(di1));
             return intersection;
         }
     }
@@ -223,7 +224,7 @@ Ray.prototype.hitSphere = function (sphere) {
 
 Ray.prototype.hitBox = function (box) {
     //
-    //TODO
+    // TODO
     //
 };
 

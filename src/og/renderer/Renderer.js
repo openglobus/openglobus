@@ -8,7 +8,6 @@ import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { cons } from '../cons.js';
-//import { Program } from '../webgl/Program.js';
 import { input } from '../input/input.js';
 import { isEmpty } from '../utils/shared.js';
 import { toneMapping } from '../shaders/toneMapping.js';
@@ -223,7 +222,7 @@ Renderer.prototype.setEventsActivity = function (activity) {
  */
 Renderer.prototype.addPickingCallback = function (sender, callback) {
     var id = Renderer.__pickingCallbackCounter__++;
-    this._pickingCallbacks.push({ "id": id, "callback": callback, "sender": sender });
+    this._pickingCallbacks.push({ id: id, callback: callback, sender: sender });
     return id;
 };
 
@@ -265,16 +264,17 @@ Renderer.prototype.assignPickingColor = function (obj) {
             str = r + "_" + g + "_" + b;
         }
 
-        if (!obj._pickingColor)
+        if (!obj._pickingColor) {
             obj._pickingColor = new Vec3(r, g, b);
-        else
+        } else {
             obj._pickingColor.set(r, g, b);
+        }
 
         obj._pickingColorU = new Float32Array([r / 255, g / 255, b / 255]);
 
         this.colorObjects[str] = obj;
     }
-}
+};
 
 /**
  * Removes picking color from object.
@@ -352,10 +352,11 @@ Renderer.prototype.removeControl = function (control) {
  */
 Renderer.prototype.initialize = function () {
 
-    if (this._initialized)
+    if (this._initialized) {
         return;
-    else
+    } else {
         this._initialized = true;
+    }
 
     var that = this;
 
@@ -368,14 +369,14 @@ Renderer.prototype.initialize = function () {
     });
 
     this.activeCamera = new Camera(this, {
-        'eye': new Vec3(0, 0, 0),
-        'look': new Vec3(0, 0, -1),
-        'up': new Vec3(0, 1, 0)
+        eye: new Vec3(0, 0, 0),
+        look: new Vec3(0, 0, -1),
+        up: new Vec3(0, 1, 0)
     });
 
     this.events.initialize();
 
-    //Bind console key
+    // Bind console key
     this.events.on("charkeypress", input.KEY_APOSTROPHE, function () {
         cons.setVisibility(!cons.getVisibility());
     });
@@ -383,8 +384,8 @@ Renderer.prototype.initialize = function () {
     this.handler.addProgram(screenFrame());
 
     this.pickingFramebuffer = new Framebuffer(this.handler, {
-        'width': 640,
-        'height': 480
+        width: 640,
+        height: 480
     }).init();
 
     this.readPixels = () => { };
@@ -532,11 +533,11 @@ Renderer.prototype._drawEntityCollections = function () {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
         gl.disable(gl.CULL_FACE);
 
-        //Z-buffer offset
+        // Z-buffer offset
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.polygonOffset(0.0, 0.0);
 
-        //billboards pass
+        // billboards pass
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
@@ -544,13 +545,13 @@ Renderer.prototype._drawEntityCollections = function () {
         while (i--) {
             var eci = ec[i];
             if (eci._fadingOpacity) {
-                //first begin draw event
+                // first begin draw event
                 eci.events.dispatch(eci.events.draw, eci);
                 eci.billboardHandler.draw();
             }
         }
 
-        //labels pass
+        // labels pass
         var fa = this.fontAtlas.atlasesArr;
         for (i = 0; i < fa.length; i++) {
             gl.activeTexture(gl.TEXTURE0 + i);
@@ -562,13 +563,13 @@ Renderer.prototype._drawEntityCollections = function () {
             ec[i]._fadingOpacity && ec[i].labelHandler.draw();
         }
 
-        //rays
+        // rays
         i = ec.length;
         while (i--) {
             ec[i]._fadingOpacity && ec[i].rayHandler.draw();
         }
 
-        //polyline pass
+        // polyline pass
         i = ec.length;
         while (i--) {
             ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
@@ -576,7 +577,7 @@ Renderer.prototype._drawEntityCollections = function () {
 
         gl.enable(gl.CULL_FACE);
 
-        //pointClouds pass
+        // pointClouds pass
         i = ec.length;
         while (i--) {
             if (ec[i]._fadingOpacity) {
@@ -584,32 +585,32 @@ Renderer.prototype._drawEntityCollections = function () {
             }
         }
 
-        //shapes pass
+        // shapes pass
         i = ec.length;
         while (i--) {
-            var eci = ec[i];
+            eci = ec[i];
             if (eci._fadingOpacity) {
                 eci.shapeHandler.draw();
             }
         }
 
-        //Strip pass
+        // Strip pass
         i = ec.length;
         while (i--) {
             if (ec[i]._fadingOpacity) {
                 ec[i].stripHandler.draw();
-                //post draw event
+                // post draw event
                 eci.events.dispatch(eci.events.drawend, eci);
             }
         }
 
-        //gl.polygonOffset(0.0, 0.0);
+        // gl.polygonOffset(0.0, 0.0);
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         this._entityCollections.length = 0;
         this._entityCollections = [];
     }
-}
+};
 
 /**
  * Draw nodes.
@@ -627,7 +628,7 @@ Renderer.prototype.draw = function () {
 
     var h = this.handler;
 
-    //h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
     h.gl.clearColor(115 / 255, 203 / 255, 249 / 255, 1.0);
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
@@ -636,7 +637,7 @@ Renderer.prototype.draw = function () {
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
-    //Rendering scene nodes
+    // Rendering scene nodes
     var rn = this._renderNodesArr,
         i = rn.length;
     while (i--) {
@@ -651,10 +652,10 @@ Renderer.prototype.draw = function () {
 
     this.blitFramebuffer && sfb.blit(this.blitFramebuffer);
 
-    //Rendering picking callbacks and refresh pickingColor
+    // Rendering picking callbacks and refresh pickingColor
     this._drawPickingBuffer();
 
-    //Rendering on the screen
+    // Rendering on the screen
     this._fnScreenFrame();
 
     e.mouseState.moving = false;
@@ -677,7 +678,7 @@ Renderer.prototype._screenFrameMSAA = function () {
 
     sh.activate();
 
-    //screen texture
+    // screen texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.hdrBuffer, 0);
@@ -697,8 +698,8 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.activeTexture(gl.TEXTURE0);
 
     gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
+    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    // gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
 
     gl.uniform1i(p.uniforms.texture, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -716,7 +717,7 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -773,12 +774,14 @@ Renderer.prototype._drawPickingBuffer = function () {
         var pc = this._currPickingColor;
         if (ts.x || ts.y) {
             this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-            if (!(pc[0] || pc[1] || pc[2]))
+            if (!(pc[0] || pc[1] || pc[2])) {
                 this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+            }
         } else {
             this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-            if (!(pc[0] || pc[1] || pc[2]))
+            if (!(pc[0] || pc[1] || pc[2])) {
                 this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+            }
         }
     }
 };
@@ -790,6 +793,5 @@ Renderer.prototype._drawPickingBuffer = function () {
 Renderer.prototype.start = function () {
     this.handler.start();
 };
-
 
 export { Renderer };

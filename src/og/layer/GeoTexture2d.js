@@ -7,7 +7,6 @@
 import * as math from '../math.js';
 import { BaseGeoImage } from './BaseGeoImage.js';
 
-
 class GeoTexture2d extends BaseGeoImage {
     constructor(name, options) {
         super(name, options);

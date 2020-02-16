@@ -1,6 +1,5 @@
 'use sctrict';
 
-import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
@@ -10,7 +9,6 @@ import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
 import { Segment } from './Segment.js';
 import { Vec3 } from '../math/Vec3.js';
-
 
 const _heightLat = 90.0 - mercator.MAX_LAT;
 const _maxPoleZoom = 7;
@@ -186,7 +184,6 @@ SegmentLonLat.prototype._createPlainVertices = function () {
     this.plainReady = true;
 };
 
-
 SegmentLonLat.prototype._assignGlobalTextureCoordinates = function () {
     var e = this._extent;
     this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360.0;
@@ -242,7 +239,7 @@ SegmentLonLat.prototype.getNodeState = function () {
     } else {
         vn = this.planet._visibleNodesSouth[this.node.nodeId];
     }
-    return vn && vn.state || quadTree.NOTRENDERING;
+    return (vn && vn.state) || quadTree.NOTRENDERING;
 };
 
 SegmentLonLat.prototype._freeCache = function () {

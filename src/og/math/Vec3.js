@@ -76,36 +76,36 @@ export function vec3(x, y, z) {
  * @param {Vec3} low - Out vector low values.
  * @returns {Array.<number,number>} Encoded array.
  */
-Vec3.doubleToTwoFloats = function(v, high, low) {
+Vec3.doubleToTwoFloats = function (v, high, low) {
 
     let x = v.x, y = v.y, z = v.z;
-    
+
     if (x >= 0.0) {
-        var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
         high.x = Math.fround(doubleHigh);
         low.x = Math.fround(x - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
         high.x = Math.fround(-doubleHigh);
         low.x = Math.fround(x + doubleHigh);
     }
 
     if (y >= 0.0) {
-        var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(y / 65536.0) * 65536.0;
         high.y = Math.fround(doubleHigh);
         low.y = Math.fround(y - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
         high.y = Math.fround(-doubleHigh);
         low.y = Math.fround(y + doubleHigh);
     }
 
     if (z >= 0.0) {
-        var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(z / 65536.0) * 65536.0;
         high.z = Math.fround(doubleHigh);
         low.z = Math.fround(z - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
         high.z = Math.fround(-doubleHigh);
         low.z = Math.fround(z + doubleHigh);
     }
@@ -124,31 +124,31 @@ Vec3.doubleToTwoFloat32Array = function (v, high, low) {
     let x = v.x, y = v.y, z = v.z;
 
     if (x >= 0.0) {
-        var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
         high[0] = Math.fround(doubleHigh);
         low[0] = Math.fround(x - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
         high[0] = Math.fround(-doubleHigh);
         low[0] = Math.fround(x + doubleHigh);
     }
 
     if (y >= 0.0) {
-        var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(y / 65536.0) * 65536.0;
         high[1] = Math.fround(doubleHigh);
         low[1] = Math.fround(y - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
         high[1] = Math.fround(-doubleHigh);
         low[1] = Math.fround(y + doubleHigh);
     }
 
     if (z >= 0.0) {
-        var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(z / 65536.0) * 65536.0;
         high[2] = Math.fround(doubleHigh);
         low[2] = Math.fround(z - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
         high[2] = Math.fround(-doubleHigh);
         low[2] = Math.fround(z + doubleHigh);
     }
@@ -222,7 +222,7 @@ Vec3.sub = function (a, b) {
  */
 Vec3.scale = function (a, scale) {
     var res = new Vec3(a.x, a.y, a.z);
-    res.scale(scale)
+    res.scale(scale);
     return res;
 };
 
@@ -534,7 +534,6 @@ Vec3.prototype.dotArr = function (arr) {
     return arr[0] * this.x + arr[1] * this.y + arr[2] * this.z;
 };
 
-
 /**
  * Gets vectors cross production.
  * @public
@@ -821,17 +820,16 @@ Vec3.prototype.getRotationTo = function (dest, fallbackAxis) {
         if (!fallbackAxis.isEqual(Vec3.ZERO)) {
             // rotate 180 degrees about the fallback axis
             return Quat.axisAngleToQuat(Math.PI, fallbackAxis);
-        }
-        else {
+        } else {
             // Generate an axis
             let axis = Vec3.UNIT_X.cross(v0);
-            if (axis.isZero()) // pick another if colinear
+            if (axis.isZero()) { // pick another if colinear
                 axis = Vec3.UNIT_Y.cross(v0);
+            }
             axis.normalize();
             return Quat.axisAngleToQuat(Math.PI, axis);
         }
-    }
-    else {
+    } else {
         let s = Math.sqrt((1 + d) * 2);
         let invs = 1.0 / s;
 

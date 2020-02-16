@@ -6,7 +6,6 @@
 
 import * as mercator from '../mercator.js';
 import * as quadTree from './quadTree.js';
-import { Box } from '../bv/Box.js';
 import { EntityCollection } from '../entity/EntityCollection.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
@@ -46,7 +45,7 @@ EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, ri
 
         if (!ec) {
             ec = new EntityCollection({
-                'pickingEnabled': l._pickingEnabled
+                pickingEnabled: l._pickingEnabled
             });
             ec._layer = this.layer;
             ec.addTo(p, true);
@@ -136,7 +135,6 @@ EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
     }
 };
 
-
 EntityCollectionNode.prototype.createChildrenNodes = function () {
     var l = this.layer;
     var ext = this.extent;
@@ -164,10 +162,7 @@ EntityCollectionNode.prototype.createChildrenNodes = function () {
 };
 
 EntityCollectionNode.prototype.collectRenderCollectionsPASS1 = function (visibleNodes, outArr) {
-    var p = this.layer._planet;
-    var cam = p.renderer.activeCamera;
     var n = visibleNodes[this.nodeId];
-
     if (n) {
         var cn = this.childrenNodes;
         if (this.entityCollection) {
@@ -288,7 +283,7 @@ EntityCollectionNode.prototype.renderCollection = function (outArr, visibleNodes
 EntityCollectionNode.prototype.alignEntityToTheGround = function (entity, segment) {
     var res = new Vec3();
     segment.getEntityTerrainPoint(entity, res);
-    entity._setCartesian3vSilent(res.addA(res.normal().scale(Number(this.layer.relativeToGround) && entity._altitude || 0.0)));
+    entity._setCartesian3vSilent(res.addA(res.normal().scale((Number(this.layer.relativeToGround) && entity._altitude) || 0.0)));
 };
 
 EntityCollectionNode.prototype.isVisible = function () {

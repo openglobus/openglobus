@@ -24,6 +24,8 @@ class Sphere extends BaseShape {
 
     constructor(options) {
 
+        super(options);
+        
         /**
          * Sphere radius.
          * @protected

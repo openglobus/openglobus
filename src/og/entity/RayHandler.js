@@ -90,9 +90,9 @@ class RayHandler {
                 this._renderer.handler.addProgram(shaders.rayScreen());
             }
 
-            //if (!this._renderer.handler.programs.billboardPicking) {
-            //    this._renderer.handler.addProgram(shaders.billboardPicking());
-            //}
+            // if (!this._renderer.handler.programs.billboardPicking) {
+            //     this._renderer.handler.addProgram(shaders.billboardPicking());
+            // }
         }
     }
 
@@ -108,7 +108,7 @@ class RayHandler {
         }
     }
 
-    _removeRay() {
+    _removeRays() {
         var i = this._rays.length;
         while (i--) {
             var ri = this._rays[i];
@@ -198,13 +198,13 @@ class RayHandler {
         let x = ray._startPositionHigh.x, y = ray._startPositionHigh.y, z = ray._startPositionHigh.z;
         RayHandler.concArr(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._startPositionLow.x, y = ray._startPositionLow.y, z = ray._startPositionLow.z;
+        x = ray._startPositionLow.x; y = ray._startPositionLow.y; z = ray._startPositionLow.z;
         RayHandler.concArr(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._endPositionHigh.x, y = ray._endPositionHigh.y, z = ray._endPositionHigh.z;
+        x = ray._endPositionHigh.x; y = ray._endPositionHigh.y; z = ray._endPositionHigh.z;
         RayHandler.concArr(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._endPositionLow.x, y = ray._endPositionLow.y, z = ray._endPositionLow.z;
+        x = ray._endPositionLow.x; y = ray._endPositionLow.y; z = ray._endPositionLow.z;
         RayHandler.concArr(this._endPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = ray._thickness;
@@ -217,7 +217,7 @@ class RayHandler {
             r1 = ray._endColor.x, g1 = ray._endColor.y, b1 = ray._endColor.z, a1 = ray._endColor.w;
         RayHandler.concArr(this._rgbaArr, [r1, g1, b1, a1, r0, g0, b0, a0, r0, g0, b0, a0, r0, g0, b0, a0, r1, g1, b1, a1, r1, g1, b1, a1]);
 
-        x = ray._entity._pickingColor.x / 255, y = ray._entity._pickingColor.y / 255, z = ray._entity._pickingColor.z / 255;
+        x = ray._entity._pickingColor.x / 255; y = ray._entity._pickingColor.y / 255; z = ray._entity._pickingColor.z / 255;
         RayHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
@@ -244,22 +244,17 @@ class RayHandler {
 
         gl.uniform1f(shu.resolution, r.activeCamera._tanViewAngle_hradOneByHeight);
 
-
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionHighBuffer);
         gl.vertexAttribPointer(sha.a_startPosHigh, this._startPositionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionLowBuffer);
         gl.vertexAttribPointer(sha.a_startPosLow, this._startPositionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionHighBuffer);
         gl.vertexAttribPointer(sha.a_endPosHigh, this._endPositionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionLowBuffer);
         gl.vertexAttribPointer(sha.a_endPosLow, this._endPositionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -278,7 +273,7 @@ class RayHandler {
     }
 
     _pickingPASS() {
-        //...
+        // ...
     };
 
     draw() {
@@ -340,7 +335,7 @@ class RayHandler {
 
         var i = index * 18;
 
-        //High
+        // High
         var a = this._startPositionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z;
 
         a[i] = x;
@@ -367,8 +362,8 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        //Low
-        a = this._startPositionLowArr, x = positionLow.x, y = positionLow.y, z = positionLow.z;
+        // Low
+        a = this._startPositionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -400,7 +395,7 @@ class RayHandler {
     setEndPositionArr(index, positionHigh, positionLow) {
         var i = index * 18;
 
-        //High
+        // High
         var a = this._endPositionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z;
 
         a[i] = x;
@@ -427,8 +422,8 @@ class RayHandler {
         a[i + 16] = y;
         a[i + 17] = z;
 
-        //Low
-        a = this._endPositionLowArr, x = positionLow.x, y = positionLow.y, z = positionLow.z;
+        // Low
+        a = this._endPositionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -541,7 +536,7 @@ class RayHandler {
         a[i + 4] = thickness;
         a[i + 5] = thickness;
 
-        this._changedBuffers[THICKNESS_BUFFER] = true
+        this._changedBuffers[THICKNESS_BUFFER] = true;
     }
 
     setLengthArr(index, length) {
@@ -556,7 +551,7 @@ class RayHandler {
         a[i + 4] = length;
         a[i + 5] = length;
 
-        this._changedBuffers[LENGTH_BUFFER] = true
+        this._changedBuffers[LENGTH_BUFFER] = true;
     }
 
     setVisibility(index, visibility) {

@@ -1,10 +1,5 @@
-/**
- * @module og/control/SimpleNavigation
- */
-
 'use strict';
 
-import * as math from '../math.js';
 import { Control } from './Control.js';
 import { input } from '../input/input.js';
 
@@ -22,7 +17,6 @@ class SimpleNavigation extends Control {
         this.camera = null;
         this.speed = options.speed || 1.0;
     }
-
 
     oninit() {
         this.camera = this.renderer.activeCamera;
@@ -98,7 +92,6 @@ class SimpleNavigation extends Control {
         cam.update();
     }
 };
-
 
 /**
  * Creates simple navigation control instance.

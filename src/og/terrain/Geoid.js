@@ -37,9 +37,7 @@
 'use strict';
 
 class Geoid {
-    constructor(options) {
-
-        options = options || {}
+    constructor(options = {}) {
 
         this.model = options.model || null;
         this.src = options.src || null;
@@ -240,6 +238,5 @@ class Geoid {
         return model.offset + model.scale * h;
     }
 };
-
 
 export { Geoid };

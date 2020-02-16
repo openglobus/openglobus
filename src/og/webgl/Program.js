@@ -272,9 +272,9 @@ class Program {
 
             //Maybe, it will be better to remove enableArray option...
             this._attributes[a].enableArray = (this._attributes[a].enableArray != undefined ? this._attributes[a].enableArray : true);
-            if (this._attributes[a].enableArray)
+            if (this._attributes[a].enableArray) {
                 this._attributes[a]._callback = Program.bindBuffer;
-            else {
+            } else {
                 if (typeof (this._attributes[a].type) === "string") {
                     this._attributes[a]._callback = callbacks.a[typeStr[this._attributes[a].type.trim().toLowerCase()]];
                 } else {

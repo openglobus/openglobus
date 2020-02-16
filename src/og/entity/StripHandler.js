@@ -96,7 +96,7 @@ class StripHandler {
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initProgram()
+        this._initProgram();
         for (var i = 0; i < this._strips.length; i++) {
             this._strips[i].setRenderNode(renderNode);
         }

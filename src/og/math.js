@@ -176,10 +176,11 @@ export function random(min, max) {
  * @returns {number} -
  **/
 export function degToDec(d, m, s, p) {
-    if (p)
+    if (p) {
         return d + m / 60.0 + s / 3600.0;
-    else
+    } else {
         return -d - m / 60.0 - s / 3600.0;
+    }
 };
 
 /**
@@ -319,8 +320,7 @@ export function rev(x) {
  * @returns {number} -
  */
 export function norm_lon(lon) {
-    return lon > 180 ? ((lon + 180) % 360) - 180 :
-        lon < -180 ? ((lon - 180) % 360) + 180 : lon;
+    return lon > 180 ? ((lon + 180) % 360) - 180 : lon < -180 ? ((lon - 180) % 360) + 180 : lon;
 };
 
 /**
@@ -368,8 +368,9 @@ export function solve_iteration(f, x0, err, maxIter) {
     for (var i = 0; i < maxIter; i++) {
         x = x2;
         x2 = f(x);
-        if (Math.abs(x2 - x) < err)
+        if (Math.abs(x2 - x) < err) {
             return x2;
+        }
     }
     return x2;
 };

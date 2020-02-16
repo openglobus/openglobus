@@ -158,8 +158,6 @@ class EntityCollection {
          * @type {og.StripHandler}
          */
         this.stripHandler = new StripHandler(this);
-        //
-        //...
 
         if (options.pickingEnabled != undefined) {
             this.setPickingEnabled(options.pickingEnabled);
@@ -206,9 +204,10 @@ class EntityCollection {
 
         this.rendererEvents = this.events;
 
-        //initialize current entities
-        if (options.entities)
+        // initialize current entities
+        if (options.entities) {
             this.addEntities(options.entities);
+        }
     }
 
     static get _staticCounter() {
@@ -295,25 +294,25 @@ class EntityCollection {
 
     _addRecursively(entity) {
 
-        //billboard
+        // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
 
-        //label
+        // label
         entity.label && this.labelHandler.add(entity.label);
 
-        //shape
+        // shape
         entity.shape && this.shapeHandler.add(entity.shape);
 
-        //polyline
+        // polyline
         entity.polyline && this.polylineHandler.add(entity.polyline);
 
-        //ray
+        // ray
         entity.ray && this.rayHandler.add(entity.ray);
 
-        //pointCloud
+        // pointCloud
         entity.pointCloud && this.pointCloudHandler.add(entity.pointCloud);
 
-        //strip
+        // strip
         entity.strip && this.stripHandler.add(entity.strip);
 
         this.events.dispatch(this.events.entityadd, entity);
@@ -377,25 +376,25 @@ class EntityCollection {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
 
-        //billboard
+        // billboard
         entity.billboard && this.billboardHandler.remove(entity.billboard);
 
-        //label
+        // label
         entity.label && this.labelHandler.remove(entity.label);
 
-        //shape
+        // shape
         entity.shape && this.shapeHandler.remove(entity.shape);
 
-        //polyline
+        // polyline
         entity.polyline && this.polylineHandler.remove(entity.polyline);
 
-        //ray
+        // ray
         entity.ray && this.rayHandler.remove(entity.ray);
 
-        //pointCloud
+        // pointCloud
         entity.pointCloud && this.pointCloudHandler.remove(entity.pointCloud);
 
-        //strip
+        // strip
         entity.strip && this.stripHandler.remove(entity.strip);
 
         for (var i = 0; i < entity.childrenNodes.length; i++) {
@@ -412,7 +411,7 @@ class EntityCollection {
         this._entities.splice(entity._entityCollectionIndex, 1);
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
-        //clear picking color
+        // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
             entity._pickingColor.clear();
@@ -429,7 +428,7 @@ class EntityCollection {
         this._entities.splice(entity._entityCollectionIndex, 1);
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
-        //clear picking color
+        // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
             entity._pickingColor.clear();
@@ -511,6 +510,7 @@ class EntityCollection {
             this.createPickingColors();
         }
     }
+
     /**
      * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
      * @private
@@ -557,7 +557,7 @@ class EntityCollection {
         if (this.renderNode) {
             if (this._renderNodeIndex !== -1) {
                 this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
-                //reindex in the renderNode
+                // reindex in the renderNode
                 for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
                     this.renderNode.entityCollections._renderNodeIndex = i;
                 }
@@ -596,8 +596,8 @@ class EntityCollection {
      */
     clear() {
 
-        //TODO: Optimize by replace delete
-        //code to the clearEntity function.
+        // TODO: Optimize by replace delete
+        // code to the clearEntity function.
         this.billboardHandler.clear();
         this.labelHandler.clear();
         this.shapeHandler.clear();
@@ -632,7 +632,6 @@ class EntityCollection {
         }
     }
 };
-
 
 const EVENT_NAMES = [
     /**

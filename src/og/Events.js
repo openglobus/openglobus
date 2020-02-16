@@ -59,7 +59,7 @@ class Events {
      */
     registerNames(eventNames) {
         for (var i = 0; i < eventNames.length; i++) {
-            this[eventNames[i]] = { "active": true, "handlers": [] };
+            this[eventNames[i]] = { active: true, handlers: [] };
             this._eventNames.push(eventNames[i]);
         }
     }
@@ -79,7 +79,7 @@ class Events {
 
         var ogid = stamp(obj);
 
-        var st = this._getStamp(name, this.__id, ogid);//name + "_" + this.__id + "_" + ogid;
+        var st = this._getStamp(name, this.__id, ogid);
 
         if (!this._stampCache[st]) {
             this._stampCache[st] = ogid;
@@ -105,7 +105,6 @@ class Events {
                 binaryInsert(this[name].handlers, c, (a, b) => {
                     return b._openglobus_priority - a._openglobus_priority;
                 });
-                //this[name].handlers.unshift(c);
             }
         }
     }
@@ -118,7 +117,7 @@ class Events {
      */
     off(name, callback) {
         if (callback) {
-            var st = this._getStamp(name, this.__id, callback._openglobus_id);//name + "_" + this.__id + "_" + callback._openglobus_id;
+            var st = this._getStamp(name, this.__id, callback._openglobus_id);
             if (callback._openglobus_id && this._stampCache[st]) {
                 var h = this[name].handlers;
                 var i = h.length;

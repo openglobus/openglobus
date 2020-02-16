@@ -401,7 +401,7 @@ class BaseShape {
             if (rn.lightEnabled) {
                 sh = r.handler.programs.shape_wl;
                 p = sh._program;
-                sha = p.attributes,
+                let sha = p.attributes,
                     shu = p.uniforms;
 
                 sh.activate();
@@ -418,8 +418,7 @@ class BaseShape {
             } else {
                 sh = r.handler.programs.shape_nl;
                 p = sh._program;
-                sha = p.attributes,
-                    shu = p.uniforms;
+                let shu = p.uniforms;
 
                 sh.activate();
 

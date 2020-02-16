@@ -95,10 +95,12 @@ class BaseGeoImage extends Layer {
         this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()] || [0, 0, 0, 0];
 
         for (var i = 0; i < this._cornersWgs84.length; i++) {
-            if (this._cornersWgs84[i].lat >= 89.9)
+            if (this._cornersWgs84[i].lat >= 89.9) {
                 this._cornersWgs84[i].lat = 89.9;
-            if (this._cornersWgs84[i].lat <= -89.9)
+            }
+            if (this._cornersWgs84[i].lat <= -89.9) {
                 this._cornersWgs84[i].lat = -89.9;
+            }
         }
         this._extent.setByCoordinates(this._cornersWgs84);
 
@@ -135,7 +137,7 @@ class BaseGeoImage extends Layer {
             this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
         }
 
-        //creates material frame textures
+        // creates material frame textures
         if (this._planet) {
             var p = this._planet,
                 h = p.renderer.handler,
@@ -201,11 +203,12 @@ class BaseGeoImage extends Layer {
 
             super.setVisibility(visibility);
 
-            //remove from creator
-            if (visibility)
+            // remove from creator
+            if (visibility) {
                 this._sourceReady && this._planet._geoImageCreator.add(this);
-            else
+            } else {
                 this._sourceReady && this._planet._geoImageCreator.remove(this);
+            }
         }
     }
 
@@ -215,7 +218,6 @@ class BaseGeoImage extends Layer {
      * @param {og.planetSegment.Material} material - GeoImage material.
      */
     clearMaterial(material) {
-        //just clear material pointer not geoimage
         material.image = null;
         material.texture = null;
         material.isLoading = false;

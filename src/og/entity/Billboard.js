@@ -116,8 +116,8 @@ class Billboard extends BaseBillboard {
      */
     getSize() {
         return {
-            "width": this._width,
-            "height": this._height
+            width: this._width,
+            height: this._height
         };
     }
 

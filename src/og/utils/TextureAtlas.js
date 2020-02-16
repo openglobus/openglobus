@@ -4,14 +4,6 @@ import { ImageCanvas } from '../ImageCanvas.js';
 import { Rectangle } from '../Rectangle.js';
 import { ImagesCacheManager } from './ImagesCacheManager.js';
 
-
-/**
- * Border beetween stored images.
- * @type {number}
- * @const
- */
-const BORDER_SIZE = 4;
-
 /**
  * Texture atlas stores images in one texture. Each image has its own 
  * atlas texture coordinates.
@@ -236,22 +228,25 @@ class TextureAtlasNode {
 
             var newNode = this.childNodes[0].insert(img);
 
-            if (newNode != null)
+            if (newNode != null) {
                 return newNode;
+            }
 
             return this.childNodes[1].insert(img);
 
         } else {
 
-            if (this.image != null)
+            if (this.image != null) {
                 return null;
+            }
 
             var rc = this.rect;
             var w = (img.atlasWidth || img.width) + this.atlas.borderSize;
             var h = (img.atlasHeight || img.height) + this.atlas.borderSize;
 
-            if (w > rc.getWidth() || h > rc.getHeight())
+            if (w > rc.getWidth() || h > rc.getHeight()) {
                 return null;
+            }
 
             if (rc.fit(w, h)) {
                 this.image = img;

@@ -44,15 +44,15 @@ class ShapeHandler {
             if (!this._renderer.handler.programs.shape_wl) {
                 this._renderer.handler.addProgram(shaders.shape_wl());
             }
-            //if (!this._renderer.handler.programs.shapePicking) {
-            //    this._renderer.handler.addProgram(shaders.shapePicking());
-            //}
+            // if (!this._renderer.handler.programs.shapePicking) {
+            //     this._renderer.handler.addProgram(shaders.shapePicking());
+            // }
         }
     }
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initProgram()
+        this._initProgram();
         for (var i = 0; i < this._shapes.length; i++) {
             this._shapes[i].setRenderNode(renderNode);
         }
@@ -68,7 +68,7 @@ class ShapeHandler {
     }
 
     remove(shape) {
-        //TODO
+        // TODO
     }
 
     draw() {
@@ -79,11 +79,11 @@ class ShapeHandler {
     }
 
     drawPicking() {
-        //TODO
+        // TODO
     }
 
     clear() {
-        //TODO
+        // TODO
     }
 };
 

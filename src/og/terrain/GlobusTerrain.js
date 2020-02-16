@@ -11,16 +11,12 @@ import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Events } from '../Events.js';
 import { Loader } from '../utils/Loader.js';
 import { NOTRENDERING } from '../quadTree/quadTree.js';
-import { QueueArray } from '../QueueArray.js';
+// import { QueueArray } from '../QueueArray.js';
 import { stringTemplate } from '../utils/shared.js';
 import { Geoid } from './Geoid.js';
 import { Layer } from '../layer/Layer.js';
-import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
 import { Ray } from '../math/Ray.js';
-
 
 const EVENT_NAMES = [
     /**
@@ -83,7 +79,7 @@ class GlobusTerrain extends EmptyTerrain {
         this.maxZoom = options.maxZoom || 14;
 
         this._geoid = new Geoid({
-            'src': "//openglobus.org/geoid/egm96-15.pgm"
+            src: "//openglobus.org/geoid/egm96-15.pgm"
         });
 
         /**
@@ -157,7 +153,6 @@ class GlobusTerrain extends EmptyTerrain {
             x = Math.floor((mercator.POLE + merc.lon) / size),
             y = Math.floor((mercator.POLE - merc.lat) / size);
 
-
         let tileIndex = Layer.getTileIndex(x, y, z);
 
         let cache = this._elevationCache[tileIndex];
@@ -173,13 +168,13 @@ class GlobusTerrain extends EmptyTerrain {
 
             if (!this._fetchCache[tileIndex]) {
                 let url = stringTemplate(this.url, {
-                    "x": x,
-                    "y": y,
-                    "z": z
+                    x: x,
+                    y: y,
+                    z: z
                 });
                 this._fetchCache[tileIndex] = this._loader.fetch({
-                    'src': url,
-                    'type': this._dataType
+                    src: url,
+                    type: this._dataType
                 });
             }
 
@@ -234,11 +229,6 @@ class GlobusTerrain extends EmptyTerrain {
         let w = tileData.extent.getWidth(),
             gs = Math.sqrt(tileData.heights.length);
 
-        if (!tileData.extent.isInside(merc)) {
-            console.log("GlobusTerrain.js 221 - error!");
-            debugger;
-        }
-
         let size = w / (gs - 1);
 
         /*
@@ -280,11 +270,6 @@ class GlobusTerrain extends EmptyTerrain {
         d = ray.hitTriangle(v1, v3, v2, res);
         if (d === Ray.INSIDE) {
             return res.y;
-        }
-
-        if (d === Ray.AWAY) {
-            console.log("GlobusTerrain.js 337 - error!");
-            debugger;
         }
     }
 
@@ -333,10 +318,10 @@ class GlobusTerrain extends EmptyTerrain {
                 } else {
 
                     this._loader.load({
-                        'src': this._getHTTPRequestString(segment),
-                        'segment': segment,
-                        'type': this._dataType,
-                        'filter': () => segment.plainReady && segment.node.getState() !== NOTRENDERING || forceLoading
+                        src: this._getHTTPRequestString(segment),
+                        segment: segment,
+                        type: this._dataType,
+                        filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
                     }, response => {
                         if (response.status === "ready") {
                             let heights = this._createHeights(response.data, segment);
@@ -371,9 +356,9 @@ class GlobusTerrain extends EmptyTerrain {
      */
     _createUrl(segment) {
         return stringTemplate(this.url, {
-            "x": segment.tileX.toString(),
-            "y": segment.tileY.toString(),
-            "z": segment.tileZoom.toString()
+            x: segment.tileX.toString(),
+            y: segment.tileY.toString(),
+            z: segment.tileZoom.toString()
         });
     }
 
@@ -418,8 +403,8 @@ class GlobusTerrain extends EmptyTerrain {
             var e = this.events.load;
             if (e.handlers.length) {
                 this.events.dispatch(e, {
-                    "elevations": elevations,
-                    "segment": segment
+                    elevations: elevations,
+                    segment: segment
                 });
             }
             segment.applyTerrain(elevations);

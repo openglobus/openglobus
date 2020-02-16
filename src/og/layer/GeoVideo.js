@@ -74,7 +74,7 @@ class GeoVideo extends BaseGeoImage {
 
             super.setVisibility(visibility);
 
-            //remove from creator
+            // remove from creator
             if (visibility) {
                 this._sourceReady && this._planet._geoImageCreator.add(this);
                 this._video && this._video.play();
@@ -142,14 +142,14 @@ class GeoVideo extends BaseGeoImage {
                 if (this._video.readyState === this._video.HAVE_ENOUGH_DATA) {
                     this._onCanPlay(this._video);
                 } else if (this._video.src) {
-                    var that = this;
+                    let that = this;
                     this._video.addEventListener('canplay', function (e) {
                         that._onCanPlay(this);
                     });
                 }
             } else {
                 this._video = document.createElement('video');
-                var that = this;
+                let that = this;
                 this._video.addEventListener('canplay', function () {
                     that._onCanPlay(this);
                 });
@@ -187,7 +187,6 @@ class GeoVideo extends BaseGeoImage {
         this._refreshFrame && this._createFrame();
 
         if (this._sourceCreated) {
-            var gl = this._planet.renderer.handler.gl;
             gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
         } else {
@@ -244,7 +243,6 @@ class GeoVideo extends BaseGeoImage {
             this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._video);
             this._sourceCreated = true;
         } else {
-            var gl = this._planet.renderer.handler.gl;
             gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
         }

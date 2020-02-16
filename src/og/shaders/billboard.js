@@ -5,7 +5,6 @@
 'use sctrict';
 
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
 
 export function billboardPicking() {
     return new Program("billboardPicking", {

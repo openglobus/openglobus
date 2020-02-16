@@ -1,1 +1,0 @@
-eslint -c .eslintrc.json -o errors.html -f html ../src/og/*.*

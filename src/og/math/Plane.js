@@ -53,24 +53,28 @@ class Plane {
         if ((ax + ay + az) < math.EPSILON5) {  // Pn1 and Pn2 are near parallel
             // test if disjoint or coincide
             var v = Pn2.p.sub(Pn1.p);
-            if (Pn1.n.dot(v) == 0)      // Pn2.V0 lies in Pn1
+            if (Pn1.n.dot(v) == 0) {    // Pn2.V0 lies in Pn1
                 return 1;               // Pn1 and Pn2 coincide
-            else
+            } else {
                 return 0;               // Pn1 and Pn2 are disjoint
+            }
         }
 
         // Pn1 and Pn2 intersect in a line
         // first determine max abs coordinate of cross product
         var maxc;                       // max coordinate
         if (ax > ay) {
-            if (ax > az)
+            if (ax > az) {
                 maxc = 1;
-            else maxc = 3;
-        }
-        else {
-            if (ay > az)
+            } else {
+                maxc = 3;
+            }
+        } else {
+            if (ay > az) {
                 maxc = 2;
-            else maxc = 3;
+            } else {
+                maxc = 3;
+            }
         }
 
         // next, to get a point on the intersect line

@@ -25,8 +25,7 @@ class ShowFps extends Control {
         document.body.appendChild(d);
         this.renderer.events.on("draw", this._draw, this);
     }
-
-
+    
     _draw() {
         print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.canvas.clientWidth - 60, 0);
     }

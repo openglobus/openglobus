@@ -34,14 +34,14 @@ class Geometry {
         this._handler = null;
         this._handlerIndex = -1;
 
-        //Polygon
+        // Polygon
         this._polyVerticesMerc = [];
         this._polyVerticesLength = -1;
         this._polyIndexesLength = -1;
         this._polyVerticesHandlerIndex = -1;
         this._polyIndexesHandlerIndex = -1;
 
-        //Line(Linestring and polygon's stroke(s)
+        // Line(Linestring and polygon's stroke(s)
         this._lineVerticesMerc = [];
         this._lineVerticesLength = -1;
         this._lineOrdersLength = -1;
@@ -54,11 +54,11 @@ class Geometry {
         this._lineThicknessHandlerIndex = -1;
         this._lineColorsHandlerIndex = -1;
 
-        this._type = options.type && Geometry.getType(options.type) || GeometryType.POINT;
+        this._type = (options.type && Geometry.getType(options.type)) || GeometryType.POINT;
         this._coordinates = [];
         this._extent = Geometry.getExtent({
-            'type': options.type || "Point",
-            'coordinates': options.coordinates || []
+            type: options.type || "Point",
+            coordinates: options.coordinates || []
         }, this._coordinates);
 
         this._style = options.style || {};
@@ -70,7 +70,7 @@ class Geometry {
 
         this._visibility = options.visibility || true;
 
-        //optimization flag for picking mask rendering pass
+        // optimization flag for picking mask rendering pass
         this._pickingReady = false;
     }
 
@@ -198,7 +198,7 @@ class Geometry {
 
     setFillColor(r, g, b, a) {
         var c = this._style.fillColor;
-        if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
         c.x = r;
@@ -215,7 +215,7 @@ class Geometry {
 
     setStrokeColor(r, g, b, a) {
         var c = this._style.strokeColor;
-        if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
         c.x = r;
@@ -228,7 +228,7 @@ class Geometry {
 
     setLineColor(r, g, b, a) {
         var c = this._style.lineColor;
-        if (c.w === 0.0 && a !== 0.0 || c.w !== 0.0 && a === 0.0) {
+        if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
         c.x = r;
@@ -280,7 +280,7 @@ class Geometry {
 
     setFillOpacity(opacity) {
         var c = this._style.fillColor;
-        if (c.w === 0.0 && opacity !== 0.0 || c.w !== 0.0 && opacity === 0.0) {
+        if ((c.w === 0.0 && opacity !== 0.0) || (c.w !== 0.0 && opacity === 0.0)) {
             this._pickingReady = false;
         }
         c.w = opacity;

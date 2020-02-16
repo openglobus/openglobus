@@ -1,6 +1,6 @@
 'use sctrict';
 
-import { QueueArray } from '../QueueArray.js';
+// import { QueueArray } from '../QueueArray.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 
 class PlainSegmentWorker {
@@ -43,13 +43,13 @@ class PlainSegmentWorker {
         let m = geoid.model;
 
         let model = {
-            'scale': m.scale,
-            'offset': m.offset,
-            'width': m.width,
-            'height': m.height,
-            'rlonres': m.rlonres,
-            'rlatres': m.rlatres,
-            'i': m.i
+            scale: m.scale,
+            offset: m.offset,
+            width: m.width,
+            height: m.height,
+            rlonres: m.rlonres,
+            rlatres: m.rlatres,
+            i: m.i
         };
 
         this._workerQueue.forEach((w) => {
@@ -58,11 +58,11 @@ class PlainSegmentWorker {
             rawfile.set(m.rawfile);
 
             w.postMessage({
-                'model': model,
-                'rawfile': rawfile
+                model: model,
+                rawfile: rawfile
             }, [
-                    rawfile.buffer
-                ]);
+                rawfile.buffer
+            ]);
         });
     }
 
@@ -93,10 +93,10 @@ class PlainSegmentWorker {
                 ]);
 
                 w.postMessage({
-                    'params': params
+                    params: params
                 }, [
-                        params.buffer
-                    ]);
+                    params.buffer
+                ]);
 
             } else {
                 this._pendingQueue.push(segment);
@@ -105,7 +105,7 @@ class PlainSegmentWorker {
             this.check();
         }
     }
-};
+}
 
 const _programm =
     `

@@ -5,7 +5,6 @@
 'use strict';
 
 import * as quadTree from '../quadTree/quadTree.js';
-import { ImageCanvas } from '../ImageCanvas.js';
 import { Layer } from './Layer.js';
 
 /**
@@ -13,7 +12,6 @@ import { Layer } from './Layer.js';
  * @const
  * @type {number}
  */
-const MAX_REQUESTS = 7;
 
 const EVENT_NAMES = [
     /**
@@ -67,7 +65,7 @@ class CanvasTiles extends Layer {
          * @protected
          * @type {Array.<og.planetSegment.Material>}
          */
-        this._pendingsQueue = []; //new og.QueueArray();
+        this._pendingsQueue = []; // new og.QueueArray();
 
         /**
          * Draw tile callback.
@@ -93,7 +91,7 @@ class CanvasTiles extends Layer {
             }
         }
         this._pendingsQueue = [];
-        //this._pendingsQueue.clear();
+        // this._pendingsQueue.clear();
     };
 
     /**
@@ -203,8 +201,9 @@ class CanvasTiles extends Layer {
         if (this._pendingsQueue.length) {
             if (CanvasTiles.__requestsCounter < CanvasTiles.MAX_REQUESTS) {
                 var pmat = this._whilePendings();
-                if (pmat)
-                    this._exec.call(this, pmat);
+                if (pmat) {
+                    this._exec(pmat);
+                }
             }
         } else if (this._counter === 0) {
             this.events.dispatch(this.events.loadend);
@@ -223,7 +222,6 @@ class CanvasTiles extends Layer {
         }
         return null;
     }
-
 
     applyMaterial(material) {
         if (material.isReady) {

@@ -8,8 +8,6 @@ import * as utils from '../utils/shared.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 import { Vec3 } from '../math/Vec3.js';
-import { Vec4 } from '../math/Vec4.js';
-import { doubleToTwoFloats } from '../math/coder.js';
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
@@ -62,7 +60,7 @@ class Polyline {
          * @public
          * @type {Array<Number,Number,Number,Number>}
          */
-        this._defaultColor = utils.htmlColorToFloat32Array(options.color || DEFAULT_COLOR, options.opacity);//utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+        this._defaultColor = utils.htmlColorToFloat32Array(options.color || DEFAULT_COLOR, options.opacity); // utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
 
         /**
          * Polyline visibility.
@@ -146,7 +144,7 @@ class Polyline {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        //create path
+        // create path
         if (options.pathLonLat) {
             this.setPathLonLat(options.pathLonLat);
         } else if (options.path3v) {
@@ -166,7 +164,6 @@ class Polyline {
     static set _staticCounter(n) {
         this._counter = n;
     }
-
 
     /**
      * Appends to the line array new cartesian coordinates line data.
@@ -282,21 +279,25 @@ class Polyline {
                     outTransformedPathLonLat[j].push(lonLat);
                     outTransformedPathMerc[j].push(lonLat.forwardMercator());
 
-                    if (lonLat.lon < outExtent.southWest.lon)
+                    if (lonLat.lon < outExtent.southWest.lon) {
                         outExtent.southWest.lon = lonLat.lon;
-                    if (lonLat.lat < outExtent.southWest.lat)
+                    }
+                    if (lonLat.lat < outExtent.southWest.lat) {
                         outExtent.southWest.lat = lonLat.lat;
-                    if (lonLat.lon > outExtent.northEast.lon)
+                    }
+                    if (lonLat.lon > outExtent.northEast.lon) {
                         outExtent.northEast.lon = lonLat.lon;
-                    if (lonLat.lat > outExtent.northEast.lat)
+                    }
+                    if (lonLat.lat > outExtent.northEast.lat) {
                         outExtent.northEast.lat = lonLat.lat;
+                    }
                 }
 
                 if (pathColors_j && pathColors_j[i]) {
                     color = pathColors_j[i];
                 }
 
-                r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
+                r = color[R]; g = color[G]; b = color[B]; a = (color[A] != undefined ? color[A] : 1.0);
 
                 Vec3.doubleToTwoFloats(cur, v_high, v_low);
                 outVerticesHigh.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -332,7 +333,7 @@ class Polyline {
                 color = pathColors_j[path.length - 1];
             }
 
-            r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
+            r = color[R]; g = color[G]; b = color[B]; a = (color[A] != undefined ? color[A] : 1.0);
 
             Vec3.doubleToTwoFloats(first, v_high, v_low);
             outVerticesHigh.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -482,14 +483,18 @@ class Polyline {
             transformedPathLonLat.push(lonLat);
             transformedPathMerc.push(lonLat.forwardMercator());
 
-            if (lonLat.lon < outExtent.southWest.lon)
+            if (lonLat.lon < outExtent.southWest.lon) {
                 outExtent.southWest.lon = lonLat.lon;
-            if (lonLat.lat < outExtent.southWest.lat)
+            }
+            if (lonLat.lat < outExtent.southWest.lat) {
                 outExtent.southWest.lat = lonLat.lat;
-            if (lonLat.lon > outExtent.northEast.lon)
+            }
+            if (lonLat.lon > outExtent.northEast.lon) {
                 outExtent.northEast.lon = lonLat.lon;
-            if (lonLat.lat > outExtent.northEast.lat)
+            }
+            if (lonLat.lat > outExtent.northEast.lat) {
                 outExtent.northEast.lat = lonLat.lat;
+            }
         }
 
         Vec3.doubleToTwoFloats(point3v, v_high, v_low);
@@ -545,7 +550,6 @@ class Polyline {
         outIndexes[ii + 1] = index++;
         outIndexes[ii + 2] = index++;
         outIndexes[ii + 3] = index++;
-        //}
 
         //
         // Close path
@@ -682,7 +686,7 @@ class Polyline {
                     color = pathColors_j[i];
                 }
 
-                r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
+                r = color[R]; g = color[G]; b = color[B]; a = (color[A] != undefined ? color[A] : 1.0);
 
                 var cartesian = ellipsoid.lonLatToCartesian(cur);
                 outTransformedPathCartesian[j].push(cartesian);
@@ -698,14 +702,18 @@ class Polyline {
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
 
-                if (cur.lon < outExtent.southWest.lon)
+                if (cur.lon < outExtent.southWest.lon) {
                     outExtent.southWest.lon = cur.lon;
-                if (cur.lat < outExtent.southWest.lat)
+                }
+                if (cur.lat < outExtent.southWest.lat) {
                     outExtent.southWest.lat = cur.lat;
-                if (cur.lon > outExtent.northEast.lon)
+                }
+                if (cur.lon > outExtent.northEast.lon) {
                     outExtent.northEast.lon = cur.lon;
-                if (cur.lat > outExtent.northEast.lat)
+                }
+                if (cur.lat > outExtent.northEast.lat) {
                     outExtent.northEast.lat = cur.lat;
+                }
             }
 
             var first;
@@ -745,7 +753,7 @@ class Polyline {
                 color = pathColors_j[path.length - 1];
             }
 
-            r = color[R], g = color[G], b = color[B], a = (color[A] != undefined ? color[A] : 1.0);
+            r = color[R]; g = color[G]; b = color[B]; a = (color[A] != undefined ? color[A] : 1.0);
 
             Vec3.doubleToTwoFloats(first, v_high, v_low);
             outVerticesHigh.push(v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z, v_high.x, v_high.y, v_high.z);
@@ -789,7 +797,7 @@ class Polyline {
 
             var last;
             if (this._closedLine) {
-                last = path[path.length - 1]
+                last = path[path.length - 1];
             } else {
                 last = new Vec3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
             }
@@ -839,14 +847,18 @@ class Polyline {
                     l[j][i] = lonLat;
                     m[j][i] = lonLat.forwardMercator();
 
-                    if (lonLat.lon < extent.southWest.lon)
+                    if (lonLat.lon < extent.southWest.lon) {
                         extent.southWest.lon = lonLat.lon;
-                    if (lonLat.lat < extent.southWest.lat)
+                    }
+                    if (lonLat.lat < extent.southWest.lat) {
                         extent.southWest.lat = lonLat.lat;
-                    if (lonLat.lon > extent.northEast.lon)
+                    }
+                    if (lonLat.lon > extent.northEast.lon) {
                         extent.northEast.lon = lonLat.lon;
-                    if (lonLat.lat > extent.northEast.lat)
+                    }
+                    if (lonLat.lat > extent.northEast.lat) {
                         extent.northEast.lat = lonLat.lat;
+                    }
                 }
 
                 Vec3.doubleToTwoFloats(cur, v_high, v_low);
@@ -1011,14 +1023,18 @@ class Polyline {
                 vh[k] = v_high.z;
                 vl[k++] = v_low.z;
 
-                if (cur.lon < extent.southWest.lon)
+                if (cur.lon < extent.southWest.lon) {
                     extent.southWest.lon = cur.lon;
-                if (cur.lat < extent.southWest.lat)
+                }
+                if (cur.lat < extent.southWest.lat) {
                     extent.southWest.lat = cur.lat;
-                if (cur.lon > extent.northEast.lon)
+                }
+                if (cur.lon > extent.northEast.lon) {
                     extent.northEast.lon = cur.lon;
-                if (cur.lat > extent.northEast.lat)
+                }
+                if (cur.lat > extent.northEast.lat) {
                     extent.northEast.lat = cur.lat;
+                }
             }
 
             var first;
@@ -1079,14 +1095,18 @@ class Polyline {
                 for (var j = 0; j < pi.length; j++) {
                     var lon = pi[j].lon,
                         lat = pi[j].lat;
-                    if (lon > extent.northEast.lon)
+                    if (lon > extent.northEast.lon) {
                         extent.northEast.lon = lon;
-                    if (lat > extent.northEast.lat)
+                    }
+                    if (lat > extent.northEast.lat) {
                         extent.northEast.lat = lat;
-                    if (lon < extent.southWest.lon)
+                    }
+                    if (lon < extent.southWest.lon) {
                         extent.southWest.lon = lon;
-                    if (lat < extent.southWest.lat)
+                    }
+                    if (lat < extent.southWest.lat) {
                         extent.southWest.lat = lat;
+                    }
                 }
             }
 
@@ -1129,12 +1149,10 @@ class Polyline {
 
             let _closedLine = this._closedLine || path.length === 1;
 
-            //if (path.length === 1) return;
-
             if (index === 0 || index === 1) {
                 var last;
                 if (_closedLine) {
-                    last = path[path.length - 1]
+                    last = path[path.length - 1];
                 } else {
                     last = new Vec3(path[0].x + path[0].x - path[1].x, path[0].y + path[0].y - path[1].y, path[0].z + path[0].z - path[1].z);
                 }
@@ -1181,19 +1199,23 @@ class Polyline {
                 var extent = this._extent;
                 extent.southWest.set(180.0, 90.0);
                 extent.northEast.set(-180.0, -90.0);
-                for (var i = 0; i < l.length; i++) {
+                for (let i = 0; i < l.length; i++) {
                     var pi = l[i];
                     for (var j = 0; j < pi.length; j++) {
                         var lon = pi[j].lon,
                             lat = pi[j].lat;
-                        if (lon > extent.northEast.lon)
+                        if (lon > extent.northEast.lon) {
                             extent.northEast.lon = lon;
-                        if (lat > extent.northEast.lat)
+                        }
+                        if (lat > extent.northEast.lat) {
                             extent.northEast.lat = lat;
-                        if (lon < extent.southWest.lon)
+                        }
+                        if (lon < extent.southWest.lon) {
                             extent.southWest.lon = lon;
-                        if (lat < extent.southWest.lat)
+                        }
+                        if (lat < extent.southWest.lat) {
                             extent.southWest.lat = lat;
+                        }
                     }
                 }
             }
@@ -1280,7 +1302,7 @@ class Polyline {
 
     removeSegment(index) {
         //
-        //TODO: could be optimized. Partially see appendPoint3v.
+        // TODO: could be optimized. Partially see appendPoint3v.
         //
         this._path3v.splice(index, 1);
         this.setPath3v([].concat(this._path3v));
@@ -1288,7 +1310,7 @@ class Polyline {
 
     removePoint(index, multiLineIndex) {
         //
-        //TODO: could be optimized. Partially see appendPoint3v.
+        // TODO: could be optimized. Partially see appendPoint3v.
         //
         multiLineIndex = multiLineIndex || 0;
         this._path3v[multiLineIndex].splice(index, 1);
@@ -1357,7 +1379,7 @@ class Polyline {
      */
     addPoint3v(point3v, multiLineIndex = 0) {
         //
-        //TODO: could be optimized
+        // TODO: could be optimized
         //
         if (multiLineIndex >= this._path3v.length) {
             this._path3v.push([]);
@@ -1374,7 +1396,7 @@ class Polyline {
      */
     addPointLonLat(lonLat, multiLineIndex = 0) {
         //
-        //TODO: could be optimized
+        // TODO: could be optimized
         //
         if (multiLineIndex >= this._pathLonLat.length) {
             this._pathLonLat.push([]);
@@ -1406,7 +1428,7 @@ class Polyline {
             }
 
             if (!colors[index]) {
-                colors[index] = new Array(color[R], color[G], color[B], color[A] || 1.0);
+                colors[index] = [color[R], color[G], color[B], color[A] || 1.0];
             } else {
                 colors[index][R] = color[R];
                 colors[index][G] = color[G];
@@ -1634,19 +1656,8 @@ class Polyline {
 
     setPathColors(pathColors) {
         if (this._renderNode) {
-            //...
+            // ...
         }
-    }
-
-    setPointColor(color, index, segmentIndex) {
-        let s = this._pathColors[segmentIndex];
-        if (s) {
-            s[index][0] = color[0];
-            s[index][1] = color[1];
-            s[index][2] = color[2];
-            s[index][3] = color[3];
-        }
-        //...
     }
 
     setColorHTML(htmlColor) {
@@ -1750,7 +1761,7 @@ class Polyline {
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
 
-            //gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
+            // gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
@@ -1759,10 +1770,8 @@ class Polyline {
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
 
-
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
 
             var v = this._verticesHighBuffer;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);

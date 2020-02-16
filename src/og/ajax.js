@@ -90,8 +90,8 @@ const defaultParams = {
 
 function createXMLHttp() {
     var xhr = null;
-    if (typeof XMLHttpRequest !== undefined) {
-        xhr = new XMLHttpRequest;
+    if (typeof XMLHttpRequest != "undefined") {
+        xhr = new XMLHttpRequest();
         return xhr;
     } else if (window.ActiveXObject) {
         var ieXMLHttpVersions = ['MSXML2.XMLHttp.5.0', 'MSXML2.XMLHttp.4.0', 'MSXML2.XMLHttp.3.0', 'MSXML2.XMLHttp', 'Microsoft.XMLHttp'];
@@ -100,7 +100,7 @@ function createXMLHttp() {
                 xhr = new ActiveXObject(ieXMLHttpVersions[i]);
                 return xhr;
             } catch (e) {
-                console.log('error: og.ajax.createXMLHttp creation filed.');
+                throw new Error('og.ajax.createXMLHttp creation failed.');
             }
         }
     }
@@ -166,21 +166,23 @@ ajax.request = function (url, params) {
         xhr.open(p.type, url, p.async);
     }
 
-    if (p.async)
+    if (p.async) {
         xhr.responseType = p.responseType;
+    }
 
     xhr.overrideMimeType("text/plain");
 
     xhr.onreadystatechange = function () {
         if (xhr.readyState === ajax.ReadyState.Complete) {
             if (xhr.status === ajax.Status.OK) {
-                if (params.success)
+                if (params.success) {
                     /**
                      * Success callback.
                      * @callback ajax.Xhr~successCallback
                      * @param {Object} Response data
                      */
                     params.success.call(params.sender || customXhr, xhr.response);
+                }
             } else if (xhr.aborted) {
                 /**
                  * Abort callback.
@@ -202,7 +204,7 @@ ajax.request = function (url, params) {
             xhr.onreadystatechange = null;
             xhr = null;
         } else {
-            //still loading
+            // still loading
         }
     };
 
