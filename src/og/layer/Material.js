@@ -11,7 +11,7 @@ const Material = function (segment, layer) {
     this.isLoading = false;
     this.texture = null;
     this.pickingMask = null;
-    this.image = null;
+    //this.image = null;
     this.textureExists = false;
     this.appliedNodeId = 0;
     this.texOffset = [0.0, 0.0, 1.0, 1.0];
@@ -34,7 +34,7 @@ Material.prototype.abortLoading = function () {
 Material.prototype.applyImage = function (img) {
     if (this.segment.initialized) {
         this._updateTexture = null;
-        this.image = img;
+        //this.image = img;
         this.texture = this.segment.handler.createTexture(img);
         this.appliedNodeId = this.segment.node.nodeId;
         this.isReady = true;
