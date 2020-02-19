@@ -44,7 +44,7 @@ class PolylineHandler {
 
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
-        this._initProgram()
+        this._initProgram();
         for (var i = 0; i < this._polylines.length; i++) {
             this._polylines[i].setRenderNode(renderNode);
         }

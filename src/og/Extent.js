@@ -182,7 +182,7 @@ Extent.prototype.getWidth = function () {
  * @return {number} Extent height.
  */
 Extent.prototype.getHeight = function () {
-    return this.northEast.lat - this.southWest.lat
+    return this.northEast.lat - this.southWest.lat;
 };
 
 /**

@@ -38,13 +38,13 @@ class GeometryHandler {
         this._removeGeometryExtentArr = [];
         this._removeGeometryExtents = {};
 
-        //Polygon arrays
+        // Polygon arrays
         this._polyVerticesMerc = [];
         this._polyColors = [];
         this._polyPickingColors = [];
         this._polyIndexes = [];
 
-        //Line arrays
+        // Line arrays
         this._lineVerticesMerc = [];
         this._lineOrders = [];
         this._lineIndexes = [];
@@ -54,7 +54,7 @@ class GeometryHandler {
         this._lineStrokes = [];
         this._lineStrokeColors = [];
 
-        //Buffers
+        // Buffers
         this._polyVerticesBufferMerc = null;
         this._polyColorsBuffer = null;
         this._polyPickingColorsBuffer = null;
@@ -245,7 +245,7 @@ class GeometryHandler {
                 geometry._polyVerticesLength = data.vertices.length;
                 geometry._polyIndexesLength = indexes.length;
 
-                //Creates polygon stroke data
+                // Creates polygon stroke data
                 geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
@@ -268,10 +268,9 @@ class GeometryHandler {
 
                 let coordinates = geometry._coordinates;
                 let vertices = [],
-                    indexes = [],
-                    colors = [];
+                    indexes = [];
 
-                //Creates polygon stroke data
+                // Creates polygon stroke data
                 geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
@@ -336,7 +335,7 @@ class GeometryHandler {
                     ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
                 }
 
-                //Creates polygon stroke data
+                // Creates polygon stroke data
                 geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
@@ -365,7 +364,7 @@ class GeometryHandler {
                     }
                 }
 
-                //Creates polygon stroke data
+                // Creates polygon stroke data
                 geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
@@ -385,7 +384,7 @@ class GeometryHandler {
                 geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
             }
 
-            //Refresh visibility
+            // Refresh visibility
             this.setGeometryVisibility(geometry);
 
             !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
@@ -399,8 +398,8 @@ class GeometryHandler {
         if (index !== -1) {
             this._geometries.splice(index, 1);
 
-            //polygon
-            //this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+            // polygon
+            // this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
             this._polyVerticesMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
             this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
             this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
@@ -410,8 +409,8 @@ class GeometryHandler {
                 this._polyIndexes[i] -= di;
             }
 
-            //line
-            //this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+            // line
+            // this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
             this._lineVerticesMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
             this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
             this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
@@ -425,7 +424,7 @@ class GeometryHandler {
                 this._lineIndexes[i] -= di;
             }
 
-            //reindex
+            // reindex
             var g = this._geometries;
             for (let i = index; i < g.length; i++) {
                 var gi = g[i];

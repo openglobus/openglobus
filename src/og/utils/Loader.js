@@ -3,7 +3,6 @@
 import { Events } from '../Events.js';
 import { QueueArray } from '../QueueArray.js';
 
-
 const Loader = function (maxRequests = 12) {
 
     this.MAX_REQUESTS = maxRequests;

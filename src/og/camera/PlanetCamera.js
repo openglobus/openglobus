@@ -10,7 +10,6 @@ import { Camera } from './Camera.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
-import { Mat4 } from '../math/Mat4.js';
 import { Ray } from '../math/Ray.js';
 import { Quat } from '../math/Quat.js';
 
@@ -93,7 +92,7 @@ class PlanetCamera extends Camera {
 
         this._keyLock = new Key();
 
-        //Camera's flying frames
+        // Camera's flying frames
         this._framesArr = [];
         this._framesCounter = 0;
         this._numFrames = 50;
@@ -138,7 +137,7 @@ class PlanetCamera extends Camera {
 
         this._inverseProjectionViewMatrix = this._projectionMatrixPrecise.mul(this._viewMatrix).inverseTo();
 
-        //this._normalMatrix = this._viewMatrix.toInverseMatrix3().transposeTo();
+        // this._normalMatrix = this._viewMatrix.toInverseMatrix3().transposeTo();
         this._normalMatrix = this._viewMatrix.toMatrix3();
 
         this.updateGeodeticPosition();
@@ -257,7 +256,7 @@ class PlanetCamera extends Camera {
         northEast.subA(center);
         southWest.subA(center);
 
-        var direction = center.normal();//ellipsoid.getSurfaceNormal(center).negate().normalize();
+        var direction = center.normal(); // ellipsoid.getSurfaceNormal(center).negate().normalize();
         var right = direction.cross(Vec3.UP).normalize();
         var up = right.cross(direction).normalize();
 
@@ -349,11 +348,6 @@ class PlanetCamera extends Camera {
      */
     flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback, frameCallback) {
 
-        //???????
-        //if (this.eye.distance(cartesian) < 23000) {
-        //    return;
-        //}
-
         this.stopFlying();
 
         this._completeCallback = completeCallback;
@@ -396,13 +390,13 @@ class PlanetCamera extends Camera {
         var max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
         var zero = Vec3.ZERO;
 
-        //camera path and orientations calculation
+        // camera path and orientations calculation
         for (var i = 0; i <= this._numFrames; i++) {
             var d = 1 - i / this._numFrames;
             d = d * d * (3 - 2 * d);
             d *= d;
 
-            //Error here
+            // Error here
             var g_i = ground_a.smerp(ground_b, d).normalize();
             var ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
             var t = 1 - d;
@@ -419,10 +413,10 @@ class PlanetCamera extends Camera {
 
             var v = n.cross(u);
             this._framesArr[i] = {
-                "eye": eye_i,
-                "n": n,
-                "u": u,
-                "v": v
+                eye: eye_i,
+                n: n,
+                u: u,
+                v: v
             };
         }
 

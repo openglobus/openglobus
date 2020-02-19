@@ -3,7 +3,6 @@
 import { Vec3 } from '../math/Vec3.js';
 import { Line3 } from '../math/Line3.js';
 
-
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
 
@@ -496,7 +495,7 @@ class Strip {
                         let p01 = p0.lerp(p1, dj),
                             p23 = p2.lerp(p3, dj);
 
-                        //prev
+                        // prev
                         (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
 
                         let ij = i * gs1 + j;
@@ -515,7 +514,7 @@ class Strip {
                         vLow[ind3 + 1] = _tempLow.y;
                         vLow[ind3 + 2] = _tempLow.z;
 
-                        //next
+                        // next
                         let p45 = p4.lerp(p5, dj);
 
                         p23 = p2.lerp(p3, dj);

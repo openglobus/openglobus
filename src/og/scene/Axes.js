@@ -6,7 +6,6 @@
 
 import { RenderNode } from './RenderNode.js';
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
 
 class Axes extends RenderNode {
     constructor(size) {
@@ -29,20 +28,20 @@ class Axes extends RenderNode {
                 aVertexColor: 'vec4'
             },
             vertexShader:
-            'attribute vec3 aVertexPosition;\
-            attribute vec4 aVertexColor;\
-            uniform mat4 projectionViewMatrix;\
-            varying vec4 vColor;\
-            void main(void) {\
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition, 1.0);\
-                vColor = aVertexColor;\
-            }',
+                `attribute vec3 aVertexPosition;
+            attribute vec4 aVertexColor;
+            uniform mat4 projectionViewMatrix;
+            varying vec4 vColor;
+            void main(void) {
+                gl_Position = projectionViewMatrix * vec4(aVertexPosition, 1.0);
+                vColor = aVertexColor;
+            }`,
             fragmentShader:
-            'precision highp float;\
-            varying vec4 vColor;\
-            void main(void) {\
-                gl_FragColor = vColor;\
-            }'
+                `precision highp float;
+            varying vec4 vColor;
+            void main(void) {
+                gl_FragColor = vColor;
+            }`
         }));
     }
 

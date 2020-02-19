@@ -43,7 +43,7 @@ class FontDetector {
                 detected = detected || matched;
             }
             return detected;
-        }
+        };
     }
 };
 

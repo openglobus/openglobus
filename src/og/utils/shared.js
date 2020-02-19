@@ -21,7 +21,7 @@ if (!('createImageBitmap' in window)) {
             });
             img.src = URL.createObjectURL(blob);
         });
-    }
+    };
 };
 
 export function getDefault(param, def) {
@@ -190,7 +190,7 @@ export function createColorRGBA(c, def) {
         if (isString(c)) {
             return htmlColorToRgba(c);
         } else if (c instanceof Array) {
-            return new Vec4.fromVec(c);
+            return Vec4.fromVec(c);
         } else if (c instanceof Vec4) {
             return c.clone();
         }
@@ -205,7 +205,7 @@ export function createColorRGB(c, def) {
         if (isString(c)) {
             return htmlColorToRgb(c);
         } else if (c instanceof Array) {
-            return new Vec3.fromVec(c);
+            return Vec3.fromVec(c);
         } else if (c instanceof Vec3) {
             return c.clone();
         }
@@ -242,7 +242,6 @@ export function createLonLat(l, def) {
     }
     return new LonLat();
 };
-
 
 /**
  * Finds an item in a sorted array.
@@ -322,8 +321,9 @@ export function getLinesIntersection2v(start1, end1, start2, end2, isSegment) {
     var seg2_line1_start = a1 * start2.x + b1 * start2.y + d1;
     var seg2_line1_end = a1 * end2.x + b1 * end2.y + d1;
 
-    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
         return null;
+    }
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
@@ -358,8 +358,9 @@ export function getLinesIntersectionLonLat(start1, end1, start2, end2, isSegment
     var seg2_line1_start = a1 * start2.lon + b1 * start2.lat + d1;
     var seg2_line1_end = a1 * end2.lon + b1 * end2.lat + d1;
 
-    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0))
+    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
         return null;
+    }
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
@@ -436,25 +437,30 @@ export const castType = {
     },
 
     "boolean": function (str) {
-        if (str === null)
+        if (str === null) {
             return str;
+        }
 
         if (typeof str === 'boolean') {
-            if (str === true)
+            if (str === true) {
                 return true;
+            }
             return false;
         }
         if (typeof str === 'string') {
-            if (str === "")
+            if (str === "") {
                 return false;
+            }
             str = str.replace(/^\s+|\s+$/g, '');
-            if (str.toLowerCase() === 'true' || str.toLowerCase() === 'yes')
+            if (str.toLowerCase() === 'true' || str.toLowerCase() === 'yes') {
                 return true;
+            }
             str = str.replace(/,/g, '.');
             str = str.replace(/^\s*\-\s*/g, '-');
         }
-        if (!isNaN(str))
+        if (!isNaN(str)) {
             return parseFloat(str) !== 0;
+        }
         return false;
     }
 };
@@ -516,28 +522,27 @@ export function base64toBlob(base64Data, contentType) {
  * @param {Number} skip
  */
 export function throttle(func, limit, skip) {
-    let lastFunc
-    let lastRan
+    let lastFunc;
+    let lastRan;
     return function () {
-        const context = this
-        const args = arguments
+        const context = this;
+        const args = arguments;
         if (!lastRan) {
-            func.apply(context, args)
-            lastRan = Date.now()
+            func.apply(context, args);
+            lastRan = Date.now();
         } else {
             if (skip) {
                 clearTimeout(lastFunc);
             }
             lastFunc = setTimeout(function () {
                 if ((Date.now() - lastRan) >= limit) {
-                    func.apply(context, args)
-                    lastRan = Date.now()
+                    func.apply(context, args);
+                    lastRan = Date.now();
                 }
-            }, limit - (Date.now() - lastRan))
+            }, limit - (Date.now() - lastRan));
         }
-    }
+    };
 };
-
 
 /**
  * 

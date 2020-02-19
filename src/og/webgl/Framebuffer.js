@@ -202,8 +202,9 @@ Framebuffer.prototype.setSize = function (width, height, forceDestroy) {
  */
 Framebuffer.prototype.isComplete = function () {
     var gl = this.handler.gl;
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE)
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
         return true;
+    }
     return false;
 };
 
@@ -297,9 +298,9 @@ Framebuffer.prototype.openImage = function () {
     var img = this.getImage();
     var dataUrl = img.src;
     var windowContent = '<!DOCTYPE html>';
-    windowContent += '<html>'
+    windowContent += '<html>';
     windowContent += '<head><title>Print</title></head>';
-    windowContent += '<body>'
+    windowContent += '<body>';
     windowContent += '<img src="' + dataUrl + '">';
     windowContent += '</body>';
     windowContent += '</html>';
@@ -309,6 +310,5 @@ Framebuffer.prototype.openImage = function () {
     printWin.document.close();
     printWin.focus();
 };
-
 
 export { Framebuffer };

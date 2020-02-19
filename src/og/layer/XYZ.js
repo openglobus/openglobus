@@ -166,10 +166,10 @@ class XYZ extends Layer {
                 material.loadingAttempts++;
 
                 this._planet._tileLoader.load({
-                    'src': this._getHTTPRequestString(material.segment),
-                    'type': 'imageBitmap',
-                    'filter': () => seg.initialized && seg.node.getState() === RENDERING || forceLoading,
-                    'options': {}
+                    src: this._getHTTPRequestString(material.segment),
+                    type: 'imageBitmap',
+                    filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
+                    options: {}
                 }, (response) => {
                     if (response.status === "ready") {
                         if (material.isLoading) {
@@ -202,10 +202,10 @@ class XYZ extends Layer {
      */
     _createUrl(segment) {
         return stringTemplate(this.url, {
-            "s": this._getSubdomain(),
-            "x": segment.tileX.toString(),
-            "y": segment.tileY.toString(),
-            "z": segment.tileZoom.toString()
+            s: this._getSubdomain(),
+            x: segment.tileX.toString(),
+            y: segment.tileY.toString(),
+            z: segment.tileZoom.toString()
         });
     }
 
@@ -257,7 +257,7 @@ class XYZ extends Layer {
                 psegm = pn.segment.materials[mId];
             }
 
-            let maxNativeZoom = material.layer.maxNativeZoom
+            let maxNativeZoom = material.layer.maxNativeZoom;
 
             if (pn.segment.tileZoom === maxNativeZoom) {
                 material.textureNotExists();
@@ -345,7 +345,6 @@ class XYZ extends Layer {
         }
     };
 };
-
 
 const EVENT_NAMES = [
     /**

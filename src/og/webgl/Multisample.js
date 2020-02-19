@@ -192,8 +192,9 @@ Multisample.prototype.setSize = function (width, height, forceDestroy) {
  */
 Multisample.prototype.isComplete = function () {
     var gl = this.handler.gl;
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE)
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
         return true;
+    }
     return false;
 };
 

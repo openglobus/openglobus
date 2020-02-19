@@ -47,41 +47,41 @@ NormalMapCreator.prototype._init = function () {
         uniforms: {
             s_texture: { type: types.SAMPLER2D }
         },
-        vertexShader: "attribute vec2 a_position; \n\
-                       attribute vec2 a_texCoord; \n\
-                      \n\
-                      varying vec2 blurCoordinates[5]; \n\
-                      \n\
-                      void main() { \n\
-                          vec2 vt = a_position * 0.5 + 0.5;" +
+        vertexShader: `attribute vec2 a_position;
+                       attribute vec2 a_texCoord;
+
+                      varying vec2 blurCoordinates[5];
+
+                      void main() {
+                          vec2 vt = a_position * 0.5 + 0.5;` +
             (isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
-            "gl_Position = vec4(a_position, 0.0, 1.0); \n\
-                          blurCoordinates[0] = vt; \n\
-                          blurCoordinates[1] = vt + "  + (1.0 / this._width * 1.407333) + ";" +
+            `gl_Position = vec4(a_position, 0.0, 1.0);
+                          blurCoordinates[0] = vt;
+                          blurCoordinates[1] = vt + `  + (1.0 / this._width * 1.407333) + ";" +
             "blurCoordinates[2] = vt - " + (1.0 / this._height * 1.407333) + ";" +
             "blurCoordinates[3] = vt + " + (1.0 / this._width * 3.294215) + ";" +
             "blurCoordinates[4] = vt - " + (1.0 / this._height * 3.294215) + ";" +
             "}",
         fragmentShader:
-            "precision lowp float;\n\
-                        uniform sampler2D s_texture; \n\
-                        \n\
-                        varying vec2 blurCoordinates[5]; \n\
-                        \n\
-                        void main() { \n\
-                            lowp vec4 sum = vec4(0.0); \n\
-                            if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||\n\
-                                blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){\n\
-                                sum = texture2D(s_texture, blurCoordinates[0]);\n\
-                            } else {\n\
-                                sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164; \n\
-                                sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005; \n\
-                                sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005; \n\
-                                sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913; \n\
-                                sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913; \n\
-                            }\n\
-                            gl_FragColor = sum; \n\
-                        }"
+            `precision lowp float;
+                        uniform sampler2D s_texture;
+                        
+                        varying vec2 blurCoordinates[5];
+                        
+                        void main() {
+                            lowp vec4 sum = vec4(0.0);
+                            if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||
+                                blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){
+                                sum = texture2D(s_texture, blurCoordinates[0]);
+                            } else {
+                                sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164;
+                                sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005;
+                                sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005;
+                                sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913;
+                                sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913;
+                            }
+                            gl_FragColor = sum;
+                        }`
     });
 
     var normalMap = new Program("normalMap", {
@@ -89,23 +89,23 @@ NormalMapCreator.prototype._init = function () {
             a_position: { type: types.VEC2, enableArray: true },
             a_normal: { type: types.VEC3, enableArray: true }
         },
-        vertexShader: "attribute vec2 a_position; \
-                      attribute vec3 a_normal; \
-                      \
-                      varying vec3 v_color; \
-                      \
-                      void main() { \
-                          gl_Position = vec4(a_position, 0, 1); \
-                          v_color = normalize(a_normal) * 0.5 + 0.5; \
-                      }",
+        vertexShader: `attribute vec2 a_position;
+                      attribute vec3 a_normal;
+                      
+                      varying vec3 v_color;
+                      
+                      void main() {
+                          gl_Position = vec4(a_position, 0, 1);
+                          v_color = normalize(a_normal) * 0.5 + 0.5;
+                      }`,
         fragmentShader:
-            "precision highp float;\n\
-                        \
-                        varying vec3 v_color; \
-                        \
-                        void main () { \
-                            gl_FragColor = vec4(v_color, 1.0); \
-                        }"
+            `precision highp float;
+                        
+                        varying vec3 v_color;
+                        
+                        void main () {
+                            gl_FragColor = vec4(v_color, 1.0);
+                        }`
     });
 
     this._handler.addProgram(normalMapBlur);
@@ -207,7 +207,6 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
     }
     return false;
 };
-
 
 NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
     var normals = segment.normalMapNormals;

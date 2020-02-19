@@ -22,14 +22,14 @@ export function getEccentricAnomaly(M, ecc) {
         // Extremely stable Laguerre-Conway method for solving Kepler's
         // equation.  Only use this for high-eccentricity orbits, as it
         // requires more calcuation.
-        var E = M + 0.85 * ecc * sign(sin(M));
+        let E = M + 0.85 * ecc * sign(sin(M));
         return math.solve_iteration_fixed(solveKeplerLaguerreConway(ecc, M), E, 8);
     } else if (ecc == 1.0) {
-        //TODO: Parabolic orbit
+        // TODO: Parabolic orbit
         return M;
     } else {
         // Laguerre-Conway method for hyperbolic (ecc > 1) orbits.
-        var E = log(2 * M / ecc + 1.85);
+        let E = log(2 * M / ecc + 1.85);
         return math.solve_iteration_fixed(solveKeplerLaguerreConwayHyp(ecc, M), E, 30);
     }
 };
@@ -38,7 +38,7 @@ export function getEccentricAnomaly(M, ecc) {
 function solveKeplerFunc1(ecc, M) {
     return function (x) {
         return M + ecc * Math.sin(x);
-    }
+    };
 };
 
 // Faster converging iteration for Kepler's Equation; more efficient
@@ -47,7 +47,7 @@ function solveKeplerFunc1(ecc, M) {
 function solveKeplerFunc2(ecc, M) {
     return function (x) {
         return x + (M + ecc * Math.sin(x) - x) / (1 - ecc * Math.cos(x));
-    }
+    };
 };
 
 function solveKeplerLaguerreConway(ecc, M) {
@@ -59,7 +59,7 @@ function solveKeplerLaguerreConway(ecc, M) {
         var f2 = s;
         x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
-    }
+    };
 };
 
 function solveKeplerLaguerreConwayHyp(ecc, M) {
@@ -71,7 +71,7 @@ function solveKeplerLaguerreConwayHyp(ecc, M) {
         var f2 = s;
         x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
-    }
+    };
 };
 
 export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {

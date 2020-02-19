@@ -41,11 +41,11 @@ export function decodeFloatFromRGBA(rgba) {
 export function doubleToTwoFloats(value) {
     var high, low;
     if (value >= 0.0) {
-        var doubleHigh = Math.floor(value / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(value / 65536.0) * 65536.0;
         high = Math.fround(doubleHigh);
         low = Math.fround(value - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
         high = Math.fround(-doubleHigh);
         low = Math.fround(value + doubleHigh);
     }
@@ -60,11 +60,11 @@ export function doubleToTwoFloats(value) {
  */
 export function doubleToTwoFloats2(value, highLowArr) {
     if (value >= 0.0) {
-        var doubleHigh = Math.floor(value / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(value / 65536.0) * 65536.0;
         highLowArr[0] = Math.fround(doubleHigh);
         highLowArr[1] = Math.fround(value - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
+        let doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
         highLowArr[0] = Math.fround(-doubleHigh);
         highLowArr[1] = Math.fround(value + doubleHigh);
     }

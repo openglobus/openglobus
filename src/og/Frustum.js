@@ -23,9 +23,11 @@ class Frustum {
          * @type {Array.<Array.<number>>}
          */
         this._f = new Array(6);
-        for (var i = 0; i < 6; i++)
+        for (var i = 0; i < 6; i++) {
             this._f[i] = new Array(4);
+        }
     }
+
     /**
      * Normalize frustum plane.
      * @static
@@ -125,8 +127,9 @@ class Frustum {
         var d;
         for (var p = 0; p < 6; p++) {
             d = point.dotArr(this._f[p]) + this._f[p][3];
-            if (d <= 0)
+            if (d <= 0) {
                 return false;
+            }
         }
         return true;
     }
@@ -206,17 +209,18 @@ class Frustum {
 
             for (var k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
                 var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
-                if (d < 0)
+                if (d < 0) {
                     cout++;
-                else
+                } else {
                     cin++;
+                }
             }
 
-            if (cin === 0)
+            if (cin === 0) {
                 return false;
-            else if (cout > 0)
+            } else if (cout > 0) {
                 result = true;
-
+            }
         }
 
         return result;

@@ -7,10 +7,10 @@
 import { Control } from './Control.js';
 
 function dec2deg(base) {
-    var t, t2;
+    var t;
     var degrees = base < 0 ? Math.ceil(base) : Math.floor(base);
     var minutes = Math.floor(t = Math.abs((base - degrees)) * 60);
-    var seconds = Math.floor(t2 = (t - minutes) * 6000);
+    var seconds = Math.floor((t - minutes) * 6000);
     seconds = seconds / 100.00;
     return (numToFixedString(degrees, 3) + "\u00B0" +
         numToFixedString(minutes, 2) + "\u0027" +
@@ -107,8 +107,11 @@ class EarthCoordinates extends Control {
         var that = this;
 
         function _refresh(el) {
-            if (that._displayType >= DisplayTypesConverters.length)
+
+            if (that._displayType >= DisplayTypesConverters.length) {
                 that._displayType = 0;
+            }
+
             if (that._displayType == 0) {
                 el.style.width = "275px";
             } else if (that._displayType == 1) {
@@ -175,7 +178,6 @@ class EarthCoordinates extends Control {
 
     _grabCoordinates() {
         var r = this.renderer;
-        var ts = r.events.touchState;
         this.position = this.planet.getLonLatFromPixelTerrain(r.handler.getCenter());
         this._showPosition();
     }

@@ -1,6 +1,6 @@
 'use sctrict';
 
-import { QueueArray } from '../QueueArray.js';
+// import { QueueArray } from '../QueueArray.js';
 
 class TerrainWorker {
     constructor(numWorkers = 2) {

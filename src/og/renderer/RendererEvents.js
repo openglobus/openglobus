@@ -231,10 +231,6 @@ class RendererEvents extends Events {
         }
     }
 
-    isKeyPressed(keyCode) {
-        return this._keyboardHandler.isKeyPressed(keyCode);
-    }
-
     /**
      * Check key is pressed.
      * @public
@@ -299,7 +295,6 @@ class RendererEvents extends Events {
 
         //dispatch stop mouse event
         clearTimeout(this._mousestopThread);
-        var that = this;
         this._mousestopThread = setTimeout(function () {
             ms.justStopped = true;
         }, 100);
@@ -311,19 +306,19 @@ class RendererEvents extends Events {
     onMouseDown(event) {
 
         if (event.button === input.MB_LEFT) {
-            this._lClkBegins = new Date().getTime();
+            this._lClkBegins = window.performance.now();
             this._lclickX = event.clientX;
             this._lclickY = event.clientY;
             this.mouseState.sys = event;
             this.mouseState.leftButtonDown = true;
         } else if (event.button === input.MB_RIGHT) {
-            this._rClkBegins = new Date().getTime();
+            this._rClkBegins = window.performance.now();
             this._rclickX = event.clientX;
             this._rclickY = event.clientY;
             this.mouseState.sys = event;
             this.mouseState.rightButtonDown = true;
         } else if (event.button === input.MB_MIDDLE) {
-            this._mClkBegins = new Date().getTime();
+            this._mClkBegins = window.performance.now();
             this._mclickX = event.clientX;
             this._mclickY = event.clientY;
             this.mouseState.sys = event;
@@ -337,7 +332,7 @@ class RendererEvents extends Events {
     onMouseUp(event) {
         var ms = this.mouseState;
         ms.sys = event;
-        var t = new Date().getTime();
+        var t = window.performance.now();
 
         if (event.button === input.MB_LEFT) {
             ms.leftButtonDown = false;
@@ -348,13 +343,13 @@ class RendererEvents extends Events {
                 (t - this._lClkBegins <= ms.clickDelay)) {
 
                 if (this._ldblClkBegins) {
-                    var deltatime = new Date().getTime() - this._ldblClkBegins;
+                    let deltatime = window.performance.now() - this._ldblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.leftButtonDoubleClick = true;
                     }
                     this._ldblClkBegins = 0;
                 } else {
-                    this._ldblClkBegins = new Date().getTime();
+                    this._ldblClkBegins = window.performance.now();
                 }
 
                 ms.leftButtonClick = true;
@@ -370,13 +365,13 @@ class RendererEvents extends Events {
                 (t - this._rClkBegins <= ms.clickDelay)) {
 
                 if (this._rdblClkBegins) {
-                    var deltatime = new Date().getTime() - this._rdblClkBegins;
+                    let deltatime = window.performance.now() - this._rdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.rightButtonDoubleClick = true;
                     }
                     this._rdblClkBegins = 0;
                 } else {
-                    this._rdblClkBegins = new Date().getTime();
+                    this._rdblClkBegins = window.performance.now();
                 }
 
                 ms.rightButtonClick = true;
@@ -391,13 +386,13 @@ class RendererEvents extends Events {
                 (t - this._mClkBegins <= ms.clickDelay)) {
 
                 if (this._mdblClkBegins) {
-                    var deltatime = new Date().getTime() - this._mdblClkBegins;
+                    var deltatime = window.performance.now() - this._mdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.middleButtonDoubleClick = true;
                     }
                     this._mdblClkBegins = 0;
                 } else {
-                    this._mdblClkBegins = new Date().getTime();
+                    this._mdblClkBegins = window.performance.now();
                 }
 
                 ms.middleButtonClick = true;
@@ -446,13 +441,13 @@ class RendererEvents extends Events {
             if (this._oneTouchStart) {
 
                 if (this._dblTchBegins) {
-                    var deltatime = new Date().getTime() - this._dblTchBegins;
+                    var deltatime = window.performance.now() - this._dblTchBegins;
                     if (deltatime <= ts.doubleTouchDelay) {
                         ts.doubleTouch = true;
                     }
                     this._dblTchBegins = 0;
                 }
-                this._dblTchBegins = new Date().getTime();
+                this._dblTchBegins = window.performance.now();
                 this._oneTouchStart = false;
             }
         }

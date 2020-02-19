@@ -9,30 +9,30 @@ import { Program } from '../webgl/Program.js';
 export function polyline_screen() {
     return new Program("polyline_screen", {
         uniforms: {
-            'viewport': "vec2",
-            'proj': "mat4",
-            'view': "mat4",
-            'eyePositionHigh': "vec3",
-            'eyePositionLow': "vec3",
-            'uFloatParams': "vec2",
-            'thickness': "float"
+            viewport: "vec2",
+            proj: "mat4",
+            view: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            uFloatParams: "vec2",
+            thickness: "float"
         },
         attributes: {
-            'prevHigh': "vec3",
-            'currentHigh': "vec3",
-            'nextHigh': "vec3",
+            prevHigh: "vec3",
+            currentHigh: "vec3",
+            nextHigh: "vec3",
 
-            'prevLow': "vec3",
-            'currentLow': "vec3",
-            'nextLow': "vec3",
+            prevLow: "vec3",
+            currentLow: "vec3",
+            nextLow: "vec3",
 
-            'order': "float",
+            order: "float",
 
-            'color': "vec4"
+            color: "vec4"
         },
 
-        vertexShader: 
-               `precision highp float;
+        vertexShader:
+            `precision highp float;
                 
                 attribute vec3 prevHigh;
                 attribute vec3 currentHigh;
@@ -181,7 +181,7 @@ export function polyline_screen() {
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
                     gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 }`,
-                
+
         fragmentShader:
             `precision highp float;
                 uniform vec2 uFloatParams;
@@ -200,25 +200,25 @@ export function polyline_screen() {
 export function polyline_picking() {
     return new Program("polyline_picking", {
         uniforms: {
-            'viewport': "vec2",
-            'proj': "mat4",
-            'view': "mat4",
-            'eyePositionHigh': "vec3",
-            'eyePositionLow': "vec3",
-            'uFloatParams': "vec2",
-            'color': "vec4",
-            'thickness': "float"
+            viewport: "vec2",
+            proj: "mat4",
+            view: "mat4",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            uFloatParams: "vec2",
+            color: "vec4",
+            thickness: "float"
         },
         attributes: {
-            'prevHigh': "vec3",
-            'currentHigh': "vec3",
-            'nextHigh': "vec3",
+            prevHigh: "vec3",
+            currentHigh: "vec3",
+            nextHigh: "vec3",
 
-            'prevLow': "vec3",
-            'currentLow': "vec3",
-            'nextLow': "vec3",
+            prevLow: "vec3",
+            currentLow: "vec3",
+            nextLow: "vec3",
 
-            'order': "float"
+            order: "float"
         },
 
         vertexShader:

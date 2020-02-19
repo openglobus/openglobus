@@ -53,7 +53,6 @@ Line3.prototype.getSphereIntersection = function (sphere) {
 
     // prefer a solution that's on the line segment itself
     if (Math.Abs(t1 - 0.5) < Math.abs(t2 - 0.5)) {
-        //return new Point3D[] { solution1, solution2 };
         return [solution1, solution2];
     }
 
@@ -65,13 +64,15 @@ Line3.prototype.intersects = function (line, pa, pb) {
     let p13 = this.p0.sub(line.p0),
         p43 = line.p1.sub(line.p0);
 
-    if (Math.abs(p43.x) < math.EPSILON10 && Math.abs(p43.y) < math.EPSILON10 && Math.abs(p43.z) < math.EPSILON10)
+    if (Math.abs(p43.x) < math.EPSILON10 && Math.abs(p43.y) < math.EPSILON10 && Math.abs(p43.z) < math.EPSILON10) {
         return false;
+    }
 
     let p21 = this.p1.sub(this.p0);
 
-    if (Math.abs(p21.x) < math.EPSILON10 && Math.abs(p21.y) < math.EPSILON10 && Math.abs(p21.z) < math.EPSILON10)
+    if (Math.abs(p21.x) < math.EPSILON10 && Math.abs(p21.y) < math.EPSILON10 && Math.abs(p21.z) < math.EPSILON10) {
         return false;
+    }
 
     let d1343 = p13.x * p43.x + p13.y * p43.y + p13.z * p43.z,
         d4321 = p43.x * p21.x + p43.y * p21.y + p43.z * p21.z,
@@ -81,8 +82,9 @@ Line3.prototype.intersects = function (line, pa, pb) {
 
     let denom = d2121 * d4343 - d4321 * d4321;
 
-    if (Math.abs(denom) < math.EPSILON10)
+    if (Math.abs(denom) < math.EPSILON10) {
         return false;
+    }
 
     let numer = d1343 * d4321 - d1321 * d4343;
 

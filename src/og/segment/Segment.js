@@ -2,12 +2,7 @@
 
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
-import {
-    NW, NE, SW, SE,
-    N, E, S, W,
-    OPSIDE, NOTRENDERING
-} from '../quadTree/quadTree.js';
-import { Box } from '../bv/Box.js';
+import { N, E, S, W, OPSIDE, NOTRENDERING } from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Layer } from '../layer/Layer.js';
@@ -16,12 +11,11 @@ import { textureCoordsTable } from './segmentHelper.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
-import { cons } from '../cons.js';
 
 export const MAX_NORMAL_ZOOM = 7;
 
-let _tempHigh = new Vec3(),
-    _tempLow = new Vec3();
+var _tempHigh = new Vec3();
+var _tempLow = new Vec3();
 
 var _RenderingSlice = function (p) {
     this.layers = [];
@@ -68,12 +62,6 @@ const Segment = function (node, planet, tileZoom, extent) {
      * @type {og.webgl.Handler}
      */
     this.handler = planet.renderer.handler;
-
-    ///**
-    // * Segment bounding box.
-    // * @type {og.bv.Box}
-    // */
-    //this.bbox = new Box();
 
     /**
      * Segment bounding box.
@@ -128,7 +116,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.tileY = 0;
 
-    this.tileIndex = "";
+    this.tileIndex = '';
 
     this._assignTileIndexes();
 
@@ -180,7 +168,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
-    //this.plainIndexes = null;
+    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -219,7 +207,7 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this.readyToEngage = false;
 
-    this.readyToEqualize = false;
+    //this.readyToEqualize = false;
 
     this.plainProcessing = false;
 };
@@ -233,7 +221,6 @@ const Segment = function (node, planet, tileZoom, extent) {
 Segment.prototype.acceptForRendering = function (camera) {
     return camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet._lodRatio;
 };
-
 
 /**
  * Returns entity terrain point.
@@ -261,8 +248,7 @@ Segment.prototype.isEntityInside = function (e) {
  * @returns {number} -
  */
 Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
-
-    var verts = this.tempVertices,//this.terrainReady ? this.terrainVertices : this.tempVertices,
+    var verts = this.tempVertices, // this.terrainReady ? this.terrainVertices : this.tempVertices,
         ray = new Ray(xyz, xyz.negateTo());
 
     if (verts) {
@@ -295,7 +281,7 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
             var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
 
             //
-            //TODO: replace with temp variables            
+            // TODO: replace with temp variables            
             var v0 = new Vec3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
                 v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
                 v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
@@ -340,7 +326,6 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
         return xyz.distance(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
     }
 };
-
 
 /**
  * Project wgs86 to segment native projection.
@@ -562,7 +547,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVerticesHigh = null;
         this.tempVerticesLow = null;
 
-
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
@@ -614,7 +598,7 @@ Segment.prototype.elevationsNotExists = function () {
             this.terrainIsLoading = false;
 
             this.node.appliedTerrainNodeId = this.node.nodeId;
-            //this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+            // this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
             if (this.planet.lightEnabled && !this._inTheQueue) {
                 this.planet._normalMapCreator.queue(this);
@@ -679,13 +663,13 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
         let seg_a_raw = s.normalMapNormalsRaw,
             seg_b_raw = b.normalMapNormalsRaw;
 
-        let seg_a_verts = s.terrainVertices,
-            seg_b_verts = s.terrainVertices;
+        // let seg_a_verts = s.terrainVertices,
+        //     seg_b_verts = s.terrainVertices;
 
         let s_gs = Math.sqrt(seg_a.length / 3),
-            b_gs = Math.sqrt(seg_b.length / 3),
-            s_gs1 = s_gs - 1,
-            b_gs1 = b_gs - 1;
+            // b_gs = Math.sqrt(seg_b.length / 3),
+            s_gs1 = s_gs - 1;
+        // b_gs1 = b_gs - 1;
 
         const i_a = s_gs1 * _S[side];
 
@@ -693,7 +677,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
 
         if (s.tileZoom === b.tileZoom) {
 
-            let i_b = s_gs1 - i_a;
+            const i_b = s_gs1 - i_a;
 
             if (_V[side]) {
                 for (let k = 0; k < s_gs; k++) {
@@ -737,7 +721,6 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
         }
     }
 };
-
 
 Segment.prototype.applyTerrain = function (elevations) {
     if (elevations) {
@@ -865,7 +848,7 @@ Segment.prototype.destroySegment = function () {
 
     this.materials = null;
 
-    //this.plainIndexes = null;
+    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -916,7 +899,7 @@ Segment.prototype.createBoundsByExtent = function () {
     var coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
 
-    //check for zoom
+    // check for zoom
     if (this.tileZoom < MAX_NORMAL_ZOOM) {
 
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
@@ -975,7 +958,6 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         let hgsOne = 0.5 * gs + 0.5;
 
-
         this.terrainVertices = new Float64Array(sgs3);
         this.terrainVerticesHigh = new Float32Array(sgs3);
         this.terrainVerticesLow = new Float32Array(sgs3);
@@ -986,7 +968,6 @@ Segment.prototype.createTerrainFromChildNodes = function () {
 
         this.normalMapNormals = new Float32Array(gs3);
         this.normalMapNormalsRaw = new Float32Array(gs3);
-
 
         let verts = this.terrainVertices,
             vertsHigh = this.terrainVerticesHigh,
@@ -1076,7 +1057,6 @@ Segment.prototype.createTerrainFromChildNodes = function () {
             zmin + (zmax - zmin) * 0.5,
             new Vec3(xmin, ymin, zmin)
         );
-
 
         this.appliedTerrainNodeId = this.nodeId;
         this.terrainReady = true;
@@ -1191,7 +1171,6 @@ Segment.prototype._assignGlobalTextureCoordinates = function () {
     this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
 };
 
-
 Segment.prototype.createPlainSegmentAsync = function () {
 
     let p = this.planet,
@@ -1296,7 +1275,7 @@ Segment.prototype._createPlainVertices = function () {
     this.terrainVerticesHigh = vertsHigh;
     this.terrainVerticesLow = vertsLow;
 
-    //store raw normals
+    // store raw normals
     this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
     this.normalMapNormalsRaw.set(nmNorms);
 
@@ -1341,7 +1320,7 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
         currHeight = 0;
     }
 
-    //First always draw whole planet base layer segment with solid texture.
+    // First always draw whole planet base layer segment with solid texture.
     gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 2);
     gl.bindTexture(gl.TEXTURE_2D, defaultTexture || this.getDefaultTexture());
     gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE + 2);
@@ -1362,9 +1341,9 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
     this._indexBuffer = this._getIndexBuffer();
 
     while (li) {
-        if (this.layerOverlap(li) &&
-            (li._fading && li._fadingOpacity > 0.0 ||
-                li.minZoom <= p.minCurrZoom && li.maxZoom >= p.maxCurrZoom)) {
+        if (this.layerOverlap(li) && ((li._fading && (li._fadingOpacity > 0.0)) ||
+            ((li.minZoom >= p.minCurrZoom || li.maxZoom >= p.minCurrZoom) && (li.minZoom <= p.maxCurrZoom || li.maxZoom <= p.maxCurrZoom)))
+        ) {
 
             notEmpty = true;
             var m = pm[li._id];
@@ -1427,7 +1406,7 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
-        //bind normalmap texture
+        // bind normalmap texture
         if (p.lightEnabled) {
             gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE + 3);
             gl.bindTexture(gl.TEXTURE_2D, this.normalMapTexture || p.transparentTexture);
@@ -1435,7 +1414,7 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
 
             gl.uniform3fv(shu.uNormalMapBias, this.normalMapTextureBias);
 
-            //bind segment specular and night material texture coordinates
+            // bind segment specular and night material texture coordinates
             gl.uniform4fv(shu.uGlobalTextureCoord, this._globalTextureCoordinates);
 
             gl.uniform3fv(shu.diffuseMaterial, p._diffuseMaterialArr);
@@ -1530,7 +1509,7 @@ Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex,
     var pm = this.materials,
         p = this.planet;
 
-    //First always draw whole planet base layer segment with solid texture.
+    // First always draw whole planet base layer segment with solid texture.
     gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
     gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
     gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE);
@@ -1612,7 +1591,7 @@ Segment.prototype.getExtent = function () {
 
 Segment.prototype.getNodeState = function () {
     var vn = this.planet._visibleNodes[this.node.nodeId];
-    return vn && vn.state || NOTRENDERING;
+    return (vn && vn.state) || NOTRENDERING;
 };
 
 Segment.prototype.getNeighborSide = function (b) {

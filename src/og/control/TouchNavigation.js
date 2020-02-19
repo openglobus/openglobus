@@ -6,15 +6,12 @@
 
 import * as math from '../math.js';
 import { Control } from './Control.js';
-import { input } from '../input/input.js';
 import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
-import { Mat4 } from '../math/Mat4.js';
 import { Quat } from '../math/Quat.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
-
 
 /**
  * Touch pad planet camera dragging control.
@@ -90,7 +87,7 @@ class TouchNavigation extends Control {
             t1.prev_y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
             t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
-            //this.planet._viewChanged = true;
+            // this.planet._viewChanged = true;
             this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter(), true);
 
             if (this.pointOnEarth) {
@@ -133,8 +130,9 @@ class TouchNavigation extends Control {
     }
 
     onDoubleTouch(e) {
-        if (this.stepIndex)
+        if (this.stepIndex) {
             return;
+        }
 
         this.planet.stopFlying();
         this.stopRotation();
@@ -145,16 +143,18 @@ class TouchNavigation extends Control {
 
     onTouchEnd(e) {
 
-        if (e.sys.touches.length === 0)
+        if (e.sys.touches.length === 0) {
             this._touching = false;
+        }
 
         if (e.sys.touches.length === 1) {
             this._startTouchOne(e);
         }
 
-        if (Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3 &&
-            Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3)
+        if ((Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3) &&
+            (Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3)) {
             this.scaleRot = 0;
+        }
     }
 
     onTouchCancel(e) {
@@ -171,8 +171,9 @@ class TouchNavigation extends Control {
             var t0 = this.touches[0],
                 t1 = this.touches[1];
 
-            if (!t0.grabbedPoint || !t1.grabbedPoint)
+            if (!t0.grabbedPoint || !t1.grabbedPoint) {
                 return;
+            }
 
             this.planet.stopFlying();
 
@@ -186,23 +187,8 @@ class TouchNavigation extends Control {
             t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
             t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
 
-            //var center_x = Math.round(t0.x + (t1.x - t0.x) * 0.5);
-            //var center_y = Math.round(t0.y + (t1.y - t0.y) * 0.5);
-
-            //var dirC = cam.unproject(center_x, center_y);
-            //var targetPointC = this.planet.getCartesianFromPixelTerrain(new og.math.Pixel(center_x, center_y));
-
-            //var dir0 = cam.unproject(t0.x, t0.y);
-            //var targetPoint0 = new og.Ray(cam.eye, dir0).hitSphere(t0.grabbedSpheroid);
-
-            //var dir1 = cam.unproject(t1.x, t1.y);
-            //var targetPoint1 = new og.Ray(cam.eye, dir1).hitSphere(t1.grabbedSpheroid);
-
-            //print2d("t1", center_x + "," + center_y, 100, 100);
-            //print2d("t2", targetPointC.x + "," + targetPointC.y + "," + targetPointC.z, 100, 120);
-
-            if (t0.dY() > 0 && t1.dY() > 0 || t0.dY() < 0 && t1.dY() < 0 ||
-                t0.dX() > 0 && t1.dX() > 0 || t0.dX() < 0 && t1.dX() < 0) {
+            if ((t0.dY() > 0 && t1.dY() > 0) || (t0.dY() < 0 && t1.dY() < 0) ||
+                (t0.dX() > 0 && t1.dX() > 0) || (t0.dX() < 0 && t1.dX() < 0)) {
                 var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
                 if (l > 0.007) l = 0.007;
                 cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
@@ -222,8 +208,9 @@ class TouchNavigation extends Control {
             t.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
             t.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
 
-            if (!t.grabbedPoint)
+            if (!t.grabbedPoint) {
                 return;
+            }
 
             this.planet.stopFlying();
 
@@ -262,8 +249,9 @@ class TouchNavigation extends Control {
 
         this.renderer.controlsBag.scaleRot = this.scaleRot;
 
-        if (this._touching)
+        if (this._touching) {
             return;
+        }
 
         var r = this.renderer;
         var cam = r.activeCamera;
@@ -272,7 +260,6 @@ class TouchNavigation extends Control {
         if (this.stepIndex) {
             r.controlsBag.scaleRot = 1;
             var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-            var cam = this.renderer.activeCamera;
             cam.eye = sf.eye;
             cam._v = sf.v;
             cam._u = sf.u;
@@ -281,15 +268,15 @@ class TouchNavigation extends Control {
             cam.update();
         }
 
-        if (r.events.mouseState.leftButtonDown || !this.scaleRot)
+        if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
             return;
+        }
 
         this.scaleRot -= this.inertia;
-        if (this.scaleRot <= 0)
+        if (this.scaleRot <= 0) {
             this.scaleRot = 0;
-        else {
+        } else {
             r.controlsBag.scaleRot = this.scaleRot;
-            var cam = r.activeCamera;
             var rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
             if (!(rot.x || rot.y || rot.z)) {
                 this.scaleRot = 0;

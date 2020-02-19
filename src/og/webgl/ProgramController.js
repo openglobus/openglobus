@@ -32,7 +32,6 @@ const ProgramController = function (handler, program) {
     this._activated = false;
 };
 
-
 /**
  * Lazy create program call.
  * @public

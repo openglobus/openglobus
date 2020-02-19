@@ -59,8 +59,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
     return res;
 };
 
-
-///**
+// /**
 // * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
 // * @static
 // * @param {Array.<number>} sourceArr - Source array
@@ -71,7 +70,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 // * @return{Array.<number>} Triangle coordinates array from the source array.
 // * @TODO: optimization
 // */
-//function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow) {
+// function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow) {
 
 //    const i0size = i0 + size + 1;
 //    const j0size = j0 + size + 1;
@@ -91,9 +90,9 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 //            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
 //        }
 //    }
-//};
+// };
 
-///**
+// /**
 // * Returns triangle coordinate array from inside of the source triangle array.
 // * @static
 // * @param {Array.<number>} sourceArr - Source array
@@ -105,7 +104,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 // * @return{Array.<number>} Triangle coordinates array from the source array.
 // * @TODO: optimization
 // */
-//function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
+// function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
 
 //    const size_1 = size + 1;
 //    const i0size = i0 + size_1;
@@ -135,7 +134,7 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
 //        }
 //    }
 //    return res;
-//};
+// };
 
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
@@ -196,8 +195,8 @@ function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, grid
  * @param {number} tileZoom - Deep index of the quad tree.
  * @param {og.Extent} extent - Planet segment extent.
  */
-const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, extent) {
-    this.SegmentPrototype = segmentPrototype;
+const Node = function (SegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
+    this.SegmentPrototype = SegmentPrototype;
     this.planet = planet;
     this.parentNode = parent;
     this.partId = partId;
@@ -209,7 +208,7 @@ const Node = function (segmentPrototype, planet, partId, parent, id, tileZoom, e
     this.neighbors = [[], [], [], []];
     this.equalizedNeighbors = [false, false, false, false];
     this.nodes = [null, null, null, null];
-    this.segment = new segmentPrototype(this, planet, tileZoom, extent);
+    this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
     this._cameraInside = false;
     this.createBounds();
     this.planet._createdNodesCount++;
@@ -302,7 +301,7 @@ Node.prototype.createBounds = function () {
                 );
 
                 if (seg.tileZoom < MAX_NORMAL_ZOOM) {
-                    //check for segment zoom
+                    // check for segment zoom
                     let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
                         v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
 
@@ -447,7 +446,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
     this._cameraInside = false;
 
-    //Search a node which the camera is flying over.
+    // Search a node which the camera is flying over.
     if (!this.parentNode || this.parentNode._cameraInside) {
         let inside;
         if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
@@ -475,16 +474,16 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
         let altVis = (cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h)) || seg.tileZoom < 2;
 
-        if (inFrustum && (altVis || h > 10000.0) || this._cameraInside) {
+        if ((inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
             seg._collectVisibleNodes();
         }
 
-        //First skip lowest zoom nodes
+        // First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-        } else if (!maxZoom && seg.acceptForRendering(cam) || seg.tileZoom === maxZoom) {
+        } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
-        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady && !maxZoom || maxZoom) {
+        } else if (((seg.tileZoom < planet.terrain._maxNodeZoom) && (seg.terrainReady && !maxZoom)) || maxZoom) {
             if (seg.terrainReady) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else {
@@ -546,7 +545,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
 
     var seg = this.segment;
 
-    //Create and load terrain data.    
+    // Create and load terrain data
     if (!seg.terrainReady) {
 
         if (!seg.initialized) {
@@ -567,7 +566,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
         }
     }
 
-    //Create normal map texture
+    // Create normal map texture
     if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
         this.whileNormalMapCreating();
     }
@@ -577,7 +576,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
         return;
     }
 
-    //Calculate minimal and maximal zoom index on the screen
+    // Calculate minimal and maximal zoom index on the screen
     if (!this._cameraInside && seg.tileZoom > this.planet.maxCurrZoom) {
         this.planet.maxCurrZoom = seg.tileZoom;
     }
@@ -588,7 +587,7 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
 
     seg._addViewExtent();
 
-    //Finally this node proceeds to rendering.
+    // Finally this node proceeds to rendering.
     this.addToRender();
 };
 
@@ -724,7 +723,6 @@ Node.prototype.whileNormalMapCreating = function () {
     seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
     seg.normalMapTextureBias[2] = 1.0 / dZ2;
 
-
     if (seg.tileZoom > maxZ) {
         if (pn.segment.tileZoom === maxZ) {
             seg.parentNormalMapReady = true;
@@ -733,12 +731,12 @@ Node.prototype.whileNormalMapCreating = function () {
 };
 
 let BOUNDS = {
-    'xmin': 0.0,
-    'ymin': 0.0,
-    'zmin': 0.0,
-    'xmax': 0.0,
-    'ymax': 0.0,
-    'zmax': 0.0
+    xmin: 0.0,
+    ymin: 0.0,
+    zmin: 0.0,
+    xmax: 0.0,
+    ymax: 0.0,
+    zmax: 0.0
 };
 
 Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading) {
@@ -767,8 +765,6 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
         let tempVertices,
             tempVerticesHigh,
             tempVerticesLow;
-
-        //if (this.appliedTerrainNodeId !== pn.nodeId) { //Replced to the first if 768
 
         this.appliedTerrainNodeId = pn.nodeId;
 
@@ -817,7 +813,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 pseg.normalMapVertices,
                 pseg.normalMapVerticesHigh,
                 pseg.normalMapVerticesLow,
-                pn.segment.fileGridSize,//pn.segment.planet.terrain.fileGridSize,
+                pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
                 gridSizeExt,
@@ -897,16 +893,12 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             }
         }
 
-        //replace
-        //seg.createCoordsBuffers(tempVerticesHigh, tempVerticesLow, seg.gridSize);
-        //with
         seg.readyToEngage = true;
 
         seg.terrainVertices = tempVertices;
         seg.terrainVerticesHigh = tempVerticesHigh;
         seg.terrainVerticesLow = tempVerticesLow;
 
-        //is used for earth point calculation(see segment object)
         seg.tempVertices = tempVertices;
         seg.tempVerticesHigh = tempVerticesHigh;
         seg.tempVerticesLow = tempVerticesLow;
@@ -917,7 +909,6 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
             new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
         );
-        //}
 
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {
@@ -937,14 +928,14 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                     seg.normalMapVertices = tempVertices;
                     seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                    let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,//terrain.fileGridSize,
+                    let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,
                         fgsZ = fgs / dZ2;
 
                     if (fgs > 1) {
                         seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals,
                             fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
                     } else {
-                        //TODO: interpolation
+                        // TODO: interpolation
                         seg.normalMapNormals = pseg.normalMapNormals;
                     }
                 }
@@ -1002,7 +993,7 @@ Node.prototype.clearTree = function () {
 };
 
 Node.prototype.clearBranches = function () {
-    for (i = 0; i < this.nodes.length; i++) {
+    for (let i = 0; i < this.nodes.length; i++) {
         this.nodes[i].clearBranches();
         this.nodes[i].segment.deleteMaterials();
     }

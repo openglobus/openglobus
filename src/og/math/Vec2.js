@@ -70,7 +70,7 @@ Vec2.add = function (a, b) {
  * @returns {og.math.Vec2} - Vectors subtraction.
  */
 Vec2.sub = function (a, b) {
-    var res = new oVec2(a.x, a.y);
+    var res = new Vec2(a.x, a.y);
     res.subA(b);
     return res;
 };
@@ -84,7 +84,7 @@ Vec2.sub = function (a, b) {
  */
 Vec2.scale = function (a, scale) {
     var res = new Vec2(a.x, a.y);
-    res.scale(scale)
+    res.scale(scale);
     return res;
 };
 
@@ -293,7 +293,6 @@ Vec2.prototype.mulA = function (vec) {
 Vec2.prototype.mul = function (vec) {
     return new Vec2(this.x * vec.x, this.y * vec.y);
 };
-
 
 /**
  * Divide current vector's components to another. Results stores in the current vector object.

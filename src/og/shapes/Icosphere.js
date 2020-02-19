@@ -21,7 +21,7 @@ import { BaseShape } from './BaseShape.js';
  */
 class Icosphere extends BaseShape {
     constructor(options) {
-
+        super(options);
         /**
          * Icosphere radius.
          * @protected
@@ -134,12 +134,11 @@ class Icosphere extends BaseShape {
         faces.push([8, 6, 7]);
         faces.push([9, 8, 1]);
 
-
         // refine triangles
         for (let i = 0; i < this._level; i++) {
             var faces2 = [];
             for (let j = 0; j < faces.length; j++) {
-                var tri = faces[j];
+                let tri = faces[j];
                 // replace triangle by 4 triangles
                 var a = this._getMiddlePoint(tri[0], tri[1]);
                 var b = this._getMiddlePoint(tri[1], tri[2]);
@@ -154,7 +153,7 @@ class Icosphere extends BaseShape {
         }
 
         for (let i = 0; i < faces.length; i++) {
-            var tri = faces[i];
+            let tri = faces[i];
             this._indexData.push(tri[0]);
             this._indexData.push(tri[1]);
             this._indexData.push(tri[2]);

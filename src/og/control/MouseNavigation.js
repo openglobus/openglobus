@@ -15,7 +15,6 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
-
 /**
  * Mouse planet camera dragging control.
  * @class
@@ -45,12 +44,14 @@ class MouseNavigation extends Control {
         this.stepsForward = null;
         this.stepIndex = 0;
 
+        this._lmbDoubleClickActive = true;
+
         this._keyLock = new Key();
     }
 
     static getMovePointsFromPixelTerrain(cam, planet, stepsCount, delta, point, forward, dir) {
 
-        var steps = []
+        var steps = [];
 
         var eye = cam.eye.clone(),
             n = cam._n.clone(),
@@ -84,7 +85,7 @@ class MouseNavigation extends Control {
                 grabbedSpheroid.radius = a.length();
 
                 var rotArr = [],
-                    eyeArr = []
+                    eyeArr = [];
 
                 var breaked = false;
                 for (var i = 0; i < stepsCount; i++) {
@@ -100,7 +101,7 @@ class MouseNavigation extends Control {
                 }
 
                 if (!breaked) {
-                    for (var i = 0; i < stepsCount; i++) {
+                    for (let i = 0; i < stepsCount; i++) {
                         var rot = rotArr[i];
                         steps[i] = {};
                         steps[i].eye = rot.mulVec3(eyeArr[i]);
@@ -110,7 +111,7 @@ class MouseNavigation extends Control {
                     }
                 } else {
                     eye = cam.eye.clone();
-                    for (var i = 0; i < stepsCount; i++) {
+                    for (let i = 0; i < stepsCount; i++) {
                         steps[i] = {};
                         steps[i].eye = eye.addA(scaled_n).clone();
                         steps[i].v = v;
@@ -119,7 +120,7 @@ class MouseNavigation extends Control {
                     }
                 }
             } else {
-                for (var i = 0; i < stepsCount; i++) {
+                for (let i = 0; i < stepsCount; i++) {
                     steps[i] = {};
                     steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
                     steps[i].v = v;
@@ -139,10 +140,12 @@ class MouseNavigation extends Control {
         this.renderer.events.on("ldown", this.onMouseLeftButtonClick, this);
         this.renderer.events.on("lup", this.onMouseLeftButtonUp, this);
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
-        //this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
         this.renderer.events.on("draw", this.onDraw, this);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
-        this.activateDoubleClickZoom();
+
+        if (this._lmbDoubleClickActive) {
+            this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        }
     }
 
     ondeactivate() {
@@ -152,23 +155,29 @@ class MouseNavigation extends Control {
         this.renderer.events.off("ldown", this.onMouseLeftButtonClick);
         this.renderer.events.off("lup", this.onMouseLeftButtonUp);
         this.renderer.events.off("rdown", this.onMouseRightButtonClick);
-        //this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
         this.renderer.events.off("draw", this.onDraw);
-        this.deactivateDoubleClickZoom();
+        this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
     };
 
     activateDoubleClickZoom() {
-        this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        if (!this._lmbDoubleClickActive) {
+            this._lmbDoubleClickActive = true;
+            this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
+        }
     }
 
     deactivateDoubleClickZoom() {
-        this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        if (this._lmbDoubleClickActive) {
+            this._lmbDoubleClickActive = false;
+            this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        }
     }
 
     onMouseWheel(event) {
 
-        if (this.stepIndex)
+        if (this.stepIndex) {
             return;
+        }
 
         this.planet.stopFlying();
 
@@ -234,8 +243,10 @@ class MouseNavigation extends Control {
 
     onMouseLeftButtonDown(e) {
         if (this._active) {
-            if (!this.grabbedPoint)
+
+            if (!this.grabbedPoint) {
                 return;
+            }
 
             this.planet.stopFlying();
 
@@ -347,8 +358,9 @@ class MouseNavigation extends Control {
                 }
             }
 
-            if (r.events.mouseState.leftButtonDown || !this.scaleRot)
+            if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
                 return;
+            }
 
             this.scaleRot -= this.inertia;
             if (this.scaleRot <= 0.0) {

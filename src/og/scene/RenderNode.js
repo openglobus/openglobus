@@ -251,8 +251,9 @@ class RenderNode extends BaseNode {
      */
     _drawNodes() {
         for (var i = 0; i < this.childNodes.length; i++) {
-            if (this.childNodes[i]._isActive)
+            if (this.childNodes[i]._isActive) {
                 this.childNodes[i]._drawNodes();
+            }
         }
 
         if (this.show) {
@@ -280,24 +281,24 @@ class RenderNode extends BaseNode {
 
             gl.disable(gl.CULL_FACE);
 
-            //Z-buffer offset
+            // Z-buffer offset
             gl.enable(gl.POLYGON_OFFSET_FILL);
             gl.polygonOffset(0.0, 0.0);
 
-            //billoard pass
+            // billoard pass
             var i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
             }
 
-            //label pass
+            // label pass
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
             }
 
-            //ray pass
-            var i = ec.length;
+            // ray pass
+            i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
             }
@@ -307,29 +308,29 @@ class RenderNode extends BaseNode {
             gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);
 
-            //polylines pass
+            // polylines pass
             i = ec.length;
             while (i--) {
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
             }
 
-            ////shapes pass
-            //i = ec.length;
-            //while (i--) {
+            // //shapes pass
+            // i = ec.length;
+            // while (i--) {
             //    ec[i]._visibility && ec[i].shapeHandler.drawPicking();
-            //}
+            // }
 
-            ////pointClouds pass
-            //i = ec.length;
-            //while (i--) {
+            // //pointClouds pass
+            // i = ec.length;
+            // while (i--) {
             //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
-            //}
+            // }
 
-            ////Strip pass
-            //i = ec.length;
-            //while (i--) {
+            // //Strip pass
+            // i = ec.length;
+            // while (i--) {
             //    ec[i]._visibility && ec[i].stripHandler.drawPicking();
-            //}
+            // }
         }
     }
 

@@ -84,7 +84,7 @@ class LayerSwitcher extends Control {
 
         obj._removeCallback = function () {
             container.removeChild(lineDiv);
-        }
+        };
 
         lineDiv.appendChild(center);
         lineDiv.appendChild(inp);
@@ -156,4 +156,3 @@ class LayerSwitcher extends Control {
 };
 
 export { LayerSwitcher };
-

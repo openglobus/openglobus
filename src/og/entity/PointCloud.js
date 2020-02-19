@@ -221,13 +221,13 @@ class PointCloud {
             this._coordinatesData.push(pos.x, pos.y, pos.z);
             this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
             var p = {
-                '_pickingColor': new Vec3(),
-                '_entityCollection': this._entity && this._entity._entityCollection,
-                'index': i,
-                'position': pos,
-                'color': col,
-                'pointCloud': this,
-                'properties': pi[7] || {}
+                _pickingColor: new Vec3(),
+                _entityCollection: this._entity && this._entity._entityCollection,
+                index: i,
+                position: pos,
+                color: col,
+                pointCloud: this,
+                properties: pi[7] || {}
             };
             this._points.push(p);
 
@@ -244,21 +244,21 @@ class PointCloud {
 
     setPointPosition(index, x, y, z) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COORDINATES_BUFFER] = true;
     }
 
     setPointColor(index, r, g, b, a) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COLOR_BUFFER] = true;
     }
 
     addPoints(points) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
@@ -267,7 +267,7 @@ class PointCloud {
 
     addPoint(index, point) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
@@ -286,7 +286,7 @@ class PointCloud {
 
     removePoint(index) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
@@ -295,7 +295,7 @@ class PointCloud {
 
     insertPoint(index, point) {
 
-        //...
+        // TODO: ...
 
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;

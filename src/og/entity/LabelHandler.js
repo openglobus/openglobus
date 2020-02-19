@@ -50,7 +50,6 @@ class LabelHandler extends BillboardHandler {
         this._maxLetters = 25;
     }
 
-
     initProgram() {
         if (this._renderer.handler) {
 
@@ -170,7 +169,7 @@ class LabelHandler extends BillboardHandler {
             var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
             BillboardHandler.concArr(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._positionLow.x, y = label._positionLow.y, z = label._positionLow.z;
+            x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
             BillboardHandler.concArr(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = label._size;
@@ -185,22 +184,22 @@ class LabelHandler extends BillboardHandler {
             x = label._rotation;
             BillboardHandler.concArr(this._rotationArr, [x, x, x, x, x, x]);
 
-            x = label._alignedAxis.x, y = label._alignedAxis.y, z = label._alignedAxis.z;
+            x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
             BillboardHandler.concArr(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = label._fontIndex;
             BillboardHandler.concArr(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
 
-            x = 1.0 - label._outline, y = 0.0;
+            x = 1.0 - label._outline; y = 0.0;
             BillboardHandler.concArr(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-            x = 0.75, y = 0.7;
+            x = 0.75; y = 0.7;
             BillboardHandler.concArr(this._noOutlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
             x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
             BillboardHandler.concArr(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-            x = label._entity._pickingColor.x / 255, y = label._entity._pickingColor.y / 255, z = label._entity._pickingColor.z / 255;
+            x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
             BillboardHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
         }
     };
@@ -261,7 +260,7 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //buffer
+        // buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -271,7 +270,7 @@ class LabelHandler extends BillboardHandler {
         gl.uniform1f(shu.uZ, -2.0);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        //nobuffer
+        // nobuffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -374,8 +373,8 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
-        //label._fontIndex = 0;
-        //label._fontAtlas = null;
+        // label._fontIndex = 0;
+        // label._fontAtlas = null;
     };
 
     setText(index, text, fontIndex, align) {
@@ -389,14 +388,14 @@ class LabelHandler extends BillboardHandler {
 
         var c = 0;
 
-        var j = i + c * 24;
+        // var j = i + c * 24;
         var n = fa.nodes[text[c]];
         var f = n ? n.emptySize : 0.0;
         var offset = f;
 
         for (c = 0; c < text.length; c++) {
             var j = i + c * 24;
-            var n = fa.nodes[text[c]] || fa.nodes[" "];
+            n = fa.nodes[text[c]] || fa.nodes[" "];
             var tc = n.texCoords;
 
             a[j] = tc[0];
@@ -432,11 +431,11 @@ class LabelHandler extends BillboardHandler {
             offset += n.emptySize;
         }
 
-        //49/512 - font atlas left border letter offset
+        // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
             offset = (f + 49 / 512 - offset) * 0.5;
             for (c = 0; c < text.length; c++) {
-                var j = i + c * 24;
+                let j = i + c * 24;
                 a[j + 3] = offset;
                 a[j + 7] = offset;
                 a[j + 11] = offset;
@@ -447,7 +446,7 @@ class LabelHandler extends BillboardHandler {
         } else if (align === ALIGN.LEFT) {
             offset = (f + 49 / 512 - offset);
             for (c = 0; c < text.length; c++) {
-                var j = i + c * 24;
+                let j = i + c * 24;
                 a[j + 3] = offset;
                 a[j + 7] = offset;
                 a[j + 11] = offset;
@@ -458,7 +457,7 @@ class LabelHandler extends BillboardHandler {
         }
 
         for (; c < this._maxLetters; c++) {
-            var j = i + c * 24;
+            let j = i + c * 24;
             a[j + 2] = -1.0;
             a[j + 6] = -1.0;
             a[j + 10] = -1.0;
@@ -473,7 +472,7 @@ class LabelHandler extends BillboardHandler {
     setPositionArr(index, positionHigh, positionLow) {
         var i = index * 18 * this._maxLetters;
         var a = this._positionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z,
-            b = this._positionLowArr, xl = positionLow.x, yl = positionLow.y, zl = positionLow.z
+            b = this._positionLowArr, xl = positionLow.x, yl = positionLow.y, zl = positionLow.z;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
@@ -501,7 +500,7 @@ class LabelHandler extends BillboardHandler {
             a[j + 16] = y;
             a[j + 17] = z;
 
-            //low
+            // low
             b[j] = xl;
             b[j + 1] = yl;
             b[j + 2] = zl;
@@ -731,7 +730,7 @@ class LabelHandler extends BillboardHandler {
             a[j + 5] = rotation;
         }
 
-        this._changedBuffers[ROTATION_BUFFER] = true
+        this._changedBuffers[ROTATION_BUFFER] = true;
     }
 
     setVertexArr(index, vertexArr) {
@@ -849,11 +848,11 @@ class LabelHandler extends BillboardHandler {
 
     setMaxLetters(c) {
         this._maxLetters = c;
-        //...
+        // TODO: ...
     }
 
     refreshTexCoordsArr() {
-        //it is empty
+        // it is empty
         return null;
     }
 };

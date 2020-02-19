@@ -1,9 +1,5 @@
 'use strict';
 
-const version = {
-    version: __VERSION__
-};
-
 import '../../css/og.css';
 
 import * as jd from './astro/jd.js';
@@ -16,11 +12,6 @@ import { Globe } from './Globe.js';
 import { Box } from './bv/Box.js';
 import { Sphere } from './bv/Sphere.js';
 
-const bv = {
-    'Box': Box,
-    'Sphere': Sphere
-};
-
 import { CanvasTiles } from './layer/CanvasTiles.js';
 import { GeoImage } from './layer/GeoImage.js';
 import { GeoTexture2d } from './layer/GeoTexture2d.js';
@@ -29,16 +20,6 @@ import { Layer } from './layer/Layer.js';
 import { Vector } from './layer/Vector.js';
 import { WMS } from './layer/WMS.js';
 import { XYZ } from './layer/XYZ.js';
-
-const layer = {
-    'CanvasTiles': CanvasTiles,
-    'GeoImage': GeoImage,
-    'GeoTexture2d': GeoTexture2d,
-    'GeoVideo': GeoVideo,
-    'Vector': Vector,
-    'WMS': WMS,
-    'XYZ': XYZ,
-};
 
 import { Control } from './control/Control.js';
 import { DebugInfo } from './control/DebugInfo';
@@ -54,21 +35,6 @@ import { ShowFps } from './control/ShowFps.js';
 import { Sun } from './control/Sun.js';
 import { ZoomControl } from './control/ZoomControl.js';
 
-const control = {
-    'DebugInfo': DebugInfo,
-    'EarthCoordinates': EarthCoordinates,
-    'GeoImageDragControl': GeoImageDragControl,
-    'KeyboardNavigation': KeyboardNavigation,
-    'LayerSwitcher': LayerSwitcher,
-    'MouseNavigation': MouseNavigation,
-    'ToggleWireframe': ToggleWireframe,
-    'TouchNavigation': TouchNavigation,
-    'SimpleNavigation': SimpleNavigation,
-    'ShowFps': ShowFps,
-    'Sun': Sun,
-    'ZoomControl': ZoomControl
-};
-
 import { Entity } from './entity/Entity.js';
 import { EntityCollection } from './entity/EntityCollection.js';
 import { Billboard } from './entity/Billboard.js';
@@ -76,14 +42,6 @@ import { Geometry } from './entity/Geometry.js';
 import { Label } from './entity/Label.js';
 import { PointCloud } from './entity/PointCloud.js';
 import { Polyline } from './entity/Polyline.js';
-
-const entity = {
-    'Billboard': Billboard,
-    'Geometry': Geometry,
-    'Label': Label,
-    'PointCloud': PointCloud,
-    'Polyline': Polyline
-};
 
 import { input } from './input/input.js';
 
@@ -93,12 +51,6 @@ import { wgs84 } from './ellipsoid/wgs84.js';
 import { EmptyTerrain } from './terrain/EmptyTerrain.js';
 import { GlobusTerrain } from './terrain/GlobusTerrain.js';
 import { MapboxTerrain } from './terrain/MapboxTerrain.js';
-
-const terrain = {
-    'EmptyTerrain': EmptyTerrain,
-    'GlobusTerrain': GlobusTerrain,
-    'MapboxTerrain': MapboxTerrain
-};
 
 import { Camera } from './camera/Camera.js';
 import { PlanetCamera } from './camera/PlanetCamera.js';
@@ -120,14 +72,6 @@ import { Multisample } from './webgl/Multisample.js';
 import { types } from './webgl/types.js';
 import { Program } from './webgl/Program.js';
 
-const webgl = {
-    'Framebuffer': Framebuffer,
-    'Handler': Handler,
-    'Multisample': Multisample,
-    'types': types,
-    'Program': Program
-};
-
 import { Renderer } from './renderer/Renderer.js';
 
 import { LightSource } from './light/LightSource.js';
@@ -141,9 +85,65 @@ import { Axes } from './scene/Axes.js';
 import { Planet } from './scene/Planet.js';
 import { RenderNode } from './scene/RenderNode.js';
 
+const version = {
+    version: __VERSION__
+};
+
+const bv = {
+    Box: Box,
+    Sphere: Sphere
+};
+
+const layer = {
+    CanvasTiles: CanvasTiles,
+    GeoImage: GeoImage,
+    GeoTexture2d: GeoTexture2d,
+    GeoVideo: GeoVideo,
+    Vector: Vector,
+    WMS: WMS,
+    XYZ: XYZ
+};
+
+const control = {
+    DebugInfo: DebugInfo,
+    EarthCoordinates: EarthCoordinates,
+    GeoImageDragControl: GeoImageDragControl,
+    KeyboardNavigation: KeyboardNavigation,
+    LayerSwitcher: LayerSwitcher,
+    MouseNavigation: MouseNavigation,
+    ToggleWireframe: ToggleWireframe,
+    TouchNavigation: TouchNavigation,
+    SimpleNavigation: SimpleNavigation,
+    ShowFps: ShowFps,
+    Sun: Sun,
+    ZoomControl: ZoomControl
+};
+
+const entity = {
+    Billboard: Billboard,
+    Geometry: Geometry,
+    Label: Label,
+    PointCloud: PointCloud,
+    Polyline: Polyline
+};
+
+const terrain = {
+    EmptyTerrain: EmptyTerrain,
+    GlobusTerrain: GlobusTerrain,
+    MapboxTerrain: MapboxTerrain
+};
+
+const webgl = {
+    Framebuffer: Framebuffer,
+    Handler: Handler,
+    Multisample: Multisample,
+    types: types,
+    Program: Program
+};
+
 const scene = {
-    'Planet': Planet,
-    'Axes': Axes
+    Planet: Planet,
+    Axes: Axes
 };
 
 export {

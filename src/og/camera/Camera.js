@@ -138,14 +138,14 @@ class Camera {
          * @protected
          * @type {og.Vec3}
          */
-        this._u = new Vec3(0, 1, 0); //up x n
+        this._u = new Vec3(0, 1, 0); // up x n
 
         /**
          * Camera up vector.
          * @protected
          * @type {og.Vec3}
          */
-        this._v = new Vec3(1, 0, 0); //n x u - UP
+        this._v = new Vec3(1, 0, 0); // n x u - UP
 
         this.slope = 0;
 
@@ -154,7 +154,7 @@ class Camera {
          * @protected
          * @type {og.Vec3}
          */
-        this._n = new Vec3(0, 0, 1); //eye - look - FORWARD
+        this._n = new Vec3(0, 0, 1); // eye - look - FORWARD
 
         this._pu = this._u.clone();
         this._pv = this._v.clone();
@@ -299,7 +299,7 @@ class Camera {
         this._projectionViewMatrix = this._projectionMatrix.mul(this._viewMatrix);
         this.frustum.setFrustum(this._projectionViewMatrix);
         this._inverseProjectionViewMatrix = this._projectionViewMatrix.inverseTo();
-        this._normalMatrix = this._viewMatrix.toMatrix3();//this._viewMatrix.toInverseMatrix3().transposeTo();
+        this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
 
         this.events.dispatch(this.events.viewchange, this);
     }
@@ -646,12 +646,12 @@ const EVENT_NAMES = [
 ];
 
 const defaultOptions = {
-    'viewAngle': 30,
-    'near': 1,
-    'far': 500000000,
-    'eye': new Vec3(),
-    'look': new Vec3(),
-    'up': new Vec3(0.0, 1.0, 0.0)
+    viewAngle: 30,
+    near: 1,
+    far: 500000000,
+    eye: new Vec3(),
+    look: new Vec3(),
+    up: new Vec3(0.0, 1.0, 0.0)
 };
 
 export { Camera };

@@ -7,21 +7,10 @@ import * as utils from './utils/shared.js';
 import { Box } from './bv/Box.js';
 import { Sphere } from './bv/Sphere.js';
 
-const bv = {
-    'Box': Box,
-    'Sphere': Sphere
-};
-
 import { Control } from './control/Control.js';
 import { DebugInfo } from './control/DebugInfo';
 import { SimpleNavigation } from './control/SimpleNavigation.js';
 import { ShowFps } from './control/ShowFps.js';
-
-const control = {
-    'DebugInfo': DebugInfo,
-    'SimpleNavigation': SimpleNavigation,
-    'ShowFps': ShowFps
-};
 
 import { Entity } from './entity/Entity.js';
 import { EntityCollection } from './entity/EntityCollection.js';
@@ -29,13 +18,6 @@ import { Billboard } from './entity/Billboard.js';
 import { Label } from './entity/Label.js';
 import { PointCloud } from './entity/PointCloud.js';
 import { Polyline } from './entity/Polyline.js';
-
-const entity = {
-    'Billboard': Billboard,
-    'Label': Label,
-    'PointCloud': PointCloud,
-    'Polyline': Polyline
-};
 
 import { input } from './input/input.js';
 
@@ -58,14 +40,6 @@ import { Multisample } from './webgl/Multisample.js';
 import { types } from './webgl/types.js';
 import { Program } from './webgl/Program.js';
 
-const webgl = {
-    'Framebuffer': Framebuffer,
-    'Handler': Handler,
-    'Multisample': Multisample,
-    'types': types,
-    'Program': Program
-};
-
 import { Renderer } from './renderer/Renderer.js';
 
 import { LightSource } from './light/LightSource.js';
@@ -78,8 +52,34 @@ import { RenderNode } from './scene/RenderNode.js';
 
 import { TextureAtlas } from './utils/TextureAtlas.js';
 
+const bv = {
+    Box: Box,
+    Sphere: Sphere
+};
+
+const control = {
+    DebugInfo: DebugInfo,
+    SimpleNavigation: SimpleNavigation,
+    ShowFps: ShowFps
+};
+
+const entity = {
+    Billboard: Billboard,
+    Label: Label,
+    PointCloud: PointCloud,
+    Polyline: Polyline
+};
+
+const webgl = {
+    Framebuffer: Framebuffer,
+    Handler: Handler,
+    Multisample: Multisample,
+    types: types,
+    Program: Program
+};
+
 const scene = {
-    'Axes': Axes
+    Axes: Axes
 };
 
 export {

@@ -61,7 +61,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
 class Globe {
     constructor(options) {
 
-        //Canvas creation.
+        // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
 
         this._canvas = document.createElement("canvas");
@@ -92,14 +92,14 @@ class Globe {
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
-                'context': {
-                    'alpha': false,
-                    'antialias': false,
-                    'powerPreference': "high-performance"
+                context: {
+                    alpha: false,
+                    antialias: false,
+                    powerPreference: "high-performance"
                 }
             }), {
-                'autoActivate': false
-            });
+            autoActivate: false
+        });
         this.renderer.initialize();
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
@@ -110,7 +110,7 @@ class Globe {
             this.div.appendChild(this.renderer.div.attributions);
         }
 
-        //Skybox
+        // Skybox
         if (options.skybox) {
             this.renderer.addNode(options.skybox);
         }
@@ -129,13 +129,13 @@ class Globe {
              * @type {og.scene.Planet|og.scene.PlanetAtmosphere}
              */
 
-            //TODO:
+            // TODO:
 
         } else {
             this.planet = new Planet(this._planetName, options.ellipsoid ? options.ellipsoid : wgs84);
         }
 
-        //Attach terrain provider
+        // Attach terrain provider
         if (options.terrain) {
             this.planet.setTerrain(options.terrain);
         } else {
@@ -144,9 +144,7 @@ class Globe {
 
         this.renderer.addNode(this.planet);
 
-        this.sun;
-
-        //Add controls
+        // Add controls
         if (options.controls) {
             this.planet.addControls(options.controls);
         } else {
@@ -181,7 +179,7 @@ class Globe {
             this.planet.addLayers(options.layers);
         }
 
-        //TODO: view center, altitude, extent
+        // TODO: view center, altitude, extent
         if (options.viewExtent) {
             this.planet.viewToExtent(options.viewExtent);
         }
@@ -190,7 +188,7 @@ class Globe {
         this._fadeHandler = null;
         this._stopHandler = null;
 
-        //Run!
+        // Run!
         if (options.autoActivate || isEmpty(options.autoActivate)) {
             this.renderer.start();
             this.fadeIn();

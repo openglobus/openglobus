@@ -187,7 +187,7 @@ class ImageCanvas {
             that.resize(img.width, img.height);
             that._context.drawImage(img, 0, 0, img.width, img.height);
             callback && callback(img);
-        }
+        };
         img.src = url;
     }
 
@@ -199,9 +199,9 @@ class ImageCanvas {
         var img = this.getImage();
         var dataUrl = img.src;
         var windowContent = '<!DOCTYPE html>';
-        windowContent += '<html>'
+        windowContent += '<html>';
         windowContent += '<head><title>Print</title></head>';
-        windowContent += '<body>'
+        windowContent += '<body>';
         windowContent += '<img src="' + dataUrl + '">';
         windowContent += '</body>';
         windowContent += '</html>';
@@ -211,7 +211,6 @@ class ImageCanvas {
         printWin.document.close();
         printWin.focus();
     }
-
 
     destroy() {
         this._canvas.width = 1;

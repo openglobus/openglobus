@@ -5,7 +5,6 @@
 'use strict';
 
 import { Control } from './Control.js';
-import { print2d } from '../utils/shared.js';
 
 /**
  * Debug information
@@ -54,51 +53,51 @@ class DebugInfo extends Control {
 
         if (p) {
             this.addWatches([{
-                'label': "Nodes count",
-                'frame': () => p._renderedNodes.length
+                label: "Nodes count",
+                frame: () => p._renderedNodes.length
             }, {
-                'label': "createdNodes",
-                'frame': () => p._createdNodesCount
+                label: "createdNodes",
+                frame: () => p._createdNodesCount
             }, {
-                'label': "distBeforeMemClear",
-                'frame': () => p._distBeforeMemClear
-            },{
-                'label': "maxZoom/minZoom",
-                'frame': () => p.maxCurrZoom + '/' + p.minCurrZoom
+                label: "distBeforeMemClear",
+                frame: () => p._distBeforeMemClear
             }, {
-                'label': "height/alt (km)",
-                'frame': () => (p.camera._lonLat.height / 1000.0).toFixed(2) + '/' + (p.camera.getAltitude() / 1000.0).toFixed(2)
+                label: "maxZoom/minZoom",
+                frame: () => p.maxCurrZoom + '/' + p.minCurrZoom
             }, {
-                'label': "cam.slope",
-                'frame': () => p.camera.slope
+                label: "height/alt (km)",
+                frame: () => (p.camera._lonLat.height / 1000.0).toFixed(2) + '/' + (p.camera.getAltitude() / 1000.0).toFixed(2)
             }, {
-                'label': "lodRatio",
-                'frame': () => p._lodRatio
+                label: "cam.slope",
+                frame: () => p.camera.slope
             }, {
-                'label': "deltaTime",
-                'frame': () => p.renderer.handler.deltaTime
+                label: "lodRatio",
+                frame: () => p._lodRatio
             }, {
-                'label': "-------------------------"
+                label: "deltaTime",
+                frame: () => p.renderer.handler.deltaTime
             }, {
-                'label': "PlainWorker",
-                'frame': () => p._plainSegmentWorker._pendingQueue.length
+                label: "-------------------------"
             }, {
-                'label': "TileLoader",
-                'frame': () => p._tileLoader._loading + ' ' + p._tileLoader._queue.length
+                label: "PlainWorker",
+                frame: () => p._plainSegmentWorker._pendingQueue.length
             }, {
-                'label': "TerrainLoader",
-                'frame': () => {
-                    if (p.terrain && p.terrain._loader)
+                label: "TileLoader",
+                frame: () => p._tileLoader._loading + ' ' + p._tileLoader._queue.length
+            }, {
+                label: "TerrainLoader",
+                frame: () => {
+                    if (p.terrain && p.terrain._loader) {
                         return p.terrain._loader._loading + ' ' + p.terrain._loader._queue.length;
-                    else
-                        return '';
+                    }
+                    return '';
                 }
             }, {
-                'label': "TerrainWorker",
-                'frame': () => p._terrainWorker._pendingQueue.length
+                label: "TerrainWorker",
+                frame: () => p._terrainWorker._pendingQueue.length
             }, {
-                'label': "NormalMapCreator",
-                'frame': () => p._normalMapCreator._queue.length
+                label: "NormalMapCreator",
+                frame: () => p._normalMapCreator._queue.length
             }]);
         }
     }

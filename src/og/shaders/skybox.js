@@ -18,20 +18,20 @@ export function skybox() {
             aVertexPosition: { type: types.VEC3, enableArray: true }
         },
         vertexShader:
-        'attribute vec3 aVertexPosition;\
-            uniform mat4 projectionViewMatrix;\
-            uniform vec3 pos;\
-            varying vec3 vTextureCoord;\
-            void main(void) {\
-                vTextureCoord = aVertexPosition;\
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);\
-            }',
+            `attribute vec3 aVertexPosition;
+            uniform mat4 projectionViewMatrix;
+            uniform vec3 pos;
+            varying vec3 vTextureCoord;
+            void main(void) {
+                vTextureCoord = aVertexPosition;
+                gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);
+            }`,
         fragmentShader:
-        'precision lowp float;\
-            varying vec3 vTextureCoord;\
-            uniform samplerCube uSampler;\
-            void main(void) {\
-                gl_FragColor = textureCube(uSampler, vTextureCoord);\
-            }'
+            `precision lowp float;
+            varying vec3 vTextureCoord;
+            uniform samplerCube uSampler;
+            void main(void) {
+                gl_FragColor = textureCube(uSampler, vTextureCoord);
+            }`
     });
 };

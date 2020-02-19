@@ -8,7 +8,6 @@ import * as utils from '../utils/shared.js';
 import { BaseBillboard } from './BaseBillboard.js';
 import { Vec4 } from '../math/Vec4.js';
 
-
 const ALIGN = {
     RIGHT: 0,
     LEFT: 1,
@@ -21,9 +20,9 @@ const ALIGN = {
  * @enum {number}
  */
 const STR2ALIGN = {
-    "left": ALIGN.LEFT,
-    "right": ALIGN.RIGHT,
-    "center": ALIGN.CENTER
+    left: ALIGN.LEFT,
+    right: ALIGN.RIGHT,
+    center: ALIGN.CENTER
 };
 
 /**

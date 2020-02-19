@@ -34,7 +34,7 @@ class GeoImageDragControl extends Control {
 
     _bindLayer(layer) {
         if (layer instanceof BaseGeoImage) {
-            
+
             var p = this.planet;
 
             layer.events.on('mousemove', function (ms) {
@@ -46,7 +46,7 @@ class GeoImageDragControl extends Control {
                     } else {
                         this._cornerIndex = -1;
                         for (var i = 0; i < layer._cornersWgs84.length; i++) {
-                            var ground = p.getLonLatFromPixelTerrain(ms, true)
+                            var ground = p.getLonLatFromPixelTerrain(ms, true);
                             if (ground && p.ellipsoid.getGreatCircleDistance(layer._cornersWgs84[i], ground) / p.getDistanceFromPixel(ms, true) <= 0.05) {
                                 this._cornerIndex = i;
                                 break;
@@ -59,7 +59,6 @@ class GeoImageDragControl extends Control {
             layer.events.on('ldown', function (ms) {
                 if (this._active && this._cornerIndex != -1) {
                     this._catchCorner = true;
-                    //p.renderer.controls.mouseNavigation._active = false;
                     ms.renderer.controls.mouseNavigation.deactivate();
                 }
             }, this);
@@ -67,7 +66,6 @@ class GeoImageDragControl extends Control {
             layer.events.on('lup', function (ms) {
                 if (this._active) {
                     this._catchCorner = false;
-                    //p.renderer.controls.mouseNavigation._active = true;
                     ms.renderer.controls.mouseNavigation.activate();
                 }
             }, this);
