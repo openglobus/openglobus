@@ -207,7 +207,7 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this.readyToEngage = false;
 
-    this.readyToEqualize = false;
+    //this.readyToEqualize = false;
 
     this.plainProcessing = false;
 };

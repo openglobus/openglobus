@@ -773,8 +773,8 @@ Handler.prototype.getCenter = function () {
  */
 Handler.prototype.drawFrame = function () {
 
-    /** Calculate frame time */
-    var now = new Date().getTime();
+    /** Calculating frame time */
+    var now = window.performance.now();
     this.deltaTime = now - this._lastAnimationFrameTime;
     this._lastAnimationFrameTime = now;
 
@@ -811,9 +811,8 @@ Handler.prototype.clearFrame = function () {
  */
 Handler.prototype.start = function () {
     if (!this._requestAnimationFrameId && this._initialized) {
-        var d = new Date();
-        this._lastAnimationFrameTime = d.getTime();
-        this.defaultClock.setDate(d);
+        this._lastAnimationFrameTime = window.performance.now();
+        this.defaultClock.setDate(new Date());
         this._animationFrameCallback();
     }
 };
