@@ -379,13 +379,6 @@ Segment.prototype.equalize = function () {
     let gs = this.gridSize,
         gsOne = gs + 1;
 
-    // if (nn[0] && nn[0].length > 2 ||
-    //     nn[1] && nn[1].length > 2 ||
-    //     nn[2] && nn[2].length > 2 ||
-    //     nn[3] && nn[3].length > 2) {
-    //     debugger;
-    // }
-
     if (n && !this.node.equalizedNeighbors[N] && this.tileZoom >= n.segment.tileZoom) {
         this.readyToEngage = true;
         n.equalizedNeighbors[OPSIDE[N]] = true;
@@ -397,18 +390,22 @@ Segment.prototype.equalize = function () {
             nvHigh = n.segment.tempVerticesHigh,
             nvLow = n.segment.tempVerticesLow;
 
-        for (let k = 0; k < gsOne; k++) {
-            v[k * 3] = 0;
-            v[k * 3 + 1] = 0;
-            v[k * 3 + 2] = 0;
+        let inc = Math.max(gs / n.segment.gridSize, 1),
+            n_inc = Math.max(n.segment.gridSize / gs, 1),
+            n_offset = offset * n.segment.gridSize;
 
-            vHigh[k * 3] = 0;
-            vHigh[k * 3 + 1] = 0;
-            vHigh[k * 3 + 2] = 0;
+        for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+            v[k * 3] = nv[nk * 3];
+            v[k * 3 + 1] = nv[nk * 3 + 1];
+            v[k * 3 + 2] = nv[nk * 3 + 2];
 
-            vLow[k * 3] = 0;
-            vLow[k * 3 + 1] = 0;
-            vLow[k * 3 + 2] = 0;
+            vHigh[k * 3] = nvHigh[nk * 3];
+            vHigh[k * 3 + 1] = nvHigh[nk * 3 + 1];
+            vHigh[k * 3 + 2] = nvHigh[nk * 3 + 2];
+
+            vLow[k * 3] = nvLow[nk * 3];
+            vLow[k * 3 + 1] = nvLow[nk * 3 + 1];
+            vLow[k * 3 + 2] = nvLow[nk * 3 + 2];
         }
     }
 

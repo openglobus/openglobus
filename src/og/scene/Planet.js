@@ -1050,7 +1050,7 @@ class Planet extends RenderNode {
         i = rn.length;
         while (i--) {
             let s = rn[i].segment;
-            // TODO: s.equalize();
+            s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0);
         }
