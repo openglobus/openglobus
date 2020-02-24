@@ -11,8 +11,6 @@
 class EmptyTerrain {
     constructor() {
 
-        this.blur = false;
-
         this.equalizeVertices = false;
 
         this.equalizeNormals = false;
@@ -81,6 +79,10 @@ class EmptyTerrain {
         //         return callback(mslAlt);
         //     },
         // ];
+    }
+
+    isBlur() {
+        return false;
     }
 
     set maxNodeZoom(val) {

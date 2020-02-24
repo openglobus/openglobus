@@ -257,7 +257,7 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
 NormalMapCreator.prototype._drawNormalMap = function (segment) {
     let t = segment.planet.terrain;
 
-    if (t.isBlur && t.isBlur(segment)) {
+    if (t.isBlur(segment)) {
         return this._drawNormalMapBlur(segment);
     } else {
         return this._drawNormalMapNoBlur(segment);

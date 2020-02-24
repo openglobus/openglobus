@@ -10,8 +10,6 @@ class MapboxTerrain extends GlobusTerrain {
 
         options = options || {};
 
-        this.blur = false;
-
         this.equalizeVertices = true;
 
         this.equalizeNormals = false;
@@ -28,6 +26,10 @@ class MapboxTerrain extends GlobusTerrain {
         for (var i = this.minZoom; i <= this.maxZoom; i++) {
             this.tileCache[i] = {};
         }
+    }
+
+    isBlur() {
+        return false;
     }
 
     _createHeights(data, segment) {
