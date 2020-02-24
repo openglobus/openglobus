@@ -372,9 +372,9 @@ Segment.prototype.elevationsExists = function (elevations) {
 
 Segment.prototype.equalize = function () {
 
-    // if (this.tileZoom < 9) {
-    //     return;
-    // }
+    if (this.tileZoom < 8) {
+        return;
+    }
 
     this.readyToEngage = true;
     let nn = this.node.neighbors;

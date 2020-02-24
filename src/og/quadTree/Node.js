@@ -676,66 +676,67 @@ Node.prototype.getCommonSide = function (node) {
     return -1;
 };
 
-// Node.prototype.getCommonSide = function (b) {
+// TODO: test test test
+Node.prototype.___getCommonSide___ = function (b) {
 
-//     var a = this,
-//         as = a.segment,
-//         bs = b.segment;
+    var a = this,
+        as = a.segment,
+        bs = b.segment;
 
-//     if (as.tileZoom === bs.tileZoom) {
-//         return as.getNeighborSide(bs);
-//     } else if (as.tileZoom > bs.tileZoom) {
-//         let dz = as.tileZoom - bs.tileZoom,
-//             i = dz,
-//             p = this;
+    if (as.tileZoom === bs.tileZoom) {
+        return as.getNeighborSide(bs);
+    } else if (as.tileZoom > bs.tileZoom) {
+        let dz = as.tileZoom - bs.tileZoom,
+            i = dz,
+            p = this;
 
-//         while (i--) {
-//             p = p.parentNode;
-//         }
+        while (i--) {
+            p = p.parentNode;
+        }
 
-//         let side = p.segment.getNeighborSide(bs);
+        let side = p.segment.getNeighborSide(bs);
 
-//         if (side !== -1) {
-//             i = dz;
-//             p = this;
-//             let _n = true;
+        if (side !== -1) {
+            i = dz;
+            p = this;
+            let _n = true;
 
-//             while (i--) {
-//                 _n = _n && COMSIDE[p.partId][side];
-//             }
+            while (i--) {
+                _n = _n && COMSIDE[p.partId][side];
+            }
 
-//             if (_n) {
-//                 return side;
-//             }
-//         }
-//     } else {
-//         let dz = bs.tileZoom - as.tileZoom,
-//             i = dz,
-//             p = b;
+            if (_n) {
+                return side;
+            }
+        }
+    } else {
+        let dz = bs.tileZoom - as.tileZoom,
+            i = dz,
+            p = b;
 
-//         while (i--) {
-//             p = p.parentNode;
-//         }
+        while (i--) {
+            p = p.parentNode;
+        }
 
-//         let side = p.segment.getNeighborSide(as);
+        let side = p.segment.getNeighborSide(as);
 
-//         if (side !== -1) {
-//             i = dz;
-//             p = b;
-//             let _n = true;
+        if (side !== -1) {
+            i = dz;
+            p = b;
+            let _n = true;
 
-//             while (i--) {
-//                 _n = _n && COMSIDE[p.partId][side];
-//             }
+            while (i--) {
+                _n = _n && COMSIDE[p.partId][side];
+            }
 
-//             if (_n) {
-//                 return OPSIDE[side];
-//             }
-//         }
-//     }
+            if (_n) {
+                return OPSIDE[side];
+            }
+        }
+    }
 
-//     return -1;
-// };
+    return -1;
+};
 
 Node.prototype.whileNormalMapCreating = function () {
 
