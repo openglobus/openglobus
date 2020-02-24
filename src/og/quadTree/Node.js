@@ -5,7 +5,7 @@ import { LonLat } from '../LonLat.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Vec3 } from '../math/Vec3.js';
-import { MAX_LAT } from '../mercator.js';
+import { MAX_LAT, POLE } from '../mercator.js';
 import { MAX, MIN } from '../math.js';
 
 import {
@@ -431,6 +431,11 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
     this.state = WALKTHROUGH;
 
+    this.neighbors[0] = null;
+    this.neighbors[1] = null;
+    this.neighbors[2] = null;
+    this.neighbors[3] = null;
+
     this.neighbors[0] = [];
     this.neighbors[1] = [];
     this.neighbors[2] = [];
@@ -635,66 +640,102 @@ Node.prototype.addToRender = function () {
     nodes.push(this);
 };
 
-Node.prototype.getCommonSide = function (b) {
+Node.prototype.getCommonSide = function (node) {
+    var a = this.segment._extent,
+        b = node.segment._extent;
+    var a_ne = a.northEast, a_sw = a.southWest,
+        b_ne = b.northEast, b_sw = b.southWest;
+    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
-    var a = this,
-        as = a.segment,
-        bs = b.segment;
+    if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        return E;
+    } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        return W;
+    } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return N;
+    } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        return S;
+    } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+        return E;
+    } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
+        return W;
+    }
 
-    if (as.tileZoom === bs.tileZoom) {
-        return as.getNeighborSide(bs);
-    } else if (as.tileZoom > bs.tileZoom) {
-        let dz = as.tileZoom - bs.tileZoom,
-            i = dz,
-            p = this;
-
-        while (i--) {
-            p = p.parentNode;
-        }
-
-        let side = p.segment.getNeighborSide(bs);
-
-        if (side !== -1) {
-            i = dz;
-            p = this;
-            let _n = true;
-
-            while (i--) {
-                _n = _n && COMSIDE[p.partId][side];
-            }
-
-            if (_n) {
-                return side;
-            }
-        }
-    } else {
-        let dz = bs.tileZoom - as.tileZoom,
-            i = dz,
-            p = b;
-
-        while (i--) {
-            p = p.parentNode;
-        }
-
-        let side = p.segment.getNeighborSide(as);
-
-        if (side !== -1) {
-            i = dz;
-            p = b;
-            let _n = true;
-
-            while (i--) {
-                _n = _n && COMSIDE[p.partId][side];
-            }
-
-            if (_n) {
-                return OPSIDE[side];
-            }
-        }
+    //Poles and mercator nodes common side.
+    else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
+        return N;
+    } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
+        return S;
     }
 
     return -1;
 };
+
+// Node.prototype.getCommonSide = function (b) {
+
+//     var a = this,
+//         as = a.segment,
+//         bs = b.segment;
+
+//     if (as.tileZoom === bs.tileZoom) {
+//         return as.getNeighborSide(bs);
+//     } else if (as.tileZoom > bs.tileZoom) {
+//         let dz = as.tileZoom - bs.tileZoom,
+//             i = dz,
+//             p = this;
+
+//         while (i--) {
+//             p = p.parentNode;
+//         }
+
+//         let side = p.segment.getNeighborSide(bs);
+
+//         if (side !== -1) {
+//             i = dz;
+//             p = this;
+//             let _n = true;
+
+//             while (i--) {
+//                 _n = _n && COMSIDE[p.partId][side];
+//             }
+
+//             if (_n) {
+//                 return side;
+//             }
+//         }
+//     } else {
+//         let dz = bs.tileZoom - as.tileZoom,
+//             i = dz,
+//             p = b;
+
+//         while (i--) {
+//             p = p.parentNode;
+//         }
+
+//         let side = p.segment.getNeighborSide(as);
+
+//         if (side !== -1) {
+//             i = dz;
+//             p = b;
+//             let _n = true;
+
+//             while (i--) {
+//                 _n = _n && COMSIDE[p.partId][side];
+//             }
+
+//             if (_n) {
+//                 return OPSIDE[side];
+//             }
+//         }
+//     }
+
+//     return -1;
+// };
 
 Node.prototype.whileNormalMapCreating = function () {
 
@@ -1042,5 +1083,3 @@ Node.prototype.getOffsetOppositeNeighbourSide = function (neighbourNode, side) {
 };
 
 export { Node };
-
-

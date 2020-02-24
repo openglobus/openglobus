@@ -207,8 +207,6 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this.readyToEngage = false;
 
-    //this.readyToEqualize = false;
-
     this.plainProcessing = false;
 };
 
@@ -373,9 +371,16 @@ Segment.prototype.elevationsExists = function (elevations) {
 };
 
 Segment.prototype.equalize = function () {
+
+    // if (this.tileZoom < 9) {
+    //     return;
+    // }
+
     this.readyToEngage = true;
     let nn = this.node.neighbors;
-    let v = this.tempVertices, vHigh = this.tempVerticesHigh, vLow = this.tempVerticesLow;
+    let v = this.tempVertices,
+        vHigh = this.tempVerticesHigh,
+        vLow = this.tempVerticesLow;
     let gs = this.gridSize,
         gsOne = gs + 1;
 
@@ -1545,7 +1550,7 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 
@@ -1601,7 +1606,7 @@ Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex,
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
 
