@@ -390,22 +390,28 @@ Segment.prototype.equalize = function () {
             nvHigh = n.segment.tempVerticesHigh,
             nvLow = n.segment.tempVerticesLow;
 
-        let inc = Math.max(gs / n.segment.gridSize, 1),
-            n_inc = Math.max(n.segment.gridSize / gs, 1),
-            n_offset = offset * n.segment.gridSize;
+        let n_gs = n.segment.gridSize,
+            n_gsOne = n_gs + 1;
+
+        let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
+
+        let inc = Math.max(gs / (n_gs * dz), 1),
+            n_inc = Math.max((n_gs * dz) / gs, 1),
+            n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            v[k * 3] = nv[nk * 3];
-            v[k * 3 + 1] = nv[nk * 3 + 1];
-            v[k * 3 + 2] = nv[nk * 3 + 2];
 
-            vHigh[k * 3] = nvHigh[nk * 3];
-            vHigh[k * 3 + 1] = nvHigh[nk * 3 + 1];
-            vHigh[k * 3 + 2] = nvHigh[nk * 3 + 2];
+            v[k * 3] = nv[(n_gsOne * n_gs + nk) * 3];
+            v[k * 3 + 1] = nv[(n_gsOne * n_gs + nk) * 3 + 1];
+            v[k * 3 + 2] = nv[(n_gsOne * n_gs + nk) * 3 + 2];
 
-            vLow[k * 3] = nvLow[nk * 3];
-            vLow[k * 3 + 1] = nvLow[nk * 3 + 1];
-            vLow[k * 3 + 2] = nvLow[nk * 3 + 2];
+            vHigh[k * 3] = nvHigh[(n_gsOne * n_gs + nk) * 3];
+            vHigh[k * 3 + 1] = nvHigh[(n_gsOne * n_gs + nk) * 3 + 1];
+            vHigh[k * 3 + 2] = nvHigh[(n_gsOne * n_gs + nk) * 3 + 2];
+
+            vLow[k * 3] = nvLow[(n_gsOne * n_gs + nk) * 3];
+            vLow[k * 3 + 1] = nvLow[(n_gsOne * n_gs + nk) * 3 + 1];
+            vLow[k * 3 + 2] = nvLow[(n_gsOne * n_gs + nk) * 3 + 2];
         }
     }
 
@@ -448,18 +454,25 @@ Segment.prototype.equalize = function () {
             nvHigh = n.segment.tempVerticesHigh,
             nvLow = n.segment.tempVerticesLow;
 
-        for (let k = 0; k < gsOne; k++) {
-            v[(gsOne * gs + k) * 3] = 0;
-            v[(gsOne * gs + k) * 3 + 1] = 0;
-            v[(gsOne * gs + k) * 3 + 2] = 0;
+        let n_gs = n.segment.gridSize,
+            n_gsOne = n_gs + 1;
 
-            vHigh[(gsOne * gs + k) * 3] = 0;
-            vHigh[(gsOne * gs + k) * 3 + 1] = 0;
-            vHigh[(gsOne * gs + k) * 3 + 2] = 0;
+        let inc = Math.max(gs / n_gs, 1),
+            n_inc = Math.max(n_gs / gs, 1),
+            n_offset = offset * n_gs;
 
-            vLow[(gsOne * gs + k) * 3] = 0;
-            vLow[(gsOne * gs + k) * 3 + 1] = 0;
-            vLow[(gsOne * gs + k) * 3 + 2] = 0;
+        for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
+            v[(gsOne * gs + k) * 3] = nv[nk * 3];
+            v[(gsOne * gs + k) * 3 + 1] = nv[nk * 3 + 1];
+            v[(gsOne * gs + k) * 3 + 2] = nv[nk * 3 + 2];
+
+            vHigh[(gsOne * gs + k) * 3] = nvHigh[nk * 3];
+            vHigh[(gsOne * gs + k) * 3 + 1] = nvHigh[nk * 3 + 1];
+            vHigh[(gsOne * gs + k) * 3 + 2] = nvHigh[nk * 3 + 2];
+
+            vLow[(gsOne * gs + k) * 3] = nvLow[nk * 3];
+            vLow[(gsOne * gs + k) * 3 + 1] = nvLow[nk * 3 + 1];
+            vLow[(gsOne * gs + k) * 3 + 2] = nvLow[nk * 3 + 2];
         }
     }
 
