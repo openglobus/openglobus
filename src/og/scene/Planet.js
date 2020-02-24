@@ -1047,10 +1047,11 @@ class Planet extends RenderNode {
             }
         }
 
+        let isEq = this.terrain.equalizeVertices;
         i = rn.length;
         while (i--) {
             let s = rn[i].segment;
-            s.equalize();
+            isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0);
         }

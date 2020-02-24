@@ -374,15 +374,18 @@ Segment.prototype.elevationsExists = function (elevations) {
 
 Segment.prototype.equalize = function () {
     this.readyToEngage = true;
-    let nn = this.node.neighbors, n = nn[N][0];
+    let nn = this.node.neighbors;
     let v = this.tempVertices, vHigh = this.tempVerticesHigh, vLow = this.tempVerticesLow;
     let gs = this.gridSize,
         gsOne = gs + 1;
 
-    if (n && !this.node.equalizedNeighbors[N] && this.tileZoom >= n.segment.tileZoom) {
+    let n = nn[N][0];
+    if (n &&
+        // this.node.equalizedNeighborId[N] !== n.appliedTerrainNodeId && 
+        this.tileZoom >= n.segment.tileZoom) {
+        // this.node.equalizedNeighborId[N] = n.appliedTerrainNodeId;
+        // n.equalizedNeighborId[OPSIDE[N]] = this.node.nodeId;
         this.readyToEngage = true;
-        n.equalizedNeighbors[OPSIDE[N]] = true;
-        this.node.equalizedNeighbors[N] = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
 
@@ -400,25 +403,30 @@ Segment.prototype.equalize = function () {
             n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            v[k * 3] = nv[(n_gsOne * n_gs + nk) * 3];
-            v[k * 3 + 1] = nv[(n_gsOne * n_gs + nk) * 3 + 1];
-            v[k * 3 + 2] = nv[(n_gsOne * n_gs + nk) * 3 + 2];
+            const index = k * 3;
+            const n_index = (n_gsOne * n_gs + nk) * 3;
 
-            vHigh[k * 3] = nvHigh[(n_gsOne * n_gs + nk) * 3];
-            vHigh[k * 3 + 1] = nvHigh[(n_gsOne * n_gs + nk) * 3 + 1];
-            vHigh[k * 3 + 2] = nvHigh[(n_gsOne * n_gs + nk) * 3 + 2];
+            v[index] = nv[n_index];
+            v[index + 1] = nv[n_index + 1];
+            v[index + 2] = nv[n_index + 2];
 
-            vLow[k * 3] = nvLow[(n_gsOne * n_gs + nk) * 3];
-            vLow[k * 3 + 1] = nvLow[(n_gsOne * n_gs + nk) * 3 + 1];
-            vLow[k * 3 + 2] = nvLow[(n_gsOne * n_gs + nk) * 3 + 2];
+            vHigh[index] = nvHigh[n_index];
+            vHigh[index + 1] = nvHigh[n_index + 1];
+            vHigh[index + 2] = nvHigh[n_index + 2];
+
+            vLow[index] = nvLow[n_index];
+            vLow[index + 1] = nvLow[n_index + 1];
+            vLow[index + 2] = nvLow[n_index + 2];
         }
     }
 
     n = nn[E][0];
-    if (n && !this.node.equalizedNeighbors[E] && this.tileZoom >= n.segment.tileZoom) {
+    if (n &&
+        // this.node.equalizedNeighborId[E] !== n.appliedTerrainNodeId && 
+        this.tileZoom >= n.segment.tileZoom) {
+        // this.node.equalizedNeighborId[E] = n.appliedTerrainNodeId;
+        // n.equalizedNeighborId[OPSIDE[E]] = this.node.nodeId;
         this.readyToEngage = true;
-        n.equalizedNeighbors[OPSIDE[E]] = true;
-        this.node.equalizedNeighbors[E] = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
 
@@ -436,25 +444,30 @@ Segment.prototype.equalize = function () {
             n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            v[(gsOne * k + gs) * 3] = nv[(n_gsOne * nk) * 3];
-            v[(gsOne * k + gs) * 3 + 1] = nv[(n_gsOne * nk) * 3 + 1];
-            v[(gsOne * k + gs) * 3 + 2] = nv[(n_gsOne * nk) * 3 + 2];
+            const index = (gsOne * k + gs) * 3;
+            const n_index = (n_gsOne * nk) * 3;
 
-            vHigh[(gsOne * k + gs) * 3] = nvHigh[(n_gsOne * nk) * 3];
-            vHigh[(gsOne * k + gs) * 3 + 1] = nvHigh[(n_gsOne * nk) * 3 + 1];
-            vHigh[(gsOne * k + gs) * 3 + 2] = nvHigh[(n_gsOne * nk) * 3 + 2];
+            v[index] = nv[n_index];
+            v[index + 1] = nv[n_index + 1];
+            v[index + 2] = nv[n_index + 2];
 
-            vLow[(gsOne * k + gs) * 3] = nvLow[(n_gsOne * nk) * 3];
-            vLow[(gsOne * k + gs) * 3 + 1] = nvLow[(n_gsOne * nk) * 3 + 1];
-            vLow[(gsOne * k + gs) * 3 + 2] = nvLow[(n_gsOne * nk) * 3 + 2];
+            vHigh[index] = nvHigh[n_index];
+            vHigh[index + 1] = nvHigh[n_index + 1];
+            vHigh[index + 2] = nvHigh[n_index + 2];
+
+            vLow[index] = nvLow[n_index];
+            vLow[index + 1] = nvLow[n_index + 1];
+            vLow[index + 2] = nvLow[n_index + 2];
         }
     }
 
     n = nn[S][0];
-    if (n && !this.node.equalizedNeighbors[S] && this.tileZoom >= n.segment.tileZoom) {
+    if (n &&
+        // this.node.equalizedNeighborId[S] !== n.appliedTerrainNodeId && 
+        this.tileZoom >= n.segment.tileZoom) {
+        // this.node.equalizedNeighborId[S] = n.appliedTerrainNodeId;
+        // n.equalizedNeighborId[OPSIDE[S]] = this.node.nodeId;
         this.readyToEngage = true;
-        n.equalizedNeighbors[OPSIDE[S]] = true;
-        this.node.equalizedNeighbors[S] = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
 
@@ -472,25 +485,30 @@ Segment.prototype.equalize = function () {
             n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            v[(gsOne * gs + k) * 3] = nv[nk * 3];
-            v[(gsOne * gs + k) * 3 + 1] = nv[nk * 3 + 1];
-            v[(gsOne * gs + k) * 3 + 2] = nv[nk * 3 + 2];
+            const index = (gsOne * gs + k) * 3;
+            const n_index = nk * 3;
 
-            vHigh[(gsOne * gs + k) * 3] = nvHigh[nk * 3];
-            vHigh[(gsOne * gs + k) * 3 + 1] = nvHigh[nk * 3 + 1];
-            vHigh[(gsOne * gs + k) * 3 + 2] = nvHigh[nk * 3 + 2];
+            v[index] = nv[n_index];
+            v[index + 1] = nv[n_index + 1];
+            v[index + 2] = nv[n_index + 2];
 
-            vLow[(gsOne * gs + k) * 3] = nvLow[nk * 3];
-            vLow[(gsOne * gs + k) * 3 + 1] = nvLow[nk * 3 + 1];
-            vLow[(gsOne * gs + k) * 3 + 2] = nvLow[nk * 3 + 2];
+            vHigh[index] = nvHigh[n_index];
+            vHigh[index + 1] = nvHigh[n_index + 1];
+            vHigh[index + 2] = nvHigh[n_index + 2];
+
+            vLow[index] = nvLow[n_index];
+            vLow[index + 1] = nvLow[n_index + 1];
+            vLow[index + 2] = nvLow[n_index + 2];
         }
     }
 
     n = nn[W][0];
-    if (n && !this.node.equalizedNeighbors[W] && this.tileZoom >= n.segment.tileZoom) {
+    if (n &&
+        //this.node.equalizedNeighborId[W] !== n.appliedTerrainNodeId && 
+        this.tileZoom >= n.segment.tileZoom) {
+        // this.node.equalizedNeighborId[W] = n.appliedTerrainNodeId;
+        // n.equalizedNeighborId[OPSIDE[W]] = this.node.nodeId;
         this.readyToEngage = true;
-        n.equalizedNeighbors[OPSIDE[W]] = true;
-        this.node.equalizedNeighbors[W] = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
 
@@ -508,17 +526,20 @@ Segment.prototype.equalize = function () {
             n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            v[(gsOne * k) * 3] = nv[(n_gsOne * nk + n_gs) * 3];
-            v[(gsOne * k) * 3 + 1] = nv[(n_gsOne * nk + n_gs) * 3 + 1];
-            v[(gsOne * k) * 3 + 2] = nv[(n_gsOne * nk + n_gs) * 3 + 2];
+            const index = (gsOne * k) * 3;
+            const n_index = (n_gsOne * nk + n_gs) * 3;
 
-            vHigh[(gsOne * k) * 3] = nvHigh[(n_gsOne * nk + n_gs) * 3];
-            vHigh[(gsOne * k) * 3 + 1] = nvHigh[(n_gsOne * nk + n_gs) * 3 + 1];
-            vHigh[(gsOne * k) * 3 + 2] = nvHigh[(n_gsOne * nk + n_gs) * 3 + 2];
+            v[index] = nv[n_index];
+            v[index + 1] = nv[n_index + 1];
+            v[index + 2] = nv[n_index + 2];
 
-            vLow[(gsOne * k) * 3] = nvLow[(n_gsOne * nk + n_gs) * 3];
-            vLow[(gsOne * k) * 3 + 1] = nvLow[(n_gsOne * nk + n_gs) * 3 + 1];
-            vLow[(gsOne * k) * 3 + 2] = nvLow[(n_gsOne * nk + n_gs) * 3 + 2];
+            vHigh[index] = nvHigh[n_index];
+            vHigh[index + 1] = nvHigh[n_index + 1];
+            vHigh[index + 2] = nvHigh[n_index + 2];
+
+            vLow[index] = nvLow[n_index];
+            vLow[index + 1] = nvLow[n_index + 1];
+            vLow[index + 2] = nvLow[n_index + 2];
         }
     }
 };
@@ -627,7 +648,6 @@ Segment.prototype.elevationsNotExists = function () {
             this.terrainIsLoading = false;
 
             this.node.appliedTerrainNodeId = this.node.nodeId;
-            // this.gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
             if (this.planet.lightEnabled && !this._inTheQueue) {
                 this.planet._normalMapCreator.queue(this);

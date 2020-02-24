@@ -26,8 +26,6 @@ import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 //     document.querySelector(".value.ambient-b").innerHTML = this.value;
 // });
 
-
-
 // document.getElementById("diffuse-r").addEventListener("input", function (e) {
 //     osm.diffuse.x = this.value;
 //     document.querySelector(".value.diffuse-r").innerHTML = this.value;
@@ -40,8 +38,6 @@ import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 //     osm.diffuse.z = this.value;
 //     document.querySelector(".value.diffuse-b").innerHTML = this.value;
 // });
-
-
 
 // document.getElementById("specular-r").addEventListener("input", function (e) {
 //     osm.specular.x = this.value;
@@ -56,14 +52,10 @@ import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 //     document.querySelector(".value.specular-b").innerHTML = this.value;
 // });
 
-
-
 // document.getElementById("shininess").addEventListener("input", function (e) {
 //     osm.shininess = this.value;
 //     document.querySelector(".value.shininess").innerHTML = this.value;
 // });
-
-
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -186,12 +178,6 @@ globe.planet.viewExtentArr([12.97153, 46.81244, 13.13657, 46.86488]);
 //}
 
 //townLabels.setEntities(labels);
-
-
-
-
-
-
 
 //var _inc = 0;
 
