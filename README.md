@@ -17,11 +17,11 @@ Check out the [hosted examples](http://www.openglobus.org/examples.html), or the
 
 Run **npm run build** or **npm run build** see package.json scripts
 
-### Build og.core (rendering engine) stand-alone
+### (Optional) Build og.core (rendering engine) stand-alone
 
 Run **npm run core**
 
-### Build og.webgl (webgl wrap) stand-alone
+### (Optional) Build og.webgl (webgl wrap) stand-alone
 
 Run **npm run webgl**
 
