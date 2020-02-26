@@ -101,6 +101,12 @@ class Planet extends RenderNode {
         this.ellipsoid = ellipsoid || wgs84;
 
         /**
+         * @public
+         * @type {Boolean}
+         */
+        this.lightEnabled = true;
+
+        /**
          * Squared ellipsoid radius.
          * @protected
          * @type {number}

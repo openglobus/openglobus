@@ -288,7 +288,7 @@ Node.prototype.createBounds = function () {
                     ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
                     ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
 
-                let pVerts = pn.segment.terrainVertices;
+                let pVerts = pn.segment.tempVertices;
 
                 let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
                     v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
@@ -325,9 +325,9 @@ Node.prototype.createBounds = function () {
 
                 let bigOne;
                 if (pseg.gridSize === 1) {
-                    bigOne = pseg.terrainVertices;
+                    bigOne = pseg.tempVertices;
                 } else {
-                    bigOne = getMatrixSubArray(pseg.terrainVertices, pseg.gridSize, i0, j0, 1);
+                    bigOne = getMatrixSubArray(pseg.tempVertices, pseg.gridSize, i0, j0, 1);
                 }
 
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),

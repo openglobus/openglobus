@@ -135,8 +135,8 @@ let sat = new XYZ("MapQuest Satellite", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    //'terrain': new GlobusTerrain(),
-    'terrain': new MapboxTerrain(),
+    'terrain': new GlobusTerrain(),
+    //'terrain': new MapboxTerrain(),
     'layers': [osm, sat, tg]
 });
 
@@ -147,7 +147,7 @@ globe.planet.addControl(new ToggleWireframe({
 
 globe.planet.addControl(new LayerSwitcher());
 
-globe.planet.viewExtentArr([12.97153, 46.81244, 13.13657, 46.86488]);
+//globe.planet.viewExtentArr([12.97153, 46.81244, 13.13657, 46.86488]);
 
 //let townLabels = new Vector("town labels", {
 //    'nodeCapacity': 5000000,

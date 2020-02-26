@@ -14,7 +14,7 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.equalizeNormals = false;
 
-        this.minZoom = 2;
+        this.minZoom = 3;
 
         this.maxZoom = 15;
 
@@ -26,6 +26,11 @@ class MapboxTerrain extends GlobusTerrain {
         for (var i = this.minZoom; i <= this.maxZoom; i++) {
             this.tileCache[i] = {};
         }
+
+        this._canvas = document.createElement("canvas");
+        this._canvas.width = 256;
+        this._canvas.height = 256;
+        this._ctx = this._canvas.getContext("2d");
     }
 
     isBlur() {
@@ -39,13 +44,8 @@ class MapboxTerrain extends GlobusTerrain {
             const SIZE = data.width;
             const SIZE_ONE = SIZE - 1;
 
-            let canvas = document.createElement("canvas");
-            canvas.width = SIZE;
-            canvas.height = SIZE;
-            let ctx = canvas.getContext("2d");
-
-            ctx.drawImage(data, 0, 0);
-            let idata = ctx.getImageData(0, 0, SIZE, SIZE).data;
+            this._ctx.drawImage(data, 0, 0);
+            let idata = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
 
             if (!this.tileCache[segment.tileZoom][segment.tileX]) {
                 this.tileCache[segment.tileZoom][segment.tileX] = {};

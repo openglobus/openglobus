@@ -370,6 +370,12 @@ Segment.prototype.elevationsExists = function (elevations) {
     }
 };
 
+Segment.prototype._checkEqualization = function (neighborSide, neigborNode) {
+    return neigborNode &&
+        //this.node.equalizedNeighborId[neighborSide] !== neigborNode.segment.gridSize &&
+        this.tileZoom >= neigborNode.segment.tileZoom;
+};
+
 Segment.prototype.equalize = function () {
 
     if (this.tileZoom < 8) {
@@ -385,11 +391,9 @@ Segment.prototype.equalize = function () {
         gsOne = gs + 1;
 
     let n = nn[N][0];
-    if (n &&
-        // this.node.equalizedNeighborId[N] !== n.appliedTerrainNodeId && 
-        this.tileZoom >= n.segment.tileZoom) {
-        // this.node.equalizedNeighborId[N] = n.appliedTerrainNodeId;
-        // n.equalizedNeighborId[OPSIDE[N]] = this.node.nodeId;
+    if (this._checkEqualization(N, n)) {
+        // this.node.equalizedNeighborId[N] = n.segment.gridSize;
+        // n.equalizedNeighborId[OPSIDE[N]] = this.gridSize;
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
@@ -426,11 +430,9 @@ Segment.prototype.equalize = function () {
     }
 
     n = nn[E][0];
-    if (n &&
-        // this.node.equalizedNeighborId[E] !== n.appliedTerrainNodeId && 
-        this.tileZoom >= n.segment.tileZoom) {
-        // this.node.equalizedNeighborId[E] = n.appliedTerrainNodeId;
-        // n.equalizedNeighborId[OPSIDE[E]] = this.node.nodeId;
+    if (this._checkEqualization(E, n)) {
+        // this.node.equalizedNeighborId[E] = n.segment.gridSize;
+        // n.equalizedNeighborId[OPSIDE[E]] = this.gridSize;
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
@@ -467,11 +469,9 @@ Segment.prototype.equalize = function () {
     }
 
     n = nn[S][0];
-    if (n &&
-        // this.node.equalizedNeighborId[S] !== n.appliedTerrainNodeId && 
-        this.tileZoom >= n.segment.tileZoom) {
-        // this.node.equalizedNeighborId[S] = n.appliedTerrainNodeId;
-        // n.equalizedNeighborId[OPSIDE[S]] = this.node.nodeId;
+    if (this._checkEqualization(S, n)) {
+        // this.node.equalizedNeighborId[S] = n.segment.gridSize;
+        // n.equalizedNeighborId[OPSIDE[S]] = this.gridSize;
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
@@ -508,11 +508,9 @@ Segment.prototype.equalize = function () {
     }
 
     n = nn[W][0];
-    if (n &&
-        //this.node.equalizedNeighborId[W] !== n.appliedTerrainNodeId && 
-        this.tileZoom >= n.segment.tileZoom) {
-        // this.node.equalizedNeighborId[W] = n.appliedTerrainNodeId;
-        // n.equalizedNeighborId[OPSIDE[W]] = this.node.nodeId;
+    if (this._checkEqualization(W, n)) {
+        // this.node.equalizedNeighborId[W] = n.segment.gridSize;
+        // n.equalizedNeighborId[OPSIDE[W]] = this.gridSize;
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, W);

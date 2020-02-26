@@ -59,12 +59,12 @@ class TerrainWorker {
                     'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
                     'id': this._id++
                 }, [
-                        _elevations.buffer,
-                        segment.plainVertices.buffer,
-                        segment.plainNormals.buffer,
-                        segment.normalMapVertices.buffer,
-                        segment.normalMapNormals.buffer
-                    ]);
+                    _elevations.buffer,
+                    segment.plainVertices.buffer,
+                    segment.plainNormals.buffer,
+                    segment.normalMapVertices.buffer,
+                    segment.normalMapNormals.buffer
+                ]);
             } else {
                 this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
             }
@@ -248,11 +248,9 @@ const _programm =
                     terrainVerticesLow[vInd] = _tempLow.z;
                     terrainVertices[vInd++] = v0.z;
 
-                    if(h0 >= 0.0){
-                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
-                    }
+                    if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                    if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                    if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
                 }
 
                 if (i !== fileGridSize && j !== fileGridSize) {
@@ -417,11 +415,9 @@ const _programm =
                 terrainVerticesLow[i3 + 1] = _tempLow.y;
                 terrainVerticesLow[i3 + 2] = _tempLow.z;
 
-                if(h_lt >= 0.0 && h_rt >= 0.0 && h_lb >= 0.0 && h_rb >= 0.0) {
-                    if (_tempVec.x < xmin) xmin = _tempVec.x; if (_tempVec.x > xmax) xmax = _tempVec.x;
-                    if (_tempVec.y < ymin) ymin = _tempVec.y; if (_tempVec.y > ymax) ymax = _tempVec.y;
-                    if (_tempVec.z < zmin) zmin = _tempVec.z; if (_tempVec.z > zmax) zmax = _tempVec.z;
-                }
+                if (_tempVec.x < xmin) xmin = _tempVec.x; if (_tempVec.x > xmax) xmax = _tempVec.x;
+                if (_tempVec.y < ymin) ymin = _tempVec.y; if (_tempVec.y > ymax) ymax = _tempVec.y;
+                if (_tempVec.z < zmin) zmin = _tempVec.z; if (_tempVec.z > zmax) zmax = _tempVec.z;
             }
 
             normalMapVertices.set(terrainVertices);
