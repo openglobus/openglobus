@@ -1,5 +1,6 @@
-import { GlobusTerrain } from './GlobusTerrain.js';
+import { Layer } from '../layer/Layer.js';
 import { lerp } from '../math.js';
+import { GlobusTerrain } from './GlobusTerrain.js';
 
 const KEY = "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
 
@@ -36,6 +37,13 @@ class MapboxTerrain extends GlobusTerrain {
     isBlur() {
         return false;
     }
+
+    //Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+    // let cache = {
+    //     heights: this._createHeights(response.data),
+    //     extent: mercator.getTileExtent(x, y, z)
+    // };
+    // this._elevationCache[tileIndex] = cache;
 
     _createHeights(data, segment) {
 

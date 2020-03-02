@@ -200,3 +200,114 @@ globe.planet.addControl(new LayerSwitcher());
 //}
 
 //nthToLast(head, 2);
+
+const SIZE = 8;
+const OUTPUT_SIZE = SIZE / 2;
+
+function createMockData() {
+    let res = new Uint8Array(SIZE * SIZE * 4);
+    for (let i = 0, len = res.length; i < len; i += 4) {
+        let c = Math.round(i / 4);
+        res[i] = c;
+        res[i + 1] = c;
+        res[i + 2] = c;
+        res[i + 3] = 255;
+    }
+    return res;
+}
+
+function createTiles(rgbaData, x, y, z) {
+
+    let destSize = OUTPUT_SIZE;
+    let destSizeOne = destSize + 1;
+    let elevationsSize = destSizeOne * destSizeOne;
+    let sourceSize = Math.sqrt(rgbaData.length / 4);
+    let d = sourceSize / destSize;
+
+    const resTiles = new Array(d);
+    for (let i = 0; i < resTiles.length; i++) {
+        resTiles[i] = [];
+        for (let j = 0; j < resTiles.length; j++) {
+            resTiles[i][j] = new Float32Array(elevationsSize);
+        }
+    }
+
+    let sourceDataLength = rgbaData.length / 4;
+
+    for (let k = 0; k < sourceDataLength; k++) {
+
+        let height = rgbaData[k * 4];
+
+        let i = Math.floor(k / sourceSize);
+        let j = k % sourceSize;
+
+        let tileX = Math.floor(j / destSize);
+        let tileY = Math.floor(i / destSize);
+
+        let destArr = resTiles[tileY][tileX];
+
+        let ii = i % destSize;
+        let jj = j % destSize;
+
+        let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
+        destArr[destIndex] = height;
+
+        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
+
+            //current tile
+            let rightHeigh = rgbaData[(k + 1) * 4];
+            let middleHeight = (height + rightHeigh) * 0.5;
+            destIndex = (ii + tileY) * destSizeOne + jj + 1;
+            destArr[destIndex] = middleHeight;
+
+            //next right tile
+            let jjj = (jj + 1) % destSize;
+            let rightindex = (ii + tileY) * destSizeOne + jjj;
+            resTiles[tileY][tileX + 1][rightindex] = middleHeight;
+        }
+
+        if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
+
+            //current tile
+            let bottomHeigh = rgbaData[(k + sourceSize) * 4];
+            let middleHeight = (height + bottomHeigh) * 0.5;
+            destIndex = (ii + 1) * destSizeOne + jj + tileX;
+            destArr[destIndex] = middleHeight;
+
+            //next bottom tile
+            let iii = (ii + 1) % destSize;
+            let bottomindex = iii * destSizeOne + jj + tileX;
+            resTiles[tileY + 1][tileX][bottomindex] = middleHeight;
+        }
+
+        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1) &&
+            (i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
+
+            //current tile
+            let rightHeigh = rgbaData[(k + 1) * 4];
+            let bottomHeigh = rgbaData[(k + sourceSize) * 4];
+            let rightBottomHeight = rgbaData[(k + sourceSize + 1) * 4];
+            let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
+            destIndex = (ii + 1) * destSizeOne + (jj + 1);
+            destArr[destIndex] = middleHeight;
+
+            //next right tile            
+            let rightindex = (ii + 1) * destSizeOne;
+            resTiles[tileY][tileX + 1][rightindex] = middleHeight;
+
+            //next bottom tile
+            let bottomindex = destSize;
+            resTiles[tileY + 1][tileX][bottomindex] = middleHeight;
+
+            //next right bottom tile
+            let rightBottomindex = 0;
+            resTiles[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
+        }
+    }
+
+    return resTiles;
+}
+
+window.createTiles = createTiles;
+
+createTiles(createMockData(), 1, 1, 1);

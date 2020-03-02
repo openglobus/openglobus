@@ -218,6 +218,7 @@ const _programm =
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
                 var h0 = hf * elevations[hInd0];
+                
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
 
                 doubleToTwoFloats(v0, _tempHigh, _tempLow);
