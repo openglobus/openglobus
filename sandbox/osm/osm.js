@@ -216,24 +216,12 @@ function createMockData() {
     return res;
 }
 
-function createTiles(rgbaData, x, y, z) {
+function createElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations) {
 
     let destSize = OUTPUT_SIZE;
     let destSizeOne = destSize + 1;
-    let elevationsSize = destSizeOne * destSizeOne;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
-    let d = sourceSize / destSize;
-
-    let dt = SIZE / OUTPUT_SIZE;
-    let currTile = new Float32Array(elevationsSize);
-
-    let resTiles = new Array(d);
-    for (let i = 0; i < resTiles.length; i++) {
-        resTiles[i] = [];
-        for (let j = 0; j < resTiles.length; j++) {
-            resTiles[i][j] = new Float32Array(elevationsSize);
-        }
-    }
+    let dt = SIZE / destSize;
 
     let sourceDataLength = rgbaData.length / 4;
 
@@ -243,22 +231,23 @@ function createTiles(rgbaData, x, y, z) {
 
         let height = rgbaData[k * 4];
 
-        let i = Math.floor(k / sourceSize);
-        let j = k % sourceSize;
+        let i = Math.floor(k / sourceSize),
+            j = k % sourceSize;
 
-        let tileX = Math.floor(j / destSize);
-        let tileY = Math.floor(i / destSize);
+        let tileX = Math.floor(j / destSize),
+            tileY = Math.floor(i / destSize);
 
-        let destArr = resTiles[tileY][tileX];
+        let destArr = outChildrenElevations[tileY][tileX];
 
-        let ii = i % destSize;
-        let jj = j % destSize;
+        let ii = i % destSize,
+            jj = j % destSize;
 
         let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
+
         destArr[destIndex] = height;
 
         if ((i + tileY) % dt === 0 && (j + tileX) % dt === 0) {
-            currTile[ctk++] = height;
+            outCurrenElevations[ctk++] = height;
         }
 
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
@@ -270,13 +259,12 @@ function createTiles(rgbaData, x, y, z) {
             destArr[destIndex] = middleHeight;
 
             if ((i + tileY) % dt === 0) {
-                currTile[ctk++] = middleHeight;
+                outCurrenElevations[ctk++] = middleHeight;
             }
 
             //next right tile
-            let jjj = (jj + 1) % destSize;
-            let rightindex = (ii + tileY) * destSizeOne + jjj;
-            resTiles[tileY][tileX + 1][rightindex] = middleHeight;
+            let rightindex = (ii + tileY) * destSizeOne + ((jj + 1) % destSize);
+            outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
         }
 
         if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
@@ -288,13 +276,12 @@ function createTiles(rgbaData, x, y, z) {
             destArr[destIndex] = middleHeight;
 
             if ((j + tileX) % dt === 0) {
-                currTile[ctk++] = middleHeight;
+                outCurrenElevations[ctk++] = middleHeight;
             }
 
             //next bottom tile
-            let iii = (ii + 1) % destSize;
-            let bottomindex = iii * destSizeOne + jj + tileX;
-            resTiles[tileY + 1][tileX][bottomindex] = middleHeight;
+            let bottomindex = ((ii + 1) % destSize) * destSizeOne + jj + tileX;
+            outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
         }
 
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1) &&
@@ -308,28 +295,37 @@ function createTiles(rgbaData, x, y, z) {
             destIndex = (ii + 1) * destSizeOne + (jj + 1);
             destArr[destIndex] = middleHeight;
 
-            currTile[ctk++] = middleHeight;
+            outCurrenElevations[ctk++] = middleHeight;
 
             //next right tile            
             let rightindex = (ii + 1) * destSizeOne;
-            resTiles[tileY][tileX + 1][rightindex] = middleHeight;
+            outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
 
             //next bottom tile
             let bottomindex = destSize;
-            resTiles[tileY + 1][tileX][bottomindex] = middleHeight;
+            outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
 
             //next right bottom tile
             let rightBottomindex = 0;
-            resTiles[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
+            outChildrenElevations[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
         }
     }
+};
 
-    return {
-        current: currTile,
-        tiles: resTiles
-    };
+let rgbaData = createMockData();
+let elevationsSize = (OUTPUT_SIZE + 1) * (OUTPUT_SIZE + 1);
+let d = Math.sqrt(rgbaData.length / 4) / OUTPUT_SIZE;
+
+let outCurrenElevations = new Float32Array(elevationsSize);
+let outChildrenElevations = new Array(d);
+
+for (let i = 0; i < d; i++) {
+    outChildrenElevations[i] = [];
+    for (let j = 0; j < d; j++) {
+        outChildrenElevations[i][j] = new Float32Array(elevationsSize);
+    }
 }
 
-window.createTiles = createTiles;
+window.createElevationTiles = createElevationTiles;
 
-createTiles(createMockData(), 1, 1, 1);
+createElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations);
