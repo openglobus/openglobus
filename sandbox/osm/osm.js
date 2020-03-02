@@ -224,7 +224,10 @@ function createTiles(rgbaData, x, y, z) {
     let sourceSize = Math.sqrt(rgbaData.length / 4);
     let d = sourceSize / destSize;
 
-    const resTiles = new Array(d);
+    let dt = SIZE / OUTPUT_SIZE;
+    let currTile = new Float32Array(elevationsSize);
+
+    let resTiles = new Array(d);
     for (let i = 0; i < resTiles.length; i++) {
         resTiles[i] = [];
         for (let j = 0; j < resTiles.length; j++) {
@@ -233,6 +236,8 @@ function createTiles(rgbaData, x, y, z) {
     }
 
     let sourceDataLength = rgbaData.length / 4;
+
+    let ctk = 0;
 
     for (let k = 0; k < sourceDataLength; k++) {
 
@@ -252,6 +257,10 @@ function createTiles(rgbaData, x, y, z) {
         let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
         destArr[destIndex] = height;
 
+        if ((i + tileY) % dt === 0 && (j + tileX) % dt === 0) {
+            currTile[ctk++] = height;
+        }
+
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
 
             //current tile
@@ -259,6 +268,10 @@ function createTiles(rgbaData, x, y, z) {
             let middleHeight = (height + rightHeigh) * 0.5;
             destIndex = (ii + tileY) * destSizeOne + jj + 1;
             destArr[destIndex] = middleHeight;
+
+            if ((i + tileY) % dt === 0) {
+                currTile[ctk++] = middleHeight;
+            }
 
             //next right tile
             let jjj = (jj + 1) % destSize;
@@ -273,6 +286,10 @@ function createTiles(rgbaData, x, y, z) {
             let middleHeight = (height + bottomHeigh) * 0.5;
             destIndex = (ii + 1) * destSizeOne + jj + tileX;
             destArr[destIndex] = middleHeight;
+
+            if ((j + tileX) % dt === 0) {
+                currTile[ctk++] = middleHeight;
+            }
 
             //next bottom tile
             let iii = (ii + 1) % destSize;
@@ -291,6 +308,8 @@ function createTiles(rgbaData, x, y, z) {
             destIndex = (ii + 1) * destSizeOne + (jj + 1);
             destArr[destIndex] = middleHeight;
 
+            currTile[ctk++] = middleHeight;
+
             //next right tile            
             let rightindex = (ii + 1) * destSizeOne;
             resTiles[tileY][tileX + 1][rightindex] = middleHeight;
@@ -305,7 +324,10 @@ function createTiles(rgbaData, x, y, z) {
         }
     }
 
-    return resTiles;
+    return {
+        current: currTile,
+        tiles: resTiles
+    };
 }
 
 window.createTiles = createTiles;
