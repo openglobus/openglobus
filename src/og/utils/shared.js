@@ -12,18 +12,6 @@ import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 
-if (globalThis.window && !('createImageBitmap' in globalThis.window)) {
-    window.createImageBitmap = function (blob) {
-        return new Promise((resolve, reject) => {
-            let img = document.createElement('img');
-            img.addEventListener('load', function () {
-                resolve(this);
-            });
-            img.src = URL.createObjectURL(blob);
-        });
-    };
-};
-
 export function getDefault(param, def) {
     return param != undefined ? param : def;
 };

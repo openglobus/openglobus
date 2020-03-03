@@ -3,6 +3,18 @@
 import { Events } from '../Events.js';
 import { QueueArray } from '../QueueArray.js';
 
+if (window && !('createImageBitmap' in window)) {
+    window.createImageBitmap = function (blob) {
+        return new Promise((resolve, reject) => {
+            let img = document.createElement('img');
+            img.addEventListener('load', function () {
+                resolve(this);
+            });
+            img.src = URL.createObjectURL(blob);
+        });
+    };
+};
+
 const Loader = function (maxRequests = 12) {
 
     this.MAX_REQUESTS = maxRequests;
