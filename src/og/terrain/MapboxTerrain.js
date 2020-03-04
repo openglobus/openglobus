@@ -1,5 +1,4 @@
 import { Layer } from '../layer/Layer.js';
-import { lerp } from '../math.js';
 import { GlobusTerrain } from './GlobusTerrain.js';
 
 const KEY = "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
@@ -23,11 +22,6 @@ class MapboxTerrain extends GlobusTerrain {
         this.fileGridSize = 128;
         this._dataType = "imageBitmap";
 
-        this.tileCache = [];
-        for (var i = this.minZoom; i <= this.maxZoom; i++) {
-            this.tileCache[i] = {};
-        }
-
         this._canvas = document.createElement("canvas");
         this._canvas.width = 256;
         this._canvas.height = 256;
@@ -38,55 +32,141 @@ class MapboxTerrain extends GlobusTerrain {
         return false;
     }
 
-    //Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
-    // let cache = {
-    //     heights: this._createHeights(response.data),
-    //     extent: mercator.getTileExtent(x, y, z)
-    // };
-    // this._elevationCache[tileIndex] = cache;
-
     _createHeights(data, segment) {
 
-        if (data) {
+        const SIZE = data.width;
 
-            const SIZE = data.width;
-            const SIZE_ONE = SIZE - 1;
+        this._ctx.drawImage(data, 0, 0);
+        let rgbaData = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-            this._ctx.drawImage(data, 0, 0);
-            let idata = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
+        let elevationsSize = (this.fileGridSize + 1) * (this.fileGridSize + 1);
+        let d = SIZE / this.fileGridSize;
 
-            if (!this.tileCache[segment.tileZoom][segment.tileX]) {
-                this.tileCache[segment.tileZoom][segment.tileX] = {};
+        let outCurrenElevations = new Float32Array(elevationsSize);
+        let outChildrenElevations = new Array(d);
+
+        for (let i = 0; i < d; i++) {
+            outChildrenElevations[i] = [];
+            for (let j = 0; j < d; j++) {
+                outChildrenElevations[i][j] = new Float32Array(elevationsSize);
+            }
+        }
+
+        extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
+
+        this._elevationCache[segment.tileIndex] = {
+            heights: outCurrenElevations,
+            extent: segment.getExtent()
+        };
+
+        for (let i = 0; i < d; i++) {
+            for (let j = 0; j < d; j++) {
+                let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
+                this._elevationCache[tileIndex] = {
+                    heights: outChildrenElevations[i][j],
+                    extent: null//segment.getExtent()
+                };
+            }
+        }
+
+        return outCurrenElevations;
+    }
+};
+
+function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations) {
+
+    let destSize = Math.sqrt(outCurrenElevations.length) - 1;
+    let destSizeOne = destSize + 1;
+    let sourceSize = Math.sqrt(rgbaData.length / 4);
+    let dt = sourceSize / destSize;
+
+    let rightHeigh = 0,
+        bottomHeigh = 0,
+        sourceSize4 = 0;
+
+    for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
+
+        let k4 = k * 4;
+
+        let height = -10000 + 0.1 * (rgbaData[k4] * 256 * 256 + rgbaData[k4 + 1] * 256 + rgbaData[k4 + 2]);
+
+        let i = Math.floor(k / sourceSize),
+            j = k % sourceSize;
+
+        let tileX = Math.floor(j / destSize),
+            tileY = Math.floor(i / destSize);
+
+        let destArr = outChildrenElevations[tileY][tileX];
+
+        let ii = i % destSize,
+            jj = j % destSize;
+
+        let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
+
+        destArr[destIndex] = height;
+
+        if ((i + tileY) % dt === 0 && (j + tileX) % dt === 0) {
+            outCurrenElevations[currIndex++] = height;
+        }
+
+        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
+
+            //current tile
+            rightHeigh = -10000 + 0.1 * (rgbaData[k4 + 4] * 256 * 256 + rgbaData[k4 + 5] * 256 + rgbaData[k4 + 6]);
+            let middleHeight = (height + rightHeigh) * 0.5;
+            destIndex = (ii + tileY) * destSizeOne + jj + 1;
+            destArr[destIndex] = middleHeight;
+
+            if ((i + tileY) % dt === 0) {
+                outCurrenElevations[currIndex++] = middleHeight;
             }
 
-            const fgs = this.fileGridSize;
-            const fgsOne = fgs + 1;
+            //next right tile
+            let rightindex = (ii + tileY) * destSizeOne + ((jj + 1) % destSize);
+            outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
+        }
 
-            const size = fgsOne * fgsOne;
+        if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
 
-            let res = new Float32Array(size);
+            //current tile
+            sourceSize4 = sourceSize * 4;
+            bottomHeigh = -10000 + 0.1 * (rgbaData[k4 + sourceSize4] * 256 * 256 + rgbaData[k4 + sourceSize4 + 1] * 256 + rgbaData[k4 + sourceSize4 + 2]);
+            let middleHeight = (height + bottomHeigh) * 0.5;
+            destIndex = (ii + 1) * destSizeOne + jj + tileX;
+            destArr[destIndex] = middleHeight;
 
-            for (let k = 0; k < size; k++) {
-
-                let j = k % fgsOne,
-                    i = ~~(k / fgsOne);
-
-                let src_i = Math.round(lerp(i / fgsOne, SIZE_ONE, 0)),
-                    src_j = Math.round(lerp(j / fgsOne, SIZE_ONE, 0));
-
-                let src = (src_i * SIZE + src_j) * 4;
-
-                let height = -10000 + (idata[src] * 256 * 256 + idata[src + 1] * 256 + idata[src + 2]) * 0.1;
-
-                res[k] = height;
+            if ((j + tileX) % dt === 0) {
+                outCurrenElevations[currIndex++] = middleHeight;
             }
 
-            this.tileCache[segment.tileZoom][segment.tileX][segment.tileY] = res;
+            //next bottom tile
+            let bottomindex = ((ii + 1) % destSize) * destSizeOne + jj + tileX;
+            outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
+        }
 
-            return res;
+        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1) &&
+            (i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
 
-        } else {
-            return new Float32Array();
+            //current tile
+            let rightBottomHeight = -10000 + 0.1 * (rgbaData[k4 + sourceSize4 + 4] * 256 * 256 + rgbaData[k4 + sourceSize4 + 5] * 256 + rgbaData[k4 + sourceSize4 + 6]);
+
+            let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
+            destIndex = (ii + 1) * destSizeOne + (jj + 1);
+            destArr[destIndex] = middleHeight;
+
+            outCurrenElevations[currIndex++] = middleHeight;
+
+            //next right tile            
+            let rightindex = (ii + 1) * destSizeOne;
+            outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
+
+            //next bottom tile
+            let bottomindex = destSize;
+            outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
+
+            //next right bottom tile
+            let rightBottomindex = 0;
+            outChildrenElevations[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
         }
     }
 };

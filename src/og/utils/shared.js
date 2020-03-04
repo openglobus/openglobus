@@ -568,12 +568,15 @@ export function blerp2(x, y, fQ11, fQ21, fQ12, fQ22) {
     return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
 };
 
-export function extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations) {
+export function extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations, fn) {
 
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
     let dt = sourceSize / destSize;
+
+    let rightHeigh = 0,
+        bottomHeigh = 0;
 
     for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
 
@@ -601,7 +604,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
 
             //current tile
-            let rightHeigh = rgbaData[(k + 1) * 4];
+            rightHeigh = rgbaData[(k + 1) * 4];
             let middleHeight = (height + rightHeigh) * 0.5;
             destIndex = (ii + tileY) * destSizeOne + jj + 1;
             destArr[destIndex] = middleHeight;
@@ -618,7 +621,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
         if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
 
             //current tile
-            let bottomHeigh = rgbaData[(k + sourceSize) * 4];
+            bottomHeigh = rgbaData[(k + sourceSize) * 4];
             let middleHeight = (height + bottomHeigh) * 0.5;
             destIndex = (ii + 1) * destSizeOne + jj + tileX;
             destArr[destIndex] = middleHeight;
@@ -636,8 +639,6 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
             (i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
 
             //current tile
-            let rightHeigh = rgbaData[(k + 1) * 4];
-            let bottomHeigh = rgbaData[(k + sourceSize) * 4];
             let rightBottomHeight = rgbaData[(k + sourceSize + 1) * 4];
             let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
             destIndex = (ii + 1) * destSizeOne + (jj + 1);
