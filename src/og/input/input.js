@@ -5,6 +5,7 @@
 'use strict';
 
 export const input = {
+    KEY_CTRL: 17,
     KEY_ALT: 18,
     KEY_SHIFT: 16,
     KEY_SPACE: 32,
