@@ -405,6 +405,15 @@ class Camera {
     }
 
     /**
+     * Getss camera view angle in degrees.
+     * @public
+     * @returns {number} angle - 
+     */
+    getViewAngle() {
+        return this._viewAngle;
+    }
+
+    /**
      * Sets camera to eye position.
      * @public
      * @param {og.Vec3} eye - Camera position.
