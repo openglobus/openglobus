@@ -405,7 +405,7 @@ class Camera {
     }
 
     /**
-     * Getss camera view angle in degrees.
+     * Gets camera view angle in degrees.
      * @public
      * @returns {number} angle - 
      */
