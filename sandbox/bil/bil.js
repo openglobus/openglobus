@@ -1,7 +1,7 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
-import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+import { BilTerrain } from '../../src/og/terrain/BilTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { DebugInfo } from '../../src/og/control/DebugInfo.js';
@@ -60,9 +60,14 @@ let osm = new XYZ("OSM", {
 window.globe = new Globe({
     name: "Earth",
     target: "earth",
-    terrain: new GlobusTerrain(),
+    terrain: new BilTerrain({
+        url: "//95.211.82.211:8080/geoserver/og/",
+        layers: "og:n30_e130_1arc_v3"
+    }),
     layers: [osm, tg]
 });
+
+globe.planet.viewExtentArr([129.548, 30.130, 131.476, 30.6269])
 
 window.globe.planet.addControl(new DebugInfo());
 window.globe.planet.addControl(new ToggleWireframe({
