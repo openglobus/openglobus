@@ -1,3 +1,4 @@
+import { getTileExtent } from '../mercator.js';
 import { Layer } from '../layer/Layer.js';
 import { GlobusTerrain } from './GlobusTerrain.js';
 
@@ -64,7 +65,7 @@ class MapboxTerrain extends GlobusTerrain {
                 let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
                 this._elevationCache[tileIndex] = {
                     heights: outChildrenElevations[i][j],
-                    extent: null//segment.getExtent()
+                    extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
                 };
             }
         }

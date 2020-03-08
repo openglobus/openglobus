@@ -73,7 +73,31 @@ class WMS extends XYZ {
          */
         this.imageHeight = options.imageHeight || 256;
 
+        this._getBbox = WMS.get_bbox_v1_1_1;
+
         this.setVersion(options.version);
+    }
+
+    static createRequestUrl(
+        url,
+        layers,
+        format = "image/png",
+        version = "1.1.1",
+        request = "GetMap",
+        srs,
+        bbox,
+        width = 256,
+        height = 256) {
+        return `${url}/wms?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}
+        &SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}`;
+    }
+
+    static get_bbox_v1_1_1(extent) {
+        return extent.getWest() + "," + extent.getSouth() + "," + extent.getEast() + "," + extent.getNorth();
+    }
+
+    static get_bbox_v1_3_0(extent) {
+        return extent.getSouth() + "," + extent.getWest() + "," + extent.getNorth() + "," + extent.getEast();
     }
 
     _checkSegment(segment) {
@@ -85,12 +109,17 @@ class WMS extends XYZ {
     }
 
     _createUrl(segment) {
-        return this.url + "wms?" + "LAYERS=" + this.layers +
-            "&FORMAT=image/jpeg&SERVICE=WMS&VERSION=" + this._version + "&REQUEST=GetMap" +
-            "&SRS=" + segment._projection.code +
-            "&BBOX=" + this._getBbox(segment) +
-            "&WIDTH=" + this.imageWidth +
-            "&HEIGHT=" + this.imageHeight;
+        return WMS.createRequestUrl(
+            this.url,
+            this.layers,
+            "image/png",
+            this._version,
+            "GetMap",
+            segment._projection.code,
+            this._getBbox(segment.getExtent()),
+            this.imageWidth,
+            this.imageHeight
+        );
     }
 
     setVersion(version) {
@@ -101,20 +130,10 @@ class WMS extends XYZ {
         }
 
         if (this._version === "1.1.1") {
-            this._getBbox = this._getBbox111;
+            this._getBbox = WMS.get_bbox_v1_1_1;
         } else if (version === "1.3.0") {
-            this._getBbox = this._getBbox130;
-        } else {
-            this._getBbox = this._getBbox111;
+            this._getBbox = WMS.get_bbox_v1_3_0;
         }
-    }
-
-    _getBbox111(segment) {
-        return segment._extent.getWest() + "," + segment._extent.getSouth() + "," + segment._extent.getEast() + "," + segment._extent.getNorth();
-    }
-
-    _getBbox130(segment) {
-        return segment._extent.getSouth() + "," + segment._extent.getWest() + "," + segment._extent.getNorth() + "," + segment._extent.getEast();
     }
 
     _correctFullExtent() {

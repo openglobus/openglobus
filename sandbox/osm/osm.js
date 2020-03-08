@@ -5,6 +5,7 @@ import { Globe } from '../../src/og/Globe.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
+import { WMS } from '../../src/og/layer/WMS.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { Vector } from '../../src/og/layer/Vector.js';
 import { Entity } from '../../src/og/entity/Entity.js';
@@ -106,6 +107,16 @@ let osm = new XYZ("OSM", {
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
 });
 
+var states = new WMS("USA Population", {
+    extent: [[-127, 24.5], [-66.5, 48]],
+    opacity: 0.7,
+    visibility: true,
+    isBaseLayer: false,
+    url: "//95.211.82.211:8080/geoserver",
+    layers: "topp:states",
+    transparentColor: [1.0, 1.0, 1.0]
+});
+
 //let sat = new XYZ("MapQuest Satellite", {
 //    shininess: 20,
 //    specular: [0.00048, 0.00037, 0.00035],
@@ -137,7 +148,7 @@ window.globe = new Globe({
     'target': "earth",
     //'terrain': new GlobusTerrain(),
     'terrain': new MapboxTerrain(),
-    'layers': [osm, sat, tg]
+    'layers': [osm, sat, tg, states]
 });
 
 globe.planet.addControl(new DebugInfo());
