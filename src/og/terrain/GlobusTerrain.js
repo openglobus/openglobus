@@ -1,7 +1,6 @@
 /**
- * @module og/terrainProvider/GlobusTerrain
+ * Datasource http://www.viewfinderpanoramas.org/ srtm 3 arc second
  */
-
 'use strict';
 
 import * as mercator from '../mercator.js';

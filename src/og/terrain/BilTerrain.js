@@ -48,7 +48,15 @@ class BilTerrain extends GlobusTerrain {
     }
 
     _createHeights(data, segment) {
-        let buf = data;
+
+        let bil16 = new Int16Array(data);
+
+        for (let i = 0; i < bil16.length; i++) {
+            let d = bil16[i]
+            if (d !== 0 && d !== -9999 && d !== 32767) {
+                console.log(JSON.stringify({ tile: segment.tileIndex, index: i, height: d }));
+            }
+        }
 
         let elevationsSize = (this.fileGridSize + 1) * (this.fileGridSize + 1);
 

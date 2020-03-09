@@ -15,7 +15,7 @@ cnv.height = 256;
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
-    isBaseLayer: true,
+    isBaseLayer: false,
     drawTile: function (material, applyCanvas) {
         // Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
