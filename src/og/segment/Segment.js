@@ -1201,7 +1201,7 @@ Segment.prototype.initialize = function () {
     var n = this.node;
 
     n.sideSize[0] = n.sideSize[1] = n.sideSize[2] = n.sideSize[3] =
-        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom];
+        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.fileGridSize;
 
     if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;

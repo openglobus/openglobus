@@ -70,16 +70,16 @@ NormalMapCreator.prototype._init = function () {
                         
                         void main() {
                             lowp vec4 sum = vec4(0.0);
-                            if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||
-                                blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){
-                                sum = texture2D(s_texture, blurCoordinates[0]);
-                            } else {
+                            //if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||
+                            //    blurCoordinates[0].y <= 0.01 || blurCoordinates[0].y >= 0.99){
+                            //    sum = texture2D(s_texture, blurCoordinates[0]);
+                            //} else {
                                 sum += texture2D(s_texture, blurCoordinates[0]) * 0.204164;
                                 sum += texture2D(s_texture, blurCoordinates[1]) * 0.304005;
                                 sum += texture2D(s_texture, blurCoordinates[2]) * 0.304005;
                                 sum += texture2D(s_texture, blurCoordinates[3]) * 0.093913;
                                 sum += texture2D(s_texture, blurCoordinates[4]) * 0.093913;
-                            }
+                            //}
                             gl_FragColor = sum;
                         }`
     });
