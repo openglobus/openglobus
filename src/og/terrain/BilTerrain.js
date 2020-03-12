@@ -10,13 +10,13 @@ class BilTerrain extends GlobusTerrain {
 
         options = options || {};
 
-        this.equalizeVertices = true;//options.equalizeVertices != undefined ? options.equalizeVertices : true;
+        this.equalizeVertices = true;
 
-        this.equalizeNormals = true;//options.equalizeNormals || false;
+        this.equalizeNormals = true;//true;//options.equalizeNormals || false;
 
         this.minZoom = options.minZoom || 3;
 
-        this.maxZoom = options.maxZoom || 16;
+        this.maxZoom = options.maxZoom || 15;
 
         this._format = "application/bil16";
 
@@ -24,13 +24,15 @@ class BilTerrain extends GlobusTerrain {
 
         this.url = options.url || "";
 
-        this.fileGridSize = 32;
+        this.imageSize = 128;
+
+        this.plainGridSize = 64;
 
         this._dataType = "arrayBuffer";
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 8) {
+        if (segment.tileZoom >= 13) {
             return true;
         }
         return false;
@@ -45,8 +47,8 @@ class BilTerrain extends GlobusTerrain {
             "GetMap",
             segment._projection.code,
             WMS.get_bbox_v1_1_1(segment.getExtent()),
-            64, // this.fileGridSize,
-            64 // this.fileGridSize
+            this.imageSize,
+            this.imageSize
         );
     }
 
@@ -54,7 +56,7 @@ class BilTerrain extends GlobusTerrain {
 
         let bil16 = new Int16Array(data);
 
-        let elevationsSize = (this.fileGridSize + 1) * (this.fileGridSize + 1);
+        let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
 
         let d = 4;
 

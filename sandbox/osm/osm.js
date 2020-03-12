@@ -1,9 +1,7 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
-//import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { WMS } from '../../src/og/layer/WMS.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
@@ -147,7 +145,6 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),
-    //'terrain': new MapboxTerrain(),
     'layers': [osm, sat, tg, states]
 });
 
@@ -157,57 +154,3 @@ globe.planet.addControl(new ToggleWireframe({
 }));
 
 globe.planet.addControl(new LayerSwitcher());
-
-//globe.planet.viewExtentArr([12.97153, 46.81244, 13.13657, 46.86488]);
-
-//let townLabels = new Vector("town labels", {
-//    'nodeCapacity': 5000000,
-//    'visibility': true
-//});
-//function randomCoordinateJitter(degree, margin) {
-//    return degree + margin * (Math.random() - 0.5) / 0.5;
-//}
-
-//var nCats = 15,
-//    labels = [];
-//for (var i = 0; i <= nCats; i++) {
-//    labels.push(new Entity({
-//        'lonlat': [randomCoordinateJitter(-77.009003, .5), randomCoordinateJitter(38.889931, .5)],
-//        'label': {
-//            'text': 'CUTE #' + i,
-//            'size': 26,
-//            'outline': 0,
-//            'face': "Lucida Console",
-//            'weight': "bold",
-//            'color': "black",
-//        },
-//        'billboard': {
-//            'size': [36, 24],
-//            'src': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhFpaxDXCS5O9hx90F3ufJI2VnC_wW0lPnrr6BIb18P4V5JXxBCg'
-//        }
-//    }));
-//}
-
-//townLabels.setEntities(labels);
-
-//var _inc = 0;
-
-//var List = function (next, data) {
-//    this.data = _inc++;
-//    this.next = next || null;
-//};
-
-//var head = new List(new List(new List(new List())));
-
-//function nthToLast(head, k) {
-//    if (head == null) {
-//        return 0;
-//    }
-//    var i = nthToLast(head.next, k) + 1;
-//    if (i == k) {
-//        console.log(head.data);
-//    }
-//    return i;
-//}
-
-//nthToLast(head, 2);

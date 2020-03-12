@@ -552,17 +552,14 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
             seg.initialize();
         }
 
-        if (seg.createTerrainFromChildNodes()) {
+        this.whileTerrainLoading(terrainReadySegment, stopLoading);
 
-            this.whileTerrainLoading(terrainReadySegment, stopLoading);
+        if (!seg.plainProcessing) {
+            seg.createPlainSegmentAsync();
+        }
 
-            if (!seg.plainProcessing) {
-                seg.createPlainSegmentAsync();
-            }
-
-            if (seg.plainReady && !stopLoading) {
-                seg.loadTerrain();
-            }
+        if (seg.plainReady && !stopLoading) {
+            seg.loadTerrain();
         }
     }
 

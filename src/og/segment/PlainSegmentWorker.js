@@ -80,7 +80,7 @@ class PlainSegmentWorker {
                     this._id++,
                     segment._projection.id === EPSG4326.id ? 1.0 : 0.0,
                     segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
-                    segment.planet.terrain.fileGridSize,
+                    segment.planet.terrain.plainGridSize,
                     segment._extent.southWest.lon,
                     segment._extent.southWest.lat,
                     segment._extent.northEast.lon,

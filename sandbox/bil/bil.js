@@ -62,7 +62,7 @@ window.globe = new Globe({
     target: "earth",
     terrain: new BilTerrain({
         url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:n30_e130_1arc_v3"
+        layers: "og:eu_dem_v11_E40N20"
     }),
     layers: [osm, tg]
 });

@@ -93,7 +93,7 @@ SegmentLonLat.prototype._createPlainVertices = function () {
     var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
     var e = this._extent,
-        fgs = this.planet.terrain.fileGridSize;
+        fgs = this.planet.terrain.plainGridSize;
     var lonSize = e.getWidth();
     var latSize = e.getHeight();
     var llStep = lonSize / Math.max(fgs, gridSize);

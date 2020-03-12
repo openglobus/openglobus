@@ -981,155 +981,155 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
 /**
  * @todo: remake it
  */
-Segment.prototype.createTerrainFromChildNodes = function () {
+//Segment.prototype.createTerrainFromChildNodes = function () {
 
-    const node = this.node;
-    const nodes = node.nodes;
-    const terrain = this.planet.terrain;
+//    const node = this.node;
+//    const nodes = node.nodes;
+//    const terrain = this.planet.terrain;
 
-    if (node.ready &&
-        this.tileZoom >= terrain.minZoom &&
-        this.tileZoom < terrain.maxZoom &&
-        nodes[0].segment.terrainReady && nodes[1].segment.terrainReady &&
-        nodes[2].segment.terrainReady && nodes[3].segment.terrainReady
-    ) {
-        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
-            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
+//    if (node.ready &&
+//        this.tileZoom >= terrain.minZoom &&
+//        this.tileZoom < terrain.maxZoom &&
+//        nodes[0].segment.terrainReady && nodes[1].segment.terrainReady &&
+//        nodes[2].segment.terrainReady && nodes[3].segment.terrainReady
+//    ) {
+//        let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
+//            ymax = math.MIN, zmin = math.MAX, zmax = math.MIN;
 
-        this.gridSize = terrain.gridSizeByZoom[this.tileZoom];
+//        this.gridSize = terrain.gridSizeByZoom[this.tileZoom];
 
-        let fgs = terrain.fileGridSize;
+//        let fgs = terrain.fileGridSize;
 
-        let dg = Math.max(fgs / this.gridSize, 1),
-            gs = Math.max(fgs, this.gridSize) + 1;
-        let ind = 0,
-            nmInd = 0;
+//        let dg = Math.max(fgs / this.gridSize, 1),
+//            gs = Math.max(fgs, this.gridSize) + 1;
+//        let ind = 0,
+//            nmInd = 0;
 
-        let gs3 = gs * gs * 3,
-            sgs3 = (this.gridSize + 1) * (this.gridSize + 1) * 3;
+//        let gs3 = gs * gs * 3,
+//            sgs3 = (this.gridSize + 1) * (this.gridSize + 1) * 3;
 
-        let hgsOne = 0.5 * gs + 0.5;
+//        let hgsOne = 0.5 * gs + 0.5;
 
-        this.terrainVertices = new Float64Array(sgs3);
-        this.terrainVerticesHigh = new Float32Array(sgs3);
-        this.terrainVerticesLow = new Float32Array(sgs3);
+//        this.terrainVertices = new Float64Array(sgs3);
+//        this.terrainVerticesHigh = new Float32Array(sgs3);
+//        this.terrainVerticesLow = new Float32Array(sgs3);
 
-        this.normalMapVertices = new Float64Array(gs3);
-        this.normalMapVerticesHigh = new Float32Array(gs3);
-        this.normalMapVerticesLow = new Float32Array(gs3);
+//        this.normalMapVertices = new Float64Array(gs3);
+//        this.normalMapVerticesHigh = new Float32Array(gs3);
+//        this.normalMapVerticesLow = new Float32Array(gs3);
 
-        this.normalMapNormals = new Float32Array(gs3);
-        this.normalMapNormalsRaw = new Float32Array(gs3);
+//        this.normalMapNormals = new Float32Array(gs3);
+//        this.normalMapNormalsRaw = new Float32Array(gs3);
 
-        let verts = this.terrainVertices,
-            vertsHigh = this.terrainVerticesHigh,
-            vertsLow = this.terrainVerticesLow,
+//        let verts = this.terrainVertices,
+//            vertsHigh = this.terrainVerticesHigh,
+//            vertsLow = this.terrainVerticesLow,
 
-            nmVerts = this.normalMapVertices,
-            nmVertsHigh = this.normalMapVerticesHigh,
-            nmVertsLow = this.normalMapVerticesLow,
+//            nmVerts = this.normalMapVertices,
+//            nmVertsHigh = this.normalMapVerticesHigh,
+//            nmVertsLow = this.normalMapVerticesLow,
 
-            nmNorms = this.normalMapNormals;
+//            nmNorms = this.normalMapNormals;
 
-        for (let i = 0; i < gs; i++) {
+//        for (let i = 0; i < gs; i++) {
 
-            let ni = Math.floor(i / hgsOne),
-                ii = i % hgsOne + ni;
+//            let ni = Math.floor(i / hgsOne),
+//                ii = i % hgsOne + ni;
 
-            for (let j = 0; j < gs; j++) {
+//            for (let j = 0; j < gs; j++) {
 
-                let nj = Math.floor(j / hgsOne);
-                let n = nodes[(ni << 1) + nj];
+//                let nj = Math.floor(j / hgsOne);
+//                let n = nodes[(ni << 1) + nj];
 
-                let nii = ii << 1,
-                    njj = (j % hgsOne + nj) << 1;
+//                let nii = ii << 1,
+//                    njj = (j % hgsOne + nj) << 1;
 
-                let n_index = 3 * (nii * gs + njj);
+//                let n_index = 3 * (nii * gs + njj);
 
-                let n_nmVerts = n.segment.normalMapVertices,
-                    n_nmVertsHigh = n.segment.normalMapVerticesHigh,
-                    n_nmVertsLow = n.segment.normalMapVerticesLow,
-                    n_nmNormsRaw = n.segment.normalMapNormalsRaw;
+//                let n_nmVerts = n.segment.normalMapVertices,
+//                    n_nmVertsHigh = n.segment.normalMapVerticesHigh,
+//                    n_nmVertsLow = n.segment.normalMapVerticesLow,
+//                    n_nmNormsRaw = n.segment.normalMapNormalsRaw;
 
-                let x = n_nmVerts[n_index],
-                    y = n_nmVerts[n_index + 1],
-                    z = n_nmVerts[n_index + 2],
+//                let x = n_nmVerts[n_index],
+//                    y = n_nmVerts[n_index + 1],
+//                    z = n_nmVerts[n_index + 2],
 
-                    xHigh = n_nmVertsHigh[n_index],
-                    yHigh = n_nmVertsHigh[n_index + 1],
-                    zHigh = n_nmVertsHigh[n_index + 2],
+//                    xHigh = n_nmVertsHigh[n_index],
+//                    yHigh = n_nmVertsHigh[n_index + 1],
+//                    zHigh = n_nmVertsHigh[n_index + 2],
 
-                    xLow = n_nmVertsLow[n_index],
-                    yLow = n_nmVertsLow[n_index + 1],
-                    zLow = n_nmVertsLow[n_index + 2];
+//                    xLow = n_nmVertsLow[n_index],
+//                    yLow = n_nmVertsLow[n_index + 1],
+//                    zLow = n_nmVertsLow[n_index + 2];
 
-                nmVerts[nmInd] = x;
-                nmVertsHigh[nmInd] = xHigh;
-                nmVertsLow[nmInd] = xLow;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index];
+//                nmVerts[nmInd] = x;
+//                nmVertsHigh[nmInd] = xHigh;
+//                nmVertsLow[nmInd] = xLow;
+//                nmNorms[nmInd++] = n_nmNormsRaw[n_index];
 
-                nmVerts[nmInd] = y;
-                nmVertsHigh[nmInd] = yHigh;
-                nmVertsLow[nmInd] = yLow;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
+//                nmVerts[nmInd] = y;
+//                nmVertsHigh[nmInd] = yHigh;
+//                nmVertsLow[nmInd] = yLow;
+//                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 1];
 
-                nmVerts[nmInd] = z;
-                nmVertsHigh[nmInd] = zHigh;
-                nmVertsLow[nmInd] = zLow;
-                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
+//                nmVerts[nmInd] = z;
+//                nmVertsHigh[nmInd] = zHigh;
+//                nmVertsLow[nmInd] = zLow;
+//                nmNorms[nmInd++] = n_nmNormsRaw[n_index + 2];
 
-                if (i % dg === 0 && j % dg === 0) {
+//                if (i % dg === 0 && j % dg === 0) {
 
-                    vertsHigh[ind] = xHigh;
-                    vertsLow[ind] = xLow;
-                    verts[ind++] = x;
+//                    vertsHigh[ind] = xHigh;
+//                    vertsLow[ind] = xLow;
+//                    verts[ind++] = x;
 
-                    vertsHigh[ind] = yHigh;
-                    vertsLow[ind] = yLow;
-                    verts[ind++] = y;
+//                    vertsHigh[ind] = yHigh;
+//                    vertsLow[ind] = yLow;
+//                    verts[ind++] = y;
 
-                    vertsHigh[ind] = zHigh;
-                    vertsLow[ind] = zLow;
-                    verts[ind++] = z;
+//                    vertsHigh[ind] = zHigh;
+//                    vertsLow[ind] = zLow;
+//                    verts[ind++] = z;
 
-                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
-                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
-                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
-                }
-            }
-        }
+//                    if (x < xmin) xmin = x; if (x > xmax) xmax = x;
+//                    if (y < ymin) ymin = y; if (y > ymax) ymax = y;
+//                    if (z < zmin) zmin = z; if (z > zmax) zmax = z;
+//                }
+//            }
+//        }
 
-        this.normalMapNormalsRaw.set(nmNorms);
+//        this.normalMapNormalsRaw.set(nmNorms);
 
-        this.readyToEngage = true;
+//        this.readyToEngage = true;
 
-        this.setBoundingSphere(
-            xmin + (xmax - xmin) * 0.5,
-            ymin + (ymax - ymin) * 0.5,
-            zmin + (zmax - zmin) * 0.5,
-            new Vec3(xmin, ymin, zmin)
-        );
+//        this.setBoundingSphere(
+//            xmin + (xmax - xmin) * 0.5,
+//            ymin + (ymax - ymin) * 0.5,
+//            zmin + (zmax - zmin) * 0.5,
+//            new Vec3(xmin, ymin, zmin)
+//        );
 
-        this.appliedTerrainNodeId = this.nodeId;
-        this.terrainReady = true;
-        this.terrainExists = true;
-        this.terrainIsLoading = false;
+//        this.appliedTerrainNodeId = this.nodeId;
+//        this.terrainReady = true;
+//        this.terrainExists = true;
+//        this.terrainIsLoading = false;
 
-        if (this.planet.lightEnabled) {
-            this.planet._normalMapCreator.drawSingle(this);
-        }
+//        if (this.planet.lightEnabled) {
+//            this.planet._normalMapCreator.drawSingle(this);
+//        }
 
-        let e = this._extent;
-        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+//        let e = this._extent;
+//        this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+//        this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+//        this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+//        this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
 
-        return false;
-    }
+//        return false;
+//    }
 
-    return true;
-};
+//    return true;
+//};
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
 
@@ -1201,7 +1201,7 @@ Segment.prototype.initialize = function () {
     var n = this.node;
 
     n.sideSize[0] = n.sideSize[1] = n.sideSize[2] = n.sideSize[3] =
-        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.fileGridSize;
+        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
     if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;
@@ -1244,7 +1244,7 @@ Segment.prototype._createPlainVertices = function () {
     var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
     var e = this._extent,
-        fgs = this.planet.terrain.fileGridSize;
+        fgs = this.planet.terrain.plainGridSize;
     var lonSize = e.getWidth();
     var llStep = lonSize / Math.max(fgs, gridSize);
     var esw_lon = e.southWest.lon,

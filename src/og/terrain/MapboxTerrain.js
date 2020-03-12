@@ -19,8 +19,9 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.maxZoom = 15;
 
+        this.plainGridSize = 128;
+
         this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=" + (options.key || KEY);
-        this.fileGridSize = 128;
         this._dataType = "imageBitmap";
 
         this._canvas = document.createElement("canvas");
@@ -40,8 +41,8 @@ class MapboxTerrain extends GlobusTerrain {
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-        let elevationsSize = (this.fileGridSize + 1) * (this.fileGridSize + 1);
-        let d = SIZE / this.fileGridSize;
+        let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
+        let d = SIZE / this.plainGridSize;
 
         let outCurrenElevations = new Float32Array(elevationsSize);
         let outChildrenElevations = new Array(d);

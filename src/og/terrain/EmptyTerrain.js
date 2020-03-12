@@ -49,7 +49,7 @@ class EmptyTerrain {
          * @public
          * @type {number}
          */
-        this.fileGridSize = 2;
+        this.plainGridSize = 2;
 
         /**
          * Planet node.

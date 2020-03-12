@@ -166,7 +166,6 @@ const _programm =
             this_normalMapVertices = e.data.this_normalMapVertices,
             this_normalMapNormals = e.data.this_normalMapNormals,
             heightFactor =  e.data.heightFactor,
-            //fileGridSize = e.data.fileGridSize,
             gridSize = e.data.gridSize,
             id = e.data.id;
         

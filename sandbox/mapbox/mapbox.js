@@ -1,15 +1,11 @@
 'use strict';
 
 import { Globe } from '../../src/og/Globe.js';
-// import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
-// import { Vector } from '../../src/og/layer/Vector.js';
-// import { Entity } from '../../src/og/entity/Entity.js';
 import { DebugInfo } from '../../src/og/control/DebugInfo.js';
 import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
-// import * as math from '../../src/og/math.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 
 let cnv = document.createElement("canvas");
