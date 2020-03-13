@@ -217,6 +217,11 @@ const _programm =
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
                 var h0 = hf * elevations[hInd0];
+
+//TODO: no data value
+if(h0 < -100){
+    h0 = 300;
+}
                 
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
 
@@ -263,6 +268,10 @@ const _programm =
                     var h1 = hf * elevations[hInd1];
                     var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
+//TODO: no data value
+if(h1 < -100){
+    h1 = h0;
+}
                     doubleToTwoFloats(v1, _tempHigh, _tempLow);
 
                     normalMapVertices[vInd1] = v1.x;
@@ -288,6 +297,11 @@ const _programm =
                         nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
                         nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
+//TODO: no data value
+if(h2 < -100){
+    h2 = h1;
+}
+
                     doubleToTwoFloats(v2, _tempHigh, _tempLow);
 
                     normalMapVertices[vInd2] = v2.x;
@@ -309,6 +323,11 @@ const _programm =
                     var vInd3 = hInd3 * 3;
                     var h3 = hf * elevations[hInd3];
                     var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
+
+//TODO: no data value
+if(h3 < -100){
+    h3 = h2;
+}
 
                     doubleToTwoFloats(v3, _tempHigh, _tempLow);
 
@@ -394,6 +413,11 @@ const _programm =
                     h_rb = elevations[hrb_ind];
 
                 let hi = blerp(qij / oneSize, qii / oneSize, h_lt, h_rt, h_lb, h_rb);
+
+//TODO: no data value
+if(hi < -100){
+    hi = 300;
+}
 
                 let i3 = i * 3;
 
