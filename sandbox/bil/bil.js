@@ -62,12 +62,12 @@ window.globe = new Globe({
     target: "earth",
     terrain: new BilTerrain({
         url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:eu_dem_v11_E40N20"
+        layers: "og:n44_e009_1arc_v3"
     }),
     layers: [osm, tg]
 });
 
-globe.planet.viewExtentArr([129.548, 30.130, 131.476, 30.6269])
+//globe.planet.viewExtentArr([129.548, 30.130, 131.476, 30.6269])
 
 window.globe.planet.addControl(new DebugInfo());
 window.globe.planet.addControl(new ToggleWireframe({

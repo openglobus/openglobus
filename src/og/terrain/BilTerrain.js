@@ -16,7 +16,7 @@ class BilTerrain extends GlobusTerrain {
 
         this.minZoom = options.minZoom || 3;
 
-        this.maxZoom = options.maxZoom || 15;
+        this.maxZoom = options.maxZoom || 14;
 
         this._format = "application/bil16";
 
@@ -24,9 +24,9 @@ class BilTerrain extends GlobusTerrain {
 
         this.url = options.url || "";
 
-        this.imageSize = 128;
+        this.imageSize = 256;
 
-        this.plainGridSize = 64;
+        this.plainGridSize = this.imageSize / 2;
 
         this._dataType = "arrayBuffer";
     }

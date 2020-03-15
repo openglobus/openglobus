@@ -511,6 +511,9 @@ Renderer.prototype.getMSAA = function () {
     return this._msaa;
 };
 
+/**
+ * TODO: replace with cahce frendly linked list by bilboardHandler, label handler etc.
+ */
 Renderer.prototype.enqueueEntityCollectionsToDraw = function (ecArr) {
     this._entityCollections.push.apply(this._entityCollections, ecArr);
 };
