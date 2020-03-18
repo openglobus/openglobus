@@ -17,7 +17,7 @@ class ImagesCacheManager {
         } else {
             var req = { "src": src, "success": success };
             if (this._counter >= 1) {
-                this._pendingsQueue.push(req);
+                this._pendingsQueue.unshift(req);
             } else {
                 this._exec(req);
             }
