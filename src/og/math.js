@@ -1,7 +1,6 @@
 /**
  * @module og/math
  */
-
 'use strict';
 
 /** @const */

@@ -39,7 +39,9 @@ export function createSegmentIndexes(size, sidesSizes) {
     }
 };
 
-function createCenterBodyIndexes(size, indexes) {
+function createCenterBodyIndexes(size) {
+
+    let indexes = [];
 
     var i0 = 1,
         j0 = 1;
@@ -58,9 +60,12 @@ function createCenterBodyIndexes(size, indexes) {
         indexes.push(ind2, nr + j0);
     }
     indexes.push(indexes[indexes.length - 1], size * size - size);
+
+    return new Uint16Array(indexes);
 };
 
-function createWestNeighborSkirt(size, deltaGr, indexes) {
+function createWestNeighborSkirt(size, deltaGr) {
+    let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var b = size * size - size;
     var k = 0;
@@ -77,9 +82,12 @@ function createWestNeighborSkirt(size, deltaGr, indexes) {
         indexes.push(size);
         indexes.push(0);
     }
+
+    return new Uint16Array(indexes);
 };
 
-function createNorthNeighborSkirt(size, deltaGr, indexes) {
+function createNorthNeighborSkirt(size, deltaGr) {
+    let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     for (var i = 0; i < size - 2; i++) {
@@ -95,9 +103,12 @@ function createNorthNeighborSkirt(size, deltaGr, indexes) {
         indexes.push(size - 2);
         indexes.push(size - 1);
     }
+
+    return new Uint16Array(indexes);
 };
 
-function createEastNeighborSkirt(size, deltaGr, indexes) {
+function createEastNeighborSkirt(size, deltaGr) {
+    let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     for (var i = 0; i < size - 2; i++) {
@@ -113,9 +124,12 @@ function createEastNeighborSkirt(size, deltaGr, indexes) {
         indexes.push(size * (size - 1) - 1);
         indexes.push(size * size - 1);
     }
+
+    return new Uint16Array(indexes);
 };
 
-function createSouthNeighborSkirt(size, deltaGr, indexes) {
+function createSouthNeighborSkirt(size, deltaGr) {
+    let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var k = 0;
     var rb = size * (size - 1) - 2;
@@ -133,6 +147,8 @@ function createSouthNeighborSkirt(size, deltaGr, indexes) {
         indexes.push(size * size - size + 1);
     }
     indexes.push(size * size - size);
+
+    return new Uint16Array(indexes);
 };
 
 function initIndexesBodySkirts(pow) {
@@ -163,16 +179,11 @@ function initIndexesBodySkirts(pow) {
         table[E][d][0] = [];
 
         for (var j = 0; j <= pow; j++) {
-            var dd = Math.pow(2, j),
-                nt = table[N][d][dd] = [],
-                wt = table[W][d][dd] = [],
-                st = table[S][d][dd] = [],
-                et = table[E][d][dd] = [];
-
-            createWestNeighborSkirt(d1, dd, wt);
-            createNorthNeighborSkirt(d1, dd, nt);
-            createEastNeighborSkirt(d1, dd, et);
-            createSouthNeighborSkirt(d1, dd, st);
+            var dd = Math.pow(2, j);
+            table[W][d][dd] = createWestNeighborSkirt(d1, dd);
+            table[N][d][dd] = createNorthNeighborSkirt(d1, dd);
+            table[E][d][dd] = createEastNeighborSkirt(d1, dd);
+            table[S][d][dd] = createSouthNeighborSkirt(d1, dd);
         }
     }
     return table;
@@ -192,19 +203,20 @@ function initIndexBodiesTable(pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
-        var t = table[d] = [];
-        createCenterBodyIndexes(d + 1, t);
+        table[d] = createCenterBodyIndexes(d + 1);
     }
-    table[0] = [];
+    table[0] = new Uint16Array();
     return table;
 };
 
 function createTextureCoords(size) {
-    var texCoords = [];
+    var texCoords = new Uint16Array((size + 1) * (size + 1) * 2);
+    let k = 0;
     for (var i = 0; i <= size; i++) {
         for (var j = 0; j <= size; j++) {
-            texCoords.push(j / size * 0xFFFF, i / size * 0xFFFF);
+            texCoords[k++] = j / size * 0xFFFF;
+            texCoords[k++] = i / size * 0xFFFF;
         }
     }
-    return new Uint16Array(texCoords);
+    return texCoords;
 };

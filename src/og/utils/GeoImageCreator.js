@@ -119,6 +119,7 @@ GeoImageCreator.prototype._initBuffers = function () {
     this._framebufferMercProj = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
     this._framebufferMercProj.init();
 
+    //TODO: textureCoordsTable pool allready exists in planet scene
     var gs = this._gridSize;
     var gs1 = this._gridSize + 1;
     this._texCoordsBuffer = this._handler.createArrayBuffer(segmentHelper.textureCoordsTable[gs], 2, gs1 * gs1);

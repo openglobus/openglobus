@@ -265,12 +265,20 @@ class Planet extends RenderNode {
          */
         this._indexesCache = [];
 
+
         /**
-         * Precomputed indexes buffers for differrent grid size segments.
+         * Precomputed texture coordinates buffers for differrent grid size segments.
          * @protected
          * @type {Array.<Array.<number>>}
          */
-        this._indexesBuffers = [];
+        this._textureCoordsBufferCache = [];
+
+        ///**
+        // * Precomputed indexes buffers for differrent grid size segments.
+        // * @protected
+        // * @type {Array.<Array.<number>>}
+        // */
+        //this._indexesBuffers = [];
 
         /**
          * Framebuffer for relief. Is null when WEBGL_draw_buffers extension initialized.
@@ -629,6 +637,14 @@ class Planet extends RenderNode {
                     }
                 }
             }
+        }
+
+        // Initialize texture coordinates buffer pool
+        this._textureCoordsBufferCache = [];
+        for (let i = 0; i < TABLESIZE; i++) {
+            let gridSize = Math.pow(2, i);
+            var gsgs = (gridSize + 1) * (gridSize + 1);
+            this._textureCoordsBufferCache[gridSize] = this.renderer.handler.createArrayBuffer(segmentHelper.textureCoordsTable[gridSize], 2, gsgs);
         }
 
         // creating empty textures

@@ -1,13 +1,11 @@
 'use sctrict';
 
-import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import { N, E, S, W, OPSIDE, NOTRENDERING } from '../quadTree/quadTree.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Extent } from '../Extent.js';
 import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
-import { textureCoordsTable } from './segmentHelper.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
@@ -480,8 +478,7 @@ Segment.prototype.equalize = function () {
             nvHigh = n.segment.tempVerticesHigh,
             nvLow = n.segment.tempVerticesLow;
 
-        let n_gs = n.segment.gridSize,
-            n_gsOne = n_gs + 1;
+        let n_gs = n.segment.gridSize; // n_gsOne = n_gs + 1;
 
         let dz = 1 / (1 << (this.tileZoom - n.segment.tileZoom));
 
@@ -791,7 +788,6 @@ Segment.prototype.deleteBuffers = function () {
     gl.deleteBuffer(this.vertexPositionBuffer);
     gl.deleteBuffer(this.vertexPositionBufferHigh);
     gl.deleteBuffer(this.vertexPositionBufferLow);
-    gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
     this.vertexNormalBuffer = null;
     this.vertexPositionBuffer = null;
@@ -1138,9 +1134,8 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
 
     h.gl.deleteBuffer(this.vertexPositionBufferHigh);
     h.gl.deleteBuffer(this.vertexPositionBufferLow);
-    h.gl.deleteBuffer(this.vertexTextureCoordBuffer);
 
-    this.vertexTextureCoordBuffer = h.createArrayBuffer(textureCoordsTable[gridSize], 2, gsgs);
+    this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
     this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
     this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
 };

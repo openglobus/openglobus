@@ -661,10 +661,7 @@ Node.prototype.getCommonSide = function (node) {
         return E;
     } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
         return W;
-    }
-
-    //Poles and mercator nodes common side.
-    else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
+    } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
         return N;
     } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
         return S;

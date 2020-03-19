@@ -123,7 +123,6 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
                 rightHeigh = -1000;
             }
 
-
             let middleHeight = (height + rightHeigh) * 0.5;
             destIndex = (ii + tileY) * destSizeOne + jj + 1;
             destArr[destIndex] = middleHeight;

@@ -33,6 +33,7 @@ module.exports = {
         "no-void": "off",
         "spaced-comment": "off",
         "quote-props": "off",
-        "no-useless-escape": "off"
+        "no-useless-escape": "off",
+        "no-mixed-operators": "off"
     }
 };
