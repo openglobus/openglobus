@@ -234,6 +234,11 @@ Segment.prototype.isEntityInside = function (e) {
     return this._extent.isInside(e._lonlatMerc);
 };
 
+let _v0 = new Vec3(),
+    _v1 = new Vec3(),
+    _v2 = new Vec3(),
+    _v3 = new Vec3();
+
 /**
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
@@ -244,7 +249,7 @@ Segment.prototype.isEntityInside = function (e) {
  * @returns {number} -
  */
 Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
-    var verts = this.tempVertices, // this.terrainReady ? this.terrainVertices : this.tempVertices,
+    var verts = this.tempVertices,
         ray = new Ray(xyz, xyz.negateTo());
 
     if (verts) {
@@ -275,33 +280,31 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
         if (verts && verts.length) {
             var ind_v0 = ((size + 1) * indY + indX) * 3;
             var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
+   
+            _v0.set(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]);
+            _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
+            _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            //
-            // TODO: replace with temp variables            
-            var v0 = new Vec3(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]),
-                v1 = new Vec3(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]),
-                v2 = new Vec3(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
-
-            let d = ray.hitTriangle(v0, v1, v2, res, normal);
+            let d = ray.hitTriangle(_v0, _v1, _v2, res, normal);
 
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(v0, v1, v2, res, normal);
+                let d = ray.hitTriangle(_v0, _v1, _v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
             }
 
-            var v3 = new Vec3(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
+            _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-            d = ray.hitTriangle(v1, v3, v2, res, normal);
+            d = ray.hitTriangle(_v1, _v3, _v2, res, normal);
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(v1, v3, v2, res, normal);
+                let d = ray.hitTriangle(_v1, _v3, _v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }

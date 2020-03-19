@@ -152,11 +152,11 @@ function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, grid
 
     const i0size = i0 + size + 1;
     const j0size = j0 + size + 1;
-
+    gridSize += 1;
     var vInd = 0;
     for (var i = i0; i < i0size; i++) {
         for (var j = j0; j < j0size; j++) {
-            var ind = 3 * (i * (gridSize + 1) + j);
+            var ind = 3 * (i * gridSize + j);
 
             let x = sourceArr[ind],
                 y = sourceArr[ind + 1],

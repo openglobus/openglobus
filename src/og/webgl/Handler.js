@@ -408,7 +408,7 @@ Handler.prototype.createTexture_a = function (image) {
  * @returns {Object} - WebGL texture object.
  */
 Handler.prototype.createTexture = function (image) {
-    return this.createTexture_a(image);
+    return this.createTexture_l(image);
 };
 
 /**

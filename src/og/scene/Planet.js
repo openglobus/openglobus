@@ -692,15 +692,13 @@ class Planet extends RenderNode {
 
         // loading Earth night glowing texture
         if (this._useNightTexture) {
-            // eslint-disable-next-line no-undef
             createImageBitmap(NIGHT).then((e) =>
-                this._nightTexture = this.renderer.handler.createTexture_mm(e)
+                this._nightTexture = this.renderer.handler.createTexture(e)
             );
         }
 
         // load water specular mask
         if (this._useSpecularTexture) {
-            // eslint-disable-next-line no-undef
             createImageBitmap(SPECULAR).then((e) =>
                 this._specularTexture = this.renderer.handler.createTexture_l(e)
             );
