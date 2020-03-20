@@ -563,15 +563,19 @@ class Planet extends RenderNode {
         this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
 
         if (terrain._geoid) {
-            terrain._geoid.model = null;
-            Geoid.loadModel(terrain._geoid.src)
-                .then((m) => {
-                    terrain._geoid.model = m;
-                    this._plainSegmentWorker.setGeoid(terrain._geoid);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
+            if (!terrain._geoid.model) {
+                terrain._geoid.model = null;
+                Geoid.loadModel(terrain._geoid.src)
+                    .then((m) => {
+                        terrain._geoid.setModel(m);
+                        this._plainSegmentWorker.setGeoid(terrain._geoid);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            } else {
+                this._plainSegmentWorker.setGeoid(terrain._geoid);
+            }
         }
     }
 

@@ -77,9 +77,15 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.maxZoom = options.maxZoom || 14;
 
-        this._geoid = new Geoid({
-            src: "//openglobus.org/geoid/egm96-15.pgm"
-        });
+        if (options.geoid) {
+            this._geoid = new Geoid({
+                model: options.geoid
+            });
+        } else {
+            this._geoid = new Geoid({
+                src: "//openglobus.org/geoid/egm96-15.pgm"
+            });
+        }
 
         /**
          * Terrain source path url template. 
