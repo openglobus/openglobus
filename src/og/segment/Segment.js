@@ -280,7 +280,7 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
         if (verts && verts.length) {
             var ind_v0 = ((size + 1) * indY + indX) * 3;
             var ind_v2 = ((size + 1) * (indY + 1) + indX) * 3;
-   
+
             _v0.set(verts[ind_v0], verts[ind_v0 + 1], verts[ind_v0 + 2]);
             _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
             _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
@@ -1130,6 +1130,18 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
 //    return true;
 //};
 
+//Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
+
+//    var gsgs = (gridSize + 1) * (gridSize + 1);
+//    var h = this.handler;
+
+//    h.gl.deleteBuffer(this.vertexPositionBufferHigh);
+//    h.gl.deleteBuffer(this.vertexPositionBufferLow);
+
+//    this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
+//    this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
+//    this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
+//};
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
 
     var gsgs = (gridSize + 1) * (gridSize + 1);
@@ -1139,9 +1151,17 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
     h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
     this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
-    this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
-    this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
+
+    this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
+    h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
+
+    this.vertexPositionBufferLow = h.createStreamArrayBuffer(3, gsgs);
+    h.setStreamArrayBuffer(this.vertexPositionBufferLow, verticesLow);
+
+    //this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
+    //this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
 };
+
 
 Segment.prototype._addViewExtent = function () {
 

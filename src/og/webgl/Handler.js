@@ -663,6 +663,42 @@ Handler.prototype.deactivateBlending = function () {
 };
 
 /**
+ * Creates STREAM_DRAW ARRAY buffer.
+ * @public
+ * @param {Array.<number>} array - Input array.
+ * @param {number} itemSize - Array item size.
+ * @param {number} numItems - Items quantity.
+ * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+ * @return {Object} -
+ */
+Handler.prototype.createStreamArrayBuffer = function (itemSize, numItems, usage, bites = 4) {
+    var buffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, numItems * itemSize * bites, usage || this.gl.STREAM_DRAW);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    buffer.itemSize = itemSize;
+    buffer.numItems = numItems;
+    return buffer;
+};
+
+/**
+ * Load stream ARRAY buffer.
+ * @public
+ * @param {Array.<number>} array - Input array.
+ * @param {number} itemSize - Array item size.
+ * @param {number} numItems - Items quantity.
+ * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+ * @return {Object} -
+ */
+Handler.prototype.setStreamArrayBuffer = function (buffer, array, offset = 0) {
+    let gl = this.gl;
+    gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+    gl.bufferSubData(this.gl.ARRAY_BUFFER, offset, array);
+    gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    return buffer;
+};
+
+/**
  * Creates ARRAY buffer.
  * @public
  * @param {Array.<number>} array - Input array.
@@ -672,9 +708,6 @@ Handler.prototype.deactivateBlending = function () {
  * @return {Object} -
  */
 Handler.prototype.createArrayBuffer = function (array, itemSize, numItems, usage) {
-    //
-    //TODO: What about binding created buffer
-    //
     var buffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
