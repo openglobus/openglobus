@@ -77,15 +77,9 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.maxZoom = options.maxZoom || 14;
 
-        if (options.geoid) {
-            this._geoid = new Geoid({
-                model: options.geoid
-            });
-        } else {
-            this._geoid = new Geoid({
-                src: "//openglobus.org/geoid/egm96-15.pgm"
-            });
-        }
+        this._geoid = options.geoid || new Geoid({
+            src: "//openglobus.org/geoid/egm96-15.pgm"
+        });
 
         /**
          * Terrain source path url template. 
@@ -134,6 +128,10 @@ class GlobusTerrain extends EmptyTerrain {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = null;
+    }
+
+    getGeoid() {
+        return this._geoid;
     }
 
     isBlur(segment) {
