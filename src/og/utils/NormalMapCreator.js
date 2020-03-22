@@ -122,19 +122,21 @@ NormalMapCreator.prototype._init = function () {
 
     this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
-    //create vertices hasharray for different grid size segments
-    for (var p = 1; p <= 7; p++) {
+    //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
+    for (var p = 4; p <= 7; p++) {
         var gs = Math.pow(2, p);
         var gs2 = (gs / 2);
-        var vertices = [];
+        var vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
 
         for (var i = 0; i <= gs; i++) {
             for (var j = 0; j <= gs; j++) {
-                vertices.push(-1 + j / gs2, -1 + i / gs2);
+                let ind = (i * (gs + 1) + j) * 2;
+                vertices[ind] = -1 + j / gs2;
+                vertices[ind + 1] = -1 + i / gs2;
             }
         }
 
-        this._verticesBufferArray[gs] = this._handler.createArrayBuffer(new Float32Array(vertices), 2, vertices.length / 2);
+        this._verticesBufferArray[gs] = this._handler.createArrayBuffer(vertices, 2, vertices.length / 2);
         this._indexBufferArray[gs] = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
     }
 

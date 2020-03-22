@@ -1147,19 +1147,26 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
     var gsgs = (gridSize + 1) * (gridSize + 1);
     var h = this.handler;
 
-    h.gl.deleteBuffer(this.vertexPositionBufferHigh);
-    h.gl.deleteBuffer(this.vertexPositionBufferLow);
+    if (this.vertexPositionBufferHigh && (this.vertexPositionBufferHigh.numItems === gsgs)) {
+        h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
+        h.setStreamArrayBuffer(this.vertexPositionBufferLow, verticesLow);
+    } else {
 
-    this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
+        h.gl.deleteBuffer(this.vertexPositionBufferHigh);
+        h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
-    this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
-    h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
+        this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
 
-    this.vertexPositionBufferLow = h.createStreamArrayBuffer(3, gsgs);
-    h.setStreamArrayBuffer(this.vertexPositionBufferLow, verticesLow);
+        //this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
+        //h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
+        //this.vertexPositionBufferLow = h.createStreamArrayBuffer(3, gsgs);
+        //h.setStreamArrayBuffer(this.vertexPositionBufferLow, verticesLow);
 
-    //this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
-    //this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
+        // It works, but I'm not sure that it is correct and better use the comment above
+        this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
+        this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
+
+    }
 };
 
 
