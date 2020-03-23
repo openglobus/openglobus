@@ -1661,6 +1661,9 @@ class Polyline {
     }
 
     setColorHTML(htmlColor) {
+
+        this._defaultColor = utils.htmlColorToFloat32Array(htmlColor);
+
         let color = utils.htmlColorToRgba(htmlColor),
             p = this._pathColors;
 
