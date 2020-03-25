@@ -77,7 +77,6 @@ EntityCollectionNode.prototype._setLonLat = function (entity) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
 
-    this.layer._fitExtent(entity);
     if (Math.abs(entity._lonlat.lat) < mercator.MAX_LAT) {
         entity._lonlatMerc = entity._lonlat.forwardMercator();
     } else {

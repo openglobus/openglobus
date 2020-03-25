@@ -18,6 +18,7 @@ import { GeometryHandler } from '../entity/GeometryHandler.js';
 import { Layer } from './Layer.js';
 import { QueueArray } from '../QueueArray.js';
 import { Vec3 } from '../math/Vec3.js';
+import { LonLat } from '../LonLat.js';
 
 /**
  * Creates entity instance array.
@@ -209,23 +210,33 @@ class Vector extends Layer {
         return [].concat(this._entities);
     }
 
-    _fitExtent(entity) {
-        var ee = entity.getExtent(),
-            e = this._extent;
-        if (ee.southWest.lon < e.southWest.lon) {
-            e.southWest.lon = ee.southWest.lon;
-        }
-        if (ee.southWest.lat < e.southWest.lat) {
-            e.southWest.lat = ee.southWest.lat;
-        }
-        if (ee.northEast.lon > e.northEast.lon) {
-            e.northEast.lon = ee.northEast.lon;
-        }
-        if (ee.northEast.lat > e.northEast.lat) {
-            e.northEast.lat = ee.northEast.lat;
-        }
-        this.setExtent(this._extent);
-    }
+    //_fitExtent(entity) {
+    //    var ee = entity.getExtent(),
+    //        e = this._extent,
+    //        maxLon = -180, maxLat = -90,
+    //        minLon = 180, minLat = 90;
+
+    //    if (this._entities.length !== 0) {
+    //        maxLon = e.southWest.lon;
+    //        minLon = e.northEast.lon;
+    //        maxLat = e.northEast.lat;
+    //        minLat = e.southWest.lat;
+    //    }
+
+    //    if (ee.southWest.lon < minLon) {
+    //        e.southWest.lon = ee.southWest.lon;
+    //    }
+    //    if (ee.southWest.lat < minLat) {
+    //        e.southWest.lat = ee.southWest.lat;
+    //    }
+    //    if (ee.northEast.lon > maxLon) {
+    //        e.northEast.lon = ee.northEast.lon;
+    //    }
+    //    if (ee.northEast.lat > maxLat) {
+    //        e.northEast.lat = ee.northEast.lat;
+    //    }
+    //    this.setExtent(this._extent);
+    //}
 
     /**
      * Adds entity to the layer.
@@ -238,6 +249,7 @@ class Vector extends Layer {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = this._entities.length;
+            //this._fitExtent(entity);
             this._entities.push(entity);
             this._proceedEntity(entity, rightNow);
         }
@@ -256,6 +268,7 @@ class Vector extends Layer {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = index;
+            //this._fitExtent(entity);
             this._entities.splice(index, 0, entity);
             for (let i = index + 1, len = this._entities.length; i < len; i++) {
                 this._entities[i]._layerIndex = i;
@@ -311,8 +324,6 @@ class Vector extends Layer {
                 }
             }
         }
-
-        this._fitExtent(entity);
 
         if (this._planet && this._hasImageryTiles !== temp) {
             this._planet.updateVisibleLayers();
@@ -494,7 +505,7 @@ class Vector extends Layer {
 
         this.clear();
 
-        var e = this._extent;
+        //var e = this._extent;
 
         this._entities = new Array(entities.length);
 
@@ -524,11 +535,11 @@ class Vector extends Layer {
 
             this._entities[i] = ei;
 
-            var ext = ei.getExtent();
-            if (ext.northEast.lon > e.northEast.lon) e.northEast.lon = ext.northEast.lon;
-            if (ext.northEast.lat > e.northEast.lat) e.northEast.lat = ext.northEast.lat;
-            if (ext.southWest.lon < e.southWest.lon) e.southWest.lon = ext.southWest.lon;
-            if (ext.southWest.lat < e.southWest.lat) e.southWest.lat = ext.southWest.lat;
+            //var ext = ei.getExtent();
+            //if (ext.northEast.lon > e.northEast.lon) e.northEast.lon = ext.northEast.lon;
+            //if (ext.northEast.lat > e.northEast.lat) e.northEast.lat = ext.northEast.lat;
+            //if (ext.southWest.lon < e.southWest.lon) e.southWest.lon = ext.southWest.lon;
+            //if (ext.southWest.lat < e.southWest.lat) e.southWest.lat = ext.southWest.lat;
         }
 
         this._createEntityCollectionsTree(entitiesForTree);
