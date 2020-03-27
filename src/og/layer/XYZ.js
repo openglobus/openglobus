@@ -48,10 +48,6 @@ class XYZ extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
-        if (!options.extent) {
-            this.setExtent(new Extent(new LonLat(-180.0, mercator.MIN_LAT), new LonLat(180.0, mercator.MAX_LAT)));
-        }
-
         this.transparentColor = options.transparentColor || [-1, -1, -1];
 
         /**

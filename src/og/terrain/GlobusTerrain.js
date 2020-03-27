@@ -4,18 +4,19 @@
 'use strict';
 
 import * as mercator from '../mercator.js';
-//import { cartesianToBarycentricLonLat } from '../utils/shared.js';
 import { EmptyTerrain } from './EmptyTerrain.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
 import { Events } from '../Events.js';
 import { Loader } from '../utils/Loader.js';
 import { NOTRENDERING } from '../quadTree/quadTree.js';
 // import { QueueArray } from '../QueueArray.js';
-import { stringTemplate } from '../utils/shared.js';
+import { stringTemplate, createExtent } from '../utils/shared.js';
 import { Geoid } from './Geoid.js';
 import { Layer } from '../layer/Layer.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Ray } from '../math/Ray.js';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
 
 const EVENT_NAMES = [
     /**
@@ -80,6 +81,8 @@ class GlobusTerrain extends EmptyTerrain {
         this._geoid = options.geoid || new Geoid({
             src: "//openglobus.org/geoid/egm96-15.pgm"
         });
+
+        this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)))
 
         /**
          * Terrain source path url template. 
@@ -303,6 +306,10 @@ class GlobusTerrain extends EmptyTerrain {
         this.name = name;
     }
 
+    isReadyToLoad(segment) {
+        return segment._projection.id === EPSG3857.id && this._extent.overlaps(segment.getExtentLonLat());
+    }
+
     /**
      * Starts to load segment data.
      * @public
@@ -313,7 +320,7 @@ class GlobusTerrain extends EmptyTerrain {
         if (this._planet.terrainLock.isFree()) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
-            if (segment._projection.id === EPSG3857.id) {
+            if (this.isReadyToLoad(segment)) {
                 let cache = this._elevationCache[segment.tileIndex];
                 if (cache) {
                     this._applyElevationsData(segment, cache.heights);
@@ -342,7 +349,7 @@ class GlobusTerrain extends EmptyTerrain {
                     });
                 }
             } else {
-                //TODO: poles elevation
+                segment.elevationsNotExists();
             }
         } else {
             segment.terrainIsLoading = false;

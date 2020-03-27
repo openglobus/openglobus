@@ -108,7 +108,7 @@ let osm = new XYZ("OSM", {
 var states = new WMS("USA Population", {
     extent: [[-127, 24.5], [-66.5, 48]],
     opacity: 0.7,
-    visibility: true,
+    visibility: false,
     isBaseLayer: false,
     url: "//95.211.82.211:8080/geoserver",
     layers: "topp:states",
