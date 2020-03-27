@@ -51,6 +51,7 @@ import { wgs84 } from './ellipsoid/wgs84.js';
 import { EmptyTerrain } from './terrain/EmptyTerrain.js';
 import { GlobusTerrain } from './terrain/GlobusTerrain.js';
 import { MapboxTerrain } from './terrain/MapboxTerrain.js';
+import { BilTerrain } from './terrain/BilTerrain.js';
 
 import { Camera } from './camera/Camera.js';
 import { PlanetCamera } from './camera/PlanetCamera.js';
@@ -130,7 +131,8 @@ const entity = {
 const terrain = {
     EmptyTerrain: EmptyTerrain,
     GlobusTerrain: GlobusTerrain,
-    MapboxTerrain: MapboxTerrain
+    MapboxTerrain: MapboxTerrain,
+    BilTerrain: BilTerrain
 };
 
 const webgl = {
