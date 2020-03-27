@@ -1,8 +1,6 @@
 import { GlobusTerrain } from './GlobusTerrain.js';
 import { WMS } from '../layer/WMS.js';
 
-//http://95.211.82.211:8080/geoserver/og/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=application/bil16&TRANSPARENT=true&LAYERS=og:n30_e130_1arc_v3&WIDTH=256&HEIGHT=256&SRS=EPSG:900913&BBOX=14522658.678548105,3547594.2801567726,14532431.665545782,3557367.2671544496
-
 class BilTerrain extends GlobusTerrain {
     constructor(options) {
 
@@ -12,7 +10,7 @@ class BilTerrain extends GlobusTerrain {
 
         this.equalizeVertices = true;
 
-        this.equalizeNormals = true;//true;//options.equalizeNormals || false;
+        this.equalizeNormals = true;
 
         this.minZoom = options.minZoom || 3;
 
@@ -24,7 +22,7 @@ class BilTerrain extends GlobusTerrain {
 
         this.url = options.url || "";
 
-        this.imageSize = 256;
+        this.imageSize = options.imageSize || 256;
 
         this.plainGridSize = this.imageSize / 2;
 
@@ -92,7 +90,7 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
         let height = data[k];
 
         if (height === -9999 || height === 32767) {
-            height = -1000;
+            height = 0;
         }
 
         let i = Math.floor(k / sourceSize),
@@ -120,7 +118,7 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
             rightHeigh = data[k];
 
             if (rightHeigh === -9999 || rightHeigh === 32767) {
-                rightHeigh = -1000;
+                rightHeigh = 0;
             }
 
             let middleHeight = (height + rightHeigh) * 0.5;
@@ -142,7 +140,7 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
             bottomHeigh = data[k + sourceSize];
 
             if (bottomHeigh === -9999 || bottomHeigh === 32767) {
-                bottomHeigh = -1000;
+                bottomHeigh = 0;
             }
 
             let middleHeight = (height + bottomHeigh) * 0.5;
@@ -165,7 +163,7 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
             let rightBottomHeight = data[k + sourceSize + 1];
 
             if (rightBottomHeight === -9999 || rightBottomHeight === 32767) {
-                rightBottomHeight = -1000;
+                rightBottomHeight = 0;
             }
 
             let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
