@@ -180,8 +180,13 @@ class Globe {
         }
 
         // TODO: view center, altitude, extent
-        if (options.viewExtent) {
-            this.planet.viewToExtent(options.viewExtent);
+        let ve = options.viewExtent;
+        if (ve) {
+            if (ve instanceof Array) {
+                this.planet.viewExtentArr(ve);
+            } else {
+                this.planet.viewExtent(ve);
+            }
         }
 
         this._opacityCounter = 0;

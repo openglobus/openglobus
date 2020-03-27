@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+</head>
+
+<body style="margin:0;">
+    <div id="globus" style="width:100%;height:100%"></div>
+    <script type="module">
+        'use strict';
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { BilTerrain } from '../../src/og/terrain/BilTerrain.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+
+        let osm = new XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        let globus = new Globe({
+            target: "globus",
+            name: "Bil Terrain Source",
+            terrain: new BilTerrain({
+                url: "//95.211.82.211:8080/geoserver/og/",
+                layers: "og:n44_e009_1arc_v3",
+                imageSize: 128,
+                extent: [[8.9, 44.0], [10.0, 45]]
+            }),
+            viewExtent: [7.86, 44.24, 11.29, 45.0],
+            layers: [osm]
+        });
+    </script>
+</body>
+
+</html>
