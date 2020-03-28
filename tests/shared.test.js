@@ -77,6 +77,9 @@ test('Test for extractElevationTiles 4 function', () => {
 });
 
 test('Test concatTypedArrays', () => {
+
+    //
+    // Second array is typed
     let a = [1, 2, 3, 4, 5, 6],
         b = [7, 8, 9],
         c = a.concat(b);
@@ -88,6 +91,19 @@ test('Test concatTypedArrays', () => {
     let res = shared.concatTypedArrays(ta, tb);
 
     expect(res).toEqual(tc);
+
+    //
+    // Second array is not typed
+    a = [1, 2, 3, 4, 5, 6];
+    c = a.concat(b);
+
+    ta = new Uint8Array(a);
+    tc = new Uint8Array(c);
+
+    res = shared.concatTypedArrays(ta, b);
+
+    expect(res).toEqual(tc);
+
 });
 
 test('Test spliceTypedArray', () => {

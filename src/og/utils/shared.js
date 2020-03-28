@@ -681,6 +681,9 @@ export function concatTypedArrays(a, b) {
  * @param {Array} elements
  */
 export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
+    if (arr.length === 0) {
+        return arr;
+    }
     const newSize = arr.length - deleteCount + elements.length;
     const splicedArray = new arr.constructor(newSize);
     splicedArray.set(arr.subarray(0, starting));

@@ -58,6 +58,10 @@ carrots.events.on("mouseleave", function (e) {
     b.setColorHTML(e.pickingObject.properties.color);
 });
 
+carrots.events.on("lclick", function (e) {
+    e.pickingObject.billboard.remove();
+});
+
 let sat = new XYZ("MapQuest Satellite", {
     shininess: 20,
     specular: new Vec3(0.00048, 0.00037, 0.00035),
