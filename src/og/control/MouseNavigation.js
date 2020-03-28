@@ -206,12 +206,14 @@ class MouseNavigation extends Control {
     onMouseLeftButtonDoubleClick() {
         this.planet.stopFlying();
         this.stopRotation();
-        var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true),
-            g = this.planet.ellipsoid.cartesianToLonLat(p);
-        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-            this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0));
-        } else {
-            this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
+        var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true);
+        if (p) {
+            var g = this.planet.ellipsoid.cartesianToLonLat(p);
+            if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+                this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0));
+            } else {
+                this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
+            }
         }
     }
 
