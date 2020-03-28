@@ -131,27 +131,28 @@ class BillboardHandler {
     }
 
     clear() {
-        this._texCoordArr.length = 0;
-        this._vertexArr.length = 0;
-        this._positionHighArr.length = 0;
-        this._positionLowArr.length = 0;
-        this._sizeArr.length = 0;
-        this._offsetArr.length = 0;
-        this._rgbaArr.length = 0;
-        this._rotationArr.length = 0;
-        this._alignedAxisArr.length = 0;
-        this._pickingColorArr.length = 0;
 
-        this._texCoordArr = [];
-        this._vertexArr = [];
-        this._positionHighArr = [];
-        this._positionLowArr = [];
-        this._sizeArr = [];
-        this._offsetArr = [];
-        this._rgbaArr = [];
-        this._rotationArr = [];
-        this._alignedAxisArr = [];
-        this._pickingColorArr = [];
+        this._texCoordArr = null;
+        this._vertexArr = null;
+        this._positionHighArr = null;
+        this._positionLowArr = null;
+        this._sizeArr = null;
+        this._offsetArr = null;
+        this._rgbaArr = null;
+        this._rotationArr = null;
+        this._alignedAxisArr = null;
+        this._pickingColorArr = null;
+
+        this._texCoordArr = new Float32Array();
+        this._vertexArr = new Float32Array();
+        this._positionHighArr = new Float32Array();
+        this._positionLowArr = new Float32Array();
+        this._sizeArr = new Float32Array();
+        this._offsetArr = new Float32Array();
+        this._rgbaArr = new Float32Array();
+        this._rotationArr = new Float32Array();
+        this._alignedAxisArr = new Float32Array();
+        this._pickingColorArr = new Float32Array();
 
         this._removeBillboards();
         this._deleteBuffers();
