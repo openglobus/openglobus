@@ -660,3 +660,31 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
         }
     }
 };
+
+/**
+ * Concatenates two the same type arrays
+ * @param {TypedArray} a
+ * @param {TypedArray} b
+ */
+export function concatTypedArrays(a, b) {
+    var c = new (a.constructor)(a.length + b.length);
+    c.set(a, 0);
+    c.set(b, a.length);
+    return c;
+};
+
+/**
+ * 
+ * @param {TypedArray} arr
+ * @param {Number} starting
+ * @param {Number} deleteCount
+ * @param {Array} elements
+ */
+export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
+    const newSize = arr.length - deleteCount + elements.length;
+    const splicedArray = new arr.constructor(newSize);
+    splicedArray.set(arr.subarray(0, starting));
+    splicedArray.set(elements, starting);
+    splicedArray.set(arr.subarray(starting + deleteCount), starting + elements.length);
+    return splicedArray;
+};

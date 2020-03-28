@@ -75,3 +75,33 @@ test('Test for extractElevationTiles 4 function', () => {
 
     expect(outChildrenElevations[1][1]).toEqual(tileElevations11);
 });
+
+test('Test concatTypedArrays', () => {
+    let a = [1, 2, 3, 4, 5, 6],
+        b = [7, 8, 9],
+        c = a.concat(b);
+
+    let ta = new Uint8Array(a),
+        tb = new Uint8Array(b),
+        tc = new Uint8Array(c);
+
+    let res = shared.concatTypedArrays(ta, tb);
+
+    expect(res).toEqual(tc);
+});
+
+test('Test spliceTypedArray', () => {
+
+    const startPos = 0;
+    const delCount = 2;
+
+    let a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let ta = new Uint8Array(a);
+
+    let temp = a.splice(startPos, delCount),
+        tc = new Uint8Array(a);
+
+    let res = shared.spliceTypedArray(ta, startPos, delCount);
+
+    expect(res).toEqual(tc);
+});
