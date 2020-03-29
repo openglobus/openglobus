@@ -3,6 +3,7 @@
 import { Globe } from '../../src/og/Globe.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { BilTerrain } from '../../src/og/terrain/BilTerrain.js';
+import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { WMS } from '../../src/og/layer/WMS.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
@@ -142,26 +143,26 @@ let sat = new XYZ("MapQuest Satellite", {
         <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
 });
 
-//window.globe = new Globe({
-//    'name': "Earth",
-//    'target': "earth",
-//    'terrain': new GlobusTerrain(),
-//    'layers': [osm, sat, tg, states],
-//    'viewExtent': [7.86, 44.24, 11.29, 45.0]
-//});
-
 window.globe = new Globe({
-    target: "earth",
-    name: "Bil Terrain Source",
-    terrain: new BilTerrain({
-        url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:n44_e009_1arc_v3",
-        imageSize: 128,
-        extent: [[8.9, 44.0], [10.0, 45]]
-    }),
-    viewExtent: [7.86, 44.24, 11.29, 45.0],
-    layers: [osm, sat, tg, states]
+    'name': "Earth",
+    'target': "earth",
+    'terrain': new MapboxTerrain(),
+    'layers': [osm, sat, tg, states],
+    'viewExtent': [7.86, 44.24, 11.29, 45.0]
 });
+
+//window.globe = new Globe({
+//    target: "earth",
+//    name: "Bil Terrain Source",
+//    terrain: new BilTerrain({
+//        url: "//95.211.82.211:8080/geoserver/og/",
+//        layers: "og:n44_e009_1arc_v3",
+//        imageSize: 128,
+//        extent: [[8.9, 44.0], [10.0, 45]]
+//    }),
+//    viewExtent: [7.86, 44.24, 11.29, 45.0],
+//    layers: [osm, sat, tg, states]
+//});
 
 globe.planet.addControl(new DebugInfo());
 globe.planet.addControl(new ToggleWireframe({
