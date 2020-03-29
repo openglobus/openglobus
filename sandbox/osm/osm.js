@@ -145,7 +145,8 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),
-    'layers': [osm, sat, tg, states]
+    'layers': [osm, sat, tg, states],
+    'viewExtent': [7.86, 44.24, 11.29, 45.0]
 });
 
 globe.planet.addControl(new DebugInfo());

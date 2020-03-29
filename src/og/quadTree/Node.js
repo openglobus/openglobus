@@ -478,20 +478,14 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             seg._collectVisibleNodes();
         }
 
-        // First skip lowest zoom nodes
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
         } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
-        } else if (((seg.tileZoom < planet.terrain._maxNodeZoom) && (seg.terrainReady && !maxZoom)) || maxZoom) {
-            if (seg.terrainReady) {
-                this.traverseNodes(cam, maxZoom, seg, stopLoading);
-            } else {
-                if (!stopLoading) {
-                    this.prepareForRendering(cam, altVis, false, terrainReadySegment);
-                }
-                this.traverseNodes(cam, maxZoom, terrainReadySegment, true);
-            }
+        } else if (maxZoom) {
+            this.traverseNodes(cam, maxZoom, terrainReadySegment);
+        } else if (seg.terrainReady && (seg.tileZoom < planet.terrain._maxNodeZoom)) {
+            this.traverseNodes(cam, maxZoom, seg, stopLoading);
         } else {
             this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
         }

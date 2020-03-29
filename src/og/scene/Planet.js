@@ -913,9 +913,7 @@ class Planet extends RenderNode {
         // TODO:Abolish "magic" numbers
         if (this.renderer.activeCamera.slope > 0.8 &&
             this.renderer.activeCamera._lonLat.height < 850000.0 &&
-            this.renderer.activeCamera._lonLat.height > 10000.0) {
-
-            this.minCurrZoom = this.maxCurrZoom;
+            this.renderer.activeCamera._lonLat.height > 7000.0) {
 
             var temp = this._renderedNodes;
 
@@ -925,15 +923,12 @@ class Planet extends RenderNode {
                 var ri = temp[i];
                 if (ri.segment.tileZoom === this.maxCurrZoom || ri.segment._projection.id === EPSG4326.id) {
                     this._renderedNodes.push(ri);
+                } else {
+                    ri.segment.node.renderTree(this.camera, this.maxCurrZoom, null);
                 }
             }
 
-            for (i = temp.length - 1; i >= 0; --i) {
-                var seg = temp[i].segment;
-                if (seg.tileZoom < this.maxCurrZoom && seg._projection.id !== EPSG4326.id) {
-                    seg.node.renderTree(this.camera, this.maxCurrZoom, null);
-                }
-            }
+            this.minCurrZoom = this.maxCurrZoom;
         }
     }
 
