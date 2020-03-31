@@ -146,10 +146,20 @@ let sat = new XYZ("MapQuest Satellite", {
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new MapboxTerrain(),
+    'terrain': new GlobusTerrain(),
     'layers': [osm, sat, tg, states],
     'viewExtent': [7.86, 44.24, 11.29, 45.0]
 });
+
+function test(a) {
+    console.log(a);
+};
+
+window.globe.planet.events.on("draw", test, window.globe.planet);
+
+window.globe.planet.events.on("layeradd", test, window.globe.planet);
+
+window.globe.planet.events.off("layeradd", test);
 
 //window.globe = new Globe({
 //    target: "earth",
