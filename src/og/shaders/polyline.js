@@ -91,10 +91,10 @@ export function polyline_screen() {
 
                     vPos = current;                    
 
-                    vec3 highDiff, lowDiff;
-
                     mat4 viewMatrixRTE = view;
                     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                    vec3 highDiff, lowDiff;
 
                     highDiff = currentHigh - eyePositionHigh;
                     lowDiff = currentLow - eyePositionLow;

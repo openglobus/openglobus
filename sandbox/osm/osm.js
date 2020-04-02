@@ -155,12 +155,6 @@ function test(a) {
     console.log(a);
 };
 
-window.globe.planet.events.on("draw", test, window.globe.planet);
-
-window.globe.planet.events.on("layeradd", test, window.globe.planet);
-
-window.globe.planet.events.off("layeradd", test);
-
 //window.globe = new Globe({
 //    target: "earth",
 //    name: "Bil Terrain Source",

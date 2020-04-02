@@ -1904,10 +1904,18 @@ class Polyline {
      */
     _createVerticesBuffer() {
         var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._verticesHighBuffer);
-        h.gl.deleteBuffer(this._verticesLowBuffer);
-        this._verticesHighBuffer = h.createArrayBuffer(new Float32Array(this._verticesHigh), 3, this._verticesHigh.length / 3);
-        this._verticesLowBuffer = h.createArrayBuffer(new Float32Array(this._verticesLow), 3, this._verticesLow.length / 3);
+
+        let numItems = this._verticesHigh.length / 3;
+
+        if (!this._verticesHighBuffer || this._verticesHighBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._verticesHighBuffer);
+            h.gl.deleteBuffer(this._verticesLowBuffer);
+            this._verticesHighBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._verticesLowBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        h.setStreamArrayBuffer(this._verticesHighBuffer, new Float32Array(this._verticesHigh));
+        h.setStreamArrayBuffer(this._verticesLowBuffer, new Float32Array(this._verticesLow));
     }
 
     /**
