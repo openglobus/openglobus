@@ -705,11 +705,18 @@ class BillboardHandler {
     }
 
     createPositionBuffer() {
-        var h = this._renderer.handler;
-        h.gl.deleteBuffer(this._positionHighBuffer);
-        this._positionHighBuffer = h.createArrayBuffer(this._positionHighArr, 3, this._positionHighArr.length / 3, h.gl.DYNAMIC_DRAW);
-        h.gl.deleteBuffer(this._positionLowBuffer);
-        this._positionLowBuffer = h.createArrayBuffer(this._positionLowArr, 3, this._positionLowArr.length / 3, h.gl.DYNAMIC_DRAW);
+        let h = this._renderer.handler,
+            numItems = this._positionHighArr.length / 3;
+
+        if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._positionHighBuffer);
+            h.gl.deleteBuffer(this._positionLowBuffer);
+            this._positionHighBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._positionLowBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        h.setStreamArrayBuffer(this._positionHighBuffer, this._positionHighArr);
+        h.setStreamArrayBuffer(this._positionLowBuffer, this._positionLowArr);
     }
 
     createSizeBuffer() {
@@ -731,21 +738,26 @@ class BillboardHandler {
     }
 
     createRotationBuffer() {
-        var h = this._renderer.handler;
-        h.gl.deleteBuffer(this._rotationBuffer);
-        this._rotationBuffer = h.createArrayBuffer(this._rotationArr, 1, this._rotationArr.length, h.gl.DYNAMIC_DRAW);
+        let h = this._renderer.handler;
+
+        if (!this._rotationBuffer || this._rotationBuffer.numItems !== this._rotationArr.length) {
+            h.gl.deleteBuffer(this._rotationBuffer);
+            this._rotationBuffer = h.createStreamArrayBuffer(1, this._rotationArr.length);
+        }
+
+        h.setStreamArrayBuffer(this._rotationBuffer, this._rotationArr);
     }
 
     createVertexBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._vertexBuffer);
-        this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 2, this._vertexArr.length / 2, h.gl.DYNAMIC_DRAW);
+        this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 2, this._vertexArr.length / 2);
     }
 
     createTexCoordBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._texCoordBuffer);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2, h.gl.DYNAMIC_DRAW);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
     }
 
     createAlignedAxisBuffer() {
