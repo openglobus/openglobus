@@ -118,10 +118,10 @@ export function billboard_screen() {
             a_texCoord: "vec2",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
-            a_size: "vec2",
             a_offset: "vec3",
-            a_rgba: "vec4",
+            a_size: "vec2",
             a_rotation: "float",
+            a_rgba: "vec4",
             a_alignedAxis: "vec3"
         },
         vertexShader:
