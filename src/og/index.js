@@ -9,6 +9,8 @@ import * as utils from './utils/shared.js';
 
 import { Globe } from './Globe.js';
 
+import { Geoid } from './terrain/Geoid.js';
+
 import { Box } from './bv/Box.js';
 import { Sphere } from './bv/Sphere.js';
 
@@ -188,5 +190,6 @@ export {
     Vec3,
     Vec4,
     entity,
-    Entity
+    Entity,
+    Geoid
 };
