@@ -906,8 +906,6 @@ class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTreeNorth.renderTree(this.camera, 0, null);
-        this._quadTreeSouth.renderTree(this.camera, 0, null);
         this._quadTree.renderTree(this.camera, 0, null);
 
         if (this.renderer.activeCamera.slope > 0.8 &&
@@ -916,19 +914,28 @@ class Planet extends RenderNode {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            var temp = this._renderedNodes;
+            var temp = this._renderedNodes,
+                temp2 = [];
 
             this._renderedNodes = [];
 
-            for (var i = temp.length - 1; i >= 0; --i) {
+            for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
-                if (ri.segment.tileZoom === this.maxCurrZoom || ri.segment._projection.id === EPSG4326.id) {
+                if (ri.segment.tileZoom === this.maxCurrZoom) {
                     this._renderedNodes.push(ri);
                 } else {
-                    ri.segment.node.renderTree(this.camera, this.maxCurrZoom, null);
+                    temp2.push(ri);
                 }
             }
+
+            for (let i = 0, len = temp2.length; i < len; i++) {
+                temp2[i].renderTree(this.camera, this.maxCurrZoom, null);
+            }
+
         }
+
+        this._quadTreeNorth.renderTree(this.camera, 0, null);
+        this._quadTreeSouth.renderTree(this.camera, 0, null);
     }
 
     _globalPreDraw() {

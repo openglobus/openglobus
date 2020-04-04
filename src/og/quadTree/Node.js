@@ -599,7 +599,7 @@ Node.prototype.addToRender = function () {
 
             var opcs = OPSIDE[cs];
 
-            if (!(this.neighbors[cs].length !== 0 && ni.neighbors[opcs].length !== 0)) {
+            if (this.neighbors[cs].length === 0 || ni.neighbors[opcs].length === 0) {
 
                 var ap = this.segment;
                 var bp = ni.segment;
@@ -630,33 +630,42 @@ Node.prototype.addToRender = function () {
 };
 
 Node.prototype.getCommonSide = function (node) {
-    var a = this.segment._extent,
-        b = node.segment._extent;
-    var a_ne = a.northEast, a_sw = a.southWest,
-        b_ne = b.northEast, b_sw = b.southWest;
-    var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-        b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
-    if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return E;
-    } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-        a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
-        return W;
-    } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return N;
-    } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-        a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
-        return S;
-    } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-        return E;
-    } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
-        return W;
-    } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-        return N;
-    } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
-        return S;
+    var as = this.segment,
+        bs = node.segment;
+
+    if (as.tileZoom === bs.tileZoom) {
+        return as.getNeighborSide(bs);
+    } else {
+
+        var a = as._extent,
+            b = bs._extent;
+        var a_ne = a.northEast, a_sw = a.southWest,
+            b_ne = b.northEast, b_sw = b.southWest;
+        var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+            b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+
+        if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+            a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+            return E;
+        } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
+            a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+            return W;
+        } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+            a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+            return N;
+        } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
+            a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+            return S;
+        } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
+            return E;
+        } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
+            return W;
+        } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
+            return N;
+        } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
+            return S;
+        }
     }
 
     return -1;
