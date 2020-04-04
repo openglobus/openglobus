@@ -446,21 +446,23 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
     this._cameraInside = false;
 
+    let insideLonLat = null;
+
     // Search a node which the camera is flying over.
     if (!this.parentNode || this.parentNode._cameraInside) {
         let inside;
         if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
             seg._projection.id === EPSG3857.id) {
             inside = seg._extent.isInside(cam._lonLatMerc);
-            cam._insideSegmentPosition.lon = cam._lonLatMerc.lon;
-            cam._insideSegmentPosition.lat = cam._lonLatMerc.lat;
+            insideLonLat = cam._lonLatMerc;
         } else if (seg._projection.id === EPSG4326.id) {
             inside = seg._extent.isInside(cam._lonLat);
-            cam._insideSegmentPosition.lon = cam._lonLat.lon;
-            cam._insideSegmentPosition.lat = cam._lonLat.lat;
+            insideLonLat = cam._lonLat;
         }
 
         if (inside) {
+            cam._insideSegmentPosition.lon = insideLonLat.lon;
+            cam._insideSegmentPosition.lat = insideLonLat.lat;
             cam._insideSegment = seg;
             this._cameraInside = true;
         }

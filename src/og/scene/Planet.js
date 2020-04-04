@@ -931,7 +931,6 @@ class Planet extends RenderNode {
             for (let i = 0, len = temp2.length; i < len; i++) {
                 temp2[i].renderTree(this.camera, this.maxCurrZoom, null);
             }
-
         }
 
         this._quadTreeNorth.renderTree(this.camera, 0, null);
