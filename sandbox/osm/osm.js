@@ -107,6 +107,25 @@ let osm = new XYZ("OSM", {
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
 });
 
+
+//let wien = new XYZ("512", {
+//    'isBaseLayer': true,
+//    'url': "//maps.wien.gv.at/basemap/bmaphidpi/normal/google3857/{z}/{y}/{x}.jpeg",
+//    'visibility': false
+//});
+
+
+let modis = new XYZ("modis", {
+    'specular': [0.0003, 0.00012, 0.00001],
+    'shininess': 20,
+    'diffuse': [0.89, 0.9, 0.83],
+    'isBaseLayer': true,
+    'url': "//gibs-a.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/2020-04-04/EPSG3857_250m/{z}/{y}/{x}.jpg",
+    'visibility': false,
+    'maxNativeZoom': 9
+});
+
+
 var states = new WMS("USA Population", {
     extent: [[-127, 24.5], [-66.5, 48]],
     opacity: 0.7,
@@ -147,7 +166,7 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new GlobusTerrain(),
-    'layers': [osm, sat, tg, states],
+    'layers': [osm, sat, tg, states, modis],
     'viewExtent': [7.86, 44.24, 11.29, 45.0]
 });
 

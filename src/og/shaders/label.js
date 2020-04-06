@@ -51,7 +51,7 @@ export function label_webgl2() {
 
             out vec2 v_texCoords;
             out vec4 v_rgba;
-            out float v_fontIndex;
+            flat out int v_fontIndex;
             out vec3 v_bufferAA;
 
             uniform mat4 viewMatrix;
@@ -79,7 +79,7 @@ export function label_webgl2() {
                     return;
                 }
 
-                v_fontIndex = a_fontIndex;
+                v_fontIndex = int(a_fontIndex);
                 v_texCoords = vec2(a_texCoord.xy);
                 vec3 look = a_positions - uCamPos;
                 float lookDist = length(look);
@@ -132,7 +132,7 @@ export function label_webgl2() {
 
             uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
-            in float v_fontIndex;
+            flat in int v_fontIndex;
             in vec2 v_texCoords;
             in vec4 v_rgba;
             in vec3 v_bufferAA;
@@ -141,7 +141,7 @@ export function label_webgl2() {
             layout(location = 0) out vec4 outScreen;
 
             void main () {
-                int fi = int(v_fontIndex);
+                int fi = v_fontIndex;
                 vec4 color;
                 if (fi == 0) {
                     color = texture(u_fontTextureArr[0], v_texCoords);
