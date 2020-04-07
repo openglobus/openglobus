@@ -80,7 +80,7 @@ class Strip {
 
         this._pickingColor = new Uint8Array(4);
 
-        this._gridSize = 16;
+        this._gridSize = 1;
 
         /**
          * Handler that stores and renders this object.

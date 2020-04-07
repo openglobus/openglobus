@@ -194,8 +194,8 @@ globe.planet.addControl(new ToggleWireframe({
 
 globe.planet.addControl(new LayerSwitcher());
 
-let stripEntity = new Entity({
-    'name': 'strip_8.75_44.49',
+let e1 = new Entity({
+    'name': 'strip1',
     'strip': {
         'color': [0 / 255, 38 / 255, 255 / 255],
         'opacity': 0.27,
@@ -208,8 +208,23 @@ let stripEntity = new Entity({
     }
 });
 
+let e2 = new Entity({
+    'name': 'strip2',
+    'strip': {
+        'color': [0 / 255, 38 / 255, 255 / 255],
+        'opacity': 0.27,
+        'path': [
+            [[661936.3048841777, 4745603.382222995, 4189411.525681237], [1339051.734436527, 9600030.082993329, 8474892.113242555]],
+            [[1126928.1072783293, 4760811.647727539, 4071007.90108061], [2277324.752646721, 9620768.297494425, 8226795.481871399]]
+        ],
+    }
+});
+
+
+
+
 let stripLayer = new Vector("test layer", {
-    'entities': [stripEntity],
+    'entities': [e1, e2],
     'pickingEnabled': false,
     'visibility': true
 });
