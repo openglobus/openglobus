@@ -10,7 +10,6 @@ import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
-import { EPSG4326 } from '../proj/EPSG4326.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
