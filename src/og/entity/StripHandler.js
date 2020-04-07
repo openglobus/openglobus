@@ -69,9 +69,6 @@ class StripHandler {
                         uniform mat4 viewMatrix;
                         uniform vec3 eyePositionHigh;
                         uniform vec3 eyePositionLow;
-                        const float C = 0.1;
-                        const float far = 149.6e+9;
-                        float logc = 2.0 / log( C * far + 1.0 );
                         void main(void) {
 
                             vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
@@ -81,8 +78,6 @@ class StripHandler {
                             viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                             gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                            //gl_Position = projectionViewMatrix  * vec4(aVertexPositionHigh + aVertexPositionLow, 1.0);
-                            gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                         }`,
                     fragmentShader:
                         `precision highp float;

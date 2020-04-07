@@ -38,10 +38,6 @@ export function drawnode_screen_nl() {
 
             varying vec2 vTextureCoord;
 
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
-
             void main(void) {
                 vTextureCoord = aTextureCoord;
 
@@ -49,7 +45,6 @@ export function drawnode_screen_nl() {
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);
 
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
 
         fragmentShader:
@@ -150,10 +145,6 @@ export function drawnode_screen_wl() {
             varying vec4 v_vertex;
             varying float v_height;
 
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
-
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
@@ -170,7 +161,6 @@ export function drawnode_screen_wl() {
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
 
         fragmentShader:
