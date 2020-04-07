@@ -36,7 +36,7 @@ class Camera {
          * @public
          * @type {og.Renderer}
          */
-        this.renderer = null;
+        this.renderer = renderer;
 
         /**
          * Camera events handler.
@@ -164,8 +164,6 @@ class Camera {
 
         this._tanViewAngle_hrad = 0;
         this._tanViewAngle_hradOneByHeight = 0;
-
-        this.renderer = renderer;
 
         renderer && this._initialize(options);
     }
