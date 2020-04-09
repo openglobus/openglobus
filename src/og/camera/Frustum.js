@@ -99,27 +99,27 @@ class Frustum {
         this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
     }
 
-    getRight() {
+    getRightPlane() {
         return this._f[0];
     }
 
-    getLeft() {
+    getLeftPlane() {
         return this._f[1];
     }
 
-    getBottom() {
+    getBottomPlane() {
         return this._f[2];
     }
 
-    getTop() {
+    getTopPlane() {
         return this._f[3];
     }
 
-    getBackward() {
+    getBackwardPlane() {
         return this._f[4];
     }
 
-    getForward() {
+    getForwardPlane() {
         return this._f[5];
     }
 
@@ -128,7 +128,7 @@ class Frustum {
      * @public
      * @param {Mat4} projectionView - projectionView matrix.
      */
-    setFrustum(viewMatrix) {
+    setViewMatrix(viewMatrix) {
 
         this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
         this._inverseProjectionViewMatrix = this._projectionViewMatrix.inverseTo();

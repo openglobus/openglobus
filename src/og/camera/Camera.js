@@ -224,7 +224,7 @@ class Camera {
         ]);
 
         this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
-        this.frustum.setFrustum(this._viewMatrix);
+        this.frustum.setViewMatrix(this._viewMatrix);
         this.events.dispatch(this.events.viewchange, this);
     }
 
