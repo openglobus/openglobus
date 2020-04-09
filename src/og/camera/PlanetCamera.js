@@ -80,8 +80,6 @@ class PlanetCamera extends Camera {
          */
         this._insideSegment = null;
 
-        this.slope = 0;
-
         /**
          * Coordinates that depends on what segment class we are fling over.
          * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.Node
@@ -89,6 +87,8 @@ class PlanetCamera extends Camera {
          * @type {og.LonLat}
          */
         this._insideSegmentPosition = new LonLat();
+
+        this.slope = 0;
 
         this._keyLock = new Key();
 
@@ -101,51 +101,16 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * Clone planet camera instance to another one.
-     * @public
-     * @virtual
-     * @returns {og.PlanetCamera}
-     */
-    clone() {
-        var newcam = new PlanetCamera();
-        newcam.eye.copy(cam.eye);
-        newcam._u.copy(cam._u);
-        newcam._v.copy(cam._v);
-        newcam._n.copy(cam._n);
-        newcam.renderer = cam.renderer;
-        newcam._projectionMatrix.copy(cam._projectionMatrix);
-        newcam._viewMatrix.copy(cam._viewMatrix);
-        newcam._projectionViewMatrix.copy(cam._projectionViewMatrix);
-        newcam._inverseProjectionViewMatrix.copy(cam._inverseProjectionViewMatrix);
-        newcam.frustum.setFrustum(newcam._projectionViewMatrix);
-        newcam.planet = cam.planet;
-        newcam._lonLat = cam._lonLat.clone();
-        return newcam;
-    }
-
-    /**
      * Updates camera view space.
      * @public
      * @virtual
      */
     update() {
-
-        this._setViewMatrix();
-
-        this._projectionViewMatrix = this._projectionMatrix.mul(this._viewMatrix);
-        this.frustum.setFrustum(this._projectionViewMatrix);
-
-        this._inverseProjectionViewMatrix = this._projectionMatrixPrecise.mul(this._viewMatrix).inverseTo();
-
-        // this._normalMatrix = this._viewMatrix.toInverseMatrix3().transposeTo();
-        this._normalMatrix = this._viewMatrix.toMatrix3();
-
+        this.events.stopPropagation();
+        super.update();
         this.updateGeodeticPosition();
-
         this.eyeNorm = this.eye.normal();
-
         this.slope = this._n.dot(this.eyeNorm);
-
         this.events.dispatch(this.events.viewchange, this);
     }
 

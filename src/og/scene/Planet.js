@@ -1003,9 +1003,9 @@ class Planet extends RenderNode {
 
             gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
 
-            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera._normalMatrix._m);
-            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera.getNormalMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
@@ -1049,7 +1049,7 @@ class Planet extends RenderNode {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
             shu = sh.uniforms;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
         }
 
         let cam = renderer.activeCamera;
@@ -1125,7 +1125,7 @@ class Planet extends RenderNode {
         sh = h.programs.drawnode_heightPicking._program;
         let shu = sh.uniforms;
 
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
 
         let cam = renderer.activeCamera;
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
@@ -1171,7 +1171,7 @@ class Planet extends RenderNode {
 
         h.programs.drawnode_colorPicking.activate();
         sh = h.programs.drawnode_colorPicking._program;
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
 
         let shu = sh.uniforms;
 

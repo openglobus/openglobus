@@ -80,7 +80,7 @@ class Strip {
 
         this._pickingColor = new Uint8Array(4);
 
-        this._gridSize = 1;
+        this._gridSize = 4;
 
         /**
          * Handler that stores and renders this object.
@@ -208,8 +208,8 @@ class Strip {
             gl.enable(gl.BLEND);
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
@@ -242,8 +242,8 @@ class Strip {
             gl.enable(gl.BLEND);
             sh.activate();
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
