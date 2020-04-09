@@ -106,9 +106,12 @@ class Frustum {
      * @public
      * @param {Mat4} projectionView - projectionView matrix.
      */
-    setFrustum(projectionView) {
+    setFrustum(viewMatrix) {
 
-        let m = projectionView._m;
+        this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
+        this._inverseProjectionViewMatrix = this._projectionViewMatrix.inverseTo();
+
+        let m = this._projectionViewMatrix._m;
 
         /* Right */
         this._f[0][0] = m[3] - m[0];

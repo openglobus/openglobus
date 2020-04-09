@@ -229,14 +229,9 @@ class Camera {
      * @virtual
      */
     update() {
-
         this._updateViewMatrix();
         this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
-
-        this.frustum._projectionViewMatrix = this.frustum._projectionMatrix.mul(this._viewMatrix);
-        this.frustum._inverseProjectionViewMatrix = this.frustum._projectionViewMatrix.inverseTo();
-        this.frustum.setFrustum(this.frustum._projectionViewMatrix);
-
+        this.frustum.setFrustum(this._viewMatrix);
         this.events.dispatch(this.events.viewchange, this);
     }
 
@@ -266,44 +261,6 @@ class Camera {
      */
     getAspectRatio() {
         return this._aspect;
-    }
-
-    /**
-     * Sets far camera distance.
-     * @public
-     * @param {number} distance - Far distance.
-     */
-    setFar(distance) {
-        this._farDist = distance;
-        this.refresh();
-    }
-
-    /**
-     * Gets far distance.
-     * @public
-     * @returns {number} - Far plane distance.
-     */
-    getFar() {
-        return this.frustum._farDist;
-    }
-
-    /**
-     * Sets camera's near distance.
-     * @public
-     * @param {number} distance - Near distance.
-     */
-    setNear(distance) {
-        this.frustum._nearDist = distance;
-        this.refresh();
-    }
-
-    /**
-     * Gets near distance.
-     * @public
-     * @returns {number} - Near plane distance.
-     */
-    getNear() {
-        return this.frustum._nearDist;
     }
 
     /**

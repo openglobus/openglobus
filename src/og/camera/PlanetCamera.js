@@ -157,7 +157,7 @@ class PlanetCamera extends Camera {
         var newEye = el.lonLatToCartesian(this._lonLat);
         var newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
         this.set(newEye, newLook, up || Vec3.UP);
-        this.refresh();
+        this.update();
     }
 
     /**
@@ -257,7 +257,7 @@ class PlanetCamera extends Camera {
     viewExtent(extent, height) {
         this.stopFlying();
         this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.UP);
-        this.refresh();
+        this.update();
     }
 
     /**
