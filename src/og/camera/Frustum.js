@@ -26,21 +26,6 @@ class Frustum {
             this._f[i] = new Array(4);
         }
 
-
-        /**
-          * Camera near distance.
-          * @protected
-          * @type {Number}
-          */
-        this._nearDist = 0;
-
-        /**
-         * Camera far distance.
-         * @protected
-         * @type {Number}
-         */
-        this._farDist = 0;
-
         /**
          * Camera projection matrix.
          * @protected
@@ -61,6 +46,37 @@ class Frustum {
          * @type {og.Mat4}
          */
         this._inverseProjectionViewMatrix = new Mat4();
+
+        /**
+         * Projection frustum left value.
+         * @public
+         */
+        this.left = 0.0;
+        /**
+         * Projection frustum right value.
+         * @public
+         */
+        this.right = 0.0;
+        /**
+         * Projection frustum bottom value.
+         * @public
+         */
+        this.bottom = 0.0;
+        /**
+         * Projection frustum top value.
+         * @public
+         */
+        this.top = 0.0;
+        /**
+         * Projection frustum near value.
+         * @public
+         */
+        this.near = 0.0;
+        /**
+         * Projection frustum far value.
+         * @public
+         */
+        this.far = 0.0;
     }
 
     /**
@@ -72,9 +88,15 @@ class Frustum {
      * @param {number} far - Far camera distance.
      */
     setProjectionMatrix(angle, aspect, near, far) {
-        this._nearDist = near;
-        this._farDist = far;
-        this._projectionMatrix.setPerspective(angle, aspect, near, far);
+
+        this.top = near * Math.tan(angle * Math.PI / 360);
+        this.bottom = -this.top;
+        this.right = this.top * aspect;
+        this.left = -this.right;
+        this.near = near;
+        this.far = far;
+
+        this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
     }
 
     getRight() {

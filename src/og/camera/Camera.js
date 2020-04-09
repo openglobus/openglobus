@@ -182,23 +182,6 @@ class Camera {
             options.up || defaultOptions.up.clone());
     }
 
-    /**
-     * Updates model view matrix.
-     * @protected
-     */
-    _updateViewMatrix() {
-        var u = this._u, v = this._v, n = this._n, eye = this.eye;
-
-        Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
-
-        this._viewMatrix.set([
-            u.x, v.x, n.x, 0,
-            u.y, v.y, n.y, 0,
-            u.z, v.z, n.z, 0,
-            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
-        ]);
-    }
-
     getUp() {
         return this._v.clone();
     }
@@ -229,7 +212,17 @@ class Camera {
      * @virtual
      */
     update() {
-        this._updateViewMatrix();
+        var u = this._u, v = this._v, n = this._n, eye = this.eye;
+
+        Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
+
+        this._viewMatrix.set([
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+        ]);
+
         this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
         this.frustum.setFrustum(this._viewMatrix);
         this.events.dispatch(this.events.viewchange, this);
@@ -240,7 +233,7 @@ class Camera {
      * @public
      */
     refresh() {
-        this.setProjectionMatrix(this._viewAngle, this._aspect, this.frustum._nearDist, this.frustum._farDist);
+        this.setProjectionMatrix(this._viewAngle, this._aspect, this.frustum.near, this.frustum.far);
         this.update();
     }
 

@@ -16,37 +16,6 @@ const Mat4 = function () {
      * @type {Array.<number>}
      */
     this._m = new Array(16);
-
-    /**
-     * Projection frustum left value.
-     * @public
-     */
-    this.left = 0.0;
-    /**
-     * Projection frustum right value.
-     * @public
-     */
-    this.right = 0.0;
-    /**
-     * Projection frustum bottom value.
-     * @public
-     */
-    this.bottom = 0.0;
-    /**
-     * Projection frustum top value.
-     * @public
-     */
-    this.top = 0.0;
-    /**
-     * Projection frustum near value.
-     * @public
-     */
-    this.near = 0.0;
-    /**
-     * Projection frustum far value.
-     * @public
-     */
-    this.far = 0.0;
 };
 
 /**
@@ -393,15 +362,7 @@ Mat4.prototype.scale = function (v) {
  * @param {number} far -
  * @returns {og.Mat4} -
  */
-Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
-
-    this.left = left;
-    this.right = right;
-    this.bottom = bottom;
-    this.top = top;
-    this.near = near;
-    this.far = far;
-
+Mat4.prototype.setPerspective = function (left, right, bottom, top, near, far) {
     var h = right - left, i = top - bottom, j = far - near;
     this._m[0] = near * 2 / h;
     this._m[1] = 0;
@@ -423,21 +384,6 @@ Mat4.prototype.setFrustum = function (left, right, bottom, top, near, far) {
 };
 
 /**
- * Creates current percpective projection matrix.
- * @public
- * @param {number} angle - View angle in degrees.
- * @param {number} aspect - Screen aspect ratio.
- * @param {number} near - Near clip plane.
- * @param {number} far - Far clip plane.
- * @returns {og.Mat4} -
- */
-Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
-    angle = near * Math.tan(angle * Math.PI / 360);
-    aspect = angle * aspect;
-    return this.setFrustum(-aspect, aspect, -angle, angle, near, far);
-};
-
-/**
  * Creates current orthographic projection matrix.
  * @public
  * @param {number} left -
@@ -449,13 +395,6 @@ Mat4.prototype.setPerspective = function (angle, aspect, near, far) {
  * @return {og.Mat4} -
  */
 Mat4.prototype.setOrtho = function (left, right, bottom, top, near, far) {
-
-    this.left = left;
-    this.right = right;
-    this.bottom = bottom;
-    this.top = top;
-    this.near = near;
-    this.far = far;
 
     var lr = 1.0 / (left - right),
         bt = 1.0 / (bottom - top),
