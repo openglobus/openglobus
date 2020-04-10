@@ -110,6 +110,10 @@ class Frustum {
         return this._f[5];
     }
 
+    getProjectionMatrix() {
+        return this._projectionMatrix._m;
+    }
+
     /**
      * Sets up camera projection matrix.
      * @public

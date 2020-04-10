@@ -468,7 +468,10 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         }
     }
 
-    let inFrustum = cam.frustum.containsSphere(seg.bsphere);
+    let inFrustum =
+        cam.frustums[0].containsSphere(seg.bsphere) ||
+        cam.frustums[1].containsSphere(seg.bsphere) ||
+        cam.frustums[2].containsSphere(seg.bsphere);
 
     if (inFrustum || this._cameraInside) {
 

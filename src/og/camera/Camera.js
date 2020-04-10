@@ -126,13 +126,13 @@ class Camera {
                 fov: this._viewAngle,
                 aspect: this._aspect,
                 near: 1.0,
-                far: 1050.0
+                far: 1000.0
             }),
             new Frustum({
                 fov: this._viewAngle,
                 aspect: this._aspect,
                 near: 1000.0,
-                far: 1000050.0
+                far: 1000000.0
             }),
             new Frustum({
                 fov: this._viewAngle,
@@ -141,6 +141,8 @@ class Camera {
                 far: 1000000000.0
             })
         ];
+
+        this._currentFrustum = 0;
 
         renderer && this._init(options);
     }
@@ -507,8 +509,12 @@ class Camera {
         return this._viewMatrix._m;
     }
 
+    setCurrentFrustum(k) {
+        this._currentFrustum = k;
+    };
+
     get frustum() {
-        return this.frustums[window.ACTIVE_FRUSTUM];
+        return this.frustums[this._currentFrustum];
     }
 
     /**

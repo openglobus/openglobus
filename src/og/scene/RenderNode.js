@@ -171,8 +171,8 @@ class RenderNode extends BaseNode {
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
-    drawNode() {
-        this._isActive && this._drawNodes();
+    drawNode(frustum, frustumIndex) {
+        this._isActive && this._drawNodes(frustum, frustumIndex);
     }
 
     /**
@@ -249,17 +249,17 @@ class RenderNode extends BaseNode {
     /**
      * @private
      */
-    _drawNodes() {
+    _drawNodes(frustum, frustumIndex) {
         for (var i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._drawNodes();
+                this.childNodes[i]._drawNodes(frustum, frustumIndex);
             }
         }
 
         if (this.show) {
             if (this.frame) {
                 //this.lightEnabled && this.transformLights();
-                this.frame();
+                this.frame(frustum, frustumIndex);
             }
             this.drawEntityCollections(this.entityCollections);
         }

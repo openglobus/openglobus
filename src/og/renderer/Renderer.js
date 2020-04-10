@@ -76,6 +76,8 @@ const Renderer = function (handler, params) {
 
     this.brightThreshold = 0.9;
 
+    this.backgroundColor = new Vec3(115 / 255, 203 / 255, 249 / 255);
+
     /**
      * Render nodes drawing queue.
      * @private
@@ -616,31 +618,41 @@ Renderer.prototype.draw = function () {
 
     this.activeCamera.checkMoveEnd();
 
-    var e = this.events;
+    let e = this.events;
     e.handleEvents();
 
     let sfb = this.sceneFramebuffer;
     sfb.activate();
 
-    var h = this.handler;
+    let h = this.handler;
 
-    h.gl.clearColor(115 / 255, 203 / 255, 249 / 255, 1.0);
-    h.gl.clear(h.gl.COLOR_BUFFER_BIT);
-    h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+    h.gl.clearColor(
+        this.backgroundColor.x,
+        this.backgroundColor.y,
+        this.backgroundColor.z,
+        1.0
+    );
+    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     e.dispatch(e.draw, this);
 
     h.gl.activeTexture(h.gl.TEXTURE0);
     h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
-    // Rendering scene nodes
-    var rn = this._renderNodesArr,
-        i = rn.length;
-    while (i--) {
-        rn[i].drawNode();
-    }
+    let frustums = this.activeCamera.frustums;
 
-    this._drawEntityCollections();
+    // Rendering scene nodes and entityCollections
+    let rn = this._renderNodesArr;
+    let k = frustums.length;
+    while (k--) {
+        this.activeCamera.setCurrentFrustum(k);
+        h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+        let i = rn.length;
+        while (i--) {
+            rn[i].drawNode(frustums[k], k);
+        }
+        this._drawEntityCollections();
+    }
 
     e.dispatch(e.postdraw, this);
 

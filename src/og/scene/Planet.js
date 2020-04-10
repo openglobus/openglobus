@@ -937,24 +937,13 @@ class Planet extends RenderNode {
     }
 
     _globalPreDraw() {
-
         this._distBeforeMemClear += this._prevCamEye.distance(this.camera.eye);
         this._prevCamEye.copy(this.camera.eye);
-
         this.renderer.activeCamera.checkFly();
-    }
-
-    /**
-     * Render node callback.
-     * @public
-     */
-    frame() {
-
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
             this.memClear();
         }
-
         this._collectRenderNodes();
 
         // Here is the planet node dispatches a draw event before
@@ -965,26 +954,24 @@ class Planet extends RenderNode {
 
         this._normalMapCreator.frame();
 
-        this._singleframebufferRendering();
-
         // Creating geoImages textures.
         this._geoImageCreator.frame();
     }
 
     /**
-     * @virtual
-     * @protected
+     * Render node callback.
+     * @public
      */
-    _singleframebufferRendering() {
-        this._renderScreenNodesPASS();
-        this._renderHeightPickingFramebufferPASS();
+    frame(frustum, frustumIndex) {
+        this._renderScreenNodesPASS(frustum, frustumIndex);
+        this._renderHeightPickingFramebufferPASS(frustum, frustumIndex);
         this._renderVectorLayersPASS();
     }
 
     /**
      * @protected
      */
-    _renderScreenNodesPASS() {
+    _renderScreenNodesPASS(frustum, frustumIndex) {
 
         let sh, shu;
         let renderer = this.renderer;
@@ -1005,7 +992,7 @@ class Planet extends RenderNode {
 
             gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera.getNormalMatrix());
             gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, frustum.getProjectionMatrix());
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
