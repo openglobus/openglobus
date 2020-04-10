@@ -121,17 +121,26 @@ class Camera {
         this._tanViewAngle_hrad = 0.0;
         this._tanViewAngle_hradOneByHeight = 0.0;
 
-        /**
-         * Camera frustum. 
-         * @public
-         * @type {og.Frustum}
-         */
-        this.frustum = new Frustum({
-            fov: this._viewAngle,
-            aspect: this._aspect,
-            near: 1.0,
-            far: 10000000.0
-        });
+        this.frustums = [
+            new Frustum({
+                fov: this._viewAngle,
+                aspect: this._aspect,
+                near: 1.0,
+                far: 1050.0
+            }),
+            new Frustum({
+                fov: this._viewAngle,
+                aspect: this._aspect,
+                near: 1000.0,
+                far: 1000050.0
+            }),
+            new Frustum({
+                fov: this._viewAngle,
+                aspect: this._aspect,
+                near: 1000000.0,
+                far: 1000000000.0
+            })
+        ];
 
         renderer && this._init(options);
     }
@@ -226,7 +235,11 @@ class Camera {
         ]);
 
         this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
-        this.frustum.setViewMatrix(this._viewMatrix);
+
+        for (let i = 0, len = this.frustums.length; i < len; i++) {
+            this.frustums[i].setViewMatrix(this._viewMatrix);
+        }
+
         this.events.dispatch(this.events.viewchange, this);
     }
 
@@ -271,8 +284,9 @@ class Camera {
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
         var c = this.renderer.handler.canvas;
         this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (angle * math.RADIANS);
-
-        this.frustum.setProjectionMatrix(angle, aspect, this.frustum.near, this.frustum.far);
+        for (let i = 0, len = this.frustums.length; i < len; i++) {
+            this.frustums[i].setProjectionMatrix(angle, aspect, this.frustums[i].near, this.frustums[i].far);
+        }
     }
 
     /**
@@ -399,8 +413,8 @@ class Camera {
         var px = (x - w) / w,
             py = -(y - h) / h;
 
-        var world1 = this.frustum._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
-            world2 = this.frustum._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+        var world1 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            world2 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
 
         return world2.subA(world1).toVec3().normalize();
     }
@@ -412,7 +426,7 @@ class Camera {
      * @returns {og.Vec2} - Screen point coordinates
      */
     project(v) {
-        var r = this.frustum._projectionViewMatrix.mulVec4(v.toVec4()),
+        var r = this.frustums[0]._projectionViewMatrix.mulVec4(v.toVec4()),
             c = this.renderer.handler.canvas;
         return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }
@@ -493,6 +507,10 @@ class Camera {
         return this._viewMatrix._m;
     }
 
+    get frustum() {
+        return this.frustums[window.ACTIVE_FRUSTUM];
+    }
+
     /**
      * Returns projection matrix.
      * @public
@@ -520,6 +538,8 @@ class Camera {
         return this.frustum._inverseProjectionViewMatrix._m;
     }
 };
+
+window.ACTIVE_FRUSTUM = 1;
 
 const EVENT_NAMES = [
     /**
