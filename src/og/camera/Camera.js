@@ -126,7 +126,7 @@ class Camera {
                 fov: this._viewAngle,
                 aspect: this._aspect,
                 near: 1.0,
-                far: 1000.0
+                far: 1000.2
             }),
             new Frustum({
                 fov: this._viewAngle,
