@@ -67,14 +67,14 @@ class Camera {
          * @protected
          * @type {Number}
          */
-        this._aspect = options.aspect || 0.0;
+        this._aspect = options.aspect || this.renderer.handler.getClientAspect();
 
         /**
          * Camera view angle in degrees
          * @protected
          * @type {Number}
          */
-        this._viewAngle = 0.0;
+        this._viewAngle = options.viewAngle || 30.0;
 
         /**
          * Camera normal matrix.
@@ -95,39 +95,45 @@ class Camera {
          * @protected
          * @type {og.Vec3}
          */
-        this._u = new Vec3(0, 1, 0); // up x n
+        this._u = new Vec3(0.0, 1.0, 0.0); // up x n
 
         /**
          * Camera up vector.
          * @protected
          * @type {og.Vec3}
          */
-        this._v = new Vec3(1, 0, 0); // n x u - UP
+        this._v = new Vec3(1.0, 0.0, 0.0); // n x u - UP
 
         /**
          * Camera forward vector.
          * @protected
          * @type {og.Vec3}
          */
-        this._n = new Vec3(0, 0, 1); // eye - look - FORWARD
+        this._n = new Vec3(0.0, 0.0, 1.0); // eye - look - FORWARD
 
+        // Previous frame values
         this._pu = this._u.clone();
         this._pv = this._v.clone();
         this._pn = this._n.clone();
         this._peye = this.eye.clone();
         this._moved = false;
 
-        this._tanViewAngle_hrad = 0;
-        this._tanViewAngle_hradOneByHeight = 0;
-        
+        this._tanViewAngle_hrad = 0.0;
+        this._tanViewAngle_hradOneByHeight = 0.0;
+
         /**
          * Camera frustum. 
          * @public
          * @type {og.Frustum}
          */
-        this.frustum = new Frustum();
+        this.frustum = new Frustum({
+            fov: this._viewAngle,
+            aspect: this._aspect,
+            near: 1.0,
+            far: 10000000.0
+        });
 
-        renderer && this._initialize(options);
+        renderer && this._init(options);
     }
 
     checkMoveEnd() {
@@ -168,18 +174,14 @@ class Camera {
      * @param {og.Vec3} [options.look] - Camera look position. Default (0,0,0)
      * @param {og.Vec3} [options.up] - Camera eye position. Default (0,1,0)
      */
-    _initialize(options) {
+    _init(options) {
 
-        this.setProjectionMatrix(
-            options.viewAngle || defaultOptions.viewAngle,
-            this._aspect || this.renderer.handler.getClientAspect(),
-            options.near || defaultOptions.near,
-            options.far || defaultOptions.far);
+        this._setProj(this._viewAngle, this._aspect);
 
         this.set(
-            options.eye || defaultOptions.eye.clone(),
-            options.look || defaultOptions.look.clone(),
-            options.up || defaultOptions.up.clone());
+            options.eye || new Vec3(0.0, 0.0, 1.0),
+            options.look || new Vec3(),
+            options.up || new Vec3(0.0, 1.0, 0.0));
     }
 
     getUp() {
@@ -207,7 +209,7 @@ class Camera {
     }
 
     /**
-     * Updates camera view space.
+     * Updates camera view space
      * @public
      * @virtual
      */
@@ -229,18 +231,18 @@ class Camera {
     }
 
     /**
-     * Refresh camera matrices.
+     * Refresh camera matrices
      * @public
      */
     refresh() {
-        this.setProjectionMatrix(this._viewAngle, this._aspect, this.frustum.near, this.frustum.far);
+        this._setProj(this._viewAngle, this._aspect);
         this.update();
     }
 
     /**
-     * Sets aspect ratio.
+     * Sets aspect ratio
      * @public
-     * @param {Number} aspect - Camera aspect ratio.
+     * @param {Number} aspect - Camera aspect ratio
      */
     setAspectRatio(aspect) {
         this._aspect = aspect;
@@ -248,23 +250,21 @@ class Camera {
     }
 
     /**
-     * Returns aspect ratio.
+     * Returns aspect ratio
      * @public
-     * @returns {number} - Aspect ratio.
+     * @returns {number} - Aspect ratio
      */
     getAspectRatio() {
         return this._aspect;
     }
 
     /**
-     * Sets up camera projection matrix.
+     * Sets up camera projection
      * @public
-     * @param {nnumber} angle - Camera's view angle.
-     * @param {number} aspect - Screen aspect ration.
-     * @param {number} near - Near camera distance.
-     * @param {number} far - Far camera distance.
+     * @param {nnumber} angle - Camera's view angle
+     * @param {number} aspect - Screen aspect ration
      */
-    setProjectionMatrix(angle, aspect, near, far) {
+    _setProj(angle, aspect) {
         this._viewAngle = angle;
         this._aspect = aspect;
         this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
@@ -272,13 +272,13 @@ class Camera {
         var c = this.renderer.handler.canvas;
         this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (angle * math.RADIANS);
 
-        this.frustum.setProjectionMatrix(angle, aspect, near, far);
+        this.frustum.setProjectionMatrix(angle, aspect, this.frustum.near, this.frustum.far);
     }
 
     /**
-     * Sets camera view angle in degrees.
+     * Sets camera view angle in degrees
      * @public
-     * @param {number} angle - View angle.
+     * @param {number} angle - View angle
      */
     setViewAngle(angle) {
         this._viewAngle = angle;
@@ -286,7 +286,7 @@ class Camera {
     }
 
     /**
-     * Gets camera view angle in degrees.
+     * Gets camera view angle in degrees
      * @public
      * @returns {number} angle - 
      */
@@ -295,12 +295,12 @@ class Camera {
     }
 
     /**
-     * Sets camera to eye position.
+     * Sets camera to eye position
      * @public
-     * @param {og.Vec3} eye - Camera position.
-     * @param {og.Vec3} look - Look point.
-     * @param {og.Vec3} up - Camera up vector.
-     * @returns {og.Camera} - This camera.
+     * @param {og.Vec3} eye - Camera position
+     * @param {og.Vec3} look - Look point
+     * @param {og.Vec3} up - Camera up vector
+     * @returns {og.Camera} - This camera
      */
     set(eye, look, up) {
         this.eye.x = eye.x;
@@ -319,9 +319,9 @@ class Camera {
     }
 
     /**
-     * Sets camera look point.
+     * Sets camera look point
      * @public
-     * @param {og.Vec3} look - Look point.
+     * @param {og.Vec3} look - Look point
      * @param {og.Vec3} [up] - Camera up vector otherwise camera current up vector(this._v)
      */
     look(look, up) {
@@ -333,11 +333,11 @@ class Camera {
     }
 
     /**
-     * Slides camera to vector d - (du, dv, dn).
+     * Slides camera to vector d - (du, dv, dn)
      * @public
-     * @param {number} du - delta X.
-     * @param {number} dv - delta Y.
-     * @param {number} dn - delta Z.
+     * @param {number} du - delta X
+     * @param {number} dv - delta Y
+     * @param {number} dn - delta Z
      */
     slide(du, dv, dn) {
         this.eye.x += du * this._u.x + dv * this._v.x + dn * this._n.x;
@@ -346,9 +346,9 @@ class Camera {
     }
 
     /**
-     * Roll the camera to the angle in degrees.
+     * Roll the camera to the angle in degrees
      * @public
-     * @param {number} angle - Delta roll angle in degrees.
+     * @param {number} angle - Delta roll angle in degrees
      */
     roll(angle) {
         var cs = Math.cos(math.RADIANS * angle);
@@ -359,9 +359,9 @@ class Camera {
     }
 
     /**
-     * Pitch the camera to the angle in degrees.
+     * Pitch the camera to the angle in degrees
      * @public
-     * @param {number} angle - Delta pitch angle in degrees.
+     * @param {number} angle - Delta pitch angle in degrees
      */
     pitch(angle) {
         var cs = Math.cos(math.RADIANS * angle);
@@ -372,9 +372,9 @@ class Camera {
     }
 
     /**
-     * Yaw the camera to the angle in degrees.
+     * Yaw the camera to the angle in degrees
      * @public
-     * @param {number} angle - Delta yaw angle in degrees.
+     * @param {number} angle - Delta yaw angle in degrees
      */
     yaw(angle) {
         var cs = Math.cos(math.RADIANS * angle);
@@ -385,11 +385,11 @@ class Camera {
     }
 
     /**
-     * Returns normal vector direction to to the unprojected screen point from camera eye.
+     * Returns normal vector direction to to the unprojected screen point from camera eye
      * @public
-     * @param {number} x - Scren X coordinate.
-     * @param {number} y - Scren Y coordinate.
-     * @returns {og.Vec3} - Direction vector.
+     * @param {number} x - Scren X coordinate
+     * @param {number} y - Scren Y coordinate
+     * @returns {og.Vec3} - Direction vector
      */
     unproject(x, y) {
         var c = this.renderer.handler.canvas,
@@ -406,10 +406,10 @@ class Camera {
     }
 
     /**
-     * Gets projected 3d point to the 2d screen coordiantes.
+     * Gets projected 3d point to the 2d screen coordiantes
      * @public
-     * @param {og.Vec3} v - Cartesian 3d coordiantes.
-     * @returns {og.Vec2} - Screen point coordinates.
+     * @param {og.Vec3} v - Cartesian 3d coordiantes
+     * @returns {og.Vec2} - Screen point coordinates
      */
     project(v) {
         var r = this.frustum._projectionViewMatrix.mulVec4(v.toVec4()),
@@ -418,13 +418,13 @@ class Camera {
     }
 
     /**
-     * Rotates camera around center point.
+     * Rotates camera around center point
      * @public
-     * @param {number} angle - Rotation angle in radians.
-     * @param {boolaen} isArc - If true camera up vector gets from current up vector every frame,
+     * @param {number} angle - Rotation angle in radians
+     * @param {boolean} isArc - If true camera up vector gets from current up vector every frame,
      * otherwise up is always input parameter.
-     * @param {og.Vec3} center - Point that the camera rotates around.
-     * @param {og.math.Vecto3} [up] - Camera up vector.
+     * @param {og.Vec3} center - Point that the camera rotates around
+     * @param {og.math.Vecto3} [up] - Camera up vector
      */
     rotateAround(angle, isArc, center, up) {
         center = center || Vec3.ZERO;
@@ -534,14 +534,5 @@ const EVENT_NAMES = [
      */
     "moveend"
 ];
-
-const defaultOptions = {
-    viewAngle: 30.0,
-    near: 1.0,
-    far: 1000000000000.0,
-    eye: new Vec3(),
-    look: new Vec3(),
-    up: new Vec3(0.0, 1.0, 0.0)
-};
 
 export { Camera };

@@ -15,7 +15,7 @@ function planeNormalize(plane) {
  * @class
  */
 class Frustum {
-    constructor() {
+    constructor(options = {}) {
         /**
          * Frustum planes.
          * @private
@@ -77,26 +77,13 @@ class Frustum {
          * @public
          */
         this.far = 0.0;
-    }
 
-    /**
-     * Sets up camera projection matrix.
-     * @public
-     * @param {nnumber} angle - Camera's view angle.
-     * @param {number} aspect - Screen aspect ration.
-     * @param {number} near - Near camera distance.
-     * @param {number} far - Far camera distance.
-     */
-    setProjectionMatrix(angle, aspect, near, far) {
-
-        this.top = near * Math.tan(angle * Math.PI / 360);
-        this.bottom = -this.top;
-        this.right = this.top * aspect;
-        this.left = -this.right;
-        this.near = near;
-        this.far = far;
-
-        this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
+        this.setProjectionMatrix(
+            options.fov || 30.0,
+            options.aspect || 1.0,
+            options.near || 1.0,
+            options.far || 1000.0
+        );
     }
 
     getRightPlane() {
@@ -121,6 +108,26 @@ class Frustum {
 
     getForwardPlane() {
         return this._f[5];
+    }
+
+    /**
+     * Sets up camera projection matrix.
+     * @public
+     * @param {nnumber} angle - Camera's view angle.
+     * @param {number} aspect - Screen aspect ration.
+     * @param {number} near - Near camera distance.
+     * @param {number} far - Far camera distance.
+     */
+    setProjectionMatrix(angle, aspect, near, far) {
+
+        this.top = near * Math.tan(angle * Math.PI / 360);
+        this.bottom = -this.top;
+        this.right = this.top * aspect;
+        this.left = -this.right;
+        this.near = near;
+        this.far = far;
+
+        this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
     }
 
     /**
