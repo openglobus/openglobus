@@ -121,26 +121,30 @@ class Camera {
         this._tanViewAngle_hrad = 0.0;
         this._tanViewAngle_hradOneByHeight = 0.0;
 
-        this.frustums = [
-            new Frustum({
-                fov: this._viewAngle,
-                aspect: this._aspect,
-                near: 1.0,
-                far: 1000.2
-            }),
-            new Frustum({
-                fov: this._viewAngle,
-                aspect: this._aspect,
-                near: 1000.0,
-                far: 1000000.0
-            }),
-            new Frustum({
-                fov: this._viewAngle,
-                aspect: this._aspect,
-                near: 1000000.0,
-                far: 1000000000.0
-            })
-        ];
+        this.frustums = [];
+
+        if (options.frustums) {
+            for (let i = 0, len = options.frustums.length; i < len; i++) {
+                let fi = options.frustums[i];
+                this.frustums.push(
+                    new Frustum({
+                        fov: this._viewAngle,
+                        aspect: this._aspect,
+                        near: fi[0],
+                        far: fi[1]
+                    })
+                );
+            }
+        } else {
+            this.frustums.push(
+                new Frustum({
+                    fov: this._viewAngle,
+                    aspect: this._aspect,
+                    near: 1.0,
+                    far: 10000.0
+                })
+            );
+        }
 
         this._currentFrustum = 0;
 
