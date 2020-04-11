@@ -956,6 +956,13 @@ class Planet extends RenderNode {
 
         // Creating geoImages textures.
         this._geoImageCreator.frame();
+
+        // Collect entity collections from vector layers
+        this._collectVectorLayerCollections();
+
+        // Vector tiles rasteriazation
+        this._vectorTileCreator.frame();
+
     }
 
     /**
@@ -965,7 +972,9 @@ class Planet extends RenderNode {
     frame(frustum, frustumIndex) {
         this._renderScreenNodesPASS(frustum, frustumIndex);
         this._renderHeightPickingFramebufferPASS(frustum, frustumIndex);
-        this._renderVectorLayersPASS();
+
+        // Entities(billnoards, labesl, shapes etc.) rendering
+        this.drawEntityCollections(this._frustumEntityCollections);
     }
 
     /**
@@ -1188,12 +1197,7 @@ class Planet extends RenderNode {
         gl.disable(gl.BLEND);
     }
 
-    /**
-     * Vector layers rendering
-     * @protected
-     */
-    _renderVectorLayersPASS() {
-
+    _collectVectorLayerCollections() {
         this._frustumEntityCollections.length = 0;
         this._frustumEntityCollections = [];
 
@@ -1209,12 +1213,6 @@ class Planet extends RenderNode {
             vi.collectVisibleCollections(this._frustumEntityCollections);
             vi.update();
         }
-
-        // Entities(billnoards, labesl, shapes etc.) rendering
-        this.drawEntityCollections(this._frustumEntityCollections);
-
-        // Vector tiles rasteriazation
-        this._vectorTileCreator.frame();
     }
 
     /**
