@@ -515,7 +515,11 @@ class Camera {
 
     setCurrentFrustum(k) {
         this._currentFrustum = k;
-    };
+    }
+
+    getCurrentFrustum() {
+        return this._currentFrustum;
+    }
 
     get frustum() {
         return this.frustums[this._currentFrustum];

@@ -10,6 +10,7 @@ import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { Vector } from '../../src/og/layer/Vector.js';
 import { Entity } from '../../src/og/entity/Entity.js';
 import { DebugInfo } from '../../src/og/control/DebugInfo.js';
+import { KeyboardNavigation } from '../../src/og/control/KeyboardNavigation.js';
 import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
 import * as math from '../../src/og/math.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
@@ -191,6 +192,8 @@ globe.planet.addControl(new DebugInfo());
 globe.planet.addControl(new ToggleWireframe({
     isActive: false
 }));
+
+globe.planet.addControl(new KeyboardNavigation());
 
 globe.planet.addControl(new LayerSwitcher());
 

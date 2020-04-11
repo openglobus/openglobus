@@ -1346,6 +1346,63 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
 
 };
 
+Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
+
+    var gl = this.handler.gl;
+    var sha = sh.attributes,
+        shu = sh.uniforms;
+
+    var pm = this.materials,
+        p = this.planet;
+
+    // First always draw whole planet base layer segment with solid texture.
+    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
+    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
+    gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE);
+
+    var currHeight;
+    if (layerSlice) {
+        currHeight = layerSlice[0]._height;
+    } else {
+        currHeight = 0;
+    }
+
+    var n = 0;
+
+    var slice = this._renderingSlices[sliceIndex];
+
+    var notEmpty = false;
+
+    for (n = 0; n < slice.layers.length; n++) {
+        notEmpty = true;
+        p._samplerArr[n] = n;
+        gl.activeTexture(gl.TEXTURE0 + n);
+        gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || p.transparentTexture);
+    }
+
+    if (notEmpty || !isOverlay) {
+
+        gl.uniform1i(shu.samplerCount, n);
+        gl.uniform1f(shu.height, currHeight);
+        gl.uniform1iv(shu.samplerArr, p._samplerArr);
+        gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+        gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+        gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
+        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
+        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+    }
+};
+
 Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
 
     var gl = this.handler.gl;
@@ -1396,62 +1453,6 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
         gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-        gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-    }
-};
-
-Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-
-    var gl = this.handler.gl;
-    var sha = sh.attributes,
-        shu = sh.uniforms;
-
-    var pm = this.materials,
-        p = this.planet;
-
-    // First always draw whole planet base layer segment with solid texture.
-    gl.activeTexture(gl.TEXTURE0 + p.SLICE_SIZE);
-    gl.bindTexture(gl.TEXTURE_2D, defaultTexture || p.solidTextureOne);
-    gl.uniform1i(shu.defaultTexture, p.SLICE_SIZE);
-
-    var currHeight;
-    if (layerSlice) {
-        currHeight = layerSlice[0]._height;
-    } else {
-        currHeight = 0;
-    }
-
-    var n = 0;
-
-    var slice = this._renderingSlices[sliceIndex];
-
-    var notEmpty = false;
-
-    for (n = 0; n < slice.layers.length; n++) {
-        notEmpty = true;
-        p._samplerArr[n] = n;
-        gl.activeTexture(gl.TEXTURE0 + n);
-        gl.bindTexture(gl.TEXTURE_2D, pm[slice.layers[n]._id].texture || p.transparentTexture);
-    }
-
-    if (notEmpty || !isOverlay) {
-
-        gl.uniform1i(shu.samplerCount, n);
-        gl.uniform1f(shu.height, currHeight);
-        gl.uniform1iv(shu.samplerArr, p._samplerArr);
-        gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
-        gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
-        gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
         gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);

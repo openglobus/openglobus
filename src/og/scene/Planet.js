@@ -201,6 +201,7 @@ class Planet extends RenderNode {
          * @type {og.quadTree.Node}
          */
         this._renderedNodes = [];
+        this._renderedNodesInFrustum = new Array(3);
 
         /**
          * Created nodes cache
@@ -667,6 +668,11 @@ class Planet extends RenderNode {
 
         this.camera.update();
 
+        this._renderedNodesInFrustum = new Array(this.camera.frustums.length);
+        for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
+            this._renderedNodesInFrustum[i] = [];
+        }
+
         // Creating quad trees nodes
         this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
         this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]));
@@ -896,6 +902,11 @@ class Planet extends RenderNode {
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
 
+        for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
+            this._renderedNodesInFrustum[i].length = 0;
+            this._renderedNodesInFrustum[i] = [];
+        }
+
         this._viewExtent = null;
 
         this._visibleNodes = {};
@@ -970,8 +981,9 @@ class Planet extends RenderNode {
      * @public
      */
     frame(frustum, frustumIndex) {
-        this._renderScreenNodesPASS(frustum, frustumIndex);
-        this._renderHeightPickingFramebufferPASS(frustum, frustumIndex);
+        this._renderScreenNodesPASS(frustumIndex);
+
+        this._renderHeightPickingFramebufferPASS(frustumIndex);
 
         // Entities(billnoards, labesl, shapes etc.) rendering
         this.drawEntityCollections(this._frustumEntityCollections);
@@ -980,7 +992,7 @@ class Planet extends RenderNode {
     /**
      * @protected
      */
-    _renderScreenNodesPASS(frustum, frustumIndex) {
+    _renderScreenNodesPASS(frustumIndex) {
 
         let sh, shu;
         let renderer = this.renderer;
@@ -1001,7 +1013,7 @@ class Planet extends RenderNode {
 
             gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera.getNormalMatrix());
             gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, frustum.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
@@ -1053,7 +1065,7 @@ class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodes,
+        var rn = this._renderedNodesInFrustum[frustumIndex],
             sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
@@ -1075,7 +1087,7 @@ class Planet extends RenderNode {
             s.screenRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
 
             let slj = sl[j];
@@ -1087,12 +1099,12 @@ class Planet extends RenderNode {
             }
 
             i = rn.length;
-            gl.polygonOffset(0, -j);
+            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     };
@@ -1100,7 +1112,7 @@ class Planet extends RenderNode {
     /**
      * @protected
      */
-    _renderHeightPickingFramebufferPASS() {
+    _renderHeightPickingFramebufferPASS(frustumIndex) {
 
         this._heightPickingFramebuffer.activate();
 
@@ -1108,9 +1120,14 @@ class Planet extends RenderNode {
         let renderer = this.renderer;
         let h = renderer.handler;
         let gl = h.gl;
+        let cam = renderer.activeCamera;
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        if (frustumIndex === 2) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+        }
 
         gl.enable(gl.CULL_FACE);
         gl.blendEquation(gl.FUNC_ADD);
@@ -1121,14 +1138,14 @@ class Planet extends RenderNode {
         sh = h.programs.drawnode_heightPicking._program;
         let shu = sh.uniforms;
 
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
+        gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
 
-        let cam = renderer.activeCamera;
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodes,
+        var rn = this._renderedNodesInFrustum[frustumIndex],
             sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
@@ -1136,15 +1153,15 @@ class Planet extends RenderNode {
             rn[i].segment.heightPickingRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            gl.polygonOffset(0, -j);
+            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
 

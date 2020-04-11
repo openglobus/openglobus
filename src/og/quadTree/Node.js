@@ -468,10 +468,26 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         }
     }
 
-    let inFrustum =
-        cam.frustums[0].containsSphere(seg.bsphere) ||
-        cam.frustums[1].containsSphere(seg.bsphere) ||
-        cam.frustums[2].containsSphere(seg.bsphere);
+    let inFrustum = 0;
+
+    // TODO: for loop
+    let commonFrustumFlag = 3,
+        frustums = cam.frustums;
+
+    if (frustums[0].containsSphere(seg.bsphere)) {
+        commonFrustumFlag >>= 1;
+        inFrustum |= 1;
+    }
+
+    if (commonFrustumFlag && frustums[1].containsSphere(seg.bsphere)) {
+        commonFrustumFlag >>= 1;
+        inFrustum |= 2;
+    }
+
+    if (commonFrustumFlag && frustums[2].containsSphere(seg.bsphere)) {
+        inFrustum |= 4;
+    }
+    // TODO: end for loop
 
     if (inFrustum || this._cameraInside) {
 
@@ -519,7 +535,7 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
     if (cam._lonLat.height < VISIBLE_HEIGHT) {
 
         if (altVis) {
-            this.renderNode(!inFrustum, terrainReadySegment, stopLoading);
+            this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
         }
@@ -531,14 +547,14 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
             seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
             seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)) {
-            this.renderNode(!inFrustum, terrainReadySegment, stopLoading);
+            this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
         }
     }
 };
 
-Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoading) {
+Node.prototype.renderNode = function (inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
 
     var seg = this.segment;
 
@@ -582,14 +598,14 @@ Node.prototype.renderNode = function (onlyTerrain, terrainReadySegment, stopLoad
     seg._addViewExtent();
 
     // Finally this node proceeds to rendering.
-    this.addToRender();
+    this.addToRender(inFrustum);
 };
 
 /**
  * Seraching for neighbours and pickup current node to render processing.
  * @public
  */
-Node.prototype.addToRender = function () {
+Node.prototype.addToRender = function (inFrustum) {
 
     this.state = RENDERING;
 
@@ -632,6 +648,16 @@ Node.prototype.addToRender = function () {
     }
 
     nodes.push(this);
+
+    let k = 0,
+        rf = this.planet._renderedNodesInFrustum;
+    while (inFrustum) {
+        if (inFrustum & 1) {
+            rf[k].push(this);
+        }
+        k++;
+        inFrustum >>= 1;
+    }
 };
 
 Node.prototype.getCommonSide = function (node) {

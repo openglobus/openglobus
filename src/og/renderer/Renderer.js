@@ -706,8 +706,8 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.activeTexture(gl.TEXTURE0);
 
     gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
-    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
-    // gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    //gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
 
     gl.uniform1i(p.uniforms.texture, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

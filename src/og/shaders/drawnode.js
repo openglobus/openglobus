@@ -311,10 +311,6 @@ export function drawnode_colorPicking() {
 
             varying vec2 vTextureCoord;
 
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
-
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
@@ -326,7 +322,6 @@ export function drawnode_colorPicking() {
 
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
 
         fragmentShader:
@@ -400,7 +395,8 @@ export function drawnode_colorPicking() {
 export function drawnode_heightPicking() {
     return new Program("drawnode_heightPicking", {
         uniforms: {
-            projectionViewMatrix: "mat4",
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
             samplerCount: "int",
             tileOffsetArr: "vec4",
             visibleExtentOffsetArr: "vec4",
@@ -422,7 +418,8 @@ export function drawnode_heightPicking() {
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
-            uniform mat4 projectionViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
             uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
@@ -442,14 +439,12 @@ export function drawnode_heightPicking() {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
-                mat4 projectionViewMatrixRTE = projectionViewMatrix;
-                projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
                 vTextureCoord = aTextureCoord;
-                //gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
-                gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
             
         fragmentShader:
