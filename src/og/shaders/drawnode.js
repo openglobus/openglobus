@@ -281,7 +281,8 @@ export function drawnode_screen_wl() {
 export function drawnode_colorPicking() {
     return new Program("drawnode_colorPicking", {
         uniforms: {
-            projectionViewMatrix: "mat4",
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             samplerCount: "int",
@@ -304,7 +305,8 @@ export function drawnode_colorPicking() {
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
-            uniform mat4 projectionViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float height;
@@ -317,11 +319,11 @@ export function drawnode_colorPicking() {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
-                mat4 projectionViewMatrixRTE = projectionViewMatrix;
-                projectionViewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 vTextureCoord = aTextureCoord;
-                gl_Position = projectionViewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
         fragmentShader:

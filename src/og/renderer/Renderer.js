@@ -652,6 +652,9 @@ Renderer.prototype.draw = function () {
             rn[i].drawNode();
         }
         this._drawEntityCollections();
+
+        // Rendering picking callbacks and refresh pickingColor
+        this._drawPickingBuffer(k);
     }
 
     e.dispatch(e.postdraw, this);
@@ -660,8 +663,7 @@ Renderer.prototype.draw = function () {
 
     this.blitFramebuffer && sfb.blit(this.blitFramebuffer);
 
-    // Rendering picking callbacks and refresh pickingColor
-    this._drawPickingBuffer();
+    this._readPickingColor();
 
     // Rendering on the screen
     this._fnScreenFrame();
@@ -750,13 +752,19 @@ Renderer.prototype.getPickingObject = function (x, y) {
  * Draw picking objects framebuffer.
  * @private
  */
-Renderer.prototype._drawPickingBuffer = function () {
+Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
     this.pickingFramebuffer.activate();
 
     var h = this.handler;
     var gl = h.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (frustumIndex === 2) {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    } else {
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+    }
+
     gl.disable(h.gl.BLEND);
 
     var dp = this._pickingCallbacks;
@@ -770,7 +778,9 @@ Renderer.prototype._drawPickingBuffer = function () {
     }
 
     this.pickingFramebuffer.deactivate();
+};
 
+Renderer.prototype._readPickingColor = function () {
     var ms = this.events.mouseState;
     var ts = this.events.touchState;
 

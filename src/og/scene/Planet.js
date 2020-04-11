@@ -1180,24 +1180,24 @@ class Planet extends RenderNode {
         let renderer = this.renderer;
         let h = renderer.handler;
         let gl = h.gl;
+        h.programs.drawnode_colorPicking.activate();
+        sh = h.programs.drawnode_colorPicking._program;
+        let shu = sh.uniforms;
+        let cam = renderer.activeCamera;
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         gl.enable(gl.CULL_FACE);
 
-        h.programs.drawnode_colorPicking.activate();
-        sh = h.programs.drawnode_colorPicking._program;
-        gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-        let shu = sh.uniforms;
-
-        let cam = renderer.activeCamera;
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodes,
+        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
             sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
