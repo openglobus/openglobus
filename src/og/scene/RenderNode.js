@@ -249,17 +249,17 @@ class RenderNode extends BaseNode {
     /**
      * @private
      */
-    _drawNodes(frustum, frustumIndex) {
+    _drawNodes() {
         for (var i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
-                this.childNodes[i]._drawNodes(frustum, frustumIndex);
+                this.childNodes[i]._drawNodes();
             }
         }
 
         if (this.show) {
             if (this.frame) {
                 //this.lightEnabled && this.transformLights();
-                this.frame(frustum, frustumIndex);
+                this.frame();
             }
             this.drawEntityCollections(this.entityCollections);
         }

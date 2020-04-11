@@ -980,10 +980,11 @@ class Planet extends RenderNode {
      * Render node callback.
      * @public
      */
-    frame(frustum, frustumIndex) {
-        this._renderScreenNodesPASS(frustumIndex);
+    frame() {
 
-        this._renderHeightPickingFramebufferPASS(frustumIndex);
+        this._renderScreenNodesPASS();
+
+        this._renderHeightPickingFramebufferPASS();
 
         // Entities(billnoards, labesl, shapes etc.) rendering
         this.drawEntityCollections(this._frustumEntityCollections);
@@ -992,12 +993,15 @@ class Planet extends RenderNode {
     /**
      * @protected
      */
-    _renderScreenNodesPASS(frustumIndex) {
+    _renderScreenNodesPASS() {
 
         let sh, shu;
         let renderer = this.renderer;
         let h = renderer.handler;
         let gl = h.gl;
+        let cam = renderer.activeCamera;
+
+        let frustumIndex = cam.getCurrentFrustum();
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1011,9 +1015,9 @@ class Planet extends RenderNode {
 
             gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
 
-            gl.uniformMatrix3fv(shu.normalMatrix, false, renderer.activeCamera.getNormalMatrix());
-            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix3fv(shu.normalMatrix, false, cam.getNormalMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
@@ -1057,10 +1061,9 @@ class Planet extends RenderNode {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
             shu = sh.uniforms;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, renderer.activeCamera.getProjectionViewMatrix());
+            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, cam.getProjectionViewMatrix());
         }
 
-        let cam = renderer.activeCamera;
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
@@ -1112,7 +1115,7 @@ class Planet extends RenderNode {
     /**
      * @protected
      */
-    _renderHeightPickingFramebufferPASS(frustumIndex) {
+    _renderHeightPickingFramebufferPASS() {
 
         this._heightPickingFramebuffer.activate();
 
@@ -1121,6 +1124,7 @@ class Planet extends RenderNode {
         let h = renderer.handler;
         let gl = h.gl;
         let cam = renderer.activeCamera;
+        let frustumIndex = cam.getCurrentFrustum();
 
         if (frustumIndex === 2) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);

@@ -649,7 +649,7 @@ Renderer.prototype.draw = function () {
         h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
         let i = rn.length;
         while (i--) {
-            rn[i].drawNode(frustums[k], k);
+            rn[i].drawNode();
         }
         this._drawEntityCollections();
     }
