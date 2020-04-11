@@ -435,6 +435,13 @@ Renderer.prototype.initialize = function () {
     for (let i in temp) {
         this.addControl(temp[i]);
     }
+
+    this.screenTexture = {
+        screen: this.bloomFramebuffer.textures[0],
+        picking: this.pickingFramebuffer.textures[0]
+    }
+
+    this.outputTexture = this.screenTexture.screen;
 };
 
 Renderer.prototype._resize = function () {
@@ -707,7 +714,9 @@ Renderer.prototype._screenFrameMSAA = function () {
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
 
-    gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
+
+    //gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
     //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
     //gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
 

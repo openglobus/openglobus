@@ -599,6 +599,8 @@ class Planet extends RenderNode {
         });
 
         this._heightPickingFramebuffer.init();
+
+        this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
     }
 
     /**
