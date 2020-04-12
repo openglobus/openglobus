@@ -470,24 +470,16 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
     let inFrustum = 0;
 
-    // TODO: for loop
-    let commonFrustumFlag = 3,
-        frustums = cam.frustums;
+    let frustums = cam.frustums,
+        numFrustums = frustums.length,
+        commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
 
-    if (frustums[0].containsSphere(seg.bsphere)) {
-        commonFrustumFlag >>= 1;
-        inFrustum |= 1;
+    for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
+        if (frustums[i].containsSphere(seg.bsphere)) {
+            commonFrustumFlag >>= 1;
+            inFrustum |= 1 << i;
+        }
     }
-
-    if (commonFrustumFlag && frustums[1].containsSphere(seg.bsphere)) {
-        commonFrustumFlag >>= 1;
-        inFrustum |= 2;
-    }
-
-    if (commonFrustumFlag && frustums[2].containsSphere(seg.bsphere)) {
-        inFrustum |= 4;
-    }
-    // TODO: end for loop
 
     if (inFrustum || this._cameraInside) {
 
