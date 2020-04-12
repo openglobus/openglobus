@@ -957,6 +957,7 @@ class Planet extends RenderNode {
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
             this.memClear();
         }
+
         this._collectRenderNodes();
 
         // Here is the planet node dispatches a draw event before
@@ -975,7 +976,6 @@ class Planet extends RenderNode {
 
         // Vector tiles rasteriazation
         this._vectorTileCreator.frame();
-
     }
 
     /**
@@ -988,7 +988,6 @@ class Planet extends RenderNode {
 
         this._renderHeightPickingFramebufferPASS();
 
-        // Entities(billnoards, labesl, shapes etc.) rendering
         this.drawEntityCollections(this._frustumEntityCollections);
     }
 

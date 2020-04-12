@@ -72,7 +72,7 @@
         //Rotate points around the center
         let center = new LonLat(8.5, 46.3);
         let angle = 0.1 * RADIANS;
-        globus.renderer.events.on("draw", function () {
+        globus.planet.events.on("draw", function () {
             pointLayer.each(function (e) {
                 let c = e.getLonLat();
                 let rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon,
