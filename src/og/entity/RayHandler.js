@@ -236,8 +236,8 @@ class RayHandler {
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
-        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);

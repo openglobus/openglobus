@@ -57,11 +57,6 @@ export function polyline_screen() {
                 varying vec3 vPos;
                 varying vec3 uCamPos;
                 
-                const float C = 0.1;
-                const float far = 149.6e+9;
-                float logc = 2.0 / log( C * far + 1.0 );
-                const float Fcoef = 2.0 / log2(far + 1.0);
-                
                 const float NEAR = -1.0;
                 
                 vec2 getIntersection(vec2 start1, vec2 end1, vec2 start2, vec2 end2){
@@ -179,7 +174,6 @@ export function polyline_screen() {
                     }
 
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
-                    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 }`,
 
         fragmentShader:
@@ -245,10 +239,7 @@ export function polyline_picking() {
                 varying vec4 vColor;
                 varying vec3 vPos;
                 varying vec3 uCamPos;
-                
-                const float C = 0.1;
-                const float far = 149.6e+9;
-                float logc = 2.0 / log( C * far + 1.0 );
+               
                 
                 const float NEAR = -1.0;
                 
@@ -367,7 +358,6 @@ export function polyline_picking() {
                         }
                     }
                     gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
-                    gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 }`,
 
         fragmentShader:
