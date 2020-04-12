@@ -15,8 +15,6 @@ import { screenFrame } from '../shaders/screenFrame.js';
 import { FontAtlas } from '../utils/FontAtlas.js';
 import { TextureAtlas } from '../utils/TextureAtlas.js';
 
-window.SCREEN = 0;
-
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -388,7 +386,13 @@ Renderer.prototype.initialize = function () {
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
         this.sceneFramebuffer.init();
+
         this._fnScreenFrame = this._screenFrameNoMSAA;
+
+        this.screenTexture = {
+            screen: this.sceneFramebuffer.textures[0],
+            picking: this.pickingFramebuffer.textures[0]
+        };
     } else {
 
         let _maxMSAA = this.getMaxMSAA(this._internalFormat);
@@ -421,6 +425,11 @@ Renderer.prototype.initialize = function () {
         }).init();
 
         this._fnScreenFrame = this._screenFrameMSAA;
+
+        this.screenTexture = {
+            screen: this.bloomFramebuffer.textures[0],
+            picking: this.pickingFramebuffer.textures[0]
+        };
     }
 
     this.handler.onCanvasResize = () => {
@@ -436,12 +445,13 @@ Renderer.prototype.initialize = function () {
         this.addControl(temp[i]);
     }
 
-    this.screenTexture = {
-        screen: this.bloomFramebuffer.textures[0],
-        picking: this.pickingFramebuffer.textures[0]
-    }
-
     this.outputTexture = this.screenTexture.screen;
+};
+
+Renderer.prototype.setCurrentScreen = function (screenName) {
+    if (this.screenTexture[screenName]) {
+        this.outputTexture = this.screenTexture[screenName];
+    }
 };
 
 Renderer.prototype._resize = function () {
@@ -713,13 +723,7 @@ Renderer.prototype._screenFrameMSAA = function () {
 
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-
     gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-
-    //gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
-    //gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
-
     gl.uniform1i(p.uniforms.texture, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -735,8 +739,7 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
-    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
