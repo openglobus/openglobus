@@ -31,40 +31,40 @@ class MyScene extends RenderNode {
                     'name': 'line1',
                     'polyline': {
                         'isClosed': false,
-                        'path3v': [[[0, 0, 0], [100, 100, 100], [200, 200, 200], [300, 300, 300]]],
+                        'path3v': [[[0, 0, 0], [100, 0, 400], [200, 400, 500], [300, 100, 300]]],
                         'thickness': 10
+                    }
+                }),
+                //new Entity({
+                //    'name': 'line2',
+                //    'polyline': {
+                //        'isClosed': false,
+                //        'path3v': [[[0, 0, 0], [100, 100, 100]]],
+                //        'thickness': 10
+                //    }
+                //}),
+                new Entity({
+                    'name': 'test line',
+                    'ray': {
+                        'startPosition': [0, 0, 0],
+                        'endPosition': [100, 100, 100],
+                        'length': 100,
+                        'thickness': 15,
+                        'startColor': "#ffffff",
+                        'endColor': "#ff0000"
                     }
                 }),
                 new Entity({
-                    'name': 'line2',
-                    'polyline': {
-                        'isClosed': false,
-                        'path3v': [[[0, 0, 0], [100, 100, 100]]],
-                        'thickness': 10
+                    'name': 'test line',
+                    'ray': {
+                        'startPosition': [10, 100, 0],
+                        'endPosition': [100, 100, 0],
+                        'length': 10,
+                        'thickness': 5,
+                        'startColor': "#0000ff",
+                        'endColor': "#00ff00"
                     }
-                }),
-                //new Entity({
-                //    'name': 'test line',
-                //    'ray': {
-                //        'startPosition': [0, 0, 0],
-                //        'endPosition': [100, 100, 100],
-                //        'length': 100,
-                //        'thickness': 15,
-                //        'startColor': "#ffffff",
-                //        'endColor': "#ff0000"
-                //    }
-                //}),
-                //new Entity({
-                //    'name': 'test line',
-                //    'ray': {
-                //        'startPosition': [10, 100, 0],
-                //        'endPosition': [100, 100, 0],
-                //        'length': 10,
-                //        'thickness': 5,
-                //        'startColor': "#0000ff",
-                //        'endColor': "#00ff00"
-                //    }
-                //})
+                })
             ]
         });
     }

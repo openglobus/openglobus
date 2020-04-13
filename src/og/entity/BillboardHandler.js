@@ -257,7 +257,7 @@ class BillboardHandler {
         gl.uniform1i(shu.u_texture, 0);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
@@ -312,7 +312,7 @@ class BillboardHandler {
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);

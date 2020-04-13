@@ -26,14 +26,10 @@ export function pointCloud() {
             uniform float opacity;
             uniform float pointSize;
             varying vec4 color;
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
             void main() {
                 color = colors;
                 color.a *= opacity;
                 gl_Position = projectionViewMatrix * vec4(coordinates, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_PointSize = pointSize;
             }`,
         fragmentShader:

@@ -216,7 +216,7 @@
                 gl.uniform1i(p.uniforms.uSampler, 0);
 
                 gl.uniformMatrix4fv(p.uniforms.uMVMatrix, false, modelViewMat._m);
-                gl.uniformMatrix4fv(p.uniforms.uPMatrix, false, r.activeCamera._projectionMatrix._m);
+                gl.uniformMatrix4fv(p.uniforms.uPMatrix, false, r.activeCamera.getProjectionMatrix());
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.vericesBuffer);
                 gl.vertexAttribPointer(p.attributes.aVertexPosition, this.vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);

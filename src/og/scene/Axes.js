@@ -48,7 +48,7 @@ class Axes extends RenderNode {
     frame() {
 
         this.renderer.handler.programs.axesShader.activate().set({
-            projectionViewMatrix: this.renderer.activeCamera._projectionViewMatrix._m,
+            projectionViewMatrix: this.renderer.activeCamera.getProjectionViewMatrix(),
             aVertexPosition: this.axisBuffer,
             aVertexColor: this.axisColorBuffer
         });

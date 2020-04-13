@@ -146,10 +146,10 @@ class Events {
      * @param {Object} [obj] - Event object.
      */
     dispatch(event, ...args) {
-        if (event && event.active) {
-            var h = event.handlers;
-            var i = h.length;
-            while (i-- && !this._stopPropagation) {
+        if (event && event.active && !this._stopPropagation) {
+            let h = event.handlers,
+                i = h.length;
+            while (i--) {
                 h[i](...args);
             }
         }

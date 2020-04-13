@@ -66,9 +66,6 @@ export function label_webgl2() {
             uniform float uOpacity;
 
             const vec3 ZERO3 = vec3(0.0);
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
 
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
@@ -120,7 +117,6 @@ export function label_webgl2() {
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z + uZ;
             }`,
         fragmentShader:
@@ -220,9 +216,7 @@ export function labelPicking() {
             uniform vec3 uScaleByDistance;
             uniform float uOpacity;
             const vec3 ZERO3 = vec3(0.0);
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
+
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 uCamPos = eyePositionHigh + eyePositionLow;
@@ -256,7 +250,6 @@ export function labelPicking() {
                 float sinRot = sin(a_rotation);
                 vec3 rr = (right * cosRot - up * sinRot) * (scale * (a_vertices.x + a_texCoord.z + a_texCoord.w) + scd * offset.x) + (right * sinRot + up * cosRot) * (scale * a_vertices.y + scd * offset.y) + a_positions;
                 gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z;
             }`,
         fragmentShader:
@@ -323,9 +316,7 @@ export function label_screen() {
             uniform vec3 uScaleByDistance;
             uniform float uOpacity;
             const vec3 ZERO3 = vec3(0.0);
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
+
             void main() {
 
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
@@ -371,7 +362,6 @@ export function label_screen() {
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z + uZ;
             }`,
             

@@ -171,8 +171,8 @@ class RenderNode extends BaseNode {
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
-    drawNode() {
-        this._isActive && this._drawNodes();
+    drawNode(frustum, frustumIndex) {
+        this._isActive && this._drawNodes(frustum, frustumIndex);
     }
 
     /**

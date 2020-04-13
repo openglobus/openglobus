@@ -38,16 +38,6 @@ let carrots = new EntityCollection({
     'scaleByDistance': [6000000, 24000000, 10000000000]
 });
 
-carrots.events.on("draw", function (c) {
-    c.each(function (e) {
-        let c = e.getLonLat();
-        let ll = globus.planet.ellipsoid.getBearingDestination(c, e.properties.bearing, 2000);
-        e.properties.bearing = Ellipsoid.getFinalBearing(c, ll);
-        e.setLonLat(new LonLat(ll.lon, ll.lat, c.height));
-        e.billboard.setRotation(e.billboard.getRotation() + 0.01);
-    });
-});
-
 carrots.events.on("mouseenter", function (e) {
     let b = e.pickingObject.billboard;
     b.setColor(1, 1, 1);
@@ -79,6 +69,16 @@ let globus = new Globe({
     "name": "Earth",
     "terrain": new GlobusTerrain(),
     "layers": [sat]
+});
+
+globus.planet.events.on("draw", () => {
+    carrots.each(function (e) {
+        let c = e.getLonLat();
+        let ll = globus.planet.ellipsoid.getBearingDestination(c, e.properties.bearing, 2000);
+        e.properties.bearing = Ellipsoid.getFinalBearing(c, ll);
+        e.setLonLat(new LonLat(ll.lon, ll.lat, c.height));
+        e.billboard.setRotation(e.billboard.getRotation() + 0.01);
+    });
 });
 
 carrots.addTo(globus.planet);

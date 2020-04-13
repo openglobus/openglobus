@@ -42,7 +42,7 @@ class SkyBox extends RenderNode {
         h.programs.skybox.activate();
         sh = h.programs.skybox._program;
         var shu = sh.uniforms;
-        gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionViewMatrix, false, cam.getProjectionViewMatrix());
         gl.uniform3fv(shu.pos, cam.eye.toVec());
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);

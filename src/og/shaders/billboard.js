@@ -54,9 +54,6 @@ export function billboardPicking() {
             uniform float pickingScale;
 
             const vec3 ZERO3 = vec3(0.0);
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
 
             void main() {
                 
@@ -88,7 +85,6 @@ export function billboardPicking() {
                 float sinRot = sin(a_rotation);
                 vec3 rr = (right * cosRot - up * sinRot) * (scale.x * a_vertices.x + scd * offset.x) + (right * sinRot + up * cosRot) * (scale.y * a_vertices.y + scd * offset.y) + a_positions;
                 gl_Position = projectionMatrix * viewMatrix * vec4(rr, 1);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z;
             }`,
         fragmentShader:
@@ -149,9 +145,6 @@ export function billboard_screen() {
             uniform float uOpacity;
 
             const vec3 ZERO3 = vec3(0.0);
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
 
             void main() {
                 
@@ -191,7 +184,6 @@ export function billboard_screen() {
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 gl_Position.z += a_offset.z;
             }`,
         fragmentShader:

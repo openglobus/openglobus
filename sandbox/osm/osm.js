@@ -10,6 +10,7 @@ import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
 import { Vector } from '../../src/og/layer/Vector.js';
 import { Entity } from '../../src/og/entity/Entity.js';
 import { DebugInfo } from '../../src/og/control/DebugInfo.js';
+import { KeyboardNavigation } from '../../src/og/control/KeyboardNavigation.js';
 import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
 import * as math from '../../src/og/math.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
@@ -192,4 +193,43 @@ globe.planet.addControl(new ToggleWireframe({
     isActive: false
 }));
 
+globe.planet.addControl(new KeyboardNavigation());
+
 globe.planet.addControl(new LayerSwitcher());
+
+let e1 = new Entity({
+    'name': 'strip1',
+    'strip': {
+        'color': [0 / 255, 38 / 255, 255 / 255],
+        'opacity': 0.27,
+        'path': [
+            [[586523.0151173624, 4392830.957760274, 4570544.574074627], [587043.0890180465, 4396726.110503412, 4574597.306676116]],
+            [[693687.4135420445, 4446600.854589337, 4502800.243641092], [694306.9328021071, 4450572.030680254, 4506821.6103556845]],
+            [[695057.6327224943, 4446368.161289945, 4502875.06522507], [695283.9105581088, 4447815.688108607, 4504340.988014539]],
+            [[695379.6262299116, 4446451.841945512, 4502776.850023308], [695603.3364033864, 4447882.307370998, 4504225.435734251]]
+        ],
+    }
+});
+
+let e2 = new Entity({
+    'name': 'strip2',
+    'strip': {
+        'color': [0 / 255, 38 / 255, 255 / 255],
+        'opacity': 0.27,
+        'path': [
+            [[661936.3048841777, 4745603.382222995, 4189411.525681237], [1339051.734436527, 9600030.082993329, 8474892.113242555]],
+            [[1126928.1072783293, 4760811.647727539, 4071007.90108061], [2277324.752646721, 9620768.297494425, 8226795.481871399]]
+        ],
+    }
+});
+
+
+
+
+let stripLayer = new Vector("test layer", {
+    'entities': [e1, e2],
+    'pickingEnabled': false,
+    'visibility': true
+});
+
+globe.planet.addLayer(stripLayer);

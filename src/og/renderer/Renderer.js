@@ -15,8 +15,6 @@ import { screenFrame } from '../shaders/screenFrame.js';
 import { FontAtlas } from '../utils/FontAtlas.js';
 import { TextureAtlas } from '../utils/TextureAtlas.js';
 
-window.SCREEN = 0;
-
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -76,6 +74,8 @@ const Renderer = function (handler, params) {
 
     this.brightThreshold = 0.9;
 
+    this.backgroundColor = new Vec3(115 / 255, 203 / 255, 249 / 255);
+
     /**
      * Render nodes drawing queue.
      * @private
@@ -89,13 +89,6 @@ const Renderer = function (handler, params) {
      * @type {Object.<og.scene.RenderNode>}
      */
     this.renderNodes = {};
-
-    /**
-     * Cameras array.
-     * @public
-     * @type {Array.<og.Camera>}
-     */
-    this.cameras = [];
 
     /**
      * Current active camera.
@@ -393,7 +386,13 @@ Renderer.prototype.initialize = function () {
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
         this.sceneFramebuffer.init();
+
         this._fnScreenFrame = this._screenFrameNoMSAA;
+
+        this.screenTexture = {
+            screen: this.sceneFramebuffer.textures[0],
+            picking: this.pickingFramebuffer.textures[0]
+        };
     } else {
 
         let _maxMSAA = this.getMaxMSAA(this._internalFormat);
@@ -426,6 +425,11 @@ Renderer.prototype.initialize = function () {
         }).init();
 
         this._fnScreenFrame = this._screenFrameMSAA;
+
+        this.screenTexture = {
+            screen: this.bloomFramebuffer.textures[0],
+            picking: this.pickingFramebuffer.textures[0]
+        };
     }
 
     this.handler.onCanvasResize = () => {
@@ -439,6 +443,14 @@ Renderer.prototype.initialize = function () {
     this.controls = {};
     for (let i in temp) {
         this.addControl(temp[i]);
+    }
+
+    this.outputTexture = this.screenTexture.screen;
+};
+
+Renderer.prototype.setCurrentScreen = function (screenName) {
+    if (this.screenTexture[screenName]) {
+        this.outputTexture = this.screenTexture[screenName];
     }
 };
 
@@ -623,31 +635,44 @@ Renderer.prototype.draw = function () {
 
     this.activeCamera.checkMoveEnd();
 
-    var e = this.events;
+    let e = this.events;
     e.handleEvents();
 
     let sfb = this.sceneFramebuffer;
     sfb.activate();
 
-    var h = this.handler;
+    let h = this.handler;
 
-    // h.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    h.gl.clearColor(115 / 255, 203 / 255, 249 / 255, 1.0);
+    h.gl.clearColor(
+        this.backgroundColor.x,
+        this.backgroundColor.y,
+        this.backgroundColor.z,
+        1.0
+    );
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     e.dispatch(e.draw, this);
 
-    h.gl.activeTexture(h.gl.TEXTURE0);
-    h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
+    //h.gl.activeTexture(h.gl.TEXTURE0);
+    //h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
-    // Rendering scene nodes
-    var rn = this._renderNodesArr,
-        i = rn.length;
-    while (i--) {
-        rn[i].drawNode();
+    let frustums = this.activeCamera.frustums;
+
+    // Rendering scene nodes and entityCollections
+    let rn = this._renderNodesArr;
+    let k = frustums.length;
+    while (k--) {
+        this.activeCamera.setCurrentFrustum(k);
+        h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+        let i = rn.length;
+        while (i--) {
+            rn[i].drawNode();
+        }
+        this._drawEntityCollections();
+
+        // Rendering picking callbacks and refresh pickingColor
+        this._drawPickingBuffer(k);
     }
-
-    this._drawEntityCollections();
 
     e.dispatch(e.postdraw, this);
 
@@ -655,8 +680,7 @@ Renderer.prototype.draw = function () {
 
     this.blitFramebuffer && sfb.blit(this.blitFramebuffer);
 
-    // Rendering picking callbacks and refresh pickingColor
-    this._drawPickingBuffer();
+    this._readPickingColor();
 
     // Rendering on the screen
     this._fnScreenFrame();
@@ -699,11 +723,7 @@ Renderer.prototype._screenFrameMSAA = function () {
 
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-
-    gl.bindTexture(gl.TEXTURE_2D, this.bloomFramebuffer.textures[0]);
-    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
-    // gl.bindTexture(gl.TEXTURE_2D, globe.planet._heightPickingFramebuffer.textures[0]);
-
+    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -719,8 +739,7 @@ Renderer.prototype._screenFrameNoMSAA = function () {
     gl.disable(gl.DEPTH_TEST);
     sh.activate();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.sceneFramebuffer.textures[window.SCREEN]);
-    // gl.bindTexture(gl.TEXTURE_2D, this.pickingFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
     gl.uniform1i(p.uniforms.texture, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -745,13 +764,19 @@ Renderer.prototype.getPickingObject = function (x, y) {
  * Draw picking objects framebuffer.
  * @private
  */
-Renderer.prototype._drawPickingBuffer = function () {
+Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
     this.pickingFramebuffer.activate();
 
     var h = this.handler;
     var gl = h.gl;
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (frustumIndex === 2) {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    } else {
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+    }
+
     gl.disable(h.gl.BLEND);
 
     var dp = this._pickingCallbacks;
@@ -765,7 +790,9 @@ Renderer.prototype._drawPickingBuffer = function () {
     }
 
     this.pickingFramebuffer.deactivate();
+};
 
+Renderer.prototype._readPickingColor = function () {
     var ms = this.events.mouseState;
     var ts = this.events.touchState;
 

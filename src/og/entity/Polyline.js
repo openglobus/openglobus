@@ -1761,8 +1761,8 @@ class Polyline {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
-            gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
 
             // gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
 
@@ -1816,8 +1816,8 @@ class Polyline {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera._projectionMatrix._m);
-            gl.uniformMatrix4fv(shu.view, false, r.activeCamera._viewMatrix._m);
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
 
             gl.uniform4fv(shu.color, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
 
