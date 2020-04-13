@@ -38,15 +38,12 @@ export function shape_wl() {
             varying vec2 vTextureCoord;
             varying vec3 vNormal;
             varying vec4 vPosition;
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
+
             void main(void) {
                 vTextureCoord = aTextureCoord;
                 vNormal = normalMatrix * aVertexNormal;
                 vPosition = viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
                 gl_Position = projectionMatrix * vPosition;
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
             }`,
         fragmentShader:
         `precision highp float;
@@ -99,12 +96,9 @@ export function shape_nl() {
             uniform mat4 projectionViewMatrix;
             uniform mat4 modelMatrix;
             varying vec2 vTextureCoord;
-            const float C = 0.1;
-            const float far = 149.6e+9;
-            float logc = 2.0 / log( C * far + 1.0 );
+
             void main(void) {
                 gl_Position = projectionViewMatrix * (modelMatrix * vec4(aVertexPosition, 1.0));
-                gl_Position.z = ( log( C * gl_Position.w + 1.0 ) * logc - 1.0 ) * gl_Position.w;
                 vTextureCoord = aTextureCoord;
             }`,
         fragmentShader:

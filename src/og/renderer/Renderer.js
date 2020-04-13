@@ -653,8 +653,8 @@ Renderer.prototype.draw = function () {
 
     e.dispatch(e.draw, this);
 
-    h.gl.activeTexture(h.gl.TEXTURE0);
-    h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
+    //h.gl.activeTexture(h.gl.TEXTURE0);
+    //h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
 
     let frustums = this.activeCamera.frustums;
 
