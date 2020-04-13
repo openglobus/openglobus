@@ -110,6 +110,10 @@ class Frustum {
         return this._f[5];
     }
 
+    getProjectionViewMatrix() {
+        return this._projectionViewMatrix._m;
+    }
+
     getProjectionMatrix() {
         return this._projectionMatrix._m;
     }

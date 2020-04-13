@@ -474,7 +474,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     let frustums = cam.frustums,
         numFrustums = frustums.length;
 
-    if (seg.tileZoom < 4) {
+    if (seg.tileZoom < 6) {
         for (let i = 0; i < numFrustums; i++) {
             if (frustums[i].containsSphere(seg.bsphere)) {
                 this.inFrustum |= 1 << i;
