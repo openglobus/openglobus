@@ -210,6 +210,7 @@ const Node = function (SegmentPrototype, planet, partId, parent, id, tileZoom, e
     this.nodes = [null, null, null, null];
     this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
     this._cameraInside = false;
+    this.inFrustum = 0;
     this.createBounds();
     this.planet._createdNodesCount++;
 };
@@ -468,7 +469,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         }
     }
 
-    let inFrustum = 0;
+    this.inFrustum = 0;
 
     let frustums = cam.frustums,
         numFrustums = frustums.length,
@@ -477,28 +478,28 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
         if (frustums[i].containsSphere(seg.bsphere)) {
             commonFrustumFlag >>= 1;
-            inFrustum |= 1 << i;
+            this.inFrustum |= 1 << i;
         }
     }
 
-    if (inFrustum || this._cameraInside) {
+    if (this.inFrustum || this._cameraInside) {
 
         let h = cam._lonLat.height;
 
         let altVis = (cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h)) || seg.tileZoom < 2;
 
-        if ((inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
+        if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
             seg._collectVisibleNodes();
         }
 
         if (seg.tileZoom < 2 && seg.normalMapReady) {
             this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
         } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
-            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
+            this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
         } else if ((seg.tileZoom < planet.terrain._maxNodeZoom) && seg.terrainReady) {
             this.traverseNodes(cam, maxZoom, seg, stopLoading);
         } else {
-            this.prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading);
+            this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
         }
 
     } else {

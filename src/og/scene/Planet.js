@@ -885,6 +885,18 @@ class Planet extends RenderNode {
         }
     }
 
+    _clearRenderedNodeList() {
+        // clearing all node list
+        this._renderedNodes.length = 0;
+        this._renderedNodes = [];
+
+        // clearing nodes in frustums
+        for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
+            this._renderedNodesInFrustum[i].length = 0;
+            this._renderedNodesInFrustum[i] = [];
+        }
+    }
+
     /**
      * Collects visible quad nodes.
      * @protected
@@ -901,13 +913,7 @@ class Planet extends RenderNode {
         this._nodeCounterError_ = 0;
 
         // clear first
-        this._renderedNodes.length = 0;
-        this._renderedNodes = [];
-
-        for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
-            this._renderedNodesInFrustum[i].length = 0;
-            this._renderedNodesInFrustum[i] = [];
-        }
+        this._clearRenderedNodeList();
 
         this._viewExtent = null;
 
@@ -926,15 +932,30 @@ class Planet extends RenderNode {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            var temp = this._renderedNodes,
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
                 temp2 = [];
 
             this._renderedNodes = [];
+
+            // clearing nodes in frustums
+            for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
+                this._renderedNodesInFrustum[i].length = 0;
+                this._renderedNodesInFrustum[i] = [];
+            }
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
                 if (ri.segment.tileZoom === this.maxCurrZoom) {
                     this._renderedNodes.push(ri);
+                    let k = 0, inFrustum = ri.inFrustum;
+                    while (inFrustum) {
+                        if (inFrustum & 1) {
+                            rf[k].push(ri);
+                        }
+                        k++;
+                        inFrustum >>= 1;
+                    }
                 } else {
                     temp2.push(ri);
                 }
