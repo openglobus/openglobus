@@ -472,13 +472,21 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     this.inFrustum = 0;
 
     let frustums = cam.frustums,
-        numFrustums = frustums.length,
-        commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
+        numFrustums = frustums.length;
 
-    for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
-        if (frustums[i].containsSphere(seg.bsphere)) {
-            commonFrustumFlag >>= 1;
-            this.inFrustum |= 1 << i;
+    if (seg.tileZoom < 4) {
+        for (let i = 0; i < numFrustums; i++) {
+            if (frustums[i].containsSphere(seg.bsphere)) {
+                this.inFrustum |= 1 << i;
+            }
+        }
+    } else {
+        let commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
+        for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
+            if (frustums[i].containsSphere(seg.bsphere)) {
+                commonFrustumFlag >>= 1;
+                this.inFrustum |= 1 << i;
+            }
         }
     }
 
