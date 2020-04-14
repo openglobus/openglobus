@@ -32,6 +32,7 @@ class MyScene extends RenderNode {
                     'polyline': {
                         'isClosed': false,
                         'path3v': [[[0, 0, 0], [100, 0, 400], [200, 400, 500], [300, 100, 300]]],
+                        'pathColors': [[[1, 0, 0, 1], [0, 1, 0, 1], [1, 1, 0, 1], [1, 1, 1, 1]]],
                         'thickness': 10
                     }
                 }),

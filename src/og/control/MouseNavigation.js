@@ -140,7 +140,7 @@ class MouseNavigation extends Control {
         this.renderer.events.on("ldown", this.onMouseLeftButtonClick, this);
         this.renderer.events.on("lup", this.onMouseLeftButtonUp, this);
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
-        this.renderer.events.on("draw", this.onDraw, this);
+        this.renderer.events.on("draw", this.onDraw, this, -1000);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
 
         if (this._lmbDoubleClickActive) {
