@@ -142,7 +142,6 @@ class MouseNavigation extends Control {
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
         this.renderer.events.on("draw", this.onDraw, this, -1000);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
-        this.renderer.events.on("mouseenter", this.onMouseEnter, this);
         this.renderer.events.on("mouseleave", this.onMouseLeave, this);
 
         if (this._lmbDoubleClickActive) {
@@ -159,7 +158,6 @@ class MouseNavigation extends Control {
         this.renderer.events.off("rdown", this.onMouseRightButtonClick);
         this.renderer.events.off("draw", this.onDraw);
         this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
-        this.renderer.events.off("mouseenter", this.onMouseEnter);
         this.renderer.events.off("mouseleave", this.onMouseLeave);
     };
 
@@ -175,10 +173,6 @@ class MouseNavigation extends Control {
             this._lmbDoubleClickActive = false;
             this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
         }
-    }
-
-    onMouseEnter() {
-        this.pointOnEarth = null;
     }
 
     onMouseLeave() {
