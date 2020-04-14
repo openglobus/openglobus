@@ -52,7 +52,31 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
                 callback.call(sender, {
                     clientX: event.clientX - rect.left,
                     clientY: event.clientY - rect.top
-                });
+                }, event);
+            });
+            break;
+
+        case "mouseleave":
+            this._htmlObject.addEventListener('mouseleave', function (event) {
+                callback.call(sender, event);
+            });
+            break;
+
+        case "mouseout":
+            this._htmlObject.addEventListener('mouseout', function (event) {
+                callback.call(sender, event);
+            });
+            break;
+
+        case "mouseover":
+            this._htmlObject.addEventListener('mouseover', function (event) {
+                callback.call(sender, event);
+            });
+            break;
+
+        case "mouseenter":
+            this._htmlObject.addEventListener('mouseenter', function (event) {
+                callback.call(sender, event);
             });
             break;
     }
