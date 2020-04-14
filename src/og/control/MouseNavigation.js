@@ -142,6 +142,8 @@ class MouseNavigation extends Control {
         this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
         this.renderer.events.on("draw", this.onDraw, this, -1000);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
+        this.renderer.events.on("mouseenter", this.onMouseEnter, this);
+        this.renderer.events.on("mouseleave", this.onMouseLeave, this);
 
         if (this._lmbDoubleClickActive) {
             this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
@@ -157,6 +159,8 @@ class MouseNavigation extends Control {
         this.renderer.events.off("rdown", this.onMouseRightButtonClick);
         this.renderer.events.off("draw", this.onDraw);
         this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        this.renderer.events.off("mouseenter", this.onMouseEnter);
+        this.renderer.events.off("mouseleave", this.onMouseLeave);
     };
 
     activateDoubleClickZoom() {
@@ -170,6 +174,16 @@ class MouseNavigation extends Control {
         if (this._lmbDoubleClickActive) {
             this._lmbDoubleClickActive = false;
             this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
+        }
+    }
+
+    onMouseEnter() {
+        this.pointOnEarth = null;
+    }
+
+    onMouseLeave() {
+        if (this.renderer.events.mouseState.leftButtonDown) {
+            this.scaleRot = 0;
         }
     }
 
@@ -301,6 +315,7 @@ class MouseNavigation extends Control {
 
     onMouseRightButtonDown(e) {
         var cam = this.renderer.activeCamera;
+
         if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
             this.renderer.controlsBag.scaleRot = 1.0;
             var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;

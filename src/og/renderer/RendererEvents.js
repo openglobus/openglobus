@@ -12,6 +12,10 @@ import { TouchHandler } from '../input/TouchHandler.js';
 import { Vec2 } from '../math/Vec2.js';
 import { Vec3 } from '../math/Vec3.js';
 
+const LB_M = 0b0001;
+const RB_M = 0b0010;
+const MB_M = 0b0100;
+
 /**
  * Renderer events handler.
  * @class
@@ -251,6 +255,8 @@ class RendererEvents extends Events {
         this._mouseHandler.setEvent("mousemove", this, this.onMouseMove);
         this._mouseHandler.setEvent("mousedown", this, this.onMouseDown);
         this._mouseHandler.setEvent("mousewheel", this, this.onMouseWheel);
+        this._mouseHandler.setEvent("mouseleave", this, this.onMouseLeave);
+        this._mouseHandler.setEvent("mouseenter", this, this.onMouseEnter);
 
         this._touchHandler.setEvent("touchstart", this, this.onTouchStart);
         this._touchHandler.setEvent("touchend", this, this.onTouchEnd);
@@ -268,7 +274,31 @@ class RendererEvents extends Events {
     /**
      * @private
      */
-    onMouseMove(event) {
+    onMouseMove(event, sys) {
+
+        let b = sys.buttons;
+
+        if (b & LB_M) {
+            this.mouseState.leftButtonDown = true;
+        } else {
+            this.mouseState.leftButtonHold = false;
+            this.mouseState.leftButtonDown = false;
+        }
+
+        if (b & RB_M) {
+            this.mouseState.rightButtonDown = true;
+        } else {
+            this.mouseState.rightButtonHold = false;
+            this.mouseState.rightButtonDown = false;
+        }
+
+        if (b & MB_M) {
+            this.mouseState.middleButtonDown = true;
+        } else {
+            this.mouseState.middleButtonHold = false;
+            this.mouseState.middleButtonDown = false;
+        }
+
         var ms = this.mouseState;
         ms.sys = event;
 
@@ -298,6 +328,15 @@ class RendererEvents extends Events {
         this._mousestopThread = setTimeout(function () {
             ms.justStopped = true;
         }, 100);
+    }
+
+    onMouseLeave(event) {
+        this.dispatch(this.mouseleave, event);
+
+    }
+
+    onMouseEnter(event) {
+        this.dispatch(this.mouseenter, event);
     }
 
     /**
@@ -790,6 +829,18 @@ const EVENT_NAMES = [
      * @event og.RendererEvents#resize
      */
     "resize",
+
+    /**
+     * Mouse enters the work screen
+     * @event og.RendererEvents#mouseenter
+     */
+    "mouseenter",
+
+    /**
+     * Mouse leaves the work screen
+     * @event og.RendererEvents#mouseleave
+     */
+    "mouseleave",
 
     /**
      * Mouse is moving.
