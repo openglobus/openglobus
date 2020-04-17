@@ -39,8 +39,8 @@ class MouseNavigation extends Control {
         this.qRot = new Quat();
         this.scaleRot = 0.0;
 
-        this.distDiff = 0.33;
-        this.stepsCount = 5;
+        this.distDiff = 0.3;
+        this.stepsCount = 8;
         this.stepsForward = null;
         this.stepIndex = 0;
 

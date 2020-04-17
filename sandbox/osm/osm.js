@@ -233,3 +233,30 @@ let stripLayer = new Vector("test layer", {
 });
 
 globe.planet.addLayer(stripLayer);
+
+new Vector("Markers", {
+    clampToGround: true,
+    polygonOffsetUnits: 0
+})
+    .addTo(globe.planet)
+    .add(new Entity({
+        lonlat: [5.73, 45.183],
+        label: {
+            text: "Hi, Globus!",
+            outline: 0.77,
+            outlineColor: "rgba(255,255,255,.4)",
+            size: 27,
+            color: "black",
+            face: "Lucida Console",
+            offset: [10, -2]
+        },
+        billboard: {
+            src: "./marker.png",
+            width: 64,
+            height: 64,
+            offset: [0, 32]
+        }
+    }));
+
+
+globe.planet.viewExtentArr([5.54, 45.141, 5.93, 45.23]);
