@@ -24,7 +24,7 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {number} [options.minNativeZoom=0] - Minimal available zoom level.
- * @param {number} [options.maxNativeZoom=25] - Maximal available zoom level.
+ * @param {number} [options.maxNativeZoom=19] - Maximal available zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
@@ -74,7 +74,7 @@ class XYZ extends Layer {
          * @public
          * @type {number}
          */
-        this.maxNativeZoom = options.maxNativeZoom || 25;
+        this.maxNativeZoom = options.maxNativeZoom || 19;
 
         /**
          * @protected

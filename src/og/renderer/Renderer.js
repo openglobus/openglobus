@@ -155,7 +155,7 @@ const Renderer = function (handler, params) {
 
     this.blitFramebuffer = null;
 
-    this.bloomFramebuffer = null;
+    this.toneMappingFramebuffer = null;
 
     /**
      * Stores current picking rgb color.
@@ -420,14 +420,14 @@ Renderer.prototype.initialize = function () {
             filter: "LINEAR"
         }).init();
 
-        this.bloomFramebuffer = new Framebuffer(this.handler, {
+        this.toneMappingFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
 
         this._fnScreenFrame = this._screenFrameMSAA;
 
         this.screenTexture = {
-            screen: this.bloomFramebuffer.textures[0],
+            screen: this.toneMappingFramebuffer.textures[0],
             picking: this.pickingFramebuffer.textures[0]
         };
     }
@@ -459,7 +459,7 @@ Renderer.prototype._resize = function () {
     this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
     this.sceneFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale);
     this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale, true);
-    this.bloomFramebuffer && this.bloomFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+    this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 };
 
 Renderer.prototype.removeNode = function (renderNode) {
@@ -682,7 +682,7 @@ Renderer.prototype.draw = function () {
 
     this._readPickingColor();
 
-    // Rendering on the screen
+    // Tone mapping followed by rendering on the screen
     this._fnScreenFrame();
 
     e.mouseState.moving = false;
@@ -701,7 +701,7 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-    this.bloomFramebuffer.activate();
+    this.toneMappingFramebuffer.activate();
 
     sh.activate();
 
@@ -715,7 +715,7 @@ Renderer.prototype._screenFrameMSAA = function () {
     gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    this.bloomFramebuffer.deactivate();
+    this.toneMappingFramebuffer.deactivate();
 
     sh = h.programs.screenFrame;
     p = sh._program;
