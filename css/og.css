@@ -278,3 +278,79 @@
     float: left;
     width: 25%;
 }
+
+.og-popup {
+    position: absolute;
+    text-align: center;
+    bottom: -2px;
+}
+
+.og-popup-content-wrapper,
+.og-popup-tip {
+    background: white;
+    color: #333;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+.og-popup-content-wrapper {
+    background: white;
+    color: #333;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+    padding: 1px;
+    text-align: left;
+    border-radius: 8px;
+    min-width: 30px;
+    min-height: 17px;
+}
+
+.og-popup-content {
+    margin: 20px 5px 5px;
+    line-height: 1.4;
+}
+
+.og-popup-tip-container {
+    width: 40px;
+    height: 20px;
+    position: absolute;
+    left: 50%;
+    margin-left: -20px;
+    overflow: hidden;
+    pointer-events: none;
+    bottom: -19px;
+}
+
+.og-popup-tip {
+    width: 17px;
+    height: 17px;
+    padding: 1px;
+    margin: -10px auto 0;
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.og-popup-toolbar {
+    position: absolute;
+    top: 3px;
+    right: 2px;
+    display: inline-block;
+}
+
+.og-popup-btn {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    float: right;
+}
+
+.og-popup-btn:hover {
+    color: #2e9be7;
+}
+
+.og-popup-title {
+    position: absolute;
+    left: 5px;
+    top: 3px;
+    font-size: 14px;
+}

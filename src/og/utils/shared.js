@@ -130,6 +130,21 @@ export function stringTemplate(template, params) {
     });
 };
 
+export function getHTML(template, params) {
+    return stringTemplate(template, params);
+};
+
+export function parseHTML(htmlStr) {
+    var p = document.createElement('div');
+    p.innerHTML = htmlStr;
+    var domArr = [];
+    for (var i = 0; i < p.childNodes.length; i++) {
+        domArr.push(p.childNodes[i]);
+        p.removeChild(p.childNodes[i]);
+    }
+    return domArr;
+};
+
 export function print2d(id, text, x, y) {
     var el = document.getElementById(id);
     if (!el) {

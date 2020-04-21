@@ -14,6 +14,9 @@ import { KeyboardNavigation } from '../../src/og/control/KeyboardNavigation.js';
 import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
 import * as math from '../../src/og/math.js';
 import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
+import { Popup } from '../../src/og/Popup.js';
+import { LonLat } from '../../src/og/LonLat.js';
+import { Vec3 } from '../../src/og/math/Vec3.js';
 
 // document.getElementById("ambient-r").addEventListener("input", function (e) {
 //     osm.ambient.x = this.value;
@@ -235,12 +238,12 @@ let stripLayer = new Vector("test layer", {
 globe.planet.addLayer(stripLayer);
 
 new Vector("Markers", {
-    clampToGround: true,
+    clampToGround: false,
     polygonOffsetUnits: 0
 })
     .addTo(globe.planet)
     .add(new Entity({
-        lonlat: [5.73, 45.183],
+        lonlat: [5.73, 45.183, 273.5],
         label: {
             text: "Hi, Globus!",
             outline: 0.77,
@@ -260,3 +263,15 @@ new Vector("Markers", {
 
 
 globe.planet.viewExtentArr([5.54, 45.141, 5.93, 45.23]);
+
+let myPopup = new Popup({
+    planet: globe.planet,
+    content: `Simple HTML popup<br>See <a href="//openglobus.org/examples/billboardsOnTHeGround/billboardsOnTHeGround.html">popup example</a>`,
+    offset: [0, 54]
+});
+
+myPopup.setLonLat(new LonLat(5.73, 45.183, 273.5));
+
+myPopup.show();
+
+window.myPopup = myPopup;
