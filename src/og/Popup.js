@@ -70,7 +70,7 @@ class Popup {
         this.setCartesian3v(this._cartPos);
     }
 
-    _setScreen(p) {
+    setScreen(p) {
         if (this._planet) {
             this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this.clientHeight * 0.5) + "px)"
         }
@@ -160,7 +160,7 @@ class Popup {
 
             if (v > look.length() && cam.getForward().dot(look.normalize()) > 0.0) {
                 this.el.style.display = "block";
-                this._setScreen(cam.project(cart));
+                this.setScreen(cam.project(cart));
             } else {
                 this.el.style.display = "none";
             }
