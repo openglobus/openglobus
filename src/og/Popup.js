@@ -5,7 +5,7 @@ import { Vec3 } from './math/Vec3.js';
 import { getHTML, parseHTML, createLonLat } from './utils/shared.js';
 
 const TEMPLATE =
-    `<div class="og-popup">
+    `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
         <div class="og-popup-content"></div>
       </div>
@@ -26,11 +26,13 @@ class Popup {
 
         this.events = new Events(["open", "close"]);
 
+        this._template = getHTML(TEMPLATE, { className: options.className });
+
         this.el = null;
 
         this._title = options.title || "";
 
-        this._content = options.content || "";
+        this._content = options.content || null;
 
         this._contentEl = null;
 
@@ -60,8 +62,8 @@ class Popup {
         this.__counter__ = n;
     }
 
-    _renderTemplate(params) {
-        return parseHTML(getHTML(TEMPLATE, params || {}))[0];
+    _renderTemplate() {
+        return parseHTML(this._template)[0];
     }
 
     _updatePosition() {
@@ -180,14 +182,20 @@ class Popup {
         return this;
     }
 
-    setContent(html) {
-        this._content = html;
-        this._contentEl.innerHTML = html;
+    setContent(content) {
+        this.clear();
+        this._content = content;
+        if (typeof content === 'string') {
+            this._contentEl.innerHTML = content;
+        } else {
+            this._contentEl.appendChild(content)
+        }
         return this;
     }
 
     clear() {
-        this.setContent("");
+        this._content = null;
+        this._contentEl.innerHTML = "";
     }
 }
 
