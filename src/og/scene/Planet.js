@@ -978,25 +978,6 @@ class Planet extends RenderNode {
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
             this.memClear();
         }
-
-        this._collectRenderNodes();
-
-        // Here is the planet node dispatches a draw event before
-        // rendering begins and we have got render nodes.
-        this.events.dispatch(this.events.draw, this);
-
-        this.transformLights();
-
-        this._normalMapCreator.frame();
-
-        // Creating geoImages textures.
-        this._geoImageCreator.frame();
-
-        // Collect entity collections from vector layers
-        this._collectVectorLayerCollections();
-
-        // Vector tiles rasteriazation
-        this._vectorTileCreator.frame();
     }
 
     /**
@@ -1022,8 +1003,29 @@ class Planet extends RenderNode {
         let h = renderer.handler;
         let gl = h.gl;
         let cam = renderer.activeCamera;
-
         let frustumIndex = cam.getCurrentFrustum();
+
+        if (frustumIndex === cam.frustums.length - 1) {
+
+            this._collectRenderNodes();
+
+            // Here is the planet node dispatches a draw event before
+            // rendering begins and we have got render nodes.
+            this.events.dispatch(this.events.draw, this);
+
+            this.transformLights();
+
+            this._normalMapCreator.frame();
+
+            // Creating geoImages textures.
+            this._geoImageCreator.frame();
+
+            // Collect entity collections from vector layers
+            this._collectVectorLayerCollections();
+
+            // Vector tiles rasteriazation
+            this._vectorTileCreator.frame();
+        }
 
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
