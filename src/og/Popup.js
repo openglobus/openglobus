@@ -183,12 +183,14 @@ class Popup {
     }
 
     setContent(content) {
-        this.clear();
-        this._content = content;
-        if (typeof content === 'string') {
-            this._contentEl.innerHTML = content;
-        } else {
-            this._contentEl.appendChild(content)
+        if (content) {
+            this.clear();
+            this._content = content;
+            if (typeof content === 'string') {
+                this._contentEl.innerHTML = content;
+            } else {
+                this._contentEl.appendChild(content)
+            }
         }
         return this;
     }
