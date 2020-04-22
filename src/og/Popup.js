@@ -2,7 +2,7 @@
 
 import { Events } from './Events.js';
 import { Vec3 } from './math/Vec3.js';
-import { getHTML, parseHTML, stringTemplate } from './utils/shared.js';
+import { getHTML, parseHTML, createLonLat } from './utils/shared.js';
 
 const TEMPLATE =
     `<div class="og-popup">
@@ -38,9 +38,13 @@ class Popup {
 
         this._planet = options.planet;
 
+        this._offset = options.offset || [0, 0];
+
+        this._lonLat = createLonLat(options.lonLat);
+
         this._cartPos = new Vec3();
 
-        this._offset = options.offset || [0, 0];
+        this._visibility = options.visibility || false;
 
         this.render();
     }
@@ -60,6 +64,24 @@ class Popup {
         return parseHTML(getHTML(TEMPLATE, params || {}))[0];
     }
 
+    _updatePosition() {
+        this.setCartesian3v(this._cartPos);
+    }
+
+    _setScreen(p) {
+        if (this._planet) {
+            this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this.clientHeight * 0.5) + "px)"
+        }
+    }
+
+    get clientWidth() {
+        return this.el.clientWidth;
+    }
+
+    get clientHeight() {
+        return this.el.clientHeight;
+    }
+
     setOffset(x = 0, y = 0) {
         this._offset[0] = x;
         this._offset[1] = y;
@@ -67,6 +89,7 @@ class Popup {
             this.el.style.left = `${x}px`;
             this.el.style.bottom = `${y}px`;
         }
+        return this;
     }
 
     render(params) {
@@ -76,9 +99,20 @@ class Popup {
         this.setOffset(this._offset[0], this._offset[1]);
         this.setContent(this._content);
         this.setTitle(this._title);
+        this.setLonLat(this._lonLat);
+        this.setVisibility(this._visibility);
         this.el.querySelector(".og-popup-close").addEventListener("click", (e) => {
             this.hide();
         });
+        return this;
+    }
+
+    setVisibility(visibility) {
+        if (visibility) {
+            this.show();
+        } else {
+            this.hide();
+        }
         return this;
     }
 
@@ -90,15 +124,8 @@ class Popup {
         return this.el.querySelector(".og-popup-toolbar");
     }
 
-    get clientWidth() {
-        return this.el.clientWidth;
-    }
-
-    get clientHeight() {
-        return this.el.clientHeight;
-    }
-
     show() {
+        this._visibility = true;
         if (this._planet) {
             this._planet.events.on("draw", this._updatePosition, this);
             this._planet.renderer.div.appendChild(this.el);
@@ -108,22 +135,13 @@ class Popup {
     }
 
     hide() {
+        this._visibility = false;
         if (this.el.parentNode) {
             this._planet.events.off("draw", this._updatePosition);
             this.el.parentNode.removeChild(this.el);
             this.events.dispatch(this.events.close, this);
         }
         return this;
-    }
-
-    _updatePosition() {
-        this.setCartesian3v(this._cartPos);
-    }
-
-    _setScreen(p) {
-        if (this._planet) {
-            this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this.clientHeight * 0.5) + "px)"
-        }
     }
 
     setCartesian3v(cart, height = 0) {
@@ -155,6 +173,7 @@ class Popup {
     }
 
     setLonLat(lonLat) {
+        this._lonLat = lonLat;
         if (this._planet) {
             this.setCartesian3v(this._planet.ellipsoid.lonLatToCartesian(lonLat), lonLat.height);
         }

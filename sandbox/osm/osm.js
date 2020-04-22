@@ -267,11 +267,9 @@ globe.planet.viewExtentArr([5.54, 45.141, 5.93, 45.23]);
 let myPopup = new Popup({
     planet: globe.planet,
     content: `Simple HTML popup<br>See <a href="//openglobus.org/examples/billboardsOnTHeGround/billboardsOnTHeGround.html">popup example</a>`,
-    offset: [0, 54]
+    offset: [0, 0],
+    lonLat: [5.73, 45.183, 273.5],
+    visibility: true
 });
-
-myPopup.setLonLat(new LonLat(5.73, 45.183, 273.5));
-
-myPopup.show();
 
 window.myPopup = myPopup;
