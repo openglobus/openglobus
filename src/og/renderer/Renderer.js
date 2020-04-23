@@ -195,6 +195,8 @@ const Renderer = function (handler, params) {
         this.initialize();
         this.start();
     }
+
+    this._currentOutput = "screen";
 };
 
 Renderer.__pickingCallbackCounter__ = 0;
@@ -449,6 +451,7 @@ Renderer.prototype.initialize = function () {
 };
 
 Renderer.prototype.setCurrentScreen = function (screenName) {
+    this._currentOutput = screenName;
     if (this.screenTexture[screenName]) {
         this.outputTexture = this.screenTexture[screenName];
     }
@@ -460,6 +463,16 @@ Renderer.prototype._resize = function () {
     this.sceneFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale);
     this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale, true);
     this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+
+    if (this.handler.gl.type === "webgl") {
+        this.screenTexture.screen = this.sceneFramebuffer.textures[0];
+        this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    } else {
+        this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
+        this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    }
+
+    this.setCurrentScreen(this._currentOutput);
 };
 
 Renderer.prototype.removeNode = function (renderNode) {
