@@ -103,28 +103,20 @@ export function polyline_screen() {
                     lowDiff = nextLow - eyePositionLow;    
                     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    /*Clip near plane*/
+                    /*Clip near plane, the point behind view plane*/
                     if(vCurrent.z > NEAR) {
-                        if(vPrev.z < NEAR){
-                            /*to the begining path view*/
+                        if(vPrev.z < NEAR && abs(order) == 1.0){
                             vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
-                        }else if(vNext.z < NEAR){
-                            /*to the end path view*/
-                            vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
+                        } else if(vNext.z < NEAR && abs(order) == 2.0){
                             vCurrent = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
                         }
-                    } else if( vPrev.z > NEAR) {
-                        /*to the end path view*/
-                        vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
-                    } else if( vNext.z > NEAR) {
-                        /*to the begining path view*/
-                        vNext = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
                     }
                     
                     vec4 dCurrent = proj * vCurrent;
                     vec2 _next = project(proj * vNext);
                     vec2 _prev = project(proj * vPrev);
                     vec2 _current = project(dCurrent);
+
                     if(_prev == _current){
                         if(_next == _current){
                             _next = _current + vec2(1.0, 0.0);
@@ -133,6 +125,7 @@ export function polyline_screen() {
                             _prev = _current + normalize(_current - _next);
                         }
                     }
+
                     if(_next == _current){
                         _next = _current + normalize(_current - _prev);
                     }
@@ -289,20 +282,11 @@ export function polyline_picking() {
 
                     /*Clip near plane*/
                     if(vCurrent.z > NEAR) {
-                        if(vPrev.z < NEAR){
-                            /*to the begining path view*/
+                        if(vPrev.z < NEAR && abs(order) == 1.0){
                             vCurrent = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
-                        }else if(vNext.z < NEAR){
-                            /*to the end path view*/
-                            vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
+                        } else if(vNext.z < NEAR && abs(order) == 2.0){
                             vCurrent = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
                         }
-                    } else if( vPrev.z > NEAR) {
-                        /*to the end path view*/
-                        vPrev = vPrev + (vCurrent - vPrev) * (NEAR - vPrev.z) / (vCurrent.z - vPrev.z);
-                    } else if( vNext.z > NEAR) {
-                        /*to the begining path view*/
-                        vNext = vNext + (vCurrent - vNext) * (NEAR - vNext.z) / (vCurrent.z - vNext.z);
                     }
                     
                     vec4 dCurrent = proj * vCurrent;
