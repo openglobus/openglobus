@@ -30,10 +30,11 @@ import { Quat } from '../math/Quat.js';
  */
 class PlanetCamera extends Camera {
     constructor(planet, options) {
-        super(planet.renderer, {
-            frustums: [[1, 1000], [1000, 1000000], [1000000, 1000000000]],
-            ...options
-        });
+        super(planet.renderer,
+            Object.assign({}, {
+                frustums: [[1, 1e3], [1e3, 1e6], [1e6, 1e9]]
+            }, options)
+        );
         /**
          * Assigned camera's planet.
          * @public

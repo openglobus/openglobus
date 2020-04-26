@@ -553,8 +553,6 @@ class Camera {
     }
 };
 
-window.ACTIVE_FRUSTUM = 1;
-
 const EVENT_NAMES = [
     /**
      * When camera has been updated.
