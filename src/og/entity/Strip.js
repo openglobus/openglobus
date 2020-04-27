@@ -1,5 +1,6 @@
 'use strict';
 
+import * as utils from '../utils/shared.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Line3 } from '../math/Line3.js';
 
@@ -45,7 +46,8 @@ class Strip {
         this.color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
 
         if (options.color) {
-            this.setColor(options.color[0], options.color[1], options.color[2], options.color[3]);
+            let color = utils.createColorRGBA(options.color);
+            this.setColor(color.x, color.y, color.z, color.w);
         }
 
         if (options.opacity) {
