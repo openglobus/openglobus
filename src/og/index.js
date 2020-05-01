@@ -88,6 +88,8 @@ import { Axes } from './scene/Axes.js';
 import { Planet } from './scene/Planet.js';
 import { RenderNode } from './scene/RenderNode.js';
 
+import { Popup } from './Popup.js';
+
 const version = {
     version: __VERSION__
 };
@@ -191,5 +193,6 @@ export {
     Vec4,
     entity,
     Entity,
-    Geoid
+    Geoid,
+    Popup
 };
