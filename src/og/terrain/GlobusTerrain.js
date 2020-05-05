@@ -133,6 +133,25 @@ class GlobusTerrain extends EmptyTerrain {
         this._urlRewriteCallback = null;
     }
 
+    clearCache() {
+        //?
+        for (let c in this._elevationCache) {
+            this._elevationCache[c].heights = null;
+            this._elevationCache[c].extent = null;
+            delete this._elevationCache[c];
+        }
+        this._elevationCache = null;
+        this._elevationCache = {};
+
+        //?
+        for (let c in this._fetchCache) {
+            this._fetchCache[c] = null;
+            delete this._fetchCache[c];
+        }
+        this._fetchCache = null;
+        this._fetchCache = {};
+    }
+
     getGeoid() {
         return this._geoid;
     }

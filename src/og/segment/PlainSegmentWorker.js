@@ -9,16 +9,28 @@ class PlainSegmentWorker {
         this._segments = {};
 
         this._workerQueue = [];
+
         var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
 
-        var _this = this;
+        let _this = this;
+
         for (let i = 0; i < numWorkers; i++) {
 
-            var w = new Worker(URL.createObjectURL(elevationProgramm));
+            let w = new Worker(URL.createObjectURL(elevationProgramm));
 
             w.onmessage = function (e) {
-
                 _this._segments[e.data.id]._plainSegmentWorkerCallback(e.data);
+
+                e.data.plainVertices = null;
+                e.data.plainVerticesHigh = null;
+                e.data.plainVerticesLow = null;
+                e.data.plainNormals = null;
+                e.data.normalMapNormals = null;
+                e.data.normalMapVertices = null;
+                e.data.normalMapVerticesHigh = null;
+                e.data.normalMapVerticesLow = null;
+                e.data.normalMapNormalsRaw = null;
+
                 _this._segments[e.data.id] = null;
                 delete _this._segments[e.data.id];
 
@@ -61,8 +73,8 @@ class PlainSegmentWorker {
                 model: model,
                 rawfile: rawfile
             }, [
-                rawfile.buffer
-            ]);
+                    rawfile.buffer
+                ]);
         });
     }
 
@@ -72,7 +84,7 @@ class PlainSegmentWorker {
 
             if (this._workerQueue.length) {
 
-                var w = this._workerQueue.pop();
+                let w = this._workerQueue.pop();
 
                 this._segments[this._id] = segment;
 
@@ -95,8 +107,8 @@ class PlainSegmentWorker {
                 w.postMessage({
                     params: params
                 }, [
-                    params.buffer
-                ]);
+                        params.buffer
+                    ]);
 
             } else {
                 this._pendingQueue.push(segment);

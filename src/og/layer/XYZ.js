@@ -174,6 +174,7 @@ class XYZ extends Layer {
                                 this.events.dispatch(e, material);
                             }
                             material.applyImage(response.data);
+                            response.data = null;
                         }
                     } else if (response.status === "abort") {
                         material.isLoading = false;
@@ -299,16 +300,16 @@ class XYZ extends Layer {
             !material.texture.default &&
                 material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
+
+            if (material.image) {
+                material.image.src = '';
+                material.image = null;
+            }
         }
 
         material.isReady = false;
         material.textureExists = false;
         material.isLoading = false;
-
-        if (material.image) {
-            material.image.src = '';
-            material.image = null;
-        }
     }
 
     /**

@@ -11,12 +11,23 @@ class TerrainWorker {
         var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
 
         var that = this;
+
         for (let i = 0; i < numWorkers; i++) {
             var w = new Worker(URL.createObjectURL(elevationProgramm));
             w.onmessage = function (e) {
 
                 that._segments[e.data.id]._terrainWorkerCallback(e.data);
                 that._segments[e.data.id] = null;
+
+                e.data.normalMapNormals = null;
+                e.data.normalMapNormalsRaw = null;
+                e.data.normalMapVertices = null;
+                e.data.normalMapVerticesHigh = null;
+                e.data.normalMapVerticesLow = null;
+                e.data.terrainVertices = null;
+                e.data.terrainVerticesHigh = null;
+                e.data.terrainVerticesLow = null;
+
                 delete that._segments[e.data.id];
 
                 that._workerQueue.unshift(this);
@@ -59,12 +70,13 @@ class TerrainWorker {
                     'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
                     'id': this._id++
                 }, [
-                    _elevations.buffer,
-                    segment.plainVertices.buffer,
-                    segment.plainNormals.buffer,
-                    segment.normalMapVertices.buffer,
-                    segment.normalMapNormals.buffer
-                ]);
+                        _elevations.buffer,
+                        segment.plainVertices.buffer,
+                        segment.plainNormals.buffer,
+                        segment.normalMapVertices.buffer,
+                        segment.normalMapNormals.buffer
+                    ]);
+
             } else {
                 this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
             }
@@ -159,7 +171,7 @@ const _programm =
     var _tempHigh = new Vec3(0.0, 0.0, 0.0),
         _tempLow = new Vec3(0.0, 0.0, 0.0);
 
-    self.onmessage = function (e) {         
+    self.onmessage = function (e) {
         var elevations = e.data.elevations,
             this_plainVertices = e.data.this_plainVertices,
             this_plainNormals = e.data.this_plainNormals,

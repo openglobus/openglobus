@@ -189,19 +189,17 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.normalMapNormals = null;
     this.normalMapNormalsRaw = null;
 
-    this.vertexNormalBuffer = null;
-    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
+
     this.vertexTextureCoordBuffer = null;
+    this._indexBuffer = null;
 
     this._globalTextureCoordinates = new Float32Array(4);
     this._inTheQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 
     this._renderingSlices = [];
-
-    this._indexBuffer = null;
 
     this.readyToEngage = false;
 
@@ -585,6 +583,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         this.readyToEngage = true;
 
+
         this.normalMapNormals = null;
         this.normalMapNormalsRaw = null;
 
@@ -599,6 +598,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVertices = null;
         this.tempVerticesHigh = null;
         this.tempVerticesLow = null;
+
 
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapNormalsRaw = data.normalMapNormalsRaw;
@@ -787,16 +787,15 @@ Segment.prototype.applyTerrain = function (elevations) {
  */
 Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
-    gl.deleteBuffer(this.vertexNormalBuffer);
-    gl.deleteBuffer(this.vertexPositionBuffer);
+
     gl.deleteBuffer(this.vertexPositionBufferHigh);
     gl.deleteBuffer(this.vertexPositionBufferLow);
 
-    this.vertexNormalBuffer = null;
-    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
+
     this.vertexTextureCoordBuffer = null;
+    this._indexBuffer = null;
 };
 
 /**
@@ -899,7 +898,6 @@ Segment.prototype.destroySegment = function () {
 
     this.materials = null;
 
-    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -921,8 +919,6 @@ Segment.prototype.destroySegment = function () {
     this.normalMapNormals = null;
     this.normalMapNormalsRaw = null;
 
-    this.vertexNormalBuffer = null;
-    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
     this.vertexTextureCoordBuffer = null;
@@ -1472,6 +1468,7 @@ Segment.prototype._getIndexBuffer = function () {
     var cache = this.planet._indexesCache[this.gridSize][s[0]][s[1]][s[2]][s[3]];
     if (!cache.buffer) {
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(cache.indexes, 1);
+        cache.indexes = null;
     }
     return cache.buffer;
 };

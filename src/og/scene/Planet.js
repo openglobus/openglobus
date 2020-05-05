@@ -42,7 +42,7 @@ const MIN_LOD = 0.95;
  * @type {number}
  * @default
  */
-const MAX_NODES = 500;
+const MAX_NODES = 200;
 
 const EVENT_NAMES = [
     /**
@@ -386,7 +386,7 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(3);
+        this._terrainWorker = new TerrainWorker(2);
 
         this._plainSegmentWorker = new PlainSegmentWorker(2);
 
@@ -633,6 +633,7 @@ class Planet extends RenderNode {
 
                             if (c === w && c === n && c === e && c === s) {
                                 buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                                indexes = null;
                             }
 
                             this._indexesCache[c][w][n][e][s] = {
@@ -975,7 +976,8 @@ class Planet extends RenderNode {
         this._prevCamEye.copy(this.camera.eye);
         this.renderer.activeCamera.checkFly();
         // free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 10000.0) {
+        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
+            this.terrain.clearCache();
             this.memClear();
         }
     }

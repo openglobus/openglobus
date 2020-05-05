@@ -23,7 +23,7 @@ const Loader = function (maxRequests = 12) {
 
     this._loading = 0;
 
-    this._queue = new QueueArray();
+    this._queue = [];//new QueueArray();
 
     this._promises = {
         'json': r => r.json(),
@@ -40,17 +40,22 @@ Loader.prototype.load = function (params, callback) {
 };
 
 Loader.prototype.fetch = function (params) {
-    return fetch(params.src, params.options || {})
+    return fetch(
+        params.src,
+        params.options || {})
+
         .then(response => {
             if (!response.ok) {
                 throw Error(`Unable to load '${params.src}'`);
             }
             return this._promises[params.type || "blob"](response);
         })
+
         .then(data => {
             return { 'status': "ready", 'data': data };
 
         })
+
         .catch(err => {
             return { 'status': "error", 'msg': err.toString() };
         });
@@ -95,8 +100,14 @@ Loader.prototype._exec = function () {
 };
 
 Loader.prototype.abort = function () {
-    this._queue.each(e => e.callback({ 'status': "abort" }));
-    this._queue.clear();
+    //this._queue.each(e => e.callback({ 'status': "abort" }));
+    //this._queue.clear();
+
+    for (let i = 0, len = this._queue.length; i < len; i++) {
+        this._queue[i].callback({ 'status': "abort" });
+        this._queue[i] = null;
+    }
+    this._queue = [];
 };
 
 export { Loader };
