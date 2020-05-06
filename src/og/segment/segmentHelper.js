@@ -11,28 +11,20 @@ export const textureCoordsTable = initTextureCoordsTable(TABLESIZE);
 
 export function createSegmentIndexes(size, sidesSizes) {
     if (size !== 1) {
-        var c = centerIndexesTable[size],
+        let c = centerIndexesTable[size],
             w = skirtsIndexesTable[W][size][sidesSizes[W]],
             n = skirtsIndexesTable[N][size][sidesSizes[N]],
             e = skirtsIndexesTable[E][size][sidesSizes[E]],
             s = skirtsIndexesTable[S][size][sidesSizes[S]];
-        var indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
-        var k = 0, i = 0, len = c.length;
-        for (k = 0; k < len; k++) {
-            indexes[i++] = c[k];
-        }
-        for (k = 0, len = w.length; k < len; k++) {
-            indexes[i++] = w[k];
-        }
-        for (k = 0, len = n.length; k < len; k++) {
-            indexes[i++] = n[k];
-        }
-        for (k = 0, len = e.length; k < len; k++) {
-            indexes[i++] = e[k];
-        }
-        for (k = 0, len = s.length; k < len; k++) {
-            indexes[i++] = s[k];
-        }
+
+        let indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
+
+        indexes.set(c, 0);
+        indexes.set(w, c.length);
+        indexes.set(n, c.length + w.length);
+        indexes.set(e, c.length + w.length + n.length);
+        indexes.set(s, c.length + w.length + n.length + e.length);
+
         return indexes;
     } else {
         return new Uint16Array([0, 2, 1, 3]);
