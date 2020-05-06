@@ -9,6 +9,7 @@ import { LonLat } from '../LonLat.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
+import * as segmentHelper from '../segment/segmentHelper.js';
 
 export const MAX_NORMAL_ZOOM = 7;
 
@@ -166,7 +167,6 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
-    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -365,6 +365,13 @@ Segment.prototype.loadTerrain = function (forceLoading) {
 Segment.prototype.elevationsExists = function (elevations) {
     if (this.plainReady && this.terrainIsLoading) {
         this.planet._terrainWorker.make(this, elevations);
+
+        this.plainVerticesHigh = null;
+        this.plainVerticesLow = null;
+        this.tempVerticesHigh = null;
+        this.tempVerticesLow = null;
+        this.normalMapVerticesHigh = null;
+        this.normalMapVerticesLow = null;
     }
 };
 
@@ -1457,8 +1464,9 @@ Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSize;
     var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
     if (!cache.buffer) {
-        cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(cache.indexes, 1);
-        cache.indexes = null;
+        let indexes = segmentHelper.createSegmentIndexes(this.gridSize, [s[0], s[1], s[2], s[3]]);
+        cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
+        indexes = null;
     }
     return cache.buffer;
 };

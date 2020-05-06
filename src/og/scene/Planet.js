@@ -627,17 +627,15 @@ class Planet extends RenderNode {
                         for (var q = 0; q <= TABLESIZE; q++) {
                             var s = Math.pow(2, q);
 
-                            let indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
-
                             let buffer = null;
 
                             if (c >= 32 && c === w && c === n && c === e && c === s) {
+                                let indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
                                 buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
                             }
 
                             this._indexesCache[i][j][k][m][q] = {
-                                indexes: indexes,
                                 buffer: buffer
                             };
                         }
