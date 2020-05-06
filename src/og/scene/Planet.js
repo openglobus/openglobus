@@ -646,11 +646,16 @@ class Planet extends RenderNode {
 
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
+
+        let texCoordCache = segmentHelper.initTextureCoordsTable(TABLESIZE);
+
         for (let i = 0; i < TABLESIZE; i++) {
             let gridSize = Math.pow(2, i);
             var gsgs = (gridSize + 1) * (gridSize + 1);
-            this._textureCoordsBufferCache[gridSize] = this.renderer.handler.createArrayBuffer(segmentHelper.textureCoordsTable[gridSize], 2, gsgs);
+            this._textureCoordsBufferCache[gridSize] = this.renderer.handler.createArrayBuffer(texCoordCache[gridSize], 2, gsgs);
         }
+
+        texCoordCache = null;
 
         // creating empty textures
         var that = this;
@@ -714,7 +719,7 @@ class Planet extends RenderNode {
             );
         }
 
-        this._geoImageCreator = new GeoImageCreator(this.renderer.handler);
+        this._geoImageCreator = new GeoImageCreator(this);
 
         this._vectorTileCreator = new VectorTileCreator(this);
 

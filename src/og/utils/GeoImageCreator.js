@@ -1,19 +1,14 @@
-/**
- * @module og/utils/GeoImageCreator
- */
-
 'use sctrict';
 
-import * as segmentHelper from '../segment/segmentHelper.js';
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { LonLat } from '../LonLat.js';
 import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
 
-const GeoImageCreator = function (handler, maxFrames) {
+const GeoImageCreator = function (planet, maxFrames) {
     this._gridSize = 64;
-    this._handler = handler;
+    this._planet = planet;
     this._framebuffer = null;
     this._texCoordsBuffer = null;
     this._indexBuffer = null;
@@ -64,7 +59,7 @@ GeoImageCreator.prototype.createGridBuffer = function (c, toMerc) {
             grid[i + 1] = c.lat;
         }
     }
-    return this._handler.createArrayBuffer(grid, 2, grid.length / 2);
+    return this._planet.renderer.handler.createArrayBuffer(grid, 2, grid.length / 2);
 };
 
 GeoImageCreator.prototype.frame = function () {
@@ -113,26 +108,27 @@ GeoImageCreator.prototype.remove = function (geoImage) {
 
 GeoImageCreator.prototype._initBuffers = function () {
 
-    this._framebuffer = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
+    let h = this._planet.renderer.handler;
+
+    this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
     this._framebuffer.init();
 
-    this._framebufferMercProj = new Framebuffer(this._handler, { width: 2, height: 2, useDepth: false });
+    this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
     this._framebufferMercProj.init();
 
-    //TODO: textureCoordsTable pool allready exists in planet scene
     var gs = this._gridSize;
-    var gs1 = this._gridSize + 1;
-    this._texCoordsBuffer = this._handler.createArrayBuffer(segmentHelper.textureCoordsTable[gs], 2, gs1 * gs1);
+    this._texCoordsBuffer = this._planet._textureCoordsBufferCache[gs];
 
-    var indexes = segmentHelper.createSegmentIndexes(gs, [gs, gs, gs, gs]);
-    this._indexBuffer = this._handler.createElementArrayBuffer(indexes, 1, indexes.length);
+    gs = Math.log2(gs);
+    this._indexBuffer = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
 
-    this._quadTexCoordsBuffer = this._handler.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
-    this._quadVertexBuffer = this._handler.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
+    this._quadTexCoordsBuffer = h.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
+    this._quadVertexBuffer = h.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
 };
 
 GeoImageCreator.prototype._initShaders = function () {
-    this._handler.addProgram(new Program("geoImageTransform", {
+
+    this._planet.renderer.handler.addProgram(new Program("geoImageTransform", {
         uniforms: {
             sourceTexture: { type: types.SAMPLER2D },
             extentParams: { type: types.VEC4 }

@@ -7,8 +7,6 @@ export const TABLESIZE = 7;
 const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
 const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
 
-export const textureCoordsTable = initTextureCoordsTable(TABLESIZE);
-
 export function createSegmentIndexes(size, sidesSizes) {
     if (size !== 1) {
         let c = centerIndexesTable[size],
@@ -181,7 +179,7 @@ function initIndexesBodySkirts(pow) {
     return table;
 };
 
-function initTextureCoordsTable(pow) {
+export function initTextureCoordsTable(pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
