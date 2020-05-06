@@ -187,7 +187,6 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.normalMapVerticesHigh = null;
     this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
-    this.normalMapNormalsRaw = null;
 
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
@@ -563,7 +562,6 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
         this.plainNormals = data.plainNormals;
 
         this.normalMapNormals = data.normalMapNormals;
-        this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
         this.normalMapVerticesHigh = data.normalMapVerticesHigh;
         this.normalMapVerticesLow = data.normalMapVerticesLow;
@@ -583,9 +581,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         this.readyToEngage = true;
 
-
         this.normalMapNormals = null;
-        this.normalMapNormalsRaw = null;
 
         this.normalMapVertices = null;
         this.normalMapVerticesHigh = null;
@@ -601,7 +597,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
 
         this.normalMapNormals = data.normalMapNormals;
-        this.normalMapNormalsRaw = data.normalMapNormalsRaw;
         this.normalMapVertices = data.normalMapVertices;
         this.normalMapVerticesHigh = data.normalMapVerticesHigh;
         this.normalMapVerticesLow = data.normalMapVerticesLow;
@@ -712,8 +707,8 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
 
         if (!(seg_a && seg_b)) return;
 
-        let seg_a_raw = s.normalMapNormalsRaw,
-            seg_b_raw = b.normalMapNormalsRaw;
+        let seg_a_raw = s.normalMapNormals,
+            seg_b_raw = b.normalMapNormals;
 
         // let seg_a_verts = s.terrainVertices,
         //     seg_b_verts = s.terrainVertices;
@@ -825,7 +820,7 @@ Segment.prototype.deleteElevations = function () {
     this.normalMapVerticesLow = null;
 
     this.normalMapNormals = null;
-    this.normalMapNormalsRaw = null;
+    //this.normalMapNormalsRaw = null;
 
     this.tempVertices = null;
     this.tempVerticesHigh = null;
@@ -917,7 +912,6 @@ Segment.prototype.destroySegment = function () {
     this.normalMapVerticesHigh = null;
     this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
-    this.normalMapNormalsRaw = null;
 
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
@@ -1180,10 +1174,6 @@ Segment.prototype._createPlainVertices = function () {
     this.terrainVertices = verts;
     this.terrainVerticesHigh = vertsHigh;
     this.terrainVerticesLow = vertsLow;
-
-    // store raw normals
-    this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
-    this.normalMapNormalsRaw.set(nmNorms);
 
     this.plainReady = true;
 };
@@ -1465,7 +1455,7 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
 
 Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSize;
-    var cache = this.planet._indexesCache[this.gridSize][s[0]][s[1]][s[2]][s[3]];
+    var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
     if (!cache.buffer) {
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(cache.indexes, 1);
         cache.indexes = null;

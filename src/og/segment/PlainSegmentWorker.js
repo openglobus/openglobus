@@ -29,7 +29,6 @@ class PlainSegmentWorker {
                 e.data.normalMapVertices = null;
                 e.data.normalMapVerticesHigh = null;
                 e.data.normalMapVerticesLow = null;
-                e.data.normalMapNormalsRaw = null;
 
                 _this._segments[e.data.id] = null;
                 delete _this._segments[e.data.id];
@@ -373,9 +372,6 @@ const _programm =
                 }
             }
 
-            let normalMapNormalsRaw = new Float32Array(normalMapNormals.length);
-            normalMapNormalsRaw.set(normalMapNormals);
-
             self.postMessage({
                 id: msg.data.params[0],
                 plainVertices: plainVertices,
@@ -385,8 +381,7 @@ const _programm =
                 normalMapNormals: normalMapNormals,
                 normalMapVertices: normalMapVertices,
                 normalMapVerticesHigh: normalMapVerticesHigh,
-                normalMapVerticesLow: normalMapVerticesLow,
-                normalMapNormalsRaw: normalMapNormalsRaw
+                normalMapVerticesLow: normalMapVerticesLow
              }, [
                 plainVertices.buffer,
                 plainVerticesHigh.buffer,
@@ -395,8 +390,7 @@ const _programm =
                 normalMapNormals.buffer,
                 normalMapVertices.buffer,
                 normalMapVerticesHigh.buffer,
-                normalMapVerticesLow.buffer,
-                normalMapNormalsRaw.buffer
+                normalMapVerticesLow.buffer
             ]);
         }
     }`;

@@ -20,7 +20,6 @@ class TerrainWorker {
                 that._segments[e.data.id] = null;
 
                 e.data.normalMapNormals = null;
-                e.data.normalMapNormalsRaw = null;
                 e.data.normalMapVertices = null;
                 e.data.normalMapVerticesHigh = null;
                 e.data.normalMapVerticesLow = null;
@@ -506,14 +505,10 @@ if(hi < -100){
             //normalMapNormals = this_plainNormals;
 
         }
-        
-        var normalMapNormalsRaw = new Float32Array(normalMapNormals.length);
-        normalMapNormalsRaw.set(normalMapNormals);
 
         self.postMessage({
                 id: id,
                 normalMapNormals: normalMapNormals,
-                normalMapNormalsRaw: normalMapNormalsRaw,
                 normalMapVertices: normalMapVertices,
                 normalMapVerticesHigh: normalMapVerticesHigh,
                 normalMapVerticesLow: normalMapVerticesLow,
@@ -523,7 +518,6 @@ if(hi < -100){
                 bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
              }, [
                     normalMapNormals.buffer, 
-                    normalMapNormalsRaw.buffer, 
                     normalMapVertices.buffer, 
                     normalMapVerticesHigh.buffer, 
                     normalMapVerticesLow.buffer, 

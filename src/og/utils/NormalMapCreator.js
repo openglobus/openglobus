@@ -123,7 +123,7 @@ NormalMapCreator.prototype._init = function () {
     this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
     //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
-    for (var p = 1; p <= 7; p++) {
+    for (var p = 5; p <= 7; p++) {
         var gs = Math.pow(2, p);
         var gs2 = (gs / 2);
         var vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
@@ -137,7 +137,7 @@ NormalMapCreator.prototype._init = function () {
         }
 
         this._verticesBufferArray[gs] = this._handler.createArrayBuffer(vertices, 2, vertices.length / 2);
-        this._indexBufferArray[gs] = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
+        this._indexBufferArray[gs] = this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)].buffer;
     }
 
     //create 2d screen square buffer

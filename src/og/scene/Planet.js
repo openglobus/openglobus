@@ -614,29 +614,29 @@ class Planet extends RenderNode {
         // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
             var c = Math.pow(2, i);
-            !this._indexesCache[c] && (this._indexesCache[c] = []);
+            !this._indexesCache[i] && (this._indexesCache[i] = new Array(TABLESIZE));
             for (var j = 0; j <= TABLESIZE; j++) {
                 var w = Math.pow(2, j);
-                !this._indexesCache[c][w] && (this._indexesCache[c][w] = []);
+                !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     var n = Math.pow(2, k);
-                    !this._indexesCache[c][w][n] && (this._indexesCache[c][w][n] = []);
+                    !this._indexesCache[i][j][k] && (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         var e = Math.pow(2, m);
-                        !this._indexesCache[c][w][n][e] && (this._indexesCache[c][w][n][e] = []);
+                        !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             var s = Math.pow(2, q);
 
-                            var indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
+                            let indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
 
-                            var buffer = null;
+                            let buffer = null;
 
-                            if (c === w && c === n && c === e && c === s) {
+                            if (c >= 32 && c === w && c === n && c === e && c === s) {
                                 buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
                             }
 
-                            this._indexesCache[c][w][n][e][s] = {
+                            this._indexesCache[i][j][k][m][q] = {
                                 indexes: indexes,
                                 buffer: buffer
                             };
@@ -728,6 +728,24 @@ class Planet extends RenderNode {
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
+    }
+
+    clearIndexesCache() {
+        // WIP
+        let c = this._indexesCache;
+        for (var i = 0; i <= c.length; i++) {
+            for (var j = 0; c[i] && j <= c[i].length; j++) {                
+                for (var k = 0; c[i][j] && k <= c[i][j].length; k++) {
+                    for (var m = 0; c[i][j][k] && m <= c[i][j][k].length; m++) {
+                        for (var q = 0; c[i][j][k][m] && q <= c[i][j][k][m].length; q++) {
+                            //clear
+                            this._indexesCache[i][j][k][m][q].indexes;
+                            this._indexesCache[i][j][k][m][q].buffer;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     _preRender() {
