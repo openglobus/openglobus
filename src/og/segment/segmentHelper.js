@@ -8,7 +8,7 @@ const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
 const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
 
 export function createSegmentIndexes(size, sidesSizes) {
-    if (size !== 1) {
+    if (size) {
         let c = centerIndexesTable[size],
             w = skirtsIndexesTable[W][size][sidesSizes[W]],
             n = skirtsIndexesTable[N][size][sidesSizes[N]],
