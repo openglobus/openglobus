@@ -149,31 +149,22 @@ function initIndexesBodySkirts(pow) {
     table[S] = [];
     table[E] = [];
 
-    table[N][0] = [];
-    table[W][0] = [];
-    table[S][0] = [];
-    table[E][0] = [];
-
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i),
             d1 = d + 1;
 
-        table[N][d] = [];
-        table[W][d] = [];
-        table[S][d] = [];
-        table[E][d] = [];
-
-        table[N][d][0] = [];
-        table[W][d][0] = [];
-        table[S][d][0] = [];
-        table[E][d][0] = [];
+        table[N][i] = [];
+        table[W][i] = [];
+        table[S][i] = [];
+        table[E][i] = [];
 
         for (var j = 0; j <= pow; j++) {
             var dd = Math.pow(2, j);
-            table[W][d][dd] = createWestNeighborSkirt(d1, dd);
-            table[N][d][dd] = createNorthNeighborSkirt(d1, dd);
-            table[E][d][dd] = createEastNeighborSkirt(d1, dd);
-            table[S][d][dd] = createSouthNeighborSkirt(d1, dd);
+            table[W][i][j] = createWestNeighborSkirt(d1, dd);
+            table[N][i][j] = createNorthNeighborSkirt(d1, dd);
+            table[E][i][j] = createEastNeighborSkirt(d1, dd);
+            table[S][i][j] = createSouthNeighborSkirt(d1, dd);
+
         }
     }
     return table;
@@ -183,9 +174,8 @@ export function initTextureCoordsTable(pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
-        table[d] = createTextureCoords(d);
+        table[i] = createTextureCoords(d);
     }
-    table[0] = [];
     return table;
 };
 
@@ -193,9 +183,8 @@ function initIndexBodiesTable(pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
-        table[d] = createCenterBodyIndexes(d + 1);
+        table[i] = createCenterBodyIndexes(d + 1);
     }
-    table[0] = new Uint16Array();
     return table;
 };
 

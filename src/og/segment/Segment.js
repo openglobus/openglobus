@@ -987,7 +987,7 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
         h.gl.deleteBuffer(this.vertexPositionBufferHigh);
         h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
-        this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[gridSize];
+        this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[Math.log2(gridSize)];
 
         //this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
         //h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
@@ -1464,7 +1464,8 @@ Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSize;
     var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
     if (!cache.buffer) {
-        let indexes = segmentHelper.createSegmentIndexes(this.gridSize, [s[0], s[1], s[2], s[3]]);
+        //let indexes = segmentHelper.createSegmentIndexes(this.gridSize, [s[0], s[1], s[2], s[3]]);
+        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [Math.log2(s[0]), Math.log2(s[1]), Math.log2(s[2]), Math.log2(s[3])]);
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
         indexes = null;
     }

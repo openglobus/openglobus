@@ -265,6 +265,7 @@ class Planet extends RenderNode {
          */
         this._indexesCache = [];
 
+        this._indexesCacheToRemove = [];
 
         /**
          * Precomputed texture coordinates buffers for differrent grid size segments.
@@ -610,34 +611,31 @@ class Planet extends RenderNode {
     init() {
         // Initialization indexes table
         var TABLESIZE = segmentHelper.TABLESIZE;
-
+        let kk = 0;
         // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
-            var c = Math.pow(2, i);
             !this._indexesCache[i] && (this._indexesCache[i] = new Array(TABLESIZE));
             for (var j = 0; j <= TABLESIZE; j++) {
-                var w = Math.pow(2, j);
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
-                    var n = Math.pow(2, k);
                     !this._indexesCache[i][j][k] && (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
-                        var e = Math.pow(2, m);
                         !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
-                            var s = Math.pow(2, q);
 
-                            let buffer = null;
+                            let ptr = {
+                                buffer: null
+                            };
 
-                            if (c >= 32 && c === w && c === n && c === e && c === s) {
-                                let indexes = segmentHelper.createSegmentIndexes(c, [w, n, e, s]);
-                                buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                            if (i >= 5 && i === j && i === k && i === m && i === q) {
+                                let indexes = segmentHelper.createSegmentIndexes(i, [j, k, m, q]);
+                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
+                            } else {
+                                this._indexesCacheToRemove[kk++] = ptr;
                             }
 
-                            this._indexesCache[i][j][k][m][q] = {
-                                buffer: buffer
-                            };
+                            this._indexesCache[i][j][k][m][q] = ptr;
                         }
                     }
                 }
@@ -650,9 +648,7 @@ class Planet extends RenderNode {
         let texCoordCache = segmentHelper.initTextureCoordsTable(TABLESIZE);
 
         for (let i = 0; i < TABLESIZE; i++) {
-            let gridSize = Math.pow(2, i);
-            var gsgs = (gridSize + 1) * (gridSize + 1);
-            this._textureCoordsBufferCache[gridSize] = this.renderer.handler.createArrayBuffer(texCoordCache[gridSize], 2, gsgs);
+            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
         }
 
         texCoordCache = null;
@@ -734,20 +730,12 @@ class Planet extends RenderNode {
     }
 
     clearIndexesCache() {
-        // WIP
-        let c = this._indexesCache;
-        for (var i = 0; i <= c.length; i++) {
-            for (var j = 0; c[i] && j <= c[i].length; j++) {                
-                for (var k = 0; c[i][j] && k <= c[i][j].length; k++) {
-                    for (var m = 0; c[i][j][k] && m <= c[i][j][k].length; m++) {
-                        for (var q = 0; c[i][j][k][m] && q <= c[i][j][k][m].length; q++) {
-                            //clear
-                            this._indexesCache[i][j][k][m][q].indexes;
-                            this._indexesCache[i][j][k][m][q].buffer;
-                        }
-                    }
-                }
-            }
+        let c = this._indexesCacheToRemove,
+            gl = this.renderer.handler.gl;
+        for (let i = 0, len = c.length; i < len; i++) {
+            let ci = c[i];
+            gl.deleteBuffer(ci.buffer);
+            ci.buffer = null;
         }
     }
 

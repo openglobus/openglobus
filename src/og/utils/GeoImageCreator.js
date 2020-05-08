@@ -116,10 +116,10 @@ GeoImageCreator.prototype._initBuffers = function () {
     this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
     this._framebufferMercProj.init();
 
-    var gs = this._gridSize;
+    let gs = Math.log2(this._gridSize);
+
     this._texCoordsBuffer = this._planet._textureCoordsBufferCache[gs];
 
-    gs = Math.log2(gs);
     this._indexBuffer = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
 
     this._quadTexCoordsBuffer = h.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
