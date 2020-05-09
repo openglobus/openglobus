@@ -115,7 +115,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.tileY = 0;
 
-    this.tileIndex = null;
+    this.tileIndex = '';
 
     this._assignTileIndexes();
 
@@ -167,6 +167,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
+    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -188,17 +189,19 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
 
+    this.vertexNormalBuffer = null;
+    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
-
     this.vertexTextureCoordBuffer = null;
-    this._indexBuffer = null;
 
     this._globalTextureCoordinates = new Float32Array(4);
     this._inTheQueue = false;
     this._appliedNeighborsZoom = [0, 0, 0, 0];
 
     this._renderingSlices = [];
+
+    this._indexBuffer = null;
 
     this.readyToEngage = false;
 
@@ -372,10 +375,14 @@ Segment.prototype.elevationsExists = function (elevations) {
 
         this.plainVerticesHigh = null;
         this.plainVerticesLow = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+
         this.normalMapVerticesHigh = null;
         this.normalMapVerticesLow = null;
+
+        if (!this.planet.terrain.equalizeVertices) {
+            this.tempVerticesHigh = null;
+            this.tempVerticesLow = null;
+        }
     }
 };
 
@@ -606,7 +613,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVerticesHigh = null;
         this.tempVerticesLow = null;
 
-
         this.normalMapNormals = data.normalMapNormals;
         this.normalMapVertices = data.normalMapVertices;
         this.normalMapVerticesHigh = data.normalMapVerticesHigh;
@@ -629,7 +635,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         );
 
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
-
         this.node.appliedTerrainNodeId = this.node.nodeId;
 
         this.terrainReady = true;
@@ -676,7 +681,6 @@ Segment.prototype.elevationsNotExists = function () {
 
         this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.gridSize = this.fileGridSize;
-
         this.terrainReady = true;
         this.terrainExists = false;
     }
@@ -795,15 +799,16 @@ Segment.prototype.applyTerrain = function (elevations) {
  */
 Segment.prototype.deleteBuffers = function () {
     var gl = this.handler.gl;
-
+    gl.deleteBuffer(this.vertexNormalBuffer);
+    gl.deleteBuffer(this.vertexPositionBuffer);
     gl.deleteBuffer(this.vertexPositionBufferHigh);
     gl.deleteBuffer(this.vertexPositionBufferLow);
 
+    this.vertexNormalBuffer = null;
+    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
-
     this.vertexTextureCoordBuffer = null;
-    this._indexBuffer = null;
 };
 
 /**
@@ -905,6 +910,7 @@ Segment.prototype.destroySegment = function () {
 
     this.materials = null;
 
+    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -925,6 +931,8 @@ Segment.prototype.destroySegment = function () {
     this.normalMapVerticesLow = null;
     this.normalMapNormals = null;
 
+    this.vertexNormalBuffer = null;
+    this.vertexPositionBuffer = null;
     this.vertexPositionBufferHigh = null;
     this.vertexPositionBufferLow = null;
     this.vertexTextureCoordBuffer = null;
@@ -1467,18 +1475,6 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 };
-
-//Segment.prototype._getIndexBuffer = function () {
-//    var s = this.node.sideSize;
-//    var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
-//    if (!cache.buffer) {
-//        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [Math.log2(s[0]), Math.log2(s[1]), Math.log2(s[2]), Math.log2(s[3])]);
-//        cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
-//        this.planet._indexesCacheToRemoveCounter++;
-//        indexes = null;
-//    }
-//    return cache.buffer;
-//};
 
 Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSizeLog2;
