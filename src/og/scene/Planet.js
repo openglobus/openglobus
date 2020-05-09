@@ -264,8 +264,8 @@ class Planet extends RenderNode {
          * @type {Array.<Array.<number>>}
          */
         this._indexesCache = [];
-
         this._indexesCacheToRemove = [];
+        this._indexesCacheToRemoveCounter = 0;
 
         /**
          * Precomputed texture coordinates buffers for differrent grid size segments.
@@ -273,13 +273,6 @@ class Planet extends RenderNode {
          * @type {Array.<Array.<number>>}
          */
         this._textureCoordsBufferCache = [];
-
-        ///**
-        // * Precomputed indexes buffers for differrent grid size segments.
-        // * @protected
-        // * @type {Array.<Array.<number>>}
-        // */
-        //this._indexesBuffers = [];
 
         /**
          * Framebuffer for relief. Is null when WEBGL_draw_buffers extension initialized.
@@ -730,6 +723,7 @@ class Planet extends RenderNode {
     }
 
     clearIndexesCache() {
+        this._indexesCacheToRemoveCounter = 0;
         let c = this._indexesCacheToRemove,
             gl = this.renderer.handler.gl;
         for (let i = 0, len = c.length; i < len; i++) {
@@ -984,10 +978,15 @@ class Planet extends RenderNode {
         this._distBeforeMemClear += this._prevCamEye.distance(this.camera.eye);
         this._prevCamEye.copy(this.camera.eye);
         this.renderer.activeCamera.checkFly();
+
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
             this.terrain.clearCache();
             this.memClear();
+        }
+
+        if (this._indexesCacheToRemoveCounter > 600) {
+            this.clearIndexesCache();
         }
     }
 

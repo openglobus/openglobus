@@ -204,6 +204,7 @@ const Node = function (SegmentPrototype, planet, partId, parent, id, tileZoom, e
     this.state = null;
     this.appliedTerrainNodeId = -1;
     this.sideSize = [1, 1, 1, 1];
+    this.sideSizeLog2 = [0, 0, 0, 0];
     this.ready = false;
     this.neighbors = [[], [], [], []];
     this.equalizedNeighborId = [-1, -1, -1, -1];
@@ -640,6 +641,9 @@ Node.prototype.addToRender = function (inFrustum) {
 
                 this.sideSize[cs] = cs_size;
                 ni.sideSize[opcs] = opcs_size;
+
+                this.sideSizeLog2[cs] = Math.log2(cs_size);
+                ni.sideSizeLog2[opcs] = Math.log2(opcs_size);
             }
 
             this.neighbors[cs].push(ni);
@@ -1038,6 +1042,7 @@ Node.prototype.destroy = function () {
     this.neighbors = null;
     this.parentNode = null;
     this.sideSize = null;
+    this.sideSizeLog2 = null;
     this.segment = null;
 };
 

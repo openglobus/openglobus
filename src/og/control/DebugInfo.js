@@ -59,6 +59,9 @@ class DebugInfo extends Control {
                 label: "createdNodes",
                 frame: () => p._createdNodesCount
             }, {
+                label: "indexesCache",
+                frame: () => p._indexesCacheToRemoveCounter
+            }, {
                 label: "distBeforeMemClear",
                 frame: () => p._distBeforeMemClear
             }, {

@@ -20,14 +20,14 @@ const Ray = function (origin, direction) {
      * @public
      * @type {og.Vec3}
      */
-    this.origin = origin.clone();
+    this.origin = origin || new Vec3();
 
     /**
      * The direction of the ray.
      * @public
      * @type {og.Vec3}
      */
-    this.direction = direction.clone();
+    this.direction = direction || new Vec3();
 };
 
 /**
@@ -58,8 +58,8 @@ Ray.AWAY = 3;
  * @returns {og.Ray}
  */
 Ray.prototype.set = function (origin, direction) {
-    this.origin = origin.clone();
-    this.direction = direction.clone();
+    this.origin = origin;
+    this.direction = direction;
     return this;
 };
 

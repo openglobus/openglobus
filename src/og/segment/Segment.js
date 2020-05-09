@@ -115,7 +115,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.tileY = 0;
 
-    this.tileIndex = '';
+    this.tileIndex = null;
 
     this._assignTileIndexes();
 
@@ -236,6 +236,9 @@ let _v0 = new Vec3(),
     _v2 = new Vec3(),
     _v3 = new Vec3();
 
+let _ray = new Ray(),
+    _rayEx = new Ray();
+
 /**
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
@@ -246,8 +249,9 @@ let _v0 = new Vec3(),
  * @returns {number} -
  */
 Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, normal) {
-    var verts = this.tempVertices,
-        ray = new Ray(xyz, xyz.negateTo());
+    var verts = this.tempVertices;
+
+    _ray.set(xyz, xyz.negateTo());
 
     if (verts) {
 
@@ -282,13 +286,13 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
             _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
             _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            let d = ray.hitTriangle(_v0, _v1, _v2, res, normal);
+            let d = _ray.hitTriangle(_v0, _v1, _v2, res, normal);
 
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
-                let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(_v0, _v1, _v2, res, normal);
+                _rayEx.set(xyz, xyz);
+                let d = _rayEx.hitTriangle(_v0, _v1, _v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
@@ -296,12 +300,12 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
 
             _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-            d = ray.hitTriangle(_v1, _v3, _v2, res, normal);
+            d = _ray.hitTriangle(_v1, _v3, _v2, res, normal);
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
-                let ray = new Ray(xyz, xyz);
-                let d = ray.hitTriangle(_v1, _v3, _v2, res, normal);
+                _rayEx.set(xyz, xyz);
+                let d = _rayEx.hitTriangle(_v1, _v3, _v2, res, normal);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
@@ -314,12 +318,12 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
             return xyz.distance(res);
         }
 
-        res.copy(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
+        res.copy(this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction));
         normal && normal.copy(xyz.normal());
         return xyz.distance(res);
     } else {
         normal && normal.copy(xyz.normal());
-        return xyz.distance(this.planet.ellipsoid.hitRay(ray.origin, ray.direction));
+        return xyz.distance(this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction));
     }
 };
 
@@ -625,6 +629,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         );
 
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
+
         this.node.appliedTerrainNodeId = this.node.nodeId;
 
         this.terrainReady = true;
@@ -671,6 +676,7 @@ Segment.prototype.elevationsNotExists = function () {
 
         this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.gridSize = this.fileGridSize;
+
         this.terrainReady = true;
         this.terrainExists = false;
     }
@@ -827,7 +833,6 @@ Segment.prototype.deleteElevations = function () {
     this.normalMapVerticesLow = null;
 
     this.normalMapNormals = null;
-    //this.normalMapNormalsRaw = null;
 
     this.tempVertices = null;
     this.tempVerticesHigh = null;
@@ -1057,6 +1062,9 @@ Segment.prototype.initialize = function () {
 
     n.sideSize[0] = n.sideSize[1] = n.sideSize[2] = n.sideSize[3] =
         this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+
+    n.sideSizeLog2[0] = n.sideSizeLog2[1] = n.sideSizeLog2[2] = n.sideSizeLog2[3] =
+        Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
     if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;
@@ -1460,13 +1468,25 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
     }
 };
 
+//Segment.prototype._getIndexBuffer = function () {
+//    var s = this.node.sideSize;
+//    var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
+//    if (!cache.buffer) {
+//        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [Math.log2(s[0]), Math.log2(s[1]), Math.log2(s[2]), Math.log2(s[3])]);
+//        cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
+//        this.planet._indexesCacheToRemoveCounter++;
+//        indexes = null;
+//    }
+//    return cache.buffer;
+//};
+
 Segment.prototype._getIndexBuffer = function () {
-    var s = this.node.sideSize;
-    var cache = this.planet._indexesCache[Math.log2(this.gridSize)][Math.log2(s[0])][Math.log2(s[1])][Math.log2(s[2])][Math.log2(s[3])];
+    var s = this.node.sideSizeLog2;
+    var cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
     if (!cache.buffer) {
-        //let indexes = segmentHelper.createSegmentIndexes(this.gridSize, [s[0], s[1], s[2], s[3]]);
-        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [Math.log2(s[0]), Math.log2(s[1]), Math.log2(s[2]), Math.log2(s[3])]);
+        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
+        this.planet._indexesCacheToRemoveCounter++;
         indexes = null;
     }
     return cache.buffer;
