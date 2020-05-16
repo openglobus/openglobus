@@ -56,8 +56,8 @@ class ScaleControl extends Control {
 
         this.planet = null;
 
-        this._minWidth = 70;
-        this._maxWidth = 100;
+        this._minWidth = 100;
+        this._maxWidth = 150;
     }
 
     oninit() {
