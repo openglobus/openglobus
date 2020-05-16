@@ -17,6 +17,7 @@ import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 import { Popup } from '../../src/og/Popup.js';
 import { LonLat } from '../../src/og/LonLat.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
+import { ScaleControl } from '../../src/og/control/ScaleControl.js';
 
 // document.getElementById("ambient-r").addEventListener("input", function (e) {
 //     osm.ambient.x = this.value;
@@ -191,14 +192,19 @@ function test(a) {
 //    layers: [osm, sat, tg, states]
 //});
 
-globe.planet.addControl(new DebugInfo());
+globe.planet.addControl(new DebugInfo({
+    watch: [{
+        'label': "mInPx",
+        'frame': () => globe.planet.renderer.controls.scaleControl._mPx
+    }]
+}));
 globe.planet.addControl(new ToggleWireframe({
     isActive: false
 }));
-
 globe.planet.addControl(new KeyboardNavigation());
-
 globe.planet.addControl(new LayerSwitcher());
+globe.planet.addControl(new ScaleControl());
+
 
 let e1 = new Entity({
     'name': 'strip1',
