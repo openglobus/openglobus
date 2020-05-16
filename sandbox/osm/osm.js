@@ -194,8 +194,17 @@ function test(a) {
 
 globe.planet.addControl(new DebugInfo({
     watch: [{
-        'label': "mInPx",
+        'label': "metersInMinSize",
+        'frame': () => globe.planet.renderer.controls.scaleControl._metersInMinSize
+    }, {
+        'label': "meters in pixel",
         'frame': () => globe.planet.renderer.controls.scaleControl._mPx
+    }, {
+        'label': "currSize",
+        'frame': () => globe.planet.renderer.controls.scaleControl.currSize
+    }, {
+        'label': "currScale",
+        'frame': () => globe.planet.renderer.controls.scaleControl.currScale
     }]
 }));
 globe.planet.addControl(new ToggleWireframe({

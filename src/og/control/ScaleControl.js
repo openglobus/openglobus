@@ -6,6 +6,7 @@
 
 import { Control } from './Control.js';
 import { RADIANS } from '../math.js';
+import { binarySearch } from '../utils/shared.js';
 
 const scale = [
     1,
@@ -54,21 +55,24 @@ class ScaleControl extends Control {
         options = options || {};
 
         this.planet = null;
+
+        this._minWidth = 70;
+        this._maxWidth = 100;
     }
 
     oninit() {
-        var zoomDiv = document.createElement('div'),
-            btnZoomIn = document.createElement('button'),
-            btnZoomOut = document.createElement('button');
 
-        zoomDiv.className = 'ogZoomControl';
-        btnZoomIn.className = 'ogZoomButton ogZoomIn';
-        btnZoomOut.className = 'ogZoomButton ogZoomOut';
+        this.el = document.createElement('div');
 
-        zoomDiv.appendChild(btnZoomIn);
-        zoomDiv.appendChild(btnZoomOut);
+        this.el.style.position = "absolute";
+        this.el.style.backgroundColor = "white";
+        this.el.style.height = "5px";
+        this.el.style.width = "0";
 
-        this.renderer.div.appendChild(zoomDiv);
+        this.el.style.right = "88px";
+        this.el.style.bottom = "68px";
+
+        this.renderer.div.appendChild(this.el);
 
         this.renderer.events.on("draw", this._draw, this);
     }
@@ -82,6 +86,25 @@ class ScaleControl extends Control {
         let p1 = p0.add(cam.getRight().scaleTo(tempSize));
         let s1 = cam.project(p1);
         this._mPx = tempSize / s1.distance(s0);
+
+        let metersInMinSize = this._mPx * this._minWidth;
+            
+        let index = binarySearch(scale, metersInMinSize, (a, b) => a - b);
+        if (index < 0) {
+            index = ~index;
+        }
+        let minMeters = scale[index],
+            maxMeters = scale[index + 1];
+
+        let minWidth = this._minWidth * minMeters / metersInMinSize;
+
+        let t = (metersInMinSize - minMeters) / (maxMeters - minMeters);
+        this.currWidth = this._minWidth + t * (this._maxWidth - this._minWidth);
+
+        this.currScale = minMeters;
+
+        this.el.style.width = this.currWidth + "px";
+        this._metersInMinSize = metersInMinSize;
     }
 }
 
