@@ -16,6 +16,7 @@ import { MouseNavigation } from './control/MouseNavigation.js';
 import { TouchNavigation } from './control/TouchNavigation.js';
 import { Sun } from './control/Sun.js';
 import { ZoomControl } from './control/ZoomControl.js';
+import { ScaleControl } from './control/ScaleControl.js';
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -152,7 +153,8 @@ class Globe {
                 new ZoomControl(),
                 new MouseNavigation(),
                 new TouchNavigation(),
-                new EarthCoordinates()
+                new EarthCoordinates(),
+                new ScaleControl()
             ]);
         }
 
