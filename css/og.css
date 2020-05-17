@@ -344,13 +344,35 @@
     float: right;
 }
 
-.og-popup-btn:hover {
-    color: #2e9be7;
-}
+    .og-popup-btn:hover {
+        color: #2e9be7;
+    }
 
 .og-popup-title {
     position: absolute;
     left: 5px;
     top: 3px;
     font-size: 14px;
+}
+
+.og-scale-container {
+    position: absolute;
+    right: 320px;
+    bottom: 30px;
+}
+
+.og-scale-label {
+    position: relative;
+    color: white;
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+    text-align: center;
+}
+
+.og-scale-ruler {
+    position: relative;
+    height: 7px;
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+    border-right: 2px solid white;
 }

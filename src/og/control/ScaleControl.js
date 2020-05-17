@@ -6,7 +6,7 @@
 
 import { Control } from './Control.js';
 import { RADIANS } from '../math.js';
-import { binarySearch } from '../utils/shared.js';
+import { binarySearch, parseHTML } from '../utils/shared.js';
 
 const scale = [
     1,
@@ -40,6 +40,12 @@ const scale = [
     10000e3
 ];
 
+const TEMPLATE =
+    `<div class="og-scale-container">
+      <div class="og-scale-label"></div>
+      <div class="og-scale-ruler"></div>
+    </div>`;
+
 /**
  * Planet zoom buttons control.
  * @class
@@ -54,23 +60,23 @@ class ScaleControl extends Control {
         super(options);
         options = options || {};
 
+        this._template = TEMPLATE;
+
         this.planet = null;
 
         this._minWidth = 100;
         this._maxWidth = 150;
     }
 
+    _renderTemplate() {
+        return parseHTML(this._template)[0];
+    }
+
     oninit() {
 
-        this.el = document.createElement('div');
+        this.el = this._renderTemplate();
 
-        this.el.style.position = "absolute";
-        this.el.style.backgroundColor = "white";
-        this.el.style.height = "5px";
-        this.el.style.width = "0";
-
-        this.el.style.right = "88px";
-        this.el.style.bottom = "68px";
+        this._scaleLabelEl = this.el.querySelector(".og-scale-label");
 
         this.renderer.div.appendChild(this.el);
 
@@ -82,13 +88,13 @@ class ScaleControl extends Control {
         let s0 = this.planet.renderer.handler.getCenter();
         let dist = this.planet.getDistanceFromPixel(s0, true);
         let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
-        let tempSize = dist * Math.tan(cam._viewAngle * 0.25 * RADIANS);
+        let tempSize = dist * Math.tan(cam._viewAngle * RADIANS);
         let p1 = p0.add(cam.getRight().scaleTo(tempSize));
         let s1 = cam.project(p1);
         this._mPx = tempSize / s1.distance(s0);
 
         let metersInMinSize = this._mPx * this._minWidth;
-            
+
         let index = binarySearch(scale, metersInMinSize, (a, b) => a - b);
         if (index < 0) {
             index = ~index;
@@ -96,15 +102,18 @@ class ScaleControl extends Control {
         let minMeters = scale[index],
             maxMeters = scale[index + 1];
 
-        let minWidth = this._minWidth * minMeters / metersInMinSize;
-
-        let t = (metersInMinSize - minMeters) / (maxMeters - minMeters);
+        let t = (minMeters - metersInMinSize) / (maxMeters - minMeters);
         this.currWidth = this._minWidth + t * (this._maxWidth - this._minWidth);
 
-        this.currScale = minMeters;
+        if (minMeters > 1000) {
+            this._scaleLabelEl.innerText = `${minMeters / 1000} km`;
+        } else {
+            this._scaleLabelEl.innerText = `${minMeters} m`;
+        }
+
+        this._metersInMinSize = metersInMinSize;
 
         this.el.style.width = this.currWidth + "px";
-        this._metersInMinSize = metersInMinSize;
     }
 }
 

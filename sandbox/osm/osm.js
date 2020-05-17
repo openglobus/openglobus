@@ -199,12 +199,6 @@ globe.planet.addControl(new DebugInfo({
     }, {
         'label': "meters in pixel",
         'frame': () => globe.planet.renderer.controls.scaleControl._mPx
-    }, {
-        'label': "currSize",
-        'frame': () => globe.planet.renderer.controls.scaleControl.currSize
-    }, {
-        'label': "currScale",
-        'frame': () => globe.planet.renderer.controls.scaleControl.currScale
     }]
 }));
 globe.planet.addControl(new ToggleWireframe({
