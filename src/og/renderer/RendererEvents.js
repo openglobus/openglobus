@@ -56,6 +56,8 @@ class RendererEvents extends Events {
 
         this._active = true;
 
+        this.clickRadius = 15;
+
         /**
          * Current mouse state.
          * @public
@@ -111,9 +113,9 @@ class RendererEvents extends Events {
             /** Mouse has just stopped now. */
             justStopped: false,
             /** Mose double click delay response time.*/
-            doubleClickDelay: 300,
+            doubleClickDelay: 500,
             /** Mose click delay response time.*/
-            clickDelay: 150,
+            clickDelay: 200,
             /** Mouse wheel. */
             wheelDelta: 0,
             /** JavaScript mouse system event message. */
@@ -302,17 +304,31 @@ class RendererEvents extends Events {
         var ms = this.mouseState;
         ms.sys = event;
 
+        let ex = event.clientX,
+            ey = event.clientY,
+            r = this.clickRadius;
+
+        if (Math.abs(this._lclickX - ex) >= r &&
+            Math.abs(this._lclickY - ey) >= r) {
+            this._ldblClkBegins = 0;
+            this._lClkBegins = 0;
+        }
+
+        if (Math.abs(this._rclickX - ex) >= r &&
+            Math.abs(this._rclickY - ey) >= r) {
+            this._rdblClkBegins = 0;
+            this._rClkBegins = 0;
+        }
+
+        if (Math.abs(this._mclickX - ex) >= r &&
+            Math.abs(this._mclickY - ey) >= r) {
+            this._mdblClkBegins = 0;
+            this._mClkBegins = 0;
+        }
+
         if (ms.x === event.clientX && ms.y === event.clientY) {
             return;
         }
-
-        this._ldblClkBegins = 0;
-        this._rdblClkBegins = 0;
-        this._mdblClkBegins = 0;
-
-        this._lClkBegins = 0;
-        this._rClkBegins = 0;
-        this._mClkBegins = 0;
 
         ms.x = event.clientX;
         ms.y = event.clientY;
@@ -377,8 +393,8 @@ class RendererEvents extends Events {
             ms.leftButtonDown = false;
             ms.leftButtonUp = true;
 
-            if (this._lclickX === event.clientX &&
-                this._lclickY === event.clientY &&
+            if (Math.abs(this._lclickX - event.clientX) < this.clickRadius &&
+                Math.abs(this._lclickY - event.clientY) < this.clickRadius &&
                 (t - this._lClkBegins <= ms.clickDelay)) {
 
                 if (this._ldblClkBegins) {
@@ -399,8 +415,8 @@ class RendererEvents extends Events {
             ms.rightButtonDown = false;
             ms.rightButtonUp = true;
 
-            if (this._rclickX === event.clientX &&
-                this._rclickY === event.clientY &&
+            if (Math.abs(this._rclickX - event.clientX) < this.clickRadius &&
+                Math.abs(this._rclickY - event.clientY) < this.clickRadius &&
                 (t - this._rClkBegins <= ms.clickDelay)) {
 
                 if (this._rdblClkBegins) {
@@ -420,8 +436,8 @@ class RendererEvents extends Events {
             ms.middleButtonDown = false;
             ms.middleButtonUp = true;
 
-            if (this._mclickX === event.clientX &&
-                this._mclickY === event.clientY &&
+            if (Math.abs(this._mclickX - event.clientX) < this.clickRadius &&
+                Math.abs(this._mclickY - event.clientY) < this.clickRadius &&
                 (t - this._mClkBegins <= ms.clickDelay)) {
 
                 if (this._mdblClkBegins) {
