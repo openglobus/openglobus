@@ -32,7 +32,12 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
 
         case "mousedown":
             this._htmlObject.addEventListener('mousedown', function (event) {
-                callback.call(sender, event);
+                var rect = this.getBoundingClientRect();
+                callback.call(sender, {
+                    button: event.button,
+                    clientX: event.clientX - rect.left,
+                    clientY: event.clientY - rect.top
+                }, event);
             });
             this._htmlObject.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
@@ -42,7 +47,12 @@ MouseHandler.prototype.setEvent = function (event, sender, callback) {
 
         case "mouseup":
             this._htmlObject.addEventListener('mouseup', function (event) {
-                callback.call(sender, event);
+                var rect = this.getBoundingClientRect();
+                callback.call(sender, {
+                    button: event.button,
+                    clientX: event.clientX - rect.left,
+                    clientY: event.clientY - rect.top
+                }, event);
             });
             break;
 
