@@ -1314,6 +1314,9 @@ class Polyline {
         //
         multiLineIndex = multiLineIndex || 0;
         this._path3v[multiLineIndex].splice(index, 1);
+        if (this._path3v[multiLineIndex].length === 0) {
+            this._path3v.splice(multiLineIndex, 1);
+        }
         this.setPath3v([].concat(this._path3v));
     }
 
@@ -1601,6 +1604,9 @@ class Polyline {
      */
     remove() {
         this._entity = null;
+
+        this._pathColors.length = 0;
+        this._pathColors = [];
 
         this._verticesHigh.length = 0;
         this._verticesLow.length = 0;
