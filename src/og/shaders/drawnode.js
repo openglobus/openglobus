@@ -9,7 +9,8 @@ import { Program } from '../webgl/Program.js';
 export function drawnode_screen_nl() {
     return new Program("drawnode_screen_nl", {
         uniforms: {
-            projectionViewMatrix: "mat4",
+            projectionMatrix: "mat4",
+            viewMatrix: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             samplerCount: "int",
@@ -31,7 +32,8 @@ export function drawnode_screen_nl() {
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
-            uniform mat4 projectionViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float height;
@@ -41,10 +43,18 @@ export function drawnode_screen_nl() {
             void main(void) {
                 vTextureCoord = aTextureCoord;
 
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
 
-                gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+                /*vec3 cameraPosition = eyePositionHigh + eyePositionLow;*/
+                /*vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow * (cameraPosition / cameraPosition);*/
+                /*gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);*/
             }`,
 
         fragmentShader:

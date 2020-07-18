@@ -1095,7 +1095,10 @@ class Planet extends RenderNode {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
             shu = sh.uniforms;
-            gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, cam.getProjectionViewMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+            //gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, cam.getProjectionViewMatrix());
         }
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
