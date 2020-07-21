@@ -394,7 +394,7 @@ Segment.prototype._checkEqualization = function (neighborSide, neigborNode) {
 
 Segment.prototype.equalize = function () {
 
-    if (this.tileZoom < 8) {
+    if (this.tileZoom < 8 || this.gridSize < 2) {
         return;
     }
 
