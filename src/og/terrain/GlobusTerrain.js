@@ -89,7 +89,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.url = options.url || "http://srtm3.openglobus.org/{z}/{y}/{x}.ddm";
+        this.url = options.url || "//srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
         this._dataType = "arrayBuffer";
 
