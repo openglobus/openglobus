@@ -4,6 +4,8 @@
 
 'use strict';
 
+import { input } from './input.js';
+
 const KeyboardHandler = function () {
     var _currentlyPressedKeys = {};
     var _pressedKeysCallbacks = {};
@@ -91,9 +93,9 @@ const KeyboardHandler = function () {
     };
 
     this.handleKeyUp = function () {
-        if (_currentlyPressedKeys[_event.keyCode]) {
+        if (_currentlyPressedKeys[_event.keyCode] || _event.keyCode === input.KEY_PRINTSCREEN) {
             for (var pk in _unpressedKeysCallbacks) {
-                if (_currentlyPressedKeys[pk]) {
+                if (_currentlyPressedKeys[pk] || _event.keyCode === input.KEY_PRINTSCREEN && pk == input.KEY_PRINTSCREEN) {
                     var cpk = _unpressedKeysCallbacks[pk];
                     for (var i = 0; i < cpk.length; i++) {
                         cpk[i].callback.call(cpk[i].sender, _event);

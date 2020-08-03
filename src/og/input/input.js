@@ -13,6 +13,7 @@ export const input = {
     KEY_UP: 38,
     KEY_RIGHT: 39,
     KEY_DOWN: 40,
+    KEY_PRINTSCREEN: 44,
     KEY_A: 65,
     KEY_C: 67,
     KEY_D: 68,
