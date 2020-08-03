@@ -209,6 +209,7 @@ class MouseNavigation extends Control {
         this.activate();
 
         this.renderer.events.on("keyfree", input.KEY_SHIFT, this.onShiftFree, this);
+        this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this.onShiftFree, this);
     }
 
     onMouseLeftButtonDoubleClick() {
