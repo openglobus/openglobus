@@ -167,30 +167,33 @@ let sat = new XYZ("MapQuest Satellite", {
         <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
 });
 
-//window.globe = new Globe({
-//    'name': "Earth",
-//    'target': "earth",
-//    'terrain': new GlobusTerrain(),
-//    'layers': [osm, sat, tg, states, modis],
-//    'viewExtent': [7.86, 44.24, 11.29, 45.0]
-//});
+window.globe = new Globe({
+    'name': "Earth",
+    'target': "earth",
+    'terrain': new MapboxTerrain(null, {
+        gridSizeByZoom: [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 64, 64, 64, 64, 64, 64, 64, 32, 16, 8, 4, 2],
+        maxZoom: 21
+    }),
+    'layers': [osm, sat, tg, states, modis],
+    'viewExtent': [7.86, 44.24, 11.29, 45.0]
+});
 
 function test(a) {
     console.log(a);
 };
 
-window.globe = new Globe({
-    target: "earth",
-    name: "Bil Terrain Source",
-    terrain: new BilTerrain({
-        url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:n44_e009_1arc_v3",
-        imageSize: 128,
-        extent: [[8.9, 44.0], [10.0, 45]]
-    }),
-    viewExtent: [7.86, 44.24, 11.29, 45.0],
-    layers: [osm, sat, tg, states, modis]
-});
+//window.globe = new Globe({
+//    target: "earth",
+//    name: "Bil Terrain Source",
+//    terrain: new BilTerrain({
+//        url: "//95.211.82.211:8080/geoserver/og/",
+//        layers: "og:n44_e009_1arc_v3",
+//        imageSize: 128,
+//        extent: [[8.9, 44.0], [10.0, 45]]
+//    }),
+//    viewExtent: [7.86, 44.24, 11.29, 45.0],
+//    layers: [osm, sat, tg, states, modis]
+//});
 
 globe.planet.addControl(new DebugInfo({
     watch: [{
