@@ -15,6 +15,9 @@ const NormalMapCreator = function (planet, options) {
 
     options = options || {};
 
+    this._minTabelSize = options.minTableSize || 1;
+    this._maxTableSize = options.maxTableSize || 7;
+
     this._planet = planet;
     this._handler = planet.renderer.handler;
     this._verticesBufferArray = [];
@@ -123,7 +126,7 @@ NormalMapCreator.prototype._init = function () {
     this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
     //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
-    for (var p = 5; p <= 7; p++) {
+    for (var p = this._minTabelSize; p <= this._maxTableSize; p++) {
         var gs = Math.pow(2, p);
         var gs2 = (gs / 2);
         var vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
@@ -187,7 +190,7 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
         gl.deleteBuffer(_normalsBuffer);
 
@@ -247,7 +250,7 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
         gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBufferArray[gridSize].numItems, gl.UNSIGNED_INT, 0);
 
         gl.deleteBuffer(_normalsBuffer);
 

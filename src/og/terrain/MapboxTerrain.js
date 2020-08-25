@@ -15,15 +15,14 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.equalizeNormals = false;
 
-        this.minZoom = 3;
+        this.minZoom = options.minZoom != undefined ? options.minZoom : 3;
 
         this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 15;
 
         this.plainGridSize = 128;
 
-        this._maxNodeZoom = this.gridSizeByZoom.length - 1;
+        this.url = options.url != undefined ? options.url : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${(options.key || KEY)}`;
 
-        this.url = "//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=" + (options.key || KEY);
         this._dataType = "imageBitmap";
 
         this._canvas = document.createElement("canvas");

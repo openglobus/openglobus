@@ -7,6 +7,10 @@ export const TABLESIZE = 7;
 const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
 const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
 
+function NewIndexesTypedArray(arr) {
+    return new Uint32Array(arr);
+};
+
 export function createSegmentIndexes(size, sidesSizes) {
     if (size) {
         let c = centerIndexesTable[size],
@@ -15,7 +19,7 @@ export function createSegmentIndexes(size, sidesSizes) {
             e = skirtsIndexesTable[E][size][sidesSizes[E]],
             s = skirtsIndexesTable[S][size][sidesSizes[S]];
 
-        let indexes = new Uint16Array(c.length + w.length + n.length + e.length + s.length);
+        let indexes = NewIndexesTypedArray(c.length + w.length + n.length + e.length + s.length);
 
         indexes.set(c, 0);
         indexes.set(w, c.length);
@@ -25,7 +29,7 @@ export function createSegmentIndexes(size, sidesSizes) {
 
         return indexes;
     } else {
-        return new Uint16Array([0, 2, 1, 3]);
+        return NewIndexesTypedArray([0, 2, 1, 3]);
     }
 };
 
@@ -51,7 +55,7 @@ function createCenterBodyIndexes(size) {
     }
     indexes.push(indexes[indexes.length - 1], size * size - size);
 
-    return new Uint16Array(indexes);
+    return NewIndexesTypedArray(indexes);
 };
 
 function createWestNeighborSkirt(size, deltaGr) {
@@ -73,7 +77,7 @@ function createWestNeighborSkirt(size, deltaGr) {
         indexes.push(0);
     }
 
-    return new Uint16Array(indexes);
+    return NewIndexesTypedArray(indexes);
 };
 
 function createNorthNeighborSkirt(size, deltaGr) {
@@ -94,7 +98,7 @@ function createNorthNeighborSkirt(size, deltaGr) {
         indexes.push(size - 1);
     }
 
-    return new Uint16Array(indexes);
+    return NewIndexesTypedArray(indexes);
 };
 
 function createEastNeighborSkirt(size, deltaGr) {
@@ -115,7 +119,7 @@ function createEastNeighborSkirt(size, deltaGr) {
         indexes.push(size * size - 1);
     }
 
-    return new Uint16Array(indexes);
+    return NewIndexesTypedArray(indexes);
 };
 
 function createSouthNeighborSkirt(size, deltaGr) {
@@ -138,7 +142,7 @@ function createSouthNeighborSkirt(size, deltaGr) {
     }
     indexes.push(size * size - size);
 
-    return new Uint16Array(indexes);
+    return NewIndexesTypedArray(indexes);
 };
 
 function initIndexesBodySkirts(pow) {

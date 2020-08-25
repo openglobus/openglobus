@@ -620,7 +620,7 @@ class Planet extends RenderNode {
                                 buffer: null
                             };
 
-                            if (i >= 5 && i === j && i === k && i === m && i === q) {
+                            if (i >= 1 && i === j && i === k && i === m && i === q) {
                                 let indexes = segmentHelper.createSegmentIndexes(i, [j, k, m, q]);
                                 ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
@@ -638,9 +638,9 @@ class Planet extends RenderNode {
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
-        let texCoordCache = segmentHelper.initTextureCoordsTable(TABLESIZE);
+        let texCoordCache = segmentHelper.initTextureCoordsTable(TABLESIZE + 1);
 
-        for (let i = 0; i < TABLESIZE; i++) {
+        for (let i = 0; i <= TABLESIZE; i++) {
             this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
         }
 
@@ -713,6 +713,8 @@ class Planet extends RenderNode {
         this._vectorTileCreator = new VectorTileCreator(this);
 
         this._normalMapCreator = new NormalMapCreator(this, {
+            minTableSize: 1,
+            maxTableSize: TABLESIZE,
             blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
         });
 

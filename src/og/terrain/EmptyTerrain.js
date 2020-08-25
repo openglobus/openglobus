@@ -64,18 +64,18 @@ class EmptyTerrain {
         //     (lon, lat, alt, callback) => callback(alt),
         //     (lon, lat, alt, callback) => callback(alt - this._geoid.getHeight(lon, lat)),
         //     (lon, lat, alt, callback) => {
-                
+
         //         let x = mercator.getTileX(lon, zoom),
         //             y = mercator.getTileY(lat, zoom);
-        
+
         //         let mslAlt = alt - this._geoid.getHeight(lon, lat);
-        
+
         //         if (true) {
-        
+
         //         } else {
-        
+
         //         }
-        
+
         //         return callback(mslAlt);
         //     },
         // ];
@@ -127,6 +127,13 @@ class EmptyTerrain {
      * @abstract
      */
     abortLoading() { }
+
+    /**
+     * Abstract function
+     * @public
+     * @abstract
+     */
+    clearCache() { }
 };
 
 export { EmptyTerrain };
