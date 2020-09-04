@@ -69,7 +69,7 @@ const Framebuffer = function (handler, options) {
      */
     this._height = options.height || handler.canvas.height;
 
-    this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
+    this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT24";
 
     this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
