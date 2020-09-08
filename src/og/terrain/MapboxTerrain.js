@@ -19,7 +19,7 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 15;
 
-        this.plainGridSize = 128;
+        this.plainGridSize = options.plainGridSize || 128;
 
         this.url = options.url != undefined ? options.url : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${(options.key || KEY)}`;
 
