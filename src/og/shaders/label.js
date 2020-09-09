@@ -13,7 +13,6 @@ export function label_webgl2() {
             u_fontTextureArr: "sampler2dxx",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            //uCamPos: "vec3",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             uFloatParams: "vec2",
@@ -56,7 +55,6 @@ export function label_webgl2() {
 
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            //uniform vec3 uCamPos;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             /*0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio*/
