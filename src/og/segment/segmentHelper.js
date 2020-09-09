@@ -2,7 +2,7 @@
 
 import { N, W, S, E } from '../quadTree/quadTree.js';
 
-export const TABLESIZE = 7;
+export const TABLESIZE = 8;
 
 const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
 const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);

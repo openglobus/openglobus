@@ -124,7 +124,7 @@ export function label_webgl2() {
 
             precision highp float;
 
-            const int MAX_SIZE = 12;
+            const int MAX_SIZE = 3;
 
             uniform sampler2D u_fontTextureArr[MAX_SIZE];
 
@@ -145,23 +145,8 @@ export function label_webgl2() {
                     color = texture(u_fontTextureArr[1], v_texCoords);
                 } else if (fi == 2) {
                     color = texture(u_fontTextureArr[2], v_texCoords);
-                } else if (fi == 3) {
-                    color = texture(u_fontTextureArr[3], v_texCoords);
-                } else if (fi == 4) {
-                    color = texture(u_fontTextureArr[4], v_texCoords);
-                } else if (fi == 5) {
-                    color = texture(u_fontTextureArr[5], v_texCoords);
-                } else if (fi == 6) {
-                    color = texture(u_fontTextureArr[6], v_texCoords);
-                } else if (fi == 7) {
-                    color = texture(u_fontTextureArr[7], v_texCoords);
-                } else if (fi == 8) {
-                    color = texture(u_fontTextureArr[8], v_texCoords);
-                } else if (fi == 9) {
-                    color = texture(u_fontTextureArr[9], v_texCoords);
-                }else{
-                    color = texture(u_fontTextureArr[10], v_texCoords);
                 }
+
                 float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );
                 float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );
                 if( alpha < 0.2 )
@@ -267,7 +252,6 @@ export function label_screen() {
             u_fontTextureArr: "sampler2dxx",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            //uCamPos: "vec3",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             uFloatParams: "vec2",
@@ -307,7 +291,6 @@ export function label_screen() {
             varying vec3 v_bufferAA;
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
-            //uniform vec3 uCamPos;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             /*0 - planetRadius^2, 1 - tan(fov), 2 - screen ratio*/
@@ -368,7 +351,7 @@ export function label_screen() {
         fragmentShader:
             `#extension GL_OES_standard_derivatives : enable
         precision highp float;
-        const int MAX_SIZE = 12;
+        const int MAX_SIZE = 3;
         uniform sampler2D u_fontTextureArr[MAX_SIZE];
         varying float v_fontIndex;
         varying vec2 v_texCoords;
@@ -384,23 +367,8 @@ export function label_screen() {
                 color = texture2D(u_fontTextureArr[1], v_texCoords);
             } else if (fi == 2) {
                 color = texture2D(u_fontTextureArr[2], v_texCoords);
-            } else if (fi == 3) {
-                color = texture2D(u_fontTextureArr[3], v_texCoords);
-            } else if (fi == 4) {
-                color = texture2D(u_fontTextureArr[4], v_texCoords);
-            } else if (fi == 5) {
-                color = texture2D(u_fontTextureArr[5], v_texCoords);
-            } else if (fi == 6) {
-                color = texture2D(u_fontTextureArr[6], v_texCoords);
-            } else if (fi == 7) {
-                color = texture2D(u_fontTextureArr[7], v_texCoords);
-            } else if (fi == 8) {
-                color = texture2D(u_fontTextureArr[8], v_texCoords);
-            } else if (fi == 9) {
-                color = texture2D(u_fontTextureArr[9], v_texCoords);
-            }else{
-                color = texture2D(u_fontTextureArr[10], v_texCoords);
             }
+
             float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );
             float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );
             if( alpha < 0.2 )
