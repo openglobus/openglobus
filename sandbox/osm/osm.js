@@ -156,10 +156,21 @@ let thames = new XYZ("Reconstructed Lakebed", {
     extent: [[-1.12047, 51.60076], [-1.11807, 51.60285]]
 });
 
+let emptyTerrain = new EmptyTerrain(),
+    globusTerrain = new GlobusTerrain(),
+    mapboxTerrain = new MapboxTerrain(),
+    bilTerrain = new BilTerrain({
+        url: "//95.211.82.211:8080/geoserver/og/",
+        layers: "og:n44_e009_1arc_v3",
+        imageSize: 128,
+        gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
+        extent: [[8.9, 44.0], [10.0, 45]]
+    });
+
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new EmptyTerrain()/*new MapboxTerrain(null, {
+    'terrain': emptyTerrain/*new MapboxTerrain(null, {
         url: "http://alacst.ddns.net:8181/Tiles/testtile5/{z}/{x}/{y}.png",
         minZoom: 9,
         maxZoom: 23,
@@ -170,19 +181,19 @@ window.globe = new Globe({
 });
 
 window.setEmptyTerrain = function () {
-    window.globe.planet.setTerrain(new EmptyTerrain());
+    window.globe.planet.setTerrain(emptyTerrain);
 };
 
 window.setOpenglobusTerrain = function () {
-    window.globe.planet.setTerrain(new GlobusTerrain());
+    window.globe.planet.setTerrain(globusTerrain);
 };
 
 window.setBilTerrain = function () {
-    window.globe.planet.setTerrain(new BilTerrain());
+    window.globe.planet.setTerrain(bilTerrain);
 };
 
 window.setMapboxTerrain = function () {
-    window.globe.planet.setTerrain(new MapboxTerrain());
+    window.globe.planet.setTerrain(mapboxTerrain);
 };
 
 
