@@ -4,6 +4,7 @@ import { Globe } from '../../src/og/Globe.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { BilTerrain } from '../../src/og/terrain/BilTerrain.js';
 import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
+import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { WMS } from '../../src/og/layer/WMS.js';
 import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
@@ -71,6 +72,7 @@ cnv.height = 256;
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
     isBaseLayer: false,
+    zIndex: 100,
     drawTile: function (material, applyCanvas) {
         //Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -106,12 +108,11 @@ let osm = new XYZ("OSM", {
     'specular': [0.0003, 0.00012, 0.00001],
     'shininess': 20,
     'diffuse': [0.89, 0.9, 0.83],
-    'isBaseLayer': true,
+    'isBaseLayer': false,
     'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     'visibility': true,
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
 });
-
 
 //let wien = new XYZ("512", {
 //    'isBaseLayer': true,
@@ -119,27 +120,6 @@ let osm = new XYZ("OSM", {
 //    'visibility': false
 //});
 
-
-let modis = new XYZ("modis", {
-    'specular': [0.0003, 0.00012, 0.00001],
-    'shininess': 20,
-    'diffuse': [0.89, 0.9, 0.83],
-    'isBaseLayer': true,
-    'url': "//gibs-a.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/2020-04-04/EPSG3857_250m/{z}/{y}/{x}.jpg",
-    'visibility': false,
-    'maxNativeZoom': 9
-});
-
-
-var states = new WMS("USA Population", {
-    extent: [[-127, 24.5], [-66.5, 48]],
-    opacity: 0.7,
-    visibility: false,
-    isBaseLayer: false,
-    url: "//95.211.82.211:8080/geoserver",
-    layers: "topp:states",
-    transparentColor: [1.0, 1.0, 1.0]
-});
 
 //let sat = new XYZ("MapQuest Satellite", {
 //    shininess: 20,
@@ -167,13 +147,44 @@ let sat = new XYZ("MapQuest Satellite", {
         <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
 });
 
-//window.globe = new Globe({
-//    'name': "Earth",
-//    'target': "earth",
-//    'terrain': new MapboxTerrain(),
-//    'layers': [osm, sat, tg, states, modis],
-//    'viewExtent': [7.86, 44.24, 11.29, 45.0]
-//});
+let thames = new XYZ("Reconstructed Lakebed", {
+    fading: true,
+    isBaseLayer: false,
+    visibility: true,
+    url: "http://alacst.ddns.net:8181/Tiles/1xoverlay/{z}/{x}/{y}.png",
+    // extent: [[-1.1210868226, 51.5993282113], [-1.11506810397, 51.6072360341]]
+    extent: [[-1.12047, 51.60076], [-1.11807, 51.60285]]
+});
+
+window.globe = new Globe({
+    'name': "Earth",
+    'target': "earth",
+    'terrain': new EmptyTerrain()/*new MapboxTerrain(null, {
+        url: "http://alacst.ddns.net:8181/Tiles/testtile5/{z}/{x}/{y}.png",
+        minZoom: 9,
+        maxZoom: 23,
+        gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 128, 128, 128, 128, 256, 256, 256, 256, 256, 256, 256, 256, 256, 128, 64, 32, 16]
+    })*/,
+    'layers': [osm, tg],
+    //'viewExtent': [-1.12675, 51.60039, -1.11016, 5160336]
+});
+
+window.setEmptyTerrain = function () {
+    window.globe.planet.setTerrain(new EmptyTerrain());
+};
+
+window.setOpenglobusTerrain = function () {
+    window.globe.planet.setTerrain(new GlobusTerrain());
+};
+
+window.setBilTerrain = function () {
+    window.globe.planet.setTerrain(new BilTerrain());
+};
+
+window.setMapboxTerrain = function () {
+    window.globe.planet.setTerrain(new MapboxTerrain());
+};
+
 
 //window.globe = new Globe({
 //    'name': "Earth",
@@ -183,19 +194,19 @@ let sat = new XYZ("MapQuest Satellite", {
 //    'viewExtent': [7.86, 44.24, 11.29, 45.0]
 //});
 
-window.globe = new Globe({
-    target: "earth",
-    name: "Bil Terrain Source",
-    terrain: new BilTerrain({
-        url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:n44_e009_1arc_v3",
-        imageSize: 128,
-        gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
-        extent: [[8.9, 44.0], [10.0, 45]]
-    }),
-    viewExtent: [7.86, 44.24, 11.29, 45.0],
-    layers: [osm, sat, tg, states, modis]
-});
+//window.globe = new Globe({
+//    target: "earth",
+//    name: "Bil Terrain Source",
+//    terrain: new BilTerrain({
+//        url: "//95.211.82.211:8080/geoserver/og/",
+//        layers: "og:n44_e009_1arc_v3",
+//        imageSize: 128,
+//        gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
+//        extent: [[8.9, 44.0], [10.0, 45]]
+//    }),
+//    viewExtent: [7.86, 44.24, 11.29, 45.0],
+//    layers: [osm, sat, tg, states, modis]
+//});
 
 globe.planet.addControl(new DebugInfo({
     watch: [{
@@ -276,7 +287,7 @@ new Vector("Markers", {
     }));
 
 
-globe.planet.viewExtentArr([5.54, 45.141, 5.93, 45.23]);
+globe.planet.viewExtentArr([-1.13284, 51.59951, -1.10951, 51.60386]);
 
 let myPopup = new Popup({
     planet: globe.planet,

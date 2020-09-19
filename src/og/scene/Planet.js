@@ -395,6 +395,8 @@ class Planet extends RenderNode {
         this._distBeforeMemClear = 0.0;
 
         this._prevCamEye = new Vec3();
+
+        this._initialized = false;
     }
 
     /**
@@ -548,13 +550,24 @@ class Planet extends RenderNode {
      */
     setTerrain(terrain) {
 
-        //
-        // TODO: Replace to terrain
-        //
+        if (this._initialized) {
+            this.memClear();
+        }
+
+        if (this.terrain) {
+            this.terrain.abortLoading();
+            this.terrain.clearCache();
+            this.terrain._planet = null;
+        }
 
         this.terrain = terrain;
         this.terrain._planet = this;
-        this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
+
+        //this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
+
+        if (this._quadTree) {
+            this._quadTree.destroyBranches();
+        }
 
         if (terrain._geoid) {
             if (!terrain._geoid.model) {
@@ -722,6 +735,8 @@ class Planet extends RenderNode {
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
+
+        this._initialized = true;
     }
 
     clearIndexesCache() {
