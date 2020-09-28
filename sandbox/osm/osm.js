@@ -171,8 +171,8 @@ window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
     'terrain': new MapboxTerrain(null, {
-        //url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
-        url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
+        url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
+        //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
         maxZoom: 23,
         gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16],

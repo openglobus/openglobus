@@ -52,7 +52,7 @@ class MapboxTerrain extends GlobusTerrain {
         //
         //Non power of two images
         //
-        if (SIZE === this._sourceImageSize) {
+        if (!isPowerOfTwo(this._sourceImageSize) && SIZE === this._sourceImageSize) {
             let outCurrenElevations = new Float32Array(SIZE * SIZE);
             extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations);
             return outCurrenElevations;
@@ -61,42 +61,39 @@ class MapboxTerrain extends GlobusTerrain {
         //
         // Power of two images
         //
-        if (this._sourceImageSize === this.plainGridSize) {
 
-        } else {
+        let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
+        let d = SIZE / this.plainGridSize;
 
-            let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
-            let d = SIZE / this.plainGridSize;
+        let outCurrenElevations = new Float32Array(elevationsSize);
+        let outChildrenElevations = new Array(d);
 
-            let outCurrenElevations = new Float32Array(elevationsSize);
-            let outChildrenElevations = new Array(d);
-
-            for (let i = 0; i < d; i++) {
-                outChildrenElevations[i] = [];
-                for (let j = 0; j < d; j++) {
-                    outChildrenElevations[i][j] = new Float32Array(elevationsSize);
-                }
+        for (let i = 0; i < d; i++) {
+            outChildrenElevations[i] = [];
+            for (let j = 0; j < d; j++) {
+                outChildrenElevations[i][j] = new Float32Array(elevationsSize);
             }
-
-            extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
-
-            this._elevationCache[segment.tileIndex] = {
-                heights: outCurrenElevations,
-                extent: segment.getExtent()
-            };
-
-            for (let i = 0; i < d; i++) {
-                for (let j = 0; j < d; j++) {
-                    let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
-                    this._elevationCache[tileIndex] = {
-                        heights: outChildrenElevations[i][j],
-                        extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
-                    };
-                }
-            }
-
-            return outCurrenElevations;
         }
+
+        extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
+
+        this._elevationCache[segment.tileIndex] = {
+            heights: outCurrenElevations,
+            extent: segment.getExtent()
+        };
+
+        for (let i = 0; i < d; i++) {
+            for (let j = 0; j < d; j++) {
+                let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
+                this._elevationCache[tileIndex] = {
+                    heights: outChildrenElevations[i][j],
+                    extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
+                };
+            }
+        }
+
+        return outCurrenElevations;
+
     }
 };
 
