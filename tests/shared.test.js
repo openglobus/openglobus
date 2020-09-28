@@ -76,6 +76,48 @@ test('Test for extractElevationTiles 4 function', () => {
     expect(outChildrenElevations[1][1]).toEqual(tileElevations11);
 });
 
+//test('Test for extractElevationTiles same size function', () => {
+
+//    const SIZE = 4;
+//    const OUTPUT_SIZE = 4;
+
+//    function createMockData() {
+//        let res = new Uint8Array(SIZE * SIZE * 4);
+//        for (let i = 0, len = res.length; i < len; i += 4) {
+//            let c = Math.round(i / 4);
+//            res[i] = c;
+//            res[i + 1] = c;
+//            res[i + 2] = c;
+//            res[i + 3] = 255;
+//        }
+//        return res;
+//    }
+
+//    let rgbaData = createMockData();
+//    let elevationsSize = (OUTPUT_SIZE + 1) * (OUTPUT_SIZE + 1);
+//    let d = Math.sqrt(rgbaData.length / 4) / OUTPUT_SIZE;
+
+//    let outCurrenElevations = new Float32Array(elevationsSize);
+//    let outChildrenElevations = new Array(d);
+
+//    for (let i = 0; i < d; i++) {
+//        outChildrenElevations[i] = [];
+//        for (let j = 0; j < d; j++) {
+//            outChildrenElevations[i][j] = new Float32Array(elevationsSize);
+//        }
+//    }
+
+//    shared.extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations);
+
+//    // Current tile
+//    let currentElevations = new Float32Array([
+//        0, 1.5, 3,
+//        6, 7.5, 9,
+//        12, 13.5, 15]);
+
+//    expect(outCurrenElevations).toEqual(currentElevations);
+//});
+
 test('Test concatTypedArrays', () => {
 
     //

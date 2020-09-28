@@ -1,6 +1,7 @@
 import { getTileExtent } from '../mercator.js';
 import { Layer } from '../layer/Layer.js';
 import { GlobusTerrain } from './GlobusTerrain.js';
+import { isPowerOfTwo } from '../math.js';
 
 const KEY = "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
 
@@ -19,20 +20,26 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 15;
 
-        this.plainGridSize = options.plainGridSize || 128;
-
         this.url = options.url != undefined ? options.url : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${(options.key || KEY)}`;
 
         this._dataType = "imageBitmap";
 
-        this._canvas = document.createElement("canvas");
-        this._canvas.width = 256;
-        this._canvas.height = 256;
-        this._ctx = this._canvas.getContext("2d");
+        this.plainGridSize = options.plainGridSize || 128;
+
+        this._sourceImageSize = options.sourceImageSize || 256;
+
+        this._ctx = this._createTemporalCanvas(this._sourceImageSize);
     }
 
     isBlur() {
         return false;
+    }
+
+    _createTemporalCanvas(size) {
+        let canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        return canvas.getContext("2d");
     }
 
     _createHeights(data, segment) {
@@ -42,37 +49,61 @@ class MapboxTerrain extends GlobusTerrain {
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
 
-        let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
-        let d = SIZE / this.plainGridSize;
-
-        let outCurrenElevations = new Float32Array(elevationsSize);
-        let outChildrenElevations = new Array(d);
-
-        for (let i = 0; i < d; i++) {
-            outChildrenElevations[i] = [];
-            for (let j = 0; j < d; j++) {
-                outChildrenElevations[i][j] = new Float32Array(elevationsSize);
-            }
+        //
+        //Non power of two images
+        //
+        if (SIZE === this._sourceImageSize) {
+            let outCurrenElevations = new Float32Array(SIZE * SIZE);
+            extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations);
+            return outCurrenElevations;
         }
 
-        extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
+        //
+        // Power of two images
+        //
+        if (this._sourceImageSize === this.plainGridSize) {
 
-        this._elevationCache[segment.tileIndex] = {
-            heights: outCurrenElevations,
-            extent: segment.getExtent()
-        };
+        } else {
 
-        for (let i = 0; i < d; i++) {
-            for (let j = 0; j < d; j++) {
-                let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
-                this._elevationCache[tileIndex] = {
-                    heights: outChildrenElevations[i][j],
-                    extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
-                };
+            let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
+            let d = SIZE / this.plainGridSize;
+
+            let outCurrenElevations = new Float32Array(elevationsSize);
+            let outChildrenElevations = new Array(d);
+
+            for (let i = 0; i < d; i++) {
+                outChildrenElevations[i] = [];
+                for (let j = 0; j < d; j++) {
+                    outChildrenElevations[i][j] = new Float32Array(elevationsSize);
+                }
             }
-        }
 
-        return outCurrenElevations;
+            extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
+
+            this._elevationCache[segment.tileIndex] = {
+                heights: outCurrenElevations,
+                extent: segment.getExtent()
+            };
+
+            for (let i = 0; i < d; i++) {
+                for (let j = 0; j < d; j++) {
+                    let tileIndex = Layer.getTileIndex(segment.tileX * 2 + j, segment.tileY * 2 + i, segment.tileZoom);
+                    this._elevationCache[tileIndex] = {
+                        heights: outChildrenElevations[i][j],
+                        extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
+                    };
+                }
+            }
+
+            return outCurrenElevations;
+        }
+    }
+};
+
+function extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations) {
+    for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
+        let i4 = i * 4;
+        outCurrenElevations[i] = -10000 + 0.1 * (rgbaData[i4] * 256 * 256 + rgbaData[i4 + 1] * 256 + rgbaData[i4 + 2]);
     }
 };
 

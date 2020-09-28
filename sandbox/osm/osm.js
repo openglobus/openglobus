@@ -170,12 +170,15 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': emptyTerrain/*new MapboxTerrain(null, {
-        url: "http://alacst.ddns.net:8181/Tiles/testtile5/{z}/{x}/{y}.png",
+    'terrain': new MapboxTerrain(null, {
+        //url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
+        url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
         maxZoom: 23,
-        gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 128, 128, 128, 128, 256, 256, 256, 256, 256, 256, 256, 256, 256, 128, 64, 32, 16]
-    })*/,
+        gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16],
+        sourceImageSize: 129,
+        equalizeVertices: false
+    }),
     'layers': [osm, tg],
     //'viewExtent': [-1.12675, 51.60039, -1.11016, 5160336]
 });

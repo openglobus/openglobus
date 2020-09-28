@@ -583,7 +583,7 @@ export function blerp2(x, y, fQ11, fQ21, fQ12, fQ22) {
     return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
 };
 
-export function extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations, fn) {
+export function extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations) {
 
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
