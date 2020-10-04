@@ -1,5 +1,8 @@
+'use strict';
+
 import { GlobusTerrain } from './GlobusTerrain.js';
 import { WMS } from '../layer/WMS.js';
+import { isPowerOfTwo, nextHighestPowerOfTwo } from '../math.js';
 
 class BilTerrain extends GlobusTerrain {
     constructor(options) {
@@ -22,9 +25,11 @@ class BilTerrain extends GlobusTerrain {
 
         this.url = options.url || "";
 
-        this.imageSize = options.imageSize || 256;
+        this._imageSize = options.imageSize || 256;
 
-        this.plainGridSize = this.imageSize / 2;
+        this.plainGridSize =
+            options.plainGridSize != undefined ? options.plainGridSize :
+                isPowerOfTwo(this._imageSize) ? this._imageSize / 2 : nextHighestPowerOfTwo(this._imageSize) / 2;
 
         this._dataType = "arrayBuffer";
     }
@@ -45,14 +50,23 @@ class BilTerrain extends GlobusTerrain {
             "GetMap",
             segment._projection.code,
             WMS.get_bbox_v1_1_1(segment.getExtent()),
-            this.imageSize,
-            this.imageSize
+            this._imageSize,
+            this._imageSize
         );
     }
 
     _createHeights(data, segment) {
 
         let bil16 = new Int16Array(data);
+
+        //
+        //Non power of two images
+        //
+        if (!isPowerOfTwo(this._imageSize)) {
+            let outCurrenElevations = new Float32Array(bil16.length);
+            extractElevationTilesNonPowerOfTwo(bil16, outCurrenElevations);
+            return outCurrenElevations;
+        }
 
         let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
 
@@ -74,6 +88,16 @@ class BilTerrain extends GlobusTerrain {
         return outCurrenElevations;
     }
 };
+
+function extractElevationTilesNonPowerOfTwo(data, outCurrenElevations) {
+    for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
+        let height = data[i];
+        if (height === -9999 || height === 32767) {
+            height = 0;
+        }
+        outCurrenElevations[i] = height;
+    }
+}
 
 function extractElevationTiles(data, outCurrenElevations, outChildrenElevations) {
 

@@ -26,9 +26,9 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.plainGridSize = options.plainGridSize || 128;
 
-        this._sourceImageSize = options.sourceImageSize || 256;
+        this._imageSize = options.imageSize || 256;
 
-        this._ctx = this._createTemporalCanvas(this._sourceImageSize);
+        this._ctx = this._createTemporalCanvas(this._imageSize);
     }
 
     isBlur() {
@@ -52,7 +52,7 @@ class MapboxTerrain extends GlobusTerrain {
         //
         //Non power of two images
         //
-        if (!isPowerOfTwo(this._sourceImageSize) && SIZE === this._sourceImageSize) {
+        if (!isPowerOfTwo(this._imageSize) && SIZE === this._imageSize) {
             let outCurrenElevations = new Float32Array(SIZE * SIZE);
             extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations);
             return outCurrenElevations;
@@ -61,7 +61,6 @@ class MapboxTerrain extends GlobusTerrain {
         //
         // Power of two images
         //
-
         let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
         let d = SIZE / this.plainGridSize;
 
