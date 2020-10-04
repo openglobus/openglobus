@@ -8,6 +8,15 @@ import { callbacks } from './callbacks.js';
 import { cons } from '../cons.js';
 import { typeStr } from './types.js';
 
+const itemTypes = [
+    "BYTE",
+    "SHORT",
+    "UNSIGNED_BYTE",
+    "UNSIGNED_SHORT",
+    "FLOAT",
+    "HALF_FLOAT"
+];
+
 /**
  * Represents more comfortable using WebGL shader program.
  * @class
@@ -108,6 +117,18 @@ class Program {
          * @type {Array.<Object>}
          */
         this._attribArrays = [];
+    }
+
+    /**
+     * Bind program buffer.
+     * @function
+     * @param {og.webgl.Program} program - Used program.
+     * @param {Object} variable - Variable represents buffer data.
+     */
+    static bindBuffer(program, variable) {
+        var gl = program.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
+        gl.vertexAttribPointer(variable._pName, variable.value.itemSize, variable.itemType, variable.normalized, 0, 0);
     }
 
     /**
@@ -270,17 +291,17 @@ class Program {
             //this.attributes[a]._name = a;
             this._variables[a] = this._attributes[a];
 
-            //Maybe, it will be better to remove enableArray option...
-            this._attributes[a].enableArray = (this._attributes[a].enableArray != undefined ? this._attributes[a].enableArray : true);
-            if (this._attributes[a].enableArray) {
-                this._attributes[a]._callback = Program.bindBuffer;
+            this._attributes[a]._callback = Program.bindBuffer;
+
+            let itemTypeStr = this._attributes[a].itemType ? this._attributes[a].itemType.trim().toUpperCase() : "FLOAT";
+            if (itemTypes.indexOf(itemTypeStr) == -1) {
+                cons.logErr(`og/Program/Program: ${this.name}- attribute '${a}', item type ${this._attributes[a].itemType} not exists.`);
+                this._attributes[a].itemType = gl.FLOAT;
             } else {
-                if (typeof (this._attributes[a].type) === "string") {
-                    this._attributes[a]._callback = callbacks.a[typeStr[this._attributes[a].type.trim().toLowerCase()]];
-                } else {
-                    this._attributes[a]._callback = callbacks.a[this._attributes[a].type];
-                }
+                this._attributes[a].itemType = gl[itemTypeStr];
             }
+
+            this._attributes[a].normalized = this._attributes[a].normalized || false;
 
             this._p[a] = gl.getAttribLocation(this._p, a);
 
@@ -290,10 +311,8 @@ class Program {
                 return;
             }
 
-            if (this._attributes[a].enableArray) {
-                this._attribArrays.push(this._p[a]);
-                gl.enableVertexAttribArray(this._p[a]);
-            }
+            this._attribArrays.push(this._p[a]);
+            gl.enableVertexAttribArray(this._p[a]);
 
             this._attributes[a]._pName = this._p[a];
             this.attributes[a] = this._p[a];
@@ -326,18 +345,6 @@ class Program {
 
         gl.deleteShader(fs);
         gl.deleteShader(vs);
-    }
-
-    /**
-     * Bind program buffer.
-     * @function
-     * @param {og.webgl.Program} program - Used program.
-     * @param {Object} variable - Variable represents buffer data.
-     */
-    static bindBuffer(program, variable) {
-        var gl = program.gl;
-        gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
-        gl.vertexAttribPointer(variable._pName, variable.value.itemSize, gl.FLOAT, false, 0, 0);
     }
 };
 
