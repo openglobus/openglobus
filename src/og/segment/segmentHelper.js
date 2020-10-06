@@ -2,35 +2,8 @@
 
 import { N, W, S, E } from '../quadTree/quadTree.js';
 
-export const TABLESIZE = 8;
-
-const centerIndexesTable = initIndexBodiesTable(TABLESIZE);
-const skirtsIndexesTable = initIndexesBodySkirts(TABLESIZE);
-
 function NewIndexesTypedArray(arr) {
     return new Uint32Array(arr);
-};
-
-export function createSegmentIndexes(size, sidesSizes) {
-    if (size) {
-        let c = centerIndexesTable[size],
-            w = skirtsIndexesTable[W][size][sidesSizes[W]],
-            n = skirtsIndexesTable[N][size][sidesSizes[N]],
-            e = skirtsIndexesTable[E][size][sidesSizes[E]],
-            s = skirtsIndexesTable[S][size][sidesSizes[S]];
-
-        let indexes = NewIndexesTypedArray(c.length + w.length + n.length + e.length + s.length);
-
-        indexes.set(c, 0);
-        indexes.set(w, c.length);
-        indexes.set(n, c.length + w.length);
-        indexes.set(e, c.length + w.length + n.length);
-        indexes.set(s, c.length + w.length + n.length + e.length);
-
-        return indexes;
-    } else {
-        return NewIndexesTypedArray([0, 2, 1, 3]);
-    }
 };
 
 function createCenterBodyIndexes(size) {
@@ -174,15 +147,6 @@ function initIndexesBodySkirts(pow) {
     return table;
 };
 
-export function initTextureCoordsTable(pow) {
-    var table = [];
-    for (var i = 0; i <= pow; i++) {
-        var d = Math.pow(2, i);
-        table[i] = createTextureCoords(d);
-    }
-    return table;
-};
-
 function initIndexBodiesTable(pow) {
     var table = [];
     for (var i = 0; i <= pow; i++) {
@@ -202,4 +166,61 @@ function createTextureCoords(size) {
         }
     }
     return texCoords;
+};
+
+class SegmentHelper {
+    constructor(maxGridSize = 0) {
+        this._maxGridSize = maxGridSize;
+    }
+
+    get maxGridSize() {
+        return this._maxGridSize;
+    }
+
+    init() {
+        this.centerIndexesTable = initIndexBodiesTable(this._maxGridSize);
+        this.skirtsIndexesTable = initIndexesBodySkirts(this._maxGridSize);
+    }
+
+    setMaxGridSize(gridSize) {
+        this._maxGridSize = gridSize;
+        this.init();
+    }
+
+    createSegmentIndexes(size, sidesSizes) {
+        if (size) {
+            let c = this.centerIndexesTable[size],
+                w = this.skirtsIndexesTable[W][size][sidesSizes[W]],
+                n = this.skirtsIndexesTable[N][size][sidesSizes[N]],
+                e = this.skirtsIndexesTable[E][size][sidesSizes[E]],
+                s = this.skirtsIndexesTable[S][size][sidesSizes[S]];
+
+            let indexes = NewIndexesTypedArray(c.length + w.length + n.length + e.length + s.length);
+
+            indexes.set(c, 0);
+            indexes.set(w, c.length);
+            indexes.set(n, c.length + w.length);
+            indexes.set(e, c.length + w.length + n.length);
+            indexes.set(s, c.length + w.length + n.length + e.length);
+
+            return indexes;
+        } else {
+            return NewIndexesTypedArray([0, 2, 1, 3]);
+        }
+    }
+
+    initTextureCoordsTable(pow) {
+        var table = [];
+        for (var i = 0; i <= pow; i++) {
+            var d = Math.pow(2, i);
+            table[i] = createTextureCoords(d);
+        }
+        return table;
+    }
+};
+
+let instance = new SegmentHelper();
+
+export function getInstance() {
+    return instance;
 };

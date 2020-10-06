@@ -19,11 +19,13 @@ class BilTerrain extends GlobusTerrain {
 
         this.maxZoom = options.maxZoom || 14;
 
+        this.noDataValues = options.noDataValues || [-9999, 32767];
+
+        this.url = options.url || "";
+
         this._format = "application/bil16";
 
         this._layers = options.layers || "";
-
-        this.url = options.url || "";
 
         this._imageSize = options.imageSize || 256;
 

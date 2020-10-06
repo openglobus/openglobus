@@ -59,6 +59,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
  * @param {DOMElement} [options.attributionContainer] - Container for attribution list.
+ * @param {Number} [options.maxGridSize=7] = Maximal segment grid size.
  */
 class Globe {
     constructor(options) {
@@ -134,7 +135,7 @@ class Globe {
             // TODO:
 
         } else {
-            this.planet = new Planet(this._planetName, options.ellipsoid ? options.ellipsoid : wgs84);
+            this.planet = new Planet(this._planetName, options.ellipsoid ? options.ellipsoid : wgs84, options.maxGridSize);
         }
 
         // Attach terrain provider

@@ -22,9 +22,11 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.url = options.url != undefined ? options.url : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${(options.key || KEY)}`;
 
-        this._dataType = "imageBitmap";
+        this.noDataValues = options.noDataValues || [-65537];
 
         this.plainGridSize = options.plainGridSize || 128;
+
+        this._dataType = "imageBitmap";
 
         this._imageSize = options.imageSize || 256;
 

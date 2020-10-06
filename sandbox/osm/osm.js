@@ -162,15 +162,15 @@ let emptyTerrain = new EmptyTerrain(),
     bilTerrain = new BilTerrain({
         url: "//95.211.82.211:8080/geoserver/og/",
         layers: "og:n44_e009_1arc_v3",
-        imageSize: 128,
-        gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
+        imageSize: 129,
+        //gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
         extent: [[8.9, 44.0], [10.0, 45]]
     });
 
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': new MapboxTerrain(null, {
+    'terrain': globusTerrain/*bilTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -178,7 +178,7 @@ window.globe = new Globe({
         gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32, 16],
         sourceImageSize: 129,
         equalizeVertices: false
-    }),
+    })*/,
     'layers': [osm, tg],
     //'viewExtent': [-1.12675, 51.60039, -1.11016, 5160336]
 });

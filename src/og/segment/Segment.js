@@ -1480,7 +1480,7 @@ Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSizeLog2;
     var cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
     if (!cache.buffer) {
-        let indexes = segmentHelper.createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
+        let indexes = segmentHelper.getInstance().createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
         this.planet._indexesCacheToRemoveCounter++;
         indexes = null;

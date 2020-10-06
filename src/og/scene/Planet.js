@@ -8,8 +8,8 @@ import * as coder from '../math/coder.js';
 import * as shaders from '../shaders/drawnode.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
-import * as segmentHelper from '../segment/segmentHelper.js';
 import * as quadTree from '../quadTree/quadTree.js';
+import * as segmentHelper from '../segment/segmentHelper.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
@@ -82,6 +82,7 @@ const EVENT_NAMES = [
  * @extends {og.scene.RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
+ * @param {Number} [maxGridSize=7] - Segment maximal grid size
  * @fires og.scene.Planet#draw
  * @fires og.scene.Planet#layeradd
  * @fires og.scene.Planet#baselayerchange
@@ -90,7 +91,7 @@ const EVENT_NAMES = [
  * @fires og.scene.Planet#geoimageadd
  */
 class Planet extends RenderNode {
-    constructor(name, ellipsoid) {
+    constructor(name, ellipsoid, maxGridSize = 7) {
         super(name);
 
         /**
@@ -339,6 +340,8 @@ class Planet extends RenderNode {
          * @type {boolean}
          */
         this._useSpecularTexture = true;
+
+        this._maxGridSize = maxGridSize;
 
         /**
          * Segment multiple textures size.(4 - convinient value for the most devices)
@@ -616,7 +619,8 @@ class Planet extends RenderNode {
      */
     init() {
         // Initialization indexes table
-        var TABLESIZE = segmentHelper.TABLESIZE;
+        segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
+        const TABLESIZE = this._maxGridSize;
         let kk = 0;
         // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -634,7 +638,7 @@ class Planet extends RenderNode {
                             };
 
                             if (i >= 1 && i === j && i === k && i === m && i === q) {
-                                let indexes = segmentHelper.createSegmentIndexes(i, [j, k, m, q]);
+                                let indexes = segmentHelper.getInstance().createSegmentIndexes(i, [j, k, m, q]);
                                 ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
                             } else {
@@ -651,7 +655,7 @@ class Planet extends RenderNode {
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
-        let texCoordCache = segmentHelper.initTextureCoordsTable(TABLESIZE + 1);
+        let texCoordCache = segmentHelper.getInstance().initTextureCoordsTable(TABLESIZE + 1);
 
         for (let i = 0; i <= TABLESIZE; i++) {
             this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));

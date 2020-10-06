@@ -56,6 +56,13 @@ class GlobusTerrain extends EmptyTerrain {
 
         options = options || {};
 
+        /**
+         * Events handler.
+         * @public
+         * @type {og.Events}
+         */
+        this.events = new Events(EVENT_NAMES, this);
+
         this.equalizeNormals = true;
 
         /**
@@ -79,20 +86,12 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.maxZoom = options.maxZoom || 14;
 
-        this._geoid = options.geoid || new Geoid({
-            src: "//openglobus.org/geoid/egm84-30.pgm"
-        });
-
-        this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)))
-
         /**
          * Terrain source path url template. 
          * @public
          * @type {string}
          */
         this.url = options.url || "//srtm3.openglobus.org/{z}/{y}/{x}.ddm";
-
-        this._dataType = "arrayBuffer";
 
         /**
          * Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
@@ -101,7 +100,7 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
 
-        this._maxNodeZoom = this.gridSizeByZoom.length - 1;
+        this.noDataValues = options.noDataValues || [[-65537, 0]];
 
         /**
          * Elevation tile grid size.
@@ -110,12 +109,15 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.plainGridSize = options.plainGridSize || 32;
 
-        /**
-         * Events handler.
-         * @public
-         * @type {og.Events}
-         */
-        this.events = new Events(EVENT_NAMES, this);
+        this._geoid = options.geoid || new Geoid({
+            src: "//openglobus.org/geoid/egm84-30.pgm"
+        });
+
+        this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)))
+
+        this._dataType = "arrayBuffer";
+
+        this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
         this._elevationCache = {};
 
