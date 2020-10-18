@@ -246,6 +246,21 @@ export function createLonLat(l, def) {
     return new LonLat();
 };
 
+export function binarySearchFast(arr, x) {
+    let start = 0,
+        end = arr.length - 1;
+    while (start <= end) {
+        let k = Math.floor((start + end) * 0.5); 
+        if (arr[k] === x)
+            return k;
+        else if (arr[k] < x)
+            start = k + 1;
+        else
+            end = k - 1;
+    }
+    return -1;
+};
+
 /**
  * Finds an item in a sorted array.
  * @param {Array} ar The sorted array to search.

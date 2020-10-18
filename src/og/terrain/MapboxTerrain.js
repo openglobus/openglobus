@@ -76,7 +76,7 @@ class MapboxTerrain extends GlobusTerrain {
             }
         }
 
-        extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations);
+        extractElevationTilesMapbox(rgbaData, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
         this._elevationCache[segment.tileIndex] = {
             heights: outCurrenElevations,
@@ -105,15 +105,15 @@ function extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations)
     }
 };
 
-function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenElevations) {
+function extractElevationTilesMapbox(rgbaData, noDataValues, outCurrenElevations, outChildrenElevations) {
 
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
     let dt = sourceSize / destSize;
 
-    let rightHeigh = 0,
-        bottomHeigh = 0,
+    let rightHeight = 0,
+        bottomHeight = 0,
         sourceSize4 = 0;
 
     for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
@@ -121,6 +121,10 @@ function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenE
         let k4 = k * 4;
 
         let height = -10000 + 0.1 * (rgbaData[k4] * 256 * 256 + rgbaData[k4 + 1] * 256 + rgbaData[k4 + 2]);
+
+        let isNoDataCurrent = MapboxTerrain.checkNoDataValue(noDataValues, height),
+            isNoDataRight = false,
+            isNoDataBottom = false;
 
         let i = Math.floor(k / sourceSize),
             j = k % sourceSize;
@@ -144,8 +148,16 @@ function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenE
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
 
             //current tile
-            rightHeigh = -10000 + 0.1 * (rgbaData[k4 + 4] * 256 * 256 + rgbaData[k4 + 5] * 256 + rgbaData[k4 + 6]);
-            let middleHeight = (height + rightHeigh) * 0.5;
+            rightHeight = -10000 + 0.1 * (rgbaData[k4 + 4] * 256 * 256 + rgbaData[k4 + 5] * 256 + rgbaData[k4 + 6]);
+
+            isNoDataRight = MapboxTerrain.checkNoDataValue(noDataValues, rightHeight);
+
+            let middleHeight = height;
+
+            if (!(isNoDataCurrent || isNoDataRight)) {
+                middleHeight = (height + rightHeight) * 0.5;
+            }
+
             destIndex = (ii + tileY) * destSizeOne + jj + 1;
             destArr[destIndex] = middleHeight;
 
@@ -162,8 +174,17 @@ function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenE
 
             //current tile
             sourceSize4 = sourceSize * 4;
-            bottomHeigh = -10000 + 0.1 * (rgbaData[k4 + sourceSize4] * 256 * 256 + rgbaData[k4 + sourceSize4 + 1] * 256 + rgbaData[k4 + sourceSize4 + 2]);
-            let middleHeight = (height + bottomHeigh) * 0.5;
+
+            bottomHeight = -10000 + 0.1 * (rgbaData[k4 + sourceSize4] * 256 * 256 + rgbaData[k4 + sourceSize4 + 1] * 256 + rgbaData[k4 + sourceSize4 + 2]);
+
+            isNoDataBottom = MapboxTerrain.checkNoDataValue(noDataValues, bottomHeight);
+
+            let middleHeight = (height + bottomHeight) * 0.5;
+
+            if (!(isNoDataCurrent || isNoDataBottom)) {
+                middleHeight = (height + bottomHeight) * 0.5;
+            }
+
             destIndex = (ii + 1) * destSizeOne + jj + tileX;
             destArr[destIndex] = middleHeight;
 
@@ -182,7 +203,14 @@ function extractElevationTilesMapbox(rgbaData, outCurrenElevations, outChildrenE
             //current tile
             let rightBottomHeight = -10000 + 0.1 * (rgbaData[k4 + sourceSize4 + 4] * 256 * 256 + rgbaData[k4 + sourceSize4 + 5] * 256 + rgbaData[k4 + sourceSize4 + 6]);
 
-            let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
+            let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
+
+            let middleHeight = height;
+
+            if (!(isNoDataCurrent || isNoDataRight || isNoDataBottom || isNoDataRightBottom)) {
+                middleHeight = (height + rightHeight + bottomHeight + rightBottomHeight) * 0.25;
+            }
+
             destIndex = (ii + 1) * destSizeOne + (jj + 1);
             destArr[destIndex] = middleHeight;
 

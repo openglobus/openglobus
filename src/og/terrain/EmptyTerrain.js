@@ -4,6 +4,8 @@
 
 'use strict';
 
+import { binarySearchFast } from "../utils/shared.js";
+
 /**
  * Class represents terrain provider without elevation data.
  * @class
@@ -79,6 +81,10 @@ class EmptyTerrain {
         //         return callback(mslAlt);
         //     },
         // ];
+    }
+
+    static checkNoDataValue(noDataValues, value) {
+        return binarySearchFast(noDataValues, value) !== -1;
     }
 
     isBlur() {

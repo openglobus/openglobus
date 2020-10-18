@@ -100,7 +100,7 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
 
-        this.noDataValues = options.noDataValues || [[-65537, 0]];
+        this.noDataValues = options.noDataValues || [-65537];
 
         /**
          * Elevation tile grid size.
