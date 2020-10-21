@@ -170,7 +170,7 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': mapboxTerrain/*new MapboxTerrain(null, {
+    'terrain': globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -180,7 +180,7 @@ window.globe = new Globe({
         equalizeVertices: false
     })*/,
     'layers': [osm, tg],
-    //'viewExtent': [-1.12675, 51.60039, -1.11016, 5160336]
+    'viewExtent': [89.83484, 25.69255, 90.34796, 26.44652]
 });
 
 window.setEmptyTerrain = function () {

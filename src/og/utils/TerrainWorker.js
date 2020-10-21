@@ -232,9 +232,9 @@ const _programm =
                 var h0 = hf * elevations[hInd0];
 
 //TODO: no data value
-//if(h0 < -100){
-//    h0 = 300;
-//}
+if(h0 < 0){
+    console.log(h0);
+}
                 
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
 
@@ -282,9 +282,9 @@ const _programm =
                     var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
 //TODO: no data value
-//if(h1 < -100){
-//    h1 = h0;
-//}
+if(h1 < 0){
+    console.log(h1);
+}
                     doubleToTwoFloats(v1, _tempHigh, _tempLow);
 
                     normalMapVertices[vInd1] = v1.x;
@@ -311,9 +311,9 @@ const _programm =
                         nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
 //TODO: no data value
-//if(h2 < -100){
-//    h2 = h1;
-//}
+if(h2 < 0){
+    console.log(h2);
+}
 
                     doubleToTwoFloats(v2, _tempHigh, _tempLow);
 
@@ -338,9 +338,9 @@ const _programm =
                     var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
 
 //TODO: no data value
-//if(h3 < -100){
-//    h3 = h2;
-//}
+if(h3 < 0){
+    console.log(h3);
+}
 
                     doubleToTwoFloats(v3, _tempHigh, _tempLow);
 
@@ -428,9 +428,9 @@ const _programm =
                 let hi = blerp(qij / oneSize, qii / oneSize, h_lt, h_rt, h_lb, h_rb);
 
 //TODO: no data value
-//if(hi < -100){
-//    hi = 300;
-//}
+if(hi < 0){
+    console.log(hi);
+}
 
                 let i3 = i * 3;
 
@@ -478,34 +478,31 @@ const _programm =
                         v2 = new Vec3(terrainVertices[v2ind], terrainVertices[v2ind + 1], terrainVertices[v2ind + 2]),
                         v3 = new Vec3(terrainVertices[v3ind], terrainVertices[v3ind + 1], terrainVertices[v3ind + 2]);
 
-                        var e10 = v1.sub(v0).normalize(),
-                            e20 = v2.sub(v0).normalize(),
-                            e30 = v3.sub(v0).normalize();
+                    var e10 = v1.sub(v0).normalize(),
+                        e20 = v2.sub(v0).normalize(),
+                        e30 = v3.sub(v0).normalize();
 
-                        var sw = e20.cross(e30).normalize();
-                        var ne = e30.cross(e10).normalize();
-                        var n0 = ne.add(sw).normalize();
+                    var sw = e20.cross(e30).normalize();
+                    var ne = e30.cross(e10).normalize();
+                    var n0 = ne.add(sw).normalize();
 
-                        normalMapNormals[v0ind] += n0.x;
-                        normalMapNormals[v0ind + 1] += n0.y;
-                        normalMapNormals[v0ind + 2] += n0.z;
+                    normalMapNormals[v0ind] += n0.x;
+                    normalMapNormals[v0ind + 1] += n0.y;
+                    normalMapNormals[v0ind + 2] += n0.z;
 
-                        normalMapNormals[v1ind] += ne.x;
-                        normalMapNormals[v1ind + 1] += ne.y;
-                        normalMapNormals[v1ind + 2] += ne.z;
+                    normalMapNormals[v1ind] += ne.x;
+                    normalMapNormals[v1ind + 1] += ne.y;
+                    normalMapNormals[v1ind + 2] += ne.z;
 
-                        normalMapNormals[v2ind] += sw.x;
-                        normalMapNormals[v2ind + 1] += sw.y;
-                        normalMapNormals[v2ind + 2] += sw.z;
+                    normalMapNormals[v2ind] += sw.x;
+                    normalMapNormals[v2ind + 1] += sw.y;
+                    normalMapNormals[v2ind + 2] += sw.z;
 
-                        normalMapNormals[v3ind] += n0.x;
-                        normalMapNormals[v3ind + 1] += n0.y;
-                        normalMapNormals[v3ind + 2] += n0.z;
-                    }
+                    normalMapNormals[v3ind] += n0.x;
+                    normalMapNormals[v3ind + 1] += n0.y;
+                    normalMapNormals[v3ind + 2] += n0.z;
+                }
             }
-
-            //normalMapNormals = this_plainNormals;
-
         }
 
         self.postMessage({
