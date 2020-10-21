@@ -208,7 +208,7 @@ class MouseNavigation extends Control {
     oninit() {
         this.activate();
 
-        this.renderer.events.on("keyfree", input.KEY_SHIFT, this.onShiftFree, this);
+        this.renderer.events.on("keyfree", input.KEY_ALT, this.onShiftFree, this);
         this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this.onShiftFree, this);
     }
 
@@ -218,7 +218,7 @@ class MouseNavigation extends Control {
         var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true);
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
-            if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
                 this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0));
             } else {
                 this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
@@ -330,7 +330,7 @@ class MouseNavigation extends Control {
 
     onMouseMove(e) {
 
-        if (this._active && this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+        if (this._active && this.renderer.events.isKeyPressed(input.KEY_ALT)) {
 
             if (!this._shiftBusy) {
                 this._shiftBusy = true;

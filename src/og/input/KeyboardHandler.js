@@ -90,6 +90,10 @@ const KeyboardHandler = function () {
                 }
             }
         }
+
+        if (_event.keyCode == input.KEY_ALT || _event.keyCode == input.KEY_SHIFT) {
+            _event.preventDefault();
+        }
     };
 
     this.handleKeyUp = function () {
