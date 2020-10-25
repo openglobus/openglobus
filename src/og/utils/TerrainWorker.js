@@ -158,6 +158,14 @@ const _programm =
         return this;
     };
 
+    Vec3.prototype.distance = function(v) {
+        return this.sub(v).length();
+    };
+
+    Vec3.prototype.length = function () {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    };
+
     var blerp = function(x, y, fQ11, fQ21, fQ12, fQ22) {
         return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
     };
@@ -212,6 +220,13 @@ const _programm =
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
 
+        var prevElv = elevations[0];
+        var prevVert = new Vec3(nv[0], nv[1], nv[2]);
+        var step = 0,
+            deltaElv = 0,
+            eps = 0;
+
+
         if (fileGridSize >= tgs) {
 
             normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
@@ -221,6 +236,8 @@ const _programm =
 
             for (var k = 0; k < fileGridSize_one_x2; k++) {
 
+                let table = [];
+
                 var j = k % fileGridSize_one,
                     i = ~~(k / fileGridSize_one);
 
@@ -229,15 +246,10 @@ const _programm =
                 //
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
-                var h0 = hf * elevations[hInd0];
-
-//TODO: no data value
-if(h0 < 0){
-    console.log(h0);
-}
-                
+                var elv = elevations[hInd0];
+                var h0 = hf * elv;
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
-
+                                
                 doubleToTwoFloats(v0, _tempHigh, _tempLow);
 
                 normalMapVertices[vInd0] = v0.x;
@@ -252,7 +264,34 @@ if(h0 < 0){
                 normalMapVerticesLow[vInd0 + 1] = _tempLow.y;
                 normalMapVerticesLow[vInd0 + 2] = _tempLow.z;
 
+                //
+                // The vertex goes into screen buffer
                 if (i % dg === 0 && j % dg === 0) {
+
+                    if(j === 0){
+                        step = 0;
+                        deltaElv = 0;
+                        eps = 0;
+                    } else {
+
+                        var pv0 = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
+
+                        step = pv0.distance(prevVert);
+                        deltaElv = Math.abs(elv - prevElv);
+                        eps = deltaElv / step;
+
+                        if(eps > 1.0){
+                            table.push({v: 0, i: i, j: j, eps: Number(eps.toFixed(5)), step: step, delta: deltaElv, elv: elv, prevElv: prevElv});
+                        } else {
+                            prevElv = elv;
+                            prevVert = pv0;
+
+                            if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                            if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                            if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                        }
+                    }
+
 
                     terrainVerticesHigh[vInd] = _tempHigh.x;
                     terrainVerticesLow[vInd] = _tempLow.x;
@@ -265,10 +304,6 @@ if(h0 < 0){
                     terrainVerticesHigh[vInd] = _tempHigh.z;
                     terrainVerticesLow[vInd] = _tempLow.z;
                     terrainVertices[vInd++] = v0.z;
-
-                    if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                    if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                    if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
                 }
 
                 if (i !== fileGridSize && j !== fileGridSize) {
@@ -278,13 +313,25 @@ if(h0 < 0){
                     //
                     var hInd1 = k + 1;
                     var vInd1 = hInd1 * 3;
-                    var h1 = hf * elevations[hInd1];
+                    var elv = elevations[hInd1];
+                    var h1 = hf * elv;
                     var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
-//TODO: no data value
-if(h1 < 0){
-    console.log(h1);
-}
+                    //var pv1 = new Vec3(nv[vInd1], nv[vInd1 + 1], nv[vInd1 + 2]);
+
+                    //step = pv1.distance(prevVert);
+
+                    ////TODO: no data value
+                    //deltaElv = Math.abs(elv - prevElv),
+                    //    eps = deltaElv / step;
+
+                    //if(eps > 1.0){
+                    //    table.push({v: 1, i: i, j: j, eps: Number(eps.toFixed(5)), step: step, delta: deltaElv, elv: elv, prevElv: prevElv});
+                    //} else {
+                    //    prevElv = elv;
+                    //    prevVert = pv1;
+                    //}
+
                     doubleToTwoFloats(v1, _tempHigh, _tempLow);
 
                     normalMapVertices[vInd1] = v1.x;
@@ -304,16 +351,24 @@ if(h1 < 0){
                     //
                     var hInd2 = k + fileGridSize_one;
                     var vInd2 = hInd2 * 3;
-                    var h2 = hf * elevations[hInd2];
-                    var v2 = new Vec3(
-                        nv[vInd2] + h2 * nn[vInd2],
-                        nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
-                        nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
+                    var elv = elevations[hInd2];
+                    var h2 = hf * elv;
+                    var v2 = new Vec3(nv[vInd2] + h2 * nn[vInd2], nv[vInd2 + 1] + h2 * nn[vInd2 + 1], nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
-//TODO: no data value
-if(h2 < 0){
-    console.log(h2);
-}
+                    //var pv2 = new Vec3(nv[vInd2], nv[vInd2 + 1], nv[vInd2 + 2]);
+
+                    //step = pv2.distance(prevVert);
+
+                    ////TODO: no data value
+                    //deltaElv = Math.abs(elv - prevElv),
+                    //    eps = deltaElv / step;
+
+                    //if(eps > 1.0){
+                    //    table.push({v: 2, i: i, j: j, eps: Number(eps.toFixed(5)), step: step, delta: deltaElv, elv: elv, prevElv: prevElv});
+                    //} else {
+                    //    prevElv = elv;
+                    //    prevVert = pv2;
+                    //}
 
                     doubleToTwoFloats(v2, _tempHigh, _tempLow);
 
@@ -334,13 +389,23 @@ if(h2 < 0){
                     //
                     var hInd3 = k + fileGridSize_one + 1;
                     var vInd3 = hInd3 * 3;
-                    var h3 = hf * elevations[hInd3];
+                    var elv = elevations[hInd3];
+                    var h3 = hf * elv;
                     var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
 
-//TODO: no data value
-if(h3 < 0){
-    console.log(h3);
-}
+                    //var pv3 = new Vec3(nv[vInd3], nv[vInd3 + 1], nv[vInd3 + 2]);
+
+                    //step = pv3.distance(prevVert)  
+
+                    ////TODO: no data value
+                    //deltaElv = Math.abs(elv - prevElv),
+                    //    eps = deltaElv / step;
+                    //if(eps > 1.0){
+                    //    table.push({v: 3, i: i, j: j, eps: Number(eps.toFixed(5)), step: step, delta: deltaElv, elv: elv, prevElv: prevElv});
+                    //} else {
+                    //    prevElv = elv;
+                    //    prevVert = pv3;
+                    //}
 
                     doubleToTwoFloats(v3, _tempHigh, _tempLow);
 
@@ -382,6 +447,11 @@ if(h3 < 0){
                     normalMapNormals[vInd3 + 1] += n0.y;
                     normalMapNormals[vInd3 + 2] += n0.z;
                 }
+
+                if(table.length) {
+                    console.table(table);
+                }
+
             }
 
         } else {
@@ -426,11 +496,6 @@ if(h3 < 0){
                     h_rb = elevations[hrb_ind];
 
                 let hi = blerp(qij / oneSize, qii / oneSize, h_lt, h_rt, h_lb, h_rb);
-
-//TODO: no data value
-if(hi < 0){
-    console.log(hi);
-}
 
                 let i3 = i * 3;
 
