@@ -148,26 +148,34 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
  * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArr, outArrHigh, outArrLow, outBounds) {
+function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, noDataVertices, gridSize, i0, j0, size, outArr, outArrHigh, outArrLow, outBounds, outNoDataVertices) {
 
     const i0size = i0 + size + 1;
     const j0size = j0 + size + 1;
     gridSize += 1;
-    var vInd = 0;
+    var vInd = 0,
+        nInd = 0;
     for (var i = i0; i < i0size; i++) {
         for (var j = j0; j < j0size; j++) {
-            var ind = 3 * (i * gridSize + j);
+            let indBy3 = (i * gridSize + j),
+                ind = 3 * indBy3;
 
             let x = sourceArr[ind],
                 y = sourceArr[ind + 1],
                 z = sourceArr[ind + 2];
 
-            if (x < outBounds.xmin) outBounds.xmin = x;
-            if (x > outBounds.xmax) outBounds.xmax = x;
-            if (y < outBounds.ymin) outBounds.ymin = y;
-            if (y > outBounds.ymax) outBounds.ymax = y;
-            if (z < outBounds.zmin) outBounds.zmin = z;
-            if (z > outBounds.zmax) outBounds.zmax = z;
+            if (!noDataVertices || noDataVertices[indBy3] === 0) {
+                if (x < outBounds.xmin) outBounds.xmin = x;
+                if (x > outBounds.xmax) outBounds.xmax = x;
+                if (y < outBounds.ymin) outBounds.ymin = y;
+                if (y > outBounds.ymax) outBounds.ymax = y;
+                if (z < outBounds.zmin) outBounds.zmin = z;
+                if (z > outBounds.zmax) outBounds.zmax = z;
+            } else {
+                outNoDataVertices[nInd] = 1;
+            }
+
+            nInd++;
 
             outArr[vInd] = x;
             outArrLow[vInd] = sourceArrLow[ind];
@@ -832,7 +840,8 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
 
         let tempVertices,
             tempVerticesHigh,
-            tempVerticesLow;
+            tempVerticesLow,
+            noDataVertices;
 
         this.appliedTerrainNodeId = pn.nodeId;
 
@@ -854,11 +863,13 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVertices = new Float64Array(len);
             tempVerticesHigh = new Float32Array(len);
             tempVerticesLow = new Float32Array(len);
+            noDataVertices = new Uint8Array(len / 3);
 
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices,
                 pseg.terrainVerticesHigh,
                 pseg.terrainVerticesLow,
+                pseg.noDataVertices,
                 pseg.gridSize,
                 gridSize * offsetY,
                 gridSize * offsetX,
@@ -866,7 +877,9 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 tempVertices,
                 tempVerticesHigh,
                 tempVerticesLow,
-                BOUNDS);
+                BOUNDS,
+                noDataVertices
+            );
 
         } else if (gridSizeExt >= 1) {
 
@@ -876,11 +889,13 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVertices = new Float64Array(len);
             tempVerticesHigh = new Float32Array(len);
             tempVerticesLow = new Float32Array(len);
+            noDataVertices = new Uint8Array(len / 3);
 
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices,
                 pseg.normalMapVerticesHigh,
                 pseg.normalMapVerticesLow,
+                pseg.noDataVertices,
                 pn.segment.fileGridSize,
                 gridSizeExt * offsetY,
                 gridSizeExt * offsetX,
@@ -888,7 +903,9 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 tempVertices,
                 tempVerticesHigh,
                 tempVerticesLow,
-                BOUNDS);
+                BOUNDS,
+                noDataVertices
+            );
 
         } else {
 
@@ -970,6 +987,8 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
         seg.tempVertices = tempVertices;
         seg.tempVerticesHigh = tempVerticesHigh;
         seg.tempVerticesLow = tempVerticesLow;
+
+        seg.noDataVertices = noDataVertices;
 
         seg.setBoundingSphere(
             BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
