@@ -622,6 +622,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVertices = data.terrainVertices;
         this.terrainVerticesHigh = data.terrainVerticesHigh;
         this.terrainVerticesLow = data.terrainVerticesLow;
+
         this.noDataVertices = data.noDataVertices;
 
         this.tempVertices = this.terrainVertices;
@@ -680,6 +681,8 @@ Segment.prototype.elevationsNotExists = function () {
         this.tempVertices = this.terrainVertices;
         this.tempVerticesHigh = this.terrainVerticesHigh;
         this.tempVerticesLow = this.terrainVerticesLow;
+
+        this.noDataVertices = null;
 
         this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.gridSize = this.fileGridSize;

@@ -92,6 +92,26 @@ const _programm =
     //Terrain worker
     //
 
+    function binarySearchFast(arr, x) {
+        let start = 0,
+            end = arr.length - 1;
+        while (start <= end) {
+            let k = Math.floor((start + end) * 0.5); 
+            if (arr[k] === x)
+                return k;
+            else if (arr[k] < x)
+                start = k + 1;
+            else
+                end = k - 1;
+        }
+        return -1;
+    };
+
+    function checkNoDataValue(noDataValues, value) {
+        return binarySearchFast(noDataValues, value) !== -1;
+    };
+
+
     var Vec3 = function(x, y, z) {
         this.x = x;
         this.y = y;
@@ -223,11 +243,15 @@ const _programm =
             nn = this_normalMapNormals;
 
         var prevElv = elevations[0];
+
+        if(checkNoDataValue(noDataValues, prevElv)) {
+            prevElv = 0.0;
+        }
+
         var prevVert = new Vec3(nv[0], nv[1], nv[2]);
         var step = 0,
             deltaElv = 0,
             eps = 0;
-
 
         if (fileGridSize >= tgs) {
 
@@ -238,8 +262,6 @@ const _programm =
 
             for (var k = 0; k < fileGridSize_one_x2; k++) {
 
-                //let table = [];
-
                 var j = k % fileGridSize_one,
                     i = ~~(k / fileGridSize_one);
 
@@ -249,6 +271,9 @@ const _programm =
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
                 var elv = elevations[hInd0];
+                if(checkNoDataValue(noDataValues, elv)) {
+                    elv = 0.0;
+                }
                 var h0 = hf * elv;
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
                                 
@@ -283,7 +308,6 @@ const _programm =
                         eps = deltaElv / step;
 
                         if(eps > 1.0){
-                            //table.push({v: 0, i: i, j: j, eps: Number(eps.toFixed(5)), step: step, delta: deltaElv, elv: elv, prevElv: prevElv});
                             noDataVertices[noDataInd] = 1;
                         } else {
                             prevElv = elv;
@@ -319,6 +343,9 @@ const _programm =
                     var hInd1 = k + 1;
                     var vInd1 = hInd1 * 3;
                     var elv = elevations[hInd1];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
                     var h1 = hf * elv;
                     var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
@@ -342,6 +369,9 @@ const _programm =
                     var hInd2 = k + fileGridSize_one;
                     var vInd2 = hInd2 * 3;
                     var elv = elevations[hInd2];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
                     var h2 = hf * elv;
                     var v2 = new Vec3(nv[vInd2] + h2 * nn[vInd2], nv[vInd2 + 1] + h2 * nn[vInd2 + 1], nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
@@ -365,6 +395,9 @@ const _programm =
                     var hInd3 = k + fileGridSize_one + 1;
                     var vInd3 = hInd3 * 3;
                     var elv = elevations[hInd3];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
                     var h3 = hf * elv;
                     var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
 
@@ -408,11 +441,6 @@ const _programm =
                     normalMapNormals[vInd3 + 1] += n0.y;
                     normalMapNormals[vInd3 + 2] += n0.z;
                 }
-
-                //if(table.length) {
-                //    console.table(table);
-                //}
-
             }
 
         } else {

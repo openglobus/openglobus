@@ -383,7 +383,7 @@ class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(1);
+        this._terrainWorker = new TerrainWorker(2);
 
         this._plainSegmentWorker = new PlainSegmentWorker(2);
 

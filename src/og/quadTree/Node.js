@@ -863,7 +863,10 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVertices = new Float64Array(len);
             tempVerticesHigh = new Float32Array(len);
             tempVerticesLow = new Float32Array(len);
-            noDataVertices = new Uint8Array(len / 3);
+
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
+            }
 
             getMatrixSubArrayBoundsExt(
                 pseg.terrainVertices,
@@ -889,7 +892,9 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVertices = new Float64Array(len);
             tempVerticesHigh = new Float32Array(len);
             tempVerticesLow = new Float32Array(len);
-            noDataVertices = new Uint8Array(len / 3);
+            if (pseg.noDataVertices) {
+                noDataVertices = new Uint8Array(len / 3);
+            }
 
             getMatrixSubArrayBoundsExt(
                 pseg.normalMapVertices,
