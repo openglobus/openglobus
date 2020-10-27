@@ -40,6 +40,10 @@ const KeyboardHandler = function () {
         _active = activity;
     };
 
+    this.releaseKeys = function () {
+        _currentlyPressedKeys = {};
+    }
+
     this.addEvent = function (event, sender, callback, keyCode, priority) {
         if (priority === undefined) {
             priority = 1600;
