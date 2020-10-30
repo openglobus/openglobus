@@ -242,17 +242,6 @@ const _programm =
         var nv = this_normalMapVertices,
             nn = this_normalMapNormals;
 
-        var prevElv = elevations[0];
-
-        if(checkNoDataValue(noDataValues, prevElv)) {
-            prevElv = 0.0;
-        }
-
-        var prevVert = new Vec3(nv[0], nv[1], nv[2]);
-        var step = 0,
-            deltaElv = 0,
-            eps = 0;
-
         if (fileGridSize >= tgs) {
 
             normalMapNormals = new Float32Array(fileGridSize_one_x2 * 3);
@@ -270,11 +259,11 @@ const _programm =
                 //
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
-                var elv = elevations[hInd0];
-                if(checkNoDataValue(noDataValues, elv)) {
-                    elv = 0.0;
+                var currElv = elevations[hInd0];
+                if(checkNoDataValue(noDataValues, currElv)) {
+                    currElv = 0.0;
                 }
-                var h0 = hf * elv;
+                var h0 = hf * currElv;
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
                                 
                 doubleToTwoFloats(v0, _tempHigh, _tempLow);
@@ -295,29 +284,26 @@ const _programm =
                 // The vertex goes into screen buffer
                 if (i % dg === 0 && j % dg === 0) {
 
-                    if(j === 0){
-                        step = 0;
-                        deltaElv = 0;
-                        eps = 0;
-                    } else {
+                        let currVert = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
+                        let nextVert = new Vec3(nv[vInd0 + 3], nv[vInd0 + 4], nv[vInd0 + 5]);
 
-                        var pv0 = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
-
-                        step = pv0.distance(prevVert);
-                        deltaElv = Math.abs(elv - prevElv);
-                        eps = deltaElv / step;
+                        let nextElv =  elevations[hInd0 + 1];
+                        if(checkNoDataValue(noDataValues, nextElv)) {
+                            nextElv = 0.0;
+                        }
+                                              
+                        let step = currVert.distance(nextVert);
+                        let deltaElv = Math.abs(currElv - nextElv);
+                        let eps = deltaElv / step;
 
                         if(eps > 1.0){
                             noDataVertices[noDataInd] = 1;
                         } else {
-                            prevElv = elv;
-                            prevVert = pv0;
                             noDataVertices[noDataInd] = 0;
                             if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
                             if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
                             if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
                         }
-                    }
 
 
                     terrainVerticesHigh[vInd] = _tempHigh.x;
