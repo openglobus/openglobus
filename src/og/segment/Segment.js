@@ -167,7 +167,6 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.terrainExists = false;
 
-    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -177,6 +176,7 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.terrainVertices = null;
     this.terrainVerticesHigh = null;
     this.terrainVerticesLow = null;
+    this.noDataVertices = null;
 
     this.tempVertices = null;
     this.tempVerticesHigh = null;
@@ -608,6 +608,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVertices = null;
         this.terrainVerticesHigh = null;
         this.terrainVerticesLow = null;
+        this.noDataVertices = null;
 
         this.tempVertices = null;
         this.tempVerticesHigh = null;
@@ -621,6 +622,8 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.terrainVertices = data.terrainVertices;
         this.terrainVerticesHigh = data.terrainVerticesHigh;
         this.terrainVerticesLow = data.terrainVerticesLow;
+
+        this.noDataVertices = data.noDataVertices;
 
         this.tempVertices = this.terrainVertices;
         this.tempVerticesHigh = this.terrainVerticesHigh;
@@ -678,6 +681,8 @@ Segment.prototype.elevationsNotExists = function () {
         this.tempVertices = this.terrainVertices;
         this.tempVerticesHigh = this.terrainVerticesHigh;
         this.tempVerticesLow = this.terrainVerticesLow;
+
+        this.noDataVertices = null;
 
         this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.gridSize = this.fileGridSize;
@@ -846,6 +851,7 @@ Segment.prototype.deleteElevations = function () {
     this.terrainVertices = null;
     this.terrainVerticesHigh = null;
     this.terrainVerticesLow = null;
+    this.noDataVertices = null;
 
     this.plainVertices = null;
     this.plainVerticesHigh = null;
@@ -910,7 +916,6 @@ Segment.prototype.destroySegment = function () {
 
     this.materials = null;
 
-    // this.plainIndexes = null;
     this.plainVertices = null;
     this.plainVerticesHigh = null;
     this.plainVerticesLow = null;
@@ -919,6 +924,7 @@ Segment.prototype.destroySegment = function () {
     this.terrainVertices = null;
     this.terrainVerticesHigh = null;
     this.terrainVerticesLow = null;
+    this.noDataVertices = null;
 
     this.tempVertices = null;
     this.tempVerticesHigh = null;

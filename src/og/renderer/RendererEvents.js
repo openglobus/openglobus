@@ -247,6 +247,10 @@ class RendererEvents extends Events {
         return this._keyboardHandler.isKeyPressed(keyCode);
     }
 
+    releaseKeys() {
+        this._keyboardHandler.releaseKeys();
+    }
+
     /**
      * Renderer events initialization.
      * @public

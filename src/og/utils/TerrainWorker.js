@@ -92,6 +92,26 @@ const _programm =
     //Terrain worker
     //
 
+    function binarySearchFast(arr, x) {
+        let start = 0,
+            end = arr.length - 1;
+        while (start <= end) {
+            let k = Math.floor((start + end) * 0.5); 
+            if (arr[k] === x)
+                return k;
+            else if (arr[k] < x)
+                start = k + 1;
+            else
+                end = k - 1;
+        }
+        return -1;
+    };
+
+    function checkNoDataValue(noDataValues, value) {
+        return binarySearchFast(noDataValues, value) !== -1;
+    };
+
+
     var Vec3 = function(x, y, z) {
         this.x = x;
         this.y = y;
@@ -158,6 +178,14 @@ const _programm =
         return this;
     };
 
+    Vec3.prototype.distance = function(v) {
+        return this.sub(v).length();
+    };
+
+    Vec3.prototype.length = function () {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    };
+
     var blerp = function(x, y, fQ11, fQ21, fQ12, fQ22) {
         return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
     };
@@ -179,6 +207,7 @@ const _programm =
             this_normalMapNormals = e.data.this_normalMapNormals,
             heightFactor =  e.data.heightFactor,
             gridSize = e.data.gridSize,
+            noDataValues = e.data.noDataValues,
             id = e.data.id;
         
         var xmin = 549755748352.0, xmax = -549755748352.0, 
@@ -195,13 +224,15 @@ const _programm =
         const hf = heightFactor;
 
         var nmvInd = 0,
-            vInd = 0;
+            vInd = 0,
+            noDataInd = 0;
 
         var gsgs3 = gs * gs * 3;
 
         var terrainVertices = new Float64Array(gsgs3),
             terrainVerticesHigh = new Float32Array(gsgs3),
-            terrainVerticesLow = new Float32Array(gsgs3);
+            terrainVerticesLow = new Float32Array(gsgs3),
+            noDataVertices = new Uint8Array(gs * gs);
 
         var normalMapNormals,
             normalMapVertices,
@@ -228,15 +259,13 @@ const _programm =
                 //
                 var hInd0 = k;
                 var vInd0 = hInd0 * 3;
-                var h0 = hf * elevations[hInd0];
-
-//TODO: no data value
-if(h0 < -100){
-    h0 = 300;
-}
-                
+                var currElv = elevations[hInd0];
+                if(checkNoDataValue(noDataValues, currElv)) {
+                    currElv = 0.0;
+                }
+                var h0 = hf * currElv;
                 var v0 = new Vec3(nv[vInd0] + h0 * nn[vInd0], nv[vInd0 + 1] + h0 * nn[vInd0 + 1], nv[vInd0 + 2] + h0 * nn[vInd0 + 2]);
-
+                                
                 doubleToTwoFloats(v0, _tempHigh, _tempLow);
 
                 normalMapVertices[vInd0] = v0.x;
@@ -251,7 +280,31 @@ if(h0 < -100){
                 normalMapVerticesLow[vInd0 + 1] = _tempLow.y;
                 normalMapVerticesLow[vInd0 + 2] = _tempLow.z;
 
+                //
+                // The vertex goes into screen buffer
                 if (i % dg === 0 && j % dg === 0) {
+
+                        let currVert = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
+                        let nextVert = new Vec3(nv[vInd0 + 3], nv[vInd0 + 4], nv[vInd0 + 5]);
+
+                        let nextElv =  elevations[hInd0 + 1];
+                        if(checkNoDataValue(noDataValues, nextElv)) {
+                            nextElv = 0.0;
+                        }
+                                              
+                        let step = currVert.distance(nextVert);
+                        let deltaElv = Math.abs(currElv - nextElv);
+                        let eps = deltaElv / step;
+
+                        if(eps > 1.0){
+                            noDataVertices[noDataInd] = 1;
+                        } else {
+                            noDataVertices[noDataInd] = 0;
+                            if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                            if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                            if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                        }
+
 
                     terrainVerticesHigh[vInd] = _tempHigh.x;
                     terrainVerticesLow[vInd] = _tempLow.x;
@@ -265,9 +318,7 @@ if(h0 < -100){
                     terrainVerticesLow[vInd] = _tempLow.z;
                     terrainVertices[vInd++] = v0.z;
 
-                    if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                    if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                    if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                    noDataInd++;
                 }
 
                 if (i !== fileGridSize && j !== fileGridSize) {
@@ -277,13 +328,13 @@ if(h0 < -100){
                     //
                     var hInd1 = k + 1;
                     var vInd1 = hInd1 * 3;
-                    var h1 = hf * elevations[hInd1];
+                    var elv = elevations[hInd1];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
+                    var h1 = hf * elv;
                     var v1 = new Vec3(nv[vInd1] + h1 * nn[vInd1], nv[vInd1 + 1] + h1 * nn[vInd1 + 1], nv[vInd1 + 2] + h1 * nn[vInd1 + 2]);
 
-//TODO: no data value
-if(h1 < -100){
-    h1 = h0;
-}
                     doubleToTwoFloats(v1, _tempHigh, _tempLow);
 
                     normalMapVertices[vInd1] = v1.x;
@@ -303,16 +354,12 @@ if(h1 < -100){
                     //
                     var hInd2 = k + fileGridSize_one;
                     var vInd2 = hInd2 * 3;
-                    var h2 = hf * elevations[hInd2];
-                    var v2 = new Vec3(
-                        nv[vInd2] + h2 * nn[vInd2],
-                        nv[vInd2 + 1] + h2 * nn[vInd2 + 1],
-                        nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
-
-//TODO: no data value
-if(h2 < -100){
-    h2 = h1;
-}
+                    var elv = elevations[hInd2];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
+                    var h2 = hf * elv;
+                    var v2 = new Vec3(nv[vInd2] + h2 * nn[vInd2], nv[vInd2 + 1] + h2 * nn[vInd2 + 1], nv[vInd2 + 2] + h2 * nn[vInd2 + 2]);
 
                     doubleToTwoFloats(v2, _tempHigh, _tempLow);
 
@@ -333,13 +380,12 @@ if(h2 < -100){
                     //
                     var hInd3 = k + fileGridSize_one + 1;
                     var vInd3 = hInd3 * 3;
-                    var h3 = hf * elevations[hInd3];
+                    var elv = elevations[hInd3];
+                    if(checkNoDataValue(noDataValues, elv)) {
+                        elv = 0.0;
+                    }
+                    var h3 = hf * elv;
                     var v3 = new Vec3(nv[vInd3] + h3 * nn[vInd3], nv[vInd3 + 1] + h3 * nn[vInd3 + 1], nv[vInd3 + 2] + h3 * nn[vInd3 + 2]);
-
-//TODO: no data value
-if(h3 < -100){
-    h3 = h2;
-}
 
                     doubleToTwoFloats(v3, _tempHigh, _tempLow);
 
@@ -426,11 +472,6 @@ if(h3 < -100){
 
                 let hi = blerp(qij / oneSize, qii / oneSize, h_lt, h_rt, h_lb, h_rb);
 
-//TODO: no data value
-if(hi < -100){
-    hi = 300;
-}
-
                 let i3 = i * 3;
 
                 _tempVec.x = this_plainVertices[i3] + hi * this_plainNormals[i3],
@@ -477,34 +518,31 @@ if(hi < -100){
                         v2 = new Vec3(terrainVertices[v2ind], terrainVertices[v2ind + 1], terrainVertices[v2ind + 2]),
                         v3 = new Vec3(terrainVertices[v3ind], terrainVertices[v3ind + 1], terrainVertices[v3ind + 2]);
 
-                        var e10 = v1.sub(v0).normalize(),
-                            e20 = v2.sub(v0).normalize(),
-                            e30 = v3.sub(v0).normalize();
+                    var e10 = v1.sub(v0).normalize(),
+                        e20 = v2.sub(v0).normalize(),
+                        e30 = v3.sub(v0).normalize();
 
-                        var sw = e20.cross(e30).normalize();
-                        var ne = e30.cross(e10).normalize();
-                        var n0 = ne.add(sw).normalize();
+                    var sw = e20.cross(e30).normalize();
+                    var ne = e30.cross(e10).normalize();
+                    var n0 = ne.add(sw).normalize();
 
-                        normalMapNormals[v0ind] += n0.x;
-                        normalMapNormals[v0ind + 1] += n0.y;
-                        normalMapNormals[v0ind + 2] += n0.z;
+                    normalMapNormals[v0ind] += n0.x;
+                    normalMapNormals[v0ind + 1] += n0.y;
+                    normalMapNormals[v0ind + 2] += n0.z;
 
-                        normalMapNormals[v1ind] += ne.x;
-                        normalMapNormals[v1ind + 1] += ne.y;
-                        normalMapNormals[v1ind + 2] += ne.z;
+                    normalMapNormals[v1ind] += ne.x;
+                    normalMapNormals[v1ind + 1] += ne.y;
+                    normalMapNormals[v1ind + 2] += ne.z;
 
-                        normalMapNormals[v2ind] += sw.x;
-                        normalMapNormals[v2ind + 1] += sw.y;
-                        normalMapNormals[v2ind + 2] += sw.z;
+                    normalMapNormals[v2ind] += sw.x;
+                    normalMapNormals[v2ind + 1] += sw.y;
+                    normalMapNormals[v2ind + 2] += sw.z;
 
-                        normalMapNormals[v3ind] += n0.x;
-                        normalMapNormals[v3ind + 1] += n0.y;
-                        normalMapNormals[v3ind + 2] += n0.z;
-                    }
+                    normalMapNormals[v3ind] += n0.x;
+                    normalMapNormals[v3ind + 1] += n0.y;
+                    normalMapNormals[v3ind + 2] += n0.z;
+                }
             }
-
-            //normalMapNormals = this_plainNormals;
-
         }
 
         self.postMessage({
@@ -516,6 +554,7 @@ if(hi < -100){
                 terrainVertices: terrainVertices,
                 terrainVerticesHigh: terrainVerticesHigh,
                 terrainVerticesLow: terrainVerticesLow,
+                noDataVertices: noDataVertices,
                 bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
              }, [
                     normalMapNormals.buffer, 
@@ -524,7 +563,8 @@ if(hi < -100){
                     normalMapVerticesLow.buffer, 
                     terrainVertices.buffer,
                     terrainVerticesHigh.buffer,
-                    terrainVerticesLow.buffer
+                    terrainVerticesLow.buffer,
+                    noDataVertices.buffer
             ]);
     }`;
 

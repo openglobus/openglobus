@@ -162,7 +162,7 @@ let emptyTerrain = new EmptyTerrain(),
     bilTerrain = new BilTerrain({
         url: "//95.211.82.211:8080/geoserver/og/",
         layers: "og:n44_e009_1arc_v3",
-        imageSize: 129,
+        //imageSize: 129,
         //gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
         extent: [[8.9, 44.0], [10.0, 45]]
     });
@@ -170,7 +170,7 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': globusTerrain/*bilTerrain/*new MapboxTerrain(null, {
+    'terrain': mapboxTerrain/*globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -180,7 +180,7 @@ window.globe = new Globe({
         equalizeVertices: false
     })*/,
     'layers': [osm, tg],
-    //'viewExtent': [-1.12675, 51.60039, -1.11016, 5160336]
+    'viewExtent': [89.83484, 25.69255, 90.34796, 26.44652]
 });
 
 window.setEmptyTerrain = function () {
@@ -301,7 +301,7 @@ new Vector("Markers", {
     }));
 
 
-globe.planet.viewExtentArr([-1.13284, 51.59951, -1.10951, 51.60386]);
+//globe.planet.viewExtentArr([-1.13284, 51.59951, -1.10951, 51.60386]);
 
 let myPopup = new Popup({
     planet: globe.planet,

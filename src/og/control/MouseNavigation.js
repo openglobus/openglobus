@@ -143,6 +143,7 @@ class MouseNavigation extends Control {
         this.renderer.events.on("draw", this.onDraw, this, -1000);
         this.renderer.events.on("mousemove", this.onMouseMove, this);
         this.renderer.events.on("mouseleave", this.onMouseLeave, this);
+        this.renderer.events.on("mouseenter", this.onMouseEnter, this);
 
         if (this._lmbDoubleClickActive) {
             this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
@@ -159,6 +160,7 @@ class MouseNavigation extends Control {
         this.renderer.events.off("draw", this.onDraw);
         this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
         this.renderer.events.off("mouseleave", this.onMouseLeave);
+        this.renderer.events.off("mouseenter", this.onMouseEnter);
     };
 
     activateDoubleClickZoom() {
@@ -175,7 +177,13 @@ class MouseNavigation extends Control {
         }
     }
 
-    onMouseLeave() {
+    onMouseEnter(e) {
+        if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
+            this.renderer.events.releaseKeys();
+        }
+    }
+
+    onMouseLeave(e) {
         if (this.renderer.events.mouseState.leftButtonDown) {
             this.scaleRot = 0;
         }

@@ -66,6 +66,7 @@ class BilTerrain extends GlobusTerrain {
         //
         if (!isPowerOfTwo(this._imageSize)) {
             let outCurrenElevations = new Float32Array(bil16.length);
+            //TODO: optimize
             extractElevationTilesNonPowerOfTwo(bil16, outCurrenElevations);
             return outCurrenElevations;
         }
@@ -85,7 +86,7 @@ class BilTerrain extends GlobusTerrain {
 
         let outCurrenElevations = new Float32Array(elevationsSize);
 
-        extractElevationTiles(bil16, outCurrenElevations, outChildrenElevations);
+        extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
         return outCurrenElevations;
     }
@@ -93,31 +94,27 @@ class BilTerrain extends GlobusTerrain {
 
 function extractElevationTilesNonPowerOfTwo(data, outCurrenElevations) {
     for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
-        let height = data[i];
-        if (height === -9999 || height === 32767) {
-            height = 0;
-        }
-        outCurrenElevations[i] = height;
+        outCurrenElevations[i] = data[i];
     }
 }
 
-function extractElevationTiles(data, outCurrenElevations, outChildrenElevations) {
+function extractElevationTiles(data, noDataValues, outCurrenElevations, outChildrenElevations) {
 
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(data.length);
     let dt = sourceSize / destSize;
 
-    let rightHeigh = 0,
-        bottomHeigh = 0;
+    let rightHeight = 0,
+        bottomHeight = 0;
 
     for (let k = 0, currIndex = 0, sourceDataLength = data.length; k < sourceDataLength; k++) {
 
         let height = data[k];
 
-        if (height === -9999 || height === 32767) {
-            height = 0;
-        }
+        let isNoDataCurrent = BilTerrain.checkNoDataValue(noDataValues, height),
+            isNoDataRight = false,
+            isNoDataBottom = false;
 
         let i = Math.floor(k / sourceSize),
             j = k % sourceSize;
@@ -141,13 +138,15 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
         if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
 
             //current tile
-            rightHeigh = data[k];
+            rightHeight = data[k];
 
-            if (rightHeigh === -9999 || rightHeigh === 32767) {
-                rightHeigh = 0;
+            isNoDataRight = BilTerrain.checkNoDataValue(noDataValues, rightHeight);
+
+            let middleHeight = height;
+            if (!(isNoDataCurrent || isNoDataRight)) {
+                middleHeight = (height + rightHeight) * 0.5;
             }
 
-            let middleHeight = (height + rightHeigh) * 0.5;
             destIndex = (ii + tileY) * destSizeOne + jj + 1;
             destArr[destIndex] = middleHeight;
 
@@ -163,13 +162,16 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
         if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
 
             //current tile
-            bottomHeigh = data[k + sourceSize];
+            bottomHeight = data[k + sourceSize];
 
-            if (bottomHeigh === -9999 || bottomHeigh === 32767) {
-                bottomHeigh = 0;
+            isNoDataBottom = BilTerrain.checkNoDataValue(noDataValues, bottomHeight);
+
+            let middleHeight = height;
+
+            if (!(isNoDataCurrent || isNoDataBottom)) {
+                middleHeight = (height + bottomHeight) * 0.5;
             }
 
-            let middleHeight = (height + bottomHeigh) * 0.5;
             destIndex = (ii + 1) * destSizeOne + jj + tileX;
             destArr[destIndex] = middleHeight;
 
@@ -188,11 +190,14 @@ function extractElevationTiles(data, outCurrenElevations, outChildrenElevations)
             //current tile
             let rightBottomHeight = data[k + sourceSize + 1];
 
-            if (rightBottomHeight === -9999 || rightBottomHeight === 32767) {
-                rightBottomHeight = 0;
+            let isNoDataRightBottom = BilTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
+
+            let middleHeight = height;
+
+            if (!(isNoDataCurrent || isNoDataRight || isNoDataBottom || isNoDataRightBottom)) {
+                middleHeight = (height + rightHeight + bottomHeight + rightBottomHeight) * 0.25;
             }
 
-            let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
             destIndex = (ii + 1) * destSizeOne + (jj + 1);
             destArr[destIndex] = middleHeight;
 
