@@ -783,7 +783,7 @@ Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
     var h = this.handler;
     var gl = h.gl;
 
-    if (frustumIndex === 2) {
+    if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     } else {

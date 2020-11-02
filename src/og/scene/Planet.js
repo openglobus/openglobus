@@ -1036,7 +1036,7 @@ class Planet extends RenderNode {
         let cam = renderer.activeCamera;
         let frustumIndex = cam.getCurrentFrustum();
 
-        if (frustumIndex === cam.frustums.length - 1) {
+        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
 
             this._collectRenderNodes();
 
@@ -1184,7 +1184,7 @@ class Planet extends RenderNode {
         let cam = renderer.activeCamera;
         let frustumIndex = cam.getCurrentFrustum();
 
-        if (frustumIndex === 2) {
+        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {

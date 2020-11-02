@@ -146,6 +146,8 @@ class Camera {
             );
         }
 
+        this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
+
         this._currentFrustum = 0;
 
         renderer && this._init(options);
