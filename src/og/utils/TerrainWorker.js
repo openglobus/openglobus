@@ -296,7 +296,7 @@ const _programm =
                         let deltaElv = Math.abs(currElv - nextElv);
                         let eps = deltaElv / step;
 
-                        if(eps > 1.0){
+                        if(eps > 1.0 || currElv < -5000){
                             noDataVertices[noDataInd] = 1;
                         } else {
                             noDataVertices[noDataInd] = 0;

@@ -59,83 +59,6 @@ function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
     return res;
 };
 
-// /**
-// * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
-// * @static
-// * @param {Array.<number>} sourceArr - Source array
-// * @param {number} gridSize - Source array square matrix size
-// * @param {number} i0 - First row index source array matrix
-// * @param {number} j0 - First column index
-// * @param {number} size - Square matrix result size.
-// * @return{Array.<number>} Triangle coordinates array from the source array.
-// * @TODO: optimization
-// */
-// function getMatrixSubArrayExt(sourceArrHigh, sourceArrLow, gridSize, i0, j0, size, outArrHigh, outArrLow) {
-
-//    const i0size = i0 + size + 1;
-//    const j0size = j0 + size + 1;
-
-//    var vInd = 0;
-//    for (var i = i0; i < i0size; i++) {
-//        for (var j = j0; j < j0size; j++) {
-//            var ind = 3 * (i * (gridSize + 1) + j);
-
-//            outArrLow[vInd] = sourceArrLow[ind];
-//            outArrHigh[vInd++] = sourceArrHigh[ind];
-
-//            outArrLow[vInd] = sourceArrLow[ind + 1];
-//            outArrHigh[vInd++] = sourceArrHigh[ind + 1];
-
-//            outArrLow[vInd] = sourceArrLow[ind + 2];
-//            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
-//        }
-//    }
-// };
-
-// /**
-// * Returns triangle coordinate array from inside of the source triangle array.
-// * @static
-// * @param {Array.<number>} sourceArr - Source array
-// * @param {number} gridSize - Source array square matrix size
-// * @param {number} i0 - First row index source array matrix
-// * @param {number} j0 - First column index
-// * @param {number} size - Square matrix result size.
-// * @param {object} outBounds - Output bounds.
-// * @return{Array.<number>} Triangle coordinates array from the source array.
-// * @TODO: optimization
-// */
-// function getMatrixSubArrayBounds(sourceArr, gridSize, i0, j0, size, outBounds) {
-
-//    const size_1 = size + 1;
-//    const i0size = i0 + size_1;
-//    const j0size = j0 + size_1;
-
-//    var res = new Float64Array(size_1 * size_1 * 3);
-
-//    var vInd = 0;
-//    for (var i = i0; i < i0size; i++) {
-//        for (var j = j0; j < j0size; j++) {
-//            var ind = 3 * (i * (gridSize + 1) + j);
-
-//            let x = sourceArr[ind],
-//                y = sourceArr[ind + 1],
-//                z = sourceArr[ind + 2];
-
-//            if (x < outBounds.xmin) outBounds.xmin = x;
-//            if (x > outBounds.xmax) outBounds.xmax = x;
-//            if (y < outBounds.ymin) outBounds.ymin = y;
-//            if (y > outBounds.ymax) outBounds.ymax = y;
-//            if (z < outBounds.zmin) outBounds.zmin = z;
-//            if (z > outBounds.zmax) outBounds.zmax = z;
-
-//            res[vInd++] = x;
-//            res[vInd++] = y;
-//            res[vInd++] = z;
-//        }
-//    }
-//    return res;
-// };
-
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
  * @static
@@ -892,6 +815,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
             tempVertices = new Float64Array(len);
             tempVerticesHigh = new Float32Array(len);
             tempVerticesLow = new Float32Array(len);
+
             if (pseg.noDataVertices) {
                 noDataVertices = new Uint8Array(len / 3);
             }

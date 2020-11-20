@@ -630,12 +630,13 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVerticesLow = this.terrainVerticesLow;
 
         var b = data.bounds;
+
         this.setBoundingSphere(
             b[0] + (b[1] - b[0]) * 0.5,
             b[2] + (b[3] - b[2]) * 0.5,
             b[4] + (b[5] - b[4]) * 0.5,
             new Vec3(b[0], b[2], b[4])
-        );
+        );        
 
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.node.appliedTerrainNodeId = this.node.nodeId;
