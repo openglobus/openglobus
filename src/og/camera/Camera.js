@@ -15,7 +15,7 @@ import { Mat4 } from '../math/Mat4.js';
  * @param {og.Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle=30] - Camera angle of view. Default is 30.0
+ * @param {number} [options.viewAngle=38] - Camera angle of view. Default is 30.0
  * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
  * @param {og.Vec3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
@@ -74,7 +74,7 @@ class Camera {
          * @protected
          * @type {Number}
          */
-        this._viewAngle = options.viewAngle || 30.0;
+        this._viewAngle = options.viewAngle || 38.0;
 
         /**
          * Camera normal matrix.

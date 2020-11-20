@@ -20,7 +20,7 @@ import { Quat } from '../math/Quat.js';
  * @param {og.RenderNode} planet - Planet render node.
  * @param {Object} [options] - Planet camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle] - Camera angle of view. Default is 35.0
+ * @param {number} [options.viewAngle=37] - Camera angle of view. Default is 35.0
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
  * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 50
