@@ -1,6 +1,6 @@
 {
   "name": "og",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
   "directories": {
     "example": "./sandbox"
@@ -27,26 +27,26 @@
   "homepage": "http://www.openglobus.org",
   "dependencies": {},
   "devDependencies": {
-    "@babel/preset-env": "^7.7.7",
-    "@rollup/plugin-replace": "^2.3.1",
+    "@babel/preset-env": "^7.12.7",
+    "@rollup/plugin-replace": "^2.3.4",
     "babel-preset-env": "^1.7.0",
-    "enhanced-resolve": "^4.1.1",
+    "enhanced-resolve": "^4.3.0",
     "eslint": "^6.8.0",
     "eslint-config-defaults": "^9.0.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-node": "^11.0.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-react": "^7.3.0",
-    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-standard": "^4.1.0",
     "jaguarjs-jsdoc": "^1.1.0",
-    "jest": "^24.9.0",
-    "jsdoc": "^3.6.3",
+    "jest": "^26.6.3",
+    "jsdoc": "^3.6.6",
     "local-web-server": "^3.0.7",
-    "rollup": "^1.31.0",
-    "rollup-plugin-css-only": "^2.0.0",
+    "rollup": "^1.32.1",
+    "rollup-plugin-css-only": "^2.1.0",
     "rollup-plugin-css-porter": "^1.0.2",
-    "rollup-plugin-terser": "^5.2.0"
+    "rollup-plugin-terser": "^5.3.1"
   },
   "keywords": [
     "map",
