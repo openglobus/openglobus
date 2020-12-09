@@ -24,6 +24,11 @@ class Plane {
         return this.n.clone();
     }
 
+    distance(p) {
+        let pp = this.getProjection(p);
+        return p.distance(pp);
+    }
+
     getProjection(v, def) {
         return Vec3.proj_b_to_plane(v, this.n, def);
     }

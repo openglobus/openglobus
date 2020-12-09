@@ -435,8 +435,8 @@ Renderer.prototype.initialize = function () {
     }
 
     this.handler.onCanvasResize = () => {
-        this._resize();
         this.events.dispatch(this.events.resize, this.handler.canvas);
+        this._resize();
     };
 
     this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
