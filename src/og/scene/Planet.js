@@ -658,7 +658,10 @@ class Planet extends RenderNode {
         let texCoordCache = segmentHelper.getInstance().initTextureCoordsTable(TABLESIZE + 1);
 
         for (let i = 0; i <= TABLESIZE; i++) {
-            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
+            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(
+                texCoordCache[i],
+                2,
+                ((1 << i) + 1) * ((1 << i) + 1));
         }
 
         texCoordCache = null;

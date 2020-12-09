@@ -160,7 +160,8 @@ class GeoImage extends BaseGeoImage {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
         gl.uniform1i(shu.sourceTexture, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
 
         gl.enable(gl.CULL_FACE);
@@ -207,7 +208,8 @@ class GeoImage extends BaseGeoImage {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
         gl.uniform1i(shu.sourceTexture, 0);
-        sh.drawIndexBuffer(gl.TRIANGLE_STRIP, creator._indexBuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
 
         gl.enable(gl.CULL_FACE);
