@@ -97,22 +97,23 @@ class RenderNode extends BaseNode {
         var r = this.renderer,
             n = this.name;
 
-        if (r.renderNodes[n] &&
-            r.renderNodes[n].isEqual(this)) {
-            r.renderNodes[n] = null;
-            delete r.renderNodes[n];
-        }
-
-        for (var i = 0; i < r._renderNodesArr.length; i++) {
-            if (r._renderNodesArr[i].isEqual(this)) {
-                r._renderNodesArr.splice(i, 1);
-                break;
+        if (r) {
+            if (r.renderNodes[n] &&
+                r.renderNodes[n].isEqual(this)) {
+                r.renderNodes[n] = null;
+                delete r.renderNodes[n];
             }
-        }
 
-        this.renderer.removePickingCallback(this._pickingId);
-        this._pickingId = -1;
-        this.onremove && this.onremove();
+            for (var i = 0; i < r._renderNodesArr.length; i++) {
+                if (r._renderNodesArr[i].isEqual(this)) {
+                    r._renderNodesArr.splice(i, 1);
+                    break;
+                }
+            }
+            r.removePickingCallback(this._pickingId);
+            this._pickingId = -1;
+            this.onremove && this.onremove();
+        }
     }
 
     /**
