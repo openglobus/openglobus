@@ -28,7 +28,7 @@ const OUTLINECOLOR_BUFFER = 11;
  *
  */
 class LabelHandler extends BillboardHandler {
-    constructor(entityCollection) {
+    constructor(entityCollection, maxLetters = 21) {
 
         super(entityCollection);
 
@@ -48,7 +48,7 @@ class LabelHandler extends BillboardHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._maxLetters = 25;
+        this._maxLetters = maxLetters;
     }
 
     initProgram() {

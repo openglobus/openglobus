@@ -122,7 +122,7 @@ class EntityCollection {
          * @public
          * @type {og.LabelHandler}
          */
-        this.labelHandler = new LabelHandler(this);
+        this.labelHandler = new LabelHandler(this, options.labelMaxLetters);
 
         /**
          * Shape handler

@@ -45,7 +45,8 @@ EntityCollectionNode.prototype._addEntitiesToCollection = function (entities, ri
 
         if (!ec) {
             ec = new EntityCollection({
-                pickingEnabled: l._pickingEnabled
+                pickingEnabled: l._pickingEnabled,
+                labelMaxLetters: l._labelMaxLetters
             });
             ec._layer = this.layer;
             ec.addTo(p, true);

@@ -73,6 +73,8 @@ class Layer {
          */
         this.name = name || "noname";
 
+        this._labelMaxLetters = options.labelMaxLetters;
+
         this.displayInLayerSwitcher = options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
 
         this._hasImageryTiles = true;
