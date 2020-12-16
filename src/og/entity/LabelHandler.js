@@ -189,7 +189,7 @@ class LabelHandler extends BillboardHandler {
             this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = label._fontIndex;
-            this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [0, 0, 0, 0, 0, 0]);
+            this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [x, x, x, x, x, x]);
 
             x = 1.0 - label._outline; y = 0.0;
             this._outlineArr = concatTypedArrays(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
