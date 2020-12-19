@@ -18,6 +18,7 @@
         import { LonLat } from '../../src/og/LonLat.js';
         import { Vector } from '../../src/og/layer/Vector.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { random } from '../../src/og/math.js';
 
         const osm = new XYZ("OpenStreetMap", {
             specular: [0.0003, 0.00012, 0.00001],
@@ -30,7 +31,7 @@
         });
 
         const pointLayer = new Vector("points", {
-            'clampToGround': true,
+            'relativeToGround': true,
             'visibility': true
         });
 
@@ -43,29 +44,41 @@
 
         function createCircle(ellipsoid, center, radius = 300) {
             let circleCoords = [];
-            for (let i = 0; i < 360; i += 1) {
+            for (let i = 0; i < 360; i += 5) {
                 circleCoords.push(ellipsoid.getGreatCircleDestination(center, i, radius));
             }
             return circleCoords;
         };
 
-        let center = new LonLat(20, 88);
+        function createCircles(outPathLonLat, outPathColors, num = 80) {
+            let ell = globe.planet.ellipsoid;
+            for (let i = 0; i < num; i++) {
+                let center = new LonLat(random(8.08, 8.31), random(46.7, 46.8));
+                let circle = createCircle(ell, center, random(100, 1000));
+                outPathLonLat.push(circle);
+
+                let color = [random(), random(), random()];
+                outPathColors.push([color]);
+            }
+        }
+
+        let pathLonLat = [],
+            pathColors = [];
+
+        createCircles(pathLonLat, pathColors);
 
         const polylineEntity = new Entity({
             'polyline': {
-                'pathLonLat': [createCircle(globe.planet.ellipsoid, center, 10000), createCircle(globe.planet.ellipsoid, center, 100000), createCircle(globe.planet.ellipsoid, center, 1000000)],
-                'thickness': 5,
-                'color': "rgba(255, 255, 0, 0.92)",
+                'pathLonLat': pathLonLat,
+                'pathColors': pathColors,
+                'thickness': 3.3,
                 'isClosed': true
             }
         });
 
         pointLayer.addEntities([polylineEntity]);
 
-        window.globe = globe;
-
         globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
-
 
     </script>
 </body>

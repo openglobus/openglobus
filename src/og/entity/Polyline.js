@@ -25,6 +25,7 @@ const A = 3;
  * @class
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
+ * @param {Number} [options.altitude] - Relative to ground layers altitude value.
  * @param {og.Vec4} [options.color] - RGBA color.
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
@@ -46,7 +47,7 @@ class Polyline {
          */
         this.id = Polyline._staticCounter++;
 
-        this.altitude = 0.0;
+        this.altitude = options.altitude || 0.0;
 
         /**
          * Polyline thickness in screen pixels.

@@ -150,18 +150,18 @@ export function nextHighestPowerOfTwo(x) {
  * @param {number} max - Maximal bound.
  * @returns {number} -
  */
-export function randomi(min, max) {
+export function randomi(min = 0, max = 1) {
     return Math.floor(Math.random() * (max - min)) + min;
 };
 
 /**
  * Returns random number within the bounds.
  * @function
- * @param {number} min - Minimal bound.
- * @param {number} max - Maximal bound.
+ * @param {number} [min=0] - Minimal bound.
+ * @param {number} [max=1] - Maximal bound.
  * @returns {number} -
  */
-export function random(min, max) {
+export function random(min = 0, max = 1) {
     return Math.random() * (max - min) + min;
 };
 
