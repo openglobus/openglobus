@@ -389,12 +389,12 @@ class LabelHandler extends BillboardHandler {
 
         var c = 0;
 
-        // var j = i + c * 24;
         var n = fa.nodes[text[c]];
         var f = n ? n.emptySize : 0.0;
         var offset = f;
+        var len = Math.min(this._maxLetters, text.length);
 
-        for (c = 0; c < text.length; c++) {
+        for (c = 0; c < len; c++) {
             var j = i + c * 24;
             n = fa.nodes[text[c]] || fa.nodes[" "];
             var tc = n.texCoords;
@@ -435,7 +435,7 @@ class LabelHandler extends BillboardHandler {
         // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
             offset = (f + 49 / 512 - offset) * 0.5;
-            for (c = 0; c < text.length; c++) {
+            for (c = 0; c < len; c++) {
                 let j = i + c * 24;
                 a[j + 3] = offset;
                 a[j + 7] = offset;
@@ -446,7 +446,7 @@ class LabelHandler extends BillboardHandler {
             }
         } else if (align === ALIGN.LEFT) {
             offset = (f + 49 / 512 - offset);
-            for (c = 0; c < text.length; c++) {
+            for (c = 0; c < len; c++) {
                 let j = i + c * 24;
                 a[j + 3] = offset;
                 a[j + 7] = offset;
