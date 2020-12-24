@@ -371,176 +371,179 @@ class Strip {
         if (index === this._path.length) {
             this.addEdge3v(p2, p3);
             return;
-        }
+        } if (this._path[index]) {
 
-        this._path[index][0] = p2;
-        this._path[index][1] = p3;
+            this._path[index][0] = p2;
+            this._path[index][1] = p3;
 
-        if (this._path.length > 1) {
+            if (this._path.length > 1) {
 
-            let gs = this._gridSize,
-                gs1 = gs + 1;
+                let gs = this._gridSize,
+                    gs1 = gs + 1;
 
-            let vSize = gs1 * gs1;
+                let vSize = gs1 * gs1;
 
-            let p = new Vec3();
+                let p = new Vec3();
 
-            let vHigh = this._verticesHigh,
-                vLow = this._verticesLow;
+                let vHigh = this._verticesHigh,
+                    vLow = this._verticesLow;
 
-            if (index === this._path.length - 1) {
+                if (index === this._path.length - 1) {
 
-                let p0 = this._path[index - 1][0],
-                    p1 = this._path[index - 1][1];
+                    let p0 = this._path[index - 1][0],
+                        p1 = this._path[index - 1][1];
 
-                let prev = this._verticesHigh.length / 3 - vSize,
-                    ind = prev;
+                    let prev = this._verticesHigh.length / 3 - vSize,
+                        ind = prev;
 
-                let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
+                    let d = Math.abs(p0.sub(p1).normal().dot(p2.sub(p0).normal()));
 
-                for (let i = 0; i < gs1; i++) {
+                    for (let i = 0; i < gs1; i++) {
 
-                    let di = i / gs;
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di);
+                        let di = i / gs;
+                        let p02 = p0.lerp(p2, di),
+                            p13 = p1.lerp(p3, di);
 
-                    for (let j = 0; j < gs1; j++) {
+                        for (let j = 0; j < gs1; j++) {
 
-                        let dj = j / gs;
-                        let p01 = p0.lerp(p1, dj),
-                            p23 = p2.lerp(p3, dj);
+                            let dj = j / gs;
+                            let p01 = p0.lerp(p1, dj),
+                                p23 = p2.lerp(p3, dj);
 
-                        if (d !== 1.0) {
-                            (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
-                        } else {
-                            p = p23;
+                            if (d !== 1.0) {
+                                (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                            } else {
+                                p = p23;
+                            }
+
+                            ind = prev + i * gs1 + j;
+
+                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                            let ind3 = ind * 3;
+
+                            vHigh[ind3] = _tempHigh.x;
+                            vHigh[ind3 + 1] = _tempHigh.y;
+                            vHigh[ind3 + 2] = _tempHigh.z;
+
+                            vLow[ind3] = _tempLow.x;
+                            vLow[ind3 + 1] = _tempLow.y;
+                            vLow[ind3 + 2] = _tempLow.z;
                         }
-
-                        ind = prev + i * gs1 + j;
-
-                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
-
-                        let ind3 = ind * 3;
-
-                        vHigh[ind3] = _tempHigh.x;
-                        vHigh[ind3 + 1] = _tempHigh.y;
-                        vHigh[ind3 + 2] = _tempHigh.z;
-
-                        vLow[ind3] = _tempLow.x;
-                        vLow[ind3 + 1] = _tempLow.y;
-                        vLow[ind3 + 2] = _tempLow.z;
                     }
-                }
 
-            } else if (index === 0) {
+                } else if (index === 0) {
 
-                let ind = 0;
+                    let ind = 0;
 
-                let p0 = p2,
-                    p1 = p3;
+                    let p0 = p2,
+                        p1 = p3;
 
-                p2 = this._path[1][0];
-                p3 = this._path[1][1];
+                    p2 = this._path[1][0];
+                    p3 = this._path[1][1];
 
-                for (let i = 0; i < gs1; i++) {
+                    for (let i = 0; i < gs1; i++) {
 
-                    let di = i / gs;
-                    let p02 = p0.lerp(p2, di),
-                        p13 = p1.lerp(p3, di);
+                        let di = i / gs;
+                        let p02 = p0.lerp(p2, di),
+                            p13 = p1.lerp(p3, di);
 
-                    for (let j = 0; j < gs1; j++) {
+                        for (let j = 0; j < gs1; j++) {
 
-                        let dj = j / gs;
-                        let p01 = p0.lerp(p1, dj),
+                            let dj = j / gs;
+                            let p01 = p0.lerp(p1, dj),
+                                p23 = p2.lerp(p3, dj);
+
+                            (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                            ind = i * gs1 + j;
+
+                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                            let ind3 = ind * 3;
+
+                            vHigh[ind3] = _tempHigh.x;
+                            vHigh[ind3 + 1] = _tempHigh.y;
+                            vHigh[ind3 + 2] = _tempHigh.z;
+
+                            vLow[ind3] = _tempLow.x;
+                            vLow[ind3 + 1] = _tempLow.y;
+                            vLow[ind3 + 2] = _tempLow.z;
+                        }
+                    }
+                } else if (index > 0 && index < this._path.length) {
+
+                    let p0 = this._path[index - 1][0],
+                        p1 = this._path[index - 1][1];
+
+                    let p4 = this._path[index + 1][0],
+                        p5 = this._path[index + 1][1];
+
+                    let next = index * vSize,
+                        prev = (index - 1) * vSize,
+                        ind = prev;
+
+                    for (let i = 0; i < gs1; i++) {
+
+                        let di = i / gs;
+                        let p02 = p0.lerp(p2, di),
+                            p35 = p3.lerp(p5, di),
+                            p24 = p2.lerp(p4, di),
+                            p13 = p1.lerp(p3, di);
+
+                        for (let j = 0; j < gs1; j++) {
+
+                            let dj = j / gs;
+                            let p01 = p0.lerp(p1, dj),
+                                p23 = p2.lerp(p3, dj);
+
+                            // prev
+                            (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+
+                            let ij = i * gs1 + j;
+
+                            ind = prev + ij;
+
+                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+
+                            let ind3 = ind * 3;
+
+                            vHigh[ind3] = _tempHigh.x;
+                            vHigh[ind3 + 1] = _tempHigh.y;
+                            vHigh[ind3 + 2] = _tempHigh.z;
+
+                            vLow[ind3] = _tempLow.x;
+                            vLow[ind3 + 1] = _tempLow.y;
+                            vLow[ind3 + 2] = _tempLow.z;
+
+                            // next
+                            let p45 = p4.lerp(p5, dj);
+
                             p23 = p2.lerp(p3, dj);
 
-                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
+                            (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
 
-                        ind = i * gs1 + j;
+                            ind = next + ij;
 
-                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
+                            Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
 
-                        let ind3 = ind * 3;
+                            ind3 = ind * 3;
 
-                        vHigh[ind3] = _tempHigh.x;
-                        vHigh[ind3 + 1] = _tempHigh.y;
-                        vHigh[ind3 + 2] = _tempHigh.z;
+                            vHigh[ind3] = _tempHigh.x;
+                            vHigh[ind3 + 1] = _tempHigh.y;
+                            vHigh[ind3 + 2] = _tempHigh.z;
 
-                        vLow[ind3] = _tempLow.x;
-                        vLow[ind3 + 1] = _tempLow.y;
-                        vLow[ind3 + 2] = _tempLow.z;
+                            vLow[ind3] = _tempLow.x;
+                            vLow[ind3 + 1] = _tempLow.y;
+                            vLow[ind3 + 2] = _tempLow.z;
+                        }
                     }
                 }
-            } else if (index > 0 && index < this._path.length) {
 
-                let p0 = this._path[index - 1][0],
-                    p1 = this._path[index - 1][1];
-
-                let p4 = this._path[index + 1][0],
-                    p5 = this._path[index + 1][1];
-
-                let next = index * vSize,
-                    prev = (index - 1) * vSize,
-                    ind = prev;
-
-                for (let i = 0; i < gs1; i++) {
-
-                    let di = i / gs;
-                    let p02 = p0.lerp(p2, di),
-                        p35 = p3.lerp(p5, di),
-                        p24 = p2.lerp(p4, di),
-                        p13 = p1.lerp(p3, di);
-
-                    for (let j = 0; j < gs1; j++) {
-
-                        let dj = j / gs;
-                        let p01 = p0.lerp(p1, dj),
-                            p23 = p2.lerp(p3, dj);
-
-                        // prev
-                        (new Line3(p02, p13)).intersects(new Line3(p01, p23), p);
-
-                        let ij = i * gs1 + j;
-
-                        ind = prev + ij;
-
-                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
-
-                        let ind3 = ind * 3;
-
-                        vHigh[ind3] = _tempHigh.x;
-                        vHigh[ind3 + 1] = _tempHigh.y;
-                        vHigh[ind3 + 2] = _tempHigh.z;
-
-                        vLow[ind3] = _tempLow.x;
-                        vLow[ind3 + 1] = _tempLow.y;
-                        vLow[ind3 + 2] = _tempLow.z;
-
-                        // next
-                        let p45 = p4.lerp(p5, dj);
-
-                        p23 = p2.lerp(p3, dj);
-
-                        (new Line3(p24, p35)).intersects(new Line3(p23, p45), p);
-
-                        ind = next + ij;
-
-                        Vec3.doubleToTwoFloats(p, _tempHigh, _tempLow);
-
-                        ind3 = ind * 3;
-
-                        vHigh[ind3] = _tempHigh.x;
-                        vHigh[ind3 + 1] = _tempHigh.y;
-                        vHigh[ind3 + 2] = _tempHigh.z;
-
-                        vLow[ind3] = _tempLow.x;
-                        vLow[ind3 + 1] = _tempLow.y;
-                        vLow[ind3 + 2] = _tempLow.z;
-                    }
-                }
+                this._createBuffers();
             }
-
-            this._createBuffers();
+        } else {
+            console.warn(`strip index ${index} is out of range`);
         }
     }
 
