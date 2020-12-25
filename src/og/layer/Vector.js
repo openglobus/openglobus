@@ -479,7 +479,27 @@ class Vector extends Layer {
      * @public
      */
     clear() {
-        // TODO
+
+        let temp = new Array(this._entities.length);
+
+        for (let i = 0; i < temp.length; i++) {
+            temp[i] = this._entities[i];
+        }
+
+        let i = this._entities.length;
+        while (i--) {
+            this._entities[i].remove();
+        }
+
+        this._entities.length = 0;
+        this._entities = [];
+        for (let i = 0; i < temp.length; i++) {
+            this._entities[i] = temp[i];
+        }
+
+        this._entityCollectionsTree = null;
+        this._entityCollectionsTreeNorth = null;
+        this._entityCollectionsTreeSouth = null;
     }
 
     /**
@@ -503,16 +523,21 @@ class Vector extends Layer {
      */
     setEntities(entities) {
 
+        let temp = new Array(entities.length);
+        for (let i = 0, len = entities.length; i < len; i++) {
+            temp[i] = entities[i];
+        }
+
         this.clear();
 
         //var e = this._extent;
 
-        this._entities = new Array(entities.length);
+        this._entities = new Array(temp.length);
 
         var entitiesForTree = [];
 
-        for (var i = 0; i < entities.length; i++) {
-            var ei = entities[i];
+        for (var i = 0; i < temp.length; i++) {
+            var ei = temp[i];
 
             ei._layer = this;
             ei._layerIndex = i;
