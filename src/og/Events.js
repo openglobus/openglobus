@@ -94,7 +94,7 @@ class Events {
      * @public
      * @param {string} name - Event name to listen.
      * @param {eventCallback} callback - Event callback function.
-     * @param {Object} sender - Event callback function owner. 
+     * @param {Object} sender - Event callback function owner.
      */
     on(name, callback, sender, priority = 0) {
         if (this._stamp(name, callback)) {
@@ -146,14 +146,18 @@ class Events {
      * @param {Object} [obj] - Event object.
      */
     dispatch(event, ...args) {
+        let result = true;
         if (event && event.active && !this._stopPropagation) {
             let h = event.handlers,
                 i = h.length;
             while (i--) {
-                h[i](...args);
+                if (h[i](...args) === false) {
+                    result = false;
+                }
             }
         }
         this._stopPropagation = false;
+        return result;
     }
 
     /**
