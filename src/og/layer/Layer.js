@@ -62,9 +62,7 @@ export const FADING_FACTOR = 0.29;
  * @fires og.layer.Vector#doubletouch
  */
 class Layer {
-    constructor(name, options) {
-
-        options = options || {};
+    constructor(name, options = {}) {
 
         /**
          * Layer user name.
@@ -340,7 +338,10 @@ class Layer {
      * @param {og.scene.Planet} planet - Adds layer to the planet.
      */
     addTo(planet) {
-        this._assignPlanet(planet);
+        if (!this._planet) {
+            this._assignPlanet(planet);
+        }
+        return this;
     }
 
     /**

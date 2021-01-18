@@ -72,8 +72,7 @@ function _entitiesConstructor(entities) {
  * @fires og.layer.Vector#visibilitychange
  */
 class Vector extends Layer {
-    constructor(name, options) {
-        options = options || {};
+    constructor(name, options = {}) {
 
         super(name, options);
 
@@ -193,11 +192,13 @@ class Vector extends Layer {
      * @returns {og.layer.Vector} -
      */
     addTo(planet) {
-        this._assignPlanet(planet);
-        this._geometryHandler.assignHandler(planet.renderer.handler);
-        this._polylineEntityCollection.addTo(planet, true);
-        this._stripEntityCollection.addTo(planet, true);
-        this.setEntities(this._entities);
+        if (!this._planet) {
+            this._assignPlanet(planet);
+            this._geometryHandler.assignHandler(planet.renderer.handler);
+            this._polylineEntityCollection.addTo(planet, true);
+            this._stripEntityCollection.addTo(planet, true);
+            this.setEntities(this._entities);
+        }
         return this;
     }
 
