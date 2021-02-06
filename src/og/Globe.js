@@ -83,10 +83,19 @@ class Globe {
         this.div = document.getElementById(options.target);
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
-        function _disableWheel() { return false; }
-        function _enableWheel() { return true; }
-        this.div.onmouseenter = function () { document.onmousewheel = _disableWheel; };
-        this.div.onmouseleave = function () { document.onmousewheel = _enableWheel; };
+
+        function _disableWheel(e) {
+            e.preventDefault();
+        }
+
+        this.div.onmouseenter = function () {
+            document.addEventListener('mousewheel', _disableWheel, {
+                capture: false, passive: false
+            });
+        };
+        this.div.onmouseleave = function () {
+            document.removeEventListener('mousewheel', _disableWheel);
+        };
 
         /**
          * Interface for the renderer context(events, input states, renderer nodes etc.)
@@ -101,8 +110,8 @@ class Globe {
                     powerPreference: "high-performance"
                 }
             }), {
-            autoActivate: false
-        });
+                autoActivate: false
+            });
         this.renderer.initialize();
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
