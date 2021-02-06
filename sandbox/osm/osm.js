@@ -19,6 +19,36 @@ import { Popup } from '../../src/og/Popup.js';
 import { LonLat } from '../../src/og/LonLat.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { ScaleControl } from '../../src/og/control/ScaleControl.js';
+import { stringTemplate } from '../../src/og/utils/shared.js';
+
+function toQuadKey(x, y, z) {
+    var index = '';
+    for (var i = z; i > 0; i--) {
+        var b = 0;
+        var mask = 1 << (i - 1);
+        if ((x & mask) !== 0) b++;
+        if ((y & mask) !== 0) b += 2;
+        index += b.toString();
+    }
+    return index;
+};
+
+let bing = new XYZ("sat", {
+    shininess: 20,
+    isBaseLayer: false,
+    subdomains: ['t0', 't1', 't2', 't3'],
+    url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
+    visibility: true,
+    attribution: `Bing`,
+    maxNativeZoom: 19,
+    defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
+    urlRewrite: function (s, u) {
+        return stringTemplate(u, {
+            's': this._getSubdomain(),
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
+});
 
 // document.getElementById("ambient-r").addEventListener("input", function (e) {
 //     osm.ambient.x = this.value;
@@ -160,17 +190,20 @@ let emptyTerrain = new EmptyTerrain(),
     globusTerrain = new GlobusTerrain(),
     mapboxTerrain = new MapboxTerrain(),
     bilTerrain = new BilTerrain({
-        url: "//95.211.82.211:8080/geoserver/og/",
-        layers: "og:n44_e009_1arc_v3",
+        maxZoom: 19,
+        url: "//127.0.0.1:8080/geoserver/",
+        //url: "//95.211.82.211:8080/geoserver/og/",
+        //layers: "og:n44_e009_1arc_v3",
+        layers: "test:geotiff_coverage",
         //imageSize: 129,
-        //gridSizeByZoom: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 64, 64, 32, 32, 32, 16, 8],
-        extent: [[8.9, 44.0], [10.0, 45]]
+        gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
+        //extent: [[8.9, 44.0], [10.0, 45]]
     });
 
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': mapboxTerrain/*globusTerrain/*new MapboxTerrain(null, {
+    'terrain': bilTerrain/*globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -312,3 +345,5 @@ let myPopup = new Popup({
 });
 
 window.myPopup = myPopup;
+
+globe.planet.viewLonLat(new LonLat(-112.99778159686288, 37.23755430287543, 8952.673764926381));
