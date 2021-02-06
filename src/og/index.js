@@ -1,6 +1,6 @@
 'use strict';
 
-import '../../css/og.css';
+// import '../../css/og.css';
 
 import * as jd from './astro/jd.js';
 import * as math from './math.js';
@@ -89,83 +89,65 @@ import { Planet } from './scene/Planet.js';
 import { RenderNode } from './scene/RenderNode.js';
 
 import { Popup } from './Popup.js';
+import pkg from "../../package.json";
 
 const version = {
-    version: __VERSION__
-};
-
-const bv = {
-    Box: Box,
-    Sphere: Sphere
-};
-
-const layer = {
-    CanvasTiles: CanvasTiles,
-    GeoImage: GeoImage,
-    GeoTexture2d: GeoTexture2d,
-    GeoVideo: GeoVideo,
-    Vector: Vector,
-    WMS: WMS,
-    XYZ: XYZ
-};
-
-const control = {
-    DebugInfo: DebugInfo,
-    EarthCoordinates: EarthCoordinates,
-    GeoImageDragControl: GeoImageDragControl,
-    KeyboardNavigation: KeyboardNavigation,
-    LayerSwitcher: LayerSwitcher,
-    MouseNavigation: MouseNavigation,
-    ToggleWireframe: ToggleWireframe,
-    TouchNavigation: TouchNavigation,
-    SimpleNavigation: SimpleNavigation,
-    ShowFps: ShowFps,
-    Sun: Sun,
-    ZoomControl: ZoomControl
-};
-
-const entity = {
-    Billboard: Billboard,
-    Geometry: Geometry,
-    Label: Label,
-    PointCloud: PointCloud,
-    Polyline: Polyline
-};
-
-const terrain = {
-    EmptyTerrain: EmptyTerrain,
-    GlobusTerrain: GlobusTerrain,
-    MapboxTerrain: MapboxTerrain,
-    BilTerrain: BilTerrain
-};
-
-const webgl = {
-    Framebuffer: Framebuffer,
-    Handler: Handler,
-    Multisample: Multisample,
-    types: types,
-    Program: Program
-};
-
-const scene = {
-    Planet: Planet,
-    Axes: Axes
+    version:  JSON.stringify(pkg.version)
 };
 
 export {
+     Billboard,
+     Geometry,
+     Label,
+     PointCloud,
+     Polyline,
+
     version,
-    bv,
+
+     Box,
+     Sphere,
+
     jd,
     math,
     mercator,
     utils,
     input,
     Layer,
-    layer,
-    terrain,
+
+    CanvasTiles,
+    GeoImage,
+    GeoTexture2d,
+    GeoVideo,
+    Vector,
+    WMS,
+    XYZ,
+
+    EmptyTerrain,
+    GlobusTerrain,
+    MapboxTerrain,
+    BilTerrain,
+
     Control,
-    control,
-    webgl,
+
+    DebugInfo,
+    EarthCoordinates,
+    GeoImageDragControl,
+    KeyboardNavigation,
+    LayerSwitcher,
+    MouseNavigation,
+    ToggleWireframe,
+    TouchNavigation,
+    SimpleNavigation,
+    ShowFps,
+    Sun,
+    ZoomControl,
+
+    Framebuffer,
+    Handler,
+    Multisample,
+    types,
+    Program,
+
     wgs84,
     Camera,
     Ellipsoid,
@@ -173,13 +155,15 @@ export {
     Globe,
     LightSource,
     EntityCollection,
-    Handler,
     Renderer,
     Clock,
     Events,
     Extent,
     LonLat,
-    scene,
+
+    Planet,
+    Axes,
+
     RenderNode,
     Line2,
     Line3,
@@ -191,7 +175,6 @@ export {
     Vec2,
     Vec3,
     Vec4,
-    entity,
     Entity,
     Geoid,
     Popup
