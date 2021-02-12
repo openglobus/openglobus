@@ -320,11 +320,33 @@ class MouseNavigation extends Control {
         var cam = this.renderer.activeCamera;
 
         if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
+
             this.renderer.controlsBag.scaleRot = 1.0;
             var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
-            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);
+
+            var rot = new Mat4().setRotation(cam._u, l * (e.y - e.prev_y));
+            var tr = new Mat4().setIdentity().translate(this.pointOnEarth);
+            var ntr = new Mat4().setIdentity().translate(this.pointOnEarth.negateTo());
+            var trm = tr.mul(rot).mul(ntr);
+
+            let eye = trm.mulVec3(cam.eye);
+            let v = rot.mulVec3(cam._v).normalize();
+            let u = rot.mulVec3(cam._u).normalize();
+            let n = rot.mulVec3(cam._n).normalize();
+
+            let eyeNorm = eye.normal();
+            let slope = n.dot(eyeNorm);
+
+            if (slope > 0.1 && v.dot(eyeNorm) > 0) {
+                cam.eye = eye;
+                cam._v = v;
+                cam._u = u;
+                cam._n = n;
+            }
+
+            //cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth);
 
             cam.checkTerrainCollision();
 

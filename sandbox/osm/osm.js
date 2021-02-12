@@ -194,7 +194,8 @@ let emptyTerrain = new EmptyTerrain(),
         url: "//127.0.0.1:8080/geoserver/",
         //url: "//95.211.82.211:8080/geoserver/og/",
         //layers: "og:n44_e009_1arc_v3",
-        layers: "test:geotiff_coverage",
+        //layers: "test:geotiff_coverage",
+        layers: "arizona:3",
         //imageSize: 129,
         gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
         //extent: [[8.9, 44.0], [10.0, 45]]
@@ -203,7 +204,7 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': bilTerrain/*globusTerrain/*new MapboxTerrain(null, {
+    'terrain': /*bilTerrain/*/globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
