@@ -83,7 +83,13 @@ class ShapeHandler {
     }
 
     clear() {
-        // TODO
+        for (let i = 0, len = this._shapes.length; i < len; i++) {
+            var ri = this._shapes[i];
+            ri._handlerIndex = -1;
+            ri._handler = null;
+        }
+        this._shapes.length = 0;
+        this._shapes = [];
     }
 };
 

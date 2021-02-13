@@ -32,6 +32,7 @@ import { wgs84 } from '../ellipsoid/wgs84.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Geoid } from '../terrain/Geoid.js';
+import { EntityCollection } from '../entity/EntityCollection.js';
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
@@ -400,6 +401,8 @@ class Planet extends RenderNode {
         this._prevCamEye = new Vec3();
 
         this._initialized = false;
+
+        this._boundingSphereCollection = new EntityCollection();
     }
 
     /**
@@ -738,6 +741,8 @@ class Planet extends RenderNode {
             blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
         });
 
+        this.addEntityCollection(this._boundingSphereCollection);
+
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
@@ -1041,7 +1046,13 @@ class Planet extends RenderNode {
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
 
+            this._boundingSphereCollection.clear();
+
             this._collectRenderNodes();
+
+            for (let i = 0; i < this._renderedNodes.length; i++) {
+                this._boundingSphereCollection.add(this._renderedNodes[i].segment._sphereEntity);
+            }
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.

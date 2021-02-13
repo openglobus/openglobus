@@ -138,7 +138,7 @@ let osm = new XYZ("OSM", {
     'specular': [0.0003, 0.00012, 0.00001],
     'shininess': 20,
     'diffuse': [0.89, 0.9, 0.83],
-    'isBaseLayer': false,
+    'isBaseLayer': true,
     'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     'visibility': true,
     'attribution': 'Data @ OpenStreetMap contributors, ODbL'
@@ -164,17 +164,15 @@ let osm = new XYZ("OSM", {
 //        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
 //});
 
-let sat = new XYZ("MapQuest Satellite", {
+let sat = new XYZ("Google Satellite", {
     shininess: 20,
     specular: [0.00048, 0.00037, 0.00035],
     diffuse: [0.88, 0.85, 0.8],
     ambient: [0.15, 0.1, 0.23],
     isBaseLayer: true,
-    url: "http://api.tomtom.com/map/1/tile/basic/night/{z}/{x}/{y}.png?key=44LDLhblEzN2HswvgkU7wRFIOmoNUqFe",
+    url: "https://khms1.googleapis.com/kh?v=894&hl=en-GB&x={x}&y={y}&z={z}",
     visibility: false,
-    attribution: `@2014 MapQuest - Portions @2014 "Map data @
-        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+    attribution: ``
 });
 
 let thames = new XYZ("Reconstructed Lakebed", {
@@ -194,8 +192,8 @@ let emptyTerrain = new EmptyTerrain(),
         url: "//127.0.0.1:8080/geoserver/",
         //url: "//95.211.82.211:8080/geoserver/og/",
         //layers: "og:n44_e009_1arc_v3",
-        //layers: "test:geotiff_coverage",
-        layers: "arizona:3",
+        layers: "test:geotiff_coverage",
+        //layers: "arizona:3",
         //imageSize: 129,
         gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
         //extent: [[8.9, 44.0], [10.0, 45]]
@@ -213,7 +211,7 @@ window.globe = new Globe({
         sourceImageSize: 129,
         equalizeVertices: false
     })*/,
-    'layers': [osm, tg],
+    'layers': [osm, tg, sat],
     'viewExtent': [89.83484, 25.69255, 90.34796, 26.44652]
 });
 

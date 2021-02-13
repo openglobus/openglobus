@@ -10,6 +10,7 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
+import { Entity } from '../entity/Entity.js';
 
 export const MAX_NORMAL_ZOOM = 7;
 
@@ -206,6 +207,12 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.readyToEngage = false;
 
     this.plainProcessing = false;
+
+    this._sphereEntity = new Entity({
+        sphere: {
+            radius: 1
+        }
+    });
 };
 
 /**
@@ -636,7 +643,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
             b[2] + (b[3] - b[2]) * 0.5,
             b[4] + (b[5] - b[4]) * 0.5,
             new Vec3(b[0], b[2], b[4])
-        );        
+        );
 
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.node.appliedTerrainNodeId = this.node.nodeId;
@@ -992,6 +999,10 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
     this.bsphere.center.y = y;
     this.bsphere.center.z = z;
     this.bsphere.radius = this.bsphere.center.distance(v);
+
+
+    this._sphereEntity.shape.setPosition3v(this.bsphere.center);
+    this._sphereEntity.shape.setScale(this.bsphere.radius);
 };
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
