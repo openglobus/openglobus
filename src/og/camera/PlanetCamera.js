@@ -12,6 +12,7 @@ import { Key } from '../Lock.js';
 import { LonLat } from '../LonLat.js';
 import { Ray } from '../math/Ray.js';
 import { Quat } from '../math/Quat.js';
+import { Mat4 } from '../math/Mat4.js';
 
 /**
  * Planet camera.
@@ -474,6 +475,35 @@ class PlanetCamera extends Camera {
     rotateDown(angle) {
         this.rotateVertical(-angle * math.RADIANS, Vec3.ZERO);
         this.update();
+    }
+
+    rotateVertical(angle, center, isLimited) {
+        var rot = new Mat4().setRotation(this._u, angle);
+        var tr = new Mat4().setIdentity().translate(center);
+        var ntr = new Mat4().setIdentity().translate(center.negateTo());
+        var trm = tr.mul(rot).mul(ntr);
+
+        let eye = trm.mulVec3(this.eye);
+        let v = rot.mulVec3(this._v).normalize();
+        let u = rot.mulVec3(this._u).normalize();
+        let n = rot.mulVec3(this._n).normalize();
+
+        let eyeNorm = eye.normal();
+        let slope = n.dot(eyeNorm);
+
+        if (isLimited) {
+            if (slope > 0.1 && v.dot(eyeNorm) > 0) {
+                this.eye = eye;
+                this._v = v;
+                this._u = u;
+                this._n = n;
+            }
+        } else {
+            this.eye = eye;
+            this._v = v;
+            this._u = u;
+            this._n = n;
+        }
     }
 
     /**
