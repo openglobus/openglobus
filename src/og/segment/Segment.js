@@ -999,10 +999,6 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
     this.bsphere.center.y = y;
     this.bsphere.center.z = z;
     this.bsphere.radius = this.bsphere.center.distance(v);
-
-
-    this._sphereEntity.shape.setPosition3v(this.bsphere.center);
-    this._sphereEntity.shape.setScale(this.bsphere.radius);
 };
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {

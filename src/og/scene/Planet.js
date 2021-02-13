@@ -1051,7 +1051,10 @@ class Planet extends RenderNode {
             this._collectRenderNodes();
 
             for (let i = 0; i < this._renderedNodes.length; i++) {
-                this._boundingSphereCollection.add(this._renderedNodes[i].segment._sphereEntity);
+                let si = this._renderedNodes[i].segment;
+                si._sphereEntity.shape.setScale(si.bsphere.radius / 2);
+                si._sphereEntity.shape.setPosition3v(si.bsphere.center);
+                this._boundingSphereCollection.add(si._sphereEntity);
             }
 
             // Here is the planet node dispatches a draw event before
