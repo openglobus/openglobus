@@ -59,7 +59,7 @@ class BaseShape {
          * @public
          * @type {Array.<number,number,number,number>}
          */
-        this.color = options.color || [1.0, 1.0, 1.0, 1.0];
+        this.color = options.color ? new Float32Array(options.color) : new Float32Array([1.0, 1.0, 1.0, 1.0]);
 
         /**
          * Shape visibility.
