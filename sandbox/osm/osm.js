@@ -20,6 +20,7 @@ import { LonLat } from '../../src/og/LonLat.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { ScaleControl } from '../../src/og/control/ScaleControl.js';
 import { stringTemplate } from '../../src/og/utils/shared.js';
+import { SegmentBoundVisualization } from '../../src/og/control/SegmentBoundVisualization.js';
 
 function toQuadKey(x, y, z) {
     var index = '';
@@ -192,7 +193,7 @@ let emptyTerrain = new EmptyTerrain(),
         url: "//127.0.0.1:8080/geoserver/",
         //url: "//95.211.82.211:8080/geoserver/og/",
         //layers: "og:n44_e009_1arc_v3",
-        layers: "test:geotiff_coverage",
+        layers: "test:geotiff_coverage_2",
         //layers: "arizona:3",
         //imageSize: 129,
         gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
@@ -266,6 +267,8 @@ globe.planet.addControl(new DebugInfo({
 globe.planet.addControl(new ToggleWireframe({
     isActive: false
 }));
+
+globe.planet.addControl(new SegmentBoundVisualization());
 globe.planet.addControl(new KeyboardNavigation());
 globe.planet.addControl(new LayerSwitcher());
 //globe.planet.addControl(new ScaleControl());

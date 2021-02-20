@@ -401,8 +401,6 @@ class Planet extends RenderNode {
         this._prevCamEye = new Vec3();
 
         this._initialized = false;
-
-        this._boundingSphereCollection = new EntityCollection();
     }
 
     /**
@@ -741,8 +739,6 @@ class Planet extends RenderNode {
             blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
         });
 
-        //this.addEntityCollection(this._boundingSphereCollection);
-
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
@@ -1046,16 +1042,7 @@ class Planet extends RenderNode {
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
 
-            this._boundingSphereCollection.clear();
-
             this._collectRenderNodes();
-
-            for (let i = 0; i < this._renderedNodes.length; i++) {
-                let si = this._renderedNodes[i].segment;
-                si._sphereEntity.shape.setScale(si.bsphere.radius / 2);
-                si._sphereEntity.shape.setPosition3v(si.bsphere.center);
-                this._boundingSphereCollection.add(si._sphereEntity);
-            }
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
