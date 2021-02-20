@@ -121,12 +121,6 @@ class Vector extends Layer {
         this._nodeCapacity = options.nodeCapacity || 30;
 
         /**
-         * Manimal tree node depth index.
-         * @private
-         */
-        this._minDepth = options.minDepth || 1;
-
-        /**
          * Stored entities.
          * @private
          */
@@ -316,11 +310,14 @@ class Vector extends Layer {
 
                 // north tree
                 if (entity._lonlat.lat > mercator.MAX_LAT) {
+                    this._entityCollectionsTreeNorth.__setLonLat__(entity);
                     this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
                 } else if (entity._lonlat.lat < mercator.MIN_LAT) {
                     // south tree
+                    this._entityCollectionsTreeSouth.__setLonLat__(entity);
                     this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
                 } else {
+                    this._entityCollectionsTree.__setLonLat__(entity);
                     this._entityCollectionsTree.insertEntity(entity, rightNow);
                 }
             }
@@ -581,6 +578,19 @@ class Vector extends Layer {
                 Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]), this._planet, 0);
             this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(this, quadTree.NW, null, 0,
                 Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]), this._planet, 0);
+
+            for (let i = 0, len = entitiesForTree.length; i < len; i++) {
+                let entity = entitiesForTree[i];
+                // north tree
+                if (entity._lonlat.lat > mercator.MAX_LAT) {
+                    this._entityCollectionsTreeNorth.__setLonLat__(entity);
+                } else if (entity._lonlat.lat < mercator.MIN_LAT) {
+                    // south tree
+                    this._entityCollectionsTreeSouth.__setLonLat__(entity);
+                } else {
+                    this._entityCollectionsTree.__setLonLat__(entity);
+                }
+            }
 
             this._entityCollectionsTree.buildTree(entitiesForTree);
             this._entityCollectionsTreeNorth.buildTree(entitiesForTree);

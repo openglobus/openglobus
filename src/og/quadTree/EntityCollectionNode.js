@@ -32,7 +32,7 @@ const EntityCollectionNode = function (layer, partId, parent, id, extent, planet
     planet && this._setExtentBounds();
 };
 
-EntityCollectionNode.prototype.insertEntity = function (entity, isInside, rightNow) {
+EntityCollectionNode.prototype.insertEntity = function (entity, rightNow) {
     this.buildTree([entity], rightNow);
 };
 
@@ -72,7 +72,7 @@ EntityCollectionNode.prototype._setExtentBounds = function () {
     }
 };
 
-EntityCollectionNode.prototype._setLonLat = function (entity) {
+EntityCollectionNode.prototype.__setLonLat__ = function (entity) {
 
     if (entity._lonlat.isZero() && !entity._cartesian.isZero()) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
@@ -90,10 +90,7 @@ EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
 
     this.count += entities.length;
 
-    if (entities.length > this.layer._nodeCapacity ||
-        this.zoom < this.layer.minZoom ||
-        this.zoom < this.layer._minDepth
-    ) {
+    if (entities.length > this.layer._nodeCapacity || this.zoom > this.layer.minZoom) {
         var cn = this.childrenNodes;
         if (!cn.length) {
             this.createChildrenNodes();
@@ -107,21 +104,18 @@ EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
         var i = entities.length;
         while (i--) {
             var ei = entities[i];
-            var p = this._setLonLat(ei);
-            if (p) {
-                if (cn[quadTree.NW].extent.isInside(p)) {
-                    ei._nodePtr = cn[quadTree.NW];
-                    en_nw.push(ei);
-                } else if (cn[quadTree.NE].extent.isInside(p)) {
-                    ei._nodePtr = cn[quadTree.NE];
-                    en_ne.push(ei);
-                } else if (cn[quadTree.SW].extent.isInside(p)) {
-                    ei._nodePtr = cn[quadTree.SW];
-                    en_sw.push(ei);
-                } else if (cn[quadTree.SE].extent.isInside(p)) {
-                    ei._nodePtr = cn[quadTree.SE];
-                    en_se.push(ei);
-                }
+            if (cn[quadTree.NW].isInside(ei)) {
+                ei._nodePtr = cn[quadTree.NW];
+                en_nw.push(ei);
+            } else if (cn[quadTree.NE].isInside(ei)) {
+                ei._nodePtr = cn[quadTree.NE];
+                en_ne.push(ei);
+            } else if (cn[quadTree.SW].isInside(ei)) {
+                ei._nodePtr = cn[quadTree.SW];
+                en_sw.push(ei);
+            } else if (cn[quadTree.SE].isInside(ei)) {
+                ei._nodePtr = cn[quadTree.SE];
+                en_se.push(ei);
             }
         }
 
@@ -133,6 +127,10 @@ EntityCollectionNode.prototype.buildTree = function (entities, rightNow) {
     } else {
         this._addEntitiesToCollection(entities, rightNow);
     }
+};
+
+EntityCollectionNode.prototype.isInside = function (entity) {
+    return this.extent.isInside(entity._lonlatMerc);
 };
 
 EntityCollectionNode.prototype.createChildrenNodes = function () {
@@ -333,7 +331,7 @@ EntityCollectionNodeWGS84.prototype._setExtentBounds = function () {
     this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent);
 };
 
-EntityCollectionNodeWGS84.prototype._setLonLat = function (entity) {
+EntityCollectionNodeWGS84.prototype.__setLonLat__ = function (entity) {
     if (entity._lonlat.isZero()) {
         entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
     }
@@ -347,6 +345,10 @@ EntityCollectionNodeWGS84.prototype.isVisible = function () {
         return true;
     }
     return false;
+};
+
+EntityCollectionNodeWGS84.prototype.isInside = function (entity) {
+    return this.extent.isInside(entity._lonlat);
 };
 
 EntityCollectionNodeWGS84.prototype.renderCollection = function (outArr, visibleNodes, renderingNode) {
