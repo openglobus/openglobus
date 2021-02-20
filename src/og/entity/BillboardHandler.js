@@ -160,17 +160,19 @@ class BillboardHandler {
     }
 
     _deleteBuffers() {
-        var gl = this._renderer.handler.gl;
-        gl.deleteBuffer(this._positionHighBuffer);
-        gl.deleteBuffer(this._positionLowBuffer);
-        gl.deleteBuffer(this._sizeBuffer);
-        gl.deleteBuffer(this._offsetBuffer);
-        gl.deleteBuffer(this._rgbaBuffer);
-        gl.deleteBuffer(this._rotationBuffer);
-        gl.deleteBuffer(this._vertexBuffer);
-        gl.deleteBuffer(this._texCoordBuffer);
-        gl.deleteBuffer(this._alignedAxisBuffer);
-        gl.deleteBuffer(this._pickingColorBuffer);
+        if (this._renderer) {
+            var gl = this._renderer.handler.gl;
+            gl.deleteBuffer(this._positionHighBuffer);
+            gl.deleteBuffer(this._positionLowBuffer);
+            gl.deleteBuffer(this._sizeBuffer);
+            gl.deleteBuffer(this._offsetBuffer);
+            gl.deleteBuffer(this._rgbaBuffer);
+            gl.deleteBuffer(this._rotationBuffer);
+            gl.deleteBuffer(this._vertexBuffer);
+            gl.deleteBuffer(this._texCoordBuffer);
+            gl.deleteBuffer(this._alignedAxisBuffer);
+            gl.deleteBuffer(this._pickingColorBuffer);
+        }
 
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;

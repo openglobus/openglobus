@@ -202,7 +202,7 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': bilTerrain/*/globusTerrain/*new MapboxTerrain(null, {
+    'terrain': bilTerrain/*globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,

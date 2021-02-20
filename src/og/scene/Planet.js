@@ -741,7 +741,7 @@ class Planet extends RenderNode {
             blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
         });
 
-        this.addEntityCollection(this._boundingSphereCollection);
+        //this.addEntityCollection(this._boundingSphereCollection);
 
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 

@@ -211,7 +211,7 @@ const Segment = function (node, planet, tileZoom, extent) {
     this._sphereEntity = new Entity({
         sphere: {
             radius: 1,
-            color: [1, 1, 0, 1],
+            color: [1, 1, 0, 0.8],
             src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAVSURBVBhXY/z//z8DAwMTEDMwMAAAJAYDAbrboo8AAAAASUVORK5CYII="
         }
     });
@@ -992,7 +992,7 @@ Segment.prototype.createBoundsByExtent = function () {
         coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
         coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
         coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
-        coord_ne
+        coord_sw
     );
 };
 
