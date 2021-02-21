@@ -1,4 +1,4 @@
-'use sctrict';
+'use strict';
 
 import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';

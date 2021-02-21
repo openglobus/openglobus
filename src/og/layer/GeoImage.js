@@ -2,7 +2,7 @@
  * @module og/layer/GeoImage
  */
 
-'use sctrict';
+'use strict';
 
 import { BaseGeoImage } from './BaseGeoImage.js';
 

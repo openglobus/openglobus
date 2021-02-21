@@ -2,7 +2,7 @@
  * @module og/shaders/ray
  */
 
-'use sctrict';
+'use strict';
 
 import { Program } from '../webgl/Program.js';
 

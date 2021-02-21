@@ -2,7 +2,7 @@
  * @module og/shaders/drawnode
  */
 
-'use sctrict';
+'use strict';
 
 import { Program } from '../webgl/Program.js';
 

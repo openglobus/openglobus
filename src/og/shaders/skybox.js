@@ -2,7 +2,7 @@
  * @module og/shaders/skybox
  */
 
-'use sctrict';
+'use strict';
 
 import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';

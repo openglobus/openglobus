@@ -2,7 +2,7 @@
  * @module og/layer/BaseGeoImage
  */
 
-'use sctrict';
+'use strict';
 
 import * as mercator from '../mercator.js';
 import { Extent } from '../Extent.js';

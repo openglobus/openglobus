@@ -1,4 +1,4 @@
-'use sctrict';
+'use strict';
 
 import { N, W, S, E } from '../quadTree/quadTree.js';
 

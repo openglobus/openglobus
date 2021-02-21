@@ -2,7 +2,7 @@
  * @module og/layer/Layer
  */
 
-'use sctrict';
+'use strict';
 
 import * as utils from '../utils/shared.js';
 import * as mercator from '../mercator.js';
