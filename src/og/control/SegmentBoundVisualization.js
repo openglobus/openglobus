@@ -36,7 +36,7 @@ class SegmentBoundVisualization extends Control {
                 si._sphereEntity = new Entity({
                     sphere: {
                         radius: 1,
-                        color: [1, 1, 0, 0.8],
+                        color: [1, 1, 0, 0.6],
                         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAVSURBVBhXY/z//z8DAwMTEDMwMAAAJAYDAbrboo8AAAAASUVORK5CYII="
                     }
                 });

@@ -445,7 +445,7 @@ class BaseShape {
             gl.vertexAttribPointer(sha.aTextureCoord, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(r.handler.gl.LINE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         }
     }
 }
