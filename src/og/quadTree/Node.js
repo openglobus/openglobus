@@ -226,12 +226,14 @@ Node.prototype.createBounds = function () {
                 let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
                     v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
 
-                seg.setBoundingSphere(
-                    v_sw.x + (v_ne.x - v_sw.x) * 0.5,
-                    v_sw.y + (v_ne.y - v_sw.y) * 0.5,
-                    v_sw.z + (v_ne.z - v_sw.z) * 0.5,
-                    v_sw
-                );
+                //seg.setBoundingSphere(
+                //    v_sw.x + (v_ne.x - v_sw.x) * 0.5,
+                //    v_sw.y + (v_ne.y - v_sw.y) * 0.5,
+                //    v_sw.z + (v_ne.z - v_sw.z) * 0.5,
+                //    v_sw
+                //);
+
+                seg.setBoundingVolume3v(v_sw, v_ne);
 
                 if (seg.tileZoom < MAX_NORMAL_ZOOM) {
                     // check for segment zoom
@@ -291,12 +293,14 @@ Node.prototype.createBounds = function () {
                     coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
                 }
 
-                seg.setBoundingSphere(
-                    coords_lt.x + (coords_rb.x - coords_lt.x) * 0.5,
-                    coords_lt.y + (coords_rb.y - coords_lt.y) * 0.5,
-                    coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
-                    coords_lt
-                );
+                //seg.setBoundingSphere(
+                //    coords_lt.x + (coords_rb.x - coords_lt.x) * 0.5,
+                //    coords_lt.y + (coords_rb.y - coords_lt.y) * 0.5,
+                //    coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
+                //    coords_lt
+                //);
+
+                seg.setBoundingVolume3v(coords_lt, coords_rb);
             }
         } else {
             seg.createBoundsByExtent();
@@ -411,11 +415,20 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             if (frustums[i].containsSphere(seg.bsphere)) {
                 this.inFrustum |= 1 << i;
             }
+
+            //if (frustums[i].containsBox(seg.bbox)) {
+            //    this.inFrustum |= 1 << i;
+            //}
         }
     } else {
         let commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
         for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
-            if (frustums[i].containsSphere(seg.bsphere)) {
+            //if (frustums[i].containsSphere(seg.bsphere)) {
+            //    commonFrustumFlag >>= 1;
+            //    this.inFrustum |= 1 << i;
+            //}
+
+            if (frustums[i].containsBox(seg.bbox)) {
                 commonFrustumFlag >>= 1;
                 this.inFrustum |= 1 << i;
             }
@@ -919,11 +932,16 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
 
         seg.noDataVertices = noDataVertices;
 
-        seg.setBoundingSphere(
-            BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
-            BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
-            BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
-            new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
+        //seg.setBoundingSphere(
+        //    BOUNDS.xmin + (BOUNDS.xmax - BOUNDS.xmin) * 0.5,
+        //    BOUNDS.ymin + (BOUNDS.ymax - BOUNDS.ymin) * 0.5,
+        //    BOUNDS.zmin + (BOUNDS.zmax - BOUNDS.zmin) * 0.5,
+        //    new Vec3(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin)
+        //);
+
+        seg.setBoundingVolume(
+            BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin,
+            BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax
         );
 
         if (seg.tileZoom > terrain.maxZoom) {

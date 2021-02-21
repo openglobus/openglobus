@@ -555,7 +555,8 @@ const _programm =
                 terrainVerticesHigh: terrainVerticesHigh,
                 terrainVerticesLow: terrainVerticesLow,
                 noDataVertices: noDataVertices,
-                bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+                //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+                bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
              }, [
                     normalMapNormals.buffer, 
                     normalMapVertices.buffer, 

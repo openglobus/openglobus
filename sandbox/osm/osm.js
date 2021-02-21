@@ -268,7 +268,7 @@ globe.planet.addControl(new ToggleWireframe({
     isActive: false
 }));
 
-globe.planet.addControl(new SegmentBoundVisualization());
+//globe.planet.addControl(new SegmentBoundVisualization());
 globe.planet.addControl(new KeyboardNavigation());
 globe.planet.addControl(new LayerSwitcher());
 //globe.planet.addControl(new ScaleControl());

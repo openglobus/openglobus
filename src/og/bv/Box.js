@@ -11,7 +11,7 @@ import { Vec3 } from '../math/Vec3.js';
  * @class
  */
 class Box {
-    constructor(bounds) {
+    constructor(boundsArr) {
         /**
          * Vertices array.
          * @public
@@ -19,8 +19,8 @@ class Box {
          */
         this.vertices = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
 
-        if (bounds) {
-            this.setFromBounds(bounds);
+        if (boundsArr) {
+            this.setFromBoundsArr(boundsArr);
         }
     }
 
@@ -28,7 +28,7 @@ class Box {
      * Sets bounding box coordinates by the bounds array.
      * @param {Array.<number>} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
-    setFromBounds(bounds) {
+    setFromBoundsArr(bounds) {
         var xmin = bounds[0], xmax = bounds[3],
             ymin = bounds[1], ymax = bounds[4],
             zmin = bounds[2], zmax = bounds[5];
@@ -51,7 +51,7 @@ class Box {
      * @param {og.Extent} extent - Geodetic extent.
      */
     setFromExtent(ellipsoid, extent) {
-        this.setFromBounds(extent.getCartesianBounds(ellipsoid));
+        this.setFromBoundsArr(extent.getCartesianBounds(ellipsoid));
     }
 };
 
