@@ -15,7 +15,7 @@ var osm = new XYZ("OpenStreetMap", {
 
 var globus = new Globe({
 	    "target": "globus",
-	    "skyBox": SkyBox.createDefault('../../res/'),
+	    "skybox": SkyBox.createDefault('../../res/'),
 	    "name": "Earth",
 	    "terrain": new GlobusTerrain(),
 	    "layers": [osm],
