@@ -31,7 +31,7 @@ class Sphere extends BaseShape {
          * @protected
          * @type {number}
          */
-        this._radius = options.radius || 100;
+        this._radius = options.radius || 1;
 
         /**
          * Number of latitude bands.

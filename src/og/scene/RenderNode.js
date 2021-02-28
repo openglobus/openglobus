@@ -315,11 +315,11 @@ class RenderNode extends BaseNode {
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
             }
 
-            // //shapes pass
-            // i = ec.length;
-            // while (i--) {
+            //// shapes pass
+            //i = ec.length;
+            //while (i--) {
             //    ec[i]._visibility && ec[i].shapeHandler.drawPicking();
-            // }
+            //}
 
             // //pointClouds pass
             // i = ec.length;

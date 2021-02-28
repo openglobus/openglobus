@@ -284,27 +284,29 @@ const _programm =
                 // The vertex goes into screen buffer
                 if (i % dg === 0 && j % dg === 0) {
 
-                        let currVert = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
-                        let nextVert = new Vec3(nv[vInd0 + 3], nv[vInd0 + 4], nv[vInd0 + 5]);
+                    let currVert = new Vec3(nv[vInd0], nv[vInd0 + 1], nv[vInd0 + 2]);
+                    let nextVert = new Vec3(nv[vInd0 + 3], nv[vInd0 + 4], nv[vInd0 + 5]);
 
-                        let nextElv =  elevations[hInd0 + 1];
-                        if(checkNoDataValue(noDataValues, nextElv)) {
-                            nextElv = 0.0;
-                        }
-                                              
+                    let nextElv =  elevations[hInd0 + 1];
+                    if(checkNoDataValue(noDataValues, nextElv)) {
+                        nextElv = 0.0;
+                    }
+                    
+                    let eps = false;
+                    if(noDataValues.length === 0){
                         let step = currVert.distance(nextVert);
                         let deltaElv = Math.abs(currElv - nextElv);
-                        let eps = deltaElv / step;
+                        eps = ((deltaElv / step) > 10.0) || (currElv < -5000);
+                    }
 
-                        if(eps > 1.0 || currElv < -5000){
-                            noDataVertices[noDataInd] = 1;
-                        } else {
-                            noDataVertices[noDataInd] = 0;
-                            if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
-                            if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
-                            if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
-                        }
-
+                    if(eps){
+                        noDataVertices[noDataInd] = 1;
+                    } else {
+                        noDataVertices[noDataInd] = 0;
+                        if (v0.x < xmin) xmin = v0.x; if (v0.x > xmax) xmax = v0.x;
+                        if (v0.y < ymin) ymin = v0.y; if (v0.y > ymax) ymax = v0.y;
+                        if (v0.z < zmin) zmin = v0.z; if (v0.z > zmax) zmax = v0.z;
+                    }
 
                     terrainVerticesHigh[vInd] = _tempHigh.x;
                     terrainVerticesLow[vInd] = _tempLow.x;
@@ -555,7 +557,8 @@ const _programm =
                 terrainVerticesHigh: terrainVerticesHigh,
                 terrainVerticesLow: terrainVerticesLow,
                 noDataVertices: noDataVertices,
-                bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+                //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
+                bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
              }, [
                     normalMapNormals.buffer, 
                     normalMapVertices.buffer, 

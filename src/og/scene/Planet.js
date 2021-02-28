@@ -32,6 +32,7 @@ import { wgs84 } from '../ellipsoid/wgs84.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Geoid } from '../terrain/Geoid.js';
+import { EntityCollection } from '../entity/EntityCollection.js';
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
@@ -400,6 +401,8 @@ class Planet extends RenderNode {
         this._prevCamEye = new Vec3();
 
         this._initialized = false;
+
+        this.always = [];
     }
 
     /**

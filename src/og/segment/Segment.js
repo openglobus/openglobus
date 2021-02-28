@@ -8,6 +8,7 @@ import { Layer } from '../layer/Layer.js';
 import { LonLat } from '../LonLat.js';
 import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
+import { Box } from '../bv/Box.js';
 import { Vec3 } from '../math/Vec3.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
 
@@ -63,10 +64,16 @@ const Segment = function (node, planet, tileZoom, extent) {
     this.handler = planet.renderer.handler;
 
     /**
-     * Segment bounding box.
+     * Segment bounding sphere
      * @type {og.bv.Sphere}
      */
     this.bsphere = new Sphere();
+
+    /**
+     * Segment bounding box.
+     * @type {og.bv.Box}
+     */
+    this.bbox = new Box();
 
     this._swNorm = null;
     this._nwNorm = null;
@@ -629,14 +636,16 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVerticesHigh = this.terrainVerticesHigh;
         this.tempVerticesLow = this.terrainVerticesLow;
 
-        var b = data.bounds;
+        this.setBoundingVolumeArr(data.bounds)
 
-        this.setBoundingSphere(
-            b[0] + (b[1] - b[0]) * 0.5,
-            b[2] + (b[3] - b[2]) * 0.5,
-            b[4] + (b[5] - b[4]) * 0.5,
-            new Vec3(b[0], b[2], b[4])
-        );        
+        //var b = data.bounds;
+
+        //this.setBoundingSphere(
+        //    b[0] + (b[1] - b[0]) * 0.5,
+        //    b[2] + (b[3] - b[2]) * 0.5,
+        //    b[4] + (b[5] - b[4]) * 0.5,
+        //    new Vec3(b[0], b[2], b[4])
+        //);
 
         this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
         this.node.appliedTerrainNodeId = this.node.nodeId;
@@ -979,12 +988,14 @@ Segment.prototype.createBoundsByExtent = function () {
         this._seNorm = coord_se.normal();
     }
 
-    this.setBoundingSphere(
-        coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
-        coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
-        coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
-        coord_ne
-    );
+    //this.setBoundingSphere(
+    //    coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
+    //    coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
+    //    coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
+    //    coord_sw
+    //);
+
+    this.setBoundingVolume3v(coord_sw, coord_ne);
 };
 
 Segment.prototype.setBoundingSphere = function (x, y, z, v) {
@@ -992,6 +1003,47 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
     this.bsphere.center.y = y;
     this.bsphere.center.z = z;
     this.bsphere.radius = this.bsphere.center.distance(v);
+};
+
+window.BBSC = 100;
+
+Segment.prototype.setBoundingVolume = function (xmin, ymin, zmin, xmax, ymax, zmax) {
+
+    this.bbox.setFromBoundsArr([xmin, ymin, zmin, xmax, ymax, zmax]);
+
+    this.bsphere.center.set(
+        xmin + (xmax - xmin) * 0.5,
+        ymin + (ymax - ymin) * 0.5,
+        zmin + (zmax - zmin) * 0.5
+    );
+
+    this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
+};
+
+Segment.prototype.setBoundingVolume3v = function (vmin, vmax) {
+
+    this.bbox.setFromBoundsArr([vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z]);
+
+    this.bsphere.center.set(
+        vmin.x + (vmax.x - vmin.x) * 0.5,
+        vmin.y + (vmax.y - vmin.y) * 0.5,
+        vmin.z + (vmax.z - vmin.z) * 0.5
+    );
+
+    this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
+};
+
+Segment.prototype.setBoundingVolumeArr = function (bounds) {
+
+    this.bbox.setFromBoundsArr(bounds);
+
+    this.bsphere.center.set(
+        bounds[0] + (bounds[3] - bounds[0]) * 0.5,
+        bounds[1] + (bounds[4] - bounds[1]) * 0.5,
+        bounds[2] + (bounds[5] - bounds[2]) * 0.5
+    );
+
+    this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
 };
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {

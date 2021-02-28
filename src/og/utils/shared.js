@@ -250,7 +250,7 @@ export function binarySearchFast(arr, x) {
     let start = 0,
         end = arr.length - 1;
     while (start <= end) {
-        let k = Math.floor((start + end) * 0.5); 
+        let k = Math.floor((start + end) * 0.5);
         if (arr[k] === x)
             return k;
         else if (arr[k] < x)
@@ -720,4 +720,92 @@ export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
     splicedArray.set(elements, starting);
     splicedArray.set(arr.subarray(starting + deleteCount), starting + elements.length);
     return splicedArray;
+};
+
+/**
+ * Returns triangle coordinate array from inside of the source triangle array.
+ * @static
+ * @param {Array.<number>} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @return{Array.<number>} Triangle coordinates array from the source array.
+ * @TODO: optimization
+ */
+export function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
+
+    const size_1 = size + 1;
+    const i0size = i0 + size_1;
+    const j0size = j0 + size_1;
+
+    var res = new Float64Array(size_1 * size_1 * 3);
+
+    var vInd = 0;
+    for (var i = i0; i < i0size; i++) {
+        for (var j = j0; j < j0size; j++) {
+            var ind = 3 * (i * (gridSize + 1) + j);
+
+            res[vInd++] = sourceArr[ind];
+            res[vInd++] = sourceArr[ind + 1];
+            res[vInd++] = sourceArr[ind + 2];
+        }
+    }
+    return res;
+};
+
+/**
+ * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
+ * @static
+ * @param {Array.<number>} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @param {object} outBounds - Output bounds.
+ * @return{Array.<number>} Triangle coordinates array from the source array.
+ * @TODO: optimization
+ */
+export function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, noDataVertices, gridSize, i0, j0, size, outArr, outArrHigh, outArrLow, outBounds, outNoDataVertices) {
+
+    const i0size = i0 + size + 1;
+    const j0size = j0 + size + 1;
+    gridSize += 1;
+    var vInd = 0,
+        nInd = 0;
+    for (var i = i0; i < i0size; i++) {
+        for (var j = j0; j < j0size; j++) {
+            let indBy3 = (i * gridSize + j),
+                ind = 3 * indBy3;
+
+            let x = sourceArr[ind],
+                y = sourceArr[ind + 1],
+                z = sourceArr[ind + 2];
+
+            if (!noDataVertices || noDataVertices[indBy3] === 0) {
+                if (x < outBounds.xmin) outBounds.xmin = x;
+                if (x > outBounds.xmax) outBounds.xmax = x;
+                if (y < outBounds.ymin) outBounds.ymin = y;
+                if (y > outBounds.ymax) outBounds.ymax = y;
+                if (z < outBounds.zmin) outBounds.zmin = z;
+                if (z > outBounds.zmax) outBounds.zmax = z;
+            } else {
+                outNoDataVertices[nInd] = 1;
+            }
+
+            nInd++;
+
+            outArr[vInd] = x;
+            outArrLow[vInd] = sourceArrLow[ind];
+            outArrHigh[vInd++] = sourceArrHigh[ind];
+
+            outArr[vInd] = y;
+            outArrLow[vInd] = sourceArrLow[ind + 1];
+            outArrHigh[vInd++] = sourceArrHigh[ind + 1];
+
+            outArr[vInd] = z;
+            outArrLow[vInd] = sourceArrLow[ind + 2];
+            outArrHigh[vInd++] = sourceArrHigh[ind + 2];
+        }
+    }
 };
