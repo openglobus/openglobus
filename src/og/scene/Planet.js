@@ -401,6 +401,8 @@ class Planet extends RenderNode {
         this._prevCamEye = new Vec3();
 
         this._initialized = false;
+
+        this.always = [];
     }
 
     /**

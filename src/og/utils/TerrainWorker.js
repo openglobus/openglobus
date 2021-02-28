@@ -291,13 +291,15 @@ const _programm =
                     if(checkNoDataValue(noDataValues, nextElv)) {
                         nextElv = 0.0;
                     }
-                                              
-                    //let step = currVert.distance(nextVert);
-                    //let deltaElv = Math.abs(currElv - nextElv);
-                    //let eps = deltaElv / step;
+                    
+                    let eps = false;
+                    if(noDataValues.length === 0){
+                        let step = currVert.distance(nextVert);
+                        let deltaElv = Math.abs(currElv - nextElv);
+                        eps = ((deltaElv / step) > 10.0) || (currElv < -5000);
+                    }
 
-                    if(/*eps > 10.0 ||*/ currElv < -5000){
-  
+                    if(eps){
                         noDataVertices[noDataInd] = 1;
                     } else {
                         noDataVertices[noDataInd] = 0;
