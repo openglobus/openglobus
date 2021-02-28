@@ -121,40 +121,41 @@ class LabelHandler extends BillboardHandler {
     }
 
     _deleteBuffers() {
-        var gl = this._renderer.handler.gl;
-        gl.deleteBuffer(this._sizeBuffer);
-        gl.deleteBuffer(this._fontIndexBuffer);
-        gl.deleteBuffer(this._texCoordBuffer);
-        gl.deleteBuffer(this._outlineBuffer);
-        gl.deleteBuffer(this._noOutlineBuffer);
-        gl.deleteBuffer(this._outlineColorBuffer);
-        gl.deleteBuffer(this._positionHighBuffer);
-        gl.deleteBuffer(this._positionLowBuffer);
-        gl.deleteBuffer(this._sizeBuffer);
-        gl.deleteBuffer(this._offsetBuffer);
-        gl.deleteBuffer(this._rgbaBuffer);
-        gl.deleteBuffer(this._rotationBuffer);
-        gl.deleteBuffer(this._vertexBuffer);
-        gl.deleteBuffer(this._texCoordBuffer);
-        gl.deleteBuffer(this._alignedAxisBuffer);
-        gl.deleteBuffer(this._pickingColorBuffer);
+        if (this._renderer) {
+            var gl = this._renderer.handler.gl;
+            gl.deleteBuffer(this._sizeBuffer);
+            gl.deleteBuffer(this._fontIndexBuffer);
+            gl.deleteBuffer(this._texCoordBuffer);
+            gl.deleteBuffer(this._outlineBuffer);
+            gl.deleteBuffer(this._noOutlineBuffer);
+            gl.deleteBuffer(this._outlineColorBuffer);
+            gl.deleteBuffer(this._positionHighBuffer);
+            gl.deleteBuffer(this._positionLowBuffer);
+            gl.deleteBuffer(this._sizeBuffer);
+            gl.deleteBuffer(this._offsetBuffer);
+            gl.deleteBuffer(this._rgbaBuffer);
+            gl.deleteBuffer(this._rotationBuffer);
+            gl.deleteBuffer(this._vertexBuffer);
+            gl.deleteBuffer(this._texCoordBuffer);
+            gl.deleteBuffer(this._alignedAxisBuffer);
+            gl.deleteBuffer(this._pickingColorBuffer);
 
-        this._sizeBuffer = null;
-        this._fontIndexBuffer = null;
-        this._texCoordBuffer = null;
-        this._outlineBuffer = null;
-        this._outlineColorBuffer = null;
-        this._positionHighBuffer = null;
-        this._positionLowBuffer = null;
-        this._sizeBuffer = null;
-        this._offsetBuffer = null;
-        this._rgbaBuffer = null;
-        this._rotationBuffer = null;
-        this._vertexBuffer = null;
-        this._texCoordBuffer = null;
-        this._alignedAxisBuffer = null;
-        this._pickingColorBuffer = null;
-
+            this._sizeBuffer = null;
+            this._fontIndexBuffer = null;
+            this._texCoordBuffer = null;
+            this._outlineBuffer = null;
+            this._outlineColorBuffer = null;
+            this._positionHighBuffer = null;
+            this._positionLowBuffer = null;
+            this._sizeBuffer = null;
+            this._offsetBuffer = null;
+            this._rgbaBuffer = null;
+            this._rotationBuffer = null;
+            this._vertexBuffer = null;
+            this._texCoordBuffer = null;
+            this._alignedAxisBuffer = null;
+            this._pickingColorBuffer = null;
+        }
     }
 
     _addBillboardToArrays(label) {

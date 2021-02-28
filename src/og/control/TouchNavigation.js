@@ -194,7 +194,7 @@ class TouchNavigation extends Control {
                 var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
                 if (l > 0.007) l = 0.007;
                 cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
-                cam.rotateVertical(l * t0.dY(), this.pointOnEarth);
+                cam.rotateVertical(l * t0.dY(), this.pointOnEarth, true);
                 cam.checkTerrainCollision();
                 cam.update();
             }

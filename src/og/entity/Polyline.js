@@ -1302,18 +1302,11 @@ class Polyline {
     }
 
     removeSegment(index) {
-        //
-        // TODO: could be optimized. Partially see appendPoint3v.
-        //
         this._path3v.splice(index, 1);
         this.setPath3v([].concat(this._path3v));
     }
 
-    removePoint(index, multiLineIndex) {
-        //
-        // TODO: could be optimized. Partially see appendPoint3v.
-        //
-        multiLineIndex = multiLineIndex || 0;
+    removePoint(index, multiLineIndex = 0) {
         this._path3v[multiLineIndex].splice(index, 1);
         if (this._path3v[multiLineIndex].length === 0) {
             this._path3v.splice(multiLineIndex, 1);
@@ -1338,6 +1331,8 @@ class Polyline {
             }
 
             this.setPath3v(p, c);
+        } else {
+            this.addPoint3v(point3v, multilineIndex);
         }
     }
 

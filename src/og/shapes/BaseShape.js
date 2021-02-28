@@ -31,7 +31,7 @@ class BaseShape {
          * @readonly
          * @type {number}
          */
-        this.id = BaseShape.__staticId++;
+        this.id = BaseShape._staticCounter++;
 
         /**
          * Shape position.
@@ -59,7 +59,7 @@ class BaseShape {
          * @public
          * @type {Array.<number,number,number,number>}
          */
-        this.color = options.color || [1.0, 1.0, 1.0, 1.0];
+        this.color = options.color ? new Float32Array(options.color) : new Float32Array([1.0, 1.0, 1.0, 1.0]);
 
         /**
          * Shape visibility.
@@ -338,7 +338,12 @@ class BaseShape {
      */
     setScale3v(scale) {
         this.scale.copy(scale);
-        this._mxScale.scale(scale);
+        this._mxScale.setIdentity().scale(scale);
+    }
+
+    setScale(scale) {
+        this.scale.x = this.scale.y = this.scale.z = scale;
+        this._mxScale.setIdentity().scale(this.scale);
     }
 
     /**
@@ -392,37 +397,38 @@ class BaseShape {
      */
     draw() {
         if (this.visibility) {
-            var rn = this._renderNode;
-            var r = rn.renderer;
+            let rn = this._renderNode;
+            let r = rn.renderer;
 
-            var sh, p,
-                gl = r.handler.gl;
+            let sh, p,
+                gl = r.handler.gl,
+                sha, shu;
 
             if (rn.lightEnabled) {
                 sh = r.handler.programs.shape_wl;
                 p = sh._program;
-                let sha = p.attributes,
-                    shu = p.uniforms;
+                sha = p.attributes;
+                shu = p.uniforms;
 
                 sh.activate();
 
                 gl.uniform4fv(shu.lightsPositions, rn._lightsTransformedPositions);
                 gl.uniform3fv(shu.lightsParamsv, rn._lightsParamsv);
                 gl.uniform1fv(shu.lightsParamsf, rn._lightsParamsf);
-                gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera._projectionMatrix._m);
-                gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-                gl.uniformMatrix3fv(shu.normalMatrix, false, r.activeCamera._normalMatrix._m);
+                gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+                gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+                gl.uniformMatrix3fv(shu.normalMatrix, false, r.activeCamera.getNormalMatrix());
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, this._normalBuffer);
                 gl.vertexAttribPointer(sha.aVertexNormal, this._normalBuffer.itemSize, gl.FLOAT, false, 0, 0);
             } else {
                 sh = r.handler.programs.shape_nl;
                 p = sh._program;
-                let shu = p.uniforms;
+                shu = p.uniforms;
 
                 sh.activate();
 
-                gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
+                gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera.getProjectionViewMatrix());
             }
 
             gl.uniform4fv(shu.uColor, this.color);

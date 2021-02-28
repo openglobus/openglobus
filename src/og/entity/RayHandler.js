@@ -145,25 +145,27 @@ class RayHandler {
 
     _deleteBuffers() {
 
-        var gl = this._renderer.handler.gl;
+        if (this._renderer) {
+            var gl = this._renderer.handler.gl;
 
-        gl.deleteBuffer(this._startPositionHighBuffer);
-        gl.deleteBuffer(this._startPositionLowBuffer);
-        gl.deleteBuffer(this._endPositionHighBuffer);
-        gl.deleteBuffer(this._endPositionLowBuffer);
-        gl.deleteBuffer(this._lengthBuffer);
-        gl.deleteBuffer(this._thicknessBuffer);
-        gl.deleteBuffer(this._rgbaBuffer);
-        gl.deleteBuffer(this._vertexBuffer);
+            gl.deleteBuffer(this._startPositionHighBuffer);
+            gl.deleteBuffer(this._startPositionLowBuffer);
+            gl.deleteBuffer(this._endPositionHighBuffer);
+            gl.deleteBuffer(this._endPositionLowBuffer);
+            gl.deleteBuffer(this._lengthBuffer);
+            gl.deleteBuffer(this._thicknessBuffer);
+            gl.deleteBuffer(this._rgbaBuffer);
+            gl.deleteBuffer(this._vertexBuffer);
 
-        this._startPositionHighBuffer = null;
-        this._startPositionLowBuffer = null;
-        this._endPositionHighBuffer = null;
-        this._endPositionLowBuffer = null;
-        this._lengthBuffer = null;
-        this._thicknessBuffer = null;
-        this._rgbaBuffer = null;
-        this._vertexBuffer = null;
+            this._startPositionHighBuffer = null;
+            this._startPositionLowBuffer = null;
+            this._endPositionHighBuffer = null;
+            this._endPositionLowBuffer = null;
+            this._lengthBuffer = null;
+            this._thicknessBuffer = null;
+            this._rgbaBuffer = null;
+            this._vertexBuffer = null;
+        }
     }
 
     update() {

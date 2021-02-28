@@ -110,7 +110,7 @@ class GlobusTerrain extends EmptyTerrain {
         this.plainGridSize = options.plainGridSize || 32;
 
         this._geoid = options.geoid || new Geoid({
-            src: "//openglobus.org/geoid/egm84-30.pgm"
+            src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
         });
 
         this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)))
