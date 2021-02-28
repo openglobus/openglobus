@@ -1,6 +1,6 @@
 import { terser } from 'rollup-plugin-terser';
-import css from 'rollup-plugin-css-porter';
 import replace from '@rollup/plugin-replace';
+import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import postcss from 'rollup-plugin-postcss';
 
