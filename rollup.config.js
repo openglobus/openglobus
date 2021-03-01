@@ -1,5 +1,4 @@
 import { terser } from 'rollup-plugin-terser';
-import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import postcss from 'rollup-plugin-postcss';
@@ -20,8 +19,7 @@ export default [{
     ],
     plugins: [
         terser(),
-        json(),
-        replace({ __VERSION__: JSON.stringify(pkg.version) })
+        json()
     ]
 }, {
     input: `css/og.css`,
