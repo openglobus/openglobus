@@ -2,7 +2,7 @@
  * @module og/utils/VectorTileCreator
  */
 
-'use sctrict';
+'use strict';
 
 import * as quadTree from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';

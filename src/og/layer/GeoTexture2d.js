@@ -2,7 +2,7 @@
  * @module og/layer/GeoTexture2d
  */
 
-'use sctrict';
+'use strict';
 
 import * as math from '../math.js';
 import { BaseGeoImage } from './BaseGeoImage.js';

@@ -1,4 +1,4 @@
-'use sctrict';
+'use strict';
 
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';

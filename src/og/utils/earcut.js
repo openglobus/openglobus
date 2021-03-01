@@ -6,7 +6,7 @@
  * @module og/utils/earcut
  */
 
-'use sctrict';
+'use strict';
 
 // ISC License
 //

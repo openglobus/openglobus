@@ -1,4 +1,4 @@
-'use sctrict';
+'use strict';
 
 // import { QueueArray } from '../QueueArray.js';
 

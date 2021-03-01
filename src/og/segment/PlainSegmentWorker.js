@@ -1,4 +1,4 @@
-'use sctrict';
+'use strict';
 
 // import { QueueArray } from '../QueueArray.js';
 import { EPSG4326 } from '../proj/EPSG4326.js';

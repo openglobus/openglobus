@@ -2,7 +2,7 @@
  * @module og/shaders/shape
  */
 
-'use sctrict';
+'use strict';
 
 import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';

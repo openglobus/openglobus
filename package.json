@@ -1,10 +1,12 @@
 {
-  "name": "og",
+  "name": "@openglobus/og",
   "version": "0.7.0",
   "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
   "directories": {
     "example": "./sandbox"
   },
+  "main": "./src/og/index.js",
+  "style": "./css/og.css",
   "scripts": {
     "api": "./node_modules/.bin/jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "node_modules/.bin/ws",
@@ -26,26 +28,35 @@
   },
   "homepage": "http://www.openglobus.org",
   "dependencies": {},
+  "exports": {
+    ".": "./src/og/index.js",
+    "./layer": "./src/og/layer/index.js",
+    "./bv": "./src/og/bv/index.js",
+    "./terrain": "./src/og/terrain/index.js",
+    "./entity": "./src/og/entity/index.js",
+    "./control": "./src/og/control/index.js",
+    "./webgl": "./src/og/webgl/index.js",
+    "./scene": "./src/og/scene/index.js"
+  },
   "devDependencies": {
-    "@babel/preset-env": "^7.12.7",
-    "@rollup/plugin-replace": "^2.3.4",
-    "babel-preset-env": "^1.7.0",
+    "@babel/preset-env": "^7.12.17",
+    "@rollup/plugin-json": "^4.1.0",
     "enhanced-resolve": "^4.3.0",
     "eslint": "^6.8.0",
     "eslint-config-defaults": "^9.0.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-standard": "^4.1.0",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^26.6.3",
     "jsdoc": "^3.6.6",
     "local-web-server": "^3.0.7",
+    "postcss": "^8.2.6",
     "rollup": "^1.32.1",
-    "rollup-plugin-css-only": "^2.1.0",
-    "rollup-plugin-css-porter": "^1.0.2",
+    "rollup-plugin-postcss": "^4.0.0",
     "rollup-plugin-terser": "^5.3.1"
   },
   "keywords": [
