@@ -13,7 +13,7 @@ export default [{
         {
             file: OUTPUT_NAME + ".js",
             format: 'umd',
-            name: pkg.name,
+            name: 'og',
             sourcemap: false
         }
     ],
