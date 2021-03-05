@@ -33,7 +33,7 @@ export default [{
     ],
     plugins: [
         postcss({
-            modules: true,
-            extract: true
+            extract: true,
+            minimize: true
         })]
 }];
