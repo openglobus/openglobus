@@ -27,7 +27,9 @@
     "email": "mgevlich@gmail.com"
   },
   "homepage": "http://www.openglobus.org",
-  "dependencies": {},
+  "dependencies": {
+    "msdf-bmfont-xml": "^2.5.4"
+  },
   "exports": {
     ".": "./src/og/index.js",
     "./layer": "./src/og/layer/index.js",

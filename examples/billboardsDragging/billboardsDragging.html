@@ -33,10 +33,12 @@
                 'name': 'label',
                 'lonlat': [8.25, 46.74],
                 'label': {
-                    'text': 'Touch me',
-                    'size': [35],
-                    'outlineColor': "rgba(0,0,0,.5)",
-		    'outline': 0.3
+                    face: "Roboto-Regular",
+                    'text': 'Touch,me. !HelLo@',
+                    'size': 12,
+                    color: "rgba(0,0,0,255)",
+                    'outlineColor': "rgba(255,255,255,1)",
+                    'outline': 0
                 }
             }],
             'async': false
@@ -83,6 +85,8 @@
             "layers": [osm, pointLayer]
         });
 
+        globe.renderer.fontAtlas.loadMSDF("Roboto-Regular", '../../fonts/Roboto-Regular.png', '../../fonts/Roboto-Regular.json');
+
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {
                 var d = new Vec2(e.x, e.y).sub(startClick);
@@ -112,11 +116,13 @@
 
         });
 
-        pointLayer.events.on("rclick", function(e){
+        pointLayer.events.on("rclick", function (e) {
             e.pickingObject.remove();
         });
 
         window.p = pointLayer;
+
+        window.globe = globe;
 
     </script>
 </body>

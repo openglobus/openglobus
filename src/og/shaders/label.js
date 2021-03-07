@@ -134,22 +134,28 @@ export function label_webgl2() {
 
             layout(location = 0) out vec4 outScreen;
 
+            float median(float r, float g, float b) {
+                return max(min(r, g), min(max(r, g), b));
+            }
+
+            float screenPxRange() {
+                float pxRange = 32.0; // set to distance field's pixel range
+                vec2 unitRange = vec2(pxRange)/vec2(textureSize(u_fontTextureArr[0], 0));
+                vec2 screenTexSize = vec2(1.0)/fwidth(v_texCoords);
+                return max(0.5*dot(unitRange, screenTexSize), 1.0);
+            }
+
             void main () {
                 int fi = v_fontIndex;
-                vec4 color;
-                if (fi == 0) {
-                    color = texture(u_fontTextureArr[0], v_texCoords);
-                } else if (fi == 1) {
-                    color = texture(u_fontTextureArr[1], v_texCoords);
-                } else if (fi == 2) {
-                    color = texture(u_fontTextureArr[2], v_texCoords);
-                }
 
-                float afwidth = step(0.5, v_bufferAA.x) * (1.0 - v_bufferAA.y) * v_bufferAA.x * fwidth( color.r );
-                float alpha = smoothstep ( v_bufferAA.x - afwidth - v_bufferAA.z, v_bufferAA.x + afwidth + v_bufferAA.z, color.r );
-                if( alpha < 0.2 )
-                    discard;
-                outScreen = vec4(v_rgba.rgb, alpha * v_rgba.a);
+                vec4 msd = texture(u_fontTextureArr[0], v_texCoords);
+
+                float sd = median(msd.r, msd.g, msd.b);
+                float screenPxDistance = screenPxRange()*(sd - 0.5);
+                float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
+                //color = mix(bgColor, fgColor, opacity);
+
+                outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
             }`
     });
 }
@@ -345,7 +351,7 @@ export function label_screen() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 gl_Position.z += a_offset.z + uZ;
             }`,
-            
+
         fragmentShader:
             `#extension GL_OES_standard_derivatives : enable
         precision highp float;

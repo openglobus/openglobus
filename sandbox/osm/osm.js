@@ -349,3 +349,54 @@ let myPopup = new Popup({
 window.myPopup = myPopup;
 
 globe.planet.viewLonLat(new LonLat(-112.99778159686288, 37.23755430287543, 8952.673764926381));
+
+
+//import { Globe } from '../../src/og/Globe.js';
+//import { XYZ } from '../../src/og/layer/XYZ.js';
+//import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+//import { Vec3 } from '../../src/og/math/Vec3.js';
+//import { LonLat } from '../../src/og/LonLat.js';
+//import { Vector } from '../../src/og/layer/Vector.js';
+//import { Entity } from '../../src/og/entity/Entity.js';
+//import { wgs84 } from '../../src/og/ellipsoid/wgs84.js';
+
+//var osm = new XYZ("OpenStreetMap", {
+//    isBaseLayer: true,
+//    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+//    visibility: true,
+//    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+//});
+
+//let size = 1000000;
+//let ellipsoid = wgs84;
+//let startlonlat = new LonLat(51.5, 7, 0);
+//let endlonlat = new LonLat(51.5, 7, 1000);
+//let startPos = ellipsoid.lonLatToCartesian(startlonlat);
+//let endPos = ellipsoid.lonLatToCartesian(endlonlat);
+
+//let e = new Entity({
+//    'ray': {
+//        'startPosition': startPos,
+//        'endPosition': endPos,
+//        'length': size,
+//        'startColor': "red",
+//        'endColor': "green",
+//        'thickness': 10
+//    }
+//});
+
+//let rayLayer = new Vector("rays", {
+//    'polygonOffsetUnits': 0
+//});
+
+//rayLayer.add(e);
+
+//var globus = new Globe({
+//    "target": "earth",
+//    "name": "Earth",
+//    "terrain": new GlobusTerrain(),
+//    "layers": [osm, rayLayer],
+//    "sun": {
+//        "active": true
+//    }
+//});

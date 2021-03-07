@@ -9,6 +9,19 @@ import { ImageCanvas } from '../ImageCanvas.js';
 import { QueueArray } from '../QueueArray.js';
 import { FontDetector } from './FontDetector.js';
 import { SDFCreator } from './SDFCreator.js';
+import TinySDF from '../../../external/tiny-sdf/index.js';
+import { Rectangle } from '../Rectangle.js';
+import { TextureAtlasNode } from './TextureAtlas.js';
+
+function Deferred() {
+    this.resolve = null;
+    this.reject = null;
+    this.promise = new Promise(function (resolve, reject) {
+        this.resolve = resolve;
+        this.reject = reject;
+    }.bind(this));
+    Object.freeze(this);
+};
 
 const tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -47,10 +60,23 @@ const tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
     'ţ', 'Ţ', 'bٍ', '°', '´'
 ];
 
+// Convert alpha-only to RGBA so we can use `putImageData` for building the composite bitmap
+function makeRGBAImageData(ctx, alphaChannel, width, height) {
+    const imageData = ctx.createImageData(width, height);
+    for (let i = 0; i < alphaChannel.length; i++) {
+        imageData.data[4 * i + 0] = alphaChannel[i];
+        imageData.data[4 * i + 1] = alphaChannel[i];
+        imageData.data[4 * i + 2] = alphaChannel[i];
+        imageData.data[4 * i + 3] = 255;
+    }
+    return imageData;
+}
+
 class FontAtlas {
     constructor() {
         this.atlasesArr = [];
         this.atlasIndexes = {};
+        this.atlasIndexesDeferred = [];
         this.tokenImageSize = 64;
         this.samplerArr = [0];
         this._handler = null;
@@ -68,59 +94,144 @@ class FontAtlas {
     }
 
     getFontIndex(face, style, weight) {
-        return this.atlasIndexes[this.getFullIndex(face, style, weight)];
+        //return this.atlasIndexes[this.getFullIndex(face, style, weight)];
+        let fullName = this.getFullIndex(face, style, weight);
+        if (!this.atlasIndexesDeferred[fullName]) {
+            this.atlasIndexesDeferred[fullName] = new Deferred();
+        }
+        return this.atlasIndexesDeferred[fullName].promise;
     }
 
     getFullIndex(face, style, weight) {
         face = face && face.trim().toLowerCase();
-        if (!face || (face && !this.fontDetector.detect(face))) {
+        if (!face) {
             face = this.defaultFace;
         }
         return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
     }
 
-    createFont(face, style, weight) {
-        var fontIndex = this.getFontIndex(face, style, weight);
-        if (fontIndex == undefined) {
-            var tis = this.tokenImageSize;
-            var atlasSize = 2048;//math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(tokens.length)) / tis + (tokens.length - 1) * TextureAtlas.BORDER_SIZE);
-            var fontName = this.getFullIndex(face, style, weight);
-            fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
-            var atlas = new TextureAtlas(atlasSize, atlasSize);
-            atlas.assignHandler(this._handler);
-            atlas.borderSize = 6;
-            this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
-            this.atlasesArr.push(atlas);
-            atlas.canvas.fillColor("black");
+    loadMSDF(faceName, imageUrl, atlasUrl) {
 
-            var t = tokens;
+        let index = this.atlasesArr.length;
+        let fullName = this.getFullIndex(faceName);
 
-            var sdfSize = 512;
-            var sdfCanvas = new ImageCanvas(sdfSize, sdfSize);
-            var sc = this._sdfCreator;
-            var pT = Math.round(sdfSize * 0.66);
-            var tF = (style || "normal") + " " + (weight || "normal") + " " + pT + "px " + (face || this.defaultFace);
+        this.atlasIndexes[fullName] = index;
 
-            for (var i = 0; i < t.length; i++) {
-                var ti = t[i];
+        let def = this.atlasIndexesDeferred[fullName];
 
-                sdfCanvas.fillColor("black");
-                sdfCanvas.drawText(ti, 49, pT, tF, "white");
-                var res = sc.createSDF(sdfCanvas._canvas, tis, tis);
-                res.__nodeIndex = ti;
-                var n = atlas.addImage(res, true);
+        this.samplerArr[this.atlasesArr.length] = index;
 
-                var tokenWidth = sdfCanvas.getTextWidth(ti);
-                n.emptySize = tokenWidth / sdfSize;
-            }
+        let atlas = new TextureAtlas();
 
-            atlas.createTexture();
-            sdfCanvas.destroy();
-            sdfCanvas = null;
-        }
+        atlas.assignHandler(this._handler);
+        this.atlasesArr[index] = atlas;
 
-        return fontIndex;
+        let img = new Image();
+        img.onload = () => {
+            atlas.createTexture(img);
+        };
+        img.src = imageUrl;
+
+        fetch(atlasUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw Error(`Unable to load '${atlasUrl}'`);
+                }
+                return response.json(response);
+            })
+            .then(data => {
+                let chars = data.chars;
+                for (let i = 0; i < chars.length; i++) {
+                    let ci = chars[i];
+                    let ti = ci.char;
+                    let w = data.common.scaleW,
+                        h = data.common.scaleH;
+
+                    let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
+
+                    let tc = new Array(12);
+
+                    tc[0] = r.left / w;
+                    tc[1] = r.top / h;
+
+                    tc[2] = r.left / w;
+                    tc[3] = r.bottom / h;
+
+                    tc[4] = r.right / w;
+                    tc[5] = r.bottom / h;
+
+                    tc[6] = r.right / w;
+                    tc[7] = r.bottom / h;
+
+                    tc[8] = r.right / w;
+                    tc[9] = r.top / h;
+
+                    tc[10] = r.left / w;
+                    tc[11] = r.top / h;
+
+                    atlas.nodes[ti] = new TextureAtlasNode(r, tc);
+                    atlas.nodes[ti].metrics = ci;
+                    atlas.nodes[ti].emptySize = 1;
+                }
+
+                def.resolve(index);
+            })
+            .catch(err => {
+                def.reject();
+                return { 'status': "error", 'msg': err.toString() };
+            });
     }
+
+    //createFont(face, style, weight) {
+    //    var fontIndex = this.getFontIndex(face, style, weight);
+    //    if (fontIndex == undefined) {
+    //        var tis = this.tokenImageSize;
+    //        var atlasSize = 2048;//math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(tokens.length)) / tis + (tokens.length - 1) * TextureAtlas.BORDER_SIZE);
+    //        var fontName = this.getFullIndex(face, style, weight);
+    //        fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
+    //        var atlas = new TextureAtlas(atlasSize, atlasSize);
+    //        atlas.assignHandler(this._handler);
+    //        atlas.borderSize = 1;
+    //        this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
+    //        this.atlasesArr.push(atlas);
+    //        atlas.canvas.fillColor("black");
+
+    //        var t = tokens;
+
+    //        const fontSize = 88;
+    //        const fontWeight = (weight || "normal");
+    //        const buffer = fontSize / 8;
+    //        const radius = fontSize / 3;
+    //        const fontFamily = (face || this.defaultFace);
+    //        const tinySdf = new TinySDF({ fontSize, buffer, radius, fontWeight, fontFamily });
+    //        const size = fontSize + buffer * 2;
+
+    //        for (var i = 0; i < t.length; i++) {
+    //            var ti = t[i];
+
+    //            let sdf = tinySdf.draw(ti);
+
+    //            let canvas = document.createElement("canvas");
+    //            canvas.width = sdf.width;
+    //            canvas.height = sdf.height;
+
+    //            let ctx = canvas.getContext('2d');
+
+    //            ctx.putImageData(makeRGBAImageData(ctx, sdf.data, sdf.width, sdf.height), 0, 0);
+
+    //            canvas.__nodeIndex = ti;
+    //            var n = atlas.addImage(canvas, true);
+
+    //            n.emptySize = 1;//sdf.glyphWidth / canvas.width;
+
+    //            n.metrics = sdf;
+    //        }
+
+    //        atlas.createTexture();
+    //    }
+
+    //    return fontIndex;
+    //}
 
     createFontAsync(face, style, weight, callback) {
         var obj = { "face": face, "style": style, "weight": weight, "callback": callback };

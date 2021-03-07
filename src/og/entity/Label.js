@@ -340,12 +340,9 @@ class Label extends BaseBillboard {
      */
     update() {
         if (this._fontAtlas) {
-            var fontIndex = this._fontAtlas.getFontIndex(this._face, this._style, this._weight);
-            if (fontIndex == undefined) {
-                this._fontAtlas.createFontAsync(this._face, this._style, this._weight, this._applyFontIndex.bind(this));
-            } else {
+            this._fontAtlas.getFontIndex(this._face, this._style, this._weight).then((fontIndex) => {
                 this._applyFontIndex(fontIndex);
-            }
+            })
         }
     }
 

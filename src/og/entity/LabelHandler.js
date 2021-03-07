@@ -177,7 +177,7 @@ class LabelHandler extends BillboardHandler {
             x = label._size;
             this._sizeArr = concatTypedArrays(this._sizeArr, [x, x, x, x, x, x]);
 
-            x = label._offset.x; y = label._offset.y; z = label._offset.z - 0.05;
+            x = label._offset.x; y = label._offset.y; z = label._offset.z;
             this._offsetArr = concatTypedArrays(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
@@ -195,7 +195,8 @@ class LabelHandler extends BillboardHandler {
             x = 1.0 - label._outline; y = 0.0;
             this._outlineArr = concatTypedArrays(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-            x = 0.75; y = 0.7;
+            //x = 0.75; y = 0.7;
+            x = 0.0; y = 0.0;
             this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
             x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
@@ -216,6 +217,8 @@ class LabelHandler extends BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
+
+        gl.disable(gl.DEPTH_TEST);
 
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
@@ -274,15 +277,17 @@ class LabelHandler extends BillboardHandler {
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
 
-        // buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
-        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //// buffer
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
+        //gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
-        gl.vertexAttribPointer(sha.a_bufferAA, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
+        //gl.vertexAttribPointer(sha.a_bufferAA, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.uZ, 0.0);
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+        //gl.uniform1f(shu.uZ, 0.1);
+        //gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.enable(gl.DEPTH_TEST);
 
     }
 
