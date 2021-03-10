@@ -139,7 +139,7 @@ export function label_webgl2() {
             }
 
             float screenPxRange() {
-                float pxRange = 32.0; // set to distance field's pixel range
+                float pxRange = 42.0; // set to distance field's pixel range
                 vec2 unitRange = vec2(pxRange)/vec2(textureSize(u_fontTextureArr[0], 0));
                 vec2 screenTexSize = vec2(1.0)/fwidth(v_texCoords);
                 return max(0.5*dot(unitRange, screenTexSize), 1.0);

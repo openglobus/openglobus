@@ -14,7 +14,8 @@
     "webgl": "node_modules/.bin/rollup -c --environment entry:webgl",
     "core": "node_modules/.bin/rollup -c --environment entry:core",
     "test": "jest --coverage",
-    "lint": "node_modules/.bin/eslint src/og"
+    "lint": "node_modules/.bin/eslint src/og",
+    "font": "msdf-bmfont.cmd --reuse  -i .\\fonts\\charset.roboto.txt -m 512,512 -f json -o .\\fonts\\Roboto-Regular.png -s 32 -r 8 -p 1 -t msdf .\\fonts\\Roboto-Regular.ttf"
   },
   "repository": {
     "type": "git",
