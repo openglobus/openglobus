@@ -111,3 +111,31 @@ export function shape_nl() {
             }`
     });
 };
+
+export function shape_picking() {
+    return new Program("shape_picking", {
+        uniforms: {
+            projectionViewMatrix: { type: types.MAT4 },
+            modelMatrix: { type: types.MAT4 },
+            uColor: { type: types.VEC4 }
+        },
+        attributes: {
+            aVertexPosition: { type: types.VEC3, enableArray: true }
+        },
+        vertexShader:
+        `attribute vec3 aVertexPosition;
+            uniform mat4 projectionViewMatrix;
+            uniform mat4 modelMatrix;
+
+            void main(void) {
+                gl_Position = projectionViewMatrix * (modelMatrix * vec4(aVertexPosition, 1.0));
+            }`,
+        fragmentShader:
+        `precision highp float;
+            uniform vec4 uColor;
+            uniform sampler2D uSampler;
+            void main(void) {
+                gl_FragColor = uColor;
+            }`
+    });
+};

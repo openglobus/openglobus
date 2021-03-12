@@ -425,6 +425,7 @@ class BaseShape {
                 sh = r.handler.programs.shape_nl;
                 p = sh._program;
                 shu = p.uniforms;
+                sha = p.attributes;
 
                 sh.activate();
 
@@ -443,6 +444,37 @@ class BaseShape {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._textureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord, this._textureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        }
+    }
+
+drawPicking() {
+        if (this.visibility) {
+            let rn = this._renderNode;
+            let r = rn.renderer;
+
+            let sh, p,
+                gl = r.handler.gl,
+                sha, shu;
+
+
+
+                sh = r.handler.programs.shape_picking;
+                p = sh._program;
+                shu = p.uniforms;
+                sha = p.attributes;
+
+                sh.activate();
+
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera.getProjectionViewMatrix());
+
+            gl.uniform4fv(shu.uColor, [this._pickingColor[0], this._pickingColor[1], this._pickingColor[2], 1.0]);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+            gl.vertexAttribPointer(sha.aVertexPosition, this._positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.uniformMatrix4fv(shu.modelMatrix, false, this._mxModel._m);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(r.handler.gl.TRIANGLES, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
