@@ -47,7 +47,7 @@ const {
 } = entity;
 
 const version = {
-    version: JSON.stringify(pkg.version)
+    version: pkg.version
 };
 
 export {

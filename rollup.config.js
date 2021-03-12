@@ -13,7 +13,7 @@ export default [{
         {
             file: OUTPUT_NAME + ".js",
             format: 'umd',
-            name: pkg.name,
+            name: 'og',
             sourcemap: false
         }
     ],
@@ -33,7 +33,7 @@ export default [{
     ],
     plugins: [
         postcss({
-            modules: true,
-            extract: true
+            extract: true,
+            minimize: true
         })]
 }];

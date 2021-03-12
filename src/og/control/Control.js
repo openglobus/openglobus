@@ -132,6 +132,8 @@ class Control {
         let r = this.renderer,
             n = this.name;
 
+        if (!r) return;
+
         let c = r.controls[n];
 
         if (c) {
