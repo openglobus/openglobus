@@ -18,7 +18,7 @@ export function label_webgl2() {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uZ: "float",
-            scaleByDistance: "vec3",
+            //scaleByDistance: "vec3",
             opacity: "float"
         },
         attributes: {
@@ -27,17 +27,15 @@ export function label_webgl2() {
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
             a_size: "float",
-            a_offset: "vec3",
+            //a_rotation: "float",
             a_rgba: "vec4",
-            a_rotation: "float",
-            a_alignedAxis: "vec3",
+            a_offset: "vec3",
+            //a_alignedAxis: "vec3",
             a_fontIndex: "float",
-            a_bufferAA: "vec2"
+            //a_bufferAA: "vec2"
         },
         vertexShader:
             `#version 300 es
-
-            in vec2 viewport,
 
             in vec2 a_vertices;
             in vec4 a_texCoord;
@@ -45,24 +43,25 @@ export function label_webgl2() {
             in vec3 a_positionsLow;
             in vec3 a_offset;
             in float a_size;
-            in float a_rotation;
+            //in float a_rotation;
             in vec4 a_rgba;
-            in vec3 a_alignedAxis;
+            //in vec3 a_alignedAxis;
             in float a_fontIndex;
-            in vec2 a_bufferAA;
+            //in vec2 a_bufferAA;
 
             out vec2 v_texCoords;
             out vec4 v_rgba;
             flat out int v_fontIndex;
-            out vec3 v_bufferAA;
+            //out vec3 v_bufferAA;
 
+            uniform vec2 viewport;
             uniform mat4 viewMatrix;
             uniform mat4 projectionMatrix;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float planetRadius;
             uniform float uZ;
-            uniform vec3 scaleByDistance;
+            //uniform vec3 scaleByDistance;
             uniform float opacity;
 
             const vec3 ZERO3 = vec3(0.0);
@@ -97,8 +96,10 @@ export function label_webgl2() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
-                vec2 sreenPos = project(projPos);
-                vec2 v = sreenPos + a_vertices;
+                vec2 screenPos = project(projPos);
+                //vec2 v = screenPos + (a_vertices + vec2(a_texCoord.z,a_texCoord.w)) / viewport;
+
+                vec2 v = screenPos + (a_vertices + vec2(a_texCoord.z, a_texCoord.w)) * a_size;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
 
@@ -116,7 +117,7 @@ export function label_webgl2() {
             flat in int v_fontIndex;
             in vec2 v_texCoords;
             in vec4 v_rgba;
-            in vec3 v_bufferAA;
+            //in vec3 v_bufferAA;
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
