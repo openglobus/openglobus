@@ -58,7 +58,7 @@ callbacks.u[types.SAMPLERCUBE] = function (program, variable) {
     program._textureID++;
 };
 
-callbacks.u[types.SAMPLER2DXX] = function (program, variable) {
+callbacks.u[types.SAMPLER2DARRAY] = function (program, variable) {
     let pgl = program.gl,
         size = variable.value.length;
     let samplerArr = new Int32Array(size);
