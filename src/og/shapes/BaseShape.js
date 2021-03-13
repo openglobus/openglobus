@@ -132,7 +132,7 @@ class BaseShape {
          * @protected
          * @type {og.Mat4}
          */
-        this._mxScale = new Mat4().setIdentity();
+        this._mxScale = new Mat4().setIdentity().scale(this.scale);
 
         /**
          * Translation matrix.
