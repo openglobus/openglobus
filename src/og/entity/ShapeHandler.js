@@ -44,9 +44,9 @@ class ShapeHandler {
             if (!this._renderer.handler.programs.shape_wl) {
                 this._renderer.handler.addProgram(shaders.shape_wl());
             }
-            // if (!this._renderer.handler.programs.shapePicking) {
-            //     this._renderer.handler.addProgram(shaders.shapePicking());
-            // }
+            if (!this._renderer.handler.programs.shape_picking) {
+                this._renderer.handler.addProgram(shaders.shape_picking());
+            }
         }
     }
 
@@ -79,7 +79,10 @@ class ShapeHandler {
     }
 
     drawPicking() {
-        // TODO
+        var i = this._shapes.length;
+        while (i--) {
+            this._shapes[i].drawPicking();
+        }
     }
 
     clear() {
