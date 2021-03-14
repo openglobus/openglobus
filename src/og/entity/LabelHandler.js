@@ -218,7 +218,7 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.disable(gl.DEPTH_TEST);
+        //gl.disable(gl.DEPTH_TEST);
 
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
@@ -268,6 +268,8 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 
+        //t.uniforms.sdfParams.value = new n.Vector4(this.m_fontCatalog.textureSize.x, this.m_fontCatalog.textureSize.y, this.m_fontCatalog.size, this.m_fontCatalog.distanceRange),
+
         // nobuffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -289,7 +291,7 @@ class LabelHandler extends BillboardHandler {
         //gl.uniform1f(shu.uZ, 0.1);
         //gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        gl.enable(gl.DEPTH_TEST);
+        //gl.enable(gl.DEPTH_TEST);
 
     }
 

@@ -32,7 +32,6 @@ export function label_webgl2() {
             a_offset: "vec3",
             //a_alignedAxis: "vec3",
             a_fontIndex: "float",
-            //a_bufferAA: "vec2"
         },
         vertexShader:
             `#version 300 es
@@ -47,12 +46,10 @@ export function label_webgl2() {
             in vec4 a_rgba;
             //in vec3 a_alignedAxis;
             in float a_fontIndex;
-            //in vec2 a_bufferAA;
 
             out vec2 v_texCoords;
             out vec4 v_rgba;
             flat out int v_fontIndex;
-            //out vec3 v_bufferAA;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -97,7 +94,6 @@ export function label_webgl2() {
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
-                //vec2 v = screenPos + (a_vertices + vec2(a_texCoord.z,a_texCoord.w)) / viewport;
 
                 vec2 v = screenPos + (a_vertices + vec2(a_texCoord.z, a_texCoord.w)) * a_size;
 
@@ -122,28 +118,42 @@ export function label_webgl2() {
 
             layout(location = 0) out vec4 outScreen;
 
+            float vRotation = 0.0;
+            vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
+            float weight = 0.00001;
+
             float median(float r, float g, float b) {
                 return max(min(r, g), min(max(r, g), b));
             }
 
-            float screenPxRange() {
-                float pxRange = 42.0; // set to distance field's pixel range
-                vec2 unitRange = vec2(pxRange)/vec2(textureSize(fontTextureArr[0], 0));
-                vec2 screenTexSize = vec2(1.0)/fwidth(v_texCoords);
-                return max(0.5*dot(unitRange, screenTexSize), 1.0);
+            float getDistance() {
+                vec3 msdf = texture(fontTextureArr[0], v_texCoords).rgb;
+                return median(msdf.r, msdf.g, msdf.b);
             }
 
             void main () {
-                int fi = v_fontIndex;
 
-                vec4 msd = texture(fontTextureArr[0], v_texCoords);
+                //float sd = median(msd.r, msd.g, msd.b);
+                //float screenPxDistance = screenPxRange()*(sd - 0.5);
+                //float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
+                ////color = mix(bgColor, fgColor, opacity);
 
-                float sd = median(msd.r, msd.g, msd.b);
-                float screenPxDistance = screenPxRange()*(sd - 0.5);
-                float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-                //color = mix(bgColor, fgColor, opacity);
+                vec2 rotatedUVs = abs(vec2(
+                    cos(vRotation) * v_texCoords.x - sin(vRotation) * v_texCoords.y,
+                    sin(vRotation) * v_texCoords.x + cos(vRotation) * v_texCoords.y));
+                float dx = dFdx(rotatedUVs.x) * sdfParams.x;
+                float dy = dFdy(rotatedUVs.y) * sdfParams.y;
+                float toPixels = sdfParams.w * inversesqrt( dx * dx + dy * dy );
+                float dist = getDistance() + min(weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float opacity = clamp(dist * toPixels + 0.5, 0.0, 1.0);
 
-                outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                vec4 color = v_rgba;
+                color.a *= opacity;
+                if (color.a < 0.05) {
+                    discard;
+                }
+
+                outScreen = vec4(v_rgba.rgb, opacity);
             }`
     });
 }
