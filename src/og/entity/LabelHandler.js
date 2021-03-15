@@ -32,11 +32,13 @@ class LabelHandler extends BillboardHandler {
 
         super(entityCollection);
 
+        this._gliphParamBuffer = null;
         this._fontIndexBuffer = null;
         this._noOutlineBuffer = null;
         this._outlineBuffer = null;
         this._outlineColorBuffer = null;
 
+        this._gliphParamArr = new Float32Array();
         this._fontIndexArr = new Float32Array();
         this._noOutlineArr = new Float32Array();
         this._outlineArr = new Float32Array();
@@ -48,7 +50,7 @@ class LabelHandler extends BillboardHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._maxLetters = maxLetters;
+        this._maxLetters = 100;///maxLetters;
     }
 
     initProgram() {
@@ -88,6 +90,7 @@ class LabelHandler extends BillboardHandler {
     clear() {
 
         this._texCoordArr = null;
+        this._gliphParamArr = null;
         this._vertexArr = null;
         this._positionHighArr = null;
         this._positionLowArr = null;
@@ -102,6 +105,7 @@ class LabelHandler extends BillboardHandler {
         this._outlineColorArr = null;
 
         this._texCoordArr = new Float32Array();
+        this._gliphParamArr = new Float32Array();
         this._vertexArr = new Float32Array();
         this._positionHighArr = new Float32Array();
         this._positionLowArr = new Float32Array();
@@ -123,6 +127,7 @@ class LabelHandler extends BillboardHandler {
     _deleteBuffers() {
         if (this._renderer) {
             var gl = this._renderer.handler.gl;
+            gl.deleteBuffer(this._gliphParamBuffer);
             gl.deleteBuffer(this._sizeBuffer);
             gl.deleteBuffer(this._fontIndexBuffer);
             gl.deleteBuffer(this._texCoordBuffer);
@@ -140,6 +145,7 @@ class LabelHandler extends BillboardHandler {
             gl.deleteBuffer(this._alignedAxisBuffer);
             gl.deleteBuffer(this._pickingColorBuffer);
 
+            this._gliphParamBuffer = null;
             this._sizeBuffer = null;
             this._fontIndexBuffer = null;
             this._texCoordBuffer = null;
@@ -161,12 +167,20 @@ class LabelHandler extends BillboardHandler {
     _addBillboardToArrays(label) {
         for (var i = 0; i < this._maxLetters; i++) {
             if (label._visibility) {
-                this._vertexArr = concatTypedArrays(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
+                this._vertexArr = concatTypedArrays(this._vertexArr, [
+                    0, 0,
+                    0, -1,
+                    1, -1,
+                    1, -1,
+                    1, 0,
+                    0, 0
+                ]);
             } else {
                 this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
             }
 
             this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
+            this._gliphParamArr = concatTypedArrays(this._gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
 
             var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
             this._positionHighArr = concatTypedArrays(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
@@ -242,6 +256,9 @@ class LabelHandler extends BillboardHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer);
+        gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -360,6 +377,7 @@ class LabelHandler extends BillboardHandler {
         this._rgbaArr = spliceTypedArray(this._rgbaArr, i, ml);
         this._outlineColorArr = spliceTypedArray(this._outlineColorArr, i, ml);
         this._texCoordArr = spliceTypedArray(this._texCoordArr, i, ml);
+        this._gliphParamArr = spliceTypedArray(this._gliphParamArr, i, ml);
 
         ml = 18 * this._maxLetters;
         i = li * ml;
@@ -395,19 +413,27 @@ class LabelHandler extends BillboardHandler {
         if (!fa) return;
 
         var i = index * 24 * this._maxLetters;
-        var a = this._texCoordArr;
+        var a = this._texCoordArr,
+            g = this._gliphParamArr;
 
         var c = 0;
 
         var n = fa.nodes[text[c]];
-        var f = n ? n.emptySize : 0.0;
-        var offset = f;
+        var offset = 0.0;
         var len = Math.min(this._maxLetters, text.length);
 
         for (c = 0; c < len; c++) {
-            var j = i + c * 24;
+            let j = i + c * 24;
             n = fa.nodes[text[c]] || fa.nodes[" "];
-            var tc = n.texCoords;
+            let tc = n.texCoords;
+
+            let m = n.metrics;
+
+            //m.nWidth;
+            //m.nHeight;
+            //m.nAdvance;
+            //m.nXOffset;
+            //m.nYOffset;
 
             a[j] = tc[0];
             a[j + 1] = tc[1];
@@ -439,7 +465,40 @@ class LabelHandler extends BillboardHandler {
             a[j + 22] = offset;
             a[j + 23] = 0.0;
 
-            offset += n.emptySize;
+            //
+            // Gliph
+            //
+            g[j] = m.nWidth;
+            g[j + 1] = m.nHeight;
+            g[j + 2] = m.nXOffset;
+            g[j + 3] = m.nYOffset;
+
+            g[j + 4] = m.nWidth;
+            g[j + 5] = m.nHeight;
+            g[j + 6] = m.nXOffset;
+            g[j + 7] = m.nYOffset;
+
+            g[j + 8] = m.nWidth;
+            g[j + 9] = m.nHeight;
+            g[j + 10] = m.nXOffset;
+            g[j + 11] = m.nYOffset;
+
+            g[j + 12] = m.nWidth;
+            g[j + 13] = m.nHeight;
+            g[j + 14] = m.nXOffset;
+            g[j + 15] = m.nYOffset;
+
+            g[j + 16] = m.nWidth;
+            g[j + 17] = m.nHeight;
+            g[j + 18] = m.nXOffset;
+            g[j + 19] = m.nYOffset;
+
+            g[j + 20] = m.nWidth;
+            g[j + 21] = m.nHeight;
+            g[j + 22] = m.nXOffset;
+            g[j + 23] = m.nYOffset;
+
+            offset += m.nAdvance;
         }
 
         // 49/512 - font atlas left border letter offset
@@ -839,6 +898,9 @@ class LabelHandler extends BillboardHandler {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._texCoordBuffer);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 4, this._texCoordArr.length / 4);
+
+        h.gl.deleteBuffer(this._gliphParamBuffer);
+        this._gliphParamBuffer = h.createArrayBuffer(this._gliphParamArr, 4, this._gliphParamArr.length / 4);
     }
 
     createOutlineBuffer() {

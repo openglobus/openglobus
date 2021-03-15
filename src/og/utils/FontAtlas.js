@@ -8,69 +8,11 @@ import { TextureAtlas } from './TextureAtlas.js';
 import { ImageCanvas } from '../ImageCanvas.js';
 import { QueueArray } from '../QueueArray.js';
 import { FontDetector } from './FontDetector.js';
-import { SDFCreator } from './SDFCreator.js';
+//import { SDFCreator } from './SDFCreator.js';
 import TinySDF from '../../../external/tiny-sdf/index.js';
 import { Rectangle } from '../Rectangle.js';
 import { TextureAtlasNode } from './TextureAtlas.js';
-
-function Deferred() {
-    this.resolve = null;
-    this.reject = null;
-    this.promise = new Promise(function (resolve, reject) {
-        this.resolve = resolve;
-        this.reject = reject;
-    }.bind(this));
-    Object.freeze(this);
-};
-
-//const tokens = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-//    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-//    'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'э', 'ъ', 'ю', 'я', 'й',
-//    'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ь', 'Э', 'Ъ', 'Ю', 'Я', 'Й',
-//    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-//    '`', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '[', ']', '{', '}', '\\', '|', ';', ':', '"', ',', '.', '/', '<', '>', '?', ' ', '    ', "'",
-//    'Á', 'á', 'Ć', 'ć', 'É', 'é', 'Í', 'í', 'Ĺ', 'ĺ', 'Ń', 'ń', 'Ó', 'ó', 'Ŕ', 'ŕ', 'Ś', 'ś', 'Ú', 'ú', 'Ý', 'ý', 'Ź', 'ź',
-//    'ď', 'Ľ', 'ľ', 'ť',
-//    'Ă', 'ă', 'Ğ', 'ğ', 'Ŭ', 'ŭ',
-//    'Č', 'č', 'Ď', 'Ě', 'ě', 'Ň', 'ň', 'Ř', 'ř', 'Š', 'š', 'Ť', 'Ž', 'ž',
-//    'Ç', 'ç', 'Ģ', 'ģ', 'Ķ', 'ķ', 'Ļ', 'ļ', 'Ņ', 'ņ', 'Ŗ', 'ŗ', 'Ş', 'ş', 'Ţ', 'ţ',
-//    'Â', 'â', 'Ĉ', 'ĉ', 'Ê', 'ê', 'Ĝ', 'ĝ', 'Ĥ', 'ĥ', 'Î', 'î', 'Ĵ', 'ĵ', 'Ô', 'ô', 'Ŝ', 'ŝ', 'Û', 'û', 'Ŵ', 'ŵ', 'Ŷ', 'ŷ',
-//    'Ä', 'ä', 'Ë', 'ë', 'Ï', 'ï', 'Ö', 'ö', 'Ü', 'ü', 'Ÿ', 'ÿ',
-//    'Ċ', 'ċ', 'Ė', 'ė', 'Ġ', 'ġ', 'İ', 'ı', 'Ż', 'ż',
-//    'Ő', 'ő', 'Ű', 'ű',
-//    'À', 'à', 'È', 'è', 'Ì', 'ì', 'Ò', 'ò', 'Ù', 'ù',
-//    'Ơ', 'ơ', 'Ư', 'ư',
-//    'Ā', 'ā', 'Ē', 'ē', 'Ī', 'ī', 'Ō', 'ō', 'Ū', 'ū',
-//    'Ą', 'ą', 'Ę', 'ę', 'Į', 'į', 'Ų', 'ų',
-//    'Å', 'å', 'Ů', 'ů',
-//    'Đ', 'đ', 'Ħ', 'ħ', 'Ł', 'ł', 'Ø', 'ø',
-//    'Ã', 'ã', 'Ñ', 'ñ', 'Õ', 'õ',
-//    'Æ', 'æ', 'Œ', 'œ',
-//    'Ð', 'ð', 'Þ', 'þ',
-//    'ß', 'ſ',
-//    'Α', 'Β', 'Γ', 'Δ', 'Ε', 'Ζ', 'Η', 'Θ', 'Ι', 'Κ', 'Λ', 'Μ', 'Ν', 'Ξ', 'Ο', 'Π', 'Ρ', 'Σ', 'Τ', 'Υ', 'Φ', 'Χ', 'Ψ', 'Ω',
-//    'Ά', 'Έ', 'Ή', 'Ί', 'Ό', 'Ύ', 'Ώ',
-//    'Ϊ', 'Ϋ',
-//    'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο', 'π', 'ρ', 'σ', 'ς', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω',
-//    'ά', 'έ', 'ή', 'ί', 'ό', 'ύ', 'ώ',
-//    'ϊ', 'ϋ',
-//    'ΐ', 'ΰ',
-//    '’', '‘',
-//    'ḩ', 'Ḩ',
-//    'ţ', 'Ţ', 'bٍ', '°', '´'
-//];
-
-// Convert alpha-only to RGBA so we can use `putImageData` for building the composite bitmap
-//function makeRGBAImageData(ctx, alphaChannel, width, height) {
-//    const imageData = ctx.createImageData(width, height);
-//    for (let i = 0; i < alphaChannel.length; i++) {
-//        imageData.data[4 * i + 0] = alphaChannel[i];
-//        imageData.data[4 * i + 1] = alphaChannel[i];
-//        imageData.data[4 * i + 2] = alphaChannel[i];
-//        imageData.data[4 * i + 3] = 255;
-//    }
-//    return imageData;
-//}
+import { Deferred } from '../Deferred.js';
 
 class FontAtlas {
     constructor() {
@@ -86,7 +28,12 @@ class FontAtlas {
         this._pendingsQueue = new QueueArray();
         this.fontDetector = new FontDetector();
 
-        this._sdfCreator = new SDFCreator(256, 256);
+        this.scaleH = 0;
+        this.scaleW = 0;
+        this.gliphSize = 0;
+        this.distanceRange = 0;
+
+        //this._sdfCreator = new SDFCreator(256, 256);
     }
 
     assignHandler(handler) {
@@ -141,11 +88,22 @@ class FontAtlas {
             })
             .then(data => {
                 let chars = data.chars;
+
+                this.height = data.common.scaleH;
+                this.width = data.common.scaleW;
+                this.gliphSize = data.info.size;
+                this.distanceRange = data.distanceField.distanceRange;
+
+                //...
+                this.kernings = data.kernings;
+
+                let w = this.width,
+                    h = this.height,
+                    s = this.gliphSize;
+
                 for (let i = 0; i < chars.length; i++) {
                     let ci = chars[i];
                     let ti = ci.char;
-                    let w = data.common.scaleW,
-                        h = data.common.scaleH;
 
                     let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -171,6 +129,13 @@ class FontAtlas {
 
                     atlas.nodes[ti] = new TextureAtlasNode(r, tc);
                     atlas.nodes[ti].metrics = ci;
+
+                    atlas.nodes[ti].metrics.nWidth = atlas.nodes[ti].metrics.width / s;
+                    atlas.nodes[ti].metrics.nHeight = atlas.nodes[ti].metrics.height / s;
+                    atlas.nodes[ti].metrics.nAdvance = atlas.nodes[ti].metrics.xadvance / s;
+                    atlas.nodes[ti].metrics.nXOffset = atlas.nodes[ti].metrics.xoffset / s;
+                    atlas.nodes[ti].metrics.nYOffset = 1.0 - atlas.nodes[ti].metrics.yoffset / s;
+
                     atlas.nodes[ti].emptySize = 1;
                 }
 
@@ -182,57 +147,6 @@ class FontAtlas {
                 return { 'status': "error", 'msg': err.toString() };
             });
     }
-
-    //createFont(face, style, weight) {
-    //    var fontIndex = this.getFontIndex(face, style, weight);
-    //    if (fontIndex == undefined) {
-    //        var tis = this.tokenImageSize;
-    //        var atlasSize = 2048;//math.nextHighestPowerOfTwo(Math.ceil(Math.sqrt(tokens.length)) / tis + (tokens.length - 1) * TextureAtlas.BORDER_SIZE);
-    //        var fontName = this.getFullIndex(face, style, weight);
-    //        fontIndex = this.atlasIndexes[fontName] = this.atlasesArr.length;
-    //        var atlas = new TextureAtlas(atlasSize, atlasSize);
-    //        atlas.assignHandler(this._handler);
-    //        atlas.borderSize = 1;
-    //        this.samplerArr[this.atlasesArr.length] = this.atlasesArr.length;
-    //        this.atlasesArr.push(atlas);
-    //        atlas.canvas.fillColor("black");
-
-    //        var t = tokens;
-
-    //        const fontSize = 88;
-    //        const fontWeight = (weight || "normal");
-    //        const buffer = fontSize / 8;
-    //        const radius = fontSize / 3;
-    //        const fontFamily = (face || this.defaultFace);
-    //        const tinySdf = new TinySDF({ fontSize, buffer, radius, fontWeight, fontFamily });
-    //        const size = fontSize + buffer * 2;
-
-    //        for (var i = 0; i < t.length; i++) {
-    //            var ti = t[i];
-
-    //            let sdf = tinySdf.draw(ti);
-
-    //            let canvas = document.createElement("canvas");
-    //            canvas.width = sdf.width;
-    //            canvas.height = sdf.height;
-
-    //            let ctx = canvas.getContext('2d');
-
-    //            ctx.putImageData(makeRGBAImageData(ctx, sdf.data, sdf.width, sdf.height), 0, 0);
-
-    //            canvas.__nodeIndex = ti;
-    //            var n = atlas.addImage(canvas, true);
-
-    //            n.emptySize = 1;//sdf.glyphWidth / canvas.width;
-
-    //            n.metrics = sdf;
-    //        }
-
-    //        atlas.createTexture();
-    //    }
-
-    //    return fontIndex;
-    //}
 
     createFontAsync(face, style, weight, callback) {
         var obj = { "face": face, "style": style, "weight": weight, "callback": callback };

@@ -22,6 +22,7 @@ export function label_webgl2() {
             opacity: "float"
         },
         attributes: {
+            a_gliphParam: "vec4",
             a_vertices: "vec2",
             a_texCoord: "vec4",
             a_positionsHigh: "vec3",
@@ -36,6 +37,7 @@ export function label_webgl2() {
         vertexShader:
             `#version 300 es
 
+            in vec4 a_gliphParam;
             in vec2 a_vertices;
             in vec4 a_texCoord;
             in vec3 a_positionsHigh;
@@ -47,7 +49,7 @@ export function label_webgl2() {
             //in vec3 a_alignedAxis;
             in float a_fontIndex;
 
-            out vec2 v_texCoords;
+            out vec2 vUv;
             out vec4 v_rgba;
             flat out int v_fontIndex;
 
@@ -77,7 +79,7 @@ export function label_webgl2() {
                 }
 
                 v_fontIndex = int(a_fontIndex);
-                v_texCoords = vec2(a_texCoord.xy);
+                vUv = vec2(a_texCoord.xy);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
@@ -95,7 +97,7 @@ export function label_webgl2() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices + vec2(a_texCoord.z, a_texCoord.w)) * a_size;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + a_texCoord.zw) * a_size;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
 
@@ -111,7 +113,7 @@ export function label_webgl2() {
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
             flat in int v_fontIndex;
-            in vec2 v_texCoords;
+            in vec2 vUv;
             in vec4 v_rgba;
             //in vec3 v_bufferAA;
             in vec3 v_pickingColor;
@@ -127,7 +129,7 @@ export function label_webgl2() {
             }
 
             float getDistance() {
-                vec3 msdf = texture(fontTextureArr[0], v_texCoords).rgb;
+                vec3 msdf = texture(fontTextureArr[0], vUv).rgb;
                 return median(msdf.r, msdf.g, msdf.b);
             }
 
@@ -138,11 +140,11 @@ export function label_webgl2() {
                 //float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
                 ////color = mix(bgColor, fgColor, opacity);
 
-                vec2 rotatedUVs = abs(vec2(
-                    cos(vRotation) * v_texCoords.x - sin(vRotation) * v_texCoords.y,
-                    sin(vRotation) * v_texCoords.x + cos(vRotation) * v_texCoords.y));
-                float dx = dFdx(rotatedUVs.x) * sdfParams.x;
-                float dy = dFdy(rotatedUVs.y) * sdfParams.y;
+                vec2 rotUVs = abs(vec2(
+                    cos(vRotation) * vUv.x - sin(vRotation) * vUv.y,
+                    sin(vRotation) * vUv.x + cos(vRotation) * vUv.y));
+                float dx = dFdx(rotUVs.x) * sdfParams.x;
+                float dy = dFdy(rotUVs.y) * sdfParams.y;
                 float toPixels = sdfParams.w * inversesqrt( dx * dx + dy * dy );
                 float dist = getDistance() + min(weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * toPixels + 0.5, 0.0, 1.0);
@@ -152,6 +154,8 @@ export function label_webgl2() {
                 if (color.a < 0.05) {
                     discard;
                 }
+
+                //vec4 msdf = texture(fontTextureArr[0], vUv);
 
                 outScreen = vec4(v_rgba.rgb, opacity);
             }`
