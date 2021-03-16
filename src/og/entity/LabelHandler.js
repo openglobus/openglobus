@@ -206,12 +206,11 @@ class LabelHandler extends BillboardHandler {
             x = label._fontIndex;
             this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [x, x, x, x, x, x]);
 
-            x = 1.0 - label._outline; y = 0.0;
-            this._outlineArr = concatTypedArrays(this._outlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+            x = label._outline;
+            this._outlineArr = concatTypedArrays(this._outlineArr, [x, x, x, x, x, x]);
 
-            //x = 0.75; y = 0.7;
-            x = 0.0; y = 0.0;
-            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
+            const weight = 0.001;
+            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [weight, weight, weight, weight, weight, weight]);
 
             x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
             this._outlineColorArr = concatTypedArrays(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
@@ -284,32 +283,26 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
-        //t.uniforms.sdfParams.value = new n.Vector4(this.m_fontCatalog.textureSize.x, this.m_fontCatalog.textureSize.y, this.m_fontCatalog.size, this.m_fontCatalog.distanceRange),
-
-        // nobuffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
-        gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
-        //gl.vertexAttribPointer(sha.a_bufferAA, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.uniform1f(shu.uZ, 0.0);
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
-
-
-        //// buffer
+        //// outline
         //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         //gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
-        //gl.vertexAttribPointer(sha.a_bufferAA, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.uniform1f(shu.uZ, 0.1);
+        //gl.uniform1f(shu.uZ, 1.0);
         //gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        //gl.enable(gl.DEPTH_TEST);
+        // no outline
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
+        gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
+        gl.vertexAttribPointer(sha.a_outline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1f(shu.uZ, 0.0);
+        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+        //gl.enable(gl.DEPTH_TEST);
     }
 
     _pickingPASS() {
@@ -390,14 +383,14 @@ class LabelHandler extends BillboardHandler {
         ml = 12 * this._maxLetters;
         i = li * ml;
         this._vertexArr = spliceTypedArray(this._vertexArr, i, ml);
-        this._outlineArr = spliceTypedArray(this._outlineArr, i, ml);
-        this._noOutlineArr = spliceTypedArray(this._noOutlineArr, i, ml);
 
         ml = 6 * this._maxLetters;
         i = li * ml;
         this._sizeArr = spliceTypedArray(this._sizeArr, i, ml);
         this._rotationArr = spliceTypedArray(this._rotationArr, i, ml);
         this._fontIndexArr = spliceTypedArray(this._fontIndexArr, i, ml);
+        this._outlineArr = spliceTypedArray(this._outlineArr, i, ml);
+        this._noOutlineArr = spliceTypedArray(this._noOutlineArr, i, ml);
 
         this.reindexBillbordsArray(li);
         this.refresh();
@@ -506,23 +499,23 @@ class LabelHandler extends BillboardHandler {
             offset = (f + 49 / 512 - offset) * 0.5;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                a[j + 3] = offset;
-                a[j + 7] = offset;
-                a[j + 11] = offset;
-                a[j + 15] = offset;
-                a[j + 19] = offset;
-                a[j + 23] = offset;
+                //a[j + 3] = offset;
+                //a[j + 7] = offset;
+                //a[j + 11] = offset;
+                //a[j + 15] = offset;
+                //a[j + 19] = offset;
+                //a[j + 23] = offset;
             }
         } else if (align === ALIGN.LEFT) {
             offset = (f + 49 / 512 - offset);
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                a[j + 3] = offset;
-                a[j + 7] = offset;
-                a[j + 11] = offset;
-                a[j + 15] = offset;
-                a[j + 19] = offset;
-                a[j + 23] = offset;
+                //a[j + 3] = offset;
+                //a[j + 7] = offset;
+                //a[j + 11] = offset;
+                //a[j + 15] = offset;
+                //a[j + 19] = offset;
+                //a[j + 23] = offset;
             }
         }
 
@@ -769,17 +762,17 @@ class LabelHandler extends BillboardHandler {
     }
 
     setOutlineArr(index, outline) {
-        var i = index * 12 * this._maxLetters;
+        var i = index * 6 * this._maxLetters;
         var a = this._outlineArr;
 
         for (var q = 0; q < this._maxLetters; q++) {
-            var j = i + q * 12;
+            var j = i + q * 6;
             a[j] = outline;
+            a[j + 1] = outline;
             a[j + 2] = outline;
+            a[j + 3] = outline;
             a[j + 4] = outline;
-            a[j + 6] = outline;
-            a[j + 8] = outline;
-            a[j + 10] = outline;
+            a[j + 5] = outline;
         }
 
         this._changedBuffers[OUTLINE_BUFFER] = true;
@@ -907,10 +900,10 @@ class LabelHandler extends BillboardHandler {
         var h = this._renderer.handler;
 
         h.gl.deleteBuffer(this._outlineBuffer);
-        this._outlineBuffer = h.createArrayBuffer(this._outlineArr, 2, this._outlineArr.length / 2);
+        this._outlineBuffer = h.createArrayBuffer(this._outlineArr, 1, this._outlineArr.length);
 
         h.gl.deleteBuffer(this._noOutlineBuffer);
-        this._noOutlineBuffer = h.createArrayBuffer(this._noOutlineArr, 2, this._noOutlineArr.length / 2);
+        this._noOutlineBuffer = h.createArrayBuffer(this._noOutlineArr, 1, this._noOutlineArr.length);
     }
 
     createOutlineColorBuffer() {

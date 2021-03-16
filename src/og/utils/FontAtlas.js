@@ -5,11 +5,7 @@
 'use strict';
 
 import { TextureAtlas } from './TextureAtlas.js';
-import { ImageCanvas } from '../ImageCanvas.js';
 import { QueueArray } from '../QueueArray.js';
-import { FontDetector } from './FontDetector.js';
-//import { SDFCreator } from './SDFCreator.js';
-import TinySDF from '../../../external/tiny-sdf/index.js';
 import { Rectangle } from '../Rectangle.js';
 import { TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
@@ -22,18 +18,11 @@ class FontAtlas {
         this.tokenImageSize = 64;
         this.samplerArr = [0];
         this._handler = null;
-        this.defaultFace = "arial";
-
-        this._counter = 0;
-        this._pendingsQueue = new QueueArray();
-        this.fontDetector = new FontDetector();
 
         this.scaleH = 0;
         this.scaleW = 0;
         this.gliphSize = 0;
         this.distanceRange = 0;
-
-        //this._sdfCreator = new SDFCreator(256, 256);
     }
 
     assignHandler(handler) {
@@ -41,7 +30,6 @@ class FontAtlas {
     }
 
     getFontIndex(face, style, weight) {
-        //return this.atlasIndexes[this.getFullIndex(face, style, weight)];
         let fullName = this.getFullIndex(face, style, weight);
         if (!this.atlasIndexesDeferred[fullName]) {
             this.atlasIndexesDeferred[fullName] = new Deferred();
@@ -51,9 +39,9 @@ class FontAtlas {
 
     getFullIndex(face, style, weight) {
         face = face && face.trim().toLowerCase();
-        if (!face) {
-            face = this.defaultFace;
-        }
+        //if (!face) {
+        //    face = this.defaultFace;
+        //}
         return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
     }
 
@@ -146,47 +134,6 @@ class FontAtlas {
                 def.reject();
                 return { 'status': "error", 'msg': err.toString() };
             });
-    }
-
-    createFontAsync(face, style, weight, callback) {
-        var obj = { "face": face, "style": style, "weight": weight, "callback": callback };
-        if (this._counter >= 1) {
-            this._pendingsQueue.push(obj);
-        } else {
-            this._exec(obj);
-        }
-    }
-
-    _exec(obj) {
-        this._counter++;
-        var that = this;
-        setTimeout(function () {
-            var fontIndex = that.createFont(obj.face, obj.style, obj.weight);
-            obj.callback(fontIndex);
-            that._dequeueRequest();
-        }, 0);
-    }
-
-    _dequeueRequest() {
-        this._counter--;
-        if (this._pendingsQueue.length && this._counter < 1) {
-            var obj = this._whilePendings();
-            if (obj) {
-                this._exec(obj);
-            }
-        }
-    }
-
-    _whilePendings() {
-        while (this._pendingsQueue.length) {
-            var f = this._pendingsQueue.pop();
-            var fontIndex = this.getFontIndex(f.face, f.style, f.weight);
-            if (fontIndex != undefined) {
-                f.callback(fontIndex);
-                continue;
-            }
-            return f;
-        }
     }
 }
 

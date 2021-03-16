@@ -22,6 +22,7 @@ export function label_webgl2() {
             opacity: "float"
         },
         attributes: {
+            a_outline: "float",
             a_gliphParam: "vec4",
             a_vertices: "vec2",
             a_texCoord: "vec4",
@@ -37,6 +38,7 @@ export function label_webgl2() {
         vertexShader:
             `#version 300 es
 
+            in float a_outline;
             in vec4 a_gliphParam;
             in vec2 a_vertices;
             in vec4 a_texCoord;
@@ -51,6 +53,7 @@ export function label_webgl2() {
 
             out vec2 vUv;
             out vec4 v_rgba;
+            flat out float weight;
             flat out int v_fontIndex;
 
             uniform vec2 viewport;
@@ -73,10 +76,12 @@ export function label_webgl2() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
-                if(a_texCoord.z == -1.0){
+                if(a_texCoord.z == -1.0 || a_outline == 0.0){
                     gl_Position = vec4(0.0);
                     return;
                 }
+
+                weight = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
                 vUv = vec2(a_texCoord.xy);
@@ -112,17 +117,17 @@ export function label_webgl2() {
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
+            flat in float weight;
             flat in int v_fontIndex;
             in vec2 vUv;
             in vec4 v_rgba;
-            //in vec3 v_bufferAA;
+
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
 
             float vRotation = 0.0;
             vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
-            float weight = 0.00001;
 
             float median(float r, float g, float b) {
                 return max(min(r, g), min(max(r, g), b));

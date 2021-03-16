@@ -91,7 +91,7 @@ class Label extends BaseBillboard {
          * @private
          * @type {number}
          */
-        this._outline = options.outline != undefined ? options.outline : 0.5;
+        this._outline = options.outline != undefined ? options.outline : 1.0;
 
         /**
          * Label outline color.
