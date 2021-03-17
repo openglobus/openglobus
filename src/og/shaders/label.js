@@ -18,7 +18,7 @@ export function label_webgl2() {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uZ: "float",
-            //scaleByDistance: "vec3",
+            scaleByDistance: "vec3",
             opacity: "float"
         },
         attributes: {
@@ -63,7 +63,7 @@ export function label_webgl2() {
             uniform vec3 eyePositionLow;
             uniform float planetRadius;
             uniform float uZ;
-            //uniform vec3 scaleByDistance;
+            uniform vec3 scaleByDistance;
             uniform float opacity;
 
             const vec3 ZERO3 = vec3(0.0);
@@ -92,6 +92,8 @@ export function label_webgl2() {
                     return;
                 }
 
+                float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
+
                 v_rgba.a *= opacity;
 
                 mat4 viewMatrixRTE = viewMatrix;
@@ -103,7 +105,7 @@ export function label_webgl2() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
 
@@ -187,7 +189,7 @@ export function labelPicking() {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             planetRadius: "float",
-            //scaleByDistance: "vec3",
+            scaleByDistance: "vec3",
             opacity: "float"
         },
         attributes: {
@@ -224,7 +226,7 @@ export function labelPicking() {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float planetRadius;
-            //uniform vec3 scaleByDistance;
+            uniform vec3 scaleByDistance;
             uniform float opacity;
 
             const vec3 ZERO3 = vec3(0.0);
@@ -248,6 +250,8 @@ export function labelPicking() {
                     return;
                 }
 
+                float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
+
                 v_rgba.a *= opacity;
 
                 mat4 viewMatrixRTE = viewMatrix;
@@ -259,7 +263,7 @@ export function labelPicking() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
 
@@ -358,7 +362,7 @@ export function labelPicking() {
 //                float dist = dot(uCamPos - a_positions, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
 //                float focalSize = 2.0 * dist * planetRadius;
 //                vec2 offset = a_offset.xy * focalSize;
-//                float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookLength)) *(1.0 - step(scaleByDistance[2], lookLength));
+//                float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookLength)) * (1.0 - step(scaleByDistance[2], lookLength));
 //                float scale = a_size * focalSize * scd;
 //                float cosRot = cos(a_rotation);
 //                float sinRot = sin(a_rotation);

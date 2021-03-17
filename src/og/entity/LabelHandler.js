@@ -243,7 +243,7 @@ class LabelHandler extends BillboardHandler {
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
-        //gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
+        gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
 
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
@@ -323,7 +323,7 @@ class LabelHandler extends BillboardHandler {
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
-        //gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
+        gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
 
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
