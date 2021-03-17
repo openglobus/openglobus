@@ -102,7 +102,7 @@ export function label_webgl2() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + a_texCoord.zw) * a_size;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
 

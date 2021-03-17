@@ -45,7 +45,7 @@ class FontAtlas {
         return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
     }
 
-    loadMSDF(faceName, imageUrl, atlasUrl) {
+    loadMSDF(faceName, srcDir, atlasUrl) {
 
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
@@ -61,16 +61,10 @@ class FontAtlas {
         atlas.assignHandler(this._handler);
         this.atlasesArr[index] = atlas;
 
-        let img = new Image();
-        img.onload = () => {
-            atlas.createTexture(img);
-        };
-        img.src = imageUrl;
-
-        fetch(atlasUrl)
+        fetch(`${srcDir}/${atlasUrl}`)
             .then(response => {
                 if (!response.ok) {
-                    throw Error(`Unable to load '${atlasUrl}'`);
+                    throw Error(`Unable to load "${srcDir}/${atlasUrl}"`);
                 }
                 return response.json(response);
             })
@@ -82,16 +76,17 @@ class FontAtlas {
                 this.gliphSize = data.info.size;
                 this.distanceRange = data.distanceField.distanceRange;
 
-                //...
-                this.kernings = data.kernings;
-
                 let w = this.width,
                     h = this.height,
                     s = this.gliphSize;
 
+                let idToChar = {};
+
                 for (let i = 0; i < chars.length; i++) {
                     let ci = chars[i];
                     let ti = ci.char;
+
+                    idToChar[ci.id] = ti;
 
                     let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
 
@@ -127,8 +122,22 @@ class FontAtlas {
                     atlas.nodes[ti].emptySize = 1;
                 }
 
+                //...
+                this.kernings = {};//data.kernings;
+
+                for (let i = 0; i < data.kernings.length; i++) {
+                    let ki = data.kernings;
+                }
+
                 console.log(data);
-                def.resolve(index);
+
+                let img = new Image();
+                img.onload = () => {
+                    atlas.createTexture(img);
+                    def.resolve(index);
+                };
+
+                img.src = `${srcDir}/${data.pages[0]}`;
             })
             .catch(err => {
                 def.reject();

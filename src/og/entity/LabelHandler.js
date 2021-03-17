@@ -496,26 +496,25 @@ class LabelHandler extends BillboardHandler {
 
         // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
-            offset = (f + 49 / 512 - offset) * 0.5;
+            offset *= -0.5;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                //a[j + 3] = offset;
-                //a[j + 7] = offset;
-                //a[j + 11] = offset;
-                //a[j + 15] = offset;
-                //a[j + 19] = offset;
-                //a[j + 23] = offset;
+                a[j + 3] = offset;
+                a[j + 7] = offset;
+                a[j + 11] = offset;
+                a[j + 15] = offset;
+                a[j + 19] = offset;
+                a[j + 23] = offset;
             }
         } else if (align === ALIGN.LEFT) {
-            offset = (f + 49 / 512 - offset);
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                //a[j + 3] = offset;
-                //a[j + 7] = offset;
-                //a[j + 11] = offset;
-                //a[j + 15] = offset;
-                //a[j + 19] = offset;
-                //a[j + 23] = offset;
+                a[j + 3] = 0;
+                a[j + 7] = 0;
+                a[j + 11] = 0;
+                a[j + 15] = 0;
+                a[j + 19] = 0;
+                a[j + 23] = 0;
             }
         }
 

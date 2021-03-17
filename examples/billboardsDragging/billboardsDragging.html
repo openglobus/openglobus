@@ -34,11 +34,12 @@
                 'lonlat': [8.25, 46.74],
                 'label': {
                     face: "Roboto-Regular",
-                    'text': 'Hello, world! Hi, Globus$12xXoOopgjl',
-                    'size': 16,
+                    'text': 'Hello world!',
+                    'size': 12,
                     color: "rgba(0,0,0,255)",
                     'outlineColor': "rgba(255,255,255,1)",
-                    'outline': 0.0
+                    'outline': 0.0,
+                    align: "center"
                 }
             }],
             'async': false
@@ -85,7 +86,7 @@
             "layers": [osm, pointLayer]
         });
 
-        globe.renderer.fontAtlas.loadMSDF("Roboto-Regular", '../../fonts/Roboto-Regular.png', '../../fonts/Roboto-Regular.json');
+        globe.renderer.fontAtlas.loadMSDF("Roboto-Regular", '../../fonts/', 'Karla-Medium.json');
 
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {
@@ -119,8 +120,6 @@
         pointLayer.events.on("rclick", function (e) {
             e.pickingObject.remove();
         });
-
-        window.p = pointLayer;
 
         window.globe = globe;
 
