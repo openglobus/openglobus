@@ -44,6 +44,9 @@ class FontAtlas {
         this.atlasIndexes[fullName] = index;
 
         let def = this.atlasIndexesDeferred[fullName];
+        if (!def) {
+            def = this.atlasIndexesDeferred[fullName] = new Deferred();
+        }
 
         this.samplerArr[this.atlasesArr.length] = index;
 
