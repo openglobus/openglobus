@@ -64,9 +64,9 @@ class LabelHandler extends BillboardHandler {
                 }
             }
 
-            //if (!this._renderer.handler.programs.labelPicking) {
-            //    this._renderer.handler.addProgram(shaders.labelPicking());
-            //}
+            if (!this._renderer.handler.programs.labelPicking) {
+                this._renderer.handler.addProgram(shaders.labelPicking());
+            }
         }
     }
 
@@ -231,8 +231,6 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        //gl.disable(gl.DEPTH_TEST);
-
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         var rn = ec.renderNode;
@@ -283,15 +281,15 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //// outline
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
-        //gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        // outline
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
+        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
-        //gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
+        gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.uniform1f(shu.uZ, 1.0);
-        //gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+        gl.uniform1f(shu.uZ, 1.0);
+        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         // no outline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
@@ -302,51 +300,56 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1f(shu.uZ, 0.0);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
-        //gl.enable(gl.DEPTH_TEST);
     }
 
     _pickingPASS() {
-        //var r = this._renderer;
-        //var h = r.handler;
-        //h.programs.labelPicking.activate();
-        //var sh = h.programs.labelPicking._program;
-        //var sha = sh.attributes,
-        //    shu = sh.uniforms;
+        var r = this._renderer;
+        var h = r.handler;
+        h.programs.label.activate();
+        var sh = h.programs.label._program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
 
-        //var gl = h.gl,
-        //    ec = this._entityCollection;
+        var gl = h.gl,
+            ec = this._entityCollection;
 
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
-        //gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
-        //gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+        var rn = ec.renderNode;
 
-        //gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-        //gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+        gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
         //gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
 
-        //gl.uniform1f(shu.opacity, ec._fadingOpacity);
+        gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
-        //gl.uniform1f(shu.planetRadius, ec.renderNode._planetRadius2);
+        gl.uniform1f(shu.planetRadius, rn._planetRadius2 || 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        //gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.uniform2fv(shu.viewport, [h.canvas.width, h.canvas.height]);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
-        //gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
+        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        //gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer);
+        gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        //gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+        gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
-        //gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
-        //gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
+        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+        gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         //gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
         //gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -354,10 +357,14 @@ class LabelHandler extends BillboardHandler {
         //gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
         //gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-        //gl.vertexAttribPointer(sha.a_pickingColor, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
+        gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+        // no outline
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
+        gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
 
     _removeBillboard(label) {

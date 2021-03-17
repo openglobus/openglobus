@@ -192,7 +192,7 @@ class Label extends BaseBillboard {
      */
     setOutline(outline) {
         this._outline = outline;
-        this._handler && this._handler.setOutlineArr(this._handlerIndex, 1.0 - outline);
+        this._handler && this._handler.setOutlineArr(this._handlerIndex, outline);
     }
 
     /**
