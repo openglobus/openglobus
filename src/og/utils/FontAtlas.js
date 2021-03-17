@@ -18,11 +18,6 @@ class FontAtlas {
         this.tokenImageSize = 64;
         this.samplerArr = [0];
         this._handler = null;
-
-        this.scaleH = 0;
-        this.scaleW = 0;
-        this.gliphSize = 0;
-        this.distanceRange = 0;
     }
 
     assignHandler(handler) {
@@ -56,7 +51,14 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
+        // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();
+
+        atlas.height = 0;
+        atlas.width = 0;
+        atlas.gliphSize = 0;
+        atlas.distanceRange = 0;
+        atlas.kernings = {};
 
         atlas.assignHandler(this._handler);
         this.atlasesArr[index] = atlas;
@@ -71,14 +73,14 @@ class FontAtlas {
             .then(data => {
                 let chars = data.chars;
 
-                this.height = data.common.scaleH;
-                this.width = data.common.scaleW;
-                this.gliphSize = data.info.size;
-                this.distanceRange = data.distanceField.distanceRange;
+                atlas.height = data.common.scaleH;
+                atlas.width = data.common.scaleW;
+                atlas.gliphSize = data.info.size;
+                atlas.distanceRange = data.distanceField.distanceRange;
 
-                let w = this.width,
-                    h = this.height,
-                    s = this.gliphSize;
+                let w = atlas.width,
+                    h = atlas.height,
+                    s = atlas.gliphSize;
 
                 let idToChar = {};
 
@@ -122,14 +124,23 @@ class FontAtlas {
                     atlas.nodes[ti].emptySize = 1;
                 }
 
-                //...
-                this.kernings = {};//data.kernings;
+                atlas.kernings = {};
 
                 for (let i = 0; i < data.kernings.length; i++) {
-                    let ki = data.kernings;
-                }
+                    let ki = data.kernings[i];
 
-                console.log(data);
+                    let first = ki.first,
+                        second = ki.second;
+
+                    let charFirst = idToChar[first],
+                        charSecond = idToChar[second];
+
+                    if (!atlas.kernings[charFirst]) {
+                        atlas.kernings[charFirst] = {};
+                    }
+
+                    atlas.kernings[charFirst][charSecond] = ki.amount / s;
+                }
 
                 let img = new Image();
                 img.onload = () => {

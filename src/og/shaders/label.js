@@ -113,7 +113,7 @@ export function label_webgl2() {
 
             precision highp float;
 
-            const int MAX_SIZE = 3;
+            const int MAX_SIZE = 6;
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
@@ -134,8 +134,25 @@ export function label_webgl2() {
             }
 
             float getDistance() {
-                vec3 msdf = texture(fontTextureArr[0], vUv).rgb;
-                return median(msdf.r, msdf.g, msdf.b);
+                if(v_fontIndex == 0) {
+                    vec3 msdf = texture(fontTextureArr[0], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                } else if(v_fontIndex == 1){
+                    vec3 msdf = texture(fontTextureArr[1], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                } else if(v_fontIndex == 2){
+                    vec3 msdf = texture(fontTextureArr[2], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                } else if(v_fontIndex == 3){
+                    vec3 msdf = texture(fontTextureArr[3], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                } else if(v_fontIndex == 4){
+                    vec3 msdf = texture(fontTextureArr[4], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                } else if(v_fontIndex == 5){
+                    vec3 msdf = texture(fontTextureArr[5], vUv).rgb;
+                    return median(msdf.r, msdf.g, msdf.b);
+                }
             }
 
             void main () {
@@ -159,8 +176,6 @@ export function label_webgl2() {
                 if (color.a < 0.05) {
                     discard;
                 }
-
-                //vec4 msdf = texture(fontTextureArr[0], vUv);
 
                 outScreen = vec4(v_rgba.rgb, opacity);
             }`

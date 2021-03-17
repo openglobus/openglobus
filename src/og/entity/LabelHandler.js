@@ -405,19 +405,21 @@ class LabelHandler extends BillboardHandler {
 
         if (!fa) return;
 
-        var i = index * 24 * this._maxLetters;
-        var a = this._texCoordArr,
+        let i = index * 24 * this._maxLetters;
+        let a = this._texCoordArr,
             g = this._gliphParamArr;
 
-        var c = 0;
+        let c = 0;
 
-        var n = fa.nodes[text[c]];
-        var offset = 0.0;
-        var len = Math.min(this._maxLetters, text.length);
+        let n = fa.nodes[text[c]];
+        let offset = 0.0;
+        let len = Math.min(this._maxLetters, text.length);
+        let kern = fa.kernings;
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
-            n = fa.nodes[text[c]] || fa.nodes[" "];
+            let char = text[c];
+            n = fa.nodes[char] || fa.nodes[" "];
             let tc = n.texCoords;
 
             let m = n.metrics;
@@ -491,7 +493,17 @@ class LabelHandler extends BillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            offset += m.nAdvance;
+            let k = kern[char];
+            if (k) {
+                k = k[text[c + 1]];
+                if (k) {
+                    offset += m.nAdvance + k;
+                } else {
+                    offset += m.nAdvance;
+                }
+            } else {
+                offset += m.nAdvance;
+            }
         }
 
         // 49/512 - font atlas left border letter offset

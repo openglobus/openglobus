@@ -185,7 +185,7 @@ class TextureAtlas {
                 this.canvas.resize(img.width, img.height);
                 this.canvas.drawImage(img, 0, 0, img.width, img.height);
             }
-            this.texture = this._handler.createTexture_mm(this.canvas._canvas);
+            this.texture = this._handler.createTexture_l(this.canvas._canvas);
         }
     }
 
