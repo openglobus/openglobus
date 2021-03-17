@@ -63,7 +63,7 @@ class Label extends BaseBillboard {
          * @private
          * @type {string}
          */
-        this._face = utils.defaultString(options.face, null);
+        this._face = utils.defaultString(options.face, "arial");
 
         /**
          * Font size in pixels.
