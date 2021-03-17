@@ -35,7 +35,7 @@
                 'lonlat': [8.25, 46.74],
                 'label': {
                     face: "DancingScript-Regular",
-                    'text': 'Wa! xxx12',
+                    'text': 'Hello world!',
                     'size': 24,
                     color: "rgba(0,0,0,255)",
                     'outlineColor': "rgba(255,255,255,1)",
@@ -48,7 +48,7 @@
                 'label': {
                     face: "arial",
                     'text': 'This is Arial',
-                    'size': 24,
+                    'size': 12,
                     color: "rgba(0,0,0,255)",
                     'outlineColor': "rgba(255,255,255,1)",
                     'outline': 0.0,
@@ -99,7 +99,7 @@
             "layers": [osm, pointLayer]
         });
 
-        globe.renderer.fontAtlas.initFont("arial", data, base64);
+        //globe.renderer.fontAtlas.initFont("arial", data, base64);
 
         globe.renderer.fontAtlas.loadFont("Roboto-Regular", '../../fonts/', 'Roboto-Regular.json');
         globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');

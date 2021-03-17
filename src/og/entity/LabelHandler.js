@@ -50,7 +50,7 @@ class LabelHandler extends BillboardHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._maxLetters = 100;///maxLetters;
+        this._maxLetters = maxLetters;
     }
 
     initProgram() {
