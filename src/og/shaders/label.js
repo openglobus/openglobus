@@ -51,9 +51,9 @@ export function label_webgl2() {
             //in vec3 a_alignedAxis;
             in float a_fontIndex;
 
-            out vec2 vUv;
+            out vec2 v_uv;
             out vec4 v_rgba;
-            flat out float weight;
+            flat out float v_weight;
             flat out int v_fontIndex;
 
             uniform vec2 viewport;
@@ -73,18 +73,19 @@ export function label_webgl2() {
             }
 
             void main() {
-                vec3 a_positions = a_positionsHigh + a_positionsLow;
-                vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
-                if(a_texCoord.z == -1.0 || a_outline == 0.0){
+                if(a_texCoord.z == -1.0 || a_outline == 0.0) {
                     gl_Position = vec4(0.0);
                     return;
                 }
 
-                weight = a_outline;
+                vec3 a_positions = a_positionsHigh + a_positionsLow;
+                vec3 cameraPos = eyePositionHigh + eyePositionLow;
+
+                v_weight = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
-                vUv = vec2(a_texCoord.xy);
+                v_uv = vec2(a_texCoord.xy);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
@@ -117,16 +118,15 @@ export function label_webgl2() {
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
-            flat in float weight;
+            flat in float v_weight;
             flat in int v_fontIndex;
-            in vec2 vUv;
+            in vec2 v_uv;
             in vec4 v_rgba;
 
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
 
-            float vRotation = 0.0;
             vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
 
             float median(float r, float g, float b) {
@@ -136,50 +136,40 @@ export function label_webgl2() {
             float getDistance() {
                 vec3 msdf;
                 if(v_fontIndex == 0) {
-                    msdf = texture(fontTextureArr[0], vUv).rgb;
+                    msdf = texture(fontTextureArr[0], v_uv).rgb;
                 } else if(v_fontIndex == 1){
-                    msdf = texture(fontTextureArr[1], vUv).rgb;
+                    msdf = texture(fontTextureArr[1], v_uv).rgb;
                 } else if(v_fontIndex == 2){
-                    msdf = texture(fontTextureArr[2], vUv).rgb;
+                    msdf = texture(fontTextureArr[2], v_uv).rgb;
                 } else if(v_fontIndex == 3){
-                    msdf = texture(fontTextureArr[3], vUv).rgb;
+                    msdf = texture(fontTextureArr[3], v_uv).rgb;
                 } else if(v_fontIndex == 4){
-                    msdf = texture(fontTextureArr[4], vUv).rgb;
+                    msdf = texture(fontTextureArr[4], v_uv).rgb;
                 } else if(v_fontIndex == 5){
-                    msdf = texture(fontTextureArr[5], vUv).rgb;
+                    msdf = texture(fontTextureArr[5], v_uv).rgb;
                 } else if(v_fontIndex == 6){
-                    msdf = texture(fontTextureArr[6], vUv).rgb;
+                    msdf = texture(fontTextureArr[6], v_uv).rgb;
                 } else if(v_fontIndex == 7){
-                    msdf = texture(fontTextureArr[7], vUv).rgb;
+                    msdf = texture(fontTextureArr[7], v_uv).rgb;
                 } else if(v_fontIndex == 8){
-                    msdf = texture(fontTextureArr[8], vUv).rgb;
+                    msdf = texture(fontTextureArr[8], v_uv).rgb;
                 } else if(v_fontIndex == 9){
-                    msdf = texture(fontTextureArr[9], vUv).rgb;
+                    msdf = texture(fontTextureArr[9], v_uv).rgb;
                 } else if(v_fontIndex == 10){
-                    msdf = texture(fontTextureArr[10], vUv).rgb;
+                    msdf = texture(fontTextureArr[10], v_uv).rgb;
                 }
                 return median(msdf.r, msdf.g, msdf.b);
             }
 
             void main () {
 
-                //float sd = median(msd.r, msd.g, msd.b);
-                //float screenPxDistance = screenPxRange()*(sd - 0.5);
-                //float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-                ////color = mix(bgColor, fgColor, opacity);
-
-                vec2 rotUVs = abs(vec2(
-                    cos(vRotation) * vUv.x - sin(vRotation) * vUv.y,
-                    sin(vRotation) * vUv.x + cos(vRotation) * vUv.y));
-                float dx = dFdx(rotUVs.x) * sdfParams.x;
-                float dy = dFdy(rotUVs.y) * sdfParams.y;
-                float toPixels = sdfParams.w * inversesqrt( dx * dx + dy * dy );
-                float dist = getDistance() + min(weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float opacity = clamp(dist * toPixels + 0.5, 0.0, 1.0);
+                vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
+                float dist = getDistance() + min(v_weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 vec4 color = v_rgba;
                 color.a *= opacity;
-                if (color.a < 0.05) {
+                if (color.a < 0.01) {
                     discard;
                 }
 
