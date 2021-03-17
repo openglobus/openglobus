@@ -305,8 +305,8 @@ class LabelHandler extends BillboardHandler {
     _pickingPASS() {
         var r = this._renderer;
         var h = r.handler;
-        h.programs.label.activate();
-        var sh = h.programs.label._program;
+        h.programs.labelPicking.activate();
+        var sh = h.programs.labelPicking._program;
         var sha = sh.attributes,
             shu = sh.uniforms;
 
@@ -316,8 +316,6 @@ class LabelHandler extends BillboardHandler {
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         var rn = ec.renderNode;
-
-        gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());

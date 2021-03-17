@@ -206,12 +206,11 @@ export function labelPicking() {
             a_texCoord: "vec4",
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
+            a_offset: "vec3",
             a_size: "float",
             //a_rotation: "float",
             a_rgba: "vec4",
-            a_offset: "vec3",
-            //a_alignedAxis: "vec3",
-            a_fontIndex: "float",
+            //a_alignedAxis: "vec3"
         },
         vertexShader:
             `#version 300 es
@@ -226,10 +225,8 @@ export function labelPicking() {
             //in float a_rotation;
             in vec4 a_rgba;
             //in vec3 a_alignedAxis;
-            in float a_fontIndex;
 
             out vec4 v_rgba;
-            flat out int v_fontIndex;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -255,7 +252,6 @@ export function labelPicking() {
                     return;
                 }
 
-                v_fontIndex = int(a_fontIndex);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
@@ -276,6 +272,8 @@ export function labelPicking() {
                 vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size;
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
+
+                gl_Position.z += a_offset.z;
             }`,
         fragmentShader:
             `#version 300 es
@@ -295,7 +293,7 @@ export function labelPicking() {
                     discard;
                 }
 
-                outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                outScreen = vec4(v_rgba.rgb, v_rgba.a);
             }`
     });
 }
