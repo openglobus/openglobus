@@ -70,21 +70,7 @@ class Label extends BaseBillboard {
          * @private
          * @type {number}
          */
-        this._size = options.size || 33;
-
-        /**
-         * HTML5 font style. Example 'normal', 'italic'.
-         * @private
-         * @type {string}
-         */
-        this._style = utils.defaultString(options.style, null);
-
-        /**
-         * HTML5 font weight style. Example 'normal', 'bold'.
-         * @private
-         * @type {string}
-         */
-        this._weight = utils.defaultString(options.weight, null);
+        this._size = options.size || 24;
 
         /**
          * Label outline.
@@ -200,44 +186,6 @@ class Label extends BaseBillboard {
     }
 
     /**
-     * Sets font HTML5 style. It's can be Italic or Normal values.
-     * @public
-     * @param {string} style - HTML5 font style.
-     */
-    setStyle(style) {
-        this._style = style.trim().toLowerCase();
-        this.update();
-    }
-
-    /**
-     * Gets label font style.
-     * @public
-     * @returns {string}
-     */
-    getStyle() {
-        return this._style;
-    }
-
-    /**
-     * Sets label font HTML5 weight style. It's can be bold or normal.
-     * @public
-     * @param {string} weight - HTML5 font weight style.
-     */
-    setWeight(weight) {
-        this._weight = weight.trim().toLowerCase();
-        this.update();
-    }
-
-    /**
-     * Gets label font weight.
-     * @public
-     * @returns {string}
-     */
-    getWeight() {
-        return this._wight;
-    }
-
-    /**
      * Sets text outline border size. Where 0 - is no outline and 1 - is the maximum outline size.
      * @public
      * @param {number} outline - Text outline size.
@@ -340,9 +288,9 @@ class Label extends BaseBillboard {
      */
     update() {
         if (this._fontAtlas) {
-            this._fontAtlas.getFontIndex(this._face, this._style, this._weight).then((fontIndex) => {
+            this._fontAtlas.getFontIndex(this._face).then((fontIndex) => {
                 this._applyFontIndex(fontIndex);
-            })
+            });
         }
     }
 

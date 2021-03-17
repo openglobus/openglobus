@@ -24,23 +24,19 @@ class FontAtlas {
         this._handler = handler;
     }
 
-    getFontIndex(face, style, weight) {
-        let fullName = this.getFullIndex(face, style, weight);
+    getFontIndex(face) {
+        let fullName = this.getFullIndex(face);
         if (!this.atlasIndexesDeferred[fullName]) {
             this.atlasIndexesDeferred[fullName] = new Deferred();
         }
         return this.atlasIndexesDeferred[fullName].promise;
     }
 
-    getFullIndex(face, style, weight) {
-        face = face && face.trim().toLowerCase();
-        //if (!face) {
-        //    face = this.defaultFace;
-        //}
-        return face + " " + ((style && style.toLowerCase()) || "normal") + " " + ((weight && weight.toLowerCase()) || "normal");
+    getFullIndex(face) {
+        return face.trim().toLowerCase();
     }
 
-    loadMSDF(faceName, srcDir, atlasUrl) {
+    loadFont(faceName, srcDir, atlasUrl) {
 
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);

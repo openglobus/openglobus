@@ -34,7 +34,7 @@
                 'lonlat': [8.25, 46.74],
                 'label': {
                     face: "Roboto-Regular",
-                    'text': 'Hello world!',
+                    'text': 'Wa! xxx12',
                     'size': 12,
                     color: "rgba(0,0,0,255)",
                     'outlineColor': "rgba(255,255,255,1)",
@@ -86,7 +86,7 @@
             "layers": [osm, pointLayer]
         });
 
-        globe.renderer.fontAtlas.loadMSDF("Roboto-Regular", '../../fonts/', 'Karla-Medium.json');
+        globe.renderer.fontAtlas.loadFont("Roboto-Regular", '../../fonts/', 'Roboto-Regular.json');
 
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {
