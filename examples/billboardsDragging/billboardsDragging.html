@@ -18,6 +18,7 @@
         import { Vector } from '../../src/og/layer/Vector.js';
         import { Vec2 } from '../../src/og/math/Vec2.js';
         import { Entity } from '../../src/og/entity/Entity.js';
+        import { data, base64 } from '../../src/og/arial.js';
 
         let pointLayer = new Vector("points", {
             'clampToGround': true,
@@ -98,9 +99,11 @@
             "layers": [osm, pointLayer]
         });
 
+        globe.renderer.fontAtlas.initFont("arial", data, base64);
+
         globe.renderer.fontAtlas.loadFont("Roboto-Regular", '../../fonts/', 'Roboto-Regular.json');
-        globe.renderer.fontAtlas.loadFont("arial", '../../fonts/', 'arial.json');
         globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');
+        //globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');
 
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {

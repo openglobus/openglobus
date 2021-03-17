@@ -113,7 +113,7 @@ export function label_webgl2() {
 
             precision highp float;
 
-            const int MAX_SIZE = 6;
+            const int MAX_SIZE = 11;
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
@@ -134,25 +134,31 @@ export function label_webgl2() {
             }
 
             float getDistance() {
+                vec3 msdf;
                 if(v_fontIndex == 0) {
-                    vec3 msdf = texture(fontTextureArr[0], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[0], vUv).rgb;
                 } else if(v_fontIndex == 1){
-                    vec3 msdf = texture(fontTextureArr[1], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[1], vUv).rgb;
                 } else if(v_fontIndex == 2){
-                    vec3 msdf = texture(fontTextureArr[2], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[2], vUv).rgb;
                 } else if(v_fontIndex == 3){
-                    vec3 msdf = texture(fontTextureArr[3], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[3], vUv).rgb;
                 } else if(v_fontIndex == 4){
-                    vec3 msdf = texture(fontTextureArr[4], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[4], vUv).rgb;
                 } else if(v_fontIndex == 5){
-                    vec3 msdf = texture(fontTextureArr[5], vUv).rgb;
-                    return median(msdf.r, msdf.g, msdf.b);
+                    msdf = texture(fontTextureArr[5], vUv).rgb;
+                } else if(v_fontIndex == 6){
+                    msdf = texture(fontTextureArr[6], vUv).rgb;
+                } else if(v_fontIndex == 7){
+                    msdf = texture(fontTextureArr[7], vUv).rgb;
+                } else if(v_fontIndex == 8){
+                    msdf = texture(fontTextureArr[8], vUv).rgb;
+                } else if(v_fontIndex == 9){
+                    msdf = texture(fontTextureArr[9], vUv).rgb;
+                } else if(v_fontIndex == 10){
+                    msdf = texture(fontTextureArr[10], vUv).rgb;
                 }
+                return median(msdf.r, msdf.g, msdf.b);
             }
 
             void main () {

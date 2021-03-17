@@ -9,6 +9,7 @@ import { QueueArray } from '../QueueArray.js';
 import { Rectangle } from '../Rectangle.js';
 import { TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
+import { base64 } from '../arial.js';
 
 class FontAtlas {
     constructor() {
@@ -109,7 +110,7 @@ class FontAtlas {
         }
     }
 
-    initFont(faceName, dataJson, image) {
+    initFont(faceName, dataJson, imageBase64) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -125,10 +126,24 @@ class FontAtlas {
         // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();
 
+        atlas.height = 0;
+        atlas.width = 0;
+        atlas.gliphSize = 0;
+        atlas.distanceRange = 0;
+        atlas.kernings = {};
+
+        atlas.assignHandler(this._handler);
+
+        this.atlasesArr[index] = atlas;
+
         this._applyFontDataToAtlas(atlas, dataJson);
 
-        atlas.createTexture(image);
-        def.resolve(index);
+        let img = new Image();
+        img.onload = () => {
+            atlas.createTexture(img);
+            def.resolve(index);
+        };
+        img.src = base64;
     }
 
     loadFont(faceName, srcDir, atlasUrl) {
