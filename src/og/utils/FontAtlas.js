@@ -36,6 +36,101 @@ class FontAtlas {
         return face.trim().toLowerCase();
     }
 
+    _applyFontDataToAtlas(atlas, data) {
+        let chars = data.chars;
+
+        atlas.height = data.common.scaleH;
+        atlas.width = data.common.scaleW;
+        atlas.gliphSize = data.info.size;
+        atlas.distanceRange = data.distanceField.distanceRange;
+
+        let w = atlas.width,
+            h = atlas.height,
+            s = atlas.gliphSize;
+
+        let idToChar = {};
+
+        for (let i = 0; i < chars.length; i++) {
+            let ci = chars[i];
+            let ti = ci.char;
+
+            idToChar[ci.id] = ti;
+
+            let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
+
+            let tc = new Array(12);
+
+            tc[0] = r.left / w;
+            tc[1] = r.top / h;
+
+            tc[2] = r.left / w;
+            tc[3] = r.bottom / h;
+
+            tc[4] = r.right / w;
+            tc[5] = r.bottom / h;
+
+            tc[6] = r.right / w;
+            tc[7] = r.bottom / h;
+
+            tc[8] = r.right / w;
+            tc[9] = r.top / h;
+
+            tc[10] = r.left / w;
+            tc[11] = r.top / h;
+
+            atlas.nodes[ti] = new TextureAtlasNode(r, tc);
+            atlas.nodes[ti].metrics = ci;
+
+            atlas.nodes[ti].metrics.nWidth = atlas.nodes[ti].metrics.width / s;
+            atlas.nodes[ti].metrics.nHeight = atlas.nodes[ti].metrics.height / s;
+            atlas.nodes[ti].metrics.nAdvance = atlas.nodes[ti].metrics.xadvance / s;
+            atlas.nodes[ti].metrics.nXOffset = atlas.nodes[ti].metrics.xoffset / s;
+            atlas.nodes[ti].metrics.nYOffset = 1.0 - atlas.nodes[ti].metrics.yoffset / s;
+
+            atlas.nodes[ti].emptySize = 1;
+        }
+
+        atlas.kernings = {};
+
+        for (let i = 0; i < data.kernings.length; i++) {
+            let ki = data.kernings[i];
+
+            let first = ki.first,
+                second = ki.second;
+
+            let charFirst = idToChar[first],
+                charSecond = idToChar[second];
+
+            if (!atlas.kernings[charFirst]) {
+                atlas.kernings[charFirst] = {};
+            }
+
+            atlas.kernings[charFirst][charSecond] = ki.amount / s;
+        }
+    }
+
+    initFont(faceName, dataJson, image) {
+        let index = this.atlasesArr.length;
+        let fullName = this.getFullIndex(faceName);
+
+        this.atlasIndexes[fullName] = index;
+
+        let def = this.atlasIndexesDeferred[fullName];
+        if (!def) {
+            def = this.atlasIndexesDeferred[fullName] = new Deferred();
+        }
+
+        this.samplerArr[this.atlasesArr.length] = index;
+
+        // TODO: FontTextureAtlas();
+        let atlas = new TextureAtlas();
+
+        this._applyFontDataToAtlas(atlas, dataJson);
+
+        atlas.createTexture(image);
+        def.resolve(index);
+    }
+
     loadFont(faceName, srcDir, atlasUrl) {
 
         let index = this.atlasesArr.length;
@@ -70,76 +165,8 @@ class FontAtlas {
                 return response.json(response);
             })
             .then(data => {
-                let chars = data.chars;
 
-                atlas.height = data.common.scaleH;
-                atlas.width = data.common.scaleW;
-                atlas.gliphSize = data.info.size;
-                atlas.distanceRange = data.distanceField.distanceRange;
-
-                let w = atlas.width,
-                    h = atlas.height,
-                    s = atlas.gliphSize;
-
-                let idToChar = {};
-
-                for (let i = 0; i < chars.length; i++) {
-                    let ci = chars[i];
-                    let ti = ci.char;
-
-                    idToChar[ci.id] = ti;
-
-                    let r = new Rectangle(ci.x, ci.y, ci.x + ci.width, ci.y + ci.height);
-
-                    let tc = new Array(12);
-
-                    tc[0] = r.left / w;
-                    tc[1] = r.top / h;
-
-                    tc[2] = r.left / w;
-                    tc[3] = r.bottom / h;
-
-                    tc[4] = r.right / w;
-                    tc[5] = r.bottom / h;
-
-                    tc[6] = r.right / w;
-                    tc[7] = r.bottom / h;
-
-                    tc[8] = r.right / w;
-                    tc[9] = r.top / h;
-
-                    tc[10] = r.left / w;
-                    tc[11] = r.top / h;
-
-                    atlas.nodes[ti] = new TextureAtlasNode(r, tc);
-                    atlas.nodes[ti].metrics = ci;
-
-                    atlas.nodes[ti].metrics.nWidth = atlas.nodes[ti].metrics.width / s;
-                    atlas.nodes[ti].metrics.nHeight = atlas.nodes[ti].metrics.height / s;
-                    atlas.nodes[ti].metrics.nAdvance = atlas.nodes[ti].metrics.xadvance / s;
-                    atlas.nodes[ti].metrics.nXOffset = atlas.nodes[ti].metrics.xoffset / s;
-                    atlas.nodes[ti].metrics.nYOffset = 1.0 - atlas.nodes[ti].metrics.yoffset / s;
-
-                    atlas.nodes[ti].emptySize = 1;
-                }
-
-                atlas.kernings = {};
-
-                for (let i = 0; i < data.kernings.length; i++) {
-                    let ki = data.kernings[i];
-
-                    let first = ki.first,
-                        second = ki.second;
-
-                    let charFirst = idToChar[first],
-                        charSecond = idToChar[second];
-
-                    if (!atlas.kernings[charFirst]) {
-                        atlas.kernings[charFirst] = {};
-                    }
-
-                    atlas.kernings[charFirst][charSecond] = ki.amount / s;
-                }
+                this._applyFontDataToAtlas(atlas, data);
 
                 let img = new Image();
                 img.onload = () => {

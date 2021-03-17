@@ -35,11 +35,23 @@
                 'label': {
                     face: "DancingScript-Regular",
                     'text': 'Wa! xxx12',
-                    'size': 12,
+                    'size': 24,
                     color: "rgba(0,0,0,255)",
                     'outlineColor': "rgba(255,255,255,1)",
                     'outline': 0.0,
                     align: "center"
+                }
+            }, {
+                'name': 'label',
+                'lonlat': [8.255, 46.74],
+                'label': {
+                    face: "arial",
+                    'text': 'This is Arial',
+                    'size': 24,
+                    color: "rgba(0,0,0,255)",
+                    'outlineColor': "rgba(255,255,255,1)",
+                    'outline': 0.0,
+                    align: "left"
                 }
             }],
             'async': false
@@ -88,7 +100,7 @@
 
         globe.renderer.fontAtlas.loadFont("Roboto-Regular", '../../fonts/', 'Roboto-Regular.json');
         globe.renderer.fontAtlas.loadFont("arial", '../../fonts/', 'arial.json');
-        globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');        
+        globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');
 
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {
