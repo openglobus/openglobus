@@ -105,11 +105,9 @@ export function label_webgl2() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy;
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
-
-                gl_Position.z += a_offset.z + uZ;
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
             }`,
         fragmentShader:
             `#version 300 es
@@ -263,11 +261,9 @@ export function labelPicking() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd;
+                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy;
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
-
-                gl_Position.z += a_offset.z;
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
             }`,
         fragmentShader:
             `#version 300 es
