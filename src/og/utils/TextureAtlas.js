@@ -178,10 +178,14 @@ class TextureAtlas {
      * Creates atlas gl texture.
      * @public
      */
-    createTexture() {
+    createTexture(img) {
         if (this._handler) {
             this._handler.gl.deleteTexture(this.texture);
-            this.texture = this._handler.createTexture_mm(this.canvas._canvas);
+            if (img) {
+                this.canvas.resize(img.width, img.height);
+                this.canvas.drawImage(img, 0, 0, img.width, img.height);
+            }
+            this.texture = this._handler.createTexture_l(this.canvas._canvas);
         }
     }
 
@@ -214,11 +218,11 @@ class TextureAtlas {
  * @param {og.Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
-    constructor(rect) {
+    constructor(rect, texCoords) {
         this.childNodes = null;
         this.image = null;
         this.rect = rect;
-        this.texCoords = [];
+        this.texCoords = texCoords || [];
         this.atlas = null;
     }
 
@@ -275,4 +279,4 @@ class TextureAtlasNode {
     }
 }
 
-export { TextureAtlas };
+export { TextureAtlas, TextureAtlasNode };

@@ -88,9 +88,6 @@
         //View at Germany
         globe.planet.viewExtentArr([-0.895, 47.51, 21.84, 51.65]);
 
-        //Create font
-        globe.renderer.fontAtlas.createFont("Lucida Console", "normal", "bold");
-
         //globe.planet.events.on("draw", function () {
         //    towns.setScaleByDistance(globe.planet.camera.getHeight(), globe.planet.camera.getHeight() * 2);
         //});
@@ -121,16 +118,12 @@
                         }
                     }));
 
-                    let fontSize = 26;
-
                     labels.push(new Entity({
                         'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
                         'label': {
                             'text': ri.name,
-                            'size': 26,
+                            'size': 16,
                             'outline': 0,
-                            'face': "Lucida Console",
-                            'weight': "bold",
                             'color': "black",
                             'align': "center"
                         },
@@ -155,8 +148,6 @@
                 });
             },
             onSubmit: function (hsb, hex, rgb, el) {
-                //ndviFeature.setColor('#' + hex);
-                //$(el).colpickHide();
             }
         });
     </script>

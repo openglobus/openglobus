@@ -16,7 +16,7 @@ let _declarations = [
     "MAT4X3", "DMAT2X3", "DMAT2X4", "DMAT3X2", "DMAT3X4",
     "DMAT4X2", "DMAT4X3",
     "SAMPLER1D", "SAMPLER2D", "SAMPLER3D", "SAMPLERCUBE", "SAMPLER2DSHADOW",
-    "SAMPLER2DXX",
+    "SAMPLER2DARRAY",
     "INTXX", "FLOATXX"];
 
 export const types = {};

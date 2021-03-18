@@ -18,6 +18,7 @@
         import { Vector } from '../../src/og/layer/Vector.js';
         import { Vec2 } from '../../src/og/math/Vec2.js';
         import { Entity } from '../../src/og/entity/Entity.js';
+        import { data, base64 } from '../../src/og/arial.js';
 
         let pointLayer = new Vector("points", {
             'clampToGround': true,
@@ -33,10 +34,25 @@
                 'name': 'label',
                 'lonlat': [8.25, 46.74],
                 'label': {
-                    'text': 'Touch me',
-                    'size': [35],
-                    'outlineColor': "rgba(0,0,0,.5)",
-		    'outline': 0.3
+                    face: "DancingScript-Regular",
+                    'text': 'Hello world!',
+                    'size': 24,
+                    color: "rgba(0,0,0,1)",
+                    'outlineColor': "rgba(255,255,255,0.5)",
+                    'outline': 0.5,
+                    align: "center"
+                }
+            }, {
+                'name': 'label',
+                'lonlat': [8.23, 46.736],
+                'label': {
+                    face: "arial",
+                    'text': '543.6 m',
+                    'size': 12,
+                    color: "rgba(0,0,0,1)",
+                    'outlineColor': "rgba(0,0,0,0.7)",
+                    'outline': 0.0,
+                    align: "left"
                 }
             }],
             'async': false
@@ -83,6 +99,12 @@
             "layers": [osm, pointLayer]
         });
 
+        //globe.renderer.fontAtlas.initFont("arial", data, base64);
+
+        globe.renderer.fontAtlas.loadFont("Roboto-Regular", '../../fonts/', 'Roboto-Regular.json');
+        globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');
+        //globe.renderer.fontAtlas.loadFont("DancingScript-Regular", '../../fonts/', 'DancingScript-Regular.json');
+
         globe.planet.renderer.events.on("mousemove", function (e) {
             if (pickingObject) {
                 var d = new Vec2(e.x, e.y).sub(startClick);
@@ -112,11 +134,11 @@
 
         });
 
-        pointLayer.events.on("rclick", function(e){
+        pointLayer.events.on("rclick", function (e) {
             e.pickingObject.remove();
         });
 
-        window.p = pointLayer;
+        window.globe = globe;
 
     </script>
 </body>
