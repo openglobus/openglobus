@@ -544,7 +544,7 @@ class EntityCollection {
         if (this.renderNode) {
             var l = this.labelHandler._billboards;
             for (var i = 0; i < l.length; i++) {
-                l[i].assignFontAtlas(this.renderNode.fontAtlas);
+                l[i].assignFontAtlas(this.renderNode.renderer.fontAtlas);
             }
         }
     }

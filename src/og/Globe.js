@@ -10,7 +10,6 @@ import { Planet } from './scene/Planet.js';
 import { Renderer } from './renderer/Renderer.js';
 import { wgs84 } from './ellipsoid/wgs84.js';
 import { isEmpty } from './utils/shared.js';
-import * as arial from './arial.js';
 
 import { EarthCoordinates } from './control/EarthCoordinates.js';
 import { MouseNavigation } from './control/MouseNavigation.js';
@@ -127,8 +126,6 @@ class Globe {
         if (options.skybox) {
             this.renderer.addNode(options.skybox);
         }
-
-        this.renderer.fontAtlas.initFont("arial", arial.data, arial.base64);
 
         /**
          * Planet node name. Access with this.renderer.<name>

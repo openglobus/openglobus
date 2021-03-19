@@ -14,6 +14,7 @@ import { toneMapping } from '../shaders/toneMapping.js';
 import { screenFrame } from '../shaders/screenFrame.js';
 import { FontAtlas } from '../utils/FontAtlas.js';
 import { TextureAtlas } from '../utils/TextureAtlas.js';
+import * as arial from '../arial.js';
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -74,7 +75,7 @@ const Renderer = function (handler, params) {
 
     this.brightThreshold = 0.9;
 
-    this.backgroundColor = new Vec3(115 / 255, 203 / 255, 249 / 255);
+    this.backgroundColor = params.backgroundColor || new Vec3(115 / 255, 203 / 255, 249 / 255);
 
     /**
      * Render nodes drawing queue.
@@ -448,6 +449,8 @@ Renderer.prototype.initialize = function () {
     }
 
     this.outputTexture = this.screenTexture.screen;
+
+    this.fontAtlas.initFont("arial", arial.data, arial.base64);
 };
 
 Renderer.prototype.setCurrentScreen = function (screenName) {
