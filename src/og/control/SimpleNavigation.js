@@ -18,6 +18,12 @@ class SimpleNavigation extends Control {
         this.speed = options.speed || 1.0;
     }
 
+    onactivate() {
+    }
+
+    ondeactivate() {
+    }
+
     oninit() {
         this.camera = this.renderer.activeCamera;
         this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
@@ -32,64 +38,84 @@ class SimpleNavigation extends Control {
         this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
     }
 
-    onCameraMoveForward(event) {
-        var camera = this.camera;
-        camera.slide(0, 0, -this.speed);
-        camera.update();
+    onCameraMoveForward() {
+        if (this._active) {
+            var camera = this.camera;
+            camera.slide(0, 0, -this.speed);
+            camera.update();
+        }
     }
 
-    onCameraMoveBackward(event) {
-        var camera = this.camera;
-        camera.slide(0, 0, this.speed);
-        camera.update();
+    onCameraMoveBackward() {
+        if (this._active) {
+            var camera = this.camera;
+            camera.slide(0, 0, this.speed);
+            camera.update();
+        }
     }
 
-    onCameraStrifeLeft(event) {
-        var camera = this.camera;
-        camera.slide(-this.speed, 0, 0);
-        camera.update();
+    onCameraStrifeLeft() {
+        if (this._active) {
+            var camera = this.camera;
+            camera.slide(-this.speed, 0, 0);
+            camera.update();
+        }
     }
 
-    onCameraStrifeRight(event) {
-        var camera = this.camera;
-        camera.slide(this.speed, 0, 0);
-        camera.update();
+    onCameraStrifeRight() {
+        if (this._active) {
+            var camera = this.camera;
+            camera.slide(this.speed, 0, 0);
+            camera.update();
+        }
     }
 
-    onCameraLookUp(event) {
-        var cam = this.camera;
-        cam.pitch(0.5);
-        cam.update();
+    onCameraLookUp() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.pitch(0.5);
+            cam.update();
+        }
     }
 
-    onCameraLookDown(event) {
-        var cam = this.camera;
-        cam.pitch(-0.5);
-        cam.update();
+    onCameraLookDown() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.pitch(-0.5);
+            cam.update();
+        }
     }
 
-    onCameraTurnLeft(event) {
-        var cam = this.camera;
-        cam.yaw(0.5);
-        cam.update();
+    onCameraTurnLeft() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.yaw(0.5);
+            cam.update();
+        }
     }
 
-    onCameraTurnRight(event) {
-        var cam = this.camera;
-        cam.yaw(-0.5);
-        cam.update();
+    onCameraTurnRight() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.yaw(-0.5);
+            cam.update();
+        }
     }
 
-    onCameraRollLeft(event) {
-        var cam = this.camera;
-        cam.roll(-0.5);
-        cam.update();
+    onCameraRollLeft() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.roll(-0.5);
+            cam.update();
+        }
     }
 
-    onCameraRollRight(event) {
-        var cam = this.camera;
-        cam.roll(0.5);
-        cam.update();
+    onCameraRollRight() {
+        if (this._active) {
+            var cam = this.camera;
+            cam.roll(0.5);
+            cam.update();
+        }
     }
 };
 

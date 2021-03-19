@@ -12,7 +12,9 @@ import { EntityCollection } from '../../src/og/Entity/EntityCollection.js';
 let handler = new Handler("frame", { 'autoActivate': true });
 let renderer = new Renderer(handler, {
     'backgroundColor': new Vec3(0.5, 0.5, 0.5),
-    'controls': [new SimpleNavigation()],
+    'controls': [new SimpleNavigation({
+        name: "SimpleNav"
+    })],
     'autoActivate': true
 });
 
@@ -111,6 +113,21 @@ class MyScene extends RenderNode {
                 entities[i].label.setOutline(Number(e.target.value));
             }
             document.querySelector("#valOutline").innerText = e.target.value;
+        });
+
+        document.querySelector("#text").addEventListener("input", (e) => {
+            let entities = this.ec.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                entities[i].label.setText(e.target.value);
+            }
+        });
+
+        document.querySelector("#text").addEventListener("focus", () => {
+            this.renderer.controls.SimpleNav.deactivate();
+        });
+
+        document.querySelector("#text").addEventListener("blur", () => {
+            this.renderer.controls.SimpleNav.activate();
         });
 
         this.renderer.fontAtlas.loadFont("PressStart2P-Regular", "./fonts/", "PressStart2P-Regular.json");
