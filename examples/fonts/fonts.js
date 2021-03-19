@@ -11,7 +11,7 @@ import { EntityCollection } from '../../src/og/Entity/EntityCollection.js';
 
 let handler = new Handler("frame", { 'autoActivate': true });
 let renderer = new Renderer(handler, {
-    'backgroundColor': new Vec3(0.7, 0.7, 0.7),
+    'backgroundColor': new Vec3(0.5, 0.5, 0.5),
     'controls': [new SimpleNavigation()],
     'autoActivate': true
 });

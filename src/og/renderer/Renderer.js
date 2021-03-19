@@ -67,9 +67,9 @@ const Renderer = function (handler, params) {
      */
     this.handler = handler;
 
-    this.exposure = 2.7;
+    this.exposure = 4;
 
-    this.gamma = 0.43;
+    this.gamma = 0.5;
 
     this.whitepoint = 1.0;
 
