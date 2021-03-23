@@ -160,7 +160,7 @@ Handler.getExtension = function (gl, name) {
     return null;
 };
 
-const CONTEXT_TYPE = ["webgl2", "webgl"];
+const CONTEXT_TYPE = [/*"webgl2",*/ "webgl"];
 
 /**
  * Returns a drawing context on the canvas, or null if the context identifier is not supported.

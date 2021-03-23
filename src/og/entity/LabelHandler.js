@@ -281,6 +281,7 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        //
         // outline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -288,10 +289,11 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.uZ, 1.0);
+        gl.uniform1f(shu.uZ, 0.1);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        // no outline
+        //
+        // nooutline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -874,6 +876,8 @@ class LabelHandler extends BillboardHandler {
     }
 
     setFontIndexArr(index, fontIndex) {
+
+        fontIndex = fontIndex;
 
         var i = index * 6 * this._maxLetters;
         var a = this._fontIndexArr;
