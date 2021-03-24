@@ -318,19 +318,19 @@ class RenderNode extends BaseNode {
             //shapes pass
             i = ec.length;
             while (i--) {
-               ec[i]._visibility && ec[i].shapeHandler.drawPicking();
+                ec[i]._visibility && ec[i].shapeHandler.drawPicking();
+            }
+
+            //Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._visibility && ec[i].stripHandler.drawPicking();
             }
 
             // //pointClouds pass
             // i = ec.length;
             // while (i--) {
             //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
-            // }
-
-            // //Strip pass
-            // i = ec.length;
-            // while (i--) {
-            //    ec[i]._visibility && ec[i].stripHandler.drawPicking();
             // }
         }
     }

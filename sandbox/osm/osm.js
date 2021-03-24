@@ -136,9 +136,6 @@ const tg = new CanvasTiles("Tile grid", {
 });
 
 let osm = new XYZ("OSM", {
-    'specular': [0.0003, 0.00012, 0.00001],
-    'shininess': 20,
-    'diffuse': [0.89, 0.9, 0.83],
     'isBaseLayer': true,
     'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     'visibility': true,
@@ -203,7 +200,7 @@ let emptyTerrain = new EmptyTerrain(),
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': bilTerrain/*globusTerrain/*new MapboxTerrain(null, {
+    'terrain': /*bilTerrain/*/globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -305,50 +302,50 @@ let e2 = new Entity({
 
 let stripLayer = new Vector("test layer", {
     'entities': [e1, e2],
-    'pickingEnabled': false,
+    'pickingEnabled': true,
     'visibility': true
 });
 
 globe.planet.addLayer(stripLayer);
 
-new Vector("Markers", {
-    clampToGround: false,
-    polygonOffsetUnits: 0
-})
-    .addTo(globe.planet)
-    .add(new Entity({
-        lonlat: [5.73, 45.183, 273.5],
-        label: {
-            text: "Hi, Globus!",
-            outline: 0.77,
-            outlineColor: "rgba(255,255,255,.4)",
-            size: 27,
-            color: "black",
-            face: "Lucida Console",
-            offset: [10, -2]
-        },
-        billboard: {
-            src: "./marker.png",
-            width: 64,
-            height: 64,
-            offset: [0, 32]
-        }
-    }));
+//new Vector("Markers", {
+//    clampToGround: false,
+//    polygonOffsetUnits: 0
+//})
+//    .addTo(globe.planet)
+//    .add(new Entity({
+//        lonlat: [5.73, 45.183, 273.5],
+//        label: {
+//            text: "Hi, Globus!",
+//            outline: 0.77,
+//            outlineColor: "rgba(255,255,255,.4)",
+//            size: 27,
+//            color: "black",
+//            face: "Lucida Console",
+//            offset: [10, -2]
+//        },
+//        billboard: {
+//            src: "./marker.png",
+//            width: 64,
+//            height: 64,
+//            offset: [0, 32]
+//        }
+//    }));
 
 
 //globe.planet.viewExtentArr([-1.13284, 51.59951, -1.10951, 51.60386]);
 
-let myPopup = new Popup({
-    planet: globe.planet,
-    content: `Simple HTML popup<br>See <a href="//openglobus.org/examples/billboardsOnTHeGround/billboardsOnTHeGround.html">popup example</a>`,
-    offset: [0, 0],
-    lonLat: [5.73, 45.183, 273.5],
-    visibility: true
-});
+//let myPopup = new Popup({
+//    planet: globe.planet,
+//    content: `Simple HTML popup<br>See <a href="//openglobus.org/examples/billboardsOnTHeGround/billboardsOnTHeGround.html">popup example</a>`,
+//    offset: [0, 0],
+//    lonLat: [5.73, 45.183, 273.5],
+//    visibility: true
+//});
 
-window.myPopup = myPopup;
+//window.myPopup = myPopup;
 
-globe.planet.viewLonLat(new LonLat(-112.99778159686288, 37.23755430287543, 8952.673764926381));
+//globe.planet.viewLonLat(new LonLat(-112.99778159686288, 37.23755430287543, 8952.673764926381));
 
 
 //import { Globe } from '../../src/og/Globe.js';

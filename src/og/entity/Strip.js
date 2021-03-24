@@ -80,7 +80,7 @@ class Strip {
 
         this._path = [];
 
-        this._pickingColor = new Uint8Array(4);
+        this._pickingColor = new Float32Array(4);
 
         this._gridSize = 1;
 
