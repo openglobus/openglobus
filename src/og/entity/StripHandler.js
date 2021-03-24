@@ -56,7 +56,8 @@ class StripHandler {
                         viewMatrix: { type: 'mat4' },
                         eyePositionHigh: "vec3",
                         eyePositionLow: "vec3",
-                        uColor: { type: 'vec4' }
+                        uColor: { type: 'vec4' },
+                        uOpacity: { type: 'float' }
                     },
                     attributes: {
                         aVertexPositionHigh: { type: 'vec3' },
@@ -82,8 +83,9 @@ class StripHandler {
                     fragmentShader:
                         `precision highp float;
                         uniform vec4 uColor;
+                        uniform float uOpacity;
                         void main(void) {
-                            gl_FragColor = vec4(uColor);
+                            gl_FragColor = vec4(uColor.rgb, uColor.a * uOpacity);
                         }`
                 }));
         }

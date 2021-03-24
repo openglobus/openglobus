@@ -217,6 +217,7 @@ class Strip {
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
 
             gl.uniform4fv(shu.uColor, this.color);
+            gl.uniform1f(shu.uOpacity, this._entity._entityCollection._fadingOpacity);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);
             gl.vertexAttribPointer(sha.aVertexPositionHigh, this._verticesHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
@@ -249,6 +250,7 @@ class Strip {
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform1f(shu.uOpacity, this._entity._entityCollection._fadingOpacity != 0 ? 1 : 0);
 
             gl.uniform4fv(shu.uColor, this._pickingColor);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);

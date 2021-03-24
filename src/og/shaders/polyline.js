@@ -15,7 +15,8 @@ export function polyline_screen() {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             uFloatParams: "vec2",
-            thickness: "float"
+            thickness: "float",
+            opacity: "float"
         },
         attributes: {
             prevHigh: "vec3",
@@ -52,6 +53,7 @@ export function polyline_screen() {
                 uniform vec2 viewport;
                 uniform vec3 eyePositionHigh;
                 uniform vec3 eyePositionLow;
+                uniform float opacity;
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -80,7 +82,7 @@ export function polyline_screen() {
 
                     uCamPos = eyePositionHigh + eyePositionLow;
 
-                    vColor = color;
+                    vColor = vec4(color.rgb, color.a * opacity);
 
                     vec3 current = currentHigh + currentLow;
 
