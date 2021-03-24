@@ -256,7 +256,7 @@ class Strip {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
             gl.vertexAttribPointer(sha.aVertexPositionLow, this._verticesLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-            gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(r.handler.gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
             gl.enable(gl.CULL_FACE);
         }
     }
