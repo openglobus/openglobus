@@ -22,6 +22,8 @@ const FONTINDEX_BUFFER = 9;
 const OUTLINE_BUFFER = 10;
 const OUTLINECOLOR_BUFFER = 11;
 
+window.uZ = -2.0;
+window.dZ = 0.1;
 /*
  * og.LabelHandler
  *
@@ -289,7 +291,7 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.uZ, 0.1);
+        gl.uniform1f(shu.uZ, window.uZ + window.dZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         //
@@ -300,7 +302,7 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.uZ, 0.0);
+        gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
 
