@@ -1774,6 +1774,7 @@ class Polyline {
             gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
+            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);

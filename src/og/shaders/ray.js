@@ -44,10 +44,11 @@ export function rayScreen() {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float resolution;
+            uniform float uOpacity;
 
             void main() {
 
-                v_rgba = a_rgba;
+                v_rgba = vec4(a_rgba.rgb, a_rgba.a * uOpacity);
 
                 vec3 camPos = eyePositionHigh + eyePositionLow;
 
@@ -75,10 +76,9 @@ export function rayScreen() {
             }`,
         fragmentShader:
             `precision highp float;
-            uniform float uOpacity;
             varying vec4 v_rgba;
             void main () {
-                gl_FragColor = v_rgba * uOpacity;
+                gl_FragColor = v_rgba;
             }`
     });
 }
