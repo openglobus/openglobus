@@ -472,6 +472,22 @@ const _programm =
                     h_lb = elevations[hlb_ind],
                     h_rb = elevations[hrb_ind];
 
+                if(checkNoDataValue(noDataValues, h_lt)) {
+                    h_lt = 0.0;
+                }
+
+                if(checkNoDataValue(noDataValues, h_rt)) {
+                    h_rt = 0.0;
+                }
+
+                if(checkNoDataValue(noDataValues, h_lb)) {
+                    h_lb = 0.0;
+                }
+
+                if(checkNoDataValue(noDataValues, h_rb)) {
+                    h_rb = 0.0;
+                }
+
                 let hi = blerp(qij / oneSize, qii / oneSize, h_lt, h_rt, h_lb, h_rb);
 
                 let i3 = i * 3;
