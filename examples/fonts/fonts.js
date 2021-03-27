@@ -6,8 +6,8 @@ import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
 import { Axes } from '../../src/og/scene/Axes.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { RenderNode } from '../../src/og/scene/RenderNode.js';
-import { Entity } from '../../src/og/Entity/Entity.js';
-import { EntityCollection } from '../../src/og/Entity/EntityCollection.js';
+import { Entity } from '../../src/og/entity/Entity.js';
+import { EntityCollection } from '../../src/og/entity/EntityCollection.js';
 
 let handler = new Handler("frame", { 'autoActivate': true });
 let renderer = new Renderer(handler, {
