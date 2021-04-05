@@ -6,7 +6,7 @@ name: Node.js Package
 on:
   workflow_dispatch:
   release:
-    types: [ published, created, edited ]
+    types: [ published, created ]
 
 jobs:
   build:
