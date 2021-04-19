@@ -8,6 +8,10 @@ const Line3 = function (p0, p1) {
     this.p1 = p1 || new Vec3();
 };
 
+Line3.prototype.getMagnitude = function () {
+    return this.p0.distance(this.p1);
+};
+
 Line3.prototype.getSphereIntersection = function (sphere) {
     var p0 = this.p0,
         p1 = this.p1;
@@ -59,7 +63,7 @@ Line3.prototype.getSphereIntersection = function (sphere) {
     return [solution2, solution1];
 };
 
-Line3.prototype.intersects = function (line, pa, pb) {
+Line3.prototype.intersects = function (line, res, res2) {
 
     let p13 = this.p0.sub(line.p0),
         p43 = line.p1.sub(line.p0);
@@ -90,17 +94,43 @@ Line3.prototype.intersects = function (line, pa, pb) {
 
     let mua = numer / denom;
 
-    pa.x = this.p0.x + mua * p21.x;
-    pa.y = this.p0.y + mua * p21.y;
-    pa.z = this.p0.z + mua * p21.z;
+    res.x = this.p0.x + mua * p21.x;
+    res.y = this.p0.y + mua * p21.y;
+    res.z = this.p0.z + mua * p21.z;
 
-    if (pb) {
+    if (res2) {
 
         let mub = (d1343 + d4321 * mua) / d4343;
 
-        pb.x = line.p0.x + mub * p43.x;
-        pb.y = line.p0.y + mub * p43.y;
-        pb.z = line.p0.z + mub * p43.z;
+        res2.x = line.p0.x + mub * p43.x;
+        res2.y = line.p0.y + mub * p43.y;
+        res2.z = line.p0.z + mub * p43.z;
+    }
+
+    return true;
+};
+
+Line3.prototype.getNearestDistancePoint = function (point, res) {
+
+    let p0 = this.p0,
+        p1 = this.p1;
+
+    let mag = this.getMagnitude();
+
+    let u =
+        (
+            ((point.x - p0.x) * (p1.x - p0.x)) +
+            ((point.y - p0.y) * (p1.y - p0.y)) +
+            ((point.z - p0.z) * (p1.z - p0.z))
+        ) /
+        (mag * mag);
+
+    res.x = p0.x + u * (p1.x - p0.x);
+    res.y = p0.y + u * (p1.y - p0.y);
+    res.z = p0.z + u * (p1.z - p0.z);
+
+    if (u < 0.0 || u > 1.0) {
+        return false;
     }
 
     return true;
