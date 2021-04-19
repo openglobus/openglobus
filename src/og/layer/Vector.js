@@ -416,18 +416,18 @@ class Vector extends Layer {
         this._polylineEntityCollection.setPickingEnabled(picking);
 
         this._entityCollectionsTree &&
-            this._entityCollectionsTree.traverseTree(function (ec) {
-                ec.setPickingEnabled(picking);
+            this._entityCollectionsTree.traverseTree(function (node) {
+                node.entityCollection.setPickingEnabled(picking);
             });
 
         this._entityCollectionsTreeNorth &&
-            this._entityCollectionsTreeNorth.traverseTree(function (ec) {
-                ec.setPickingEnabled(picking);
+            this._entityCollectionsTreeNorth.traverseTree(function (node) {
+                node.entityCollection.setPickingEnabled(picking);
             });
 
         this._entityCollectionsTreeSouth &&
-            this._entityCollectionsTreeSouth.traverseTree(function (ec) {
-                ec.setPickingEnabled(picking);
+            this._entityCollectionsTreeSouth.traverseTree(function (node) {
+                node.entityCollection.setPickingEnabled(picking);
             });
     }
 

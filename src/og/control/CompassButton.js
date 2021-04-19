@@ -118,7 +118,7 @@ class CompassButton extends Control {
                     this.planet.camera.look(c);
                 });
         } else {
-            this.planet.flyCartesian(ma.globe.planet.camera.eye);
+            this.planet.flyCartesian(this.planet.camera.eye);
         }
     }
 
