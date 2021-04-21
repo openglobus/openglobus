@@ -351,7 +351,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
 
         let h = cam._lonLat.height;
 
-        let altVis = (cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h)) || seg.tileZoom < 2;
+        let altVis = (cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h)) || seg.tileZoom < 4 && !seg.terrainReady || seg.tileZoom < 2;
 
         if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
             seg._collectVisibleNodes();
