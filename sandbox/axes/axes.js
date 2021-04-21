@@ -8,6 +8,7 @@ import { Vec3 } from '../../src/og/math/Vec3.js';
 import { RenderNode } from '../../src/og/scene/RenderNode.js';
 import { Entity } from '../../src/og/Entity/Entity.js';
 import { EntityCollection } from '../../src/og/Entity/EntityCollection.js';
+import { Line3 } from '../../src/og/math/Line3.js';
 
 let handler = new Handler("frame", { 'autoActivate': true });
 let renderer = new Renderer(handler, {
@@ -87,10 +88,20 @@ window.Vec3 = Vec3;
 window.renderer = renderer;
 
 function test() {
-    let p = myScene.ec._entities[1].polyline;
-    p.appendPoint3v(new Vec3(200, 200, 200));
-    p.appendPoint3v(new Vec3(-333, -333, -333));
-    p.setPoint3v(new Vec3(300, 300, 300), 3);
+
+    let seg = new Line3(new Vec3(0, 1, 0), new Vec3(1, 2, 0));
+
+    let p = new Vec3(-0.5, 0, 0),
+        c = new Vec3();
+
+    let res = seg.getNearestDistancePoint(p, c);
+
+    console.log(res, c);
+
+    //let p = myScene.ec._entities[1].polyline;
+    //p.appendPoint3v(new Vec3(200, 200, 200));
+    //p.appendPoint3v(new Vec3(-333, -333, -333));
+    //p.setPoint3v(new Vec3(300, 300, 300), 3);
     //p.appendPoint3v(new Vec3(0, 0, 100), [0, 0, 1]);
     //p.setPointColor([1, 1, 1, 1], 0, 0);
     //p.insertPoint3v(new Vec3(50, 0, 50), 2, [0, 0, 1]);
@@ -100,4 +111,4 @@ function test() {
 
 window.test = test;
 
-//test();
+test();
