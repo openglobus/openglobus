@@ -404,6 +404,7 @@ import { Entity } from '../../src/og/entity/Entity.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
 import { Vector } from '../../src/og/layer/Vector.js';
 import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 
 var osm = new XYZ("OpenStreetMap", {
     isBaseLayer: true,
@@ -415,7 +416,9 @@ var osm = new XYZ("OpenStreetMap", {
 var globus = new Globe({
     "target": "earth",
     "name": "Earth",
-    "terrain": new GlobusTerrain(),
+    "terrain": new EmptyTerrain({
+        gridSizeByZoom: [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    }),//new GlobusTerrain(),
     "layers": [osm, tg],
     'viewExtent': [-1.12135, 51.60133, -1.11704, 51.60224]
 });
@@ -426,7 +429,9 @@ fetch("./szint.json")
     }).then(data => {
         var countries = new Vector("Countries", {
             'visibility': true,
-            'isBaseLayer': false
+            'isBaseLayer': false,
+            'diffuse': [0, 0, 0],
+            'ambient': [1, 1, 1]
         });
 
         countries.addTo(globus.planet);
@@ -439,7 +444,8 @@ fetch("./szint.json")
                     'type': fi.geometry.type,
                     'coordinates': fi.geometry.coordinates,
                     'style': {
-                        'fillColor': "rgba(255,255,0,1.0)"
+                        'fillColor': "rgba(255,255,0,1.0)",
+                        'lineColor': "rgba(255,255,0,1.0)"
                     }
                 }
             }));
