@@ -8,6 +8,7 @@ import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import { earcut, flatten } from '../utils/earcut.js';
 import { GeometryType } from './Geometry.js';
+import { Vec2 } from '../math/Vec2.js';
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -21,6 +22,34 @@ const LINESTROKES_BUFFER = 8;
 const LINESTROKECOLORS_BUFFER = 9;
 const POLYPICKINGCOLORS_BUFFER = 10;
 const LINEPICKINGCOLORS_BUFFER = 11;
+
+function doubleToTwoFloats(v, high, low) {
+
+    let x = v[0], y = v[1];
+
+    if (x >= 0.0) {
+        let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+        high.x = Math.fround(doubleHigh);
+        low.x = Math.fround(x - doubleHigh);
+    } else {
+        let doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+        high.x = Math.fround(-doubleHigh);
+        low.x = Math.fround(x + doubleHigh);
+    }
+
+    if (y >= 0.0) {
+        let doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+        high.y = Math.fround(doubleHigh);
+        low.y = Math.fround(y - doubleHigh);
+    } else {
+        let doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+        high.y = Math.fround(-doubleHigh);
+        low.y = Math.fround(y + doubleHigh);
+    }
+};
+
+let tempHigh = new Vec2(),
+    tempLow = new Vec2();
 
 class GeometryHandler {
     constructor(layer) {
@@ -45,7 +74,8 @@ class GeometryHandler {
         this._polyIndexes = [];
 
         // Line arrays
-        this._lineVerticesMerc = [];
+        this._lineVerticesHighMerc = [];
+        this._lineVerticesLowMerc = [];
         this._lineOrders = [];
         this._lineIndexes = [];
         this._lineColors = [];
@@ -60,7 +90,8 @@ class GeometryHandler {
         this._polyPickingColorsBuffer = null;
         this._polyIndexesBuffer = null;
 
-        this._lineVerticesBufferMerc = null;
+        this._lineVerticesHighBufferMerc = null;
+        this._lineVerticesLowBufferMerc = null;
         this._lineColorsBuffer = null;
         this._linePickingColorsBuffer = null;
         this._lineThicknessBuffer = null;
@@ -98,8 +129,8 @@ class GeometryHandler {
     }
 
     static appendLineData(pathArr, isClosed, color, pickingColor, thickness, strokeColor, strokeSize,
-        outVertices, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes,
-        outVertices2) {
+        outVerticesHigh, outVerticesLow, outOrders, outIndexes, outColors, outPickingColors, outThickness, outStrokeColors, outStrokes,
+        outVerticesHigh2, outVerticesLow2) {
         var index = 0;
 
         if (outIndexes.length > 0) {
@@ -136,8 +167,21 @@ class GeometryHandler {
 
                 last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             }
-            outVertices.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-            outVertices2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+
+            //outVerticesHigh.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+            //outVerticesLow.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+
+            //outVerticesHigh2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+            //outVerticesLow2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
+
+            doubleToTwoFloats(last, tempHigh, tempLow);
+
+            outVerticesHigh.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+            outVerticesLow.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
+            outVerticesHigh2.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+            outVerticesLow2.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
             outOrders.push(1, -1, 2, -2);
 
             outThickness.push(t, t, t, t);
@@ -148,8 +192,21 @@ class GeometryHandler {
 
             for (var i = 0; i < path.length; i++) {
                 var cur = path[i];
-                outVertices.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-                outVertices2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+
+                //outVerticesHigh.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+                //outVerticesLow.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+
+                //outVerticesHigh2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+                //outVerticesLow2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
+
+                doubleToTwoFloats(cur, tempHigh, tempLow);
+
+                outVerticesHigh.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+                outVerticesLow.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
+                outVerticesHigh2.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+                outVerticesLow2.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
                 outOrders.push(1, -1, 2, -2);
                 outThickness.push(t, t, t, t);
                 outStrokes.push(s, s, s, s);
@@ -174,8 +231,21 @@ class GeometryHandler {
                 first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
-            outVertices.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-            outVertices2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+
+            //outVerticesHigh.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+            //outVerticesLow.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+
+            //outVerticesHigh2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+            //outVerticesLow2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
+
+            doubleToTwoFloats(first, tempHigh, tempLow);
+
+            outVerticesHigh.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+            outVerticesLow.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
+            outVerticesHigh2.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
+            outVerticesLow2.push(tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y, tempLow.x, tempLow.y);
+
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
@@ -210,7 +280,8 @@ class GeometryHandler {
             let pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
             geometry._polyVerticesMerc = [];
-            geometry._lineVerticesMerc = [];
+            geometry._lineVerticesHighMerc = [];
+            geometry._lineVerticesLowMerc = [];
 
             if (geometry._type === GeometryType.POLYGON) {
 
@@ -246,7 +317,7 @@ class GeometryHandler {
                 geometry._polyIndexesLength = indexes.length;
 
                 // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
+                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                 geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -255,10 +326,10 @@ class GeometryHandler {
                 GeometryHandler.appendLineData(ci, true,
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
-                    this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
+                    this._lineVerticesHighMerc, this._lineVerticesLowMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesHighMerc, geometry._lineVerticesLowMerc);
 
-                geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
+                geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
                 geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
                 geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
                 geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -271,7 +342,7 @@ class GeometryHandler {
                     indexes = [];
 
                 // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
+                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                 geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -298,8 +369,8 @@ class GeometryHandler {
                     GeometryHandler.appendLineData(ci, true,
                         geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                         geometry._style.strokeColor, geometry._style.strokeWidth,
-                        this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                        this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
+                        this._lineVerticesHighMerc, this._lineVerticesLowMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
+                        this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc, geometry._lineVerticesLowMerc);
                 }
 
                 geometry._polyVerticesMerc = vertices;
@@ -321,7 +392,7 @@ class GeometryHandler {
                 geometry._polyVerticesLength = vertices.length;
                 geometry._polyIndexesLength = indexes.length;
 
-                geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
+                geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
                 geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
                 geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
                 geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -336,7 +407,7 @@ class GeometryHandler {
                 }
 
                 // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
+                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                 geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -345,10 +416,10 @@ class GeometryHandler {
                 GeometryHandler.appendLineData([ci], false,
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
-                    this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
+                    this._lineVerticesHighMerc, this._lineVerticesLowMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesHighMerc, geometry._lineVerticesLowMerc);
 
-                geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
+                geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
                 geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
                 geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
                 geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -365,7 +436,7 @@ class GeometryHandler {
                 }
 
                 // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesMerc.length;
+                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
                 geometry._lineOrdersHandlerIndex = this._lineOrders.length;
                 geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
                 geometry._lineColorsHandlerIndex = this._lineColors.length;
@@ -374,10 +445,10 @@ class GeometryHandler {
                 GeometryHandler.appendLineData(ci, false,
                     geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                     geometry._style.strokeColor, geometry._style.strokeWidth,
-                    this._lineVerticesMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc);
+                    this._lineVerticesHighMerc, this._lineVerticesLowMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
+                    this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesHighMerc, geometry._lineVerticesLowMerc);
 
-                geometry._lineVerticesLength = this._lineVerticesMerc.length - geometry._lineVerticesHandlerIndex;
+                geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
                 geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
                 geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
                 geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
@@ -411,7 +482,8 @@ class GeometryHandler {
 
             // line
             // this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-            this._lineVerticesMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+            this._lineVerticesHighMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+            this._lineVerticesLowMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
             this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
             this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
             this._linePickingColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
@@ -450,7 +522,8 @@ class GeometryHandler {
             geometry._polyVerticesHandlerIndex = -1;
             geometry._polyIndexesHandlerIndex = -1;
 
-            geometry._lineVerticesMerc = [];
+            geometry._lineVerticesHighMerc = [];
+            geometry._lineVerticesLowMerc = [];
             geometry._lineVerticesLength = -1;
             geometry._lineOrdersLength = -1;
             geometry._lineIndexesLength = -1;
@@ -575,11 +648,13 @@ class GeometryHandler {
             a[ind + i] = geometry._polyVerticesMerc[i] * v;
         }
 
-        a = this._lineVerticesMerc;
+        a = this._lineVerticesHighMerc;
+        let b = this._lineVerticesLowMerc;
         l = geometry._lineVerticesLength;
         ind = geometry._lineVerticesHandlerIndex;
         for (i = 0; i < l; i++) {
-            a[ind + i] = geometry._lineVerticesMerc[i] * v;
+            a[ind + i] = geometry._lineVerticesHighMerc[i] * v;
+            b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
 
         this._changedBuffers[POLYVERTICES_BUFFER] = true;
@@ -715,8 +790,11 @@ class GeometryHandler {
 
     createLineVerticesBuffer() {
         var h = this._handler;
-        h.gl.deleteBuffer(this._lineVerticesBufferMerc);
-        this._lineVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesMerc), 2, this._lineVerticesMerc.length / 2);
+        h.gl.deleteBuffer(this._lineVerticesHighBufferMerc);
+        this._lineVerticesHighBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesHighMerc), 2, this._lineVerticesHighMerc.length / 2);
+
+        h.gl.deleteBuffer(this._lineVerticesLowBufferMerc);
+        this._lineVerticesLowBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesLowMerc), 2, this._lineVerticesLowMerc.length / 2);
     }
 
     createLineIndexesBuffer() {

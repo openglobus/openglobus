@@ -34,16 +34,27 @@ VectorTileCreator.prototype._initialize = function () {
                 'extentParams': { type: types.VEC4 }
             },
             attributes: {
-                'prev': { type: types.VEC2 },
-                'current': { type: types.VEC2 },
-                'next': { type: types.VEC2 },
+                'prevHigh': { type: types.VEC2 },
+                'currentHigh': { type: types.VEC2 },
+                'nextHigh': { type: types.VEC2 },
+
+                'prevLow': { type: types.VEC2 },
+                'currentLow': { type: types.VEC2 },
+                'nextLow': { type: types.VEC2 },
+
                 'order': { type: types.FLOAT },
                 'color': { type: types.VEC4 },
                 'thickness': { type: types.FLOAT }
             },
-            vertexShader: `attribute vec2 prev;
-                attribute vec2 current;
-                attribute vec2 next;
+            vertexShader: 
+                `attribute vec2 prevHigh;
+                attribute vec2 currentHigh;
+                attribute vec2 nextHigh;
+
+                attribute vec2 prevLow;
+                attribute vec2 currentLow;
+                attribute vec2 nextLow;
+
                 attribute float order;
                 attribute float thickness;
                 attribute vec4 color;
@@ -57,6 +68,11 @@ VectorTileCreator.prototype._initialize = function () {
                 }
                 
                 void main(){
+
+                    vec2 prev = prevHigh + prevLow;
+                    vec2 current = currentHigh + currentLow;
+                    vec2 next = nextHigh + nextLow;
+
                     vColor = color;
                     vec2 _next = next;
                     vec2 _prev = prev;
@@ -270,11 +286,19 @@ VectorTileCreator.prototype.frame = function () {
                 gl.uniform4fv(shu.extentParams, extentParams);
 
                 //vertex
-                var mb = geomHandler._lineVerticesBufferMerc;
+                var mb = geomHandler._lineVerticesHighBufferMerc;
                 gl.bindBuffer(gl.ARRAY_BUFFER, mb);
-                gl.vertexAttribPointer(sha.prev, mb.itemSize, gl.FLOAT, false, 8, 0);
-                gl.vertexAttribPointer(sha.current, mb.itemSize, gl.FLOAT, false, 8, 32);
-                gl.vertexAttribPointer(sha.next, mb.itemSize, gl.FLOAT, false, 8, 64);
+
+                gl.vertexAttribPointer(sha.prevHigh, mb.itemSize, gl.FLOAT, false, 8, 0);
+                gl.vertexAttribPointer(sha.currentHigh, mb.itemSize, gl.FLOAT, false, 8, 32);
+                gl.vertexAttribPointer(sha.nextHigh, mb.itemSize, gl.FLOAT, false, 8, 64);
+
+                mb = geomHandler._lineVerticesLowBufferMerc;
+                gl.bindBuffer(gl.ARRAY_BUFFER, mb);
+
+                gl.vertexAttribPointer(sha.prevLow, mb.itemSize, gl.FLOAT, false, 8, 0);
+                gl.vertexAttribPointer(sha.currentLow, mb.itemSize, gl.FLOAT, false, 8, 32);
+                gl.vertexAttribPointer(sha.nextLow, mb.itemSize, gl.FLOAT, false, 8, 64);
 
                 //order
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineOrdersBuffer);
