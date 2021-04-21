@@ -14,7 +14,7 @@ import { input } from '../input/input.js';
  * @param {Object} [options] - Control options.
  */
 class ToggleWireframe extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
         this._isActive = options.isActive || false;
     }
