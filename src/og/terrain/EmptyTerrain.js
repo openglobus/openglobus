@@ -11,7 +11,7 @@ import { binarySearchFast } from "../utils/shared.js";
  * @class
  */
 class EmptyTerrain {
-    constructor(options) {
+    constructor(options = {}) {
 
         this.equalizeVertices = false;
 
