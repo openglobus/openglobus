@@ -417,7 +417,7 @@ var globus = new Globe({
     "target": "earth",
     "name": "Earth",
     "terrain": new EmptyTerrain({
-        gridSizeByZoom: [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        gridSizeByZoom: [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
     }),//new GlobusTerrain(),
     "layers": [osm, tg],
     'viewExtent': [-1.12135, 51.60133, -1.11704, 51.60224]
