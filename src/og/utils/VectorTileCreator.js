@@ -8,6 +8,9 @@ import * as quadTree from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';
 import { types } from '../webgl/types.js';
+import { doubleToTwoFloats2 } from '../math/coder.js';
+
+let tempArr = new Float32Array(2);
 
 const VectorTileCreator = function (planet, maxFrames, width, height) {
 
@@ -31,7 +34,8 @@ VectorTileCreator.prototype._initialize = function () {
                 'viewport': { type: types.VEC2 },
                 'thicknessOutline': { type: types.FLOAT },
                 'alpha': { type: types.FLOAT },
-                'extentParams': { type: types.VEC4 }
+                'extentParamsHigh': "vec4",
+                'extentParamsLow': "vec4"
             },
             attributes: {
                 'prevHigh': { type: types.VEC2 },
@@ -46,7 +50,7 @@ VectorTileCreator.prototype._initialize = function () {
                 'color': { type: types.VEC4 },
                 'thickness': { type: types.FLOAT }
             },
-            vertexShader: 
+            vertexShader:
                 `attribute vec2 prevHigh;
                 attribute vec2 currentHigh;
                 attribute vec2 nextHigh;
@@ -60,37 +64,54 @@ VectorTileCreator.prototype._initialize = function () {
                 attribute vec4 color;
                 uniform float thicknessOutline;
                 uniform vec2 viewport;
-                uniform vec4 extentParams;
+                uniform vec4 extentParamsHigh;
+                uniform vec4 extentParamsLow;
                 varying vec4 vColor;
                 
-                vec2 proj(vec2 coordinates){
-                    return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);
+                vec2 proj(vec2 coordHigh, vec2 coordLow) {
+
+                    //vec2 coordinates = coordHigh + coordLow;
+                    //vec4 extentParams = extentParamsHigh + extentParamsLow;
+                    //return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);
+
+                    vec2 highDiff = coordHigh - extentParamsHigh.xy;
+                    vec2 lowDiff = coordLow - extentParamsLow.xy;
+
+                    return vec2(-1.0 + (highDiff + lowDiff) * (extentParamsHigh.zw + extentParamsLow.zw)) * vec2(1.0, -1.0);
                 }
                 
                 void main(){
-
-                    vec2 prev = prevHigh + prevLow;
-                    vec2 current = currentHigh + currentLow;
-                    vec2 next = nextHigh + nextLow;
-
                     vColor = color;
-                    vec2 _next = next;
-                    vec2 _prev = prev;
-                    if(prev == current){
-                        if(next == current){
-                            _next = current + vec2(1.0, 0.0);
-                            _prev = current - next;
+
+                    //vec2 prev = prevHigh + prevLow;
+                    //vec2 current = currentHigh + currentLow;
+                    //vec2 next = nextHigh + nextLow;
+
+                    vec2 vNext = proj(nextHigh, nextLow),
+                         vCurrent = proj(currentHigh, currentLow),
+                         vPrev = proj(prevHigh, prevLow);
+
+                    vec2 _next = vNext;
+                    vec2 _prev = vPrev;
+                    vec2 _current = vCurrent;
+
+                    if(_prev == _current){
+                        if(_next == _current){
+                            _next = _current + vec2(1.0, 0.0);
+                            _prev = _current - _next;
                         }else{
-                            _prev = current + normalize(current - next);
+                            _prev = _current + normalize(_current - _next);
                         }
                     }
-                    if(next == current){
-                        _next = current + normalize(current - _prev);
+
+                    if(_next == _current){
+                        _next = _current + normalize(_current - _prev);
                     }
+
+                    vec2 sNext = _next;
+                    vec2 sCurrent = _current;
+                    vec2 sPrev = _prev;
                     
-                    vec2 sNext = proj(_next),
-                         sCurrent = proj(current),
-                         sPrev = proj(_prev);
                     vec2 dirNext = normalize(sNext - sCurrent);
                     vec2 dirPrev = normalize(sPrev - sCurrent);
                     float dotNP = dot(dirNext, dirPrev);
@@ -192,7 +213,10 @@ VectorTileCreator.prototype.frame = function () {
 
         // var prevLayerId = -1;
 
-        var extentParams = new Array(4);
+        var extentParams = new Float32Array(4);
+
+        var extentParamsHigh = new Float32Array(4);
+        var extentParamsLow = new Float32Array(4);
 
         var f = this._framebuffer.activate();
 
@@ -221,6 +245,7 @@ VectorTileCreator.prototype.frame = function () {
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 var extent = material.segment.getExtentMerc();
+
                 extentParams[0] = extent.southWest.lon;
                 extentParams[1] = extent.southWest.lat;
                 extentParams[2] = 2.0 / extent.getWidth();
@@ -283,7 +308,24 @@ VectorTileCreator.prototype.frame = function () {
 
                 gl.uniform2fv(shu.viewport, [width, height]);
 
-                gl.uniform4fv(shu.extentParams, extentParams);
+                doubleToTwoFloats2(extent.southWest.lon, tempArr);
+                extentParamsHigh[0] = tempArr[0];
+                extentParamsLow[0] = tempArr[1];
+
+                doubleToTwoFloats2(extent.southWest.lat, tempArr);
+                extentParamsHigh[1] = tempArr[0];
+                extentParamsLow[1] = tempArr[1];
+
+                doubleToTwoFloats2(2.0 / extent.getWidth(), tempArr);
+                extentParamsHigh[2] = tempArr[0];
+                extentParamsLow[2] = tempArr[1];
+
+                doubleToTwoFloats2(2.0 / extent.getHeight(), tempArr);
+                extentParamsHigh[3] = tempArr[0];
+                extentParamsLow[3] = tempArr[1];
+
+                gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
+                gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
                 //vertex
                 var mb = geomHandler._lineVerticesHighBufferMerc;
