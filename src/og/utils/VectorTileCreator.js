@@ -160,14 +160,18 @@ VectorTileCreator.prototype._initialize = function () {
                 'extentParams': { type: types.VEC4 }
             },
             attributes: {
-                'coordinates': { type: types.VEC2 },
+                'coordinatesHigh': { type: types.VEC2 },
+                'coordinatesLow': { type: types.VEC2 },
                 'colors': { type: types.VEC4 }
             },
-            vertexShader: `attribute vec2 coordinates; 
+            vertexShader: 
+                     `attribute vec2 coordinatesHigh;
+                      attribute vec2 coordinatesLow; 
                       attribute vec4 colors; 
                       uniform vec4 extentParams; 
                       varying vec4 color;
                       void main() { 
+                          vec2 coordinates = coordinatesHigh + coordinatesLow;
                           color = colors;
                           gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
                       }`,
@@ -263,8 +267,11 @@ VectorTileCreator.prototype.frame = function () {
                 //=========================================
                 gl.uniform4fv(shu.extentParams, extentParams);
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesBufferMerc);
-                gl.vertexAttribPointer(sha.coordinates, geomHandler._polyVerticesBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
+                gl.vertexAttribPointer(sha.coordinatesHigh, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
+                gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
                 gl.vertexAttribPointer(sha.colors, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);

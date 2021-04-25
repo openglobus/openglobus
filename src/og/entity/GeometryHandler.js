@@ -68,7 +68,8 @@ class GeometryHandler {
         this._removeGeometryExtents = {};
 
         // Polygon arrays
-        this._polyVerticesMerc = [];
+        this._polyVerticesHighMerc = [];
+        this._polyVerticesLowMerc = [];
         this._polyColors = [];
         this._polyPickingColors = [];
         this._polyIndexes = [];
@@ -85,7 +86,8 @@ class GeometryHandler {
         this._lineStrokeColors = [];
 
         // Buffers
-        this._polyVerticesBufferMerc = null;
+        this._polyVerticesHighBufferMerc = null;
+        this._polyVerticesLowBufferMerc = null;
         this._polyColorsBuffer = null;
         this._polyPickingColorsBuffer = null;
         this._polyIndexesBuffer = null;
@@ -279,7 +281,8 @@ class GeometryHandler {
 
             let pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
-            geometry._polyVerticesMerc = [];
+            geometry._polyVerticesHighMerc = [];
+            geometry._polyVerticesLowMerc = [];
             geometry._lineVerticesHighMerc = [];
             geometry._lineVerticesLowMerc = [];
 
@@ -297,21 +300,30 @@ class GeometryHandler {
                 let data = flatten(ci);
                 let indexes = earcut(data.vertices, data.holes, 2);
 
-                geometry._polyVerticesMerc = data.vertices;
-                geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
+                geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
                 geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
-
-                this._polyVerticesMerc.push.apply(this._polyVerticesMerc, data.vertices);
 
                 for (let i = 0; i < indexes.length; i++) {
                     this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                 }
 
                 var color = geometry._style.fillColor;
+
+                let verticesHigh = [],
+                    verticesLow = [];
+
                 for (let i = 0; i < data.vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
+                    verticesHigh[i] = data.vertices[i];
+                    verticesLow[i] = data.vertices[i];
                 }
+
+                geometry._polyVerticesHighMerc = verticesHigh;
+                geometry._polyVerticesLowMerc = verticesLow;
+
+                this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
+                this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
 
                 geometry._polyVerticesLength = data.vertices.length;
                 geometry._polyIndexesLength = indexes.length;
@@ -373,21 +385,30 @@ class GeometryHandler {
                         this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc, geometry._lineVerticesLowMerc);
                 }
 
-                geometry._polyVerticesMerc = vertices;
-                geometry._polyVerticesHandlerIndex = this._polyVerticesMerc.length;
+                geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
                 geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
-
-                this._polyVerticesMerc.push.apply(this._polyVerticesMerc, vertices);
 
                 for (let i = 0; i < indexes.length; i++) {
                     this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                 }
 
                 let color = geometry._style.fillColor;
+
+                let verticesHigh = [],
+                    verticesLow = [];
+
                 for (let i = 0; i < vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
+                    verticesHigh[i] = vertices[i];
+                    verticesLow[i] = vertices[i];
                 }
+
+                geometry._polyVerticesHighMerc = verticesHigh;
+                geometry._polyVerticesLowMerc = verticesLow;
+
+                this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
+                this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
 
                 geometry._polyVerticesLength = vertices.length;
                 geometry._polyIndexesLength = indexes.length;
@@ -471,7 +492,9 @@ class GeometryHandler {
 
             // polygon
             // this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-            this._polyVerticesMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+            this._polyVerticesHighMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+            this._polyVerticesLowMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+
             this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
             this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
             this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
@@ -516,7 +539,8 @@ class GeometryHandler {
             geometry._handler = null;
             geometry._handlerIndex = -1;
 
-            geometry._polyVerticesMerc = [];
+            geometry._polyVerticesHighMerc = [];
+            geometry._polyVerticesLowMerc = [];
             geometry._polyVerticesLength = -1;
             geometry._polyIndexesLength = -1;
             geometry._polyVerticesHandlerIndex = -1;
@@ -641,11 +665,13 @@ class GeometryHandler {
     setGeometryVisibility(geometry) {
         var v = geometry._visibility ? 1.0 : 0.0;
 
-        var a = this._polyVerticesMerc;
+        var a = this._polyVerticesHighMerc,
+            b = this._polyVerticesLowMerc;
         var l = geometry._polyVerticesLength;
         var ind = geometry._polyVerticesHandlerIndex;
         for (var i = 0; i < l; i++) {
-            a[ind + i] = geometry._polyVerticesMerc[i] * v;
+            a[ind + i] = geometry._polyVerticesHighMerc[i] * v;
+            b[ind + i] = geometry._polyVerticesLowMerc[i] * v;
         }
 
         a = this._lineVerticesHighMerc;
@@ -766,8 +792,11 @@ class GeometryHandler {
 
     createPolyVerticesBuffer() {
         var h = this._handler;
-        h.gl.deleteBuffer(this._polyVerticesBufferMerc);
-        this._polyVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._polyVerticesMerc), 2, this._polyVerticesMerc.length / 2);
+        h.gl.deleteBuffer(this._polyVerticesHighBufferMerc);
+        this._polyVerticesHighBufferMerc = h.createArrayBuffer(new Float32Array(this._polyVerticesHighMerc), 2, this._polyVerticesHighMerc.length / 2);
+
+        h.gl.deleteBuffer(this._polyVerticesLowBufferMerc);
+        this._polyVerticesLowBufferMerc = h.createArrayBuffer(new Float32Array(this._polyVerticesLowMerc), 2, this._polyVerticesLowMerc.length / 2);
     }
 
     createPolyIndexesBuffer() {
