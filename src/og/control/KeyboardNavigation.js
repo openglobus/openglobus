@@ -19,7 +19,7 @@ class KeyboardNavigation extends Control {
     constructor(options) {
         options = options || {};
         super(options);
-
+        this.moveSpeed = options.moveSpeed | 50;
     }
 
     oninit() {
@@ -37,28 +37,28 @@ class KeyboardNavigation extends Control {
 
     onCameraMoveForward(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(0, 0, -cam._lonLat.height / 30);
+        cam.slide(0, 0, -cam._lonLat.height / this.moveSpeed);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraMoveBackward(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(0, 0, cam._lonLat.height / 30);
+        cam.slide(0, 0, cam._lonLat.height / this.moveSpeed);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraStrifeLeft(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(-cam._lonLat.height / 30, 0, 0);
+        cam.slide(-cam._lonLat.height / this.moveSpeed, 0, 0);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraStrifeRight(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(cam._lonLat.height / 30, 0, 0);
+        cam.slide(cam._lonLat.height / this.moveSpeed, 0, 0);
         cam.checkTerrainCollision();
         cam.update();
     }

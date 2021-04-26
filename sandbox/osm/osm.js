@@ -186,21 +186,24 @@ let emptyTerrain = new EmptyTerrain(),
     globusTerrain = new GlobusTerrain(),
     mapboxTerrain = new MapboxTerrain(),
     bilTerrain = new BilTerrain({
-        maxZoom: 19,
-        url: "//127.0.0.1:8080/geoserver/",
-        //url: "//95.211.82.211:8080/geoserver/og/",
+        //maxZoom: 19,
+        //url: "//openglobus.org:8080/geoserver/",
+        url: "//95.211.82.211:8080/geoserver/og/",
         //layers: "og:n44_e009_1arc_v3",
-        layers: "test:geotiff_coverage_2",
+        layers: "og:USGS_one_meter_x32y413_UT_ZionNP_QL2_2016_3857",
         //layers: "arizona:3",
         //imageSize: 129,
-        gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
+        //gridSizeByZoom: [64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4],
         //extent: [[8.9, 44.0], [10.0, 45]]
+        gridSizeByZoom: [64, 32, 32, 16, 16, 16, 16, 32, 64, 64, 32, 32, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64/*, 128, 64, 32, 16*/],
+        minZoom: 3,
+        maxZoom: 18
     });
 
 window.globe = new Globe({
     'name': "Earth",
     'target': "earth",
-    'terrain': /*bilTerrain/*/globusTerrain/*new MapboxTerrain(null, {
+    'terrain': bilTerrain/*globusTerrain/*new MapboxTerrain(null, {
         url: "//alacst.ddns.net:8181/Tiles/testtile129/{z}/{x}/{y}.png",
         //url: "//alacst.ddns.net:8181/Tiles/129terrain/{z}/{x}/{y}.png",
         minZoom: 9,
@@ -210,7 +213,7 @@ window.globe = new Globe({
         equalizeVertices: false
     })*/,
     'layers': [osm, tg, sat],
-    'viewExtent': [89.83484, 25.69255, 90.34796, 26.44652]
+    'viewExtent': [-113.35132, 37.08530, -112.56969, 37.38434]
 });
 
 window.setEmptyTerrain = function () {
