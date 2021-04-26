@@ -33,7 +33,7 @@ export function decodeFloatFromRGBA(rgba) {
 };
 
 /**
- * Separate 63 bit value to two 32 bit float values.
+ * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
  * @returns {Array.<number,number>} Encoded array.
@@ -53,7 +53,7 @@ export function doubleToTwoFloats(value) {
 };
 
 /**
- * Separate 63 bit value to two 32 bit float values.
+ * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
  * @returns {Array.<number,number>} Encoded array.
@@ -69,4 +69,23 @@ export function doubleToTwoFloats2(value, highLowArr) {
         highLowArr[1] = Math.fround(value + doubleHigh);
     }
     return highLowArr;
+};
+
+/**
+ * Separate 64 bit value to two 32 bit float values.
+ * @function
+ * @param {number} value - Double type value.
+ * @returns {Array.<number,number>} Encoded array.
+ */
+export function doubleToTwoFloatsV2(value, highLowVec) {
+    if (value >= 0.0) {
+        let doubleHigh = Math.floor(value / 65536.0) * 65536.0;
+        highLowVec.x = Math.fround(doubleHigh);
+        highLowVec.y = Math.fround(value - doubleHigh);
+    } else {
+        let doubleHigh = Math.floor(-value / 65536.0) * 65536.0;
+        highLowVec.x = Math.fround(-doubleHigh);
+        highLowVec.y = Math.fround(value + doubleHigh);
+    }
+    return highLowVec;
 };

@@ -35,7 +35,8 @@ class Geometry {
         this._handlerIndex = -1;
 
         // Polygon
-        this._polyVerticesMerc = [];
+        this._polyVerticesHighMerc = [];
+        this._polyVerticesLowMerc = [];
         this._polyVerticesLength = -1;
         this._polyIndexesLength = -1;
         this._polyVerticesHandlerIndex = -1;

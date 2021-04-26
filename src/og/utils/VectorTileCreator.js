@@ -31,24 +31,24 @@ VectorTileCreator.prototype._initialize = function () {
     if (!this._handler.programs.vectorTileLineRasterization) {
         this._handler.addProgram(new Program("vectorTileLineRasterization", {
             uniforms: {
-                'viewport': { type: types.VEC2 },
-                'thicknessOutline': { type: types.FLOAT },
-                'alpha': { type: types.FLOAT },
+                'viewport': "vec2",
+                'thicknessOutline': "float",
+                'alpha': "float",
                 'extentParamsHigh': "vec4",
                 'extentParamsLow': "vec4"
             },
             attributes: {
-                'prevHigh': { type: types.VEC2 },
-                'currentHigh': { type: types.VEC2 },
-                'nextHigh': { type: types.VEC2 },
+                'prevHigh': "vec2",
+                'currentHigh': "vec2",
+                'nextHigh': "vec2",
 
-                'prevLow': { type: types.VEC2 },
-                'currentLow': { type: types.VEC2 },
-                'nextLow': { type: types.VEC2 },
+                'prevLow': "vec2",
+                'currentLow': "vec2",
+                'nextLow': "vec2",
 
-                'order': { type: types.FLOAT },
-                'color': { type: types.VEC4 },
-                'thickness': { type: types.FLOAT }
+                'order': "float",
+                'color': "vec4",
+                'thickness': "float"
             },
             vertexShader:
                 `attribute vec2 prevHigh;
@@ -69,23 +69,13 @@ VectorTileCreator.prototype._initialize = function () {
                 varying vec4 vColor;
                 
                 vec2 proj(vec2 coordHigh, vec2 coordLow) {
-
-                    //vec2 coordinates = coordHigh + coordLow;
-                    //vec4 extentParams = extentParamsHigh + extentParamsLow;
-                    //return vec2(-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0);
-
                     vec2 highDiff = coordHigh - extentParamsHigh.xy;
                     vec2 lowDiff = coordLow - extentParamsLow.xy;
-
-                    return vec2(-1.0 + (highDiff + lowDiff) * (extentParamsHigh.zw + extentParamsLow.zw)) * vec2(1.0, -1.0);
+                    return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
                 
                 void main(){
                     vColor = color;
-
-                    //vec2 prev = prevHigh + prevLow;
-                    //vec2 current = currentHigh + currentLow;
-                    //vec2 next = nextHigh + nextLow;
 
                     vec2 vNext = proj(nextHigh, nextLow),
                          vCurrent = proj(currentHigh, currentLow),
@@ -157,29 +147,38 @@ VectorTileCreator.prototype._initialize = function () {
     if (!this._handler.programs.vectorTilePolygonRasterization) {
         this._handler.addProgram(new Program("vectorTilePolygonRasterization", {
             uniforms: {
-                'extentParams': { type: types.VEC4 }
+                'extentParamsHigh': "vec4",
+                'extentParamsLow': "vec4"
             },
             attributes: {
-                'coordinatesHigh': { type: types.VEC2 },
-                'coordinatesLow': { type: types.VEC2 },
-                'colors': { type: types.VEC4 }
+                'coordinatesHigh': "vec2",
+                'coordinatesLow': "vec2",
+                'colors': "vec4"
             },
-            vertexShader: 
-                     `attribute vec2 coordinatesHigh;
-                      attribute vec2 coordinatesLow; 
-                      attribute vec4 colors; 
-                      uniform vec4 extentParams; 
-                      varying vec4 color;
-                      void main() { 
-                          vec2 coordinates = coordinatesHigh + coordinatesLow;
-                          color = colors;
-                          gl_Position = vec4((-1.0 + (coordinates - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
-                      }`,
-            fragmentShader: `precision highp float;
-                        varying vec4 color;
-                        void main () {  
-                            gl_FragColor = color; 
-                        }`
+            vertexShader:
+                `attribute vec2 coordinatesHigh;
+                attribute vec2 coordinatesLow; 
+                attribute vec4 colors; 
+                uniform vec4 extentParamsHigh; 
+                uniform vec4 extentParamsLow; 
+                varying vec4 color;
+
+                vec2 proj(vec2 coordHigh, vec2 coordLow) {
+                    vec2 highDiff = coordHigh - extentParamsHigh.xy;
+                    vec2 lowDiff = coordLow - extentParamsLow.xy;
+                    return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
+                }
+
+                void main() { 
+                    color = colors;
+                    gl_Position = vec4(proj(coordinatesHigh, coordinatesLow), 0.0, 1.0); 
+                }`,
+            fragmentShader: 
+                `precision highp float;
+                varying vec4 color;
+                void main () {  
+                    gl_FragColor = color; 
+                }`
         }));
     }
 
@@ -250,10 +249,16 @@ VectorTileCreator.prototype.frame = function () {
 
                 var extent = material.segment.getExtentMerc();
 
-                extentParams[0] = extent.southWest.lon;
-                extentParams[1] = extent.southWest.lat;
-                extentParams[2] = 2.0 / extent.getWidth();
-                extentParams[3] = 2.0 / extent.getHeight();
+                doubleToTwoFloats2(extent.southWest.lon, tempArr);
+                extentParamsHigh[0] = tempArr[0];
+                extentParamsLow[0] = tempArr[1];
+
+                doubleToTwoFloats2(extent.southWest.lat, tempArr);
+                extentParamsHigh[1] = tempArr[0];
+                extentParamsLow[1] = tempArr[1];
+
+                extentParamsHigh[2] = 2.0 / extent.getWidth();
+                extentParamsHigh[3] = 2.0 / extent.getHeight();
 
                 hPoly.activate();
                 var sh = hPoly._program;
@@ -265,13 +270,14 @@ VectorTileCreator.prototype.frame = function () {
                 //=========================================
                 //Polygon rendering
                 //=========================================
-                gl.uniform4fv(shu.extentParams, extentParams);
+                gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
+                gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
                 gl.vertexAttribPointer(sha.coordinatesHigh, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
-                gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesLowBufferMerc);
+                gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesLowBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
                 gl.vertexAttribPointer(sha.colors, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -314,22 +320,6 @@ VectorTileCreator.prototype.frame = function () {
                 shu = sh.uniforms;
 
                 gl.uniform2fv(shu.viewport, [width, height]);
-
-                doubleToTwoFloats2(extent.southWest.lon, tempArr);
-                extentParamsHigh[0] = tempArr[0];
-                extentParamsLow[0] = tempArr[1];
-
-                doubleToTwoFloats2(extent.southWest.lat, tempArr);
-                extentParamsHigh[1] = tempArr[0];
-                extentParamsLow[1] = tempArr[1];
-
-                doubleToTwoFloats2(2.0 / extent.getWidth(), tempArr);
-                extentParamsHigh[2] = tempArr[0];
-                extentParamsLow[2] = tempArr[1];
-
-                doubleToTwoFloats2(2.0 / extent.getHeight(), tempArr);
-                extentParamsHigh[3] = tempArr[0];
-                extentParamsLow[3] = tempArr[1];
 
                 gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
                 gl.uniform4fv(shu.extentParamsLow, extentParamsLow);

@@ -9,6 +9,7 @@ import * as quadTree from '../quadTree/quadTree.js';
 import { earcut, flatten } from '../utils/earcut.js';
 import { GeometryType } from './Geometry.js';
 import { Vec2 } from '../math/Vec2.js';
+import { doubleToTwoFloatsV2 } from '../math/coder.js';
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -49,7 +50,8 @@ function doubleToTwoFloats(v, high, low) {
 };
 
 let tempHigh = new Vec2(),
-    tempLow = new Vec2();
+    tempLow = new Vec2(),
+    tempHighLow = new Vec2();
 
 class GeometryHandler {
     constructor(layer) {
@@ -170,12 +172,6 @@ class GeometryHandler {
                 last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             }
 
-            //outVerticesHigh.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-            //outVerticesLow.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-
-            //outVerticesHigh2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-            //outVerticesLow2.push(last[0], last[1], last[0], last[1], last[0], last[1], last[0], last[1]);
-
             doubleToTwoFloats(last, tempHigh, tempLow);
 
             outVerticesHigh.push(tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y, tempHigh.x, tempHigh.y);
@@ -194,12 +190,6 @@ class GeometryHandler {
 
             for (var i = 0; i < path.length; i++) {
                 var cur = path[i];
-
-                //outVerticesHigh.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-                //outVerticesLow.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-
-                //outVerticesHigh2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
-                //outVerticesLow2.push(cur[0], cur[1], cur[0], cur[1], cur[0], cur[1], cur[0], cur[1]);
 
                 doubleToTwoFloats(cur, tempHigh, tempLow);
 
@@ -233,12 +223,6 @@ class GeometryHandler {
                 first = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
-
-            //outVerticesHigh.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-            //outVerticesLow.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-
-            //outVerticesHigh2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
-            //outVerticesLow2.push(first[0], first[1], first[0], first[1], first[0], first[1], first[0], first[1]);
 
             doubleToTwoFloats(first, tempHigh, tempLow);
 
@@ -315,8 +299,12 @@ class GeometryHandler {
                 for (let i = 0; i < data.vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
-                    verticesHigh[i] = data.vertices[i];
-                    verticesLow[i] = data.vertices[i];
+                }
+
+                for (let i = 0; i < data.vertices.length; i++) {
+                    doubleToTwoFloatsV2(data.vertices[i], tempHighLow);
+                    verticesHigh[i] = tempHighLow.x;
+                    verticesLow[i] = tempHighLow.y;
                 }
 
                 geometry._polyVerticesHighMerc = verticesHigh;
@@ -382,7 +370,7 @@ class GeometryHandler {
                         geometry._style.lineColor, pickingColor, geometry._style.lineWidth,
                         geometry._style.strokeColor, geometry._style.strokeWidth,
                         this._lineVerticesHighMerc, this._lineVerticesLowMerc, this._lineOrders, this._lineIndexes, this._lineColors, this._linePickingColors,
-                        this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesMerc, geometry._lineVerticesLowMerc);
+                        this._lineThickness, this._lineStrokeColors, this._lineStrokes, geometry._lineVerticesHighMerc, geometry._lineVerticesLowMerc);
                 }
 
                 geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
@@ -400,8 +388,12 @@ class GeometryHandler {
                 for (let i = 0; i < vertices.length * 0.5; i++) {
                     this._polyColors.push(color.x, color.y, color.z, color.w);
                     this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
-                    verticesHigh[i] = vertices[i];
-                    verticesLow[i] = vertices[i];
+                }
+
+                for (let i = 0; i < vertices.length; i++) {
+                    doubleToTwoFloatsV2(vertices[i], tempHighLow);
+                    verticesHigh[i] = tempHighLow.x;
+                    verticesLow[i] = tempHighLow.y;
                 }
 
                 geometry._polyVerticesHighMerc = verticesHigh;
@@ -667,6 +659,7 @@ class GeometryHandler {
 
         var a = this._polyVerticesHighMerc,
             b = this._polyVerticesLowMerc;
+
         var l = geometry._polyVerticesLength;
         var ind = geometry._polyVerticesHandlerIndex;
         for (var i = 0; i < l; i++) {
@@ -675,7 +668,7 @@ class GeometryHandler {
         }
 
         a = this._lineVerticesHighMerc;
-        let b = this._lineVerticesLowMerc;
+        b = this._lineVerticesLowMerc;
         l = geometry._lineVerticesLength;
         ind = geometry._lineVerticesHandlerIndex;
         for (i = 0; i < l; i++) {
