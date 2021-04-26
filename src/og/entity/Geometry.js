@@ -35,14 +35,16 @@ class Geometry {
         this._handlerIndex = -1;
 
         // Polygon
-        this._polyVerticesMerc = [];
+        this._polyVerticesHighMerc = [];
+        this._polyVerticesLowMerc = [];
         this._polyVerticesLength = -1;
         this._polyIndexesLength = -1;
         this._polyVerticesHandlerIndex = -1;
         this._polyIndexesHandlerIndex = -1;
 
         // Line(Linestring and polygon's stroke(s)
-        this._lineVerticesMerc = [];
+        this._lineVerticesHighMerc = [];
+        this._lineVerticesLowMerc = [];
         this._lineVerticesLength = -1;
         this._lineOrdersLength = -1;
         this._lineIndexesLength = -1;

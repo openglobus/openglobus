@@ -12,13 +12,22 @@
 
         import { Globe } from '../../src/og/Globe.js';
         import { WMS } from '../../src/og/layer/WMS.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+
+
+        var osm = new XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
 
         var ne = new WMS("Natural Earth", {
             visibility: true,
-            isBaseLayer: true,
-            url: '//openglobus.org/geoserver/ne/',
-            layers: 'ne:HYP_HR_SR_OB_DR',
+            isBaseLayer: false,
+            url: '//openglobus.org:8080/geoserver/',
+            layers: 'tiger-ny',
             version: '1.1.1',
             opacity: 1.0,
             specular: [0.001, 0.00046, 0.0003],
@@ -30,7 +39,8 @@
             "target": "globus",
             "name": "Earth",
             "terrain": new GlobusTerrain(),
-            "layers": [ne]
+            "layers": [osm, ne],
+            'viewExtent': [-74.26124, 40.67448, -73.77663, 40.78772]
         });
 
     </script>
