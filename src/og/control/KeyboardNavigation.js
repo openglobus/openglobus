@@ -15,11 +15,12 @@ import { Vec3 } from '../math/Vec3.js';
  * @extends {og.control.Control}
  * @param {Object} [options] - Control options.
  */
+
 class KeyboardNavigation extends Control {
     constructor(options) {
         options = options || {};
         super(options);
-        this.moveSpeed = options.moveSpeed | 50;
+        this.step = options.step || 250;
     }
 
     oninit() {
@@ -37,28 +38,28 @@ class KeyboardNavigation extends Control {
 
     onCameraMoveForward(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(0, 0, -cam._lonLat.height / this.moveSpeed);
+        cam.slide(0, 0, -cam._lonLat.height / this.step);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraMoveBackward(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(0, 0, cam._lonLat.height / this.moveSpeed);
+        cam.slide(0, 0, cam._lonLat.height / this.step);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraStrifeLeft(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(-cam._lonLat.height / this.moveSpeed, 0, 0);
+        cam.slide(-cam._lonLat.height / this.step, 0, 0);
         cam.checkTerrainCollision();
         cam.update();
     }
 
     onCameraStrifeRight(event) {
         var cam = this.renderer.activeCamera;
-        cam.slide(cam._lonLat.height / this.moveSpeed, 0, 0);
+        cam.slide(cam._lonLat.height / this.step, 0, 0);
         cam.checkTerrainCollision();
         cam.update();
     }

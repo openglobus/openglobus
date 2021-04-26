@@ -14,6 +14,7 @@
         import { Globe } from '../../src/og/Globe.js';
         import { BilTerrain } from '../../src/og/terrain/BilTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { KeyboardNavigation } from '../../src/og/control/KeyboardNavigation.js';
 
         let osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
@@ -34,6 +35,8 @@
             viewExtent: [7.86, 44.24, 11.29, 45.0],
             layers: [osm]
         });
+
+        globus.renderer.addControl(new KeyboardNavigation());
     </script>
 </body>
 
