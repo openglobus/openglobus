@@ -157,7 +157,7 @@ class Planemarker {
 
         gl.uniformMatrix4fv(p.uniforms.modelMatrix, false, this._mxModel._m);
 
-        gl.uniformMatrix4fv(p.uniforms.projectionViewMatrix, false, r.activeCamera._projectionViewMatrix._m);
+        gl.uniformMatrix4fv(p.uniforms.projectionViewMatrix, false, r.activeCamera.getProjectionViewMatrix());
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vericesBuffer);
         gl.vertexAttribPointer(p.attributes.aVertexPosition, this._vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
