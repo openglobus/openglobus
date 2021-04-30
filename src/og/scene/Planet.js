@@ -13,6 +13,7 @@ import * as segmentHelper from '../segment/segmentHelper.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
+import { Quat } from '../math/Quat.js';
 import { Vec3 } from '../math/Vec3.js';
 import { Vec4 } from '../math/Vec4.js';
 import { Vector } from '../layer/Vector.js';
@@ -404,6 +405,12 @@ class Planet extends RenderNode {
 
         this.always = [];
     }
+
+    static getBearingNorthRotationQuat(cartesian) {
+        let n = cartesian.normal();
+        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        return Quat.getLookRotation(t, n);
+    };
 
     /**
      * Add the given control to the renderer of the planet scene.
