@@ -607,11 +607,18 @@ class Planet extends RenderNode {
         var h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-        h.addProgram(shaders.drawnode_screen_wl(), true);
+
+        //h.addProgram(shaders.drawnode_screen_wl(), true);
+
+        h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
+
         h.addProgram(shaders.drawnode_colorPicking(), true);
+        h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
+
+        this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
 
         this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
             width: 320,
@@ -1282,6 +1289,52 @@ class Planet extends RenderNode {
             gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+
+        gl.disable(gl.BLEND);
+    }
+
+    /**
+     * @protected
+     */
+    _renderDepthFramebufferPASS() {
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        h.programs.drawnode_depth.activate();
+        sh = h.programs.drawnode_depth._program;
+        let shu = sh.uniforms;
+        let cam = renderer.activeCamera;
+
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.enable(gl.CULL_FACE);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        // drawing planet nodes
+        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
+            sl = this._visibleTileLayerSlices;
+
+        let i = rn.length;
+        while (i--) {
+            rn[i].segment.depthRendering(sh, sl[0], 0);
+        }
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        for (let j = 1, len = sl.length; j < len; j++) {
+            i = rn.length;
+            gl.polygonOffset(0, -j);
+            while (i--) {
+                rn[i].segment.depthRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);

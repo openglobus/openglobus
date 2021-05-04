@@ -126,24 +126,27 @@ class Camera {
         if (options.frustums) {
             for (let i = 0, len = options.frustums.length; i < len; i++) {
                 let fi = options.frustums[i];
-                this.frustums.push(
-                    new Frustum({
-                        fov: this._viewAngle,
-                        aspect: this._aspect,
-                        near: fi[0],
-                        far: fi[1]
-                    })
-                );
-            }
-        } else {
-            this.frustums.push(
-                new Frustum({
+
+                let fr = new Frustum({
                     fov: this._viewAngle,
                     aspect: this._aspect,
-                    near: 1.0,
-                    far: 10000.0
+                    near: fi[0],
+                    far: fi[1]
                 })
-            );
+
+                this.frustums.push(fr);
+                this.renderer.assignPickingColor(fr);
+            }
+        } else {
+            let fr = new Frustum({
+                fov: this._viewAngle,
+                aspect: this._aspect,
+                near: 1.0,
+                far: 10000.0
+            })
+
+            this.frustums.push(fr);
+            this.renderer.assignPickingColor(fr);
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
