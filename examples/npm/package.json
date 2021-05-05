@@ -1,0 +1,20 @@
+{
+  "name": "og-npm-example",
+  "version": "1.0.0",
+  "description": "Example show how use openglobus npm package",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/webpack-cli"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openglobus/og": "^0.8.5"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.6.0",
+    "webpack": "^5.24.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}
