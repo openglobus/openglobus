@@ -730,18 +730,20 @@ export function drawnode_depth() {
         },
 
         vertexShader:
-            `attribute vec3 aVertexPositionHigh;
-            attribute vec3 aVertexPositionLow;
-            attribute vec2 aTextureCoord;
+            `#version 300 es
+            in vec3 aVertexPositionHigh;
+            in vec3 aVertexPositionLow;
+            in vec2 aTextureCoord;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float FARPLANE;
+            uniform float NEARPLANE;
 
-            varying vec2 vTextureCoord;
-            varying float range;
+            out vec2 vTextureCoord;
 
             void main(void) {
 
@@ -754,21 +756,23 @@ export function drawnode_depth() {
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
         fragmentShader:
-            `precision highp float;
+            `#version 300 es
+            precision highp float;
             uniform sampler2D defaultTexture;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
             uniform sampler2D samplerArr[5];
             uniform int samplerCount;
-            varying vec2 vTextureCoord;
-            varying float range;
+
+            in vec2 vTextureCoord;
+
+            layout(location = 0) out vec4 fragColor;
 
             /* return 1 if v inside the box, return 0 otherwise */
             float insideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {
@@ -780,32 +784,35 @@ export function drawnode_depth() {
             const vec2 TOPRIGHT = vec2(1.0);
 
             void main(void) {
-                gl_FragColor = vec4(1.0, 1.0, 1.0, texture2D( defaultTexture, vTextureCoord ).a);
+                
+                float depth = gl_FragCoord.z;
+
+                fragColor = vec4(1.0, 1.0, 1.0, texture( defaultTexture, vTextureCoord ).a);
                 if( samplerCount == 0 ) return;
 
-                vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
+                vec4 t = texture( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(1.0), 1.0 - step(0.0, -emptiness));
+                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 1 ) return;
 
-                t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
+                t = texture( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(1.0), 1.0 - step(0.0, -emptiness));
+                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 2 ) return;
 
-                t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
+                t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(1.0), 1.0 - step(0.0, -emptiness));
+                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 3 ) return;
 
-                t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
+                t = texture( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(1.0), 1.0 - step(0.0, -emptiness));
+                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 4 ) return;
 
-                t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
+                t = texture( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(1.0), 1.0 - step(0.0, -emptiness));
+                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
             }`
     });
 }

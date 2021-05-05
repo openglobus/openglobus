@@ -5,7 +5,9 @@ import { Program } from '../webgl/Program.js';
 export function depth() {
     return new Program("depth", {
         uniforms: {
-            depthBuffer: "sampler2d"
+            depthBuffer: "sampler2d",
+            near: "float",
+            far: "float"
         },
         attributes: {
             corners: "vec3"
@@ -27,6 +29,8 @@ export function depth() {
             precision highp float;
 
             uniform sampler2D depthBuffer;
+            uniform float near;
+            uniform float far;
 
             in vec2 tc;
 
@@ -34,10 +38,17 @@ export function depth() {
 
             float LinearizeDepth(in vec2 uv)
             {
-                float zNear = 100.0; 
-                float zFar  = 10000000.0; 
+                float zNear = near;
+                float zFar  = far;
                 float depth = texture(depthBuffer, tc).x;
                 return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+            }
+
+            float LinearizeDepth2(in vec2 uv) 
+            {
+                float depth = texture(depthBuffer, tc).x;
+                float z = depth * 2.0 - 1.0; // back to NDC 
+                return (2.0 * near * far) / (far + near - z * (far - near));	
             }
             
             void main(void) {

@@ -737,10 +737,10 @@ Renderer.prototype.draw = function () {
         }
         this._drawEntityCollections();
 
+        this._drawDepthBuffer(k);
+
         // Rendering picking callbacks and refresh pickingColor
         this._drawPickingBuffer(k);
-
-        this._drawDepthBuffer(k);
     }
 
     e.dispatch(e.postdraw, this);
@@ -874,8 +874,6 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
         gl.clear(gl.DEPTH_BUFFER_BIT);
     }
 
-    gl.disable(h.gl.BLEND);
-
     gl.enable(gl.DEPTH_TEST);
 
     var dp = this._depthCallbacks;
@@ -896,8 +894,6 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
 
     gl = h.gl;
 
-    gl.disable(gl.DEPTH_TEST);
-
     gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
@@ -905,15 +901,21 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
 
     sh.activate();
 
+    gl.uniform1f(p.uniforms.near, window.NEAR);
+    gl.uniform1f(p.uniforms.far, window.FAR);
+
     // screen texture
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[window.DEPTH_SOURCE || 0]);
     gl.uniform1i(p.uniforms.depthBuffer, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     this.screenDepthFramebuffer.deactivate();
 };
+
+window.NEAR = 1;
+window.FAR = 10;
 
 Renderer.prototype._readPickingColor = function () {
     var ms = this.events.mouseState;
