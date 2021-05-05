@@ -31,11 +31,18 @@ export function depth() {
             in vec2 tc;
 
             layout(location = 0) out vec4 fragColor;
+
+            float LinearizeDepth(in vec2 uv)
+            {
+                float zNear = 100.0; 
+                float zFar  = 10000000.0; 
+                float depth = texture(depthBuffer, tc).x;
+                return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+            }
             
             void main(void) {
-                vec3 depth = texture(depthBuffer, tc).rgb;
-                
-                fragColor = vec4(depth, 1.0);
+                float c = LinearizeDepth(tc);
+                fragColor = vec4(c, c, c, 1.0);
             }`
     });
 };

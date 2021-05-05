@@ -411,9 +411,16 @@ Renderer.prototype.initialize = function () {
     }).init();
 
     this.depthFramebuffer = new Framebuffer(this.handler, {
+        size: 2,
+        internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
+        format: ["RGBA", "DEPTH_COMPONENT"],
+        type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
+        attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
+        useDepth: false
     }).init();
 
     this.screenDepthFramebuffer = new Framebuffer(this.handler, {
+        useDepth: false
     }).init();
 
     this.readPixels = () => { };
@@ -461,17 +468,6 @@ Renderer.prototype.initialize = function () {
         }).init();
 
         this.toneMappingFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false
-        }).init();
-
-        this.depthFramebuffer = new Framebuffer(this.handler, {
-            internalFormat: [],
-            format: [],
-            type: [],
-            attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"]
-        }).init();
-
-        this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
 
@@ -880,6 +876,8 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
 
     gl.disable(h.gl.BLEND);
 
+    gl.enable(gl.DEPTH_TEST);
+
     var dp = this._depthCallbacks;
     var i = dp.length;
     while (i--) {
@@ -909,7 +907,7 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
 
     // screen texture
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
     gl.uniform1i(p.uniforms.depthBuffer, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

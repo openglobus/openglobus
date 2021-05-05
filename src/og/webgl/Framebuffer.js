@@ -166,7 +166,9 @@ Framebuffer.prototype.init = function () {
 
             this.textures[i] = ti;
 
-            attachmentArr.push(att_i);
+            if (this._attachmentArr[i] != "DEPTH_ATTACHMENT") {
+                attachmentArr.push(att_i);
+            }
         }
         gl.drawBuffers && gl.drawBuffers(attachmentArr);
     }
