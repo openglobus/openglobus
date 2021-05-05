@@ -410,14 +410,24 @@ Renderer.prototype.initialize = function () {
         height: 480
     }).init();
 
+    //this.depthFramebuffer = new Framebuffer(this.handler, {
+    //    size: 2,
+    //    internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
+    //    format: ["RGBA", "DEPTH_COMPONENT"],
+    //    type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
+    //    attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
+    //    useDepth: false
+    //}).init();
+
     this.depthFramebuffer = new Framebuffer(this.handler, {
         size: 2,
-        internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
-        format: ["RGBA", "DEPTH_COMPONENT"],
-        type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
-        attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
-        useDepth: false
+        internalFormat: ["RGBA", "RGBA"],
+        format: ["RGBA", "RGBA"],
+        type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
+        attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
+        useDepth: true
     }).init();
+
 
     this.screenDepthFramebuffer = new Framebuffer(this.handler, {
         useDepth: false

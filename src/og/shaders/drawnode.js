@@ -721,7 +721,8 @@ export function drawnode_depth() {
             defaultTexture: "sampler2d",
             height: "float",
             eyePositionHigh: "vec3",
-            eyePositionLow: "vec3"
+            eyePositionLow: "vec3",
+            frustumPickingColor: "vec3"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
@@ -740,8 +741,6 @@ export function drawnode_depth() {
             uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
-            uniform float FARPLANE;
-            uniform float NEARPLANE;
 
             out vec2 vTextureCoord;
 
@@ -769,10 +768,12 @@ export function drawnode_depth() {
             uniform vec4 transparentColorArr[5];
             uniform sampler2D samplerArr[5];
             uniform int samplerCount;
+            uniform vec3 frustumPickingColor;
 
             in vec2 vTextureCoord;
 
-            layout(location = 0) out vec4 fragColor;
+            layout(location = 0) out vec4 fragDepth;
+            layout(location = 1) out vec4 frustumColor;
 
             /* return 1 if v inside the box, return 0 otherwise */
             float insideBox(vec2 v, vec2 bottomLeft, vec2 topRight) {
@@ -787,32 +788,34 @@ export function drawnode_depth() {
                 
                 float depth = gl_FragCoord.z;
 
-                fragColor = vec4(1.0, 1.0, 1.0, texture( defaultTexture, vTextureCoord ).a);
+                frustumColor = vec4(frustumPickingColor, 1.0);
+
+                fragDepth = vec4(1.0, 1.0, 1.0, texture( defaultTexture, vTextureCoord ).a);
                 if( samplerCount == 0 ) return;
 
                 vec4 t = texture( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
+                fragDepth = mix( fragDepth, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 1 ) return;
 
                 t = texture( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
+                fragDepth = mix( fragDepth, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 2 ) return;
 
                 t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
+                fragDepth = mix( fragDepth, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 3 ) return;
 
                 t = texture( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
+                fragDepth = mix( fragDepth, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
                 if( samplerCount == 4 ) return;
 
                 t = texture( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                fragColor = mix( fragColor, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
+                fragDepth = mix( fragDepth, vec4(depth, depth, depth, 1.0), 1.0 - step(0.0, -emptiness));
             }`
     });
 }
