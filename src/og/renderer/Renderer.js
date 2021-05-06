@@ -917,7 +917,15 @@ Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
     // screen texture
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[window.DEPTH_SOURCE || 0]);
-    gl.uniform1i(p.uniforms.depthBuffer, 0);
+    gl.uniform1i(p.uniforms.depthTexture, 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+    gl.uniform1i(p.uniforms.frustumPickingTexture, 1);
+
+    gl.uniform2fv(p.uniforms.nearFarArr, this.activeCamera.nearFarArr);
+    gl.uniform3fv(p.uniforms.frustumColors, this.activeCamera.frustumColors);
+
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 

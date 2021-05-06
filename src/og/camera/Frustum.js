@@ -34,6 +34,13 @@ class Frustum {
         this._projectionMatrix = new Mat4();
 
         /**
+         * Camera inverse projection matrix.
+         * @protected
+         * @type {og.Mat4}
+         */
+        this._inverseProjectionMatrix = new Mat4();
+
+        /**
          * Product of projection and view matrices.
          * @protected
          * @type {og.Mat4}
@@ -118,6 +125,10 @@ class Frustum {
         return this._projectionMatrix._m;
     }
 
+    getInverseProjectionMatrix() {
+        return this._inverseProjectionMatrix._m;
+    }
+
     /**
      * Sets up camera projection matrix.
      * @public
@@ -136,6 +147,7 @@ class Frustum {
         this.far = far;
 
         this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
+        this._projectionMatrix.inverseTo(this._inverseProjectionMatrix);
     }
 
     /**
@@ -146,7 +158,7 @@ class Frustum {
     setViewMatrix(viewMatrix) {
 
         this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
-        this._inverseProjectionViewMatrix = this._projectionViewMatrix.inverseTo();
+        this._projectionViewMatrix.inverseTo(this._inverseProjectionViewMatrix);
 
         let m = this._projectionViewMatrix._m;
 

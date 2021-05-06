@@ -123,6 +123,10 @@ class Camera {
 
         this.frustums = [];
 
+        this.nearFarArr = [];
+
+        this.frustumColors = [];
+
         if (options.frustums) {
             for (let i = 0, len = options.frustums.length; i < len; i++) {
                 let fi = options.frustums[i];
@@ -136,17 +140,25 @@ class Camera {
 
                 this.frustums.push(fr);
                 this.renderer.assignPickingColor(fr);
+                this.nearFarArr.push.apply(this.nearFarArr, [fi[0], fi[1]]);
+                this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
             }
         } else {
+
+            let near = 1.0,
+                far = 10000.0;
+
             let fr = new Frustum({
                 fov: this._viewAngle,
                 aspect: this._aspect,
-                near: 1.0,
-                far: 10000.0
-            })
+                near: near,
+                far: far
+            });
 
             this.frustums.push(fr);
             this.renderer.assignPickingColor(fr);
+            this.nearFarArr = new Array([near, far]);
+            this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
@@ -553,8 +565,17 @@ class Camera {
      * @public
      * @returns {og.Mat4} - Inversed projection-view matrix.
      */
-    getInverseProjecttionViewMatrix() {
+    getInverseProjectionViewMatrix() {
         return this.frustum._inverseProjectionViewMatrix._m;
+    }
+
+    /**
+     * Returns inverse projection matrix.
+     * @public
+     * @returns {og.Mat4} - Inversed projection-view matrix.
+     */
+    getInverseProjectionMatrix() {
+        return this.frustum._inverseProjectionMatrix._m;
     }
 };
 

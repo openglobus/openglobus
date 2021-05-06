@@ -1309,13 +1309,7 @@ class Planet extends RenderNode {
         let shu = sh.uniforms;
         let cam = renderer.activeCamera;
 
-        //gl.blendEquation(gl.FUNC_ADD);
-        //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        //gl.enable(gl.BLEND);
-        //gl.enable(gl.CULL_FACE);
-
         gl.disable(gl.BLEND);
-
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
