@@ -1557,10 +1557,14 @@ class Planet extends RenderNode {
 
                 let z = -(viewPosition.z / viewPosition.w);
 
-                print2d("label0", `${z}, ${d}`, 100, 100);
+                let dir = this.renderer.activeCamera.unproject(px.x, px.y);
 
-                this._currentDistanceFromPixel = z;
-                return z;
+                let zz = z / dir.dot(this.renderer.activeCamera.getForward());
+
+                print2d("label0", `${z}, ${d}, ${zz}`, 100, 100);
+
+                this._currentDistanceFromPixel = zz;
+                return zz;
             }
 
 
