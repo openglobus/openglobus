@@ -165,7 +165,7 @@ class Globe {
                 new MouseNavigation(),
                 new TouchNavigation(),
                 new EarthCoordinates(),
-                new ScaleControl(),
+                //new ScaleControl(),
                 new CompassButton()
             ]);
         }

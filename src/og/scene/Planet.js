@@ -34,6 +34,7 @@ import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Geoid } from '../terrain/Geoid.js';
 //import { EntityCollection } from '../entity/EntityCollection.js';
+import { print2d } from '../utils/shared.js';
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
@@ -1529,20 +1530,42 @@ class Planet extends RenderNode {
     getDistanceFromPixel(px, force) {
         if (this._viewChanged || force) {
             this._viewChanged = false;
-            var cnv = this.renderer.handler.canvas;
+            let r = this.renderer,
+                cnv = this.renderer.handler.canvas;
 
             this._heightPickingFramebuffer.activate();
             this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
             this._heightPickingFramebuffer.deactivate();
-
             var color = Vec4.fromVec(this._tempPickingPix_);
+            color.w = 0.0;
+            let d = coder.decodeFloatFromRGBA(color);
 
-            if (!(color.x | color.y | color.z)) {
-                return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
+            r.depthFramebuffer.activate();
+
+            let depthColor = new Uint8Array(4),
+                frustumColor = new Uint8Array(4);
+
+            r.depthFramebuffer.readPixels(depthColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
+            r.depthFramebuffer.readPixels(frustumColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 1);
+
+            r.depthFramebuffer.deactivate();
+
+            let frustum = r.getPickingObjectByColor(frustumColor[0], frustumColor[1], frustumColor[2]);
+            if (frustum) {
+                let screenPos = new Vec4(px.x / cnv.width * 2 - 1, (cnv.height - px.y) / cnv.height * 2 - 1, depthColor[0] / 255.0 * 2 - 1, 1.0 * 2 - 1);
+                let viewPosition = frustum._inverseProjectionMatrix.mulVec4(screenPos);
+
+                let z = -(viewPosition.z / viewPosition.w);
+
+                print2d("label0", `${z}, ${d}`, 100, 100);
+
+                this._currentDistanceFromPixel = z;
+                return z;
             }
 
-            color.w = 0.0;
-            this._currentDistanceFromPixel = coder.decodeFloatFromRGBA(color);
+
+            return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
+
             return this._currentDistanceFromPixel;
         }
         return this._currentDistanceFromPixel;
