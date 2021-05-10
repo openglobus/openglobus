@@ -39,6 +39,8 @@ import { print2d } from '../utils/shared.js';
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
 
+window.HEIGHTPICKING = false;
+
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
  * @const
@@ -1040,7 +1042,9 @@ class Planet extends RenderNode {
 
         this._renderScreenNodesPASS();
 
+        //if (HEIGHTPICKING) {
         this._renderHeightPickingFramebufferPASS();
+        //}
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
@@ -1459,7 +1463,7 @@ class Planet extends RenderNode {
     getCartesianFromPixelTerrain(px, force) {
         var distance = this.getDistanceFromPixel(px, force);
         if (distance) {
-            var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+            var direction = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
             return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
         }
         return null;
@@ -1533,42 +1537,39 @@ class Planet extends RenderNode {
             let r = this.renderer,
                 cnv = this.renderer.handler.canvas;
 
+            // HEIGHT
             this._heightPickingFramebuffer.activate();
             this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
             this._heightPickingFramebuffer.deactivate();
             var color = Vec4.fromVec(this._tempPickingPix_);
             color.w = 0.0;
-            let d = coder.decodeFloatFromRGBA(color);
+            let dist = coder.decodeFloatFromRGBA(color);
 
-            r.depthFramebuffer.activate();
+            let depthColor = new Uint8Array(4);
 
-            let depthColor = new Uint8Array(4),
-                frustumColor = new Uint8Array(4);
+            //r.depthFramebuffer.activate();
+            //r.depthFramebuffer.readPixels(frustumColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
+            //r.depthFramebuffer.deactivate();
+            //let frustum = r.getPickingObjectByColor(frustumColor[0], frustumColor[1], frustumColor[2]);
+            //let depth = 0;
 
-            r.depthFramebuffer.readPixels(depthColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
-            r.depthFramebuffer.readPixels(frustumColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 1);
+            let d = dist;
+            if (dist < 10) {
+                r.screenDepthFramebuffer.activate();
+                r.screenDepthFramebuffer.readPixels(depthColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
+                r.screenDepthFramebuffer.deactivate();
 
-            r.depthFramebuffer.deactivate();
-
-            let frustum = r.getPickingObjectByColor(frustumColor[0], frustumColor[1], frustumColor[2]);
-            if (frustum) {
                 let screenPos = new Vec4(px.x / cnv.width * 2 - 1, (cnv.height - px.y) / cnv.height * 2 - 1, depthColor[0] / 255.0 * 2 - 1, 1.0 * 2 - 1);
-                let viewPosition = frustum._inverseProjectionMatrix.mulVec4(screenPos);
-
-                let z = -(viewPosition.z / viewPosition.w);
-
-                let dir = this.renderer.activeCamera.unproject(px.x, px.y);
-
-                let zz = z / dir.dot(this.renderer.activeCamera.getForward());
-
-                print2d("label0", `${z}, ${d}, ${zz}`, 100, 100);
-
-                this._currentDistanceFromPixel = zz;
-                return zz;
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            } else if (color.isZero()) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             }
 
+            print2d("l0", `${d.toFixed(2)}, ${dist.toFixed(2)}`, 100, 100);
 
-            return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
+            this._currentDistanceFromPixel = dist;
 
             return this._currentDistanceFromPixel;
         }

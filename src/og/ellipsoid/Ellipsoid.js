@@ -311,7 +311,6 @@ class Ellipsoid {
         var q = Math.sqrt(1.0 + 2.0 * ecc22 * p);
         var recc2r0 = r - ecc2 * (-(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2));
         var recc2r02 = recc2r0 * recc2r0;
-        // var u = Math.sqrt(recc2r02 + z2);
         var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
         var z0 = this._b2 * z / (this._a * v);
         var lat = Math.atan((z + this._k2 * z0) / r) * math.DEGREES;

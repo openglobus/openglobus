@@ -8,6 +8,7 @@
 
 <body>
     <div id="earth" style="width:100%;height:100%"></div>
+    <div id="l0" class="defaultText" style="color:black"></div>
     <script type="module">
         'use strict';
 
@@ -22,39 +23,42 @@
 
         let pointLayer = new Vector("points", {
             'clampToGround': true,
-            'entities': [{
-                'name': 'Blue Marker',
-                'lonlat': [8.19, 46.73],
-                'billboard': {
-                    'src': 'marker.png',
-                    'size': [29, 48],
-                    'offset': [0, 24]
-                }
-            }, {
-                'name': 'label',
-                'lonlat': [8.25, 46.74],
-                'label': {
-                    face: "DancingScript-Regular",
-                    'text': 'Hello world!',
-                    'size': 24,
-                    color: "rgba(0,0,0,1)",
-                    'outlineColor': "rgba(255,255,255,0.5)",
-                    'outline': 0.5,
-                    align: "center"
-                }
-            }, {
-                'name': 'label',
-                'lonlat': [8.23, 46.736],
-                'label': {
-                    face: "arial",
-                    'text': '543.6 m',
-                    'size': 12,
-                    color: "rgba(0,0,0,1)",
-                    'outlineColor': "rgba(0,0,0,0.7)",
-                    'outline': 0.0,
-                    align: "left"
-                }
-            }],
+            'entities': [
+            //    {
+            //    'name': 'Blue Marker',
+            //    'lonlat': [8.19, 46.73],
+            //    'billboard': {
+            //        'src': 'marker.png',
+            //        'size': [29, 48],
+            //        'offset': [0, 24]
+            //    }
+            //}
+            //    , {
+            //    'name': 'label',
+            //    'lonlat': [8.25, 46.74],
+            //    'label': {
+            //        face: "DancingScript-Regular",
+            //        'text': 'Hello world!',
+            //        'size': 24,
+            //        color: "rgba(0,0,0,1)",
+            //        'outlineColor': "rgba(255,255,255,0.5)",
+            //        'outline': 0.5,
+            //        align: "center"
+            //    }
+            //}, {
+            //    'name': 'label',
+            //    'lonlat': [8.23, 46.736],
+            //    'label': {
+            //        face: "arial",
+            //        'text': '543.6 m',
+            //        'size': 12,
+            //        color: "rgba(0,0,0,1)",
+            //        'outlineColor': "rgba(0,0,0,0.7)",
+            //        'outline': 0.0,
+            //        align: "left"
+            //    }
+            //    }
+            ],
             'async': false
         });
 
@@ -71,6 +75,7 @@
         });
 
         pointLayer.events.on("ldown", function (e) {
+            //pointLayer.clampToGround = false;
             e.renderer.controls.mouseNavigation.deactivate();
             startClick.set(e.x, e.y);
             pickingObject = e.pickingObject;
@@ -78,6 +83,7 @@
         });
 
         pointLayer.events.on("lup", function (e) {
+            //pointLayer.clampToGround = true;
             e.renderer.controls.mouseNavigation.activate();
             pickingObject = null;
         });
@@ -121,7 +127,8 @@
 
             pointLayer.add(new Entity({
                 'name': 'New Marker',
-                'lonlat': ll,
+                //'lonlat': ll,
+		        cartesian: globe.planet.getCartesianFromPixelTerrain(e, true),
                 'billboard': {
                     'src': 'marker.png',
                     'size': [29, 48],
@@ -136,6 +143,8 @@
         });
 
         window.globe = globe;
+
+        window.pointLayer = pointLayer;
 
     </script>
 </body>

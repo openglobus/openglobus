@@ -85,6 +85,8 @@ class Frustum {
          */
         this.far = 0.0;
 
+        this._cameraFrustumIndex = options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
+
         this.setProjectionMatrix(
             options.fov || 30.0,
             options.aspect || 1.0,
