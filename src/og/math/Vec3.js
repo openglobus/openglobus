@@ -563,6 +563,25 @@ Vec3.prototype.clear = function () {
  * @public
  * @returns {og.Vec3} -
  */
+Vec3.prototype.getNormal = function () {
+    var res = new Vec3();
+    res.copy(this);
+
+    var length = 1.0 / res.length();
+
+    res.x *= length;
+    res.y *= length;
+    res.z *= length;
+
+    return res;
+};
+
+/**
+ * Returns normalized vector.
+ * @deprecated
+ * @public
+ * @returns {og.Vec3} -
+ */
 Vec3.prototype.normal = function () {
     var res = new Vec3();
     res.copy(this);
