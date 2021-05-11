@@ -34,9 +34,13 @@ import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Geoid } from '../terrain/Geoid.js';
 //import { EntityCollection } from '../entity/EntityCollection.js';
+import { print2d } from '../utils/shared.js';
+import { depth } from '../shaders/depth.js';
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
+
+window.HEIGHTPICKING = false;
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -283,6 +287,10 @@ class Planet extends RenderNode {
          * @type {Object}
          */
         this._heightPickingFramebuffer = null;
+
+        this._depthFramebuffer = null;
+
+        this._screenDepthFramebuffer = null;
 
         /**
          * Calculates when mouse is moving or planet is rotating.
@@ -607,20 +615,36 @@ class Planet extends RenderNode {
         var h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-        h.addProgram(shaders.drawnode_screen_wl(), true);
+        h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
         h.addProgram(shaders.drawnode_colorPicking(), true);
+        h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
+        h.addProgram(depth(), true);
 
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
 
         this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
-            width: 320,
-            height: 240
-        });
-
-        this._heightPickingFramebuffer.init();
+            width: 640,
+            height: 480
+        }).init();
 
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
+
+        this._depthFramebuffer = new Framebuffer(this.renderer.handler, {
+            size: 2,
+            internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
+            format: ["RGBA", "DEPTH_COMPONENT"],
+            type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
+            attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
+            useDepth: false
+        }).init();
+
+        this._screenDepthFramebuffer = new Framebuffer(this.renderer.handler, {
+            useDepth: false
+        }).init();
+
+        this.renderer.screenTexture.frustum = this._depthFramebuffer.textures[0];
+        this.renderer.screenTexture.depth = this._screenDepthFramebuffer.textures[0];
     }
 
     /**
@@ -749,6 +773,15 @@ class Planet extends RenderNode {
         });
 
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
+
+        this.renderer.events.on("resize", (obj) => {
+            this._depthFramebuffer && this._depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+            this._screenDepthFramebuffer && this._screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+
+            // update screenTexture output sources
+            this.renderer.screenTexture.frustum = this._depthFramebuffer.textures[0];
+            this.renderer.screenTexture.depth = this._screenDepthFramebuffer.textures[0];
+        }, this);
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
@@ -1034,6 +1067,8 @@ class Planet extends RenderNode {
 
         this._renderHeightPickingFramebufferPASS();
 
+        this._renderDepthFramebufferPASS();
+
         this.drawEntityCollections(this._frustumEntityCollections);
     }
 
@@ -1243,6 +1278,83 @@ class Planet extends RenderNode {
         this._heightPickingFramebuffer.deactivate();
     }
 
+    _renderDepthFramebufferPASS = function () {
+
+        let renderer = this.renderer;
+        let cam = renderer.activeCamera;
+        let frustumIndex = cam.getCurrentFrustum();
+
+        if (frustumIndex === 0) {
+
+            this._depthFramebuffer.activate();
+
+            var h = renderer.handler;
+            var gl = h.gl;
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.enable(gl.DEPTH_TEST);
+
+            h.programs.drawnode_depth.activate();
+            sh = h.programs.drawnode_depth._program;
+            let shu = sh.uniforms;
+            let cam = renderer.activeCamera;
+
+            gl.disable(gl.BLEND);
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+            gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
+
+            // drawing planet nodes
+            var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
+                sl = this._visibleTileLayerSlices;
+
+            let i = rn.length;
+            while (i--) {
+                rn[i].segment.depthRendering(sh, sl[0], 0);
+            }
+
+            gl.enable(gl.POLYGON_OFFSET_FILL);
+            for (let j = 1, len = sl.length; j < len; j++) {
+                i = rn.length;
+                gl.polygonOffset(0, -j);
+                while (i--) {
+                    rn[i].segment.depthRendering(sh, sl[j], j, this.transparentTexture, true);
+                }
+            }
+
+            this._depthFramebuffer.deactivate();
+
+            //
+            // PASS to depth visualization
+            var sh = h.programs.depth,
+                p = sh._program;
+
+            gl = h.gl;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, renderer._screenFrameCornersBuffer);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            this._screenDepthFramebuffer.activate();
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, this._depthFramebuffer.textures[1]);
+            gl.uniform1i(p.uniforms.depthTexture, 1);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            this._screenDepthFramebuffer.deactivate();
+        }
+    }
+
     /**
      * @protected
      */
@@ -1287,6 +1399,48 @@ class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
+    }
+
+    /**
+     * @protected
+     */
+    _renderDepthFramebufferPASS() {
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        h.programs.drawnode_depth.activate();
+        sh = h.programs.drawnode_depth._program;
+        let shu = sh.uniforms;
+        let cam = renderer.activeCamera;
+
+        gl.disable(gl.BLEND);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
+
+        // drawing planet nodes
+        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
+            sl = this._visibleTileLayerSlices;
+
+        let i = rn.length;
+        while (i--) {
+            rn[i].segment.depthRendering(sh, sl[0], 0);
+        }
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        for (let j = 1, len = sl.length; j < len; j++) {
+            i = rn.length;
+            gl.polygonOffset(0, -j);
+            while (i--) {
+                rn[i].segment.depthRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
     }
 
     _collectVectorLayerCollections() {
@@ -1409,7 +1563,7 @@ class Planet extends RenderNode {
     getCartesianFromPixelTerrain(px, force) {
         var distance = this.getDistanceFromPixel(px, force);
         if (distance) {
-            var direction = this.renderer.activeCamera.unproject(px.x, px.y);
+            var direction = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
             return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
         }
         return null;
@@ -1480,20 +1634,35 @@ class Planet extends RenderNode {
     getDistanceFromPixel(px, force) {
         if (this._viewChanged || force) {
             this._viewChanged = false;
-            var cnv = this.renderer.handler.canvas;
+            let r = this.renderer,
+                cnv = this.renderer.handler.canvas;
 
+            // HEIGHT
             this._heightPickingFramebuffer.activate();
             this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
             this._heightPickingFramebuffer.deactivate();
-
             var color = Vec4.fromVec(this._tempPickingPix_);
+            color.w = 0.0;
+            let dist = coder.decodeFloatFromRGBA(color);
 
-            if (!(color.x | color.y | color.z)) {
-                return this._currentDistanceFromPixel = this.getDistanceFromPixelEllipsoid(px);
+            let depthColor = new Uint8Array(4);
+
+            let d = dist;
+            if (dist < 11) {
+                this._screenDepthFramebuffer.activate();
+                this._screenDepthFramebuffer.readPixels(depthColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
+                this._screenDepthFramebuffer.deactivate();
+
+                let screenPos = new Vec4(px.x / cnv.width * 2 - 1, (cnv.height - px.y) / cnv.height * 2 - 1, depthColor[0] / 255.0 * 2 - 1, 1.0 * 2 - 1);
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            } else if (color.isZero()) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             }
 
-            color.w = 0.0;
-            this._currentDistanceFromPixel = coder.decodeFloatFromRGBA(color);
+            this._currentDistanceFromPixel = dist;
+
             return this._currentDistanceFromPixel;
         }
         return this._currentDistanceFromPixel;

@@ -252,4 +252,13 @@ Vec4.prototype.dot = function (v) {
     return v.x * this.x + v.y * this.y + v.z * this.z + v.w * this.w;
 };
 
+/**
+ * Returns true if vector's values are zero.
+ * @public
+ * @returns {boolean} -
+ */
+Vec4.prototype.isZero = function () {
+    return !(this.x || this.y || this.z || this.w);
+};
+
 export { Vec4 };

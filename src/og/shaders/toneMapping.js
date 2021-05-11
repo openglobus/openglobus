@@ -44,7 +44,7 @@ export function toneMapping() {
             }
 
             vec3 ReinhardToneMapping2(vec3 color) {
-                return vec3(1.0) - exp(-color * exposure);;
+                return vec3(1.0) - exp(-color * exposure);
             }
 
             vec3 ReinhardToneMapping(vec3 color) {
@@ -79,7 +79,6 @@ export function toneMapping() {
                 
                 float oneByGamma = gamma / gamma;
                 float oneByWhitePoint = whitepoint / whitepoint;
-
                 vec3 mapped = ReinhardToneMapping2(hdrColor) * oneByGamma * oneByWhitePoint;
 
                 mapped = pow(mapped, vec3(1.0 / gamma));

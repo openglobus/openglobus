@@ -80,7 +80,9 @@ class MouseNavigation extends Control {
 
             var scaled_n = n.scaleTo(d);
 
-            if (a && cam.slope >= 0.0) {
+            let slope = dir.dot(cam.eye.normal().negate());
+
+            if (a && slope >= 0.1) {
                 var grabbedSpheroid = new Sphere();
                 grabbedSpheroid.radius = a.length();
 

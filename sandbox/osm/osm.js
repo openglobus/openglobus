@@ -416,11 +416,11 @@ var osm = new XYZ("OpenStreetMap", {
 var globus = new Globe({
     "target": "earth",
     "name": "Earth",
-    "terrain": new EmptyTerrain({
+    "terrain": /*new EmptyTerrain({
         gridSizeByZoom: [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-    }),//new GlobusTerrain(),
+    }),/*/new GlobusTerrain(),
     "layers": [osm, tg],
-    'viewExtent': [-1.12135, 51.60133, -1.11704, 51.60224]
+    //'viewExtent': [-1.12135, 51.60133, -1.11704, 51.60224]
 });
 
 fetch("./szint.json")

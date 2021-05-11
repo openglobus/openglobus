@@ -109,27 +109,17 @@ Multisample.prototype.init = function () {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-    if (this.renderbuffers.length === 0) {
+    let colorAttachments = [];
+    for (var i = 0; i < this.renderbuffers.length; i++) {
         let rb = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
         gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._internalFormat], this._width, this._height);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb);
-        this.renderbuffers.push(rb);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, rb);
+        colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
+        this.renderbuffers[i] = rb;
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-        gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    } else {
-        let colorAttachments = [];
-        for (var i = 0; i < this.renderbuffers.length; i++) {
-            let rb = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._internalFormat], this._width, this._height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, rb);
-            colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
-            this.renderbuffers[i] = rb;
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-        }
-        gl.drawBuffers(colorAttachments);
     }
+    gl.drawBuffers(colorAttachments);
 
     if (this._useDepth) {
         this._depthRenderbuffer = gl.createRenderbuffer();
@@ -144,7 +134,7 @@ Multisample.prototype.init = function () {
     return this;
 };
 
-Multisample.prototype.blit = function (framebuffer, attachmentIndex = 0) {
+Multisample.prototype.blitTo = function (framebuffer, attachmentIndex = 0) {
 
     let gl = this.handler.gl;
 
@@ -222,6 +212,9 @@ Multisample.prototype.activate = function () {
 Multisample.prototype.deactivate = function () {
     var h = this.handler,
         gl = h.gl;
+
+    //Q: check for this._useDepth ?
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     this._active = false;
 

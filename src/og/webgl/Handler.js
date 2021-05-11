@@ -578,6 +578,8 @@ Handler.prototype.initialize = function () {
     if (this.gl.type === "webgl") {
         this._params.extensions.push("OES_standard_derivatives");
         this._params.extensions.push("OES_element_index_uint");
+        this._params.extensions.push("WEBGL_depth_texture");
+        //this._params.extensions.push("EXT_frag_depth");
     } else {
         this._params.extensions.push("EXT_color_buffer_float");
         this._params.extensions.push("OES_texture_float_linear");

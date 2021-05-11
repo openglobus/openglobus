@@ -178,7 +178,7 @@ Mat4.prototype.toInverseMatrix3 = function () {
  * @public
  * @returns {og.Mat4} -
  */
-Mat4.prototype.inverseTo = function () {
+Mat4.prototype.inverseTo = function (res) {
     var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
         f = this._m[4], h = this._m[5], i = this._m[6], j = this._m[7],
         k = this._m[8], l = this._m[9], o = this._m[10], m = this._m[11],
@@ -196,7 +196,7 @@ Mat4.prototype.inverseTo = function () {
         D = l * s - m * p,
         E = o * s - m * r,
         q = 1 / (A * E - B * D + t * C + u * z - v * y + w * x),
-        res = new Mat4();
+        res = res || new Mat4();
 
     res._m[0] = (h * E - i * D + j * C) * q; res._m[1] = (-d * E + e * D - g * C) * q; res._m[2] = (p * w - r * v + s * u) * q; res._m[3] = (-l * w + o * v - m * u) * q;
     res._m[4] = (-f * E + i * z - j * y) * q; res._m[5] = (c * E - e * z + g * y) * q; res._m[6] = (-n * w + r * t - s * B) * q; res._m[7] = (k * w - o * t + m * B) * q;

@@ -210,6 +210,11 @@ Renderer.prototype.setEventsActivity = function (activity) {
     this.events.active = activity;
 };
 
+Renderer.prototype.setScreenScale = function (scale) {
+    this._screenScale = scale;
+    this._resize();
+};
+
 /**
  * Adds picking rendering callback function.
  * @param {object} sender - Callback context.
@@ -220,11 +225,6 @@ Renderer.prototype.addPickingCallback = function (sender, callback) {
     var id = Renderer.__pickingCallbackCounter__++;
     this._pickingCallbacks.push({ id: id, callback: callback, sender: sender });
     return id;
-};
-
-Renderer.prototype.setScreenScale = function (scale) {
-    this._screenScale = scale;
-    this._resize();
 };
 
 /**
@@ -694,7 +694,7 @@ Renderer.prototype.draw = function () {
 
     sfb.deactivate();
 
-    this.blitFramebuffer && sfb.blit(this.blitFramebuffer);
+    this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
 
     this._readPickingColor();
 
