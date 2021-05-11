@@ -444,7 +444,8 @@ Renderer.prototype.initialize = function () {
         this.screenTexture = {
             screen: this.sceneFramebuffer.textures[0],
             picking: this.pickingFramebuffer.textures[0],
-            depth: this.screenDepthFramebuffer.textures[0]
+            depth: this.depthFramebuffer.textures[0],
+            frustum: this.depthFramebuffer.textures[1]
         };
     } else {
 
@@ -486,7 +487,8 @@ Renderer.prototype.initialize = function () {
         this.screenTexture = {
             screen: this.toneMappingFramebuffer.textures[0],
             picking: this.pickingFramebuffer.textures[0],
-            depth: this.screenDepthFramebuffer.textures[0]
+            depth: this.depthFramebuffer.textures[0],
+            frustum: this.depthFramebuffer.textures[1]
         };
     }
 
@@ -528,12 +530,12 @@ Renderer.prototype._resize = function () {
         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
         this.screenTexture.depth = this.depthFramebuffer.textures[0];
-        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+        this.screenTexture.frustum = this.depthFramebuffer.textures[1];
     } else {
         this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
         this.screenTexture.depth = this.depthFramebuffer.textures[0];
-        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+        this.screenTexture.frustum = this.screenDepthFramebuffer.textures[1];
     }
 
     this.setCurrentScreen(this._currentOutput);

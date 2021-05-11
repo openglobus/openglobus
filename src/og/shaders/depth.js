@@ -56,19 +56,7 @@ export function depth() {
                 int index = getFrustumIndex(texture(frustumPickingTexture, tc).rgb);
                 float zNear = nearFarArr[index].x,
                       zFar = nearFarArr[index].y;                
-
                 float depth = texture(depthTexture, tc).x;
-                if(index == 0){
-                    return 0.8;
-                } else if(index == 1){
-                    return 0.4;
-                } else if(index == 2){
-                    return 0.2;
-                } else if(index == 3){
-                    return 0.05;
-                } else {
-                    return 1.0;
-                }
                 return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
             }
             
