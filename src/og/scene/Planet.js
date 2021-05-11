@@ -1278,7 +1278,7 @@ class Planet extends RenderNode {
         this._heightPickingFramebuffer.deactivate();
     }
 
-    _renderDepthFramebufferPASS = function () {
+    _renderDepthFramebufferPASS() {
 
         let renderer = this.renderer;
         let cam = renderer.activeCamera;
