@@ -5,10 +5,7 @@ import { Program } from '../webgl/Program.js';
 export function depth() {
     return new Program("depth", {
         uniforms: {
-            depthTexture: "sampler2d",
-            frustumPickingTexture: "sampler2d",
-            nearFarArr: "vec2[]",
-            frustumColors: "vec3[]"
+            depthTexture: "sampler2d"
         },
         attributes: {
             corners: "vec2"
@@ -32,32 +29,15 @@ export function depth() {
             #define MAX_FRUSTUMS 4
 
             uniform sampler2D depthTexture;
-            uniform sampler2D frustumPickingTexture;
-            uniform vec2 nearFarArr[MAX_FRUSTUMS];
-            uniform vec3 frustumColors[MAX_FRUSTUMS];
            
             in vec2 tc;
 
             layout(location = 0) out vec4 fragColor;
 
-            int getFrustumIndex(in vec3 frustumColor){
-                int res = -1;
-                for( int i=0; i < MAX_FRUSTUMS; i++){
-                    if(distance(frustumColor, frustumColors[i]) < 0.1) {
-                        res = i;
-                        break;
-                    }
-                }
-                return res;
-            }
-
             float LinearizeDepth(in vec2 uv)
             {
-                int index = getFrustumIndex(texture(frustumPickingTexture, tc).rgb);
-                float zNear = nearFarArr[index].x,
-                      zFar = nearFarArr[index].y;                
                 float depth = texture(depthTexture, tc).x;
-                return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+                return depth;//(2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
             }
             
             void main(void) {

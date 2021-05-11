@@ -249,6 +249,7 @@ let _v0 = new Vec3(),
 let _ray = new Ray(),
     _rayEx = new Ray();
 
+window.ELLNORM = false;
 /**
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public

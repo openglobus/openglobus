@@ -138,6 +138,7 @@ class Camera {
                     far: fi[1]
                 })
 
+                fr._cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
                 this.renderer.assignPickingColor(fr);
                 this.nearFarArr.push.apply(this.nearFarArr, [fi[0], fi[1]]);
@@ -155,6 +156,7 @@ class Camera {
                 far: far
             });
 
+            fr._cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
             this.renderer.assignPickingColor(fr);
             this.nearFarArr = new Array([near, far]);

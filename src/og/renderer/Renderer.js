@@ -410,23 +410,23 @@ Renderer.prototype.initialize = function () {
         height: 480
     }).init();
 
-    //this.depthFramebuffer = new Framebuffer(this.handler, {
-    //    size: 2,
-    //    internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
-    //    format: ["RGBA", "DEPTH_COMPONENT"],
-    //    type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
-    //    attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
-    //    useDepth: false
-    //}).init();
-
     this.depthFramebuffer = new Framebuffer(this.handler, {
         size: 2,
-        internalFormat: ["RGBA", "RGBA"],
-        format: ["RGBA", "RGBA"],
-        type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
-        attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
-        useDepth: true
+        internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
+        format: ["RGBA", "DEPTH_COMPONENT"],
+        type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
+        attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
+        useDepth: false
     }).init();
+
+    //this.depthFramebuffer = new Framebuffer(this.handler, {
+    //    size: 2,
+    //    internalFormat: ["RGBA", "RGBA"],
+    //    format: ["RGBA", "RGBA"],
+    //    type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
+    //    attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
+    //    useDepth: true
+    //}).init();
 
 
     this.screenDepthFramebuffer = new Framebuffer(this.handler, {
@@ -444,8 +444,7 @@ Renderer.prototype.initialize = function () {
         this.screenTexture = {
             screen: this.sceneFramebuffer.textures[0],
             picking: this.pickingFramebuffer.textures[0],
-            depth: this.depthFramebuffer.textures[0],
-            frustum: this.depthFramebuffer.textures[1]
+            depth: this.screenDepthFramebuffer.textures[0]
         };
     } else {
 
@@ -487,8 +486,8 @@ Renderer.prototype.initialize = function () {
         this.screenTexture = {
             screen: this.toneMappingFramebuffer.textures[0],
             picking: this.pickingFramebuffer.textures[0],
-            depth: this.depthFramebuffer.textures[0],
-            frustum: this.depthFramebuffer.textures[1]
+            depth: this.screenDepthFramebuffer.textures[0],
+            frustum: this.depthFramebuffer.textures[0]
         };
     }
 
@@ -529,13 +528,13 @@ Renderer.prototype._resize = function () {
     if (this.handler.gl.type === "webgl") {
         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-        this.screenTexture.depth = this.depthFramebuffer.textures[0];
-        this.screenTexture.frustum = this.depthFramebuffer.textures[1];
+        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+        this.screenTexture.frustum = this.depthFramebuffer.textures[0];
     } else {
         this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-        this.screenTexture.depth = this.depthFramebuffer.textures[0];
-        this.screenTexture.frustum = this.screenDepthFramebuffer.textures[1];
+        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+        this.screenTexture.frustum = this.depthFramebuffer.textures[0];
     }
 
     this.setCurrentScreen(this._currentOutput);
@@ -874,68 +873,56 @@ Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
 };
 
 Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
-    this.depthFramebuffer.activate();
 
-    var h = this.handler;
-    var gl = h.gl;
+    if (frustumIndex === 0) {
 
-    if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+        this.depthFramebuffer.activate();
+
+        var h = this.handler;
+        var gl = h.gl;
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    } else {
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        gl.enable(gl.DEPTH_TEST);
+
+        var dp = this._depthCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders depth frame.
+             * @callback og.Renderer~depthCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.depthFramebuffer.deactivate();
+
+        //
+        // PASS to depth visualization
+        var sh = h.programs.depth,
+            p = sh._program;
+
+        gl = h.gl;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        this.screenDepthFramebuffer.activate();
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+        gl.uniform1i(p.uniforms.depthTexture, 1);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        this.screenDepthFramebuffer.deactivate();
     }
-
-    gl.enable(gl.DEPTH_TEST);
-
-    var dp = this._depthCallbacks;
-    var i = dp.length;
-    while (i--) {
-        /**
-         * This callback renders depth frame.
-         * @callback og.Renderer~depthCallback
-         */
-        dp[i].callback.call(dp[i].sender);
-    }
-
-    this.depthFramebuffer.deactivate();
-
-    // PASS to depth visualization
-    var sh = h.programs.depth,
-        p = sh._program;
-
-    gl = h.gl;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-    this.screenDepthFramebuffer.activate();
-
-    sh.activate();
-
-    gl.uniform1f(p.uniforms.near, window.NEAR);
-    gl.uniform1f(p.uniforms.far, window.FAR);
-
-    // screen texture
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[window.DEPTH_SOURCE || 0]);
-    gl.uniform1i(p.uniforms.depthTexture, 0);
-
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
-    gl.uniform1i(p.uniforms.frustumPickingTexture, 1);
-
-    gl.uniform2fv(p.uniforms.nearFarArr, this.activeCamera.nearFarArr);
-    gl.uniform3fv(p.uniforms.frustumColors, this.activeCamera.frustumColors);
-
-
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    this.screenDepthFramebuffer.deactivate();
 };
 
-window.NEAR = 1;
-window.FAR = 10;
+window.FRUSTUMINDEX = 0;
 
 Renderer.prototype._readPickingColor = function () {
     var ms = this.events.mouseState;
