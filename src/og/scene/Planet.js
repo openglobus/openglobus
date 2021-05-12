@@ -1561,8 +1561,6 @@ class Planet extends RenderNode {
                 dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             }
 
-            print2d("l0", `${d.toFixed(2)}, ${dist.toFixed(2)}`, 100, 100);
-
             this._currentDistanceFromPixel = dist;
 
             return this._currentDistanceFromPixel;
