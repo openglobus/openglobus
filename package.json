@@ -62,6 +62,10 @@
     "rollup-plugin-postcss": "^4.0.0",
     "rollup-plugin-terser": "^5.3.1"
   },
+  "files": [
+    "src/**/*",
+    "css/**/*"
+  ],
   "keywords": [
     "map",
     "3D",
