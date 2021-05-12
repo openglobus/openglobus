@@ -40,6 +40,8 @@ const MIN_LOD = 0.75;
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
 
+const DEPTH_DISTANCE = 11;
+
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
  * @const
@@ -1546,7 +1548,7 @@ class Planet extends RenderNode {
 
             if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
                 dist = this.getDistanceFromPixelEllipsoid(px) || 0;
-            } else if (dist < 11) {
+            } else if (dist < DEPTH_DISTANCE) {
                 r.screenDepthFramebuffer.activate();
                 r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
                 r.screenDepthFramebuffer.deactivate();
