@@ -4,12 +4,12 @@
 
 'use strict';
 
-import * as coder from '../math/coder.js';
 import * as shaders from '../shaders/drawnode.js';
 import * as math from '../math.js';
 import * as mercator from '../mercator.js';
 import * as quadTree from '../quadTree/quadTree.js';
 import * as segmentHelper from '../segment/segmentHelper.js';
+import { decodeFloatFromRGBAArr } from '../math/coder.js';
 import { Extent } from '../Extent.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { GeoImageCreator } from '../utils/GeoImageCreator.js';
@@ -33,13 +33,12 @@ import { wgs84 } from '../ellipsoid/wgs84.js';
 import { NIGHT } from '../res/night.js';
 import { SPECULAR } from '../res/spec.js';
 import { Geoid } from '../terrain/Geoid.js';
-//import { EntityCollection } from '../entity/EntityCollection.js';
-import { print2d } from '../utils/shared.js';
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
 
-window.HEIGHTPICKING = false;
+let _tempPickingPix_ = new Uint8Array(4),
+    _tempDepthColor_ = new Uint8Array(4);
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -397,8 +396,6 @@ class Planet extends RenderNode {
         this._memKey = new Key();
 
         this.events.registerNames(EVENT_NAMES);
-
-        this._tempPickingPix_ = new Uint8Array(4);
 
         this._distBeforeMemClear = 0.0;
 
@@ -1537,34 +1534,34 @@ class Planet extends RenderNode {
             let r = this.renderer,
                 cnv = this.renderer.handler.canvas;
 
+            let spx = px.x / cnv.width,
+                spy = (cnv.height - px.y) / cnv.height;
+
             // HEIGHT
             this._heightPickingFramebuffer.activate();
-            this._heightPickingFramebuffer.readPixels(this._tempPickingPix_, px.x / cnv.width, (cnv.height - px.y) / cnv.height);
+            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
             this._heightPickingFramebuffer.deactivate();
-            var color = Vec4.fromVec(this._tempPickingPix_);
-            color.w = 0.0;
-            let dist = coder.decodeFloatFromRGBA(color);
 
-            let depthColor = new Uint8Array(4);
+            let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
 
-            let d = dist;
-            if (dist < 11) {
+            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
+            } else if (dist < 11) {
                 r.screenDepthFramebuffer.activate();
-                r.screenDepthFramebuffer.readPixels(depthColor, px.x / cnv.width, (cnv.height - px.y) / cnv.height, 0);
+                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
                 r.screenDepthFramebuffer.deactivate();
 
-                let screenPos = new Vec4(px.x / cnv.width * 2 - 1, (cnv.height - px.y) / cnv.height * 2 - 1, depthColor[0] / 255.0 * 2 - 1, 1.0 * 2 - 1);
+                let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, _tempDepthColor_[0] / 255.0 * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
                 let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
                 let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
                 dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
-            } else if (color.isZero()) {
-                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             }
 
             this._currentDistanceFromPixel = dist;
 
             return this._currentDistanceFromPixel;
         }
+
         return this._currentDistanceFromPixel;
     }
 

@@ -33,6 +33,19 @@ export function decodeFloatFromRGBA(rgba) {
 };
 
 /**
+ * Decode RGBA vector to 32 bit float value.
+ * @function
+ * @param {og.Vec4} rgba - RGBA encoded 32 bit float value.
+ * @returns {number} - Float value.
+ */
+export function decodeFloatFromRGBAArr(arr, use32) {
+    var s = 1.0 - math.step(128.0, arr[0]) * 2.0;
+    var e = 2.0 * math.mod(arr[0], 128.0) + math.step(128.0, arr[1]) - 127.0;
+    var m = math.mod(arr[1], 128.0) * 65536.0 + arr[2] * 256.0 + (use32 ? arr[3] : 0.0) + 8388608.00;
+    return s * math.exp2(e) * (m * 1.1920928955078125e-7);
+};
+
+/**
  * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
