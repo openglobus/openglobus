@@ -1521,11 +1521,15 @@ class Polyline {
      * @param {og.scene.RenderNode} renderNode -
      */
     setRenderNode(renderNode) {
-        this._renderNode = renderNode;
-        if (this._pathLonLat.length) {
-            this._createDataLonLat([].concat(this._pathLonLat));
-        } else {
-            this._createData3v([].concat(this._path3v));
+        if (renderNode) {
+            this._renderNode = renderNode;
+            if (this._pathLonLat.length) {
+                this._createDataLonLat([].concat(this._pathLonLat));
+            } else {
+                this._createData3v([].concat(this._path3v));
+            }
+            this._refresh();
+            this._update();
         }
     }
 
