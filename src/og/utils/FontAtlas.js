@@ -4,12 +4,10 @@
 
 'use strict';
 
-import { TextureAtlas } from './TextureAtlas.js';
-import { QueueArray } from '../QueueArray.js';
 import { Rectangle } from '../Rectangle.js';
-import { TextureAtlasNode } from './TextureAtlas.js';
+import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
-import { base64 } from '../arial.js';
+import { ARIAL_FONT_B64 } from '../res/images.js';
 
 class FontAtlas {
     constructor() {
@@ -143,7 +141,7 @@ class FontAtlas {
             atlas.createTexture(img);
             def.resolve(index);
         };
-        img.src = base64;
+        img.src = ARIAL_FONT_B64;
     }
 
     loadFont(faceName, srcDir, atlasUrl) {

@@ -10,15 +10,11 @@ import * as quadTree from '../quadTree/quadTree.js';
 import { Entity } from '../entity/Entity.js';
 import { EntityCollection } from '../entity/EntityCollection.js';
 import { Extent } from '../Extent.js';
-import {
-    EntityCollectionNode,
-    EntityCollectionNodeWGS84
-} from '../quadTree/EntityCollectionNode.js';
+import { EntityCollectionNode, EntityCollectionNodeWGS84 } from '../quadTree/EntityCollectionNode.js';
 import { GeometryHandler } from '../entity/GeometryHandler.js';
 import { Layer } from './Layer.js';
 import { QueueArray } from '../QueueArray.js';
 import { Vec3 } from '../math/Vec3.js';
-import { LonLat } from '../LonLat.js';
 
 /**
  * Creates entity instance array.

@@ -7,7 +7,6 @@
 import * as quadTree from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
 import { doubleToTwoFloats2 } from '../math/coder.js';
 
 let tempArr = new Float32Array(2);
