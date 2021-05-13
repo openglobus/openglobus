@@ -1,8 +1,7 @@
 'use strict';
 
 import { Camera } from '../camera/Camera.js';
-import { Framebuffer } from '../webgl/Framebuffer.js';
-import { Multisample } from '../webgl/Multisample.js';
+import { Framebuffer, Multisample } from '../webgl/index.js';
 import { randomi } from '../math.js';
 import { RendererEvents } from './RendererEvents.js';
 import { Vec2 } from '../math/Vec2.js';
@@ -16,6 +15,7 @@ import { FontAtlas } from '../utils/FontAtlas.js';
 import { TextureAtlas } from '../utils/TextureAtlas.js';
 import * as arial from '../arial.js';
 import { depth } from '../shaders/depth.js';
+import { ARIAL_FONT_B64 } from "../res/images.js";
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -506,7 +506,7 @@ Renderer.prototype.initialize = function () {
 
     this.outputTexture = this.screenTexture.screen;
 
-    this.fontAtlas.initFont("arial", arial.data, arial.base64);
+    this.fontAtlas.initFont("arial", arial.data, ARIAL_FONT_B64);
 };
 
 Renderer.prototype.setCurrentScreen = function (screenName) {
