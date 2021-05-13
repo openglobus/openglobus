@@ -21,6 +21,7 @@ export function isEmpty(v) {
 };
 
 let _stampCounter = 0;
+
 export function stamp(obj) {
     var stamp = obj._openglobus_id;
     if (!stamp) {
@@ -114,7 +115,7 @@ export function htmlColorToRgb(htmlColor) {
  * @param {string} template - String with templates in "{" and "}"
  * @param {Object} params - Template named object with subsrtings.
  * @returns {string} -
- * 
+ *
  * @example <caption>Example from og.terrain that replaces tile indexes in url:</caption>
  * var substrings = {
  *       "x": 12,
@@ -251,12 +252,13 @@ export function binarySearchFast(arr, x) {
         end = arr.length - 1;
     while (start <= end) {
         let k = Math.floor((start + end) * 0.5);
-        if (arr[k] === x)
+        if (arr[k] === x) {
             return k;
-        else if (arr[k] < x)
+        } else if (arr[k] < x) {
             start = k + 1;
-        else
+        } else {
             end = k - 1;
+        }
     }
     return -1;
 };
@@ -504,6 +506,14 @@ export function base64toBlob(base64Data, contentType) {
     return new Blob(byteArrays, { type: contentType });
 };
 
+export function base64StringToBlog(string) {
+    let block = string.split(";");
+    let contentType = block[0].split(":")[1];
+    let data = block[1].split(",")[1];
+
+    return base64toBlob(data, contentType);
+}
+
 ///**
 // * 
 // * @param {LonLat} p
@@ -563,7 +573,7 @@ export function throttle(func, limit, skip) {
 };
 
 /**
- * 
+ *
  * y2-----Q12--------------Q22---
  * |       |     |          |
  * |       |     |          |
@@ -577,8 +587,8 @@ export function throttle(func, limit, skip) {
  *         |     |          |
  *         |     |          |
  *         x1    x          x2
- *        
- * 
+ *
+ *
  * @param {Number} x -
  * @param {Number} y -
  * @param {Number} fQ11 -
@@ -704,7 +714,7 @@ export function concatTypedArrays(a, b) {
 };
 
 /**
- * 
+ *
  * @param {TypedArray} arr
  * @param {Number} starting
  * @param {Number} deleteCount
