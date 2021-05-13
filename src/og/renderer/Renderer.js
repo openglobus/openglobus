@@ -427,8 +427,6 @@ Renderer.prototype.initialize = function () {
     //    attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
     //    useDepth: true
     //}).init();
-
-
     this.screenDepthFramebuffer = new Framebuffer(this.handler, {
         useDepth: false
     }).init();

@@ -6,10 +6,8 @@
 
 import * as mercator from '../mercator.js';
 import { EPSG3857 } from '../proj/EPSG3857.js';
-import { Extent } from '../Extent.js';
 import { Layer } from './Layer.js';
 import { stringTemplate } from '../utils/shared.js';
-import { LonLat } from '../LonLat.js';
 import { RENDERING } from '../quadTree/quadTree.js';
 
 /**

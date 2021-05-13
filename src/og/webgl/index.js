@@ -1,8 +1,8 @@
-import { Framebuffer } from "./Framebuffer";
-import { Handler } from "./Handler";
-import { Multisample } from "./Multisample";
-import { types } from "./types";
-import { Program } from "./Program";
+import { Framebuffer } from "./Framebuffer.js";
+import { Handler } from "./Handler.js";
+import { Multisample } from "./Multisample.js";
+import { types } from "./types.js";
+import { Program } from "./Program.js";
 
 export {
     Framebuffer,

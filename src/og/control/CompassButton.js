@@ -1,7 +1,7 @@
 ﻿'use strict';
 
 import { Control } from './Control.js';
-import { getHTML, parseHTML } from '../utils/shared.js';
+import { parseHTML } from '../utils/shared.js';
 
 let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg

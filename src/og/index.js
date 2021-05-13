@@ -19,11 +19,11 @@ import { Geoid } from './terrain/Geoid.js';
 
 import { input } from './input/input.js';
 
-import { Ellipsoid, wgs84 } from './ellipsoid/index';
+import { Ellipsoid, wgs84 } from './ellipsoid/index.js';
 
-import { Camera, PlanetCamera } from './camera/index';
+import { Camera, PlanetCamera } from './camera/index.js';
 
-import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from './math/index';
+import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from './math/index.js';
 
 import { Renderer } from './renderer/Renderer.js';
 

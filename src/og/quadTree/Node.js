@@ -10,14 +10,24 @@ import { MAX, MIN } from '../math.js';
 import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from '../utils/shared.js';
 
 import {
-    NW, NE, SW, SE,
-    N, E, S, W,
-    COMSIDE, OPSIDE,
-    WALKTHROUGH, NOTRENDERING,
-    NEIGHBOUR, OPPART,
-    VISIBLE_DISTANCE, RENDERING,
+    COMSIDE,
+    E,
     MAX_RENDERED_NODES,
-    PARTOFFSET
+    N,
+    NE,
+    NEIGHBOUR,
+    NOTRENDERING,
+    NW,
+    OPPART,
+    OPSIDE,
+    PARTOFFSET,
+    RENDERING,
+    S,
+    SE,
+    SW,
+    VISIBLE_DISTANCE,
+    W,
+    WALKTHROUGH
 } from './quadTree.js';
 
 import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';

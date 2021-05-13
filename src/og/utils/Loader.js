@@ -1,7 +1,6 @@
 'use strict';
 
 import { Events } from '../Events.js';
-import { QueueArray } from '../QueueArray.js';
 
 if (window && !('createImageBitmap' in window)) {
     window.createImageBitmap = function (blob) {
