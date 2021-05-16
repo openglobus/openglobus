@@ -91,15 +91,27 @@ the [API documentation](http://www.openglobus.org/api/).
 
 ```sh
 npm install
+# if you use yarn, you can run `yarn`
+yarn
 ```
 
-### Build Complete Library
+### Build Library
 
 Run
 
 ```sh
 npm run build
 ```
+
+Then, it will generate 3 files at `dist/@openglobus/`:
+
+- og-<currentVersion\>-umd.js
+- og-<currentVersion\>-umd.js.map
+- og-<currentVersion\>-esm.js
+- og-<currentVersion\>-esm.js.map
+- og-<currentVersion\>.css
+
+All JavaScript files are compressed by `terser` plugin.
 
 ### Other scripts
 

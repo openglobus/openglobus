@@ -2,7 +2,9 @@
 
 # OpenGlobus
 
-[OpenGlobus](http://www.openglobus.org/) （TOTRANSLATE）
+[OpenGlobus](http://www.openglobus.org/) 是一个用于展示带有地图瓦片、影像、矢量数据、标注、三维物体的交互式三维地图（地球）的 JavaScript 库。它基于 WebGL 技术，开源且免费。
+
+这个库的主要目标是令三维地图的功能迅速且美观地展示，并且对用户友好，易于在相关的项目中实施。
 
 ## 起步
 
@@ -73,22 +75,24 @@ yarn add @openglobus/og
 
 ## 文档
 
-（TOTRANSLATE）
+查看[在线示例](http://www.openglobus.org/examples.html)，或者查看 [API 帮助文档](http://www.openglobus.org/api/)。
 
 
 
-## 开始贡献你的代码
+## 如何贡献你的代码
 
 ### 开发
 
-1. 仓库 Clone 
-2. 使用 `npm` 安装依赖
+1. 将官方仓库 Clone 到本机
+2. 使用 `npm` 或 `yarn` 安装依赖
 
 ``` sh
 npm install
+# 或
+yarn
 ```
 
-### 构建完整的库
+### 打包代码
 
 运行命令
 
@@ -96,9 +100,27 @@ npm install
 npm run build
 ```
 
+随后会在 `dist/@openglobus/` 目录下生成下列 5 个文件：
+
+- og-<当前版本\>-umd.js
+- og-<当前版本\>-umd.js.map
+- og-<当前版本\>-esm.js
+- og-<当前版本\>-esm.js.map
+- og-<当前版本>.css
+
+其中，js 文件均使用 `terser` 插件进行了代码压缩。
+
 ### 其他命令
 
-（TOTRANSLATE）
+`npm run core` - 仅构建 og.core （渲染引擎）
+
+`npm run webgl` - 仅构建 og.webgl （WebGL 的封装部分）
+
+`npm run api` - 本地构建 API 帮助文档至 `/api` 目录
+
+`npm run serve` - 运行本地 Web 服务器以便开发以及查看示例代码
+
+`npm run font` - 生成自定义的字体集
 
 
 
@@ -106,7 +128,12 @@ npm run build
 
 有多种方式来贡献此项目：
 
-- （TOTRANSLATE）
+- 帮助我们测试新的或现有的功能，并[提交 bug](https://github.com/openglobus/openglobus/issues)
+- 帮助我们在[谷歌 OpenGlobus 社区](https://groups.google.com/d/forum/openglobus)回答问题以及在 Gitter 上[交流](https://gitter.im/openglobus/og)
+- 为 GitHub 上的仓库打个 ⭐
+- 在社交媒体上传播 OpenGlobus，推特：[点我](https://twitter.com/openglobus)
+- [捐助](https://donorbox.org/openglobus)
+- 成为一名贡献者
 
 
 
