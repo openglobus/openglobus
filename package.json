@@ -15,7 +15,8 @@
     "core": "node_modules/.bin/rollup -c --environment entry:core",
     "test": "jest --coverage",
     "lint": "node_modules/.bin/eslint src/og",
-    "font": "msdf-bmfont.cmd --reuse  -i .\\fonts\\charset.roboto.txt -m 512,512 -f json -o .\\fonts\\Roboto-Regular.png -s 32 -r 8 -p 1 -t msdf .\\fonts\\Roboto-Regular.ttf"
+    "font": "msdf-bmfont.cmd --reuse  -i .\\fonts\\charset.roboto.txt -m 512,512 -f json -o .\\fonts\\Roboto-Regular.png -s 32 -r 8 -p 1 -t msdf .\\fonts\\Roboto-Regular.ttf",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -53,14 +54,22 @@
     "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-standard": "^4.1.0",
+    "husky": "^6.0.0",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^26.6.3",
     "jsdoc": "^3.6.6",
+    "lint-staged": "^11.0.0",
     "local-web-server": "^3.0.7",
     "postcss": "^8.2.6",
+    "prettier": "^2.3.0",
     "rollup": "^1.32.1",
     "rollup-plugin-postcss": "^4.0.0",
     "rollup-plugin-terser": "^5.3.1"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "prettier --write"
+    ]
   },
   "files": [
     "src/**/*",
