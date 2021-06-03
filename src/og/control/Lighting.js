@@ -135,6 +135,19 @@ class Lighting extends Control {
         var panel = parseHTML(TEMPLATE);
         document.body.appendChild(panel);
 
+        document.getElementById("layers").addEventListener("change", (e) => {
+            console.log(e.target.value);
+        });
+
+        document.getElementById("gamma").addEventListener("input", function (e) {
+            this.planet.renderer.gamma = Number(this.value);
+            document.querySelector(".value.gamma").innerHTML = this.value;
+        });
+        document.getElementById("exposure").addEventListener("input", function (e) {
+            this.planet.renderer.exposure = Number(this.value);
+            document.querySelector(".value.exposure").innerHTML = this.value;
+        });
+
         document.getElementById("ambient-r").addEventListener("input", function (e) {
             if (this._selectedLayer) {
                 this._selectedLayer.ambient.x = this.value;
@@ -198,6 +211,23 @@ class Lighting extends Control {
             }
             document.querySelector(".value.shininess").innerHTML = this.value;
         });
+
+        if (this.planet) {
+
+            this.planet.events.on("layeradd", this._onLayerAdd, this);
+            this.planet.events.on("layerremove", this._onLayerRemove, this);
+
+            for (var i = 0; i < this.planet.layers.length; i++) {
+                this._onLayerAdd(this.planet.layers[i]);
+            }
+        }
+    }
+
+    _onLayerAdd(e) {
+        console.log(e);
+    }
+
+    _onLayerRemove(e) {
     }
 };
 

@@ -19,4 +19,6 @@ var globe = new Globe({
     "layers": [osm]
 });
 
+globus.planet.addControl(new Lighting());
+
 window.globe = globe;
