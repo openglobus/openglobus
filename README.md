@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/openglobus/openglobus.svg?branch=master)](https://travis-ci.com/openglobus/openglobus)
 [![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # OpenGlobus
 
 [OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets
@@ -9,11 +10,72 @@ completely free.
 The OpenGlobus main goal is to make 3d map features fast, good lookin, user friendly and easy to implement in any
 related project.
 
-## Installation
+## Getting Start
+
+### Installation
 
 ```sh
 npm install @openglobus/og
+# or
+yarn add @openglobus/og
 ```
+
+### Code: using umd lib
+
+```html
+<link rel="stylesheet" href="./libs/og-0.8.10.css">
+<script src="./libs/og-0.8.10-umd.js"></script>
+<div id="globus"></div>
+<script>
+
+  const osm = new og.layer.XYZ("OpenStreetMap", {
+    isBaseLayer: true,
+    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+  })
+
+  const globus = new og.Globe({
+    target: "globus", // a HTMLDivElement which its id is `globus`
+    name: "Earth",
+    terrain: new og.terrain.GlobusTerrain(),
+    layers: [osm],
+    autoActivated: true,
+    viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
+  })
+
+</script>
+```
+
+### Code: using esm lib
+
+``` html
+<link rel="stylesheet" href="./libs/og-0.8.10.css">
+<div id="globus"></div>
+<script type="module">
+
+  import { layer, Globe, terrain } from './libs/og-0.8.10-esm.js'
+  const { XYZ } = layer
+  const { GlobusTerrain } = terrain
+
+  const osm = new XYZ("OpenStreetMap", {
+    isBaseLayer: true,
+    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+  })
+
+  const globus = new Globe({
+    target: "globus", // a HTMLDivElement which its id is `globus`
+    name: "Earth",
+    terrain: new GlobusTerrain(),
+    layers: [osm],
+    autoActivated: true,
+    viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
+  })
+
+</script>
+```
+
+
 
 ## Documentation
 
@@ -29,15 +91,27 @@ the [API documentation](http://www.openglobus.org/api/).
 
 ```sh
 npm install
+# if you use yarn, you can run `yarn`
+yarn
 ```
 
-### Build Complete Library
+### Build Library
 
 Run
 
 ```sh
 npm run build
 ```
+
+Then, it will generate 3 files at `dist/@openglobus/`:
+
+- og-<currentVersion\>-umd.js
+- og-<currentVersion\>-umd.js.map
+- og-<currentVersion\>-esm.js
+- og-<currentVersion\>-esm.js.map
+- og-<currentVersion\>.css
+
+All JavaScript files are compressed by `terser` plugin.
 
 ### Other scripts
 

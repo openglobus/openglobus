@@ -18,6 +18,7 @@ node_modules
 api
 
 package-lock.json
+yarn.lock
 
 coverage
 
