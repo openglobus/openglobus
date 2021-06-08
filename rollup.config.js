@@ -5,14 +5,14 @@ import postcss from "rollup-plugin-postcss";
 
 const LIB_SUFFIX = process.env.entry ? `.${process.env.entry}` : "";
 const LIB_NAME = pkg.name + LIB_SUFFIX;
-const OUTPUT_NAME = `dist/${LIB_NAME}-${pkg.version}`;
+const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
 export default [
     {
         input: `src/og/index${LIB_SUFFIX}.js`,
         output: [
             {
-                file: `${OUTPUT_NAME}-umd.js`,
+                file: `${OUTPUT_NAME}umd.js`,
                 format: "umd",
                 name: "og",
                 sourcemap: true
@@ -24,7 +24,7 @@ export default [
         input: `src/og/index${LIB_SUFFIX}.js`,
         output: [
             {
-                file: `${OUTPUT_NAME}-esm.js`,
+                file: `${OUTPUT_NAME}esm.js`,
                 format: "esm",
                 sourcemap: true
             }
@@ -35,7 +35,7 @@ export default [
         input: `css/og.css`,
         output: [
             {
-                file: `${OUTPUT_NAME}.css`,
+                file: `${OUTPUT_NAME}css`,
                 format: "umd",
                 name: pkg.name,
                 sourcemap: false
