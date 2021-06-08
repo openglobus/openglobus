@@ -25,8 +25,8 @@ yarn add @openglobus/og
 ### Code: using umd lib
 
 ```html
-<link rel="stylesheet" href="./libs/og-0.8.10.css">
-<script src="./libs/og-0.8.10-umd.js"></script>
+<link rel="stylesheet" href="./libs/og.css">
+<script src="./libs/og.umd.js"></script>
 <div id="globus"></div>
 <script>
 
@@ -51,11 +51,11 @@ yarn add @openglobus/og
 ### Code: using esm lib
 
 ``` html
-<link rel="stylesheet" href="./libs/og-0.8.10.css">
+<link rel="stylesheet" href="./libs/og.css">
 <div id="globus"></div>
 <script type="module">
 
-  import { layer, Globe, terrain } from './libs/og-0.8.10-esm.js'
+  import { layer, Globe, terrain } from './libs/og.esm.js'
   const { XYZ } = layer
   const { GlobusTerrain } = terrain
 
@@ -105,13 +105,13 @@ Run
 npm run build
 ```
 
-Then, it will generate 3 files at `dist/@openglobus/`:
+Then, it will generate 5 files at `dist/@openglobus/`:
 
-- og-<currentVersion\>-umd.js
-- og-<currentVersion\>-umd.js.map
-- og-<currentVersion\>-esm.js
-- og-<currentVersion\>-esm.js.map
-- og-<currentVersion\>.css
+- og.umd.js
+- og.umd.js.map
+- og.esm.js
+- og.esm.js.map
+- og.css
 
 All JavaScript files are compressed by `terser` plugin.
 
