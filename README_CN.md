@@ -2,6 +2,8 @@
 
 # OpenGlobus
 
+[English](README.md) | 简体中文
+
 [OpenGlobus](http://www.openglobus.org/) 是一个用于展示带有地图瓦片、影像、矢量数据、标注、三维物体的交互式三维地图（地球）的 JavaScript 库。它基于 WebGL 技术，开源且免费。
 
 这个库的主要目标是令三维地图的功能迅速且美观地展示，并且对用户友好，易于在相关的项目中实施。
@@ -19,8 +21,8 @@ yarn add @openglobus/og
 ### 代码：使用 umd 引用
 
 ``` html
-<link rel="stylesheet" href="./libs/og-0.8.10.css">
-<script src="./libs/og-0.8.10-umd.js"></script>
+<link rel="stylesheet" href="./libs/og.css">
+<script src="./libs/og.umd.js"></script>
 <div id="globus"></div>
 <script>
 
@@ -45,11 +47,11 @@ yarn add @openglobus/og
 ### 代码：使用 esm 引用
 
 ```html
-<link rel="stylesheet" href="./libs/og-0.8.10.css">
+<link rel="stylesheet" href="./libs/og.css">
 <div id="globus"></div>
 <script type="module">
 
-  import { layer, Globe, terrain } from './libs/og-0.8.10-esm.js'
+  import { layer, Globe, terrain } from './libs/og.esm.js'
   const { XYZ } = layer
   const { GlobusTerrain } = terrain
 
@@ -102,11 +104,11 @@ npm run build
 
 随后会在 `dist/@openglobus/` 目录下生成下列 5 个文件：
 
-- og-<当前版本\>-umd.js
-- og-<当前版本\>-umd.js.map
-- og-<当前版本\>-esm.js
-- og-<当前版本\>-esm.js.map
-- og-<当前版本>.css
+- og.umd.js
+- og.umd.js.map
+- og.esm.js
+- og.esm.js.map
+- og.css
 
 其中，js 文件均使用 `terser` 插件进行了代码压缩。
 
