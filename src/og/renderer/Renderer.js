@@ -654,6 +654,11 @@ Renderer.prototype._drawEntityCollections = function () {
             ec[i]._fadingOpacity && ec[i].labelHandler.draw();
         }
 
+        i = ec.length;
+        while (i--) {
+            ec[i]._fadingOpacity && ec[i].geoObjectHandler.draw();
+        }
+
         // rays
         i = ec.length;
         while (i--) {
