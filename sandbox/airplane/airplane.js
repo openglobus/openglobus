@@ -59,13 +59,29 @@ class Planemarker {
         this._uOrientation = new Float32Array(3);
     }
 
-    set(lon, lat, alt, heading, speed) {
-        this._lonLatAlt.lon = lon;
-        this._lonLatAlt.lat = lat;
-        this._lonLatAlt.height = alt;
-        this._heading = heading || this._heading;
-        this._speed = speed || this._speed;
+    get pitch() {
+        return this._pitch;
+    }
+
+    get yaw() {
+        return this._yaw;
+    }
+
+    get roll() {
+        return this._roll;
+    }
+
+    set pitch(v) {
+        this._pitch = v;
+    }
+
+    set yaw(v) {
+        this._yaw = v;
         this.update();
+    }
+
+    set roll(v) {
+        this._roll = v;
     }
 
     setLonLat(lon, lat, alt) {

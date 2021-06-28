@@ -10,7 +10,7 @@ branches:
   - master
 before_deploy:
 - npm run build
-- cd dist
+- cd dist/@openglobus
 - zip ${TRAVIS_TAG}-dist.zip *
 deploy:
   provider: releases
