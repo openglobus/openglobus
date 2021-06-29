@@ -77,7 +77,7 @@ class GeoObjectHandler {
     createSizeBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._sizeBuffer);
-        this._sizeBuffer = h.createArrayBuffer(this._sizeArr, 3, this._sizeArr.length / 3);
+        this._sizeBuffer = h.createArrayBuffer(this._sizeArr, 1, this._sizeArr.length);
     }
 
     createPositionBuffer() {
@@ -232,9 +232,11 @@ class GeoObjectHandler {
         y = geoObject._roll;
         this._pitchRollArr = concatTypedArrays(this._pitchRollArr, [x, y, x, y, x, y]);
 
-        for (const buffer in this._changedBuffers) {
-            this._changedBuffers[buffer] = true;
-        }
+        this._sizeArr = concatTypedArrays(this._sizeArr, [
+            geoObject.scale,
+            geoObject.scale,
+            geoObject.scale
+        ]);
     }
 
     _displayPASS() {
@@ -283,6 +285,9 @@ class GeoObjectHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer);
         gl.vertexAttribPointer(a.aDirection, this._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
+        gl.vertexAttribPointer(a.aScale, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
         gl.vertexAttribPointer(
@@ -503,8 +508,8 @@ class GeoObjectHandler {
     }
 
     setSizeArr(index, scale) {
-        var i = index * 6;
-        var a = this._pitchRollArr;
+        var i = index * 3;
+        var a = this._sizeArr;
         a[i] = scale;
         a[i + 1] = scale;
         a[i + 2] = scale;

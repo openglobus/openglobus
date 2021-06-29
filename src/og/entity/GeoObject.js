@@ -9,6 +9,7 @@ import { MAX32, RADIANS } from "../math.js";
 import { LonLat } from "../LonLat.js";
 import * as utils from "../utils/shared.js";
 import { Planet } from "../scene/Planet.js";
+import { lerp } from "../math.js";
 
 /**
  * @class
@@ -25,12 +26,14 @@ import { Planet } from "../scene/Planet.js";
  * @param {number} [options.lonBands=16] - Number of longitude bands.
  */
 
+const MIN_SCALE = 0.003;
+const MAX_SCALE_HEIGHT = 3000.0;
+const MIN_SCALE_HEIGHT = 1900000.0;
+
 class GeoObject {
     constructor(options) {
         options = options || {};
 
-        //this.orientation = options.orientation ? option.orientation : new Quat(0.0, 0.0, 0.0, 1.0);
-        //this.position = options.position ? options.position : new Vec3();
         this.scale = options.scale || 0.02;
         this.scaleByDistance = new Float32Array(options.scaleByDistance || [MAX32, MAX32, MAX32]);
 
@@ -66,6 +69,14 @@ class GeoObject {
         this._handler = null;
         this._handlerIndex = -1;
         this._vertices = options.vertices;
+    }
+
+    get planet() {
+        return this._handler && this._handler._planet;
+    }
+
+    get renderer() {
+        return this.planet && this.planet.renderer;
     }
 
     /**
@@ -182,8 +193,14 @@ class GeoObject {
     }
 
     setScale(scale) {
-        this._scale = scale;
-        this._handler && this._handler.setSizeArr(this._handlerIndex, scale);
+        const r = this.renderer,
+            camera = r.activeCamera,
+            t =
+                1.0 -
+                (camera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
+        this._distanceToCamera = this._position.distance(camera.eye);
+        this.scale = lerp(t < 0 ? 0 : t, scale, MIN_SCALE) * this._distanceToCamera;
+        this._handler && this._handler.setSizeArr(this._handlerIndex, this.scale);
     }
 
     /**

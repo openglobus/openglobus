@@ -29,7 +29,8 @@ export const geo_object = () =>
             aPositionLow: "vec3",
             aDirection: "vec3",
             aPitchRoll: "vec2",
-            aColor: "vec4"
+            aColor: "vec4",
+            aScale: "float"
         },
         vertexShader: `precision highp float;
 
@@ -40,6 +41,7 @@ export const geo_object = () =>
             attribute vec3 aDirection;
             attribute vec2 aPitchRoll;
             attribute vec4 aColor;
+            attribute float aScale;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -78,11 +80,11 @@ export const geo_object = () =>
 
                 vec3 look = position - (eyePositionHigh + eyePositionLow);
                 float lookLength = length(look);
-                float scd =  (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
+                float scd = aScale * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
                 vNormal = normalMatrix * modelMatrix * aVertexNormal;
 
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aPositionLow + modelMatrix * (aVertexPosition * scd * 1000000.0) - eyePositionLow;
+                vec3 lowDiff = aPositionLow + modelMatrix * (aVertexPosition * scd) - eyePositionLow;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
