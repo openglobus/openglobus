@@ -5,7 +5,6 @@ import { EntityCollection } from "../../src/og/entity/EntityCollection.js";
 import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
-import { Popup } from "../../src/og/Popup.js";
 
 function rnd(min, max) {
     return Math.random() * (max - min) + min;
@@ -47,18 +46,6 @@ let globus = new Globe({
     terrain: new GlobusTerrain()
 });
 
-const popup = new Popup({
-    planet: globus.planet,
-    offset: [0, -25],
-    visibility: false
-});
-geoObjects.events.on("lclick", function (e) {
-    popup.hide();
-
-    popup.setLonLat(e.pickingObject.getLonLat());
-
-    popup.setVisibility(true);
-});
 geoObjects.addTo(globus.planet);
 window.globus = globus;
 // window.go = go;
