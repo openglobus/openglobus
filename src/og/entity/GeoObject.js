@@ -90,7 +90,7 @@ class GeoObject {
         this._color.x = r;
         this._color.y = g;
         this._color.z = b;
-        (a != undefined) && (this._color.w = a);
+        a != undefined && (this._color.w = a);
         this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
     }
 
@@ -103,7 +103,7 @@ class GeoObject {
         this._color.x = color.x;
         this._color.y = color.y;
         this._color.z = color.z;
-        (color.w != undefined) && (this._color.w = color.w);
+        color.w != undefined && (this._color.w = color.w);
         this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
     }
 
@@ -146,7 +146,8 @@ class GeoObject {
         this._position.y = y;
         this._position.z = z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler &&
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
@@ -160,29 +161,29 @@ class GeoObject {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler &&
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
     setYaw(yaw) {
         this._yaw = yaw;
-        this._handler && this._handler.setYaw(this._handlerIndex, yaw);
+        this.updateDirection();
     }
 
     setPitch(pitch) {
         this._pitch = pitch;
-        this._handler && this._handler.setPitch(this._handlerIndex, pitch);
-
+        this._handler && this._handler.setPitchRollArr(this._handlerIndex, pitch, this._roll);
     }
 
     setRoll(roll) {
         this._roll = roll;
-        this._handler && this._handler.setRoll(this._handlerIndex, roll);
+        this._handler && this._handler.setPitchRollArr(this._handlerIndex, this._pitch, roll);
     }
 
     setScale(scale) {
         this._scale = scale;
-        this._handler && this._handler.setRoll(this._handlerIndex, scale);
+        this._handler && this._handler.setSizeArr(this._handlerIndex, scale);
     }
 
     /**
@@ -204,15 +205,17 @@ class GeoObject {
     }
 
     updateDirection() {
+        this._qNorthFrame = new Quat();
         if (this._entity && this._entity.renderNode && this._entity.renderNode.ellipsoid) {
             this._entity.renderNode.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
         }
         this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._position);
 
-        let qq = Quat.yRotation(this._yaw * RADIANS).mul(this._qNorthFrame).conjugate();
+        let qq = Quat.yRotation(this._yaw * RADIANS)
+            .mul(this._qNorthFrame)
+            .conjugate();
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
         this._handler && this._handler.setDirectionArr(this._handlerIndex, this._direction);
-
     }
 }
 
