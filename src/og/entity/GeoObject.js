@@ -5,11 +5,10 @@
 "use strict";
 
 import { Quat, Vec3 } from "../math/index.js";
-import { MAX32, RADIANS } from "../math.js";
+import { MAX32, RADIANS, lerp } from "../math.js";
 import { LonLat } from "../LonLat.js";
 import * as utils from "../utils/shared.js";
 import { Planet } from "../scene/Planet.js";
-import { lerp } from "../math.js";
 
 /**
  * @class
@@ -69,6 +68,20 @@ class GeoObject {
         this._handler = null;
         this._handlerIndex = -1;
         this._vertices = options.vertices;
+        this._indices = options.indices;
+        if (options.vertices) {
+            this._verticesCount = Math.floor(options.vertices.length / 3);
+        }
+    }
+
+    recalculateIndices() {
+        for (let i = 0; i < this._indices.length; i++) {
+            this._indices[i] = this._indices[i] + this.verticesOffset;
+        }
+    }
+
+    get verticesOffset() {
+        return this._verticesCount * this._handlerIndex;
     }
 
     get planet() {

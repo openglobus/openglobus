@@ -168,10 +168,7 @@ class GeoObjectHandler {
 
     _addGeoObjectToArrays(geoObject) {
         if (geoObject._visibility) {
-            this._vertexArr = concatTypedArrays(
-                this._vertexArr,
-                [-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5]
-            );
+            this._vertexArr = concatTypedArrays(this._vertexArr, geoObject._vertices);
         } else {
             this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
@@ -226,7 +223,9 @@ class GeoObjectHandler {
             this._normalsArr,
             [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]
         );
-        this._indicesArr = concatTypedArrays(this._indicesArr, [0, 1, 2, 0, 2, 1]);
+
+        geoObject.recalculateIndices();
+        this._indicesArr = concatTypedArrays(this._indicesArr, geoObject._indices);
 
         x = geoObject._pitch;
         y = geoObject._roll;
@@ -359,15 +358,15 @@ class GeoObjectHandler {
     }
 
     setVisibility(index, visibility) {
+        const geoObject = this._geoObjects[index];
         var vArr;
         if (visibility) {
-            vArr = [-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5];
+            vArr = geoObject._vertices;
         } else {
             vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         }
         this.setVertexArr(index, vArr);
         this.setNormalsArr(index);
-        this.setIndicesArr(index);
     }
 
     setPositionArr(index, positionHigh, positionLow) {
@@ -478,19 +477,6 @@ class GeoObjectHandler {
         a[i + 8] = z;
 
         this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
-    }
-
-    setIndicesArr(index) {
-        var i = index * 6;
-        var a = this._indicesArr;
-        a[i] = 0;
-        a[i + 1] = 1;
-        a[i + 2] = 2;
-
-        a[i + 3] = 0;
-        a[i + 4] = 2;
-        a[i + 5] = 1;
-        this._changedBuffers[INDECIES_BUFFER] = true;
     }
 
     setPitchRollArr(index, pitch, roll) {
