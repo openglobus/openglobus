@@ -2,13 +2,12 @@
  * @module og/control/Lighting
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { parseHTML } from '../utils/shared.js';
+import { Control } from "./Control.js";
+import { parseHTML } from "../utils/shared.js";
 
-const TEMPLATE =
-    `<div class="og-lighing">
+const TEMPLATE = `<div class="og-lighing">
 
        <div class="og-screen-options">
          <div class="og-option">
@@ -21,7 +20,7 @@ const TEMPLATE =
          <div class="og-option">
             <div class="og-caption">Exposure</div>
             <div class="og-slider">
-                <input type="range" id="exposure" name="exposure" value="0.0" min="0.0" max="2.0" step="0.01" />
+                <input type="range" id="exposure" name="exposure" value="0.0" min="0.0" max="12.0" step="0.01" />
             </div>
             <div class="og-value exposure"></div>
          </div>
@@ -104,8 +103,7 @@ const TEMPLATE =
          </div>
 
          <div class="og-caption">Shininess</div>
-         <div class="og-option">
-            <div class="og-label">R</div>
+         <div class="og-option" style="margin-left: 8px;">
             <div class="og-slider">
                 <input type="range" id="shininess" name="shininess" value="0.0" min="0.0" max="1000.0" step="1" />
             </div>
@@ -118,7 +116,7 @@ const TEMPLATE =
  * Helps to setup lighting.
  * @class
  * @extends {og.control.Control}
- * @param {Object} [options] - 
+ * @param {Object} [options] -
  */
 class Lighting extends Control {
     constructor(options = {}) {
@@ -133,90 +131,97 @@ class Lighting extends Control {
 
     oninit() {
         var panel = parseHTML(TEMPLATE);
-        document.body.appendChild(panel);
+        document.body.appendChild(panel[0]);
 
         document.getElementById("layers").addEventListener("change", (e) => {
             console.log(e.target.value);
         });
 
+        var _this = this;
+
         document.getElementById("gamma").addEventListener("input", function (e) {
-            this.planet.renderer.gamma = Number(this.value);
-            document.querySelector(".value.gamma").innerHTML = this.value;
+            _this.planet.renderer.gamma = Number(this.value);
+            document.querySelector(".og-value.gamma").innerHTML = this.value;
         });
         document.getElementById("exposure").addEventListener("input", function (e) {
-            this.planet.renderer.exposure = Number(this.value);
-            document.querySelector(".value.exposure").innerHTML = this.value;
+            _this.planet.renderer.exposure = Number(this.value);
+            document.querySelector(".og-value.exposure").innerHTML = this.value;
         });
 
         document.getElementById("ambient-r").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.ambient.x = this.value;
+                this._selectedLayer.ambient.x = Number(this.value);
             }
-            document.querySelector(".value.ambient-r").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-r").innerHTML = this.value;
         });
         document.getElementById("ambient-g").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.ambient.y = this.value;
+                this._selectedLayer.ambient.y = Number(this.value);
             }
-            document.querySelector(".value.ambient-g").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-g").innerHTML = this.value;
         });
         document.getElementById("ambient-b").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.ambient.z = this.value;
+                this._selectedLayer.ambient.z = Number(this.value);
             }
-            document.querySelector(".value.ambient-b").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-b").innerHTML = this.value;
         });
 
         document.getElementById("diffuse-r").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.diffuse.x = this.value;
+                this._selectedLayer.diffuse.x = Number(this.value);
             }
-            document.querySelector(".value.diffuse-r").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-r").innerHTML = this.value;
         });
         document.getElementById("diffuse-g").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.diffuse.y = this.value;
+                this._selectedLayer.diffuse.y = Number(this.value);
             }
-            document.querySelector(".value.diffuse-g").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-g").innerHTML = this.value;
         });
         document.getElementById("diffuse-b").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.diffuse.z = this.value;
+                this._selectedLayer.diffuse.z = Number(this.value);
             }
-            document.querySelector(".value.diffuse-b").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-b").innerHTML = this.value;
         });
 
         document.getElementById("specular-r").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.specular.x = this.value;
+                this._selectedLayer.specular.x = Number(this.value);
             }
-            document.querySelector(".value.specular-r").innerHTML = this.value;
+            document.querySelector(".og-value.specular-r").innerHTML = this.value;
         });
         document.getElementById("specular-g").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.specular.y = this.value;
+                this._selectedLayer.specular.y = Number(this.value);
             }
-            document.querySelector(".value.specular-g").innerHTML = this.value;
+            document.querySelector(".og-value.specular-g").innerHTML = this.value;
         });
         document.getElementById("specular-b").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.specular.z = this.value;
+                this._selectedLayer.specular.z = Number(this.value);
             }
-            document.querySelector(".value.specular-b").innerHTML = this.value;
+            document.querySelector(".og-value.specular-b").innerHTML = this.value;
         });
 
         document.getElementById("shininess").addEventListener("input", function (e) {
             if (this._selectedLayer) {
-                this._selectedLayer.shininess = this.value;
+                this._selectedLayer.shininess = Number(this.value);
             }
-            document.querySelector(".value.shininess").innerHTML = this.value;
+            document.querySelector(".og-value.shininess").innerHTML = this.value;
         });
 
         if (this.planet) {
-
             this.planet.events.on("layeradd", this._onLayerAdd, this);
             this.planet.events.on("layerremove", this._onLayerRemove, this);
+        }
 
+        this._fetchLayers();
+    }
+
+    _fetchLayers() {
+        if (this.planet) {
             for (var i = 0; i < this.planet.layers.length; i++) {
                 this._onLayerAdd(this.planet.layers[i]);
             }
@@ -227,12 +232,11 @@ class Lighting extends Control {
         console.log(e);
     }
 
-    _onLayerRemove(e) {
-    }
-};
+    _onLayerRemove(e) {}
+}
 
 export function lighting(options) {
     return new Lighting(options);
-};
+}
 
 export { Lighting };
