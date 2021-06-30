@@ -393,3 +393,69 @@
     background-color: rgba(64, 59, 59, 0.85);
     border-radius: 2px;
 }
+
+/*
+    Lighting control
+*/
+.og-lighing {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 12px 0px 12px 12px;
+    width: 350px;
+    overflow: auto;
+    height: calc(100% - 30px);
+    color: #b6b6b6;
+    background-color: #222222;
+    font-family: monospace;
+    font-size: 14px;
+    z-index: 10000;
+    overflow-x: hidden;
+}
+
+    .og-lighing .og-color-options {
+    }
+
+    .og-lighing .og-caption {
+        width: 100%;
+        position: relative;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .og-lighing .og-option {
+        width: 100%;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 7px;
+    }
+
+    .og-lighing .og-label {
+        float: left;
+    }
+
+    .og-lighing .og-slider {
+        float: left;
+        width: calc(100% - 85px);
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+        .og-lighing .og-slider input {
+            width: 100%;
+            position: relative;
+        }
+
+    .og-lighing .og-value {
+        float: left;
+    }
+
+    .og-lighing #layers {
+        font-size: 16px;
+        color: #e8e8e8;
+        background-color: #5e5e5e;
+        font-family: monospace;
+        padding: 5px;
+        width: 240px;
+        margin-left: 21px;
+    }
