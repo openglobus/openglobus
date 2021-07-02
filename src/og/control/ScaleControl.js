@@ -51,42 +51,48 @@ class ScaleControl extends Control {
 
         this.renderer.div.appendChild(this.el);
 
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer.events.on("draw", (e) => {
+            if (e.events.mouseState.anyEvent()) {
+                this._draw();
+            }
+        });
+
+        this.renderer.activeCamera.events.on("moveend", (e) => {
+            this._draw(e);
+        });
     }
 
     _draw(e) {
-        if (e.events.mouseState.anyEvent()) {
-            let cam = this.renderer.activeCamera;
-            let s0 = this.planet.renderer.handler.getCenter();
-            let dist = this.planet.getDistanceFromPixel(s0);
-            let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
-            let tempSize = dist * Math.tan(cam._viewAngle * RADIANS);
-            let p1 = p0.add(cam.getRight().scaleTo(tempSize));
-            let s1 = cam.project(p1);
-            this._mPx = tempSize / s1.distance(s0);
+        let cam = this.renderer.activeCamera;
+        let s0 = this.planet.renderer.handler.getCenter();
+        let dist = this.planet.getDistanceFromPixel(s0);
+        let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
+        let tempSize = dist * Math.tan(cam._viewAngle * RADIANS);
+        let p1 = p0.add(cam.getRight().scaleTo(tempSize));
+        let s1 = cam.project(p1);
+        this._mPx = tempSize / s1.distance(s0);
 
-            let metersInMinSize = this._mPx * this._minWidth;
+        let metersInMinSize = this._mPx * this._minWidth;
 
-            let index = binarySearch(scale, metersInMinSize, (a, b) => a - b);
-            if (index < 0) {
-                index = ~index;
-            }
-            let minMeters = scale[index],
-                maxMeters = scale[index + 1];
-
-            let t = (minMeters - metersInMinSize) / (maxMeters - minMeters);
-            this.currWidth = this._minWidth + t * (this._maxWidth - this._minWidth);
-
-            if (minMeters > 1000) {
-                this._scaleLabelEl.innerText = `${minMeters / 1000} km`;
-            } else {
-                this._scaleLabelEl.innerText = `${minMeters} m`;
-            }
-
-            this._metersInMinSize = metersInMinSize;
-
-            this.el.style.width = this.currWidth + "px";
+        let index = binarySearch(scale, metersInMinSize, (a, b) => a - b);
+        if (index < 0) {
+            index = ~index;
         }
+        let minMeters = scale[index],
+            maxMeters = scale[index + 1];
+
+        let t = (minMeters - metersInMinSize) / (maxMeters - minMeters);
+        this.currWidth = this._minWidth + t * (this._maxWidth - this._minWidth);
+
+        if (minMeters > 1000) {
+            this._scaleLabelEl.innerText = `${minMeters / 1000} km`;
+        } else {
+            this._scaleLabelEl.innerText = `${minMeters} m`;
+        }
+
+        this._metersInMinSize = metersInMinSize;
+
+        this.el.style.width = this.currWidth + "px";
     }
 }
 
