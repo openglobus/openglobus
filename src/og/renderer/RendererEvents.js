@@ -64,12 +64,26 @@ class RendererEvents extends Events {
          */
         this.mouseState = {
             anyEvent: () => {
-                for (const key in this.mouseState) {
-                    if (typeof this.mouseState[key] === "boolean" && this.mouseState[key]) {
-                        return true;
-                    }
-                }
-                return false;
+                let ms = this.mouseState;
+                return (
+                    ms.leftButtonUp ||
+                    ms.rightButtonUp ||
+                    ms.middleButtonUp ||
+                    ms.leftButtonDown ||
+                    ms.rightButtonDown ||
+                    ms.middleButtonDown ||
+                    ms.leftButtonHold ||
+                    ms.rightButtonHold ||
+                    ms.middleButtonHold ||
+                    ms.leftButtonDoubleClick ||
+                    ms.rightButtonDoubleClick ||
+                    ms.middleButtonDoubleClick ||
+                    ms.leftButtonClick ||
+                    ms.rightButtonClick ||
+                    ms.middleButtonClick ||
+                    ms.moving ||
+                    ms.justStopped
+                );
             },
             /** Current mouse X position. */
             x: 0,
