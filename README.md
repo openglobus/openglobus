@@ -166,13 +166,13 @@ All JavaScript files are compressed by `terser` plugin.
 
 There are many ways to contribute back to the project:
 
-- Help us test new and existing features and report [bugs](https://github.com/openglobus/openglobus/issues).
+- Help us test new and existing features and report [bugs](https://github.com/openglobus/openglobus/issues)
 - Help answer questions on the community [forum](https://groups.google.com/d/forum/openglobus)
-  and [chat](https://gitter.im/openglobus/og).
-- ⭐️ us on GitHub.
-- Spread the word about OpenGlobus on [social media](https://twitter.com/openglobus).
-- [Send donations](https://donorbox.org/openglobus).
-- Become a contributor.
+  and [chat](https://gitter.im/openglobus/og)
+- ⭐️ us on GitHub
+- Spread the word about OpenGlobus on [social media](https://twitter.com/openglobus)
+- [Send donations](https://donorbox.org/openglobus)
+- Become a contributor
 
 ## License
 
