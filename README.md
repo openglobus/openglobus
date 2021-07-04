@@ -77,7 +77,9 @@ yarn add @openglobus/og
 </script>
 ```
 
-OpenGlobus integrates well with front-end frameworks like React, Angular or Vuejs. [Read more here](./framework-intergration.md).
+## Frameworks integrations
+
+OpenGlobus integrates well with front-end frameworks like React, Angular or Vuejs [Read more here](./framework-intergration.md).
 
 ## Documentation
 
