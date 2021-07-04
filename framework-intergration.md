@@ -1,4 +1,4 @@
-OpenGlobus integrates well with front-end frameworks like React, Angular or Vuejs.
+## Frameworks integrations
 
 ### Code: using in Angular
 
