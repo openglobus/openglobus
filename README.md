@@ -77,42 +77,7 @@ yarn add @openglobus/og
 </script>
 ```
 
-### Code: using in Angular
-
-```javascript
-import { Component, OnInit } from '@angular/core';
-import { Globe, layer, terrain } from '@openglobus/og';
-
-@Component({
-  template: '<div id="globus" style="width:100%;height:100%"></div>'
-})
-export class GlobeComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit() {
-
-    const { XYZ } = layer;
-    const { GlobusTerrain } = terrain;
-
-    const osm = new XYZ('OpenStreetMap', {
-      isBaseLayer: true,
-      url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      visibility: true,
-    });
-
-    const globus = new Globe({
-      target: 'globus', // a HTMLDivElement which its id is `globus`
-      name: 'Earth',
-      terrain: new GlobusTerrain(),
-      layers: [osm],
-      autoActivated: true,
-      viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
-    });
-  }
-
-}
-```
+OpenGlobus integrates well with front-end frameworks like React, Angular or Vuejs. [Read more here](./framework-intergration.md).
 
 ## Documentation
 
