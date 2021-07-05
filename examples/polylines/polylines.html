@@ -85,6 +85,14 @@
                         'color': "#ff3b3b",
                         'isClosed': true
                     }
+                }, {
+                    'polyline': {
+                        'pathLonLat': [[[55, 2.3510, 200000], [52, 17, 200000], [50, 35, 300000]]],
+                        'pathColors': [[[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 0, 1]]],
+                        'thickness': 5.5,
+                        'color': "red",
+                        'isClosed': false
+                    }
                 }]
         });
 
@@ -101,6 +109,9 @@
             "layers": [osm, collection],
             "terrain": new GlobusTerrain()
         });
+
+        window.globus = globus;
+
     </script>
 </body>
 

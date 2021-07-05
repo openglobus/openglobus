@@ -1,20 +1,20 @@
-'use strict';
+"use strict";
 
-import { Camera } from '../camera/Camera.js';
-import { Framebuffer, Multisample } from '../webgl/index.js';
-import { randomi } from '../math.js';
-import { RendererEvents } from './RendererEvents.js';
-import { Vec2 } from '../math/Vec2.js';
-import { Vec3 } from '../math/Vec3.js';
-import { cons } from '../cons.js';
-import { input } from '../input/input.js';
-import { isEmpty } from '../utils/shared.js';
-import { toneMapping } from '../shaders/toneMapping.js';
-import { screenFrame } from '../shaders/screenFrame.js';
-import { FontAtlas } from '../utils/FontAtlas.js';
-import { TextureAtlas } from '../utils/TextureAtlas.js';
-import * as arial from '../arial.js';
-import { depth } from '../shaders/depth.js';
+import { Camera } from "../camera/Camera.js";
+import { Framebuffer, Multisample } from "../webgl/index.js";
+import { randomi } from "../math.js";
+import { RendererEvents } from "./RendererEvents.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Vec3 } from "../math/Vec3.js";
+import { cons } from "../cons.js";
+import { input } from "../input/input.js";
+import { isEmpty } from "../utils/shared.js";
+import { toneMapping } from "../shaders/toneMapping.js";
+import { screenFrame } from "../shaders/screenFrame.js";
+import { FontAtlas } from "../utils/FontAtlas.js";
+import { TextureAtlas } from "../utils/TextureAtlas.js";
+import * as arial from "../arial.js";
+import { depth } from "../shaders/depth.js";
 import { ARIAL_FONT_B64 } from "../res/images.js";
 
 /**
@@ -51,7 +51,6 @@ import { ARIAL_FONT_B64 } from "../res/images.js";
  * @fires og.RendererEvents#touchenter
  */
 const Renderer = function (handler, params) {
-
     params = params || {};
 
     /**
@@ -228,7 +227,11 @@ Renderer.prototype.setScreenScale = function (scale) {
 
 Renderer.prototype.addDepthCallback = function (sender, callback) {
     var id = Renderer.__depthCallbackCounter__++;
-    this._depthCallbacks.push({ id: id, callback: callback, sender: sender });
+    this._depthCallbacks.push({
+        id: id,
+        callback: callback,
+        sender: sender
+    });
     return id;
 };
 
@@ -249,7 +252,11 @@ Renderer.prototype.removeDepthCallback = function (id) {
  */
 Renderer.prototype.addPickingCallback = function (sender, callback) {
     var id = Renderer.__pickingCallbackCounter__++;
-    this._pickingCallbacks.push({ id: id, callback: callback, sender: sender });
+    this._pickingCallbacks.push({
+        id: id,
+        callback: callback,
+        sender: sender
+    });
     return id;
 };
 
@@ -277,7 +284,9 @@ Renderer.prototype.getPickingObjectByColor = function (r, g, b) {
  */
 Renderer.prototype.assignPickingColor = function (obj) {
     if (!obj._pickingColor || obj._pickingColor.isZero()) {
-        var r = 0, g = 0, b = 0;
+        var r = 0,
+            g = 0,
+            b = 0;
         var str = "0_0_0";
         while (!(r || g || b) || this.colorObjects[str]) {
             r = randomi(1, 255);
@@ -373,7 +382,6 @@ Renderer.prototype.removeControl = function (control) {
  * @public
  */
 Renderer.prototype.initialize = function () {
-
     if (this._initialized) {
         return;
     } else {
@@ -431,7 +439,7 @@ Renderer.prototype.initialize = function () {
         useDepth: false
     }).init();
 
-    this.readPixels = () => { };
+    this.readPixels = () => {};
 
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -445,20 +453,15 @@ Renderer.prototype.initialize = function () {
             depth: this.screenDepthFramebuffer.textures[0]
         };
     } else {
-
         let _maxMSAA = this.getMaxMSAA(this._internalFormat);
 
         if (this._msaa > _maxMSAA) {
             this._msaa = _maxMSAA;
         }
 
-        this.handler.addPrograms([
-            toneMapping()
-        ]);
+        this.handler.addPrograms([toneMapping()]);
 
-        this.handler.addPrograms([
-            depth()
-        ]);
+        this.handler.addPrograms([depth()]);
 
         this.sceneFramebuffer = new Multisample(this.handler, {
             size: 1,
@@ -494,7 +497,11 @@ Renderer.prototype.initialize = function () {
         this._resize();
     };
 
-    this._screenFrameCornersBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
+    this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
+        new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
+        2,
+        4
+    );
 
     let temp = this.controls;
     this.controls = {};
@@ -517,11 +524,21 @@ Renderer.prototype.setCurrentScreen = function (screenName) {
 Renderer.prototype._resize = function () {
     let obj = this.handler.canvas;
     this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-    this.sceneFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale);
-    this.blitFramebuffer && this.blitFramebuffer.setSize(obj.clientWidth * this._screenScale, obj.clientHeight * this._screenScale, true);
-    this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+    this.sceneFramebuffer.setSize(
+        obj.clientWidth * this._screenScale,
+        obj.clientHeight * this._screenScale
+    );
+    this.blitFramebuffer &&
+        this.blitFramebuffer.setSize(
+            obj.clientWidth * this._screenScale,
+            obj.clientHeight * this._screenScale,
+            true
+        );
+    this.toneMappingFramebuffer &&
+        this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
     this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-    this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+    this.screenDepthFramebuffer &&
+        this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
     if (this.handler.gl.type === "webgl") {
         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -612,11 +629,9 @@ Renderer.prototype.enqueueEntityCollectionsToDraw = function (ecArr) {
  * @param {Array<og.EntityCollection>} ec - Entity collection array.
  */
 Renderer.prototype._drawEntityCollections = function () {
-
     let ec = this._entityCollections;
 
     if (ec.length) {
-
         var gl = this.handler.gl;
 
         gl.enable(gl.BLEND);
@@ -713,7 +728,6 @@ Renderer.prototype._drawEntityCollections = function () {
  * @public
  */
 Renderer.prototype.draw = function () {
-
     this.activeCamera.checkMoveEnd();
 
     let e = this.events;
@@ -724,12 +738,7 @@ Renderer.prototype.draw = function () {
 
     let h = this.handler;
 
-    h.gl.clearColor(
-        this.backgroundColor.x,
-        this.backgroundColor.y,
-        this.backgroundColor.z,
-        1.0
-    );
+    h.gl.clearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.z, 1.0);
     h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
     e.dispatch(e.draw, this);
@@ -763,7 +772,9 @@ Renderer.prototype.draw = function () {
 
     this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
 
-    this._readPickingColor();
+    if (e.mouseState.anyEvent()) {
+        this._readPickingColor();
+    }
 
     // Tone mapping followed by rendering on the screen
     this._fnScreenFrame();
@@ -876,9 +887,7 @@ Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
 };
 
 Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
-
     if (frustumIndex === 0) {
-
         this.depthFramebuffer.activate();
 
         var h = this.handler;

@@ -2,46 +2,18 @@
  * @module og/control/ZoomControl
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { RADIANS } from '../math.js';
-import { binarySearch, parseHTML } from '../utils/shared.js';
+import { Control } from "./Control.js";
+import { RADIANS } from "../math.js";
+import { binarySearch, parseHTML } from "../utils/shared.js";
 
 const scale = [
-    1,
-    2,
-    3,
-    5,
-    10,
-    20,
-    30,
-    50,
-    100,
-    200,
-    300,
-    500,
-    1e3,
-    2e3,
-    3e3,
-    5e3,
-    10e3,
-    20e3,
-    30e3,
-    50e3,
-    100e3,
-    200e3,
-    300e3,
-    500e3,
-    1000e3,
-    2000e3,
-    3000e3,
-    5000e3,
-    10000e3
+    1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,
+    100e3, 200e3, 300e3, 500e3, 1000e3, 2000e3, 3000e3, 5000e3, 10000e3
 ];
 
-const TEMPLATE =
-    `<div class="og-scale-container">
+const TEMPLATE = `<div class="og-scale-container">
       <div class="og-scale-label"></div>
       <div class="og-scale-ruler"></div>
     </div>`;
@@ -73,20 +45,27 @@ class ScaleControl extends Control {
     }
 
     oninit() {
-
         this.el = this._renderTemplate();
 
         this._scaleLabelEl = this.el.querySelector(".og-scale-label");
 
         this.renderer.div.appendChild(this.el);
 
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer.events.on("draw", (e) => {
+            if (e.events.mouseState.anyEvent()) {
+                this._draw();
+            }
+        });
+
+        this.renderer.activeCamera.events.on("moveend", (e) => {
+            this._draw(e);
+        });
     }
 
     _draw(e) {
         let cam = this.renderer.activeCamera;
         let s0 = this.planet.renderer.handler.getCenter();
-        let dist = this.planet.getDistanceFromPixel(s0, true);
+        let dist = this.planet.getDistanceFromPixel(s0);
         let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
         let tempSize = dist * Math.tan(cam._viewAngle * RADIANS);
         let p1 = p0.add(cam.getRight().scaleTo(tempSize));

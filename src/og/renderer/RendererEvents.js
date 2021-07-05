@@ -2,15 +2,15 @@
  * @module og/renderer/RendererEvents
  */
 
-'use strict';
+"use strict";
 
-import { Events } from '../Events.js';
-import { input } from '../input/input.js';
-import { KeyboardHandler } from '../input/KeyboardHandler.js';
-import { MouseHandler } from '../input/MouseHandler.js';
-import { TouchHandler } from '../input/TouchHandler.js';
-import { Vec2 } from '../math/Vec2.js';
-import { Vec3 } from '../math/Vec3.js';
+import { Events } from "../Events.js";
+import { input } from "../input/input.js";
+import { KeyboardHandler } from "../input/KeyboardHandler.js";
+import { MouseHandler } from "../input/MouseHandler.js";
+import { TouchHandler } from "../input/TouchHandler.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Vec3 } from "../math/Vec3.js";
 
 const LB_M = 0b0001;
 const RB_M = 0b0010;
@@ -23,7 +23,6 @@ const MB_M = 0b0100;
  */
 class RendererEvents extends Events {
     constructor(renderer) {
-
         super(EVENT_NAMES);
 
         /**
@@ -64,6 +63,28 @@ class RendererEvents extends Events {
          * @enum {Object}
          */
         this.mouseState = {
+            anyEvent: () => {
+                let ms = this.mouseState;
+                return (
+                    ms.leftButtonUp ||
+                    ms.rightButtonUp ||
+                    ms.middleButtonUp ||
+                    ms.leftButtonDown ||
+                    ms.rightButtonDown ||
+                    ms.middleButtonDown ||
+                    ms.leftButtonHold ||
+                    ms.rightButtonHold ||
+                    ms.middleButtonHold ||
+                    ms.leftButtonDoubleClick ||
+                    ms.rightButtonDoubleClick ||
+                    ms.middleButtonDoubleClick ||
+                    ms.leftButtonClick ||
+                    ms.rightButtonClick ||
+                    ms.middleButtonClick ||
+                    ms.moving ||
+                    ms.justStopped
+                );
+            },
             /** Current mouse X position. */
             x: 0,
             /** Current mouse Y position. */
@@ -199,7 +220,10 @@ class RendererEvents extends Events {
      */
     handleEvents() {
         if (this._active) {
-            this.mouseState.direction = this.renderer.activeCamera.unproject(this.mouseState.x, this.mouseState.y);
+            this.mouseState.direction = this.renderer.activeCamera.unproject(
+                this.mouseState.x,
+                this.mouseState.y
+            );
             this.entityPickingEvents();
             this._keyboardHandler.handleEvents();
             this.handleMouseEvents();
@@ -256,7 +280,6 @@ class RendererEvents extends Events {
      * @public
      */
     initialize() {
-
         this._mouseHandler.setEvent("mouseup", this, this.onMouseUp);
         this._mouseHandler.setEvent("mousemove", this, this.onMouseMove);
         this._mouseHandler.setEvent("mousedown", this, this.onMouseDown);
@@ -281,7 +304,6 @@ class RendererEvents extends Events {
      * @private
      */
     onMouseMove(event, sys) {
-
         let b = sys.buttons;
 
         if (b & LB_M) {
@@ -312,20 +334,17 @@ class RendererEvents extends Events {
             ey = event.clientY,
             r = this.clickRadius;
 
-        if (Math.abs(this._lclickX - ex) >= r &&
-            Math.abs(this._lclickY - ey) >= r) {
+        if (Math.abs(this._lclickX - ex) >= r && Math.abs(this._lclickY - ey) >= r) {
             this._ldblClkBegins = 0;
             this._lClkBegins = 0;
         }
 
-        if (Math.abs(this._rclickX - ex) >= r &&
-            Math.abs(this._rclickY - ey) >= r) {
+        if (Math.abs(this._rclickX - ex) >= r && Math.abs(this._rclickY - ey) >= r) {
             this._rdblClkBegins = 0;
             this._rClkBegins = 0;
         }
 
-        if (Math.abs(this._mclickX - ex) >= r &&
-            Math.abs(this._mclickY - ey) >= r) {
+        if (Math.abs(this._mclickX - ex) >= r && Math.abs(this._mclickY - ey) >= r) {
             this._mdblClkBegins = 0;
             this._mClkBegins = 0;
         }
@@ -352,7 +371,6 @@ class RendererEvents extends Events {
 
     onMouseLeave(event) {
         this.dispatch(this.mouseleave, event);
-
     }
 
     onMouseEnter(event) {
@@ -363,7 +381,6 @@ class RendererEvents extends Events {
      * @private
      */
     onMouseDown(event) {
-
         if (event.button === input.MB_LEFT) {
             this._lClkBegins = window.performance.now();
             this._lclickX = event.clientX;
@@ -397,10 +414,11 @@ class RendererEvents extends Events {
             ms.leftButtonDown = false;
             ms.leftButtonUp = true;
 
-            if (Math.abs(this._lclickX - event.clientX) < this.clickRadius &&
+            if (
+                Math.abs(this._lclickX - event.clientX) < this.clickRadius &&
                 Math.abs(this._lclickY - event.clientY) < this.clickRadius &&
-                (t - this._lClkBegins <= ms.clickDelay)) {
-
+                t - this._lClkBegins <= ms.clickDelay
+            ) {
                 if (this._ldblClkBegins) {
                     let deltatime = window.performance.now() - this._ldblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
@@ -414,15 +432,15 @@ class RendererEvents extends Events {
                 ms.leftButtonClick = true;
                 this._lClkBegins = 0;
             }
-
         } else if (event.button === input.MB_RIGHT) {
             ms.rightButtonDown = false;
             ms.rightButtonUp = true;
 
-            if (Math.abs(this._rclickX - event.clientX) < this.clickRadius &&
+            if (
+                Math.abs(this._rclickX - event.clientX) < this.clickRadius &&
                 Math.abs(this._rclickY - event.clientY) < this.clickRadius &&
-                (t - this._rClkBegins <= ms.clickDelay)) {
-
+                t - this._rClkBegins <= ms.clickDelay
+            ) {
                 if (this._rdblClkBegins) {
                     let deltatime = window.performance.now() - this._rdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
@@ -440,10 +458,11 @@ class RendererEvents extends Events {
             ms.middleButtonDown = false;
             ms.middleButtonUp = true;
 
-            if (Math.abs(this._mclickX - event.clientX) < this.clickRadius &&
+            if (
+                Math.abs(this._mclickX - event.clientX) < this.clickRadius &&
                 Math.abs(this._mclickY - event.clientY) < this.clickRadius &&
-                (t - this._mClkBegins <= ms.clickDelay)) {
-
+                t - this._mClkBegins <= ms.clickDelay
+            ) {
                 if (this._mdblClkBegins) {
                     var deltatime = window.performance.now() - this._mdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
@@ -493,12 +512,10 @@ class RendererEvents extends Events {
         ts.touchEnd = true;
 
         if (event.touches.length === 0) {
-
             ts.prev_x = ts.x;
             ts.prev_y = ts.y;
 
             if (this._oneTouchStart) {
-
                 if (this._dblTchBegins) {
                     var deltatime = window.performance.now() - this._dblTchBegins;
                     if (deltatime <= ts.doubleTouchDelay) {
@@ -545,7 +562,6 @@ class RendererEvents extends Events {
             ms = this.mouseState;
 
         if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-
             var r = this.renderer;
 
             var o = r.colorObjects;
@@ -829,7 +845,7 @@ class RendererEvents extends Events {
             ts.prev_y = ts.y;
         }
     }
-};
+}
 
 const EVENT_NAMES = [
     /**

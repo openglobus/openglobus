@@ -1,7 +1,7 @@
-﻿'use strict';
+﻿"use strict";
 
-import { Control } from './Control.js';
-import { parseHTML } from '../utils/shared.js';
+import { Control } from "./Control.js";
+import { parseHTML } from "../utils/shared.js";
 
 let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -93,13 +93,15 @@ class CompassButton extends Control {
 
         this.planet = null;
 
+        this._heading = null;
+
         this._svg = null;
     }
 
     oninit() {
         var btnEl = parseHTML(`<div class="og-compass-button">${svg}</div>`)[0];
 
-        this._svg = btnEl.querySelector('svg');
+        this._svg = btnEl.querySelector("svg");
 
         this.renderer.div.appendChild(btnEl);
 
@@ -112,11 +114,16 @@ class CompassButton extends Control {
         let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
         if (c) {
             this.planet.flyCartesian(
-                c.normal().scaleTo(
-                    c.length() + c.distance(this.planet.camera.eye)
-                ), null, null, 0, null, null, () => {
+                c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
+                null,
+                null,
+                0,
+                null,
+                null,
+                () => {
                     this.planet.camera.look(c);
-                });
+                }
+            );
         } else {
             this.planet.flyCartesian(this.planet.camera.eye);
         }
@@ -127,7 +134,10 @@ class CompassButton extends Control {
     }
 
     setHeading(heading) {
-        this._svg.style.transform = `rotateZ(${-heading}deg)`;
+        if (this._heading !== heading) {
+            this._heading = heading;
+            this._svg.style.transform = `rotateZ(${-heading}deg)`;
+        }
     }
 }
 
