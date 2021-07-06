@@ -6,15 +6,15 @@
 import * as shaders from "../shaders/geoObject.js";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
 
-const VERTEX_BUFFER = 0;
-const POSITION_BUFFER = 1;
-const RGBA_BUFFER = 2;
-const NORMALS_BUFFER = 3;
-const INDECIES_BUFFER = 4;
-const DIRECTION_BUFFER = 5;
-const PITCH_ROLL_BUFFER = 6;
-const SIZE_BUFFER = 7;
-const PICKINGCOLOR_BUFFER = 8;
+const VERTEX_BUFFER = 0,
+    POSITION_BUFFER = 1,
+    RGBA_BUFFER = 2,
+    NORMALS_BUFFER = 3,
+    INDECIES_BUFFER = 4,
+    DIRECTION_BUFFER = 5,
+    PITCH_ROLL_BUFFER = 6,
+    SIZE_BUFFER = 7,
+    PICKINGCOLOR_BUFFER = 8;
 
 class GeoObjectHandler {
     constructor(entityCollection) {
@@ -168,7 +168,8 @@ class GeoObjectHandler {
 
     _addGeoObjectToArrays(geoObject) {
         if (geoObject._visibility) {
-            this._vertexArr = concatTypedArrays(this._vertexArr, geoObject._vertices);
+            // this._vertexArr = concatTypedArrays(this._vertexArr, geoObject._vertices);
+            this._vertexArr = new Float32Array([-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5]);
         } else {
             this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
         }
@@ -271,6 +272,7 @@ class GeoObjectHandler {
             0,
             0
         );
+        // gl.vertexAttribDivisor(a.aVertexNormal, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(
@@ -281,13 +283,23 @@ class GeoObjectHandler {
             0,
             0
         );
+        // gl.vertexAttribDivisor(a.aVertexPosition, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer);
         gl.vertexAttribPointer(a.aDirection, this._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribDivisor(a.aDirection, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(a.aScale, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribDivisor(a.aScale, 1);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer);
+        gl.vertexAttribPointer(a.aPitchRoll, this._pitchRollBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribDivisor(a.aPitchRoll, 1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
+        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribDivisor(a.aColor, 1);
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
         gl.vertexAttribPointer(
             a.aPositionHigh,
@@ -297,6 +309,7 @@ class GeoObjectHandler {
             0,
             0
         );
+        // gl.vertexAttribDivisor(a.aPositionHigh, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
         gl.vertexAttribPointer(
@@ -307,31 +320,28 @@ class GeoObjectHandler {
             0,
             0
         );
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer);
-        gl.vertexAttribPointer(a.aPitchRoll, this._pitchRollBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
-        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
+        // gl.vertexAttribDivisor(a.aPositionLow, 1);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
-        gl.drawElements(gl.TRIANGLES, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, 10000);
+        // gl.drawElements(gl.TRIANGLES, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 
     setVertexArr(index, vertexArr) {
-        var i = index * 9;
-        var a = this._vertexArr;
-
-        a[i] = vertexArr[0];
-        a[i + 1] = vertexArr[1];
-        a[i + 2] = vertexArr[2];
-
-        a[i + 3] = vertexArr[3];
-        a[i + 4] = vertexArr[4];
-        a[i + 5] = vertexArr[5];
-
-        a[i + 6] = vertexArr[6];
-        a[i + 7] = vertexArr[7];
-        a[i + 8] = vertexArr[8];
-
+        // var i = index * 9;
+        // var a = this._vertexArr;
+        //
+        // a[i] = vertexArr[0];
+        // a[i + 1] = vertexArr[1];
+        // a[i + 2] = vertexArr[2];
+        //
+        // a[i + 3] = vertexArr[3];
+        // a[i + 4] = vertexArr[4];
+        // a[i + 5] = vertexArr[5];
+        //
+        // a[i + 6] = vertexArr[6];
+        // a[i + 7] = vertexArr[7];
+        // a[i + 8] = vertexArr[8];
+        this._vertexArr = [-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5];
         this._changedBuffers[VERTEX_BUFFER] = true;
     }
 

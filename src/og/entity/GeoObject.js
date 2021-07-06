@@ -235,7 +235,6 @@ class GeoObject {
     }
 
     updateDirection() {
-        this._qNorthFrame = new Quat();
         if (this._entity && this._entity.renderNode && this._entity.renderNode.ellipsoid) {
             this._entity.renderNode.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
         }
