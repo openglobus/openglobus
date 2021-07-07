@@ -70,6 +70,9 @@ class GeoObject {
         this._vertices = options.vertices;
         this._indices = options.indices;
         this.instanced = options.instanced;
+        if (options.indices) {
+            this._indicesCount = options.indices.length;
+        }
         if (options.vertices) {
             this._verticesCount = Math.floor(options.vertices.length / 3);
         }
