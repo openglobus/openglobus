@@ -69,6 +69,7 @@ class GeoObject {
         this._handlerIndex = -1;
         this._vertices = options.vertices;
         this._indices = options.indices;
+        this.instanced = options.instanced;
         if (options.vertices) {
             this._verticesCount = Math.floor(options.vertices.length / 3);
         }

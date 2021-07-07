@@ -27,13 +27,14 @@ let globus = new Globe({
 let entities = [],
     colors = ["red", "orange", "yellow", "green", "lightblue", "darkblue", "purple"];
 
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 1000; i++) {
     entities.push(
         new Entity({
             name: "sat-" + i,
             lonlat: [rnd(-180, 180), rnd(-90, 90), rnd(10000, 200000)],
             geoObject: {
                 scale: 100000,
+                instanced: true,
                 vertices: [-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5],
                 indices: [0, 1, 2, 0, 2, 1],
                 color: colors[i % 7]
@@ -52,7 +53,7 @@ globus.planet.events.on("draw", () => {
         let e = geoObjects._entities[i],
             c = e.getLonLat();
         // e.setLonLat(new LonLat(c.lon + 0.1, c.lat > 89 ? -90 : c.lat + 0.1, c.height));
-        e.geoObject.setYaw(e.geoObject._yaw + 1);
+        // e.geoObject.setYaw(e.geoObject._yaw + 1);
         e.geoObject.setPitch(e.geoObject._pitch + 1);
         e.geoObject.setRoll(e.geoObject._roll + 1);
     }
