@@ -2,10 +2,10 @@
  * @module og/shaders/skybox
  */
 
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
+import { Program } from "../webgl/Program.js";
+import { types } from "../webgl/types.js";
 
 export function skybox() {
     return new Program("skybox", {
@@ -15,10 +15,9 @@ export function skybox() {
             pos: { type: types.VEC3 }
         },
         attributes: {
-            aVertexPosition: { type: types.VEC3, enableArray: true }
+            aVertexPosition: { type: types.VEC3 }
         },
-        vertexShader:
-            `attribute vec3 aVertexPosition;
+        vertexShader: `attribute vec3 aVertexPosition;
             uniform mat4 projectionViewMatrix;
             uniform vec3 pos;
             varying vec3 vTextureCoord;
@@ -26,12 +25,11 @@ export function skybox() {
                 vTextureCoord = aVertexPosition;
                 gl_Position = projectionViewMatrix * vec4(aVertexPosition + pos, 1.0);
             }`,
-        fragmentShader:
-            `precision lowp float;
+        fragmentShader: `precision lowp float;
             varying vec3 vTextureCoord;
             uniform samplerCube uSampler;
             void main(void) {
                 gl_FragColor = textureCube(uSampler, vTextureCoord);
             }`
     });
-};
+}

@@ -2,10 +2,10 @@
  * @module og/shaders/pointCloud
  */
 
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
+import { Program } from "../webgl/Program.js";
+import { types } from "../webgl/types.js";
 
 //Picking is the same
 export function pointCloud() {
@@ -16,11 +16,10 @@ export function pointCloud() {
             pointSize: { type: types.FLOAT }
         },
         attributes: {
-            coordinates: { type: types.VEC3, enableArray: true },
-            colors: { type: types.VEC3, enableArray: true }
+            coordinates: { type: types.VEC3 },
+            colors: { type: types.VEC3 }
         },
-        vertexShader:
-            `attribute vec3 coordinates;
+        vertexShader: `attribute vec3 coordinates;
             attribute vec4 colors;
             uniform mat4 projectionViewMatrix;
             uniform float opacity;
@@ -32,11 +31,10 @@ export function pointCloud() {
                 gl_Position = projectionViewMatrix * vec4(coordinates, 1.0);
                 gl_PointSize = pointSize;
             }`,
-        fragmentShader:
-            `precision highp float;
+        fragmentShader: `precision highp float;
             varying vec4 color;
             void main(void) {
                 gl_FragColor = color;
             }`
     });
-};
+}
