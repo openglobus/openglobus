@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-import * as utils from '../utils/shared.js';
-import { Framebuffer } from '../webgl/Framebuffer.js';
-import { LonLat } from '../LonLat.js';
-import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
+import * as utils from "../utils/shared.js";
+import { Framebuffer } from "../webgl/Framebuffer.js";
+import { LonLat } from "../LonLat.js";
+import { Program } from "../webgl/Program.js";
+import { types } from "../webgl/types.js";
 
 const GeoImageCreator = function (planet, maxFrames) {
     this._gridSize = 64;
@@ -107,7 +107,6 @@ GeoImageCreator.prototype.remove = function (geoImage) {
 };
 
 GeoImageCreator.prototype._initBuffers = function () {
-
     let h = this._planet.renderer.handler;
 
     this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
@@ -122,22 +121,30 @@ GeoImageCreator.prototype._initBuffers = function () {
 
     this._indexBuffer = this._planet._indexesCache[gs][gs][gs][gs][gs].buffer;
 
-    this._quadTexCoordsBuffer = h.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
-    this._quadVertexBuffer = h.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
+    this._quadTexCoordsBuffer = h.createArrayBuffer(
+        new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]),
+        2,
+        4
+    );
+    this._quadVertexBuffer = h.createArrayBuffer(
+        new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]),
+        2,
+        4
+    );
 };
 
 GeoImageCreator.prototype._initShaders = function () {
-
-    this._planet.renderer.handler.addProgram(new Program("geoImageTransform", {
-        uniforms: {
-            sourceTexture: { type: types.SAMPLER2D },
-            extentParams: { type: types.VEC4 }
-        },
-        attributes: {
-            corners: { type: types.VEC2, enableArray: true },
-            texCoords: { type: types.VEC2, enableArray: true }
-        },
-        vertexShader: `attribute vec2 corners; 
+    this._planet.renderer.handler.addProgram(
+        new Program("geoImageTransform", {
+            uniforms: {
+                sourceTexture: { type: types.SAMPLER2D },
+                extentParams: { type: types.VEC4 }
+            },
+            attributes: {
+                corners: { type: types.VEC2 },
+                texCoords: { type: types.VEC2 }
+            },
+            vertexShader: `attribute vec2 corners; 
                       attribute vec2 texCoords; 
                       varying vec2 v_texCoords; 
                       uniform vec4 extentParams; 
@@ -145,14 +152,14 @@ GeoImageCreator.prototype._initShaders = function () {
                           v_texCoords = texCoords; 
                           gl_Position = vec4((-1.0 + (corners - extentParams.xy) * extentParams.zw) * vec2(1.0, -1.0), 0.0, 1.0); 
                       }`,
-        fragmentShader:
-            `precision highp float;
+            fragmentShader: `precision highp float;
                         uniform sampler2D sourceTexture;
                         varying vec2 v_texCoords;
                         void main () { 
                             gl_FragColor = texture2D(sourceTexture, v_texCoords);
                         }`
-    }));
+        })
+    );
 };
 
 export { GeoImageCreator };

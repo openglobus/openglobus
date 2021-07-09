@@ -161,11 +161,11 @@ class Lighting extends Control {
         var panel = parseHTML(TEMPLATE);
         document.body.appendChild(panel[0]);
 
-        document.getElementById("layers").addEventListener("change", (e) => {
-            console.log(e.target.value);
-        });
-
         var _this = this;
+
+        document.getElementById("layers").addEventListener("change", (e) => {
+            this._selectedLayer = _this.planet.getLayerByName(e.target.value);
+        });
 
         document.getElementById("gamma").addEventListener("input", function (e) {
             _this.planet.renderer.gamma = Number(this.value);
@@ -269,6 +269,7 @@ class Lighting extends Control {
         opt.value = e.name;
         opt.innerHTML = e.name;
         document.getElementById("layers").appendChild(opt);
+        document.getElementById("layers").value = e.name;
     }
 
     _onLayerRemove(e) {}
