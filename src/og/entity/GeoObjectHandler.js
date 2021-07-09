@@ -17,12 +17,12 @@ const VERTEX_BUFFER = 0,
     PICKINGCOLOR_BUFFER = 8;
 
 const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) => {
-    console.time("a");
+    //console.time("a");
     const currIndex = index * length;
     for (let i = currIndex; i < currIndex + length; i++) {
         arr[i] = params[i % itemSize];
     }
-    console.timeEnd("a");
+    //console.timeEnd("a");
     return arr;
 };
 // function setParametersToArray() {
@@ -364,19 +364,15 @@ class GeoObjectHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer);
         gl.vertexAttribPointer(a.aDirection, this._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribDivisor(a.aDirection, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(a.aScale, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribDivisor(a.aScale, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer);
         gl.vertexAttribPointer(a.aPitchRoll, this._pitchRollBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribDivisor(a.aPitchRoll, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribDivisor(a.aColor, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
         gl.vertexAttribPointer(
@@ -387,7 +383,6 @@ class GeoObjectHandler {
             0,
             0
         );
-        gl.vertexAttribDivisor(a.aPositionHigh, 1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
         gl.vertexAttribPointer(
@@ -398,9 +393,9 @@ class GeoObjectHandler {
             0,
             0
         );
-        gl.vertexAttribDivisor(a.aPositionLow, 1);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
+
         gl.drawElementsInstanced(
             gl.TRIANGLES,
             this._geoObjects[0]._indicesCount,
@@ -408,9 +403,6 @@ class GeoObjectHandler {
             0,
             this._geoObjects.length
         );
-
-        gl.vertexAttribDivisor(a.aPositionHigh, 0);
-        gl.vertexAttribDivisor(a.aPositionLow, 0);
 
         gl.disable(gl.CULL_FACE);
     }

@@ -25,12 +25,12 @@ export const geo_object = () =>
         attributes: {
             aVertexPosition: "vec3",
             aVertexNormal: "vec3",
-            aPositionHigh: "vec3",
-            aPositionLow: "vec3",
-            aDirection: "vec3",
-            aPitchRoll: "vec2",
-            aColor: "vec4",
-            aScale: "float"
+            aPositionHigh: { type: "vec3", divisor: 1 },
+            aPositionLow: { type: "vec3", divisor: 1 },
+            aDirection: { type: "vec3", divisor: 1 },
+            aPitchRoll: { type: "vec2", divisor: 1 },
+            aColor: { type: "vec4", divisor: 1 },
+            aScale: { type: "float", divisor: 1 }
         },
         vertexShader: `precision highp float;
 
