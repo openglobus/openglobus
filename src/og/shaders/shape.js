@@ -2,10 +2,10 @@
  * @module og/shaders/shape
  */
 
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
+import { Program } from "../webgl/Program.js";
+import { types } from "../webgl/types.js";
 
 export function shape_wl() {
     return new Program("shape_wl", {
@@ -23,12 +23,11 @@ export function shape_wl() {
             uSampler: { type: types.SAMPLER2D }
         },
         attributes: {
-            aVertexNormal: { type: types.VEC3, enableArray: true },
-            aVertexPosition: { type: types.VEC3, enableArray: true },
-            aTextureCoord: { type: types.VEC2, enableArray: true }
+            aVertexNormal: { type: types.VEC3 },
+            aVertexPosition: { type: types.VEC3 },
+            aTextureCoord: { type: types.VEC2 }
         },
-        vertexShader:
-        `attribute vec3 aVertexNormal;
+        vertexShader: `attribute vec3 aVertexNormal;
             attribute vec3 aVertexPosition;
             attribute vec2 aTextureCoord;
             uniform mat4 projectionMatrix;
@@ -45,8 +44,7 @@ export function shape_wl() {
                 vPosition = viewMatrix * modelMatrix * vec4(aVertexPosition, 1.0);
                 gl_Position = projectionMatrix * vPosition;
             }`,
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             varying vec2 vTextureCoord;
             varying vec3 vNormal;
             varying vec4 vPosition;
@@ -76,7 +74,7 @@ export function shape_wl() {
                 gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
             }`
     });
-};
+}
 
 export function shape_nl() {
     return new Program("shape_nl", {
@@ -90,8 +88,7 @@ export function shape_nl() {
             aVertexPosition: { type: types.VEC3, enableArray: true },
             aTextureCoord: { type: types.VEC2, enableArray: true }
         },
-        vertexShader:
-        `attribute vec3 aVertexPosition;
+        vertexShader: `attribute vec3 aVertexPosition;
             attribute vec2 aTextureCoord;
             uniform mat4 projectionViewMatrix;
             uniform mat4 modelMatrix;
@@ -101,8 +98,7 @@ export function shape_nl() {
                 gl_Position = projectionViewMatrix * (modelMatrix * vec4(aVertexPosition, 1.0));
                 vTextureCoord = aTextureCoord;
             }`,
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 uColor;
             uniform sampler2D uSampler;
             varying vec2 vTextureCoord;
@@ -110,7 +106,7 @@ export function shape_nl() {
                 gl_FragColor = uColor*texture2D( uSampler, vTextureCoord.st );
             }`
     });
-};
+}
 
 export function shape_picking() {
     return new Program("shape_picking", {
@@ -122,20 +118,18 @@ export function shape_picking() {
         attributes: {
             aVertexPosition: { type: types.VEC3, enableArray: true }
         },
-        vertexShader:
-        `attribute vec3 aVertexPosition;
+        vertexShader: `attribute vec3 aVertexPosition;
             uniform mat4 projectionViewMatrix;
             uniform mat4 modelMatrix;
 
             void main(void) {
                 gl_Position = projectionViewMatrix * (modelMatrix * vec4(aVertexPosition, 1.0));
             }`,
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 uColor;
             uniform sampler2D uSampler;
             void main(void) {
                 gl_FragColor = uColor;
             }`
     });
-};
+}

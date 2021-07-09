@@ -1,0 +1,74 @@
+﻿<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+</head>
+
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <input type="range" id="maxHeight" name="maxHeight" value="0.0" min="0.0" max="10000" step="10" style="position:absolute; top:0; left:0; width: 300px; margin: 20px;" />
+    <script type="module">
+        'use strict';
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+        import { Extent } from '../../src/og/Extent.js';
+        import { LonLat } from '../../src/og/LonLat.js';
+        import { Vec3 } from '../../src/og/math/Vec3.js';
+
+        const maxHeight = 0;
+
+        document.getElementById("maxHeight").value = maxHeight;
+
+        let osmArr = new Array(7);
+
+        document.getElementById("maxHeight").addEventListener("input", function (e) {
+            let d = Number(this.value) / osmArr.length
+            for (let i = 0; i < osmArr.length; i++) {
+                osmArr[i].setHeight(i * d);
+            }
+        });
+
+        const extent = new Extent(new LonLat(130.58968, 31.54528), new LonLat(130.73264, 31.63328));
+
+        let osm = new XYZ(`OpenStreetMap`, {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        for (let i = 0; i < osmArr.length; i++) {
+            let d = maxHeight / osmArr.length;
+            osmArr[i] = new XYZ(`OpenStreetMap-${i}`, {
+                isBaseLayer: false,
+                url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                visibility: true,
+                attribution: 'Data @ OpenStreetMap contributors, ODbL',
+                height: i * d,
+                extent: extent,
+                opacity: 0.9
+            });
+        }
+
+        var globus = new Globe({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new GlobusTerrain(),
+            "layers": [osm, ...osmArr]
+        });
+
+        let e = new Vec3(4146394.964125832, 3317772.147707312, -3550042.1821609484),
+            f = new Vec3(-0.9253419835300108, 0.2880908623308008, 0.24646676968362824),
+            u = new Vec3(0.12983486620433618, 0.8515625581309079, -0.507921369020133);
+
+        globus.planet.camera.set(e, e.add(f), u);
+        globus.planet.camera.update();
+
+    </script>
+</body>
+
+</html>

@@ -2,16 +2,16 @@
  * @module og/webgl/callbacks
  */
 
-'use strict';
+"use strict";
 
-import { types } from './types.js';
+import { types } from "./types.js";
 
 /*=========================
    Uniforms callbacks
  =========================*/
 export const callbacks = {
-    'u': [],
-    'a': []
+    u: [],
+    a: []
 };
 
 callbacks.u[types.MAT4] = function (program, variable) {
@@ -78,21 +78,21 @@ callbacks.u[types.FLOATXX] = function (program, variable) {
     program.gl.uniform1fv(variable._pName, variable.value);
 };
 
-/*========================
-   Attributes callbacks
- ========================*/
-callbacks.a[types.FLOAT] = function (program, variable) {
-    program.gl.vertexAttrib1f(variable._pName, variable.value);
-};
+///*========================
+//   Attributes callbacks
+// ========================*/
+//callbacks.a[types.FLOAT] = function (program, variable) {
+//    program.gl.vertexAttrib1f(variable._pName, variable.value);
+//};
 
-callbacks.a[types.VEC2] = function (program, variable) {
-    program.gl.vertexAttrib2fv(variable._pName, variable.value);
-};
+//callbacks.a[types.VEC2] = function (program, variable) {
+//    program.gl.vertexAttrib2fv(variable._pName, variable.value);
+//};
 
-callbacks.a[types.VEC3] = function (program, variable) {
-    program.gl.vertexAttrib3fv(variable._pName, variable.value);
-};
+//callbacks.a[types.VEC3] = function (program, variable) {
+//    program.gl.vertexAttrib3fv(variable._pName, variable.value);
+//};
 
-callbacks.a[types.VEC4] = function (program, variable) {
-    program.gl.vertexAttrib4fv(variable._pName, variable.value);
-};
+//callbacks.a[types.VEC4] = function (program, variable) {
+//    program.gl.vertexAttrib4fv(variable._pName, variable.value);
+//};
