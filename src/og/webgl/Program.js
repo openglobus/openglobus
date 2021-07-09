@@ -250,12 +250,9 @@ class Program {
     disableAttribArrays() {
         var gl = this.gl;
         var a = this._attribArrays;
-        var d = this._attribDivisor;
         for (let i = 0, len = a.length; i < len; i++) {
-            for (let j = 0, dlen = d[i].length; j < dlen; j++) {
-                gl.disableVertexAttribArray(a[i] + j);
-                gl.vertexAttribDivisor(a[i] + j, 0);
-            }
+            gl.disableVertexAttribArray(a[i]);
+            gl.vertexAttribDivisor(a[i], 0);
         }
     }
 
@@ -267,13 +264,9 @@ class Program {
         var gl = this.gl;
         var a = this._attribArrays;
         var d = this._attribDivisor;
-        var i = a.length;
         for (let i = 0, len = a.length; i < len; i++) {
-            let dArr = d[i];
-            for (let j = 0, dlen = dArr.length; j < dlen; j++) {
-                gl.enableVertexAttribArray(a[i] + j);
-                gl.vertexAttribDivisor(a[i] + j, dArr[j]);
-            }
+            gl.enableVertexAttribArray(a[i]);
+            gl.vertexAttribDivisor(a[i], d[i]);
         }
     }
 
@@ -346,8 +339,6 @@ class Program {
                 return;
             }
 
-            this._attribArrays.push(this._p[a]);
-
             let type = this._attributes[a].type;
             if (typeof type === "string") {
                 type = typeStr[type.trim().toLowerCase()];
@@ -355,9 +346,12 @@ class Program {
 
             let d = this._attributes[a].divisor;
             if (type === types.MAT4) {
-                this._attribDivisor.push([d, d, d, d]);
+                let loc = this._p[a];
+                this._attribArrays.push(loc, loc + 1, loc + 2, loc + 3);
+                this._attribDivisor.push(d, d, d, d);
             } else {
-                this._attribDivisor.push([d]);
+                this._attribArrays.push(this._p[a]);
+                this._attribDivisor.push(d);
             }
 
             gl.enableVertexAttribArray(this._p[a]);
