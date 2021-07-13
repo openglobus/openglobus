@@ -1,6 +1,7 @@
 'use strict';
 
 import * as shaders from '../shaders/ray.js';
+import { concatTypedArrays, spliceTypedArray } from "../utils/shared";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -40,17 +41,17 @@ class RayHandler {
         this._thicknessBuffer = null;
         this._rgbaBuffer = null;
 
-        this._vertexArr = [];
-        this._startPositionHighArr = [];
-        this._startPositionLowArr = [];
-        this._endPositionHighArr = [];
-        this._endPositionLowArr = [];
-        this._lengthArr = [];
-        this._thicknessArr = [];
-        this._rgbaArr = [];
+        this._vertexArr = new Float32Array();
+        this._startPositionHighArr = new Float32Array();
+        this._startPositionLowArr = new Float32Array();
+        this._endPositionHighArr = new Float32Array();
+        this._endPositionLowArr = new Float32Array();
+        this._lengthArr = new Float32Array();
+        this._thicknessArr = new Float32Array();
+        this._rgbaArr = new Float32Array();
 
         this._pickingColorBuffer = null;
-        this._pickingColorArr = [];
+        this._pickingColorArr = new Float32Array();
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
@@ -120,23 +121,23 @@ class RayHandler {
     }
 
     clear() {
-        this._vertexArr.length = 0;
-        this._startPositionHighArr.length = 0;
-        this._startPositionLowArr.length = 0;
-        this._endPositionHighArr.length = 0;
-        this._endPositionLowArr.length = 0;
-        this._lengthArr.length = 0;
-        this._thicknessArr.length = 0;
-        this._rgbaArr.length = 0;
+        this._vertexArr = null;
+        this._startPositionHighArr = null;
+        this._startPositionLowArr = null;
+        this._endPositionHighArr = null;
+        this._endPositionLowArr = null;
+        this._lengthArr = null;
+        this._thicknessArr = null;
+        this._rgbaArr = null;
 
-        this._vertexArr = [];
-        this._startPositionHighArr = [];
-        this._startPositionLowArr = [];
-        this._endPositionHighArr = [];
-        this._endPositionLowArr = [];
-        this._lengthArr = [];
-        this._thicknessArr = [];
-        this._rgbaArr = [];
+        this._vertexArr = new Float32Array();
+        this._startPositionHighArr = new Float32Array();
+        this._startPositionLowArr = new Float32Array();
+        this._endPositionHighArr = new Float32Array();
+        this._endPositionLowArr = new Float32Array();
+        this._lengthArr = new Float32Array();
+        this._thicknessArr = new Float32Array();
+        this._rgbaArr = new Float32Array();
 
         this._removeRays();
         this._deleteBuffers();
@@ -192,16 +193,16 @@ class RayHandler {
 
     _addRayToArrays(ray) {
         if (ray._visibility) {
-            RayHandler.concArr(this._vertexArr, [-0.5, 1.0, -0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 1.0, -0.5, 1.0]);
+            this._vertexArr = concatTypedArrays(this._vertexArr, [-0.5, 1.0, -0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 1.0, -0.5, 1.0]);
         } else {
-            RayHandler.concArr(this._vertexArr, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+            this._vertexArr = concatTypedArrays(this._vertexArr, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         }
 
         let x = ray._startPositionHigh.x, y = ray._startPositionHigh.y, z = ray._startPositionHigh.z;
-        RayHandler.concArr(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._startPositionHighArr = concatTypedArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = ray._startPositionLow.x; y = ray._startPositionLow.y; z = ray._startPositionLow.z;
-        RayHandler.concArr(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._startPositionLowArr = concatTypedArrays(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = ray._endPositionHigh.x; y = ray._endPositionHigh.y; z = ray._endPositionHigh.z;
         RayHandler.concArr(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
