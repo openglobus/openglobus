@@ -736,10 +736,14 @@ export function concatArrays(a, b) {
  * @returns {TypedArray}
  */
 export function makeArrayTyped(arr, ctor = Float32Array) {
+
     if (!ArrayBuffer.isView(arr)) {
-        arr = new (ctor)(arr);
+        const typedArr = new (ctor)(arr.length);
+        typedArr.set(arr, 0);
+        return typedArr;
+    } else {
+        return arr;
     }
-    return arr;
 }
 
 /**
@@ -754,7 +758,9 @@ export function spliceArray(arr, starting, deleteCount, elements) {
     if (ArrayBuffer.isView(arr)) {
         return spliceTypedArray(arr, starting, deleteCount, elements);
     } else {
-        arr.splice(starting, deleteCount, elements);
+        if (starting > arr.length) {
+            arr.splice(starting, deleteCount, elements);
+        }
         return arr;
     }
 }
