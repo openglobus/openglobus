@@ -1,6 +1,7 @@
 'use strict';
 
 import * as shaders from '../shaders/ray.js';
+import { concatArrays, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
@@ -120,23 +121,23 @@ class RayHandler {
     }
 
     clear() {
-        this._vertexArr.length = 0;
-        this._startPositionHighArr.length = 0;
-        this._startPositionLowArr.length = 0;
-        this._endPositionHighArr.length = 0;
-        this._endPositionLowArr.length = 0;
-        this._lengthArr.length = 0;
-        this._thicknessArr.length = 0;
-        this._rgbaArr.length = 0;
+        this._vertexArr = null;
+        this._startPositionHighArr = null;
+        this._startPositionLowArr = null;
+        this._endPositionHighArr = null;
+        this._endPositionLowArr = null;
+        this._lengthArr = null;
+        this._thicknessArr = null;
+        this._rgbaArr = null;
 
-        this._vertexArr = [];
-        this._startPositionHighArr = [];
-        this._startPositionLowArr = [];
-        this._endPositionHighArr = [];
-        this._endPositionLowArr = [];
-        this._lengthArr = [];
-        this._thicknessArr = [];
-        this._rgbaArr = [];
+        this._vertexArr = new Float32Array();
+        this._startPositionHighArr = new Float32Array();
+        this._startPositionLowArr = new Float32Array();
+        this._endPositionHighArr = new Float32Array();
+        this._endPositionLowArr = new Float32Array();
+        this._lengthArr = new Float32Array();
+        this._thicknessArr = new Float32Array();
+        this._rgbaArr = new Float32Array();
 
         this._removeRays();
         this._deleteBuffers();
@@ -192,35 +193,43 @@ class RayHandler {
 
     _addRayToArrays(ray) {
         if (ray._visibility) {
-            RayHandler.concArr(this._vertexArr, [-0.5, 1.0, -0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 1.0, -0.5, 1.0]);
+            this._vertexArr = concatArrays(this._vertexArr, [-0.5, 1.0, -0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 1.0, -0.5, 1.0]);
         } else {
-            RayHandler.concArr(this._vertexArr, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+            this._vertexArr = concatArrays(this._vertexArr, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         }
 
         let x = ray._startPositionHigh.x, y = ray._startPositionHigh.y, z = ray._startPositionHigh.z;
-        RayHandler.concArr(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        this._startPositionHighArr = concatArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._startPositionLow.x; y = ray._startPositionLow.y; z = ray._startPositionLow.z;
-        RayHandler.concArr(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = ray._startPositionLow.x;
+        y = ray._startPositionLow.y;
+        z = ray._startPositionLow.z;
+        this._startPositionLowArr = concatArrays(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._endPositionHigh.x; y = ray._endPositionHigh.y; z = ray._endPositionHigh.z;
-        RayHandler.concArr(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = ray._endPositionHigh.x;
+        y = ray._endPositionHigh.y;
+        z = ray._endPositionHigh.z;
+        this._endPositionHighArr = concatArrays(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        x = ray._endPositionLow.x; y = ray._endPositionLow.y; z = ray._endPositionLow.z;
-        RayHandler.concArr(this._endPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = ray._endPositionLow.x;
+        y = ray._endPositionLow.y;
+        z = ray._endPositionLow.z;
+        this._endPositionLowArr = concatArrays(this._endPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
         x = ray._thickness;
-        RayHandler.concArr(this._thicknessArr, [x, x, x, x, x, x]);
+        this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
 
         x = ray._length;
-        RayHandler.concArr(this._lengthArr, [x, x, x, x, x, x]);
+        this._lengthArr = concatArrays(this._lengthArr, [x, x, x, x, x, x]);
 
         let r0 = ray._startColor.x, g0 = ray._startColor.y, b0 = ray._startColor.z, a0 = ray._startColor.w,
             r1 = ray._endColor.x, g1 = ray._endColor.y, b1 = ray._endColor.z, a1 = ray._endColor.w;
-        RayHandler.concArr(this._rgbaArr, [r1, g1, b1, a1, r0, g0, b0, a0, r0, g0, b0, a0, r0, g0, b0, a0, r1, g1, b1, a1, r1, g1, b1, a1]);
+        this._rgbaArr = concatArrays(this._rgbaArr, [r1, g1, b1, a1, r0, g0, b0, a0, r0, g0, b0, a0, r0, g0, b0, a0, r1, g1, b1, a1, r1, g1, b1, a1]);
 
-        x = ray._entity._pickingColor.x / 255; y = ray._entity._pickingColor.y / 255; z = ray._entity._pickingColor.z / 255;
-        RayHandler.concArr(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = ray._entity._pickingColor.x / 255;
+        y = ray._entity._pickingColor.y / 255;
+        z = ray._entity._pickingColor.z / 255;
+        this._pickingColorArr = concatArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
     _displayPASS() {
@@ -304,21 +313,21 @@ class RayHandler {
         this._rays.splice(ri, 1);
 
         var i = ri * 24;
-        this._rgbaArr.splice(i, 24);
+        this._rgbaArr = spliceArray(this._rgbaArr, i, 24);
 
         i = ri * 18;
-        this._startPositionHighArr.splice(i, 18);
-        this._startPositionLowArr.splice(i, 18);
-        this._endPositionHighArr.splice(i, 18);
-        this._endPositionLowArr.splice(i, 18);
-        this._pickingColorArr.splice(i, 18);
+        this._startPositionHighArr = spliceArray(this._startPositionHighArr, i, 18);
+        this._startPositionLowArr = spliceArray(this._startPositionLowArr, i, 18);
+        this._endPositionHighArr = spliceArray(this._endPositionHighArr, i, 18);
+        this._endPositionLowArr = spliceArray(this._endPositionLowArr, i, 18);
+        this._pickingColorArr = spliceArray(this._pickingColorArr, i, 18);
 
         i = ri * 12;
-        this._vertexArr.splice(i, 12);
+        this._vertexArr = spliceArray(this._vertexArr, i, 12);
 
         i = ri * 6;
-        this._thicknessArr.splice(i, 6);
-        this._lengthArr.splice(i, 6);
+        this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
+        this._lengthArr = spliceArray(this._lengthArr, i, 6);
 
         this.reindexRaysArray(ri);
         this.refresh();
@@ -365,7 +374,10 @@ class RayHandler {
         a[i + 17] = z;
 
         // Low
-        a = this._startPositionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
+        a = this._startPositionLowArr;
+        x = positionLow.x;
+        y = positionLow.y;
+        z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -425,7 +437,10 @@ class RayHandler {
         a[i + 17] = z;
 
         // Low
-        a = this._endPositionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
+        a = this._endPositionLowArr;
+        x = positionLow.x;
+        y = positionLow.y;
+        z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -593,47 +608,57 @@ class RayHandler {
     createStartPositionBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._startPositionHighBuffer);
-        this._startPositionHighBuffer = h.createArrayBuffer(new Float32Array(this._startPositionHighArr), 3, this._startPositionHighArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._startPositionHighArr = makeArrayTyped(this._startPositionHighArr);
+        this._startPositionHighBuffer = h.createArrayBuffer(this._startPositionHighArr, 3, this._startPositionHighArr.length / 3, h.gl.DYNAMIC_DRAW);
         h.gl.deleteBuffer(this._startPositionLowBuffer);
-        this._startPositionLowBuffer = h.createArrayBuffer(new Float32Array(this._startPositionLowArr), 3, this._startPositionLowArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._startPositionLowArr = makeArrayTyped(this._startPositionLowArr);
+
+        this._startPositionLowBuffer = h.createArrayBuffer(this._startPositionLowArr, 3, this._startPositionLowArr.length / 3, h.gl.DYNAMIC_DRAW);
     }
 
     createEndPositionBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._endPositionHighBuffer);
-        this._endPositionHighBuffer = h.createArrayBuffer(new Float32Array(this._endPositionHighArr), 3, this._endPositionHighArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._endPositionHighArr = makeArrayTyped(this._endPositionHighArr);
+        this._endPositionHighBuffer = h.createArrayBuffer(this._endPositionHighArr, 3, this._endPositionHighArr.length / 3, h.gl.DYNAMIC_DRAW);
         h.gl.deleteBuffer(this._endPositionLowBuffer);
-        this._endPositionLowBuffer = h.createArrayBuffer(new Float32Array(this._endPositionLowArr), 3, this._endPositionLowArr.length / 3, h.gl.DYNAMIC_DRAW);
+        this._endPositionLowArr = makeArrayTyped(this._endPositionLowArr);
+        this._endPositionLowBuffer = h.createArrayBuffer(this._endPositionLowArr, 3, this._endPositionLowArr.length / 3, h.gl.DYNAMIC_DRAW);
     }
 
     createRgbaBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._rgbaBuffer);
-        this._rgbaBuffer = h.createArrayBuffer(new Float32Array(this._rgbaArr), 4, this._rgbaArr.length / 4);
+        this._rgbaArr = makeArrayTyped(this._rgbaArr);
+        this._rgbaBuffer = h.createArrayBuffer(this._rgbaArr, 4, this._rgbaArr.length / 4);
     }
 
     createThicknessBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._thicknessBuffer);
-        this._thicknessBuffer = h.createArrayBuffer(new Float32Array(this._thicknessArr), 1, this._thicknessArr.length, h.gl.DYNAMIC_DRAW);
+        this._thicknessArr = makeArrayTyped(this._thicknessArr);
+        this._thicknessBuffer = h.createArrayBuffer(this._thicknessArr, 1, this._thicknessArr.length, h.gl.DYNAMIC_DRAW);
     }
 
     createLengthBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._lengthBuffer);
-        this._lengthBuffer = h.createArrayBuffer(new Float32Array(this._lengthArr), 1, this._lengthArr.length, h.gl.DYNAMIC_DRAW);
+        this._lengthArr = makeArrayTyped(this._lengthArr);
+        this._lengthBuffer = h.createArrayBuffer(this._lengthArr, 1, this._lengthArr.length, h.gl.DYNAMIC_DRAW);
     }
 
     createVertexBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._vertexBuffer);
-        this._vertexBuffer = h.createArrayBuffer(new Float32Array(this._vertexArr), 2, this._vertexArr.length / 2, h.gl.DYNAMIC_DRAW);
+        this._vertexArr = makeArrayTyped(this._vertexArr);
+        this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 2, this._vertexArr.length / 2, h.gl.DYNAMIC_DRAW);
     }
 
     createPickingColorBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._pickingColorBuffer);
-        this._pickingColorBuffer = h.createArrayBuffer(new Float32Array(this._pickingColorArr), 3, this._pickingColorArr.length / 3);
+        this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
+        this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
     }
 };
 

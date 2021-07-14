@@ -714,6 +714,58 @@ export function concatTypedArrays(a, b) {
 };
 
 /**
+ * Concatenates two the same  arrays
+ * @param {TypedArray | Array} a
+ * @param {TypedArray | Array} b
+ */
+export function concatArrays(a, b) {
+    if (ArrayBuffer.isView(a)) {
+        return concatTypedArrays(a, b);
+    } else {
+        for (var i = 0; i < b.length; i++) {
+            a.push(b[i]);
+        }
+        return a;
+    }
+}
+
+/**
+ * Convert simple array to typed
+ * @param arr {Array}
+ * @param ctor {Float32ArrayConstructor}
+ * @returns {TypedArray}
+ */
+export function makeArrayTyped(arr, ctor = Float32Array) {
+
+    if (!ArrayBuffer.isView(arr)) {
+        const typedArr = new (ctor)(arr.length);
+        typedArr.set(arr, 0);
+        return typedArr;
+    } else {
+        return arr;
+    }
+}
+
+/**
+ *
+ * @param {TypedArray | Array} arr
+ * @param {Number} starting
+ * @param {Number} deleteCount
+ * @param {Array} elements
+ */
+
+export function spliceArray(arr, starting, deleteCount, elements) {
+    if (ArrayBuffer.isView(arr)) {
+        return spliceTypedArray(arr, starting, deleteCount, elements);
+    } else {
+        if (starting > arr.length) {
+            arr.splice(starting, deleteCount, elements);
+        }
+        return arr;
+    }
+}
+
+/**
  *
  * @param {TypedArray} arr
  * @param {Number} starting
