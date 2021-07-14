@@ -1,7 +1,7 @@
 'use strict';
 
 import * as shaders from '../shaders/ray.js';
-import { concatArrays, spliceArray } from "../utils/shared";
+import { concatArrays, makeArrayTyped, spliceArray } from "../utils/shared";
 
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;

@@ -730,6 +730,18 @@ export function concatArrays(a, b) {
 }
 
 /**
+ * Convert simple array to typed
+ * @param arr {Array}
+ * @param ctor {Float32ArrayConstructor}
+ * @returns {TypedArray}
+ */
+export function makeArrayTyped(arr, ctor = Float32Array) {
+    if (!ArrayBuffer.isView(arr)) {
+        arr = new (ctor)(arr);
+    }
+    return arr;
+}
+/**
  *
  * @param {TypedArray | Array} arr
  * @param {Number} starting
