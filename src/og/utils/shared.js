@@ -741,6 +741,7 @@ export function makeArrayTyped(arr, ctor = Float32Array) {
     }
     return arr;
 }
+
 /**
  *
  * @param {TypedArray | Array} arr
@@ -748,14 +749,16 @@ export function makeArrayTyped(arr, ctor = Float32Array) {
  * @param {Number} deleteCount
  * @param {Array} elements
  */
-export function spliceArray(arr, starting, deleteCount, elements = []) {
+
+export function spliceArray(arr, starting, deleteCount, elements) {
     if (ArrayBuffer.isView(arr)) {
-        return spliceTypedArray(arr, starting, deleteCount, elements = []);
+        return spliceTypedArray(arr, starting, deleteCount, elements);
     } else {
         arr.splice(starting, deleteCount, elements);
         return arr;
     }
 }
+
 /**
  *
  * @param {TypedArray} arr
