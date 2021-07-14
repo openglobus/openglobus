@@ -8,19 +8,19 @@ import { Entity } from '../../src/og/entity/Entity.js';
 import { wgs84 } from '../../src/og/ellipsoid/wgs84.js';
 
 var osm = new XYZ("OpenStreetMap", {
-    isBaseLayer: true,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
-    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+	    isBaseLayer: true,
+	    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+	    visibility: true,
+	    attribution: 'Data @ OpenStreetMap contributors, ODbL'
 });
 
 //ellipsoid with earth dimensions
 let ellipsoid = wgs84;
 
 //coordinates of Bochum in lonlat
-let lonlatBochum = new LonLat(7, 51.5, 0);
+let lonlatBochum = new LonLat(7,51.5,0);
 //coordinate above Bochum to allow a upwards direction of ray
-let lonlatBochumAir = new LonLat(7, 51.5, 1000);
+let lonlatBochumAir = new LonLat(7,51.5,1000);
 //coordinates of Bochum in Cartesian
 let cartBochum = ellipsoid.lonLatToCartesian(lonlatBochum);
 let cartBochumAir = ellipsoid.lonLatToCartesian(lonlatBochumAir);
@@ -33,13 +33,12 @@ let entityBochum = new Entity({
         'startColor': "blue",
         'endColor': "green",
         'thickness': 5
-    }
-});
+    }});
 
 //coordinates of Moscow in lonlat
-let lonlatMoscow = new LonLat(37.6, 55.75, 0);
+let lonlatMoscow = new LonLat(37.6,55.75,0);
 //coordinate above Moscow to allow a upwards direction of ray
-let lonlatMoscowAir = new LonLat(37.6, 55.75, 1000);
+let lonlatMoscowAir = new LonLat(37.6,55.75,1000);
 //coordinates of Moscow in Cartesian
 let cartMoscow = ellipsoid.lonLatToCartesian(lonlatMoscow);
 let cartMoscowAir = ellipsoid.lonLatToCartesian(lonlatMoscowAir);
@@ -52,27 +51,27 @@ let entityMoscow = new Entity({
         'startColor': "red",
         'endColor': "green",
         'thickness': 10
-    }
-});
+    }});
 
 //polygonOffsetUnits is needed to hide rays behind globe
-let rayLayer = new Vector("rays", { 'polygonOffsetUnits': 0 });
+let rayLayer = new Vector("rays", {'polygonOffsetUnits': 0});
 
 //add entities containing the rays to the layer
 rayLayer.add(entityBochum);
 rayLayer.add(entityMoscow);
 
 var globus = new Globe({
-    "target": "globus",
-    "name": "Earth",
-    "terrain": new GlobusTerrain(),
-    "layers": [osm, rayLayer],
-    "sun": {
-        "active": true
-    }
+	  "target": "globus",
+	  "name": "Earth",
+	  "terrain": new GlobusTerrain(),
+	  "layers": [osm, rayLayer],
+	  "sun": {
+		    "active": true
+		}
 });
 
-function createRay(startPos, endPos, length, startColor, endColor, thickness) {
+function createRay(startPos, endPos, length, startColor, endColor, thickness){
+
 
     let e = new Entity({
         'ray': {
@@ -82,8 +81,6 @@ function createRay(startPos, endPos, length, startColor, endColor, thickness) {
             'startColor': "red",
             'endColor': "green",
             'thickness': 10
-        }
-    });
-    return e;
+        }});
+    return e
 }
-window.globus = globus;
