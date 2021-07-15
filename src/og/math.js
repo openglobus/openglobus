@@ -1,7 +1,7 @@
 /**
  * @module og/math
  */
-'use strict';
+"use strict";
 
 /** @const */
 export const TWO_PI = 2.0 * Math.PI;
@@ -14,7 +14,7 @@ export const Y = 1;
 export const Z = 2;
 export const W = 3;
 
-export const MAX_FLOAT = Number.MAX_VALUE || 1.7976931348623157e+308;
+export const MAX_FLOAT = Number.MAX_VALUE || 1.7976931348623157e308;
 
 /** @const */
 export const LOG2 = Math.log(2);
@@ -70,7 +70,7 @@ export const EPSILON18 = 1e-18;
 export const EPSILON19 = 1e-19;
 export const EPSILON20 = 1e-20;
 
-/** 
+/**
  * The log function returns the power to which the base value has to be raised to produce n.
  * @function
  * @param {number} n - Produce value.
@@ -82,7 +82,7 @@ export const EPSILON20 = 1e-20;
  */
 export function log(n, base) {
     return Math.log(n) / Math.log(base);
-};
+}
 
 /**
  * Clamp the number.
@@ -97,7 +97,7 @@ export function log(n, base) {
  */
 export function clamp(number, min, max) {
     return Math.max(min, Math.min(number, max));
-};
+}
 
 /**
  * Converts degrees value to radians.
@@ -107,7 +107,7 @@ export function clamp(number, min, max) {
  */
 export function DEG2RAD(degrees) {
     return degrees * RADIANS;
-};
+}
 
 /**
  * Converts radians value to degrees.
@@ -117,7 +117,7 @@ export function DEG2RAD(degrees) {
  */
 export function RAD2DEG(angle) {
     return angle * DEGREES;
-};
+}
 
 /**
  * Check the number is a power of two.
@@ -127,7 +127,7 @@ export function RAD2DEG(angle) {
  */
 export function isPowerOfTwo(x) {
     return (x & (x - 1)) === 0;
-};
+}
 
 /**
  * Returns next value that is power of two.
@@ -138,10 +138,10 @@ export function isPowerOfTwo(x) {
 export function nextHighestPowerOfTwo(x) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
-        x = x | x >> i;
+        x = x | (x >> i);
     }
     return x + 1;
-};
+}
 
 /**
  * Returns random integer number within the bounds.
@@ -152,7 +152,7 @@ export function nextHighestPowerOfTwo(x) {
  */
 export function randomi(min = 0, max = 1) {
     return Math.floor(Math.random() * (max - min)) + min;
-};
+}
 
 /**
  * Returns random number within the bounds.
@@ -163,7 +163,7 @@ export function randomi(min = 0, max = 1) {
  */
 export function random(min = 0, max = 1) {
     return Math.random() * (max - min) + min;
-};
+}
 
 /**
  * Converts degrees value to decimal.
@@ -180,7 +180,7 @@ export function degToDec(d, m, s, p) {
     } else {
         return -d - m / 60.0 - s / 3600.0;
     }
-};
+}
 
 /**
  * The modulo operation that also works for negative dividends.
@@ -191,7 +191,7 @@ export function degToDec(d, m, s, p) {
  */
 export function mod(m, n) {
     return ((m % n) + n) % n;
-};
+}
 
 /**
  * Returns an angle in the range 0 <= angle <= 2Pi which is equivalent to the provided angle.
@@ -205,7 +205,7 @@ export function zeroTwoPI(a) {
         return og.math.TWO_PI;
     }
     return mod;
-};
+}
 
 /**
  * Returns 0.0 if x is smaller then edge and otherwise 1.0.
@@ -216,9 +216,9 @@ export function zeroTwoPI(a) {
  */
 export function step(edge, x) {
     return x < edge ? 0.0 : 1.0;
-};
+}
 
-/** 
+/**
  * The fract function returns the fractional part of x, i.e. x minus floor(x).
  * @function
  * @param {number} x - Input value.
@@ -226,7 +226,7 @@ export function step(edge, x) {
  */
 export function frac(x) {
     return x - Math.floor(x);
-};
+}
 
 /**
  * Returns Math.log(x) / Math.log(2)
@@ -236,7 +236,7 @@ export function frac(x) {
  */
 export function log2(x) {
     return Math.log(x) / og.math.LOG2;
-};
+}
 
 /**
  * Returns two power of n.
@@ -246,7 +246,7 @@ export function log2(x) {
  */
 export function exp2(n) {
     return Math.pow(2, n);
-};
+}
 
 /**
  * Returns two power of integer n.
@@ -256,7 +256,7 @@ export function exp2(n) {
  */
 export function pow2i(n) {
     return 2 << (n - 1);
-};
+}
 
 /**
  * Returns a slice of linear interpolation t * (h1 - h0)
@@ -267,7 +267,7 @@ export function pow2i(n) {
  */
 export function slice(t, h1, h0) {
     return t * (h1 - h0);
-};
+}
 
 /**
  * Performs a linear interpolation.
@@ -279,7 +279,21 @@ export function slice(t, h1, h0) {
  */
 export function lerp(t, h1, h0) {
     return h0 + t * (h1 - h0);
-};
+}
+
+export function cube(f) {
+    return f * f * f;
+}
+
+export function square(f) {
+    return f * f;
+}
+
+export function bezier1v(t, p0, p1, p2, p3) {
+    return (
+        cube(1 - t) * p0 + 3 * square(1 - t) * t * p1 + 3 * (1 - t) * square(t) * p2 + cube(t) * p3
+    );
+}
 
 /**
  * Performs a 3D bezier interpolation.
@@ -291,16 +305,19 @@ export function lerp(t, h1, h0) {
  * @param {og.Vec3} p3 - Fourth control point.
  * @returns {og.Vec3} -
  */
-export function bezier(t, p0, p1, p2, p3) {
+export function bezier3v(t, p0, p1, p2, p3) {
     var u = 1 - t;
     var tt = t * t;
     var uu = u * u;
     var uuu = uu * u;
     var ttt = tt * t;
 
-    return p0.scaleTo(uuu).addA(p1.scaleTo(3 * uu * t))
-        .addA(p2.scaleTo(3 * u * tt)).addA(p3.scaleTo(ttt));
-};
+    return p0
+        .scaleTo(uuu)
+        .addA(p1.scaleTo(3 * uu * t))
+        .addA(p2.scaleTo(3 * u * tt))
+        .addA(p3.scaleTo(ttt));
+}
 
 /**
  * Clamp angle value within 360.
@@ -310,7 +327,7 @@ export function bezier(t, p0, p1, p2, p3) {
  */
 export function rev(x) {
     return x - Math.floor(x / 360.0) * 360.0;
-};
+}
 
 /**
  * Clamp longitude within: -180 to +180 degrees.
@@ -320,7 +337,7 @@ export function rev(x) {
  */
 export function norm_lon(lon) {
     return lon > 180 ? ((lon + 180) % 360) - 180 : lon < -180 ? ((lon - 180) % 360) + 180 : lon;
-};
+}
 
 /**
  * Returns an angle in the range -Pi <= angle <= Pi which is equivalent to the provided angle.
@@ -330,7 +347,7 @@ export function norm_lon(lon) {
  */
 export function negativePItoPI(a) {
     return og.math.zeroTwoPI(a + Math.PI) - Math.PI;
-};
+}
 
 /**
  * Solve using iteration method and a fixed number of steps.
@@ -348,7 +365,7 @@ export function solve_iteration_fixed(f, x0, maxIter) {
         x2 = f(x);
     }
     return x2;
-};
+}
 
 /**
  * Solve using iteration; terminate when error is below err or the maximum
@@ -372,7 +389,7 @@ export function solve_iteration(f, x0, err, maxIter) {
         }
     }
     return x2;
-};
+}
 
 /**
  * Equation function.
