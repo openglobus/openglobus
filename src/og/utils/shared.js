@@ -758,9 +758,7 @@ export function spliceArray(arr, starting, deleteCount, elements) {
     if (ArrayBuffer.isView(arr)) {
         return spliceTypedArray(arr, starting, deleteCount, elements);
     } else {
-        if (starting > arr.length) {
-            arr.splice(starting, deleteCount, elements);
-        }
+        arr.splice(starting, deleteCount);
         return arr;
     }
 }

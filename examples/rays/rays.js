@@ -1,17 +1,16 @@
-import { Globe } from '../../src/og/Globe.js';
-import { XYZ } from '../../src/og/layer/XYZ.js';
-import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-import { Vec3 } from '../../src/og/math/Vec3.js';
-import { LonLat } from '../../src/og/LonLat.js';
-import { Vector } from '../../src/og/layer/Vector.js';
-import { Entity } from '../../src/og/entity/Entity.js';
-import { wgs84 } from '../../src/og/ellipsoid/wgs84.js';
+import { Globe } from "../../src/og/Globe.js";
+import { XYZ } from "../../src/og/layer/XYZ.js";
+import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
+import { LonLat } from "../../src/og/LonLat.js";
+import { Vector } from "../../src/og/layer/Vector.js";
+import { Entity } from "../../src/og/entity/Entity.js";
+import { wgs84 } from "../../src/og/ellipsoid/wgs84.js";
 
 var osm = new XYZ("OpenStreetMap", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,
-    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    attribution: "Data @ OpenStreetMap contributors, ODbL"
 });
 
 //ellipsoid with earth dimensions
@@ -26,13 +25,13 @@ let cartBochum = ellipsoid.lonLatToCartesian(lonlatBochum);
 let cartBochumAir = ellipsoid.lonLatToCartesian(lonlatBochumAir);
 //entity containing the Bochum ray
 let entityBochum = new Entity({
-    'ray': {
-        'startPosition': cartBochum,
-        'endPosition': cartBochumAir,
-        'length': 2000000,
-        'startColor': "blue",
-        'endColor': "green",
-        'thickness': 5
+    ray: {
+        startPosition: cartBochum,
+        endPosition: cartBochumAir,
+        length: 2000000,
+        startColor: "blue",
+        endColor: "green",
+        thickness: 5
     }
 });
 
@@ -45,45 +44,33 @@ let cartMoscow = ellipsoid.lonLatToCartesian(lonlatMoscow);
 let cartMoscowAir = ellipsoid.lonLatToCartesian(lonlatMoscowAir);
 //entity containing the Moscow ray
 let entityMoscow = new Entity({
-    'ray': {
-        'startPosition': cartMoscow,
-        'endPosition': cartMoscowAir,
-        'length': 1000000,
-        'startColor': "red",
-        'endColor': "green",
-        'thickness': 10
+    ray: {
+        startPosition: cartMoscow,
+        endPosition: cartMoscowAir,
+        length: 1000000,
+        startColor: "red",
+        endColor: "green",
+        thickness: 10
     }
 });
 
 //polygonOffsetUnits is needed to hide rays behind globe
-let rayLayer = new Vector("rays", { 'polygonOffsetUnits': 0 });
+let rayLayer = new Vector("rays", { polygonOffsetUnits: 0 });
 
 //add entities containing the rays to the layer
 rayLayer.add(entityBochum);
 rayLayer.add(entityMoscow);
 
 var globus = new Globe({
-    "target": "globus",
-    "name": "Earth",
-    "terrain": new GlobusTerrain(),
-    "layers": [osm, rayLayer],
-    "sun": {
-        "active": true
+    target: "globus",
+    name: "Earth",
+    terrain: new GlobusTerrain(),
+    layers: [osm, rayLayer],
+    sun: {
+        active: true
     }
 });
 
-function createRay(startPos, endPos, length, startColor, endColor, thickness) {
-
-    let e = new Entity({
-        'ray': {
-            'startPosition': startPos,
-            'endPosition': endPos,
-            'length': length,
-            'startColor': "red",
-            'endColor': "green",
-            'thickness': 10
-        }
-    });
-    return e;
-}
 window.globus = globus;
+window.entityMoscow = entityMoscow;
+window.entityBochum = entityBochum;
