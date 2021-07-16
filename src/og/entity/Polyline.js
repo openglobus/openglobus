@@ -8,7 +8,8 @@ import {
     makeArrayTyped,
     makeArray,
     htmlColorToFloat32Array,
-    htmlColorToRgba
+    htmlColorToRgba,
+    cloneArray
 } from "../utils/shared.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
@@ -107,7 +108,7 @@ class Polyline {
          */
         this._pathLonLatMerc = [];
 
-        this._pathColors = options.pathColors || [];
+        this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
 
         /**
          * Polyline geodetic extent.
@@ -1661,7 +1662,7 @@ class Polyline {
     }
 
     setPointColor(color, index = 0, segmentIndex = 0) {
-        if (this._renderNode) {
+        if (this._renderNode && index < this._path3v[segmentIndex].length) {
             let colors = this._pathColors[segmentIndex];
 
             if (!colors) {

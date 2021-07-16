@@ -927,3 +927,7 @@ export function getMatrixSubArrayBoundsExt(
         }
     }
 }
+
+export function cloneArray(items) {
+    return items.map((item) => (Array.isArray(item) ? cloneArray(item) : item));
+}

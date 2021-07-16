@@ -22,7 +22,7 @@
         import { Ellipsoid } from '../../src/og/ellipsoid/Ellipsoid.js';
         import { Entity } from '../../src/og/entity/Entity.js';
 
-        const POINTS_NUMBER = 30;
+        const POINTS_NUMBER = 70;
 
         fetch('routes.json')
             .then(res => res.json())
@@ -30,6 +30,8 @@
 
                 let paths = [],
                     colors = [];
+
+                let animIndex = [];
 
                 for (let i = 0; i < data.length; i++) {
                     let p = data[i],
@@ -40,6 +42,8 @@
 
                     paths.push(path.path);
                     colors.push(path.colors);
+
+                    animIndex.push(math.randomi(0, POINTS_NUMBER));
                 }
 
                 let entity = new Entity({
@@ -54,21 +58,23 @@
 
                 collection.add(entity);
 
-                let dColor = [Math.random(), Math.random(), Math.random(), 1];
-
                 globus.planet.renderer.handler.defaultClock.setInterval(35, () => {
                     let e = collection.getEntities()[0].polyline;
                     let cArr = e.getPathColors();
                     for (let i = 0; i < cArr.length; i++) {
-                        e.setPointColor(dColor, INDEX, i);
-                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.5], INDEX - 1, i);
-                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.4], INDEX - 2, i);
-                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.1], INDEX - 3, i);
-                    }
-                    INDEX++;
-                    if (INDEX > POINTS_NUMBER) {
-                        dColor = [Math.random(), Math.random(), Math.random(), 1];
-                        INDEX = 0;
+                        animIndex[i]++;
+                        let ind = animIndex[i];
+                        if (ind > POINTS_NUMBER + 4) {
+                            animIndex[i] = 0;
+                            ind = 0;
+                        }
+
+                        let pColor = [colors[i][0][1], colors[i][0][1], colors[i][0][2], 1.0];
+                        e.setPointColor(pColor, ind, i);
+                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.5], ind - 1, i);
+                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.4], ind - 2, i);
+                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.1], ind - 3, i);
+                        e.setPointColor(colors[i][ind] || colors[i][POINTS_NUMBER - 1], ind - 1, i);
                     }
                 });
 
@@ -101,7 +107,7 @@
                 let cn = math.bezier3v(i / num, startCart, p25Cart, p75Cart, endCart);
                 path.push(cn);
 
-                colors.push([color[0], color[1], color[2], i / num + 0.05]);
+                colors.push([color[0], color[1], color[2], i / (2 * num)]);
             }
 
 
