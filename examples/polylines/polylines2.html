@@ -14,8 +14,6 @@
         import * as math from '../../src/og/math.js';
         import { Globe } from '../../src/og/Globe.js';
         import { LonLat } from '../../src/og/LonLat.js';
-        import { Vec3 } from '../../src/og/math/Vec3.js';
-        import { Quat } from '../../src/og/math/Quat.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { Vector } from '../../src/og/layer/Vector.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
@@ -127,7 +125,9 @@
             isBaseLayer: true,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+            attribution: 'Data @ OpenStreetMap contributors, ODbL',
+            ambient: [0.06, 0.06, 0.08],
+            diffuse: [0.22, 0.26, 0.34]
         });
 
         var globus = new Globe({
@@ -137,7 +137,9 @@
             "terrain": new GlobusTerrain()
         });
 
-        window.INDEX = 0;
+        globus.planet.renderer.gamma = 0.6;
+        globus.planet.renderer.exposure = 3.0;
+        globus.planet.renderer.backgroundColor.set(0, 0, 0);
 
         window.globus = globus;
 
