@@ -22,7 +22,7 @@
         import { Ellipsoid } from '../../src/og/ellipsoid/Ellipsoid.js';
         import { Entity } from '../../src/og/entity/Entity.js';
 
-        const POINTS_NUMBER = 100;
+        const POINTS_NUMBER = 30;
 
         fetch('routes.json')
             .then(res => res.json())
@@ -54,20 +54,23 @@
 
                 collection.add(entity);
 
-                //let dColor = [Math.random(), Math.random(), Math.random(), 1];
+                let dColor = [Math.random(), Math.random(), Math.random(), 1];
 
-                //globus.planet.renderer.handler.defaultClock.setInterval(20, () => {
-                //    let e = collection.getEntities()[0].polyline;
-                //    let cArr = e.getPathColors();
-                //    for (let i = 0; i < cArr.length; i++) {
-                //        e.setPointColor(dColor, INDEX, i);
-                //    }
-                //    INDEX++;
-                //    if (INDEX > POINTS_NUMBER) {
-                //        dColor = [Math.random(), Math.random(), Math.random(), 1];
-                //        INDEX = 0;
-                //    }
-                //});
+                globus.planet.renderer.handler.defaultClock.setInterval(35, () => {
+                    let e = collection.getEntities()[0].polyline;
+                    let cArr = e.getPathColors();
+                    for (let i = 0; i < cArr.length; i++) {
+                        e.setPointColor(dColor, INDEX, i);
+                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.5], INDEX - 1, i);
+                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.4], INDEX - 2, i);
+                        e.setPointColor([dColor[0], dColor[1], dColor[2], 0.1], INDEX - 3, i);
+                    }
+                    INDEX++;
+                    if (INDEX > POINTS_NUMBER) {
+                        dColor = [Math.random(), Math.random(), Math.random(), 1];
+                        INDEX = 0;
+                    }
+                });
 
             });
 

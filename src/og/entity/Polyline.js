@@ -4,7 +4,12 @@
 
 "use strict";
 
-import * as utils from "../utils/shared.js";
+import {
+    makeArrayTyped,
+    makeArray,
+    htmlColorToFloat32Array,
+    htmlColorToRgba
+} from "../utils/shared.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Vec3 } from "../math/Vec3.js";
@@ -60,7 +65,7 @@ class Polyline {
          * @public
          * @type {Array<Number,Number,Number,Number>}
          */
-        this._defaultColor = utils.htmlColorToFloat32Array(
+        this._defaultColor = htmlColorToFloat32Array(
             options.color || DEFAULT_COLOR,
             options.opacity
         ); // utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
@@ -85,6 +90,8 @@ class Polyline {
          * @type {Array.<og.Vec3>}
          */
         this._path3v = [];
+
+        this._pathLengths = [];
 
         /**
          * Polyline geodetic degrees coordiantes.
@@ -1354,9 +1361,10 @@ class Polyline {
                 k = 0,
                 kk = 0;
 
-            for (var i = 0; i < segmentIndex; i++) {
-                kk += this._path3v[i].length * 12 + 24;
-            }
+            //for (var i = 0; i < segmentIndex; i++) {
+            //    kk += this._path3v[i].length * 12 + 24;
+            //}
+            kk = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
 
             let path = this._path3v[segmentIndex];
 
@@ -1524,6 +1532,13 @@ class Polyline {
         }
     }
 
+    _resizePathLengths(index = 0) {
+        this._pathLengths[0] = 0;
+        for (let i = index + 1, len = this._path3v.length; i <= len; i++) {
+            this._pathLengths[i] = this._pathLengths[i - 1] + this._path3v[i - 1].length;
+        }
+    }
+
     removeSegment(index) {
         this._path3v.splice(index, 1);
         this.setPath3v([].concat(this._path3v));
@@ -1569,6 +1584,15 @@ class Polyline {
             this._pathColors.push([color || this._defaultColor]);
             this.addPoint3v(point3v);
         } else {
+            //
+            // Making typedArrays suitable for appendPoint function
+            //
+            this._verticesHigh = makeArray(this._verticesHigh);
+            this._verticesLow = makeArray(this._verticesLow);
+            this._colors = makeArray(this._colors);
+            this._orders = makeArray(this._orders);
+            this._indexes = makeArray(this._indexes);
+
             Polyline.appendPoint3v(
                 this._path3v,
                 point3v,
@@ -1585,6 +1609,8 @@ class Polyline {
                 this._pathLonLatMerc,
                 this._extent
             );
+
+            this._pathLengths[this._path3v.length - 1] += 1;
 
             this._changedBuffers[VERTICES_BUFFER] = true;
             this._changedBuffers[COLORS_BUFFER] = true;
@@ -1634,7 +1660,7 @@ class Polyline {
         this._clearData();
     }
 
-    setPointColor(color, index, segmentIndex = 0) {
+    setPointColor(color, index = 0, segmentIndex = 0) {
         if (this._renderNode) {
             let colors = this._pathColors[segmentIndex];
 
@@ -1655,40 +1681,19 @@ class Polyline {
                 colors[index][A] = color[A] || 1.0;
             }
 
-            let c = this._colors,
-                k = 0,
-                kk = index * 16;
+            let c = this._colors;
 
-            for (var i = 0; i < segmentIndex; i++) {
-                kk += this._path3v[i].length * 16 + 32;
-            }
+            //optimized with this._pathLengths
+            //for (var i = 0; i < segmentIndex; i++) {
+            //    kk += this._path3v[i].length * 16 + 32;
+            //}
 
-            k = kk;
+            let k = index * 16 + this._pathLengths[segmentIndex] * 16 + 32 * segmentIndex;
 
-            let r = color[R],
-                g = color[G],
-                b = color[B],
-                a = color[A] || 1.0;
-
-            c[k] = r;
-            c[k + 1] = g;
-            c[k + 2] = b;
-            c[k + 3] = a;
-
-            c[k + 4] = r;
-            c[k + 5] = g;
-            c[k + 6] = b;
-            c[k + 7] = a;
-
-            c[k + 8] = r;
-            c[k + 9] = g;
-            c[k + 10] = b;
-            c[k + 11] = a;
-
-            c[k + 12] = r;
-            c[k + 13] = g;
-            c[k + 14] = b;
-            c[k + 15] = a;
+            c[k] = c[k + 4] = c[k + 8] = c[k + 12] = color[R];
+            c[k + 1] = c[k + 5] = c[k + 9] = c[k + 13] = color[G];
+            c[k + 2] = c[k + 6] = c[k + 10] = c[k + 14] = color[B];
+            c[k + 3] = c[k + 7] = c[k + 11] = c[k + 15] = color[A] || 1.0;
 
             this._changedBuffers[COLORS_BUFFER] = true;
         } else {
@@ -1764,11 +1769,11 @@ class Polyline {
      * @protected
      */
     _clearData() {
-        this._verticesHigh.length = 0;
-        this._verticesLow.length = 0;
-        this._orders.length = 0;
-        this._indexes.length = 0;
-        this._colors.length = 0;
+        this._verticesHigh = null;
+        this._verticesLow = null;
+        this._orders = null;
+        this._indexes = null;
+        this._colors = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
@@ -1803,6 +1808,7 @@ class Polyline {
             this._extent,
             this._colors
         );
+        this._resizePathLengths(0);
     }
 
     _createDataLonLat(pathLonlat) {
@@ -1823,6 +1829,7 @@ class Polyline {
             this._extent,
             this._colors
         );
+        this._resizePathLengths(0);
     }
 
     /**
@@ -1894,9 +1901,9 @@ class Polyline {
     }
 
     setColorHTML(htmlColor) {
-        this._defaultColor = utils.htmlColorToFloat32Array(htmlColor);
+        this._defaultColor = htmlColorToFloat32Array(htmlColor);
 
-        let color = utils.htmlColorToRgba(htmlColor),
+        let color = htmlColorToRgba(htmlColor),
             p = this._pathColors;
 
         for (let i = 0, len = p.length; i < len; i++) {
@@ -2171,8 +2178,11 @@ class Polyline {
             this._verticesLowBuffer = h.createStreamArrayBuffer(3, numItems);
         }
 
-        h.setStreamArrayBuffer(this._verticesHighBuffer, new Float32Array(this._verticesHigh));
-        h.setStreamArrayBuffer(this._verticesLowBuffer, new Float32Array(this._verticesLow));
+        this._verticesHigh = makeArrayTyped(this._verticesHigh);
+        this._verticesLow = makeArrayTyped(this._verticesLow);
+
+        h.setStreamArrayBuffer(this._verticesHighBuffer, this._verticesHigh);
+        h.setStreamArrayBuffer(this._verticesLowBuffer, this._verticesLow);
     }
 
     /**
@@ -2183,21 +2193,22 @@ class Polyline {
         var h = this._renderNode.renderer.handler;
         h.gl.deleteBuffer(this._ordersBuffer);
         h.gl.deleteBuffer(this._indexesBuffer);
-        this._ordersBuffer = h.createArrayBuffer(
-            new Float32Array(this._orders),
-            1,
-            this._orders.length / 2
-        );
-        this._indexesBuffer = h.createElementArrayBuffer(
-            new Uint32Array(this._indexes),
-            1,
-            this._indexes.length
-        );
+
+        this._orders = makeArrayTyped(this._orders);
+
+        this._ordersBuffer = h.createArrayBuffer(this._orders, 1, this._orders.length / 2);
+
+        this._indexes = makeArrayTyped(this._indexes, Uint32Array);
+
+        this._indexesBuffer = h.createElementArrayBuffer(this._indexes, 1, this._indexes.length);
     }
 
     _createColorsBuffer() {
         var h = this._renderNode.renderer.handler;
         h.gl.deleteBuffer(this._colorsBuffer);
+
+        this._colors = makeArrayTyped(this._colors);
+
         this._colorsBuffer = h.createArrayBuffer(
             new Float32Array(this._colors),
             4,
