@@ -1611,7 +1611,7 @@ class Polyline {
                 this._extent
             );
 
-            this._pathLengths[this._path3v.length - 1] += 1;
+            this._pathLengths[this._path3v.length] += 1;
 
             this._changedBuffers[VERTICES_BUFFER] = true;
             this._changedBuffers[COLORS_BUFFER] = true;
@@ -1843,11 +1843,11 @@ class Polyline {
         this._pathColors.length = 0;
         this._pathColors = [];
 
-        this._verticesHigh.length = 0;
-        this._verticesLow.length = 0;
-        this._orders.length = 0;
-        this._indexes.length = 0;
-        this._colors.length = 0;
+        this._verticesHigh = null;
+        this._verticesLow = null;
+        this._orders = null;
+        this._indexes = null;
+        this._colors = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
