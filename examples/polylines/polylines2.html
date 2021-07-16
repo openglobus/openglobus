@@ -69,12 +69,14 @@
                             ind = 0;
                         }
 
-                        let pColor = [colors[i][0][1], colors[i][0][1], colors[i][0][2], 1.0];
-                        e.setPointColor(pColor, ind, i);
-                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.5], ind - 1, i);
-                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.4], ind - 2, i);
-                        e.setPointColor([pColor[0], pColor[1], pColor[2], 0.1], ind - 3, i);
-                        e.setPointColor(colors[i][ind] || colors[i][POINTS_NUMBER - 1], ind - 1, i);
+                        let r = colors[i][0][0],
+                            g = colors[i][0][1],
+                            b = colors[i][0][2];
+                        e.setPointColor([r, g, b, 0.8], ind, i);
+                        e.setPointColor([r, g, b, 0.6], ind - 1, i);
+                        e.setPointColor([r, g, b, 0.3], ind - 2, i);
+                        e.setPointColor([r, g, b, 0.1], ind - 3, i);
+                        e.setPointColor(colors[i][ind] || colors[i][POINTS_NUMBER - 1], ind - 4, i);
                     }
                 });
 
@@ -107,7 +109,7 @@
                 let cn = math.bezier3v(i / num, startCart, p25Cart, p75Cart, endCart);
                 path.push(cn);
 
-                colors.push([color[0], color[1], color[2], i / (2 * num)]);
+                colors.push([color[0], color[1], color[2], 0.1]);
             }
 
 
