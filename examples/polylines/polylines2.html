@@ -14,15 +14,13 @@
         import * as math from '../../src/og/math.js';
         import { Globe } from '../../src/og/Globe.js';
         import { LonLat } from '../../src/og/LonLat.js';
-        import { Vec3 } from '../../src/og/math/Vec3.js';
-        import { Quat } from '../../src/og/math/Quat.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { Vector } from '../../src/og/layer/Vector.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
         import { Ellipsoid } from '../../src/og/ellipsoid/Ellipsoid.js';
         import { Entity } from '../../src/og/entity/Entity.js';
 
-        const POINTS_NUMBER = 100;
+        const POINTS_NUMBER = 70;
 
         fetch('routes.json')
             .then(res => res.json())
@@ -30,6 +28,8 @@
 
                 let paths = [],
                     colors = [];
+
+                let animIndex = [];
 
                 for (let i = 0; i < data.length; i++) {
                     let p = data[i],
@@ -40,6 +40,8 @@
 
                     paths.push(path.path);
                     colors.push(path.colors);
+
+                    animIndex.push(math.randomi(0, POINTS_NUMBER));
                 }
 
                 let entity = new Entity({
@@ -54,20 +56,27 @@
 
                 collection.add(entity);
 
-                //let dColor = [Math.random(), Math.random(), Math.random(), 1];
+                globus.planet.renderer.handler.defaultClock.setInterval(35, () => {
+                    let e = collection.getEntities()[0].polyline;
+                    let cArr = e.getPathColors();
+                    for (let i = 0; i < cArr.length; i++) {
+                        animIndex[i]++;
+                        let ind = animIndex[i];
+                        if (ind > POINTS_NUMBER + 4) {
+                            animIndex[i] = 0;
+                            ind = 0;
+                        }
 
-                //globus.planet.renderer.handler.defaultClock.setInterval(20, () => {
-                //    let e = collection.getEntities()[0].polyline;
-                //    let cArr = e.getPathColors();
-                //    for (let i = 0; i < cArr.length; i++) {
-                //        e.setPointColor(dColor, INDEX, i);
-                //    }
-                //    INDEX++;
-                //    if (INDEX > POINTS_NUMBER) {
-                //        dColor = [Math.random(), Math.random(), Math.random(), 1];
-                //        INDEX = 0;
-                //    }
-                //});
+                        let r = colors[i][0][0],
+                            g = colors[i][0][1],
+                            b = colors[i][0][2];
+                        e.setPointColor([r, g, b, 0.8], ind, i);
+                        e.setPointColor([r, g, b, 0.6], ind - 1, i);
+                        e.setPointColor([r, g, b, 0.3], ind - 2, i);
+                        e.setPointColor([r, g, b, 0.1], ind - 3, i);
+                        e.setPointColor(colors[i][ind] || colors[i][POINTS_NUMBER - 1], ind - 4, i);
+                    }
+                });
 
             });
 
@@ -98,7 +107,7 @@
                 let cn = math.bezier3v(i / num, startCart, p25Cart, p75Cart, endCart);
                 path.push(cn);
 
-                colors.push([color[0], color[1], color[2], i / num + 0.05]);
+                colors.push([color[0], color[1], color[2], 0.1]);
             }
 
 
@@ -116,7 +125,9 @@
             isBaseLayer: true,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
-            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+            attribution: 'Data @ OpenStreetMap contributors, ODbL',
+            ambient: [0.06, 0.06, 0.08],
+            diffuse: [0.22, 0.26, 0.34]
         });
 
         var globus = new Globe({
@@ -126,7 +137,9 @@
             "terrain": new GlobusTerrain()
         });
 
-        window.INDEX = 0;
+        globus.planet.renderer.gamma = 0.6;
+        globus.planet.renderer.exposure = 3.0;
+        globus.planet.renderer.backgroundColor.set(0, 0, 0);
 
         window.globus = globus;
 

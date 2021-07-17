@@ -2,23 +2,23 @@
  * @module og/utils/shared
  */
 
-'use strict';
+"use strict";
 
-import { ajax } from '../ajax.js';
-import { colorTable } from './colorTable.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
-import { Vec2 } from '../math/Vec2.js';
-import { Vec3 } from '../math/Vec3.js';
-import { Vec4 } from '../math/Vec4.js';
+import { ajax } from "../ajax.js";
+import { colorTable } from "./colorTable.js";
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Vec3 } from "../math/Vec3.js";
+import { Vec4 } from "../math/Vec4.js";
 
 export function getDefault(param, def) {
     return param != undefined ? param : def;
-};
+}
 
 export function isEmpty(v) {
     return v == null;
-};
+}
 
 let _stampCounter = 0;
 
@@ -28,11 +28,11 @@ export function stamp(obj) {
         stamp = obj._openglobus_id = ++_stampCounter;
     }
     return stamp;
-};
+}
 
 export function isString(s) {
-    return typeof (s) === 'string' || s instanceof String;
-};
+    return typeof s === "string" || s instanceof String;
+}
 
 /**
  * Synchronous text file loading. Returns file text.
@@ -50,7 +50,7 @@ export function readTextFile(fileUrl) {
     });
 
     return res;
-};
+}
 
 /**
  * Convert html color string to the RGBA number vector.
@@ -70,20 +70,30 @@ export function htmlColorToRgba(htmlColor, opacity) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255, isEmpty(opacity) ? 1.0 : opacity);
+        return new Vec4(
+            parseInt(result[1], 16) / 255,
+            parseInt(result[2], 16) / 255,
+            parseInt(result[3], 16) / 255,
+            isEmpty(opacity) ? 1.0 : opacity
+        );
     } else {
         if (isEmpty(opacity)) {
             opacity = 1.0;
         }
         var m = htmlColor.split(",");
-        return new Vec4(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255, !isEmpty(m[3]) ? parseFloat(m[3]) : opacity);
+        return new Vec4(
+            parseInt(m[0].split("(")[1]) / 255,
+            parseInt(m[1]) / 255,
+            parseInt(m[2]) / 255,
+            !isEmpty(m[3]) ? parseFloat(m[3]) : opacity
+        );
     }
-};
+}
 
 export function htmlColorToFloat32Array(htmlColor, opacity) {
     let c = htmlColorToRgba(htmlColor, opacity);
     return new Float32Array([c.x, c.y, c.z, c.w]);
-};
+}
 
 /**
  * Convert html color string to the RGB number vector.
@@ -97,18 +107,26 @@ export function htmlColorToRgb(htmlColor) {
         htmlColor = hColor;
     }
 
-    if (htmlColor[0] === '#') {
+    if (htmlColor[0] === "#") {
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
         var hex = htmlColor.replace(shorthandRegex, function (m, r, g, b) {
             return r + r + g + g + b + b;
         });
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return new Vec4(parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255);
+        return new Vec4(
+            parseInt(result[1], 16) / 255,
+            parseInt(result[2], 16) / 255,
+            parseInt(result[3], 16) / 255
+        );
     } else {
         var m = htmlColor.split(",");
-        return new Vec3(parseInt(m[0].split("(")[1]) / 255, parseInt(m[1]) / 255, parseInt(m[2]) / 255);
+        return new Vec3(
+            parseInt(m[0].split("(")[1]) / 255,
+            parseInt(m[1]) / 255,
+            parseInt(m[2]) / 255
+        );
     }
-};
+}
 
 /**
  * Replace template substrings between '{' and '}' tokens.
@@ -129,14 +147,14 @@ export function stringTemplate(template, params) {
     return template.replace(/{[^{}]+}/g, function (key) {
         return params[key.replace(/[{}]+/g, "")] || "";
     });
-};
+}
 
 export function getHTML(template, params) {
     return stringTemplate(template, params);
-};
+}
 
 export function parseHTML(htmlStr) {
-    var p = document.createElement('div');
+    var p = document.createElement("div");
     p.innerHTML = htmlStr;
     var domArr = [];
     for (var i = 0; i < p.childNodes.length; i++) {
@@ -144,7 +162,7 @@ export function parseHTML(htmlStr) {
         p.removeChild(p.childNodes[i]);
     }
     return domArr;
-};
+}
 
 export function print2d(id, text, x, y) {
     var el = document.getElementById(id);
@@ -157,11 +175,11 @@ export function print2d(id, text, x, y) {
     el.innerHTML = text;
     el.style.left = x;
     el.style.top = y;
-};
+}
 
 export function defaultString(str, def) {
     return str ? str.trim().toLowerCase() : def;
-};
+}
 
 export function createVector3(v, def) {
     if (v) {
@@ -174,7 +192,7 @@ export function createVector3(v, def) {
         return def;
     }
     return new Vec3();
-};
+}
 
 export function createVector4(v, def) {
     if (v) {
@@ -187,7 +205,7 @@ export function createVector4(v, def) {
         return def;
     }
     return new Vec4();
-};
+}
 
 export function createColorRGBA(c, def) {
     if (c) {
@@ -202,7 +220,7 @@ export function createColorRGBA(c, def) {
         return def;
     }
     return new Vec4(1.0, 1.0, 1.0, 1.0);
-};
+}
 
 export function createColorRGB(c, def) {
     if (c) {
@@ -217,14 +235,12 @@ export function createColorRGB(c, def) {
         return def;
     }
     return new Vec3(1.0, 1.0, 1.0);
-};
+}
 
 export function createExtent(e, def) {
     if (e) {
         if (e instanceof Array) {
-            return new Extent(
-                createLonLat(e[0]),
-                createLonLat(e[1]));
+            return new Extent(createLonLat(e[0]), createLonLat(e[1]));
         } else if (e instanceof Extent) {
             return e.clone();
         }
@@ -232,7 +248,7 @@ export function createExtent(e, def) {
         return def;
     }
     return new Extent();
-};
+}
 
 export function createLonLat(l, def) {
     if (l) {
@@ -245,7 +261,7 @@ export function createLonLat(l, def) {
         return def;
     }
     return new LonLat();
-};
+}
 
 export function binarySearchFast(arr, x) {
     let start = 0,
@@ -261,7 +277,7 @@ export function binarySearchFast(arr, x) {
         }
     }
     return -1;
-};
+}
 
 /**
  * Finds an item in a sorted array.
@@ -294,7 +310,7 @@ export function binarySearch(ar, el, compare_fn) {
         }
     }
     return -m - 1;
-};
+}
 
 /**
  * Binary insertion that uses binarySearch algorithm.
@@ -311,7 +327,7 @@ export function binaryInsert(ar, el, compare_fn) {
     }
     ar.splice(i, 0, el);
     return i;
-};
+}
 
 /**
  * Returns two segment lines intersection coordinate.
@@ -341,14 +357,17 @@ export function getLinesIntersection2v(start1, end1, start2, end2, isSegment) {
     var seg2_line1_start = a1 * start2.x + b1 * start2.y + d1;
     var seg2_line1_end = a1 * end2.x + b1 * end2.y + d1;
 
-    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
+    if (
+        isSegment &&
+        (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)
+    ) {
         return null;
     }
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
     return new Vec2(start1.x + u * dir1.x, start1.y + u * dir1.y);
-};
+}
 
 /**
  * Returns two segment lines intersection coordinate.
@@ -378,14 +397,17 @@ export function getLinesIntersectionLonLat(start1, end1, start2, end2, isSegment
     var seg2_line1_start = a1 * start2.lon + b1 * start2.lat + d1;
     var seg2_line1_end = a1 * end2.lon + b1 * end2.lat + d1;
 
-    if (isSegment && (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)) {
+    if (
+        isSegment &&
+        (seg1_line2_start * seg1_line2_end > 0 || seg2_line1_start * seg2_line1_end > 0)
+    ) {
         return null;
     }
 
     var u = seg1_line2_start / (seg1_line2_start - seg1_line2_end);
 
     return new LonLat(start1.lon + u * dir1.lon, start1.lat + u * dir1.lat);
-};
+}
 
 /**
  * Converts XML to JSON
@@ -394,11 +416,11 @@ export function getLinesIntersectionLonLat(start1, end1, start2, end2, isSegment
  * @return {Object} - Json converted object.
  */
 export function xmlToJson(xml) {
-
     // Create the return object
     var obj = {};
 
-    if (xml.nodeType === 1) { // element
+    if (xml.nodeType === 1) {
+        // element
         // do attributes
         if (xml.attributes.length > 0) {
             obj["@attributes"] = {};
@@ -407,7 +429,8 @@ export function xmlToJson(xml) {
                 obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
             }
         }
-    } else if (xml.nodeType === 3) { // text
+    } else if (xml.nodeType === 3) {
+        // text
         obj = xml.nodeValue;
     }
 
@@ -416,10 +439,10 @@ export function xmlToJson(xml) {
         for (var i = 0; i < xml.childNodes.length; i++) {
             var item = xml.childNodes.item(i);
             var nodeName = item.nodeName;
-            if (typeof (obj[nodeName]) === "undefined") {
+            if (typeof obj[nodeName] === "undefined") {
                 obj[nodeName] = xmlToJson(item);
             } else {
-                if (typeof (obj[nodeName].push) === "undefined") {
+                if (typeof obj[nodeName].push === "undefined") {
                     var old = obj[nodeName];
                     obj[nodeName] = [];
                     obj[nodeName].push(old);
@@ -429,54 +452,54 @@ export function xmlToJson(xml) {
         }
     }
     return obj;
-};
+}
 
 export const castType = {
-    "string": function (v) {
+    string: function (v) {
         return isEmpty(v) ? v : v.toString();
     },
 
-    "date": function (v) {
+    date: function (v) {
         return isEmpty(v) ? v : new Date(v * 1000);
     },
 
-    "datetime": function (v) {
+    datetime: function (v) {
         return isEmpty(v) ? v : new Date(v * 1000);
     },
 
-    "time": function (v) {
+    time: function (v) {
         return isEmpty(v) ? v : parseInt(v);
     },
 
-    "integer": function (v) {
+    integer: function (v) {
         return isEmpty(v) ? v : parseInt(v);
     },
 
-    "float": function (v) {
+    float: function (v) {
         return isEmpty(v) ? v : parseFloat(v);
     },
 
-    "boolean": function (str) {
+    boolean: function (str) {
         if (str === null) {
             return str;
         }
 
-        if (typeof str === 'boolean') {
+        if (typeof str === "boolean") {
             if (str === true) {
                 return true;
             }
             return false;
         }
-        if (typeof str === 'string') {
+        if (typeof str === "string") {
             if (str === "") {
                 return false;
             }
-            str = str.replace(/^\s+|\s+$/g, '');
-            if (str.toLowerCase() === 'true' || str.toLowerCase() === 'yes') {
+            str = str.replace(/^\s+|\s+$/g, "");
+            if (str.toLowerCase() === "true" || str.toLowerCase() === "yes") {
                 return true;
             }
-            str = str.replace(/,/g, '.');
-            str = str.replace(/^\s*\-\s*/g, '-');
+            str = str.replace(/,/g, ".");
+            str = str.replace(/^\s*\-\s*/g, "-");
         }
         if (!isNaN(str)) {
             return parseFloat(str) !== 0;
@@ -486,7 +509,7 @@ export const castType = {
 };
 
 export function base64toBlob(base64Data, contentType) {
-    contentType = contentType || '';
+    contentType = contentType || "";
     var sliceSize = 1024;
     var byteCharacters = atob(base64Data);
     var bytesLength = byteCharacters.length;
@@ -504,7 +527,7 @@ export function base64toBlob(base64Data, contentType) {
         byteArrays[sliceIndex] = new Uint8Array(bytes);
     }
     return new Blob(byteArrays, { type: contentType });
-};
+}
 
 export function base64StringToBlog(string) {
     let block = string.split(";");
@@ -515,12 +538,12 @@ export function base64StringToBlog(string) {
 }
 
 ///**
-// * 
+// *
 // * @param {LonLat} p
-// * @param {LonLat} v1 
+// * @param {LonLat} v1
 // * @param {LonLat} v2
 // * @param {LonLat} v3
-// * @param {Array<Number>} res 
+// * @param {Array<Number>} res
 // */
 //export function cartesianToBarycentricLonLat(p, v1, v2, v3, res) {
 
@@ -563,14 +586,14 @@ export function throttle(func, limit, skip) {
                 clearTimeout(lastFunc);
             }
             lastFunc = setTimeout(function () {
-                if ((Date.now() - lastRan) >= limit) {
+                if (Date.now() - lastRan >= limit) {
                     func.apply(context, args);
                     lastRan = Date.now();
                 }
             }, limit - (Date.now() - lastRan));
         }
     };
-};
+}
 
 /**
  *
@@ -601,15 +624,22 @@ export function throttle(func, limit, skip) {
  * @param {Number} [y2=1.0] -
  */
 export function blerp(x, y, fQ11, fQ21, fQ12, fQ22, x1 = 0.0, x2 = 1.0, y1 = 0.0, y2 = 1.0) {
-    return (fQ11 * (x2 - x) * (y2 - y) + fQ21 * (x - x1) * (y2 - y) + fQ12 * (x2 - x) * (y - y1) + fQ22 * (x - x1) * (y - y1)) / ((x2 - x1) * (y2 - y1));
-};
+    return (
+        (fQ11 * (x2 - x) * (y2 - y) +
+            fQ21 * (x - x1) * (y2 - y) +
+            fQ12 * (x2 - x) * (y - y1) +
+            fQ22 * (x - x1) * (y - y1)) /
+        ((x2 - x1) * (y2 - y1))
+    );
+}
 
 export function blerp2(x, y, fQ11, fQ21, fQ12, fQ22) {
-    return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
-};
+    return (
+        fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y
+    );
+}
 
 export function extractElevationTiles(rgbaData, outCurrenElevations, outChildrenElevations) {
-
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
@@ -618,8 +648,11 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
     let rightHeigh = 0,
         bottomHeigh = 0;
 
-    for (let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4; k < sourceDataLength; k++) {
-
+    for (
+        let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
+        k < sourceDataLength;
+        k++
+    ) {
         let height = rgbaData[k * 4];
 
         let i = Math.floor(k / sourceSize),
@@ -641,8 +674,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
             outCurrenElevations[currIndex++] = height;
         }
 
-        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
-
+        if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
             rightHeigh = rgbaData[(k + 1) * 4];
             let middleHeight = (height + rightHeigh) * 0.5;
@@ -658,8 +690,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
             outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
         }
 
-        if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
-
+        if ((i + 1) % destSize === 0 && i !== sourceSize - 1) {
             //current tile
             bottomHeigh = rgbaData[(k + sourceSize) * 4];
             let middleHeight = (height + bottomHeigh) * 0.5;
@@ -675,9 +706,12 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
             outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
         }
 
-        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1) &&
-            (i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
-
+        if (
+            (j + 1) % destSize === 0 &&
+            j !== sourceSize - 1 &&
+            (i + 1) % destSize === 0 &&
+            i !== sourceSize - 1
+        ) {
             //current tile
             let rightBottomHeight = rgbaData[(k + sourceSize + 1) * 4];
             let middleHeight = (height + rightHeigh + bottomHeigh + rightBottomHeight) * 0.25;
@@ -686,7 +720,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
 
             outCurrenElevations[currIndex++] = middleHeight;
 
-            //next right tile            
+            //next right tile
             let rightindex = (ii + 1) * destSizeOne;
             outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
 
@@ -699,7 +733,7 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
             outChildrenElevations[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
         }
     }
-};
+}
 
 /**
  * Concatenates two the same type arrays
@@ -707,11 +741,11 @@ export function extractElevationTiles(rgbaData, outCurrenElevations, outChildren
  * @param {TypedArray} b
  */
 export function concatTypedArrays(a, b) {
-    var c = new (a.constructor)(a.length + b.length);
+    var c = new a.constructor(a.length + b.length);
     c.set(a, 0);
     c.set(b, a.length);
     return c;
-};
+}
 
 /**
  * Concatenates two the same  arrays
@@ -736,11 +770,23 @@ export function concatArrays(a, b) {
  * @returns {TypedArray}
  */
 export function makeArrayTyped(arr, ctor = Float32Array) {
-
     if (!ArrayBuffer.isView(arr)) {
-        const typedArr = new (ctor)(arr.length);
+        const typedArr = new ctor(arr.length);
         typedArr.set(arr, 0);
         return typedArr;
+    } else {
+        return arr;
+    }
+}
+
+/**
+ * Convert typed array to array
+ * @param arr {TypedArray}
+ * @returns {Array}
+ */
+export function makeArray(arr) {
+    if (ArrayBuffer.isView(arr)) {
+        return Array.from(arr);
     } else {
         return arr;
     }
@@ -780,7 +826,7 @@ export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
     splicedArray.set(elements, starting);
     splicedArray.set(arr.subarray(starting + deleteCount), starting + elements.length);
     return splicedArray;
-};
+}
 
 /**
  * Returns triangle coordinate array from inside of the source triangle array.
@@ -794,7 +840,6 @@ export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
  * @TODO: optimization
  */
 export function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
-
     const size_1 = size + 1;
     const i0size = i0 + size_1;
     const j0size = j0 + size_1;
@@ -812,7 +857,7 @@ export function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
         }
     }
     return res;
-};
+}
 
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
@@ -826,8 +871,21 @@ export function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
  * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-export function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLow, noDataVertices, gridSize, i0, j0, size, outArr, outArrHigh, outArrLow, outBounds, outNoDataVertices) {
-
+export function getMatrixSubArrayBoundsExt(
+    sourceArr,
+    sourceArrHigh,
+    sourceArrLow,
+    noDataVertices,
+    gridSize,
+    i0,
+    j0,
+    size,
+    outArr,
+    outArrHigh,
+    outArrLow,
+    outBounds,
+    outNoDataVertices
+) {
     const i0size = i0 + size + 1;
     const j0size = j0 + size + 1;
     gridSize += 1;
@@ -835,7 +893,7 @@ export function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLo
         nInd = 0;
     for (var i = i0; i < i0size; i++) {
         for (var j = j0; j < j0size; j++) {
-            let indBy3 = (i * gridSize + j),
+            let indBy3 = i * gridSize + j,
                 ind = 3 * indBy3;
 
             let x = sourceArr[ind],
@@ -868,4 +926,8 @@ export function getMatrixSubArrayBoundsExt(sourceArr, sourceArrHigh, sourceArrLo
             outArrHigh[vInd++] = sourceArrHigh[ind + 2];
         }
     }
-};
+}
+
+export function cloneArray(items) {
+    return items.map((item) => (Array.isArray(item) ? cloneArray(item) : item));
+}
