@@ -128,9 +128,10 @@ let emptyTerrain = new EmptyTerrain(),
         url: "//openglobus.org:8080/geoserver/og/",
         layers: "og:USGS_one_meter_x32y413_UT_ZionNP_QL2_2016_3857",
         //layers: "test:geotiff_coverage_2",
-        //imageSize: 129,
+        imageSize: 129,
+        plainGridSize: 128,
         gridSizeByZoom: [
-            64, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+            64, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 32, 32, 32, 16, 8, 4
         ]
         //extent: [[8.9, 44.0], [10.0, 45]]
     });
@@ -140,7 +141,8 @@ window.globe = new Globe({
     target: "earth",
     terrain: bilTerrain,
     layers: [osm, tg, sat, wms],
-    viewExtent: [-113.159, 37.176, -112.77, 37.32]
+    viewExtent: [-113.159, 37.176, -112.77, 37.32],
+    maxGridSize: 256
 });
 
 globe.planet.addControl(

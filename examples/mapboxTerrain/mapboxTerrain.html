@@ -25,7 +25,10 @@
         let globus = new Globe({
             "target": "globus",
             "name": "Mapbox Earth",
-            "terrain": new MapboxTerrain(),
+            maxGridSize: 256,
+            "terrain": new MapboxTerrain(null, {
+                plainGridSize: 256
+            }),
             "layers": [osm]
         });
     </script>
