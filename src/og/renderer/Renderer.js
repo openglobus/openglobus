@@ -854,31 +854,33 @@ Renderer.prototype.getPickingObject = function (x, y) {
  * @private
  */
 Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
-    this.pickingFramebuffer.activate();
+    if (this.events.mouseState.anyEvent()) {
+        this.pickingFramebuffer.activate();
 
-    var h = this.handler;
-    var gl = h.gl;
+        var h = this.handler;
+        var gl = h.gl;
 
-    if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    } else {
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+        }
+
+        gl.disable(h.gl.BLEND);
+
+        var dp = this._pickingCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders picking frame.
+             * @callback og.Renderer~pickingCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.pickingFramebuffer.deactivate();
     }
-
-    gl.disable(h.gl.BLEND);
-
-    var dp = this._pickingCallbacks;
-    var i = dp.length;
-    while (i--) {
-        /**
-         * This callback renders picking frame.
-         * @callback og.Renderer~pickingCallback
-         */
-        dp[i].callback.call(dp[i].sender);
-    }
-
-    this.pickingFramebuffer.deactivate();
 };
 
 Renderer.prototype._drawDepthBuffer = function (frustumIndex) {

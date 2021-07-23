@@ -19,7 +19,11 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.minZoom = options.minZoom != undefined ? options.minZoom : 3;
 
-        this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 15;
+        this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 17;
+
+        this.gridSizeByZoom = options.gridSizeByZoom || [
+            64, 32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+        ];
 
         this.url =
             options.url != undefined
@@ -39,7 +43,10 @@ class MapboxTerrain extends GlobusTerrain {
         this._ctx = this._createTemporalCanvas(this._imageSize);
     }
 
-    isBlur() {
+    isBlur(segment) {
+        if (segment.tileZoom >= 17) {
+            return true;
+        }
         return false;
     }
 

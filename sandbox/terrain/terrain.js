@@ -124,13 +124,13 @@ let emptyTerrain = new EmptyTerrain(),
     globusTerrain = new GlobusTerrain(),
     mapboxTerrain = new MapboxTerrain(),
     bilTerrain = new BilTerrain({
-        maxZoom: 19,
+        maxZoom: 18,
         url: "//openglobus.org:8080/geoserver/og/",
         layers: "og:USGS_one_meter_x32y413_UT_ZionNP_QL2_2016_3857",
         imageSize: 129,
         plainGridSize: 128,
         gridSizeByZoom: [
-            64, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 32, 32, 32, 16, 8, 4
+            64, 32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
         ]
         //extent: [[8.9, 44.0], [10.0, 45]]
     });
