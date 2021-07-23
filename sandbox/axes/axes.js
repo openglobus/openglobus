@@ -1,19 +1,19 @@
-'use strict';
+"use strict";
 
-import { Handler } from '../../src/og/webgl/Handler.js';
-import { Renderer } from '../../src/og/renderer/Renderer.js';
-import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
-import { Axes } from '../../src/og/scene/Axes.js';
-import { Vec3 } from '../../src/og/math/Vec3.js';
-import { RenderNode } from '../../src/og/scene/RenderNode.js';
-import { Entity } from '../../src/og/Entity/Entity.js';
-import { EntityCollection } from '../../src/og/Entity/EntityCollection.js';
-import { Line3 } from '../../src/og/math/Line3.js';
+import { Handler } from "../../src/og/webgl/Handler.js";
+import { Renderer } from "../../src/og/renderer/Renderer.js";
+import { SimpleNavigation } from "../../src/og/control/SimpleNavigation.js";
+import { Axes } from "../../src/og/scene/Axes.js";
+import { Vec3 } from "../../src/og/math/Vec3.js";
+import { RenderNode } from "../../src/og/scene/RenderNode.js";
+import { Entity } from "../../src/og/Entity/Entity.js";
+import { EntityCollection } from "../../src/og/Entity/EntityCollection.js";
+import { Line3 } from "../../src/og/math/Line3.js";
 
-let handler = new Handler("frame", { 'autoActivate': true });
+let handler = new Handler("frame", { autoActivate: true });
 let renderer = new Renderer(handler, {
-    'controls': [new SimpleNavigation()],
-    'autoActivate': true
+    controls: [new SimpleNavigation()],
+    autoActivate: true
 });
 
 class MyScene extends RenderNode {
@@ -21,7 +21,7 @@ class MyScene extends RenderNode {
         super("MyScene");
 
         this.ec = new EntityCollection({
-            'entities': [
+            entities: [
                 //new Entity({
                 //    'name': 'test line',
                 //    'strip': {
@@ -29,42 +29,41 @@ class MyScene extends RenderNode {
                 //    }
                 //})
                 new Entity({
-                    'name': 'line1',
-                    'polyline': {
-                        'isClosed': false,
-                        'path3v': [[[0, 0, 0], [100, 0, 400], [200, 400, 500], [300, 100, 300]]],
-                        'pathColors': [[[1, 0, 0, 1], [0, 1, 0, 1], [1, 1, 0, 1], [1, 1, 1, 1]]],
-                        'thickness': 10
-                    }
-                }),
-                //new Entity({
-                //    'name': 'line2',
-                //    'polyline': {
-                //        'isClosed': false,
-                //        'path3v': [[[0, 0, 0], [100, 100, 100]]],
-                //        'thickness': 10
-                //    }
-                //}),
-                new Entity({
-                    'name': 'test line',
-                    'ray': {
-                        'startPosition': [0, 0, 0],
-                        'endPosition': [100, 100, 100],
-                        'length': 100,
-                        'thickness': 15,
-                        'startColor': "#ffffff",
-                        'endColor': "#ff0000"
-                    }
-                }),
-                new Entity({
-                    'name': 'test line',
-                    'ray': {
-                        'startPosition': [10, 100, 0],
-                        'endPosition': [100, 100, 0],
-                        'length': 10,
-                        'thickness': 5,
-                        'startColor': "#0000ff",
-                        'endColor': "#00ff00"
+                    name: "line1",
+                    polyline: {
+                        isClosed: false,
+                        path3v: [
+                            [
+                                [0, 0, 0],
+                                [100, 100, 100]
+                            ],
+                            [
+                                [100, 0, 0],
+                                [200, 100, 0],
+                                [300, 0, 0]
+                            ],
+                            [
+                                [0, 100, 0],
+                                [0, 200, 0],
+                                [0, 200, 100]
+                            ]
+                        ],
+                        pathColors: [
+                            [
+                                [1, 0, 0, 1],
+                                [0, 1, 0, 1]
+                            ],
+                            [
+                                [1, 0, 0],
+                                [0, 1, 0],
+                                [0, 0, 1]
+                            ],
+                            [
+                                [1, 1, 0],
+                                [0, 0, 0]
+                            ]
+                        ],
+                        thickness: 10
                     }
                 })
             ]
@@ -75,10 +74,8 @@ class MyScene extends RenderNode {
         this.ec.addTo(this);
     }
 
-    frame() {
-
-    }
-};
+    frame() {}
+}
 
 let myScene = new MyScene();
 
@@ -88,7 +85,6 @@ window.Vec3 = Vec3;
 window.renderer = renderer;
 
 function test() {
-
     let seg = new Line3(new Vec3(0, 1, 0), new Vec3(1, 2, 0));
 
     let p = new Vec3(-0.5, 0, 0),
@@ -109,6 +105,10 @@ function test() {
     //p.insertEdge3v(new Vec3(20, 0, 50), new Vec3(20, 50, 50), 3);
 }
 
+window.Vec3 = Vec3;
+
 window.test = test;
+
+window.polyline = myScene.ec._entities[0].polyline;
 
 test();

@@ -800,7 +800,7 @@ class Planet extends RenderNode {
      * Creates default textures first for nirth pole and whole globe and second for south pole.
      * @public
      * @param{Object} param0 -
-     * @param{Object} param1 - 
+     * @param{Object} param1 -
      */
     createDefaultTextures(param0, param1) {
         this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
@@ -1195,60 +1195,61 @@ class Planet extends RenderNode {
      * @protected
      */
     _renderHeightPickingFramebufferPASS() {
+        if (this.renderer.events.mouseState.anyEvent()) {
+            this._heightPickingFramebuffer.activate();
 
-        this._heightPickingFramebuffer.activate();
+            let sh;
+            let renderer = this.renderer;
+            let h = renderer.handler;
+            let gl = h.gl;
+            let cam = renderer.activeCamera;
+            let frustumIndex = cam.getCurrentFrustum();
 
-        let sh;
-        let renderer = this.renderer;
-        let h = renderer.handler;
-        let gl = h.gl;
-        let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum();
-
-        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
-        }
-
-        gl.enable(gl.CULL_FACE);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
-        h.programs.drawnode_heightPicking.activate();
-        sh = h.programs.drawnode_heightPicking._program;
-        let shu = sh.uniforms;
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
-
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-        // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
-
-        let i = rn.length;
-        while (i--) {
-            rn[i].segment.heightPickingRendering(sh, sl[0], 0);
-        }
-
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (let j = 1, len = sl.length; j < len; j++) {
-            i = rn.length;
-            //gl.polygonOffset(0, -j);
-            while (i--) {
-                rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+            if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            } else {
+                gl.clear(gl.DEPTH_BUFFER_BIT);
             }
+
+            gl.enable(gl.CULL_FACE);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.BLEND);
+
+            h.programs.drawnode_heightPicking.activate();
+            sh = h.programs.drawnode_heightPicking._program;
+            let shu = sh.uniforms;
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+            // drawing planet nodes
+            var rn = this._renderedNodesInFrustum[frustumIndex],
+                sl = this._visibleTileLayerSlices;
+
+            let i = rn.length;
+            while (i--) {
+                rn[i].segment.heightPickingRendering(sh, sl[0], 0);
+            }
+
+            //gl.enable(gl.POLYGON_OFFSET_FILL);
+            for (let j = 1, len = sl.length; j < len; j++) {
+                i = rn.length;
+                //gl.polygonOffset(0, -j);
+                while (i--) {
+                    rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+                }
+            }
+            //gl.disable(gl.POLYGON_OFFSET_FILL);
+
+            gl.disable(gl.BLEND);
+
+            this._heightPickingFramebuffer.deactivate();
         }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
-
-        this._heightPickingFramebuffer.deactivate();
     }
 
     /**
@@ -1634,7 +1635,7 @@ class Planet extends RenderNode {
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [startCallback] - Callback that calls after flying when flying is finished.
-     * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.     
+     * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
         this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
