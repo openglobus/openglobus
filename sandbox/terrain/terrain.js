@@ -127,7 +127,6 @@ let emptyTerrain = new EmptyTerrain(),
         maxZoom: 19,
         url: "//openglobus.org:8080/geoserver/og/",
         layers: "og:USGS_one_meter_x32y413_UT_ZionNP_QL2_2016_3857",
-        //layers: "test:geotiff_coverage_2",
         imageSize: 129,
         plainGridSize: 128,
         gridSizeByZoom: [

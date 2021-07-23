@@ -39,9 +39,9 @@ class BilTerrain extends GlobusTerrain {
     }
 
     isBlur(segment) {
-        //if (segment.tileZoom >= 13) {
-        //    return true;
-        //}
+        if (segment.tileZoom >= 18) {
+            return true;
+        }
         return false;
     }
 
