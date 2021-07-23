@@ -439,7 +439,8 @@ Renderer.prototype.initialize = function () {
         useDepth: false
     }).init();
 
-    this.readPixels = () => {};
+    this.readPixels = () => {
+    };
 
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -529,16 +530,16 @@ Renderer.prototype._resize = function () {
         obj.clientHeight * this._screenScale
     );
     this.blitFramebuffer &&
-        this.blitFramebuffer.setSize(
-            obj.clientWidth * this._screenScale,
-            obj.clientHeight * this._screenScale,
-            true
-        );
+    this.blitFramebuffer.setSize(
+        obj.clientWidth * this._screenScale,
+        obj.clientHeight * this._screenScale,
+        true
+    );
     this.toneMappingFramebuffer &&
-        this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+    this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
     this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
     this.screenDepthFramebuffer &&
-        this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+    this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
     if (this.handler.gl.type === "webgl") {
         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -854,31 +855,33 @@ Renderer.prototype.getPickingObject = function (x, y) {
  * @private
  */
 Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
-    this.pickingFramebuffer.activate();
+    if (this.events.mouseState.anyEvent()) {
+        this.pickingFramebuffer.activate();
 
-    var h = this.handler;
-    var gl = h.gl;
+        var h = this.handler;
+        var gl = h.gl;
 
-    if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    } else {
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+        }
+
+        gl.disable(h.gl.BLEND);
+
+        var dp = this._pickingCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders picking frame.
+             * @callback og.Renderer~pickingCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.pickingFramebuffer.deactivate();
     }
-
-    gl.disable(h.gl.BLEND);
-
-    var dp = this._pickingCallbacks;
-    var i = dp.length;
-    while (i--) {
-        /**
-         * This callback renders picking frame.
-         * @callback og.Renderer~pickingCallback
-         */
-        dp[i].callback.call(dp[i].sender);
-    }
-
-    this.pickingFramebuffer.deactivate();
 };
 
 Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
