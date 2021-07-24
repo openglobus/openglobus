@@ -2,34 +2,34 @@
  * @module og/scene/Planet
  */
 
-'use strict';
+"use strict";
 
-import * as shaders from '../shaders/drawnode.js';
-import * as math from '../math.js';
-import * as mercator from '../mercator.js';
-import * as quadTree from '../quadTree/quadTree.js';
-import * as segmentHelper from '../segment/segmentHelper.js';
-import { decodeFloatFromRGBAArr } from '../math/coder.js';
-import { Extent } from '../Extent.js';
-import { Framebuffer } from '../webgl/Framebuffer.js';
-import { GeoImageCreator } from '../utils/GeoImageCreator.js';
-import { Quat, Vec3, Vec4 } from '../math/index.js';
-import { Vector } from '../layer/Vector.js';
-import { Loader } from '../utils/Loader.js';
-import { Key, Lock } from '../Lock.js';
-import { LonLat } from '../LonLat.js';
-import { Node } from '../quadTree/Node.js';
-import { NormalMapCreator } from '../utils/NormalMapCreator.js';
-import { PlanetCamera } from '../camera/PlanetCamera.js';
-import { RenderNode } from './RenderNode.js';
-import { Segment } from '../segment/Segment.js';
-import { SegmentLonLat } from '../segment/SegmentLonLat.js';
-import { PlainSegmentWorker } from '../segment/PlainSegmentWorker.js';
-import { TerrainWorker } from '../utils/TerrainWorker.js';
-import { VectorTileCreator } from '../utils/VectorTileCreator.js';
-import { wgs84 } from '../ellipsoid/wgs84.js';
-import { NIGHT, SPECULAR } from '../res/images.js';
-import { Geoid } from '../terrain/Geoid.js';
+import * as shaders from "../shaders/drawnode.js";
+import * as math from "../math.js";
+import * as mercator from "../mercator.js";
+import * as quadTree from "../quadTree/quadTree.js";
+import * as segmentHelper from "../segment/segmentHelper.js";
+import { decodeFloatFromRGBAArr } from "../math/coder.js";
+import { Extent } from "../Extent.js";
+import { Framebuffer } from "../webgl/Framebuffer.js";
+import { GeoImageCreator } from "../utils/GeoImageCreator.js";
+import { Quat, Vec3, Vec4 } from "../math/index.js";
+import { Vector } from "../layer/Vector.js";
+import { Loader } from "../utils/Loader.js";
+import { Key, Lock } from "../Lock.js";
+import { LonLat } from "../LonLat.js";
+import { Node } from "../quadTree/Node.js";
+import { NormalMapCreator } from "../utils/NormalMapCreator.js";
+import { PlanetCamera } from "../camera/PlanetCamera.js";
+import { RenderNode } from "./RenderNode.js";
+import { Segment } from "../segment/Segment.js";
+import { SegmentLonLat } from "../segment/SegmentLonLat.js";
+import { PlainSegmentWorker } from "../segment/PlainSegmentWorker.js";
+import { TerrainWorker } from "../utils/TerrainWorker.js";
+import { VectorTileCreator } from "../utils/VectorTileCreator.js";
+import { wgs84 } from "../ellipsoid/wgs84.js";
+import { NIGHT, SPECULAR } from "../res/images.js";
+import { Geoid } from "../terrain/Geoid.js";
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
@@ -85,7 +85,7 @@ const EVENT_NAMES = [
  * @extends {og.scene.RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
- * @param {Number} [maxGridSize=7] - Segment maximal grid size
+ * @param {Number} [maxGridSize=128] - Segment maximal grid size
  * @fires og.scene.Planet#draw
  * @fires og.scene.Planet#layeradd
  * @fires og.scene.Planet#baselayerchange
@@ -94,7 +94,7 @@ const EVENT_NAMES = [
  * @fires og.scene.Planet#geoimageadd
  */
 class Planet extends RenderNode {
-    constructor(name, ellipsoid, maxGridSize = 7) {
+    constructor(name, ellipsoid, maxGridSize = 128) {
         super(name);
 
         /**
@@ -344,7 +344,7 @@ class Planet extends RenderNode {
          */
         this._useSpecularTexture = true;
 
-        this._maxGridSize = maxGridSize;
+        this._maxGridSize = Math.log2(maxGridSize);
 
         /**
          * Segment multiple textures size.(4 - convinient value for the most devices)
@@ -409,7 +409,7 @@ class Planet extends RenderNode {
         let n = cartesian.normal();
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
-    };
+    }
 
     /**
      * Add the given control to the renderer of the planet scene.
@@ -561,7 +561,6 @@ class Planet extends RenderNode {
      * @param {og.terrain.Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
-
         if (this._initialized) {
             this.memClear();
         }
@@ -644,18 +643,24 @@ class Planet extends RenderNode {
             for (var j = 0; j <= TABLESIZE; j++) {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
-                    !this._indexesCache[i][j][k] && (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    !this._indexesCache[i][j][k] &&
+                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
-                        !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        !this._indexesCache[i][j][k][m] &&
+                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
-
                             let ptr = {
                                 buffer: null
                             };
 
                             if (i >= 1 && i === j && i === k && i === m && i === q) {
-                                let indexes = segmentHelper.getInstance().createSegmentIndexes(i, [j, k, m, q]);
-                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                                let indexes = segmentHelper
+                                    .getInstance()
+                                    .createSegmentIndexes(i, [j, k, m, q]);
+                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(
+                                    indexes,
+                                    1
+                                );
                                 indexes = null;
                             } else {
                                 this._indexesCacheToRemove[kk++] = ptr;
@@ -677,7 +682,8 @@ class Planet extends RenderNode {
             this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(
                 texCoordCache[i],
                 2,
-                ((1 << i) + 1) * ((1 << i) + 1));
+                ((1 << i) + 1) * ((1 << i) + 1)
+            );
         }
 
         texCoordCache = null;
@@ -705,9 +711,33 @@ class Planet extends RenderNode {
         }
 
         // Creating quad trees nodes
-        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]));
-        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]));
-        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0, Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]));
+        this._quadTree = new Node(
+            Segment,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
+            Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
+        );
+        this._quadTreeNorth = new Node(
+            SegmentLonLat,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
+            Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
+        );
+        this._quadTreeSouth = new Node(
+            SegmentLonLat,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
+            Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
+        );
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
@@ -716,31 +746,43 @@ class Planet extends RenderNode {
 
         this.updateVisibleLayers();
 
-        this.renderer.activeCamera.events.on("viewchange", function (e) {
-            this._viewChanged = true;
-        }, this);
+        this.renderer.activeCamera.events.on(
+            "viewchange",
+            function (e) {
+                this._viewChanged = true;
+            },
+            this
+        );
 
-        this.renderer.events.on("mousemove", function (e) {
-            this._viewChanged = true;
-        }, this);
+        this.renderer.events.on(
+            "mousemove",
+            function (e) {
+                this._viewChanged = true;
+            },
+            this
+        );
 
-        this.renderer.events.on("touchmove", function (e) {
-            this._viewChanged = true;
-        }, this);
+        this.renderer.events.on(
+            "touchmove",
+            function (e) {
+                this._viewChanged = true;
+            },
+            this
+        );
 
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
         // loading Earth night glowing texture
         if (this._useNightTexture) {
-            createImageBitmap(NIGHT).then((e) =>
-                this._nightTexture = this.renderer.handler.createTexture(e)
+            createImageBitmap(NIGHT).then(
+                (e) => (this._nightTexture = this.renderer.handler.createTexture(e))
             );
         }
 
         // load water specular mask
         if (this._useSpecularTexture) {
-            createImageBitmap(SPECULAR).then((e) =>
-                this._specularTexture = this.renderer.handler.createTexture_l(e)
+            createImageBitmap(SPECULAR).then(
+                (e) => (this._specularTexture = this.renderer.handler.createTexture_l(e))
             );
         }
 
@@ -845,7 +887,6 @@ class Planet extends RenderNode {
      * @public
      */
     updateVisibleLayers() {
-
         this.visibleTileLayers = [];
         this.visibleTileLayers.length = 0;
 
@@ -856,7 +897,6 @@ class Planet extends RenderNode {
         for (var i = 0; i < this.layers.length; i++) {
             var li = this.layers[i];
             if (li._visibility) {
-
                 if (li._isBaseLayer) {
                     this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
                     this.baseLayer = li;
@@ -874,7 +914,6 @@ class Planet extends RenderNode {
                     html += "<li>" + li._attribution + "</li>";
                 }
             } else if (li._fading && li._fadingOpacity > 0) {
-
                 if (li.hasImageryTiles()) {
                     this.visibleTileLayers.push(li);
                 }
@@ -903,9 +942,8 @@ class Planet extends RenderNode {
      * @protected
      */
     _sortLayers() {
-
         this.visibleVectorLayers.sort(function (a, b) {
-            return (a._zIndex - b._zIndex) || (a._height - b._height);
+            return a._zIndex - b._zIndex || a._height - b._height;
         });
 
         this._visibleTileLayerSlices = [];
@@ -946,10 +984,10 @@ class Planet extends RenderNode {
      * @protected
      */
     _collectRenderNodes() {
-
         this._lodRatio = math.lerp(
             this.camera.slope < 0.0 ? 0.0 : this.camera.slope,
-            this._maxLodRatio, this._minLodRatio
+            this._maxLodRatio,
+            this._minLodRatio
         );
 
         this.camera._insideSegment = null;
@@ -970,10 +1008,11 @@ class Planet extends RenderNode {
 
         this._quadTree.renderTree(this.camera, 0, null);
 
-        if (this.renderer.activeCamera.slope > 0.8 &&
+        if (
+            this.renderer.activeCamera.slope > 0.8 &&
             this.renderer.activeCamera._lonLat.height < 850000.0 &&
-            this.renderer.activeCamera._lonLat.height > 10000.0) {
-
+            this.renderer.activeCamera._lonLat.height > 10000.0
+        ) {
             this.minCurrZoom = this.maxCurrZoom;
 
             let temp = this._renderedNodes,
@@ -992,7 +1031,8 @@ class Planet extends RenderNode {
                 var ri = temp[i];
                 if (ri.segment.tileZoom === this.maxCurrZoom) {
                     this._renderedNodes.push(ri);
-                    let k = 0, inFrustum = ri.inFrustum;
+                    let k = 0,
+                        inFrustum = ri.inFrustum;
                     while (inFrustum) {
                         if (inFrustum & 1) {
                             rf[k].push(ri);
@@ -1035,7 +1075,6 @@ class Planet extends RenderNode {
      * @public
      */
     frame() {
-
         this._renderScreenNodesPASS();
 
         //if (HEIGHTPICKING) {
@@ -1049,7 +1088,6 @@ class Planet extends RenderNode {
      * @protected
      */
     _renderScreenNodesPASS() {
-
         let sh, shu;
         let renderer = this.renderer;
         let h = renderer.handler;
@@ -1058,7 +1096,6 @@ class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum();
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-
             this._collectRenderNodes();
 
             // Here is the planet node dispatches a draw event before
@@ -1097,7 +1134,12 @@ class Planet extends RenderNode {
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, ((this.camera._lonLat.height > 329958.0) && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
+            gl.bindTexture(
+                gl.TEXTURE_2D,
+                (this.camera._lonLat.height > 329958.0 &&
+                    (this._nightTexture || this.transparentTexture)) ||
+                    this.transparentTexture
+            );
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             // bind specular material
@@ -1171,7 +1213,6 @@ class Planet extends RenderNode {
 
         //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
-
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
@@ -1189,67 +1230,69 @@ class Planet extends RenderNode {
         //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
-    };
+    }
 
     /**
      * @protected
      */
     _renderHeightPickingFramebufferPASS() {
-        if (this.renderer.events.mouseState.anyEvent()) {
-            this._heightPickingFramebuffer.activate();
+        this._heightPickingFramebuffer.activate();
 
-            let sh;
-            let renderer = this.renderer;
-            let h = renderer.handler;
-            let gl = h.gl;
-            let cam = renderer.activeCamera;
-            let frustumIndex = cam.getCurrentFrustum();
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        let cam = renderer.activeCamera;
+        let frustumIndex = cam.getCurrentFrustum();
 
-            if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            } else {
-                gl.clear(gl.DEPTH_BUFFER_BIT);
-            }
-
-            gl.enable(gl.CULL_FACE);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.enable(gl.BLEND);
-
-            h.programs.drawnode_heightPicking.activate();
-            sh = h.programs.drawnode_heightPicking._program;
-            let shu = sh.uniforms;
-
-            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
-
-            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-            // drawing planet nodes
-            var rn = this._renderedNodesInFrustum[frustumIndex],
-                sl = this._visibleTileLayerSlices;
-
-            let i = rn.length;
-            while (i--) {
-                rn[i].segment.heightPickingRendering(sh, sl[0], 0);
-            }
-
-            //gl.enable(gl.POLYGON_OFFSET_FILL);
-            for (let j = 1, len = sl.length; j < len; j++) {
-                i = rn.length;
-                //gl.polygonOffset(0, -j);
-                while (i--) {
-                    rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
-                }
-            }
-            //gl.disable(gl.POLYGON_OFFSET_FILL);
-
-            gl.disable(gl.BLEND);
-
-            this._heightPickingFramebuffer.deactivate();
+        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
         }
+
+        gl.enable(gl.CULL_FACE);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+
+        h.programs.drawnode_heightPicking.activate();
+        sh = h.programs.drawnode_heightPicking._program;
+        let shu = sh.uniforms;
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+        gl.uniformMatrix4fv(
+            shu.projectionMatrix,
+            false,
+            renderer.activeCamera.getProjectionMatrix()
+        );
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        // drawing planet nodes
+        var rn = this._renderedNodesInFrustum[frustumIndex],
+            sl = this._visibleTileLayerSlices;
+
+        let i = rn.length;
+        while (i--) {
+            rn[i].segment.heightPickingRendering(sh, sl[0], 0);
+        }
+
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
+        for (let j = 1, len = sl.length; j < len; j++) {
+            i = rn.length;
+            //gl.polygonOffset(0, -j);
+            while (i--) {
+                rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
+
+        gl.disable(gl.BLEND);
+
+        this._heightPickingFramebuffer.deactivate();
     }
 
     /**
@@ -1346,7 +1389,6 @@ class Planet extends RenderNode {
 
         var i = this.visibleVectorLayers.length;
         while (i--) {
-
             let vi = this.visibleVectorLayers[i];
 
             if (vi._fading && vi._refreshFadingOpacity()) {
@@ -1551,10 +1593,18 @@ class Planet extends RenderNode {
                 r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
                 r.screenDepthFramebuffer.deactivate();
 
-                let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, _tempDepthColor_[0] / 255.0 * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
-                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let screenPos = new Vec4(
+                    spx * 2.0 - 1.0,
+                    spy * 2.0 - 1.0,
+                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
+                    1.0 * 2.0 - 1.0
+                );
+                let viewPosition =
+                    this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
                 let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+                dist =
+                    -(viewPosition.z / viewPosition.w) /
+                    dir.dot(this.renderer.activeCamera.getForward());
             }
 
             this._currentDistanceFromPixel = dist;
@@ -1582,8 +1632,11 @@ class Planet extends RenderNode {
      */
     viewExtentArr(extentArr) {
         this.renderer.activeCamera.viewExtent(
-            new Extent(new LonLat(extentArr[0], extentArr[1]),
-                new LonLat(extentArr[2], extentArr[3])));
+            new Extent(
+                new LonLat(extentArr[0], extentArr[1]),
+                new LonLat(extentArr[2], extentArr[3])
+            )
+        );
     }
 
     /**
@@ -1638,7 +1691,14 @@ class Planet extends RenderNode {
      * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
-        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+        this.renderer.activeCamera.flyExtent(
+            extent,
+            height,
+            up,
+            ampl,
+            completeCallback,
+            startCallback
+        );
     }
 
     /**
@@ -1650,7 +1710,15 @@ class Planet extends RenderNode {
      * @param {Number} [ampl] - Altitude amplitude factor.
      */
     flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.renderer.activeCamera.flyCartesian(
+            cartesian,
+            look,
+            up,
+            ampl,
+            completeCallback,
+            startCallback,
+            frameCallback
+        );
     }
 
     /**
@@ -1662,7 +1730,15 @@ class Planet extends RenderNode {
      * @param {Number} [ampl] - Altitude amplitude factor.
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.renderer.activeCamera.flyLonLat(
+            lonlat,
+            look,
+            up,
+            ampl,
+            completeCallback,
+            startCallback,
+            frameCallback
+        );
     }
 
     /**
