@@ -1011,7 +1011,9 @@ Segment.prototype.createBoundsByParent = function () {
             //
             // Actually, we get parent whole bounding volume
             //
-            this.bsphere.center.copy(pn.segment.bsphere.center);
+            this.bsphere.center.x = pn.segment.bsphere.center.x;
+            this.bsphere.center.y = pn.segment.bsphere.center.y;
+            this.bsphere.center.z = pn.segment.bsphere.center.z;
             this.bsphere.radius = pn.segment.bsphere.radius;
 
             if (this.tileZoom < MAX_NORMAL_ZOOM) {

@@ -22,7 +22,7 @@ class MapboxTerrain extends GlobusTerrain {
         this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 17;
 
         this.gridSizeByZoom = options.gridSizeByZoom || [
-            64, 32, 16, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
         ];
 
         this.url =
