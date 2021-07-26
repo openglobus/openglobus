@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
-import { EPSG4326 } from '../proj/EPSG4326.js';
-import { EPSG3857 } from '../proj/EPSG3857.js';
-import { Vec3 } from '../math/Vec3.js';
-import { MAX_LAT, POLE } from '../mercator.js';
-import { MAX, MIN } from '../math.js';
-import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from '../utils/shared.js';
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { EPSG4326 } from "../proj/EPSG4326.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { Vec3 } from "../math/Vec3.js";
+import { MAX_LAT, POLE } from "../mercator.js";
+import { MAX, MIN } from "../math.js";
+import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared.js";
 
 import {
     COMSIDE,
@@ -28,9 +28,9 @@ import {
     VISIBLE_DISTANCE,
     W,
     WALKTHROUGH
-} from './quadTree.js';
+} from "./quadTree.js";
 
-import { MAX_NORMAL_ZOOM } from '../segment/Segment.js';
+import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
 const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
@@ -70,11 +70,15 @@ const Node = function (SegmentPrototype, planet, partId, parent, id, tileZoom, e
     this.planet._createdNodesCount++;
 };
 
-const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
+const _vertOrder = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 1, y: 1 }
+];
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 Node.prototype.createChildrenNodes = function () {
-
     this.ready = true;
 
     var p = this.planet;
@@ -82,41 +86,64 @@ Node.prototype.createChildrenNodes = function () {
     var ext = ps._extent;
     var size_x = ext.getWidth() * 0.5;
     var size_y = ext.getHeight() * 0.5;
-    var ne = ext.northEast, sw = ext.southWest;
+    var ne = ext.northEast,
+        sw = ext.southWest;
     var z = ps.tileZoom + 1;
     var id = this.nodeId * 4 + 1;
     var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
     var nd = this.nodes;
 
-    nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z,
-        new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+    nd[NW] = new Node(
+        this.SegmentPrototype,
+        p,
+        NW,
+        this,
+        id,
+        z,
+        new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
+    );
 
-    nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z,
-        new Extent(c, new LonLat(ne.lon, ne.lat)));
+    nd[NE] = new Node(
+        this.SegmentPrototype,
+        p,
+        NE,
+        this,
+        id,
+        z,
+        new Extent(c, new LonLat(ne.lon, ne.lat))
+    );
 
-    nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z,
-        new Extent(new LonLat(sw.lon, sw.lat), c));
+    nd[SW] = new Node(
+        this.SegmentPrototype,
+        p,
+        SW,
+        this,
+        id,
+        z,
+        new Extent(new LonLat(sw.lon, sw.lat), c)
+    );
 
-    nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z,
-        new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
+    nd[SE] = new Node(
+        this.SegmentPrototype,
+        p,
+        SE,
+        this,
+        id,
+        z,
+        new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
+    );
 };
 
 Node.prototype.createBounds = function () {
-
     let seg = this.segment;
 
     seg._setExtentLonLat();
 
     if (seg.tileZoom === 0) {
-
         seg.setBoundingSphere(0.0, 0.0, 0.0, new Vec3(0.0, 0.0, seg.planet.ellipsoid._a));
-
     } else if (seg.tileZoom < seg.planet.terrain.minZoom) {
-
         seg.createBoundsByExtent();
-
     } else {
-
         let pn = this;
 
         while (pn.parentNode && !pn.segment.terrainReady) {
@@ -129,11 +156,9 @@ Node.prototype.createBounds = function () {
             offsetY = this.segment.tileY - pn.segment.tileY * dZ2;
 
         if (pn.segment.terrainReady && pn.segment.tileZoom >= seg.planet.terrain.minZoom) {
-
             let gridSize = pn.segment.gridSize / dZ2;
 
             if (gridSize >= 1.0) {
-
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
 
@@ -146,15 +171,31 @@ Node.prototype.createBounds = function () {
 
                 let pVerts = pn.segment.tempVertices;
 
-                let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
-                    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
+                //let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
+                //    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
 
-                //seg.setBoundingSphere(
-                //    v_sw.x + (v_ne.x - v_sw.x) * 0.5,
-                //    v_sw.y + (v_ne.y - v_sw.y) * 0.5,
-                //    v_sw.z + (v_ne.z - v_sw.z) * 0.5,
-                //    v_sw
-                //);
+                var xmin = 549755748352.0,
+                    xmax = -549755748352.0,
+                    ymin = 549755748352.0,
+                    ymax = -549755748352.0,
+                    zmin = 549755748352.0,
+                    zmax = -549755748352.0;
+
+                for (let i = 0; i < pVerts.length; i += 3) {
+                    let px = pVerts[i],
+                        py = pVerts[i + 1],
+                        pz = pVerts[i + 2];
+
+                    if (px < xmin) xmin = px;
+                    if (px > xmax) xmax = px;
+                    if (py < ymin) ymin = py;
+                    if (py > ymax) ymax = py;
+                    if (pz < zmin) zmin = pz;
+                    if (pz > zmax) zmax = pz;
+                }
+
+                let v_sw = new Vec3(xmin, ymin, zmin),
+                    v_ne = new Vec3(xmax, ymax, zmax);
 
                 seg.setBoundingVolume3v(v_sw, v_ne);
 
@@ -168,9 +209,7 @@ Node.prototype.createBounds = function () {
                     seg._neNorm = v_ne.normal();
                     seg._seNorm = v_se.normal();
                 }
-
             } else {
-
                 let pseg = pn.segment;
 
                 let i0 = Math.floor(gridSize * offsetY),
@@ -191,10 +230,26 @@ Node.prototype.createBounds = function () {
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                let vn = new Vec3(
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
+                    vw = new Vec3(
+                        bigOne[6] - bigOne[0],
+                        bigOne[7] - bigOne[1],
+                        bigOne[8] - bigOne[2]
+                    ),
+                    ve = new Vec3(
+                        bigOne[3] - bigOne[9],
+                        bigOne[4] - bigOne[10],
+                        bigOne[5] - bigOne[11]
+                    ),
+                    vs = new Vec3(
+                        bigOne[6] - bigOne[9],
+                        bigOne[7] - bigOne[10],
+                        bigOne[8] - bigOne[11]
+                    );
 
                 let vi_y = t_i0,
                     vi_x = t_j0;
@@ -202,26 +257,31 @@ Node.prototype.createBounds = function () {
                 let coords_lt, coords_rb;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_lt = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
+                    coords_lt = Vec3.add(
+                        vn.scaleTo(vi_x / insideSize),
+                        vw.scaleTo(vi_y / insideSize)
+                    ).addA(v_lt);
                 } else {
-                    coords_lt = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
+                    coords_lt = Vec3.add(
+                        vs.scaleTo(1 - vi_x / insideSize),
+                        ve.scaleTo(1 - vi_y / insideSize)
+                    ).addA(v_rb);
                 }
 
                 vi_y = t_i0 + 1;
                 vi_x = t_j0 + 1;
 
                 if (vi_y + vi_x < insideSize) {
-                    coords_rb = Vec3.add(vn.scaleTo(vi_x / insideSize), vw.scaleTo(vi_y / insideSize)).addA(v_lt);
+                    coords_rb = Vec3.add(
+                        vn.scaleTo(vi_x / insideSize),
+                        vw.scaleTo(vi_y / insideSize)
+                    ).addA(v_lt);
                 } else {
-                    coords_rb = Vec3.add(vs.scaleTo(1 - vi_x / insideSize), ve.scaleTo(1 - vi_y / insideSize)).addA(v_rb);
+                    coords_rb = Vec3.add(
+                        vs.scaleTo(1 - vi_x / insideSize),
+                        ve.scaleTo(1 - vi_y / insideSize)
+                    ).addA(v_rb);
                 }
-
-                //seg.setBoundingSphere(
-                //    coords_lt.x + (coords_rb.x - coords_lt.x) * 0.5,
-                //    coords_lt.y + (coords_rb.y - coords_lt.y) * 0.5,
-                //    coords_lt.z + (coords_rb.z - coords_lt.z) * 0.5,
-                //    coords_lt
-                //);
 
                 seg.setBoundingVolume3v(coords_lt, coords_rb);
             }
@@ -276,14 +336,14 @@ Node.prototype.getEqualNeighbor = function (side) {
 };
 
 Node.prototype.isBrother = function (node) {
-    return !(this.parentNode || node.parentNode) ||
-        this.parentNode.id === node.parentNode.id;
+    return !(this.parentNode || node.parentNode) || this.parentNode.id === node.parentNode.id;
 };
 
 Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoading) {
-
-    if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES ||
-        this.planet._nodeCounterError_ > 2000) {
+    if (
+        this.planet._renderedNodes.length >= MAX_RENDERED_NODES ||
+        this.planet._nodeCounterError_ > 2000
+    ) {
         return;
     }
 
@@ -311,8 +371,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     // Search a node which the camera is flying over.
     if (!this.parentNode || this.parentNode._cameraInside) {
         let inside;
-        if (Math.abs(cam._lonLat.lat) <= MAX_LAT &&
-            seg._projection.id === EPSG3857.id) {
+        if (Math.abs(cam._lonLat.lat) <= MAX_LAT && seg._projection.id === EPSG3857.id) {
             inside = seg._extent.isInside(cam._lonLatMerc);
             insideLonLat = cam._lonLatMerc;
         } else if (seg._projection.id === EPSG4326.id) {
@@ -341,8 +400,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         }
     } else {
         let commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
-        for (let i = 0; commonFrustumFlag && (i < numFrustums); i++) {
-
+        for (let i = 0; commonFrustumFlag && i < numFrustums; i++) {
             if (seg.terrainReady) {
                 if (frustums[i].containsBox(seg.bbox)) {
                     commonFrustumFlag >>= 1;
@@ -358,10 +416,13 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
     }
 
     if (this.inFrustum || this._cameraInside) {
-
         let h = cam._lonLat.height;
 
-        let altVis = (cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h)) || seg.tileZoom < 4 && !seg.terrainReady || seg.tileZoom < 2;
+        let altVis =
+            cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
+                VISIBLE_DISTANCE * Math.sqrt(h) ||
+            (seg.tileZoom < 4 && !seg.terrainReady) ||
+            seg.tileZoom < 2;
 
         if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
             seg._collectVisibleNodes();
@@ -371,19 +432,17 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
         } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
-        } else if ((seg.tileZoom < planet.terrain._maxNodeZoom) && seg.terrainReady) {
+        } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
             this.traverseNodes(cam, maxZoom, seg, stopLoading);
         } else {
             this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
         }
-
     } else {
         this.state = NOTRENDERING;
     }
 };
 
 Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment, stopLoading) {
-
     if (!this.ready) {
         this.createChildrenNodes();
     }
@@ -396,25 +455,29 @@ Node.prototype.traverseNodes = function (cam, maxZoom, terrainReadySegment, stop
     n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
 };
 
-Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainReadySegment, stopLoading) {
-
+Node.prototype.prepareForRendering = function (
+    cam,
+    altVis,
+    inFrustum,
+    terrainReadySegment,
+    stopLoading
+) {
     let seg = this.segment;
 
     if (cam._lonLat.height < VISIBLE_HEIGHT) {
-
         if (altVis) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
         }
-
     } else {
-
-        if (seg.tileZoom < MAX_NORMAL_ZOOM && (
-            seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)) {
+        if (
+            seg.tileZoom < MAX_NORMAL_ZOOM &&
+            (seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
+                seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
+                seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
+                seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)
+        ) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
             this.state = NOTRENDERING;
@@ -423,12 +486,10 @@ Node.prototype.prepareForRendering = function (cam, altVis, inFrustum, terrainRe
 };
 
 Node.prototype.renderNode = function (inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
-
     var seg = this.segment;
 
     // Create and load terrain data
     if (!seg.terrainReady) {
-
         if (!seg.initialized) {
             seg.initialize();
         }
@@ -474,7 +535,6 @@ Node.prototype.renderNode = function (inFrustum, onlyTerrain, terrainReadySegmen
  * @public
  */
 Node.prototype.addToRender = function (inFrustum) {
-
     this.state = RENDERING;
 
     var nodes = this.planet._renderedNodes;
@@ -485,11 +545,9 @@ Node.prototype.addToRender = function (inFrustum) {
         var cs = this.getCommonSide(ni);
 
         if (cs !== -1) {
-
             var opcs = OPSIDE[cs];
 
             if (this.neighbors[cs].length === 0 || ni.neighbors[opcs].length === 0) {
-
                 var ap = this.segment;
                 var bp = ni.segment;
                 var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
@@ -514,7 +572,6 @@ Node.prototype.addToRender = function (inFrustum) {
 
             this.neighbors[cs].push(ni);
             ni.neighbors[opcs].push(this);
-
         }
     }
 
@@ -532,32 +589,50 @@ Node.prototype.addToRender = function (inFrustum) {
 };
 
 Node.prototype.getCommonSide = function (node) {
-
     var as = this.segment,
         bs = node.segment;
 
     if (as.tileZoom === bs.tileZoom) {
         return as.getNeighborSide(bs);
     } else {
-
         var a = as._extent,
             b = bs._extent;
-        var a_ne = a.northEast, a_sw = a.southWest,
-            b_ne = b.northEast, b_sw = b.southWest;
-        var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
-            b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+        var a_ne = a.northEast,
+            a_sw = a.southWest,
+            b_ne = b.northEast,
+            b_sw = b.southWest;
+        var a_ne_lon = a_ne.lon,
+            a_ne_lat = a_ne.lat,
+            a_sw_lon = a_sw.lon,
+            a_sw_lat = a_sw.lat,
+            b_ne_lon = b_ne.lon,
+            b_ne_lat = b_ne.lat,
+            b_sw_lon = b_sw.lon,
+            b_sw_lat = b_sw.lat;
 
-        if (a_ne_lon === b_sw_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-            a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        if (
+            a_ne_lon === b_sw_lon &&
+            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+        ) {
             return E;
-        } else if (a_sw_lon === b_ne_lon && (a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat ||
-            a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat)) {
+        } else if (
+            a_sw_lon === b_ne_lon &&
+            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+        ) {
             return W;
-        } else if (a_ne_lat === b_sw_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-            a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        } else if (
+            a_ne_lat === b_sw_lat &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+        ) {
             return N;
-        } else if (a_sw_lat === b_ne_lat && (a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon ||
-            a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon)) {
+        } else if (
+            a_sw_lat === b_ne_lat &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+        ) {
             return S;
         } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
             return E;
@@ -575,7 +650,6 @@ Node.prototype.getCommonSide = function (node) {
 
 // TODO: test test test
 Node.prototype.___getCommonSide___ = function (b) {
-
     var a = this,
         as = a.segment,
         bs = b.segment;
@@ -636,7 +710,6 @@ Node.prototype.___getCommonSide___ = function (b) {
 };
 
 Node.prototype.whileNormalMapCreating = function () {
-
     var seg = this.segment;
     var maxZ = this.planet.terrain.maxZoom;
 
@@ -674,7 +747,6 @@ let BOUNDS = {
 };
 
 Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading) {
-
     const seg = this.segment;
     const terrain = this.planet.terrain;
 
@@ -689,17 +761,13 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
     }
 
     if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
-
         let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
             offsetX = seg.tileX - pn.segment.tileX * dZ2,
             offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
         let pseg = pn.segment;
 
-        let tempVertices,
-            tempVerticesHigh,
-            tempVerticesLow,
-            noDataVertices;
+        let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
 
         this.appliedTerrainNodeId = pn.nodeId;
 
@@ -714,7 +782,6 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
         BOUNDS.zmax = MIN;
 
         if (gridSize >= 1) {
-
             seg.gridSize = gridSize;
 
             let len = (gridSize + 1) * (gridSize + 1) * 3;
@@ -741,9 +808,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 BOUNDS,
                 noDataVertices
             );
-
         } else if (gridSizeExt >= 1) {
-
             seg.gridSize = gridSizeExt;
 
             let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
@@ -770,9 +835,7 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 BOUNDS,
                 noDataVertices
             );
-
         } else {
-
             seg.gridSize = _neGridSize;
 
             let i0 = Math.floor(gridSize * offsetY),
@@ -795,8 +858,16 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
 
             let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
                 vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
-                vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
+                ve = new Vec3(
+                    bigOne[3] - bigOne[9],
+                    bigOne[4] - bigOne[10],
+                    bigOne[5] - bigOne[11]
+                ),
+                vs = new Vec3(
+                    bigOne[6] - bigOne[9],
+                    bigOne[7] - bigOne[10],
+                    bigOne[8] - bigOne[11]
+                );
 
             let coords = new Vec3();
 
@@ -814,7 +885,10 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 if (vi_y + vi_x < insideSize) {
                     coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
                 } else {
-                    coords = vs.scaleTo(1 - vi_x_is).addA(ve.scaleTo(1 - vi_y_is)).addA(v_rb);
+                    coords = vs
+                        .scaleTo(1 - vi_x_is)
+                        .addA(ve.scaleTo(1 - vi_y_is))
+                        .addA(v_rb);
                 }
 
                 Vec3.doubleToTwoFloats(coords, _tempHigh, _tempLow);
@@ -855,13 +929,16 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
         seg.noDataVertices = noDataVertices;
 
         seg.setBoundingVolume(
-            BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin,
-            BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax
+            BOUNDS.xmin,
+            BOUNDS.ymin,
+            BOUNDS.zmin,
+            BOUNDS.xmax,
+            BOUNDS.ymax,
+            BOUNDS.zmax
         );
 
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {
-
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
 
@@ -872,7 +949,6 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                 this.appliedTerrainNodeId = this.nodeId;
 
                 if (pn.segment.terrainExists) {
-
                     seg.terrainExists = true;
                     seg.normalMapVertices = tempVertices;
                     seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
@@ -881,8 +957,13 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
                         fgsZ = fgs / dZ2;
 
                     if (fgs > 1) {
-                        seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals,
-                            fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                        seg.normalMapNormals = getMatrixSubArray(
+                            pseg.normalMapNormals,
+                            fgs,
+                            fgsZ * offsetY,
+                            fgsZ * offsetX,
+                            fgsZ
+                        );
                     } else {
                         // TODO: interpolation
                         seg.normalMapNormals = pseg.normalMapNormals;
@@ -928,7 +1009,6 @@ Node.prototype.destroy = function () {
 };
 
 Node.prototype.clearTree = function () {
-
     var state = this.getState();
 
     if (state === NOTRENDERING) {
@@ -950,10 +1030,9 @@ Node.prototype.clearBranches = function () {
 };
 
 Node.prototype.destroyBranches = function () {
-
     if (this.ready) {
-
-        var nodesToRemove = [], i;
+        var nodesToRemove = [],
+            i;
 
         for (i = 0; i < this.nodes.length; i++) {
             nodesToRemove[i] = this.nodes[i];
@@ -983,7 +1062,6 @@ Node.prototype.traverseTree = function (callback) {
 };
 
 Node.prototype.getOffsetOppositeNeighbourSide = function (neighbourNode, side) {
-
     let pNode = this,
         neighbourZoom = neighbourNode.segment.tileZoom,
         offset = 0;

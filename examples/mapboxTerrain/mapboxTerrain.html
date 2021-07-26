@@ -14,6 +14,8 @@
         import { Globe } from '../../src/og/Globe.js';
         import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
+        import { GeoVideo } from '../../src/og/layer/GeoVideo.js';
+        import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 
         let osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
@@ -22,13 +24,26 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
+        let lv = new GeoVideo("Las Vegas", {
+            minZoom: 10,
+            src: "SkyBox-LasVegas.mp4",
+            corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]],
+            visibility: true,
+            isBaseLayer: false,
+            attribution: 'SkyBox Imaging Inc.',
+            opacity: 1.0,
+            diffuse: [1.2, 1.2, 1.2]
+        });
+
         let globus = new Globe({
             "target": "globus",
             "name": "Mapbox Earth",
             maxGridSize: 256,
             "terrain": new MapboxTerrain(),
-            "layers": [osm]
+            "layers": [osm, lv]
         });
+
+        globus.planet.addControl(new KeyboardNavigation());
     </script>
 </body>
 

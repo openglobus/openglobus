@@ -1,16 +1,16 @@
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import { N, E, S, W, OPSIDE, NOTRENDERING } from '../quadTree/quadTree.js';
-import { EPSG3857 } from '../proj/EPSG3857.js';
-import { Extent } from '../Extent.js';
-import { Layer } from '../layer/Layer.js';
-import { LonLat } from '../LonLat.js';
-import { Ray } from '../math/Ray.js';
-import { Sphere } from '../bv/Sphere.js';
-import { Box } from '../bv/Box.js';
-import { Vec3 } from '../math/Vec3.js';
-import * as segmentHelper from '../segment/segmentHelper.js';
+import * as mercator from "../mercator.js";
+import { N, E, S, W, OPSIDE, NOTRENDERING } from "../quadTree/quadTree.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { Extent } from "../Extent.js";
+import { Layer } from "../layer/Layer.js";
+import { LonLat } from "../LonLat.js";
+import { Ray } from "../math/Ray.js";
+import { Sphere } from "../bv/Sphere.js";
+import { Box } from "../bv/Box.js";
+import { Vec3 } from "../math/Vec3.js";
+import * as segmentHelper from "../segment/segmentHelper.js";
 
 export const MAX_NORMAL_ZOOM = 7;
 
@@ -31,6 +31,8 @@ var _RenderingSlice = function (p) {
     };
 };
 
+//const BSPHERERADIUSEXT = 2;
+
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
@@ -40,7 +42,6 @@ var _RenderingSlice = function (p) {
  * @param {og.Extent} extent - Segment extent.
  */
 const Segment = function (node, planet, tileZoom, extent) {
-
     this._tileGroup = 0;
 
     this._projection = EPSG3857;
@@ -68,6 +69,12 @@ const Segment = function (node, planet, tileZoom, extent) {
      * @type {og.bv.Sphere}
      */
     this.bsphere = new Sphere();
+
+    ///**
+    // * Segment bounding sphere for not ready terrain
+    // * @type {og.bv.Sphere}
+    // */
+    //this.bsphereExt = new Sphere();
 
     /**
      * Segment bounding box.
@@ -122,7 +129,7 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.tileY = 0;
 
-    this.tileIndex = '';
+    this.tileIndex = "";
 
     this._assignTileIndexes();
 
@@ -222,7 +229,9 @@ const Segment = function (node, planet, tileZoom, extent) {
  * @returns {boolean} -
  */
 Segment.prototype.acceptForRendering = function (camera) {
-    return camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet._lodRatio;
+    return (
+        camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet._lodRatio
+    );
 };
 
 /**
@@ -265,7 +274,6 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
     _ray.set(xyz, xyz.negateTo());
 
     if (verts) {
-
         var ne = this._extent.northEast,
             sw = this._extent.southWest,
             size = Math.sqrt(verts.length / 3) - 1;
@@ -350,7 +358,6 @@ Segment.prototype.projectNative = function (lonlat) {
 
 Segment.prototype.loadTerrain = function (forceLoading) {
     if (this.tileZoom < this.planet.terrain.minZoom) {
-
         this.terrainIsLoading = true;
 
         this.elevationsNotExists();
@@ -358,18 +365,12 @@ Segment.prototype.loadTerrain = function (forceLoading) {
         if (!this._inTheQueue) {
             this.planet._normalMapCreator.queue(this);
         }
-
     } else {
-
         if (this.tileZoom > this.planet.terrain.maxZoom) {
-
             this.elevationsNotExists();
-
         } else if (!this.terrainIsLoading && !this.terrainReady) {
-
             this.planet.terrain.loadTerrain(this, forceLoading);
         }
-
     }
 };
 
@@ -395,13 +396,14 @@ Segment.prototype.elevationsExists = function (elevations) {
 };
 
 Segment.prototype._checkEqualization = function (neighborSide, neigborNode) {
-    return neigborNode &&
+    return (
+        neigborNode &&
         //this.node.equalizedNeighborId[neighborSide] !== neigborNode.segment.gridSize &&
-        this.tileZoom >= neigborNode.segment.tileZoom;
+        this.tileZoom >= neigborNode.segment.tileZoom
+    );
 };
 
 Segment.prototype.equalize = function () {
-
     if (this.tileZoom < 8 || this.gridSize < 2) {
         return;
     }
@@ -476,7 +478,7 @@ Segment.prototype.equalize = function () {
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
             const index = (gsOne * k + gs) * 3;
-            const n_index = (n_gsOne * nk) * 3;
+            const n_index = n_gsOne * nk * 3;
 
             v[index] = nv[n_index];
             v[index + 1] = nv[n_index + 1];
@@ -552,7 +554,7 @@ Segment.prototype.equalize = function () {
             n_offset = offset * n_gs;
 
         for (let k = 0, nk = n_offset; k < gsOne; k += inc, nk += n_inc) {
-            const index = (gsOne * k) * 3;
+            const index = gsOne * k * 3;
             const n_index = (n_gsOne * nk + n_gs) * 3;
 
             v[index] = nv[n_index];
@@ -576,11 +578,9 @@ Segment.prototype.engage = function () {
 };
 
 Segment.prototype._plainSegmentWorkerCallback = function (data) {
-
     this.plainProcessing = false;
 
     if (this.initialized && !this.terrainReady) {
-
         this.plainVertices = data.plainVertices;
         this.plainVerticesHigh = data.plainVerticesHigh;
         this.plainVerticesLow = data.plainVerticesLow;
@@ -604,7 +604,6 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
 
 Segment.prototype._terrainWorkerCallback = function (data) {
     if (this.plainReady) {
-
         this.readyToEngage = true;
 
         this.normalMapNormals = null;
@@ -637,7 +636,7 @@ Segment.prototype._terrainWorkerCallback = function (data) {
         this.tempVerticesHigh = this.terrainVerticesHigh;
         this.tempVerticesLow = this.terrainVerticesLow;
 
-        this.setBoundingVolumeArr(data.bounds)
+        this.setBoundingVolumeArr(data.bounds);
 
         //var b = data.bounds;
 
@@ -658,7 +657,10 @@ Segment.prototype._terrainWorkerCallback = function (data) {
 
         if (!this.normalMapTexturePtr) {
             var nmc = this.planet._normalMapCreator;
-            this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
+            this.normalMapTexturePtr = this.planet.renderer.handler.createEmptyTexture_l(
+                nmc._width,
+                nmc._height
+            );
         }
 
         if (this.planet.lightEnabled) {
@@ -672,7 +674,6 @@ Segment.prototype._terrainWorkerCallback = function (data) {
  */
 Segment.prototype.elevationsNotExists = function () {
     if (this.planet && this.tileZoom <= this.planet.terrain.maxZoom) {
-
         if (this.plainReady && this.terrainIsLoading) {
             this.terrainIsLoading = false;
 
@@ -715,7 +716,6 @@ _V[S] = false;
 _V[W] = true;
 
 Segment.prototype._normalMapEdgeEqualize = function (side) {
-
     let nn = this.node.neighbors;
     let n = nn[side][0];
     let maxZ = this.planet.terrain.maxZoom;
@@ -729,10 +729,14 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
     let b = n && n.segment,
         s = this;
 
-    if (n && b && b.terrainReady && b.terrainExists &&
+    if (
+        n &&
+        b &&
+        b.terrainReady &&
+        b.terrainExists &&
         b.tileZoom <= maxZ &&
-        s._appliedNeighborsZoom[side] !== b.tileZoom) {
-
+        s._appliedNeighborsZoom[side] !== b.tileZoom
+    ) {
         s._appliedNeighborsZoom[side] = b.tileZoom;
 
         let seg_a = s.normalMapNormals,
@@ -756,7 +760,6 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
         let nx, ny, nz, q;
 
         if (s.tileZoom === b.tileZoom) {
-
             const i_b = s_gs1 - i_a;
 
             if (_V[side]) {
@@ -795,9 +798,7 @@ Segment.prototype._normalMapEdgeEqualize = function (side) {
                 b._appliedNeighborsZoom[OPSIDE[side]] = s.tileZoom;
                 s.planet._normalMapCreator.queue(b);
             }
-
         } else {
-
         }
     }
 };
@@ -905,7 +906,6 @@ Segment.prototype._freeCache = function () {
  * Clear and destroy all segment data.
  */
 Segment.prototype.destroySegment = function () {
-
     this._freeCache();
 
     this.clearSegment();
@@ -923,6 +923,7 @@ Segment.prototype.destroySegment = function () {
     this.handler = null;
     this.bbox = null;
     this.bsphere = null;
+    this.bsphereExt = null;
     this._extent = null;
 
     this.materials = null;
@@ -979,7 +980,6 @@ Segment.prototype.createBoundsByExtent = function () {
 
     // check for zoom
     if (this.tileZoom < MAX_NORMAL_ZOOM) {
-
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
         var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
 
@@ -1009,54 +1009,55 @@ Segment.prototype.setBoundingSphere = function (x, y, z, v) {
 window.BBSC = 100;
 
 Segment.prototype.setBoundingVolume = function (xmin, ymin, zmin, xmax, ymax, zmax) {
-
     this.bbox.setFromBoundsArr([xmin, ymin, zmin, xmax, ymax, zmax]);
 
-    this.bsphere.center.set(
-        xmin + (xmax - xmin) * 0.5,
-        ymin + (ymax - ymin) * 0.5,
-        zmin + (zmax - zmin) * 0.5
-    );
+    let x = xmin + (xmax - xmin) * 0.5,
+        y = ymin + (ymax - ymin) * 0.5,
+        z = zmin + (zmax - zmin) * 0.5;
 
+    this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
+
+    //this.bsphereExt.center.set(x, y, z);
+    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.setBoundingVolume3v = function (vmin, vmax) {
-
     this.bbox.setFromBoundsArr([vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z]);
 
-    this.bsphere.center.set(
-        vmin.x + (vmax.x - vmin.x) * 0.5,
-        vmin.y + (vmax.y - vmin.y) * 0.5,
-        vmin.z + (vmax.z - vmin.z) * 0.5
-    );
+    let x = vmin.x + (vmax.x - vmin.x) * 0.5,
+        y = vmin.y + (vmax.y - vmin.y) * 0.5,
+        z = vmin.z + (vmax.z - vmin.z) * 0.5;
 
+    this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
+
+    //this.bsphereExt.center.set(x, y, z);
+    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.setBoundingVolumeArr = function (bounds) {
-
     this.bbox.setFromBoundsArr(bounds);
 
-    this.bsphere.center.set(
-        bounds[0] + (bounds[3] - bounds[0]) * 0.5,
-        bounds[1] + (bounds[4] - bounds[1]) * 0.5,
-        bounds[2] + (bounds[5] - bounds[2]) * 0.5
-    );
+    let x = bounds[0] + (bounds[3] - bounds[0]) * 0.5,
+        y = bounds[1] + (bounds[4] - bounds[1]) * 0.5,
+        z = bounds[2] + (bounds[5] - bounds[2]) * 0.5;
 
+    this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
+
+    //this.bsphereExt.center.set(x, y, z);
+    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
-
     var gsgs = (gridSize + 1) * (gridSize + 1);
     var h = this.handler;
 
-    if (this.vertexPositionBufferHigh && (this.vertexPositionBufferHigh.numItems === gsgs)) {
+    if (this.vertexPositionBufferHigh && this.vertexPositionBufferHigh.numItems === gsgs) {
         h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
         h.setStreamArrayBuffer(this.vertexPositionBufferLow, verticesLow);
     } else {
-
         h.gl.deleteBuffer(this.vertexPositionBufferHigh);
         h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
@@ -1070,19 +1071,17 @@ Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gri
         // It works, but I'm not sure that it is correct and better use the comment above
         this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
         this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
-
     }
 };
 
-
 Segment.prototype._addViewExtent = function () {
-
     var ext = this._extentLonLat;
 
     if (!this.planet._viewExtent) {
         this.planet._viewExtent = new Extent(
             new LonLat(ext.southWest.lon, ext.southWest.lat),
-            new LonLat(ext.northEast.lon, ext.northEast.lat));
+            new LonLat(ext.northEast.lon, ext.northEast.lat)
+        );
         return;
     }
 
@@ -1110,8 +1109,12 @@ Segment.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
     var extent = this._extent;
     var pole = mercator.POLE;
-    this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
-    this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+    this.tileX = Math.round(
+        Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
+    );
+    this.tileY = Math.round(
+        Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat)
+    );
     var p2 = Math.pow(2, tileZoom);
     this.tileXE = (this.tileX + 1) % p2;
     this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -1124,15 +1127,21 @@ Segment.prototype._assignTileIndexes = function () {
 };
 
 Segment.prototype.initialize = function () {
-
     var p = this.planet;
     var n = this.node;
 
-    n.sideSize[0] = n.sideSize[1] = n.sideSize[2] = n.sideSize[3] =
-        this.gridSize = p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+    n.sideSize[0] =
+        n.sideSize[1] =
+        n.sideSize[2] =
+        n.sideSize[3] =
+        this.gridSize =
+            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
-    n.sideSizeLog2[0] = n.sideSizeLog2[1] = n.sideSizeLog2[2] = n.sideSizeLog2[3] =
-        Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+    n.sideSizeLog2[0] =
+        n.sideSizeLog2[1] =
+        n.sideSizeLog2[2] =
+        n.sideSizeLog2[3] =
+            Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
     if (this.tileZoom <= p.terrain.maxZoom) {
         var nmc = this.planet._normalMapCreator;
@@ -1148,14 +1157,17 @@ Segment.prototype.initialize = function () {
 
 Segment.prototype._assignGlobalTextureCoordinates = function () {
     var e = this._extent;
-    this._globalTextureCoordinates[0] = (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[1] = (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[2] = (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
-    this._globalTextureCoordinates[3] = (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[0] =
+        (e.southWest.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[1] =
+        (mercator.POLE - e.northEast.lat) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[2] =
+        (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
+    this._globalTextureCoordinates[3] =
+        (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
 };
 
 Segment.prototype.createPlainSegmentAsync = function () {
-
     let p = this.planet,
         t = p.terrain;
 
@@ -1209,14 +1221,19 @@ Segment.prototype._createPlainVertices = function () {
         nmNorms = this.normalMapNormals;
 
     for (var k = 0; k < gsgs; k++) {
-
         var j = k % gs,
             i = ~~(k / gs);
 
-        var v = this.planet.ellipsoid.lonLatToCartesian(LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep));
-        var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+        var v = this.planet.ellipsoid.lonLatToCartesian(
+            LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep)
+        );
+        var nx = v.x * r2.x,
+            ny = v.y * r2.y,
+            nz = v.z * r2.z;
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-        var nxl = nx * l, nyl = ny * l, nzl = nz * l;
+        var nxl = nx * l,
+            nyl = ny * l,
+            nzl = nz * l;
 
         Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
@@ -1236,7 +1253,6 @@ Segment.prototype._createPlainVertices = function () {
         nmNorms[nmInd++] = nzl;
 
         if (i % dg === 0 && j % dg === 0) {
-
             verts[ind] = v.x;
             vertsHigh[ind] = _tempHigh.x;
             vertsLow[ind] = _tempLow.x;
@@ -1283,7 +1299,13 @@ Segment.prototype._getLayerExtentOffset = function (layer) {
     return [dV0s_x, dV0s_y, dSize_x, dSize_y];
 };
 
-Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
+Segment.prototype.screenRendering = function (
+    sh,
+    layerSlice,
+    sliceIndex,
+    defaultTexture,
+    isOverlay
+) {
     var gl = this.handler.gl;
     var sha = sh.attributes,
         shu = sh.uniforms;
@@ -1320,10 +1342,12 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
     this._indexBuffer = this._getIndexBuffer();
 
     while (li) {
-        if (this.layerOverlap(li) && ((li._fading && (li._fadingOpacity > 0.0)) ||
-            ((li.minZoom >= p.minCurrZoom || li.maxZoom >= p.minCurrZoom) && (li.minZoom <= p.maxCurrZoom || li.maxZoom <= p.maxCurrZoom)))
+        if (
+            this.layerOverlap(li) &&
+            ((li._fading && li._fadingOpacity > 0.0) ||
+                ((li.minZoom >= p.minCurrZoom || li.maxZoom >= p.minCurrZoom) &&
+                    (li.minZoom <= p.maxCurrZoom || li.maxZoom <= p.maxCurrZoom)))
         ) {
-
             notEmpty = true;
             var m = pm[li._id];
             if (!m) {
@@ -1377,7 +1401,6 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
     }
 
     if (notEmpty || !isOverlay) {
-
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1402,9 +1425,23 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionHigh,
+            this.vertexPositionBufferHigh.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionLow,
+            this.vertexPositionBufferLow.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1412,11 +1449,15 @@ Segment.prototype.screenRendering = function (sh, layerSlice, sliceIndex, defaul
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
     }
-
 };
 
-Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-
+Segment.prototype.heightPickingRendering = function (
+    sh,
+    layerSlice,
+    sliceIndex,
+    defaultTexture,
+    isOverlay
+) {
     var gl = this.handler.gl;
     var sha = sh.attributes,
         shu = sh.uniforms;
@@ -1450,7 +1491,6 @@ Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex,
     }
 
     if (notEmpty || !isOverlay) {
-
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1459,10 +1499,24 @@ Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex,
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionHigh,
+            this.vertexPositionBufferHigh.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionLow,
+            this.vertexPositionBufferLow.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1472,8 +1526,13 @@ Segment.prototype.heightPickingRendering = function (sh, layerSlice, sliceIndex,
     }
 };
 
-Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-
+Segment.prototype.colorPickingRendering = function (
+    sh,
+    layerSlice,
+    sliceIndex,
+    defaultTexture,
+    isOverlay
+) {
     var gl = this.handler.gl;
     var sha = sh.attributes,
         shu = sh.uniforms;
@@ -1513,7 +1572,6 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
     }
 
     if (notEmpty || !isOverlay) {
-
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1524,9 +1582,23 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
         gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionHigh,
+            this.vertexPositionBufferHigh.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionLow,
+            this.vertexPositionBufferLow.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1536,8 +1608,13 @@ Segment.prototype.colorPickingRendering = function (sh, layerSlice, sliceIndex, 
     }
 };
 
-Segment.prototype.depthRendering = function (sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
-
+Segment.prototype.depthRendering = function (
+    sh,
+    layerSlice,
+    sliceIndex,
+    defaultTexture,
+    isOverlay
+) {
     var gl = this.handler.gl;
     var sha = sh.attributes,
         shu = sh.uniforms;
@@ -1571,7 +1648,6 @@ Segment.prototype.depthRendering = function (sh, layerSlice, sliceIndex, default
     }
 
     if (notEmpty || !isOverlay) {
-
         gl.uniform1i(shu.samplerCount, n);
         gl.uniform1f(shu.height, currHeight);
         gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1580,10 +1656,24 @@ Segment.prototype.depthRendering = function (sh, layerSlice, sliceIndex, default
         gl.uniform4fv(shu.transparentColorArr, slice.transparentColorArr);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionHigh,
+            this.vertexPositionBufferHigh.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.aVertexPositionLow,
+            this.vertexPositionBufferLow.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
         gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1597,7 +1687,9 @@ Segment.prototype._getIndexBuffer = function () {
     var s = this.node.sideSizeLog2;
     var cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
     if (!cache.buffer) {
-        let indexes = segmentHelper.getInstance().createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
+        let indexes = segmentHelper
+            .getInstance()
+            .createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
         cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
         this.planet._indexesCacheToRemoveCounter++;
         indexes = null;
