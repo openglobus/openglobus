@@ -1008,47 +1008,28 @@ Segment.prototype.createBoundsByParent = function () {
         let gridSize = pn.segment.gridSize / dZ2;
 
         if (gridSize >= 1.0) {
-            let i0 = gridSize * offsetY;
-            let j0 = gridSize * offsetX;
-
-            let pnGsOne = pn.segment.gridSize + 1;
-
-            let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
-                ind_nw = 3 * (i0 * pnGsOne + j0),
-                ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
-                ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
-
-            let pVerts = pn.segment.tempVertices;
-
-            //let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
-            //    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
-
-            var xmin = 549755748352.0,
-                xmax = -549755748352.0,
-                ymin = 549755748352.0,
-                ymax = -549755748352.0,
-                zmin = 549755748352.0,
-                zmax = -549755748352.0;
-
-            for (let i = 0; i < pVerts.length; i += 3) {
-                let px = pVerts[i],
-                    py = pVerts[i + 1],
-                    pz = pVerts[i + 2];
-
-                if (px < xmin) xmin = px;
-                if (px > xmax) xmax = px;
-                if (py < ymin) ymin = py;
-                if (py > ymax) ymax = py;
-                if (pz < zmin) zmin = pz;
-                if (pz > zmax) zmax = pz;
-            }
-
-            let v_sw = new Vec3(xmin, ymin, zmin),
-                v_ne = new Vec3(xmax, ymax, zmax);
-
-            this.setBoundingVolume3v(v_sw, v_ne);
+            //
+            // Actually, we get parent whole bounding volume
+            //
+            this.bsphere.center.copy(pn.segment.bsphere.center);
+            this.bsphere.radius = pn.segment.bsphere.radius;
 
             if (this.tileZoom < MAX_NORMAL_ZOOM) {
+                let i0 = gridSize * offsetY;
+                let j0 = gridSize * offsetX;
+
+                let pnGsOne = pn.segment.gridSize + 1;
+
+                let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
+                    ind_nw = 3 * (i0 * pnGsOne + j0),
+                    ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
+                    ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
+
+                let pVerts = pn.segment.tempVertices;
+
+                let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
+                    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
+
                 // check for segment zoom
                 let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
                     v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
