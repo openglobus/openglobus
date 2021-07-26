@@ -989,14 +989,146 @@ Segment.prototype.createBoundsByExtent = function () {
         this._seNorm = coord_se.normal();
     }
 
-    //this.setBoundingSphere(
-    //    coord_sw.x + (coord_ne.x - coord_sw.x) * 0.5,
-    //    coord_sw.y + (coord_ne.y - coord_sw.y) * 0.5,
-    //    coord_sw.z + (coord_ne.z - coord_sw.z) * 0.5,
-    //    coord_sw
-    //);
-
     this.setBoundingVolume3v(coord_sw, coord_ne);
+};
+
+Segment.prototype.createBoundsByParent = function () {
+    let pn = this.node;
+
+    while (pn.parentNode && !pn.segment.terrainReady) {
+        pn = pn.parentNode;
+    }
+
+    let dZ2 = 1 << (this.tileZoom - pn.segment.tileZoom);
+
+    let offsetX = this.tileX - pn.segment.tileX * dZ2,
+        offsetY = this.tileY - pn.segment.tileY * dZ2;
+
+    if (pn.segment.terrainReady && pn.segment.tileZoom >= this.planet.terrain.minZoom) {
+        let gridSize = pn.segment.gridSize / dZ2;
+
+        if (gridSize >= 1.0) {
+            let i0 = gridSize * offsetY;
+            let j0 = gridSize * offsetX;
+
+            let pnGsOne = pn.segment.gridSize + 1;
+
+            let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
+                ind_nw = 3 * (i0 * pnGsOne + j0),
+                ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
+                ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
+
+            let pVerts = pn.segment.tempVertices;
+
+            //let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
+            //    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
+
+            var xmin = 549755748352.0,
+                xmax = -549755748352.0,
+                ymin = 549755748352.0,
+                ymax = -549755748352.0,
+                zmin = 549755748352.0,
+                zmax = -549755748352.0;
+
+            for (let i = 0; i < pVerts.length; i += 3) {
+                let px = pVerts[i],
+                    py = pVerts[i + 1],
+                    pz = pVerts[i + 2];
+
+                if (px < xmin) xmin = px;
+                if (px > xmax) xmax = px;
+                if (py < ymin) ymin = py;
+                if (py > ymax) ymax = py;
+                if (pz < zmin) zmin = pz;
+                if (pz > zmax) zmax = pz;
+            }
+
+            let v_sw = new Vec3(xmin, ymin, zmin),
+                v_ne = new Vec3(xmax, ymax, zmax);
+
+            this.setBoundingVolume3v(v_sw, v_ne);
+
+            if (this.tileZoom < MAX_NORMAL_ZOOM) {
+                // check for segment zoom
+                let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
+                    v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
+
+                this._swNorm = v_sw.normal();
+                this._nwNorm = v_nw.normal();
+                this._neNorm = v_ne.normal();
+                this._seNorm = v_se.normal();
+            }
+        } else {
+            let pseg = pn.segment;
+
+            let i0 = Math.floor(gridSize * offsetY),
+                j0 = Math.floor(gridSize * offsetX);
+
+            let insideSize = 1.0 / gridSize;
+
+            let t_i0 = offsetY - insideSize * i0,
+                t_j0 = offsetX - insideSize * j0;
+
+            let bigOne;
+            if (pseg.gridSize === 1) {
+                bigOne = pseg.tempVertices;
+            } else {
+                bigOne = getMatrixSubArray(pseg.tempVertices, pseg.gridSize, i0, j0, 1);
+            }
+
+            let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
+                v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
+
+            let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                ve = new Vec3(
+                    bigOne[3] - bigOne[9],
+                    bigOne[4] - bigOne[10],
+                    bigOne[5] - bigOne[11]
+                ),
+                vs = new Vec3(
+                    bigOne[6] - bigOne[9],
+                    bigOne[7] - bigOne[10],
+                    bigOne[8] - bigOne[11]
+                );
+
+            let vi_y = t_i0,
+                vi_x = t_j0;
+
+            let coords_lt, coords_rb;
+
+            if (vi_y + vi_x < insideSize) {
+                coords_lt = Vec3.add(
+                    vn.scaleTo(vi_x / insideSize),
+                    vw.scaleTo(vi_y / insideSize)
+                ).addA(v_lt);
+            } else {
+                coords_lt = Vec3.add(
+                    vs.scaleTo(1 - vi_x / insideSize),
+                    ve.scaleTo(1 - vi_y / insideSize)
+                ).addA(v_rb);
+            }
+
+            vi_y = t_i0 + 1;
+            vi_x = t_j0 + 1;
+
+            if (vi_y + vi_x < insideSize) {
+                coords_rb = Vec3.add(
+                    vn.scaleTo(vi_x / insideSize),
+                    vw.scaleTo(vi_y / insideSize)
+                ).addA(v_lt);
+            } else {
+                coords_rb = Vec3.add(
+                    vs.scaleTo(1 - vi_x / insideSize),
+                    ve.scaleTo(1 - vi_y / insideSize)
+                ).addA(v_rb);
+            }
+
+            this.setBoundingVolume3v(coords_lt, coords_rb);
+        }
+    } else {
+        this.createBoundsByExtent();
+    }
 };
 
 Segment.prototype.setBoundingSphere = function (x, y, z, v) {
