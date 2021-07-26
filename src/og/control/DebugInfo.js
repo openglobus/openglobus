@@ -2,9 +2,9 @@
  * @module og/control/DebugInfo
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
+import { Control } from "./Control.js";
 
 /**
  * Debug information
@@ -31,16 +31,19 @@ class DebugInfo extends Control {
 
     addWatch(watch) {
         this._watch.push(watch);
-        let watchEl = document.createElement('div');
+        let watchEl = document.createElement("div");
         watchEl.classList.add("og-watch-line");
-        watchEl.innerHTML = '<div class="og-watch-label">' + watch.label + '</div><div class="og-watch-value"></div>';
+        watchEl.innerHTML =
+            '<div class="og-watch-label">' +
+            watch.label +
+            '</div><div class="og-watch-value"></div>';
         watch.valEl = watchEl.querySelector(".og-watch-value");
         this.el.appendChild(watchEl);
     }
 
     oninit() {
-        this.el = document.createElement('div');
-        this.el.className = 'og-debug-info';
+        this.el = document.createElement("div");
+        this.el.className = "og-debug-info";
         var temp = this._watch;
         this._watch = [];
         for (var i = 0; i < temp.length; i++) {
@@ -52,56 +55,84 @@ class DebugInfo extends Control {
         let p = this.planet;
 
         if (p) {
-            this.addWatches([{
-                label: "Nodes count",
-                frame: () => p._renderedNodes.length
-            }, {
-                label: "createdNodes",
-                frame: () => p._createdNodesCount
-            }, {
-                label: "indexesCache",
-                frame: () => p._indexesCacheToRemoveCounter
-            }, {
-                label: "distBeforeMemClear",
-                frame: () => p._distBeforeMemClear
-            }, {
-                label: "maxZoom/minZoom",
-                frame: () => p.maxCurrZoom + '/' + p.minCurrZoom
-            }, {
-                label: "height/alt (km)",
-                frame: () => (p.camera._lonLat.height / 1000.0).toFixed(2) + '/' + (p.camera.getAltitude() / 1000.0).toFixed(2)
-            }, {
-                label: "cam.slope",
-                frame: () => p.camera.slope
-            }, {
-                label: "lodRatio",
-                frame: () => p._lodRatio
-            }, {
-                label: "deltaTime",
-                frame: () => p.renderer.handler.deltaTime
-            }, {
-                label: "-------------------------"
-            }, {
-                label: "PlainWorker",
-                frame: () => p._plainSegmentWorker._pendingQueue.length
-            }, {
-                label: "TileLoader",
-                frame: () => p._tileLoader._loading + ' ' + p._tileLoader._queue.length
-            }, {
-                label: "TerrainLoader",
-                frame: () => {
-                    if (p.terrain && p.terrain._loader) {
-                        return p.terrain._loader._loading + ' ' + p.terrain._loader._queue.length;
+            this.addWatches([
+                {
+                    label: "Nodes count",
+                    frame: () => p._renderedNodes.length
+                },
+                {
+                    label: "createdNodes",
+                    frame: () => p._createdNodesCount
+                },
+                {
+                    label: "indexesCache",
+                    frame: () => p._indexesCacheToRemoveCounter
+                },
+                {
+                    label: "distBeforeMemClear",
+                    frame: () => Math.round(p._distBeforeMemClear)
+                },
+                {
+                    label: "maxZoom/minZoom",
+                    frame: () => p.maxCurrZoom + " / " + p.minCurrZoom
+                },
+                {
+                    label: "height/alt (km)",
+                    frame: () =>
+                        `<div style="width:190px">${
+                            (p.camera._lonLat.height / 1000.0).toFixed(2) +
+                            " / " +
+                            (p.camera.getAltitude() / 1000.0).toFixed(2)
+                        }</div>`
+                },
+                {
+                    label: "cam.slope",
+                    frame: () => p.camera.slope.toFixed(3)
+                },
+                {
+                    label: "lodRatio",
+                    frame: () => p._lodRatio.toFixed(3)
+                },
+                {
+                    label: "deltaTime/FPS",
+                    frame: () =>
+                        `<div style="width:70px"><div style="width:20px; float: left;">${Math.round(
+                            p.renderer.handler.deltaTime
+                        )}</div> <div style="float: left">${Math.round(
+                            1000.0 / p.renderer.handler.deltaTime
+                        )}</div></div>`
+                },
+                {
+                    label: "-------------------------"
+                },
+                {
+                    label: "PlainWorker",
+                    frame: () => p._plainSegmentWorker._pendingQueue.length
+                },
+                {
+                    label: "TileLoader",
+                    frame: () => p._tileLoader._loading + " " + p._tileLoader._queue.length
+                },
+                {
+                    label: "TerrainLoader",
+                    frame: () => {
+                        if (p.terrain && p.terrain._loader) {
+                            return (
+                                p.terrain._loader._loading + " " + p.terrain._loader._queue.length
+                            );
+                        }
+                        return "";
                     }
-                    return '';
+                },
+                {
+                    label: "TerrainWorker",
+                    frame: () => p._terrainWorker._pendingQueue.length
+                },
+                {
+                    label: "NormalMapCreator",
+                    frame: () => p._normalMapCreator._queue.length
                 }
-            }, {
-                label: "TerrainWorker",
-                frame: () => p._terrainWorker._pendingQueue.length
-            }, {
-                label: "NormalMapCreator",
-                frame: () => p._normalMapCreator._queue.length
-            }]);
+            ]);
         }
     }
 
@@ -111,10 +142,10 @@ class DebugInfo extends Control {
             w.valEl.innerHTML = w.frame ? w.frame() : "";
         }
     }
-};
+}
 
 export function debugInfo(options) {
     return new DebugInfo(options);
-};
+}
 
 export { DebugInfo };
