@@ -288,6 +288,9 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
             this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
         } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
+            // Deleting terrainReady here, you have to remove
+            // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
+            // also have to fix createBoundsByParent(*)
             this.traverseNodes(cam, maxZoom, seg, stopLoading);
         } else {
             this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);

@@ -1009,7 +1009,7 @@ Segment.prototype.createBoundsByParent = function () {
 
         if (gridSize >= 1.0) {
             //
-            // Actually, we get parent whole bounding volume
+            // (*) Actually, we get parent whole bounding volume
             //
             this.bsphere.center.x = pn.segment.bsphere.center.x;
             this.bsphere.center.y = pn.segment.bsphere.center.y;
