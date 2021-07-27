@@ -256,12 +256,12 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
         let indBuf = this._verticesBufferArray[gridSize];
 
         if (indBuf) {
-            //if (segment.planet.terrain.equalizeNormals) {
-            //    segment._normalMapEdgeEqualize(quadTree.N);
-            //    segment._normalMapEdgeEqualize(quadTree.S);
-            //    segment._normalMapEdgeEqualize(quadTree.W);
-            //    segment._normalMapEdgeEqualize(quadTree.E);
-            //}
+            if (segment.planet.terrain.equalizeNormals) {
+                segment._normalMapEdgeEqualize(quadTree.N);
+                segment._normalMapEdgeEqualize(quadTree.S);
+                segment._normalMapEdgeEqualize(quadTree.W);
+                segment._normalMapEdgeEqualize(quadTree.E);
+            }
 
             var outTexture = segment.normalMapTexturePtr;
 
