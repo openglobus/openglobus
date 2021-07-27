@@ -70,22 +70,13 @@ class GeoObject {
         this._vertices = options.vertices;
         this._indices = options.indices;
         this.instanced = options.instanced;
+        this.tag = options.tag || "none";
         if (options.indices) {
             this._indicesCount = options.indices.length;
         }
         if (options.vertices) {
             this._verticesCount = Math.floor(options.vertices.length / 3);
         }
-    }
-
-    recalculateIndices() {
-        for (let i = 0; i < this._indices.length; i++) {
-            this._indices[i] = this._indices[i] + this.verticesOffset;
-        }
-    }
-
-    get verticesOffset() {
-        return this._verticesCount * this._handlerIndex;
     }
 
     get planet() {
