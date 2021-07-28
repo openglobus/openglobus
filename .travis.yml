@@ -4,9 +4,9 @@ node_js:
 - node
 script:
 - npm test
-branches:  
+branches:
   on:
-  - /^v\d+(\.\d+)+$/ # expected format: v1.0.0
+  - "/^v\\d+(\\.\\d+)+$/"
   - master
 before_deploy:
 - npm run build
@@ -14,9 +14,12 @@ before_deploy:
 - zip ${TRAVIS_TAG}-dist.zip *
 deploy:
   provider: releases
-  token: $GITHUB_TOKEN
+  token: "$GITHUB_TOKEN"
   file_glob: true
-  file: ${TRAVIS_TAG}-dist.zip
+  file: "${TRAVIS_TAG}-dist.zip"
   skip_cleanup: true
   on:
     tags: true
+before_install:
+- openssl aes-256-cbc -K $encrypted_3f2dabfde256_key -iv $encrypted_3f2dabfde256_iv
+  -in travis_key.enc -out travis_key -d
