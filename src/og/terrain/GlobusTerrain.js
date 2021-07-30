@@ -1,34 +1,34 @@
 /**
  * Datasource http://www.viewfinderpanoramas.org/ srtm 3 arc second
  */
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import { EmptyTerrain } from './EmptyTerrain.js';
-import { EPSG3857 } from '../proj/EPSG3857.js';
-import { Events } from '../Events.js';
-import { Loader } from '../utils/Loader.js';
-import { NOTRENDERING } from '../quadTree/quadTree.js';
+import * as mercator from "../mercator.js";
+import { EmptyTerrain } from "./EmptyTerrain.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { Events } from "../Events.js";
+import { Loader } from "../utils/Loader.js";
+import { NOTRENDERING } from "../quadTree/quadTree.js";
 // import { QueueArray } from '../QueueArray.js';
-import { stringTemplate, createExtent } from '../utils/shared.js';
-import { Geoid } from './Geoid.js';
-import { Layer } from '../layer/Layer.js';
-import { Vec3 } from '../math/Vec3.js';
-import { Ray } from '../math/Ray.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
+import { stringTemplate, createExtent } from "../utils/shared.js";
+import { Geoid } from "./Geoid.js";
+import { Layer } from "../layer/Layer.js";
+import { Vec3 } from "../math/Vec3.js";
+import { Ray } from "../math/Ray.js";
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
 
 const EVENT_NAMES = [
     /**
-    * Triggered when current elevation tile has loaded but before rendereing.
-    * @event og.terrain.GlobusTerrain#load
-    */
+     * Triggered when current elevation tile has loaded but before rendereing.
+     * @event og.terrain.GlobusTerrain#load
+     */
     "load",
 
     /**
-    * Triggered when all elevation tiles have loaded or loading has stopped.
-    * @event og.terrain.GlobusTerrain#loadend
-    */
+     * Triggered when all elevation tiles have loaded or loading has stopped.
+     * @event og.terrain.GlobusTerrain#loadend
+     */
     "loadend"
 ];
 
@@ -51,7 +51,6 @@ const EVENT_NAMES = [
  */
 class GlobusTerrain extends EmptyTerrain {
     constructor(name, options) {
-
         super();
 
         options = options || {};
@@ -87,7 +86,7 @@ class GlobusTerrain extends EmptyTerrain {
         this.maxZoom = options.maxZoom || 14;
 
         /**
-         * Terrain source path url template. 
+         * Terrain source path url template.
          * @public
          * @type {string}
          */
@@ -98,7 +97,9 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        this.gridSizeByZoom = options.gridSizeByZoom || [64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2];
+        this.gridSizeByZoom = options.gridSizeByZoom || [
+            64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2
+        ];
 
         this.noDataValues = options.noDataValues || [];
 
@@ -109,11 +110,16 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.plainGridSize = options.plainGridSize || 32;
 
-        this._geoid = options.geoid || new Geoid({
-            src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
-        });
+        this._geoid =
+            options.geoid ||
+            new Geoid({
+                src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
+            });
 
-        this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)))
+        this._extent = createExtent(
+            options.extent,
+            new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0))
+        );
 
         this._dataType = "arrayBuffer";
 
@@ -133,7 +139,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
-        this._urlRewriteCallback = null;
+        this._urlRewriteCallback = options.urlRewrite || null;
     }
 
     clearCache() {
@@ -167,7 +173,6 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     getHeightAsync(lonLat, callback, zoom) {
-
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
@@ -192,7 +197,6 @@ class GlobusTerrain extends EmptyTerrain {
             }
             return true;
         } else {
-
             if (!this._fetchCache[tileIndex]) {
                 let url = stringTemplate(this.url, {
                     x: x,
@@ -231,7 +235,6 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     getTileCache(lonLat, z) {
-
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             return;
         }
@@ -248,7 +251,6 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     _getGroundHeightMerc(merc, tileData) {
-
         if (!(tileData.extent && tileData.heights)) {
             return 0;
         }
@@ -279,7 +281,11 @@ class GlobusTerrain extends EmptyTerrain {
             h2 = tileData.heights[v2Ind],
             h3 = tileData.heights[v3Ind];
 
-        let v0 = new Vec3(tileData.extent.southWest.lon + size * j, h0, tileData.extent.northEast.lat - size * i - size),
+        let v0 = new Vec3(
+                tileData.extent.southWest.lon + size * j,
+                h0,
+                tileData.extent.northEast.lat - size * i - size
+            ),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);
@@ -329,7 +335,10 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     isReadyToLoad(segment) {
-        return segment._projection.id === EPSG3857.id && this._extent.overlaps(segment.getExtentLonLat());
+        return (
+            segment._projection.id === EPSG3857.id &&
+            this._extent.overlaps(segment.getExtentLonLat())
+        );
     }
 
     /**
@@ -347,28 +356,32 @@ class GlobusTerrain extends EmptyTerrain {
                 if (cache) {
                     this._applyElevationsData(segment, cache.heights);
                 } else {
-
-                    this._loader.load({
-                        src: this._getHTTPRequestString(segment),
-                        segment: segment,
-                        type: this._dataType,
-                        filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
-                    }, response => {
-                        if (response.status === "ready") {
-                            let heights = this._createHeights(response.data, segment);
-                            this._elevationCache[segment.tileIndex] = {
-                                heights: heights,
-                                extent: segment.getExtent()
-                            };
-                            this._applyElevationsData(segment, heights);
-                        } else if (response.status === "abort") {
-                            segment.terrainIsLoading = false;
-                        } else if (response.status === "error") {
-                            this._applyElevationsData(segment, null);
-                        } else {
-                            segment.terrainIsLoading = false;
+                    this._loader.load(
+                        {
+                            src: this._getHTTPRequestString(segment),
+                            segment: segment,
+                            type: this._dataType,
+                            filter: () =>
+                                (segment.plainReady && segment.node.getState() !== NOTRENDERING) ||
+                                forceLoading
+                        },
+                        (response) => {
+                            if (response.status === "ready") {
+                                let heights = this._createHeights(response.data, segment);
+                                this._elevationCache[segment.tileIndex] = {
+                                    heights: heights,
+                                    extent: segment.getExtent()
+                                };
+                                this._applyElevationsData(segment, heights);
+                            } else if (response.status === "abort") {
+                                segment.terrainIsLoading = false;
+                            } else if (response.status === "error") {
+                                this._applyElevationsData(segment, null);
+                            } else {
+                                segment.terrainIsLoading = false;
+                            }
                         }
-                    });
+                    );
                 }
             } else {
                 segment.elevationsNotExists();
@@ -396,12 +409,13 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {og.planetSegment.Segment} segment - Segment that loads elevation data.
-     * @returns {string} -
+     * @param {og.planetSegment.Segment} segment - Segment that loads image data.
+     * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
-        var url = this._createUrl(segment);
-        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, url) : url;
+        return this._urlRewriteCallback
+            ? this._urlRewriteCallback(segment, this.url)
+            : this._createUrl(segment);
     }
 
     /**

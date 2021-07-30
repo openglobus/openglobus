@@ -32,7 +32,7 @@ class MapboxTerrain extends GlobusTerrain {
                       options.key || KEY
                   }`;
 
-        this.noDataValues = options.noDataValues || [-65537];
+        this.noDataValues = options.noDataValues || [-65537, -10000];
 
         this.plainGridSize = options.plainGridSize || 128;
 
@@ -60,6 +60,7 @@ class MapboxTerrain extends GlobusTerrain {
     _createHeights(data, segment) {
         const SIZE = data.width;
 
+        this._ctx.clearRect(0, 0, SIZE, SIZE);
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, SIZE, SIZE).data;
 
@@ -117,14 +118,13 @@ class MapboxTerrain extends GlobusTerrain {
 
         for (let i = 0; i < d; i++) {
             for (let j = 0; j < d; j++) {
-                let tileIndex = Layer.getTileIndex(
-                    segment.tileX * 2 + j,
-                    segment.tileY * 2 + i,
-                    segment.tileZoom
-                );
+                let x = segment.tileX * 2 + j,
+                    y = segment.tileY * 2 + i,
+                    z = segment.tileZoom + 1;
+                let tileIndex = Layer.getTileIndex(x, y, z);
                 this._elevationCache[tileIndex] = {
                     heights: outChildrenElevations[i][j],
-                    extent: getTileExtent(segment.tileX, segment.tileY, segment.tileZoom)
+                    extent: getTileExtent(x, y, z)
                 };
             }
         }

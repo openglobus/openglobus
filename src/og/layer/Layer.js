@@ -2,15 +2,15 @@
  * @module og/layer/Layer
  */
 
-'use strict';
+"use strict";
 
-import * as utils from '../utils/shared.js';
-import * as mercator from '../mercator.js';
-import { Events } from '../Events.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
-import { Material } from './Material.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as utils from "../utils/shared.js";
+import * as mercator from "../mercator.js";
+import { Events } from "../Events.js";
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { Material } from "./Material.js";
+import { Vec3 } from "../math/Vec3.js";
 
 export const FADING_FACTOR = 0.29;
 
@@ -63,7 +63,6 @@ export const FADING_FACTOR = 0.29;
  */
 class Layer {
     constructor(name, options = {}) {
-
         /**
          * Layer user name.
          * @public
@@ -73,7 +72,8 @@ class Layer {
 
         this._labelMaxLetters = options.labelMaxLetters;
 
-        this.displayInLayerSwitcher = options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
+        this.displayInLayerSwitcher =
+            options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
 
         this._hasImageryTiles = true;
 
@@ -191,7 +191,12 @@ class Layer {
         this._extentMerc = null;
 
         // Setting the extent up
-        this.setExtent(utils.createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0))));
+        this.setExtent(
+            utils.createExtent(
+                options.extent,
+                new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0))
+            )
+        );
 
         /**
          * Layer picking color. Assign when added to the planet.
@@ -208,6 +213,14 @@ class Layer {
          * @type {og.Events}
          */
         this.events = new Events(EVENT_NAMES, this);
+    }
+
+    static getTMS(x, y, z) {
+        return {
+            x: x,
+            y: (1 << z) - y - 1,
+            z: z
+        };
     }
 
     static getTileIndex(...arr) {
@@ -551,18 +564,23 @@ class Layer {
 
     _refreshFadingOpacity() {
         var p = this._planet;
-        if (this._visibility && p._viewExtent && p._viewExtent.overlaps(this._extent) &&
-            p.maxCurrZoom >= this.minZoom && p.minCurrZoom <= this.maxZoom) {
-
+        if (
+            this._visibility &&
+            p._viewExtent &&
+            p._viewExtent.overlaps(this._extent) &&
+            p.maxCurrZoom >= this.minZoom &&
+            p.minCurrZoom <= this.maxZoom
+        ) {
             this._fadingOpacity += this._fadingFactor;
 
-            if ((this._fadingFactor > 0.0 && this._fadingOpacity > this._opacity) ||
-                (this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity)) {
+            if (
+                (this._fadingFactor > 0.0 && this._fadingOpacity > this._opacity) ||
+                (this._fadingFactor < 0.0 && this._fadingOpacity < this._opacity)
+            ) {
                 this._fadingOpacity = this._opacity;
             }
             return false;
         } else {
-
             this._fadingOpacity -= FADING_FACTOR;
 
             if (this._fadingOpacity < 0.0) {

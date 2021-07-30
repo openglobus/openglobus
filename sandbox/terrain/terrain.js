@@ -15,6 +15,7 @@ import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 //import { LonLat } from '../../src/og/LonLat.js';
 //import { Vec3 } from '../../src/og/math/Vec3.js';
 import { SegmentBoundVisualization } from "../../src/og/control/SegmentBoundVisualization.js";
+import { stringTemplate } from "../../src/og/utils/shared.js";
 
 function toQuadKey(x, y, z) {
     var index = "";
@@ -78,6 +79,9 @@ const tg = new CanvasTiles("Tile grid", {
         ctx.fillStyle = "black";
         ctx.font = "normal " + size + "px Verdana";
         ctx.textAlign = "center";
+
+        //let tms = XYZ.getTMS(material.segment.tileX, material.segment.tileY, material.segment.tileZoom);
+
         ctx.fillText(
             material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom,
             cnv.width / 2,
@@ -133,13 +137,29 @@ let emptyTerrain = new EmptyTerrain(),
             64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
         ]
         //extent: [[8.9, 44.0], [10.0, 45]]
+    }),
+    rastTerrain = new MapboxTerrain(null, {
+        maxZoom: 20,
+        url: "//terrain.openglobus.org/public/xyz/{z}/{x}/{y}.png",
+        //imageSize: 129,
+        //plainGridSize: 128,
+        gridSizeByZoom: [
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+        ]
+        //urlRewrite: function (s, u) {
+        //    let z = s.tileZoom,
+        //        ymax = 1 << z,
+        //        y = ymax - s.tileY - 1;
+
+        //    return stringTemplate(u, XYZ.getTMS(s.tileX, s.tileY, s.tileZoom));
+        //}
     });
 
 window.globe = new Globe({
     name: "Earth",
     target: "earth",
-    terrain: bilTerrain,
-    layers: [osm, tg, sat, wms],
+    terrain: rastTerrain,
+    layers: [tg],
     viewExtent: [-113.159, 37.176, -112.77, 37.32],
     maxGridSize: 256
 });
