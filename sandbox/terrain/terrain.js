@@ -134,7 +134,7 @@ let emptyTerrain = new EmptyTerrain(),
         imageSize: 129,
         plainGridSize: 128,
         gridSizeByZoom: [
-            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 32, 32, 16, 16, 8, 8, 4
         ]
         //extent: [[8.9, 44.0], [10.0, 45]]
     }),
@@ -144,7 +144,7 @@ let emptyTerrain = new EmptyTerrain(),
         //imageSize: 129,
         //plainGridSize: 128,
         gridSizeByZoom: [
-            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 32, 32, 16, 16, 8, 8, 4
         ]
         //urlRewrite: function (s, u) {
         //    let z = s.tileZoom,
@@ -159,7 +159,7 @@ window.globe = new Globe({
     name: "Earth",
     target: "earth",
     terrain: rastTerrain,
-    layers: [tg],
+    layers: [osm, tg],
     viewExtent: [-113.159, 37.176, -112.77, 37.32],
     maxGridSize: 256
 });
