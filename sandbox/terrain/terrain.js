@@ -139,12 +139,13 @@ let emptyTerrain = new EmptyTerrain(),
         //extent: [[8.9, 44.0], [10.0, 45]]
     }),
     rastTerrain = new MapboxTerrain(null, {
-        maxZoom: 20,
-        url: "//terrain.openglobus.org/public/xyz/{z}/{x}/{y}.png",
+        maxZoom: 19,
+        url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
         //imageSize: 129,
         //plainGridSize: 128,
         gridSizeByZoom: [
-            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 32, 32, 16, 16, 8, 8, 4
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+            //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
         ]
         //urlRewrite: function (s, u) {
         //    let z = s.tileZoom,

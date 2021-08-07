@@ -70,6 +70,8 @@ const Segment = function (node, planet, tileZoom, extent) {
      */
     this.bsphere = new Sphere();
 
+    this._plainRadius = 0;
+
     ///**
     // * Segment bounding sphere for not ready terrain
     // * @type {og.bv.Sphere}
@@ -230,7 +232,7 @@ const Segment = function (node, planet, tileZoom, extent) {
  */
 Segment.prototype.acceptForRendering = function (camera) {
     return (
-        camera.projectedSize(this.bsphere.center, this.bsphere.radius) < 256 / this.planet._lodRatio
+        camera.projectedSize(this.bsphere.center, this._plainRadius) < 256 / this.planet._lodRatio
     );
 };
 
@@ -397,9 +399,17 @@ Segment.prototype.elevationsExists = function (elevations) {
 
 Segment.prototype._checkEqualization = function (neighborSide, neigborNode) {
     return (
-        neigborNode &&
-        //this.node.equalizedNeighborId[neighborSide] !== neigborNode.segment.gridSize &&
-        this.tileZoom >= neigborNode.segment.tileZoom
+        neigborNode && this.tileZoom >= neigborNode.segment.tileZoom
+
+        //&&
+        //(
+        //    this.node.equalizedNeighborId[neighborSide] !== neigborNode.appliedTerrainNodeId ||
+        //    this.node.equalizedNeighborGridSize[neighborSide] !== neigborNode.segment.gridSize
+        //||
+
+        //    neigborNode.equalizedNeighborId[OPSIDE[neighborSide]] !== this.node.appliedTerrainNodeId ||
+        //    neigborNode.equalizedNeighborGridSize[OPSIDE[neighborSide]] !== this.gridSize
+        //)
     );
 };
 
@@ -418,8 +428,12 @@ Segment.prototype.equalize = function () {
 
     let n = nn[N][0];
     if (this._checkEqualization(N, n)) {
-        // this.node.equalizedNeighborId[N] = n.segment.gridSize;
-        // n.equalizedNeighborId[OPSIDE[N]] = this.gridSize;
+        //this.node.equalizedNeighborId[N] = n.appliedTerrainNodeId;
+        //this.node.equalizedNeighborGridSize[N] = n.segment.gridSize;
+
+        //n.equalizedNeighborId[OPSIDE[N]] = this.node.appliedTerrainNodeId;
+        //n.equalizedNeighborGridSize[OPSIDE[N]] = this.gridSize;
+
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, N);
@@ -457,8 +471,12 @@ Segment.prototype.equalize = function () {
 
     n = nn[E][0];
     if (this._checkEqualization(E, n)) {
-        // this.node.equalizedNeighborId[E] = n.segment.gridSize;
-        // n.equalizedNeighborId[OPSIDE[E]] = this.gridSize;
+        //this.node.equalizedNeighborId[E] = n.appliedTerrainNodeId;
+        //this.node.equalizedNeighborGridSize[E] = n.segment.gridSize;
+
+        //n.equalizedNeighborId[OPSIDE[E]] = this.node.appliedTerrainNodeId;
+        //n.equalizedNeighborGridSize[OPSIDE[E]] = this.gridSize;
+
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, E);
@@ -496,8 +514,12 @@ Segment.prototype.equalize = function () {
 
     n = nn[S][0];
     if (this._checkEqualization(S, n)) {
-        // this.node.equalizedNeighborId[S] = n.segment.gridSize;
-        // n.equalizedNeighborId[OPSIDE[S]] = this.gridSize;
+        //this.node.equalizedNeighborId[S] = n.appliedTerrainNodeId;
+        //this.node.equalizedNeighborGridSize[S] = n.segment.gridSize;
+
+        //n.equalizedNeighborId[OPSIDE[S]] = this.node.appliedTerrainNodeId;
+        //n.equalizedNeighborGridSize[OPSIDE[S]] = this.gridSize;
+
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, S);
@@ -534,8 +556,12 @@ Segment.prototype.equalize = function () {
 
     n = nn[W][0];
     if (this._checkEqualization(W, n)) {
-        // this.node.equalizedNeighborId[W] = n.segment.gridSize;
-        // n.equalizedNeighborId[OPSIDE[W]] = this.gridSize;
+        //this.node.equalizedNeighborId[W] = n.appliedTerrainNodeId;
+        //this.node.equalizedNeighborGridSize[W] = n.segment.gridSize;
+
+        //n.equalizedNeighborId[OPSIDE[W]] = this.node.appliedTerrainNodeId;
+        //n.equalizedNeighborGridSize[OPSIDE[W]] = this.gridSize;
+
         this.readyToEngage = true;
 
         let offset = this.node.getOffsetOppositeNeighbourSide(n, W);
@@ -597,6 +623,8 @@ Segment.prototype._plainSegmentWorkerCallback = function (data) {
         this.terrainVerticesLow = this.plainVerticesLow;
 
         this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
+
+        this._plainRadius = data.plainRadius;
 
         this.plainReady = true;
     }
@@ -923,7 +951,7 @@ Segment.prototype.destroySegment = function () {
     this.handler = null;
     this.bbox = null;
     this.bsphere = null;
-    this.bsphereExt = null;
+    //this.bsphereExt = null;
     this._extent = null;
 
     this.materials = null;
