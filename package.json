@@ -8,13 +8,13 @@
   "main": "./src/og/index.js",
   "style": "./css/og.css",
   "scripts": {
-    "api": ".\\node_modules\\.bin\\jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
-    "serve": ".\\node_modules\\.bin\\ws",
-    "build": ".\\node_modules\\.bin\\rollup -c",
-    "webgl": ".\\node_modules\\.bin\\rollup -c --environment entry:webgl",
-    "core": ".\\node_modules\\.bin\\rollup -c --environment entry:core",
-    "test": ".\\node_modules\\.bin\\jest --coverage",
-    "lint": ".\\node_modules\\.bin\\eslint src/og",
+    "api": ".jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
+    "serve": "ws",
+    "build": "rollup -c",
+    "webgl": "rollup -c --environment entry:webgl",
+    "core": "rollup -c --environment entry:core",
+    "test": "jest --coverage",
+    "lint": "eslint src/og",
     "prepare": "husky install"
   },
   "repository": {
