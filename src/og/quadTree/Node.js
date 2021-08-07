@@ -62,6 +62,7 @@ const Node = function (SegmentPrototype, planet, partId, parent, id, tileZoom, e
     this.ready = false;
     this.neighbors = [[], [], [], []];
     this.equalizedNeighborId = [-1, -1, -1, -1];
+    this.equalizedNeighborGridSize = [-1, -1, -1, -1];
     this.nodes = [null, null, null, null];
     this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
     this._cameraInside = false;
@@ -254,7 +255,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             }
         }
     } else {
-        let commonFrustumFlag = Math.pow(2, numFrustums - 1) - 1;
+        let commonFrustumFlag = 1 << (numFrustums - 1 - 1); //Math.pow(2, numFrustums - 1) - 1;
         for (let i = 0; commonFrustumFlag && i < numFrustums; i++) {
             if (seg.terrainReady) {
                 if (frustums[i].containsBox(seg.bbox)) {

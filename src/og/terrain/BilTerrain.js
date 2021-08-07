@@ -3,6 +3,7 @@
 import { GlobusTerrain } from "./GlobusTerrain.js";
 import { WMS } from "../layer/WMS.js";
 import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math.js";
+import { getTileExtent } from "../mercator.js";
 
 class BilTerrain extends GlobusTerrain {
     constructor(options) {
@@ -88,6 +89,26 @@ class BilTerrain extends GlobusTerrain {
         let outCurrenElevations = new Float32Array(elevationsSize);
 
         extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
+
+        this._elevationCache[segment.tileIndex] = {
+            heights: outCurrenElevations,
+            extent: segment.getExtent()
+        };
+
+        let dd = this._imageSize / this.plainGridSize;
+
+        for (let i = 0; i < dd; i++) {
+            for (let j = 0; j < dd; j++) {
+                let x = segment.tileX * 2 + j,
+                    y = segment.tileY * 2 + i,
+                    z = segment.tileZoom + 1;
+                let tileIndex = Layer.getTileIndex(x, y, z);
+                this._elevationCache[tileIndex] = {
+                    heights: outChildrenElevations[i][j],
+                    extent: getTileExtent(x, y, z)
+                };
+            }
+        }
 
         return outCurrenElevations;
     }
