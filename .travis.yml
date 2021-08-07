@@ -14,7 +14,7 @@ before_deploy:
 - zip ${TRAVIS_TAG}-dist.zip *
 deploy:
   provider: releases
-  token: $GITHUB_TOKEN
+  github_token: $GITHUB_TOKEN
   file_glob: true
   file: ${TRAVIS_TAG}-dist.zip
   skip_cleanup: true
