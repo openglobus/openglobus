@@ -72,12 +72,6 @@ const Segment = function (node, planet, tileZoom, extent) {
 
     this._plainRadius = 0;
 
-    ///**
-    // * Segment bounding sphere for not ready terrain
-    // * @type {og.bv.Sphere}
-    // */
-    //this.bsphereExt = new Sphere();
-
     /**
      * Segment bounding box.
      * @type {og.bv.Box}
@@ -951,7 +945,6 @@ Segment.prototype.destroySegment = function () {
     this.handler = null;
     this.bbox = null;
     this.bsphere = null;
-    //this.bsphereExt = null;
     this._extent = null;
 
     this.materials = null;
@@ -1160,9 +1153,6 @@ Segment.prototype.setBoundingVolume = function (xmin, ymin, zmin, xmax, ymax, zm
 
     this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
-
-    //this.bsphereExt.center.set(x, y, z);
-    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.setBoundingVolume3v = function (vmin, vmax) {
@@ -1174,9 +1164,6 @@ Segment.prototype.setBoundingVolume3v = function (vmin, vmax) {
 
     this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
-
-    //this.bsphereExt.center.set(x, y, z);
-    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.setBoundingVolumeArr = function (bounds) {
@@ -1188,9 +1175,6 @@ Segment.prototype.setBoundingVolumeArr = function (bounds) {
 
     this.bsphere.center.set(x, y, z);
     this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
-
-    //this.bsphereExt.center.set(x, y, z);
-    //this.bsphereExt.radius = this.bsphere.radius + this.bsphere.radius * BSPHERERADIUSEXT;
 };
 
 Segment.prototype.createCoordsBuffers = function (verticesHigh, verticesLow, gridSize) {
