@@ -13,13 +13,16 @@ before_deploy:
 - cd dist/@openglobus
 - zip ${TRAVIS_TAG}-dist.zip *
 deploy:
-  provider: releases
-  token: "$GITHUB_TOKEN"
-  file_glob: true
-  file: "${TRAVIS_TAG}-dist.zip"
-  skip_cleanup: true
-  on:
-    tags: true
-# before_install:
-# - openssl aes-256-cbc -K $encrypted_3f2dabfde256_key -iv $encrypted_3f2dabfde256_iv
-#  -in travis_key.enc -out travis_key -d
+  - provider: releases
+    token: "$GITHUB_TOKEN"
+    file_glob: true
+    file: "${TRAVIS_TAG}-dist.zip"
+    skip_cleanup: true
+    on:
+      tags: true
+ before_install:
+ - openssl aes-256-cbc -K $encrypted_3f2dabfde256_key -iv $encrypted_3f2dabfde256_iv
+   -in travis_key.enc -out /tmp/travis_key -d
+ - eval "$(ssh-agent -s)"
+ - chmod 600 /tmp/travis_key
+ - ssh-add /tmp/travis_key
