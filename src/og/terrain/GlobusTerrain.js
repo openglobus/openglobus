@@ -17,6 +17,7 @@ import { Vec3 } from "../math/Vec3.js";
 import { Ray } from "../math/Ray.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
+import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
 const EVENT_NAMES = [
     /**
@@ -348,7 +349,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
      */
     loadTerrain(segment, forceLoading) {
-        if (this._planet.terrainLock.isFree()) {
+        if (this._planet.terrainLock.isFree() || segment.tileZoom < MAX_NORMAL_ZOOM) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
             if (this.isReadyToLoad(segment)) {
