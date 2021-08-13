@@ -60,6 +60,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
  * @param {DOMElement} [options.attributionContainer] - Container for attribution list.
  * @param {Number} [options.maxGridSize] = Maximal segment grid size. 128 is default
+ * @param {boolean} [options.useSpecularTexture] - use specular water mask
+ * @param {boolean} [options.useNightTexture] - show night cities
  */
 class Globe {
     constructor(options) {
@@ -144,11 +146,13 @@ class Globe {
              */
             // TODO:
         } else {
-            this.planet = new Planet(
-                this._planetName,
-                options.ellipsoid ? options.ellipsoid : wgs84,
-                options.maxGridSize
-            );
+            this.planet = new Planet({
+                name: this._planetName,
+                ellipsoid: options.ellipsoid,
+                maxGridSize: options.maxGridSize,
+                useNightTexture: options.useNightTexture,
+                useSpecularTexture: options.useSpecularTexture
+            });
         }
 
         // Attach terrain provider
@@ -244,16 +248,6 @@ class Globe {
 
     static set _staticCounter(n) {
         this._counter = n;
-    }
-
-    /**
-     * Returns true if the object pointer is undefined.
-     * @function
-     * @param {Object} obj - Object pointer.
-     * @returns {boolean} Returns true if object is undefined.
-     */
-    static isUndefined(obj) {
-        return obj === void 0;
     }
 }
 

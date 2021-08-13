@@ -30,6 +30,7 @@ import { VectorTileCreator } from "../utils/VectorTileCreator.js";
 import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
+import { isUndef } from "../utils/shared.js";
 
 const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
@@ -94,14 +95,14 @@ const EVENT_NAMES = [
  * @fires og.scene.Planet#geoimageadd
  */
 class Planet extends RenderNode {
-    constructor(name, ellipsoid, maxGridSize = 128) {
-        super(name);
+    constructor(options = {}) {
+        super(options.name);
 
         /**
          * @public
          * @type {og.Ellipsoid}
          */
-        this.ellipsoid = ellipsoid || wgs84;
+        this.ellipsoid = options.ellipsoid || wgs84;
 
         /**
          * @public
@@ -335,16 +336,18 @@ class Planet extends RenderNode {
          * @protected
          * @type {boolean}
          */
-        this._useNightTexture = true;
+        this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture;
 
         /**
          * True for rendering specular mask texture.
          * @protected
          * @type {boolean}
          */
-        this._useSpecularTexture = true;
+        this._useSpecularTexture = isUndef(options.useSpecularTexture)
+            ? true
+            : options.useSpecularTexture;
 
-        this._maxGridSize = Math.log2(maxGridSize);
+        this._maxGridSize = Math.log2(options.maxGridSize || 128);
 
         /**
          * Segment multiple textures size.(4 - convinient value for the most devices)

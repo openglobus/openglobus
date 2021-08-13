@@ -163,6 +163,8 @@ window.globe = new Globe({
     layers: [osm, tg],
     viewExtent: [-113.159, 37.176, -112.77, 37.32],
     maxGridSize: 256
+    //useNightTexture: false,
+    //useSpecularTexture: false
 });
 
 globe.planet.addControl(

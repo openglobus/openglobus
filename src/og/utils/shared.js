@@ -931,3 +931,13 @@ export function getMatrixSubArrayBoundsExt(
 export function cloneArray(items) {
     return items.map((item) => (Array.isArray(item) ? cloneArray(item) : item));
 }
+
+/**
+ * Returns true if the object pointer is undefined.
+ * @function
+ * @param {Object} obj - Object pointer.
+ * @returns {boolean} Returns true if object is undefined.
+ */
+export function isUndef(obj) {
+    return obj === void 0;
+}
