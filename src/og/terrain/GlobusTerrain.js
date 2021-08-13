@@ -349,7 +349,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
      */
     loadTerrain(segment, forceLoading) {
-        if (this._planet.terrainLock.isFree() || segment.tileZoom < MAX_NORMAL_ZOOM) {
+        if (this._planet.terrainLock.isFree()) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
             if (this.isReadyToLoad(segment)) {
