@@ -800,6 +800,9 @@ Node.prototype.whileTerrainLoading = function (terrainReadySegment, stopLoading)
 
         if (seg.tileZoom > terrain.maxZoom) {
             if (pn.segment.tileZoom >= terrain.maxZoom) {
+                //TODO: find better place for this
+                seg._plainRadius = pn.segment._plainRadius / dZ2;
+
                 seg.terrainReady = true;
                 seg.terrainIsLoading = false;
 
