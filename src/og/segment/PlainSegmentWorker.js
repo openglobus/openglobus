@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
 // import { QueueArray } from '../QueueArray.js';
-import { EPSG4326 } from '../proj/EPSG4326.js';
+import { EPSG4326 } from "../proj/EPSG4326.js";
 
 class PlainSegmentWorker {
     constructor(numWorkers = 2) {
@@ -10,12 +10,11 @@ class PlainSegmentWorker {
 
         this._workerQueue = [];
 
-        var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
+        var elevationProgramm = new Blob([_programm], { type: "application/javascript" });
 
         let _this = this;
 
         for (let i = 0; i < numWorkers; i++) {
-
             let w = new Worker(URL.createObjectURL(elevationProgramm));
 
             w.onmessage = function (e) {
@@ -50,7 +49,6 @@ class PlainSegmentWorker {
     }
 
     setGeoid(geoid) {
-
         let m = geoid.model;
 
         let model = {
@@ -64,25 +62,22 @@ class PlainSegmentWorker {
         };
 
         this._workerQueue.forEach((w) => {
-
             let rawfile = new Uint8Array(m.rawfile.length);
             rawfile.set(m.rawfile);
 
-            w.postMessage({
-                model: model,
-                rawfile: rawfile
-            }, [
-                    rawfile.buffer
-                ]);
+            w.postMessage(
+                {
+                    model: model,
+                    rawfile: rawfile
+                },
+                [rawfile.buffer]
+            );
         });
     }
 
     make(segment) {
-
         if (segment.initialized) {
-
             if (this._workerQueue.length) {
-
                 let w = this._workerQueue.pop();
 
                 this._segments[this._id] = segment;
@@ -103,12 +98,12 @@ class PlainSegmentWorker {
                     segment.planet.ellipsoid._invRadii2.z
                 ]);
 
-                w.postMessage({
-                    params: params
-                }, [
-                        params.buffer
-                    ]);
-
+                w.postMessage(
+                    {
+                        params: params
+                    },
+                    [params.buffer]
+                );
             } else {
                 this._pendingQueue.push(segment);
             }
@@ -118,8 +113,7 @@ class PlainSegmentWorker {
     }
 }
 
-const _programm =
-    `
+const _programm = `
     'use strict';
 
     let cached_ix = null;
@@ -278,7 +272,11 @@ const _programm =
         if(msg.data.model) {
             model = msg.data.model;
             model.rawfile = msg.data.rawfile;
-        } else if(msg.data.params) {        
+        } else if(msg.data.params) {
+
+            let xmin = 549755748352.0, xmax = -549755748352.0, 
+                ymin = 549755748352.0, ymax = -549755748352.0, 
+                zmin = 549755748352.0, zmax = -549755748352.0;
 
             E2 = msg.data.params[8];
             A = msg.data.params[9];
@@ -369,8 +367,18 @@ const _programm =
                     plainVerticesHigh[ind] = _tempHigh.z;
                     plainVerticesLow[ind] = _tempLow.z;
                     plainNormals[ind++] = nzl;
+
+                    if (v.x < xmin) xmin = v.x; if (v.x > xmax) xmax = v.x;
+                    if (v.y < ymin) ymin = v.y; if (v.y > ymax) ymax = v.y;
+                    if (v.z < zmin) zmin = v.z; if (v.z > zmax) zmax = v.z;
                 }
             }
+
+            let x = (xmax - xmin) * 0.5,
+                y = (ymax - ymin) * 0.5,
+                z = (zmax - zmin) * 0.5;
+
+            let plainRadius = Math.sqrt(x * x + y * y + z * z);
 
             self.postMessage({
                 id: msg.data.params[0],
@@ -381,7 +389,8 @@ const _programm =
                 normalMapNormals: normalMapNormals,
                 normalMapVertices: normalMapVertices,
                 normalMapVerticesHigh: normalMapVerticesHigh,
-                normalMapVerticesLow: normalMapVerticesLow
+                normalMapVerticesLow: normalMapVerticesLow,
+                plainRadius: plainRadius
              }, [
                 plainVertices.buffer,
                 plainVerticesHigh.buffer,

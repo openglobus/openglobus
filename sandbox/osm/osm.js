@@ -7,12 +7,12 @@
 //import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
 //import { XYZ } from '../../src/og/layer/XYZ.js';
 //import { WMS } from '../../src/og/layer/WMS.js';
-import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
+import { CanvasTiles } from "../../src/og/layer/CanvasTiles.js";
 //import { Vector } from '../../src/og/layer/Vector.js';
 //import { Entity } from '../../src/og/entity/Entity.js';
-//import { DebugInfo } from '../../src/og/control/DebugInfo.js';
+import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 //import { KeyboardNavigation } from '../../src/og/control/KeyboardNavigation.js';
-//import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
+import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 //import * as math from '../../src/og/math.js';
 //import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 //import { Popup } from '../../src/og/Popup.js';
@@ -112,7 +112,7 @@ const tg = new CanvasTiles("Tile grid", {
         ctx.beginPath();
         ctx.rect(0, 0, cnv.width, cnv.height);
         ctx.lineWidth = 2;
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = "black";
         ctx.stroke();
 
         let size;
@@ -125,10 +125,14 @@ const tg = new CanvasTiles("Tile grid", {
         } else {
             size = "32";
         }
-        ctx.fillStyle = 'black';
-        ctx.font = 'normal ' + size + 'px Verdana';
-        ctx.textAlign = 'center';
-        ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        ctx.fillStyle = "black";
+        ctx.font = "normal " + size + "px Verdana";
+        ctx.textAlign = "center";
+        ctx.fillText(
+            material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom,
+            cnv.width / 2,
+            cnv.height / 2
+        );
 
         //Draw canvas tile
         applyCanvas(cnv);
@@ -147,7 +151,6 @@ const tg = new CanvasTiles("Tile grid", {
 ////    'url': "//maps.wien.gv.at/basemap/bmaphidpi/normal/google3857/{z}/{y}/{x}.jpeg",
 ////    'visibility': false
 ////});
-
 
 ////let sat = new XYZ("MapQuest Satellite", {
 ////    shininess: 20,
@@ -229,7 +232,6 @@ const tg = new CanvasTiles("Tile grid", {
 //    window.globe.planet.setTerrain(mapboxTerrain);
 //};
 
-
 ////window.globe = new Globe({
 ////    'name': "Earth",
 ////    'target': "earth",
@@ -252,24 +254,10 @@ const tg = new CanvasTiles("Tile grid", {
 ////    layers: [osm, sat, tg, states, modis]
 ////});
 
-//globe.planet.addControl(new DebugInfo({
-//    watch: [{
-//        'label': "metersInMinSize",
-//        'frame': () => globe.planet.renderer.controls.scaleControl._metersInMinSize
-//    }, {
-//        'label': "meters in pixel",
-//        'frame': () => globe.planet.renderer.controls.scaleControl._mPx
-//    }]
-//}));
-//globe.planet.addControl(new ToggleWireframe({
-//    isActive: false
-//}));
-
 ////globe.planet.addControl(new SegmentBoundVisualization());
 //globe.planet.addControl(new KeyboardNavigation());
 //globe.planet.addControl(new LayerSwitcher());
 ////globe.planet.addControl(new ScaleControl());
-
 
 //let e1 = new Entity({
 //    'name': 'strip1',
@@ -296,9 +284,6 @@ const tg = new CanvasTiles("Tile grid", {
 //        ],
 //    }
 //});
-
-
-
 
 //let stripLayer = new Vector("test layer", {
 //    'entities': [e1, e2],
@@ -332,7 +317,6 @@ const tg = new CanvasTiles("Tile grid", {
 ////        }
 ////    }));
 
-
 ////globe.planet.viewExtentArr([-1.13284, 51.59951, -1.10951, 51.60386]);
 
 ////let myPopup = new Popup({
@@ -346,7 +330,6 @@ const tg = new CanvasTiles("Tile grid", {
 ////window.myPopup = myPopup;
 
 ////globe.planet.viewLonLat(new LonLat(-112.99778159686288, 37.23755430287543, 8952.673764926381));
-
 
 ////import { Globe } from '../../src/og/Globe.js';
 ////import { XYZ } from '../../src/og/layer/XYZ.js';
@@ -398,40 +381,40 @@ const tg = new CanvasTiles("Tile grid", {
 ////    }
 ////});
 
-
-import { Globe } from '../../src/og/Globe.js';
-import { Entity } from '../../src/og/entity/Entity.js';
-import { XYZ } from '../../src/og/layer/XYZ.js';
-import { Vector } from '../../src/og/layer/Vector.js';
-import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
+import { Globe } from "../../src/og/Globe.js";
+import { Entity } from "../../src/og/entity/Entity.js";
+import { XYZ } from "../../src/og/layer/XYZ.js";
+import { Vector } from "../../src/og/layer/Vector.js";
+import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
+import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 
 var osm = new XYZ("OpenStreetMap", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,
-    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    attribution: "Data @ OpenStreetMap contributors, ODbL"
 });
 
 var globus = new Globe({
-    "target": "earth",
-    "name": "Earth",
-    "terrain": /*new EmptyTerrain({
+    target: "earth",
+    name: "Earth",
+    terrain: /*new EmptyTerrain({
         gridSizeByZoom: [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-    }),/*/new GlobusTerrain(),
-    "layers": [osm, tg],
+    }),/*/ new GlobusTerrain(),
+    layers: [osm, tg]
     //'viewExtent': [-1.12135, 51.60133, -1.11704, 51.60224]
 });
 
 fetch("./szint.json")
-    .then(r => {
+    .then((r) => {
         return r.json();
-    }).then(data => {
+    })
+    .then((data) => {
         var countries = new Vector("Countries", {
-            'visibility': true,
-            'isBaseLayer': false,
-            'diffuse': [0, 0, 0],
-            'ambient': [1, 1, 1]
+            visibility: true,
+            isBaseLayer: false,
+            diffuse: [0, 0, 0],
+            ambient: [1, 1, 1]
         });
 
         countries.addTo(globus.planet);
@@ -439,16 +422,18 @@ fetch("./szint.json")
         var f = data.features;
         for (var i = 0; i < f.length; i++) {
             var fi = f[i];
-            countries.add(new Entity({
-                'geometry': {
-                    'type': fi.geometry.type,
-                    'coordinates': fi.geometry.coordinates,
-                    'style': {
-                        'fillColor': "rgba(255,255,0,1.0)",
-                        'lineColor': "rgba(255,255,0,1.0)"
+            countries.add(
+                new Entity({
+                    geometry: {
+                        type: fi.geometry.type,
+                        coordinates: fi.geometry.coordinates,
+                        style: {
+                            fillColor: "rgba(255,255,0,1.0)",
+                            lineColor: "rgba(255,255,0,1.0)"
+                        }
                     }
-                }
-            }));
+                })
+            );
         }
 
         //countries.events.on("mouseleave", function (e) {
@@ -467,5 +452,25 @@ fetch("./szint.json")
         //    globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
         //});
     });
+
+globus.planet.addControl(
+    new DebugInfo({
+        watch: [
+            {
+                label: "metersInMinSize",
+                frame: () => globus.planet.renderer.controls.scaleControl._metersInMinSize
+            },
+            {
+                label: "meters in pixel",
+                frame: () => globus.planet.renderer.controls.scaleControl._mPx
+            }
+        ]
+    })
+);
+globus.planet.addControl(
+    new ToggleWireframe({
+        isActive: false
+    })
+);
 
 window.globus = globus;

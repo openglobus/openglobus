@@ -15,7 +15,7 @@ const NormalMapCreator = function (planet, options) {
     options = options || {};
 
     this._minTabelSize = options.minTableSize || 1;
-    this._maxTableSize = options.maxTableSize || 7;
+    this._maxTableSize = options.maxTableSize || 8;
 
     this._planet = planet;
     this._handler = planet.renderer.handler;
@@ -43,7 +43,7 @@ NormalMapCreator.prototype._init = function () {
      *=================================================================================*/
     var normalMapBlur = new Program("normalMapBlur", {
         attributes: {
-            a_position: { type: types.VEC2 }
+            a_position: { type: types.VEC2, enableArray: true }
         },
         uniforms: {
             s_texture: { type: types.SAMPLER2D }
@@ -95,8 +95,8 @@ NormalMapCreator.prototype._init = function () {
 
     var normalMap = new Program("normalMap", {
         attributes: {
-            a_position: { type: types.VEC2 },
-            a_normal: { type: types.VEC3 }
+            a_position: { type: types.VEC2, enableArray: true },
+            a_normal: { type: types.VEC3, enableArray: true }
         },
         vertexShader: `attribute vec2 a_position;
                       attribute vec3 a_normal;
@@ -169,75 +169,75 @@ NormalMapCreator.prototype._drawNormalMapBlur = function (segment) {
         normals &&
         normals.length
     ) {
-        if (segment.planet.terrain.equalizeNormals) {
-            segment._normalMapEdgeEqualize(quadTree.N);
-            segment._normalMapEdgeEqualize(quadTree.S);
-            segment._normalMapEdgeEqualize(quadTree.W);
-            segment._normalMapEdgeEqualize(quadTree.E);
-        }
-
-        var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
         var gridSize = Math.sqrt(size) - 1;
 
-        var h = this._handler;
-        var gl = h.gl;
+        let indBuf = this._verticesBufferArray[gridSize];
 
-        var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
+        if (indBuf) {
+            if (segment.planet.terrain.equalizeNormals) {
+                segment._normalMapEdgeEqualize(quadTree.N);
+                segment._normalMapEdgeEqualize(quadTree.S);
+                segment._normalMapEdgeEqualize(quadTree.W);
+                segment._normalMapEdgeEqualize(quadTree.E);
+            }
 
-        var f = this._framebuffer;
-        var p = h.programs.normalMap;
-        var sha = p._program.attributes;
+            var outTexture = segment.normalMapTexturePtr;
 
-        f.bindOutputTexture(this._normalMapVerticesTexture);
+            var h = this._handler;
+            var gl = h.gl;
 
-        p.activate();
+            var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
-        gl.vertexAttribPointer(
-            sha.a_position,
-            this._verticesBufferArray[gridSize].itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
+            var f = this._framebuffer;
+            var p = h.programs.normalMap;
+            var sha = p._program.attributes;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-        gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            f.bindOutputTexture(this._normalMapVerticesTexture);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-        gl.drawElements(
-            gl.TRIANGLE_STRIP,
-            this._indexBufferArray[gridSize].numItems,
-            gl.UNSIGNED_INT,
-            0
-        );
+            p.activate();
 
-        gl.deleteBuffer(_normalsBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
+            gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
 
-        //
-        // blur pass
-        //
-        f.bindOutputTexture(outTexture);
+            gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
+            gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        p = h.programs.normalMapBlur;
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
+            gl.drawElements(
+                gl.TRIANGLE_STRIP,
+                this._indexBufferArray[gridSize].numItems,
+                gl.UNSIGNED_INT,
+                0
+            );
 
-        p.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
-        gl.vertexAttribPointer(
-            p._program.attributes.a_position,
-            this._positionBuffer.itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
-        gl.uniform1i(p._program.uniforms.s_texture, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
-        return true;
+            gl.deleteBuffer(_normalsBuffer);
+
+            //
+            // blur pass
+            //
+            f.bindOutputTexture(outTexture);
+
+            p = h.programs.normalMapBlur;
+
+            p.activate();
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+            gl.vertexAttribPointer(
+                p._program.attributes.a_position,
+                this._positionBuffer.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
+            gl.uniform1i(p._program.uniforms.s_texture, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+            return true;
+        } else {
+            return true;
+        }
     }
     return false;
 };
@@ -250,54 +250,54 @@ NormalMapCreator.prototype._drawNormalMapNoBlur = function (segment) {
         normals &&
         normals.length
     ) {
-        //if (segment.planet.terrain.equalizeNormals) {
-        //    segment._normalMapEdgeEqualize(quadTree.N);
-        //    segment._normalMapEdgeEqualize(quadTree.S);
-        //    segment._normalMapEdgeEqualize(quadTree.W);
-        //    segment._normalMapEdgeEqualize(quadTree.E);
-        //}
-
-        var outTexture = segment.normalMapTexturePtr;
         var size = normals.length / 3;
         var gridSize = Math.sqrt(size) - 1;
 
-        var h = this._handler;
-        var gl = h.gl;
+        let indBuf = this._verticesBufferArray[gridSize];
 
-        var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
+        if (indBuf) {
+            if (segment.planet.terrain.equalizeNormals) {
+                segment._normalMapEdgeEqualize(quadTree.N);
+                segment._normalMapEdgeEqualize(quadTree.S);
+                segment._normalMapEdgeEqualize(quadTree.W);
+                segment._normalMapEdgeEqualize(quadTree.E);
+            }
 
-        var f = this._framebuffer;
-        var p = h.programs.normalMap;
-        var sha = p._program.attributes;
+            var outTexture = segment.normalMapTexturePtr;
 
-        f.bindOutputTexture(outTexture);
+            var h = this._handler;
+            var gl = h.gl;
 
-        p.activate();
+            var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesBufferArray[gridSize]);
-        gl.vertexAttribPointer(
-            sha.a_position,
-            this._verticesBufferArray[gridSize].itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
+            var f = this._framebuffer;
+            var p = h.programs.normalMap;
+            var sha = p._program.attributes;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
-        gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            f.bindOutputTexture(outTexture);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
-        gl.drawElements(
-            gl.TRIANGLE_STRIP,
-            this._indexBufferArray[gridSize].numItems,
-            gl.UNSIGNED_INT,
-            0
-        );
+            p.activate();
 
-        gl.deleteBuffer(_normalsBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, indBuf);
+            gl.vertexAttribPointer(sha.a_position, indBuf.itemSize, gl.FLOAT, false, 0, 0);
 
-        return true;
+            gl.bindBuffer(gl.ARRAY_BUFFER, _normalsBuffer);
+            gl.vertexAttribPointer(sha.a_normal, _normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBufferArray[gridSize]);
+            gl.drawElements(
+                gl.TRIANGLE_STRIP,
+                this._indexBufferArray[gridSize].numItems,
+                gl.UNSIGNED_INT,
+                0
+            );
+
+            gl.deleteBuffer(_normalsBuffer);
+
+            return true;
+        } else {
+            return true;
+        }
     }
     return false;
 };

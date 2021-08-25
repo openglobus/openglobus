@@ -2,9 +2,12 @@
  * @module og/shaders/drawnode
  */
 
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
+import { Program } from "../webgl/Program.js";
+
+const CORNERS = `const vec2 BOTTOMLEFT = vec2(-0.01);
+                const vec2 TOPRIGHT = vec2(1.01);`;
 
 export function drawnode_screen_nl() {
     return new Program("drawnode_screen_nl", {
@@ -27,8 +30,7 @@ export function drawnode_screen_nl() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -57,8 +59,7 @@ export function drawnode_screen_nl() {
                 /*gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);*/
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
@@ -71,8 +72,9 @@ export function drawnode_screen_nl() {
                 vec2 s = step(bottomLeft, v) - step(topRight, v);
                 return s.x * s.y;
             }
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+
+            ${CORNERS}
+
             void main(void) {
                 gl_FragColor = texture2D( defaultTexture, vTextureCoord );
                 if( samplerCount == 0 ) return;
@@ -137,8 +139,7 @@ export function drawnode_screen_wl() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -173,8 +174,7 @@ export function drawnode_screen_wl() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
 
             #define MAX_POINT_LIGHTS 1
             #define MAX_OVERLAYS 5
@@ -209,8 +209,8 @@ export function drawnode_screen_wl() {
                 return s.x * s.y;
             }
 
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+            ${CORNERS}
+
             const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
 
             void main(void) {
@@ -321,8 +321,7 @@ export function drawnode_screen_wl_webgl2() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
 
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
@@ -359,8 +358,7 @@ export function drawnode_screen_wl_webgl2() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
 
             precision highp float;
 
@@ -399,8 +397,8 @@ export function drawnode_screen_wl_webgl2() {
                 return s.x * s.y;
             }
 
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+            ${CORNERS}
+
             const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
 
             void main(void) {
@@ -500,8 +498,7 @@ export function drawnode_colorPicking() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -526,8 +523,7 @@ export function drawnode_colorPicking() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
@@ -541,8 +537,9 @@ export function drawnode_colorPicking() {
                 vec2 s = step(bottomLeft, v) - step(topRight, v);
                 return s.x * s.y;
             }
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+
+            ${CORNERS}
+
             void main(void) {
                 gl_FragColor = vec4(0.0);
                 if( samplerCount == 0 ) return;
@@ -615,8 +612,7 @@ export function drawnode_heightPicking() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -644,9 +640,8 @@ export function drawnode_heightPicking() {
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
-            
-        fragmentShader:
-        `precision highp float;
+
+        fragmentShader: `precision highp float;
             uniform sampler2D defaultTexture;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
@@ -674,8 +669,7 @@ export function drawnode_heightPicking() {
                     floor( mod( floor( m * exp2( 23.0 - 8.0) ), exp2(8.0) ) ) / 255.0);
             }
 
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+            ${CORNERS}
 
             void main(void) {
                 gl_FragColor = vec4(encode24(range), texture2D( defaultTexture, vTextureCoord ).a);
@@ -730,8 +724,7 @@ export function drawnode_depth() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
             in vec2 aTextureCoord;
@@ -759,8 +752,7 @@ export function drawnode_depth() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
             precision highp float;
             uniform sampler2D defaultTexture;
             uniform vec4 tileOffsetArr[5];
@@ -780,37 +772,36 @@ export function drawnode_depth() {
                 return s.x * s.y;
             }
 
-            const vec2 BOTTOMLEFT = vec2(0.0);
-            const vec2 TOPRIGHT = vec2(1.0);
+            ${CORNERS}
 
-            void main(void) {               
+            void main(void) {
 
-                frustumColor = vec4(frustumPickingColor, texture( defaultTexture, vTextureCoord ).a);
-                if( samplerCount == 0 ) return;
+            frustumColor = vec4(frustumPickingColor, texture(defaultTexture, vTextureCoord).a);
+            if(samplerCount == 0) return;
 
-                vec4 t = texture( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
-                float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                frustumColor = mix( frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
-                if( samplerCount == 1 ) return;
+    vec4 t = texture(samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
+    float emptiness = t.a * smoothstep(0.35, 0.5, distance(t.rgb, transparentColorArr[0].rgb));
+    frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
+    if (samplerCount == 1) return;
 
-                t = texture( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                frustumColor = mix( frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
-                if( samplerCount == 2 ) return;
+    t = texture(samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
+    emptiness = t.a * smoothstep(0.35, 0.5, distance(t.rgb, transparentColorArr[1].rgb));
+    frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
+    if (samplerCount == 2) return;
 
-                t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                frustumColor = mix( frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
-                if( samplerCount == 3 ) return;
+    t = texture(samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
+    emptiness = t.a * smoothstep(0.35, 0.5, distance(t.rgb, transparentColorArr[2].rgb));
+    frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
+    if (samplerCount == 3) return;
 
-                t = texture( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                frustumColor = mix( frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
-                if( samplerCount == 4 ) return;
+    t = texture(samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
+    emptiness = t.a * smoothstep(0.35, 0.5, distance(t.rgb, transparentColorArr[3].rgb));
+    frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
+    if (samplerCount == 4) return;
 
-                t = texture( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                frustumColor = mix( frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
-            }`
+    t = texture(samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
+    emptiness = t.a * smoothstep(0.35, 0.5, distance(t.rgb, transparentColorArr[4].rgb));
+    frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0 - step(0.0, -emptiness));
+} `
     });
 }

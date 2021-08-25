@@ -2,9 +2,9 @@
  * @module og/layer/GeoVideo
  */
 
-'use strict';
+"use strict";
 
-import { BaseGeoImage } from './BaseGeoImage.js';
+import { BaseGeoImage } from "./BaseGeoImage.js";
 
 /**
  * Used to load and display a video stream by specific corners coordinates on the globe, implements og.layer.BaseGeoImage interface.
@@ -71,7 +71,6 @@ class GeoVideo extends BaseGeoImage {
      */
     setVisibility(visibility) {
         if (visibility != this._visibility) {
-
             super.setVisibility(visibility);
 
             // remove from creator
@@ -120,13 +119,21 @@ class GeoVideo extends BaseGeoImage {
     _onError(video) {
         var err = "unknown error";
         switch (video.error.code) {
-            case 1: err = "video loading aborted"; break;
-            case 2: err = "network loading error"; break;
-            case 3: err = "video decoding failed / corrupted data or unsupported codec"; break;
-            case 4: err = "video not supported"; break;
-        };
+            case 1:
+                err = "video loading aborted";
+                break;
+            case 2:
+                err = "network loading error";
+                break;
+            case 3:
+                err = "video decoding failed / corrupted data or unsupported codec";
+                break;
+            case 4:
+                err = "video not supported";
+                break;
+        }
         console.log("Error: " + err + " (errorcode=" + video.error.code + ")");
-    };
+    }
 
     /**
      * Loads planet segment material. In this case - GeoImage source video.
@@ -143,25 +150,26 @@ class GeoVideo extends BaseGeoImage {
                     this._onCanPlay(this._video);
                 } else if (this._video.src) {
                     let that = this;
-                    this._video.addEventListener('canplay', function (e) {
+                    this._video.addEventListener("canplay", function (e) {
                         that._onCanPlay(this);
                     });
                 }
             } else {
-                this._video = document.createElement('video');
+                this._video = document.createElement("video");
                 let that = this;
-                this._video.addEventListener('canplay', function () {
+                this._video.addEventListener("canplay", function () {
                     that._onCanPlay(this);
                 });
-                this._video.addEventListener('error', function () {
+                this._video.addEventListener("error", function () {
                     that._onError(this);
                 });
             }
             this._video.autoplay = true;
             this._video.loop = true;
             this._video.src = this._src;
-            this._video.setAttribute("playsinline", "");
-            this._video.setAttribute("webkit-playsinline", "");
+            this._video.muted = "muted";
+            this._video.setAttribute("playsinline", "true");
+            this._video.setAttribute("webkit-playsinline", "true");
         } else {
             this._planet._geoImageCreator.add(this);
         }
@@ -172,7 +180,7 @@ class GeoVideo extends BaseGeoImage {
      * @param {og.planetSegment.Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
-        this._video && (this._video.src = '');
+        this._video && (this._video.src = "");
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;
@@ -286,6 +294,6 @@ class GeoVideo extends BaseGeoImage {
 
         this._creationProceeding = false;
     }
-};
+}
 
 export { GeoVideo };

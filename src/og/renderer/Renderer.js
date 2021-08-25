@@ -439,8 +439,7 @@ Renderer.prototype.initialize = function () {
         useDepth: false
     }).init();
 
-    this.readPixels = () => {
-    };
+    this.readPixels = () => {};
 
     if (this.handler.gl.type === "webgl") {
         this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -530,16 +529,16 @@ Renderer.prototype._resize = function () {
         obj.clientHeight * this._screenScale
     );
     this.blitFramebuffer &&
-    this.blitFramebuffer.setSize(
-        obj.clientWidth * this._screenScale,
-        obj.clientHeight * this._screenScale,
-        true
-    );
+        this.blitFramebuffer.setSize(
+            obj.clientWidth * this._screenScale,
+            obj.clientHeight * this._screenScale,
+            true
+        );
     this.toneMappingFramebuffer &&
-    this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
     this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
     this.screenDepthFramebuffer &&
-    this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
     if (this.handler.gl.type === "webgl") {
         this.screenTexture.screen = this.sceneFramebuffer.textures[0];

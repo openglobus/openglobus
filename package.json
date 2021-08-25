@@ -1,6 +1,6 @@
 {
   "name": "@openglobus/og",
-  "version": "0.8.11",
+  "version": "0.10.0",
   "description": "[OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
   "directories": {
     "example": "./sandbox"
@@ -8,13 +8,13 @@
   "main": "./src/og/index.js",
   "style": "./css/og.css",
   "scripts": {
-    "api": "./node_modules/.bin/jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
-    "serve": "node_modules/.bin/ws",
-    "build": "node_modules/.bin/rollup -c",
-    "webgl": "node_modules/.bin/rollup -c --environment entry:webgl",
-    "core": "node_modules/.bin/rollup -c --environment entry:core",
+    "api": ".jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
+    "serve": "ws",
+    "build": "rollup -c",
+    "webgl": "rollup -c --environment entry:webgl",
+    "core": "rollup -c --environment entry:core",
     "test": "jest --coverage",
-    "lint": "node_modules/.bin/eslint src/og",
+    "lint": "eslint src/og",
     "prepare": "husky install"
   },
   "repository": {
@@ -28,7 +28,6 @@
     "email": "mgevlich@gmail.com"
   },
   "homepage": "http://www.openglobus.org",
-  "dependencies": {},
   "exports": {
     ".": "./src/og/index.js",
     "./layer": "./src/og/layer/index.js",
@@ -57,7 +56,7 @@
     "jsdoc": "^3.6.7",
     "lint-staged": "^11.0.0",
     "local-web-server": "^3.0.7",
-    "msdf-bmfont-xml": "^2.5.4",
+    "msdf-bmfont-xml": "^2.3.6",
     "postcss": "^8.3.0",
     "prettier": "^2.3.0",
     "rollup": "^1.32.1",

@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-import { GlobusTerrain } from './GlobusTerrain.js';
-import { WMS } from '../layer/WMS.js';
-import { isPowerOfTwo, nextHighestPowerOfTwo } from '../math.js';
+import { GlobusTerrain } from "./GlobusTerrain.js";
+import { WMS } from "../layer/WMS.js";
+import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math.js";
+import { getTileExtent } from "../mercator.js";
 
 class BilTerrain extends GlobusTerrain {
     constructor(options) {
-
         super("bil", options);
 
         options = options || {};
@@ -30,14 +30,17 @@ class BilTerrain extends GlobusTerrain {
         this._imageSize = options.imageSize || 256;
 
         this.plainGridSize =
-            options.plainGridSize != undefined ? options.plainGridSize :
-                isPowerOfTwo(this._imageSize) ? this._imageSize / 2 : nextHighestPowerOfTwo(this._imageSize) / 2;
+            options.plainGridSize != undefined
+                ? options.plainGridSize
+                : isPowerOfTwo(this._imageSize)
+                ? this._imageSize / 2
+                : nextHighestPowerOfTwo(this._imageSize) / 2;
 
         this._dataType = "arrayBuffer";
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 13) {
+        if (segment.tileZoom >= 18) {
             return true;
         }
         return false;
@@ -58,7 +61,6 @@ class BilTerrain extends GlobusTerrain {
     }
 
     _createHeights(data, segment) {
-
         let bil16 = new Int16Array(data);
 
         //
@@ -88,9 +90,29 @@ class BilTerrain extends GlobusTerrain {
 
         extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
+        this._elevationCache[segment.tileIndex] = {
+            heights: outCurrenElevations,
+            extent: segment.getExtent()
+        };
+
+        let dd = this._imageSize / this.plainGridSize;
+
+        for (let i = 0; i < dd; i++) {
+            for (let j = 0; j < dd; j++) {
+                let x = segment.tileX * 2 + j,
+                    y = segment.tileY * 2 + i,
+                    z = segment.tileZoom + 1;
+                let tileIndex = Layer.getTileIndex(x, y, z);
+                this._elevationCache[tileIndex] = {
+                    heights: outChildrenElevations[i][j],
+                    extent: getTileExtent(x, y, z)
+                };
+            }
+        }
+
         return outCurrenElevations;
     }
-};
+}
 
 function extractElevationTilesNonPowerOfTwo(data, outCurrenElevations) {
     for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
@@ -99,7 +121,6 @@ function extractElevationTilesNonPowerOfTwo(data, outCurrenElevations) {
 }
 
 function extractElevationTiles(data, noDataValues, outCurrenElevations, outChildrenElevations) {
-
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(data.length);
@@ -109,7 +130,6 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
         bottomHeight = 0;
 
     for (let k = 0, currIndex = 0, sourceDataLength = data.length; k < sourceDataLength; k++) {
-
         let height = data[k];
 
         let isNoDataCurrent = BilTerrain.checkNoDataValue(noDataValues, height),
@@ -135,8 +155,7 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
             outCurrenElevations[currIndex++] = height;
         }
 
-        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1)) {
-
+        if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
             rightHeight = data[k];
 
@@ -159,8 +178,7 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
             outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
         }
 
-        if ((i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
-
+        if ((i + 1) % destSize === 0 && i !== sourceSize - 1) {
             //current tile
             bottomHeight = data[k + sourceSize];
 
@@ -184,9 +202,12 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
             outChildrenElevations[tileY + 1][tileX][bottomindex] = middleHeight;
         }
 
-        if ((j + 1) % destSize === 0 && j !== (sourceSize - 1) &&
-            (i + 1) % destSize === 0 && i !== (sourceSize - 1)) {
-
+        if (
+            (j + 1) % destSize === 0 &&
+            j !== sourceSize - 1 &&
+            (i + 1) % destSize === 0 &&
+            i !== sourceSize - 1
+        ) {
             //current tile
             let rightBottomHeight = data[k + sourceSize + 1];
 
@@ -203,7 +224,7 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
 
             outCurrenElevations[currIndex++] = middleHeight;
 
-            //next right tile            
+            //next right tile
             let rightindex = (ii + 1) * destSizeOne;
             outChildrenElevations[tileY][tileX + 1][rightindex] = middleHeight;
 
@@ -216,6 +237,6 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
             outChildrenElevations[tileY + 1][tileX + 1][rightBottomindex] = middleHeight;
         }
     }
-};
+}
 
 export { BilTerrain };
