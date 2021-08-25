@@ -4,7 +4,7 @@
 
 ```javascript
 import { Component, OnInit } from '@angular/core';
-import { Globe, layer, terrain, LonLat } from '@openglobus/og';
+import * as og from '@openglobus/og';
 
 @Component({
   template: '<div id="globus" style="width:100%;height:100%"></div>'
@@ -14,28 +14,25 @@ export class GlobeComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-
-    const { XYZ } = layer;
-    const { GlobusTerrain } = terrain;
-
-    const osm = new XYZ('OpenStreetMap', {
+    const osm = new og.layer.XYZ('OpenStreetMap', {
       isBaseLayer: true,
       url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       visibility: true,
     });
-
-    const globus = new Globe({
+    const globus = new og.Globe({
       target: 'globus', // a HTMLDivElement which its id is `globus`
       name: 'Earth',
-      terrain: new GlobusTerrain(),
+      terrain: new og.terrain.GlobusTerrain(),
       layers: [osm],
       autoActivated: true
     });
-    globus.planet.flyLonLat(new LonLat(2, 48, 20108312));
+    globus.planet.flyLonLat(new og.LonLat(2, 48, 20108312));
   }
 
 }
 ```
+
+Note: tsconfig.json `compilerOptions>strict` need to be `false`
 
 ### Code: using in VueJs 
 
@@ -45,28 +42,24 @@ export class GlobeComponent implements OnInit {
   <div id="globus" style="width: 100%; height: 100%"></div>
 </template>
 <script>
-import { Globe, layer, terrain, LonLat } from "@openglobus/og";
+import * as og from "@openglobus/og";
 
 export default {
   name: "openglobus",
   mounted() {
-    const { XYZ } = layer;
-    const { GlobusTerrain } = terrain;
-
-    const osm = new XYZ("OpenStreetMap", {
+    const osm = new og.layer.XYZ("OpenStreetMap", {
       isBaseLayer: true,
       url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      visibility: true
+      visibility: true,
     });
-
-    const globus = new Globe({
+    const globus = new og.Globe({
       target: "globus", // a HTMLDivElement which its id is `globus`
       name: "Earth",
-      terrain: new GlobusTerrain(),
+      terrain: new og.terrain.GlobusTerrain(),
       layers: [osm],
       autoActivated: true
     });
-    globus.planet.flyLonLat(new LonLat(2, 48, 20108312));
+    globus.planet.flyLonLat(new og.LonLat(2, 48, 20108312));
   }
 };
 </script>
