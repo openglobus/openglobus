@@ -13,8 +13,49 @@
 
         import { Globe } from '../../src/og/Globe.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+        import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { Geoid } from '../../src/og/terrain/Geoid.js';
+
+        class GeoidTerrain extends GlobusTerrain {
+            constructor(name, options) {
+                super(name, options);
+
+                options = options || {};
+
+                this.equalizeVertices = true;
+
+                this.equalizeNormals = false;
+
+                this.minZoom = options.minZoom != undefined ? options.minZoom : 1;
+
+                this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 11;
+
+                this.gridSizeByZoom = options.gridSizeByZoom || [
+                    64, 32, 32, 16, 16, 16, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+                ];
+
+                this.plainGridSize = 32;
+            }
+
+            loadTerrain(segment) {
+                segment.terrainReady = false;
+                segment.terrainIsLoading = true;
+                let elevations = new Float32Array((this.plainGridSize + 1) * (this.plainGridSize + 1));
+                segment.applyTerrain(elevations);
+            }
+
+            isBlur(segment) {
+                false;
+                //if (segment.tileZoom >= 18) {
+                //    return true;
+                //}
+                //return false;
+            }
+        }
+
+
+
 
         let osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
@@ -25,7 +66,7 @@
 
         document.getElementById("globus").innerHTML = "Loading geoid...";
 
-        Geoid.loadModel("//openglobus.org/geoid/egm96-15.pgm")
+        Geoid.loadModel("//openglobus.org/geoid/egm84-30.pgm")
             .then((m) => {
 
                 document.getElementById("globus").innerHTML = "";
@@ -34,10 +75,10 @@
                     model: m
                 });
 
-                new Globe({
+                window.globe = new Globe({
                     target: "globus",
                     name: "geoid",
-                    terrain: new GlobusTerrain("openglobus", {
+                    terrain: new GeoidTerrain("egm96-15.pgm", {
                         geoid: geoid
                     }),
                     layers: [osm]

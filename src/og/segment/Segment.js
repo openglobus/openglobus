@@ -42,6 +42,8 @@ var _RenderingSlice = function (p) {
  * @param {og.Extent} extent - Segment extent.
  */
 const Segment = function (node, planet, tileZoom, extent) {
+    this.isPole = false;
+
     this._tileGroup = 0;
 
     this._projection = EPSG3857;

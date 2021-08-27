@@ -1,14 +1,14 @@
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import * as quadTree from '../quadTree/quadTree.js';
-import { EPSG4326 } from '../proj/EPSG4326.js';
-import { Extent } from '../Extent.js';
-import { inherits } from '../inherits.js';
-import { Layer } from '../layer/Layer.js';
-import { LonLat } from '../LonLat.js';
-import { Segment } from './Segment.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as mercator from "../mercator.js";
+import * as quadTree from "../quadTree/quadTree.js";
+import { EPSG4326 } from "../proj/EPSG4326.js";
+import { Extent } from "../Extent.js";
+import { inherits } from "../inherits.js";
+import { Layer } from "../layer/Layer.js";
+import { LonLat } from "../LonLat.js";
+import { Segment } from "./Segment.js";
+import { Vec3 } from "../math/Vec3.js";
 
 const _heightLat = 90.0 - mercator.MAX_LAT;
 const _maxPoleZoom = 7;
@@ -30,7 +30,11 @@ const SegmentLonLat = function (node, planet, tileZoom, extent) {
     this._isNorth = false;
     Segment.call(this, node, planet, tileZoom, extent);
     this._projection = EPSG4326;
-    this._extentMerc = new Extent(extent.southWest.forwardMercatorEPS01(), extent.northEast.forwardMercatorEPS01());
+    this._extentMerc = new Extent(
+        extent.southWest.forwardMercatorEPS01(),
+        extent.northEast.forwardMercatorEPS01()
+    );
+    this.isPole = true;
 };
 
 inherits(SegmentLonLat, Segment);
@@ -70,7 +74,9 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
     var tileZoom = this.tileZoom;
     var extent = this._extent;
 
-    this.tileX = Math.round(Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+    this.tileX = Math.round(
+        Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
+    );
 
     var lat = extent.northEast.lat;
 
@@ -82,14 +88,15 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
     } else {
         //south pole
         this._tileGroup = 2;
-        this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
+        this.tileY = Math.round(
+            (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
+        );
     }
 
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
 SegmentLonLat.prototype._createPlainVertices = function () {
-
     var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
     var e = this._extent,
@@ -129,14 +136,19 @@ SegmentLonLat.prototype._createPlainVertices = function () {
         nmNorms = this.normalMapNormals;
 
     for (var k = 0; k < gsgs; k++) {
-
         var j = k % gs,
             i = ~~(k / gs);
 
-        var v = this.planet.ellipsoid.lonLatToCartesian(new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep));
-        var nx = v.x * r2.x, ny = v.y * r2.y, nz = v.z * r2.z;
+        var v = this.planet.ellipsoid.lonLatToCartesian(
+            new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep)
+        );
+        var nx = v.x * r2.x,
+            ny = v.y * r2.y,
+            nz = v.z * r2.z;
         var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-        var nxl = nx * l, nyl = ny * l, nzl = nz * l;
+        var nxl = nx * l,
+            nyl = ny * l,
+            nzl = nz * l;
 
         Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
