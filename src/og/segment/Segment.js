@@ -1856,19 +1856,17 @@ Segment.prototype.getNodeState = function () {
 };
 
 Segment.prototype.getNeighborSide = function (b) {
-    if (this._tileGroup === b._tileGroup) {
-        if (this.tileY === b.tileY) {
-            if (this.tileX === b.tileXE) {
-                return W;
-            } else if (this.tileX === b.tileXW) {
-                return E;
-            }
-        } else if (this.tileX === b.tileX) {
-            if (this.tileY === b.tileYS) {
-                return N;
-            } else if (this.tileY === b.tileYN) {
-                return S;
-            }
+    if (this.tileY === b.tileY) {
+        if (this.tileX === b.tileXE) {
+            return W;
+        } else if (this.tileX === b.tileXW) {
+            return E;
+        }
+    } else if (this.tileX === b.tileX) {
+        if (this.tileY === b.tileYS) {
+            return N;
+        } else if (this.tileY === b.tileYN) {
+            return S;
         }
     }
 

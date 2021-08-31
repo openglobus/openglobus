@@ -2,7 +2,7 @@
  * @module og/terrainProvider/EmptyTerrain
  */
 
-'use strict';
+"use strict";
 
 import { binarySearchFast } from "../utils/shared.js";
 
@@ -12,7 +12,6 @@ import { binarySearchFast } from "../utils/shared.js";
  */
 class EmptyTerrain {
     constructor(options = {}) {
-
         this.equalizeVertices = false;
 
         this.equalizeNormals = false;
@@ -42,7 +41,10 @@ class EmptyTerrain {
          * @public
          * @type {Array.<number>}
          */
-        this.gridSizeByZoom = options.gridSizeByZoom || [32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+        this.gridSizeByZoom = options.gridSizeByZoom || [
+            32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+        ];
+        //this.gridSizeByZoom = options.gridSizeByZoom || [32, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
@@ -132,14 +134,14 @@ class EmptyTerrain {
      * @public
      * @abstract
      */
-    abortLoading() { }
+    abortLoading() {}
 
     /**
      * Abstract function
      * @public
      * @abstract
      */
-    clearCache() { }
-};
+    clearCache() {}
+}
 
 export { EmptyTerrain };
