@@ -287,18 +287,6 @@ class Planet extends RenderNode {
         this._heightPickingFramebuffer = null;
 
         /**
-         * Calculates when mouse is moving or planet is rotating.
-         * @protected
-         * @type {number}
-         */
-        this._currentDistanceFromPixel = 0;
-
-        /**
-         * @protected
-         */
-        this._viewChanged = true;
-
-        /**
          * Mercator grid tree.
          * @protected
          * @type {og.quadTree.Node}
@@ -749,30 +737,6 @@ class Planet extends RenderNode {
 
         this.updateVisibleLayers();
 
-        this.renderer.activeCamera.events.on(
-            "viewchange",
-            function (e) {
-                this._viewChanged = true;
-            },
-            this
-        );
-
-        this.renderer.events.on(
-            "mousemove",
-            function (e) {
-                this._viewChanged = true;
-            },
-            this
-        );
-
-        this.renderer.events.on(
-            "touchmove",
-            function (e) {
-                this._viewChanged = true;
-            },
-            this
-        );
-
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
         // loading Earth night glowing texture
@@ -1097,6 +1061,8 @@ class Planet extends RenderNode {
         let gl = h.gl;
         let cam = renderer.activeCamera;
         let frustumIndex = cam.getCurrentFrustum();
+
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
             this._collectRenderNodes();
@@ -1573,49 +1539,41 @@ class Planet extends RenderNode {
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {number} -
      */
-    getDistanceFromPixel(px, force) {
-        if (this._viewChanged || force) {
-            this._viewChanged = false;
-            let r = this.renderer,
-                cnv = this.renderer.handler.canvas;
+    getDistanceFromPixel(px) {
+        let r = this.renderer,
+            cnv = this.renderer.handler.canvas;
 
-            let spx = px.x / cnv.width,
-                spy = (cnv.height - px.y) / cnv.height;
+        let spx = px.x / cnv.width,
+            spy = (cnv.height - px.y) / cnv.height;
 
-            // HEIGHT
-            this._heightPickingFramebuffer.activate();
-            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
-            this._heightPickingFramebuffer.deactivate();
+        // HEIGHT
+        this._heightPickingFramebuffer.activate();
+        this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+        this._heightPickingFramebuffer.deactivate();
 
-            let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
+        let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
 
-            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
-                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
-            } else if (dist < DEPTH_DISTANCE) {
-                r.screenDepthFramebuffer.activate();
-                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
-                r.screenDepthFramebuffer.deactivate();
+        if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
+            dist = this.getDistanceFromPixelEllipsoid(px) || 0;
+        } else if (dist < DEPTH_DISTANCE) {
+            r.screenDepthFramebuffer.activate();
+            r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
+            r.screenDepthFramebuffer.deactivate();
 
-                let screenPos = new Vec4(
-                    spx * 2.0 - 1.0,
-                    spy * 2.0 - 1.0,
-                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                    1.0 * 2.0 - 1.0
-                );
-                let viewPosition =
-                    this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-                dist =
-                    -(viewPosition.z / viewPosition.w) /
-                    dir.dot(this.renderer.activeCamera.getForward());
-            }
-
-            this._currentDistanceFromPixel = dist;
-
-            return this._currentDistanceFromPixel;
+            let screenPos = new Vec4(
+                spx * 2.0 - 1.0,
+                spy * 2.0 - 1.0,
+                (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
+                1.0 * 2.0 - 1.0
+            );
+            let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+            let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+            dist =
+                -(viewPosition.z / viewPosition.w) /
+                dir.dot(this.renderer.activeCamera.getForward());
         }
 
-        return this._currentDistanceFromPixel;
+        return dist;
     }
 
     /**
