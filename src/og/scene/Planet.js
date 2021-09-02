@@ -77,7 +77,13 @@ const EVENT_NAMES = [
      * Triggered when some layer visibility changed.
      * @event og.scene.Planet#layervisibilitychange
      */
-    "layervisibilitychange"
+    "layervisibilitychange",
+
+    /**
+     * Triggered when all data is loaded
+     * @event og.scene.Planet#rendercompleted
+     */
+    "rendercompleted"
 ];
 
 /**
@@ -394,6 +400,8 @@ class Planet extends RenderNode {
         this._initialized = false;
 
         this.always = [];
+
+        this._renderCompleted = true;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -1044,11 +1052,31 @@ class Planet extends RenderNode {
     frame() {
         this._renderScreenNodesPASS();
 
-        //if (HEIGHTPICKING) {
         this._renderHeightPickingFramebufferPASS();
-        //}
 
         this.drawEntityCollections(this._frustumEntityCollections);
+
+        this._checkRendercompleted();
+    }
+
+    _checkRendercompleted() {
+        if (
+            this._plainSegmentWorker._pendingQueue.length === 0 &&
+            this._tileLoader._loading === 0 &&
+            this._tileLoader._queue.length === 0 &&
+            (!this.terrain._loader ||
+                (this.terrain._loader &&
+                    this.terrain._loader._loading === 0 &&
+                    this.terrain._loader._queue.length === 0)) &&
+            this._terrainWorker._pendingQueue.length === 0
+        ) {
+            if (!this._renderCompleted) {
+                this._renderCompleted = true;
+                this.events.dispatch(this.events.rendercompleted, true);
+            }
+        } else {
+            this._renderCompleted = false;
+        }
     }
 
     /**
