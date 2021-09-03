@@ -212,7 +212,7 @@ class Planet extends RenderNode {
          * @type {og.quadTree.Node}
          */
         this._renderedNodes = [];
-        this._renderedNodesInFrustum = new Array(3);
+        this._renderedNodesInFrustum = [];
 
         /**
          * Created nodes cache
@@ -401,7 +401,7 @@ class Planet extends RenderNode {
 
         this.always = [];
 
-        this._renderCompleted = true;
+        this._renderCompleted = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -777,6 +777,10 @@ class Planet extends RenderNode {
         this._preRender();
 
         this._initialized = true;
+
+        this.renderer.events.on("postdraw", () => {
+            this._checkRendercompleted();
+        });
     }
 
     clearIndexesCache() {
@@ -1055,28 +1059,18 @@ class Planet extends RenderNode {
         this._renderHeightPickingFramebufferPASS();
 
         this.drawEntityCollections(this._frustumEntityCollections);
-
-        this._checkRendercompleted();
     }
 
     _checkRendercompleted() {
-        if (
-            this._plainSegmentWorker._pendingQueue.length === 0 &&
-            this._tileLoader._loading === 0 &&
-            this._tileLoader._queue.length === 0 &&
-            (!this.terrain._loader ||
-                (this.terrain._loader &&
-                    this.terrain._loader._loading === 0 &&
-                    this.terrain._loader._queue.length === 0)) &&
-            this._terrainWorker._pendingQueue.length === 0
-        ) {
-            if (!this._renderCompleted) {
-                this._renderCompleted = true;
+        if (this._renderCompleted) {
+            if (!this._renderCompletedActivated) {
+                this._renderCompletedActivated = true;
                 this.events.dispatch(this.events.rendercompleted, true);
             }
         } else {
-            this._renderCompleted = false;
+            this._renderCompletedActivated = false;
         }
+        this._renderCompleted = true;
     }
 
     /**
