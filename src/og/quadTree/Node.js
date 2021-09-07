@@ -438,6 +438,10 @@ Node.prototype.addToRender = function (inFrustum) {
 
     nodes.push(this);
 
+    if (!this.segment.terrainReady) {
+        this.planet._renderCompleted = false;
+    }
+
     let k = 0,
         rf = this.planet._renderedNodesInFrustum;
     while (inFrustum) {

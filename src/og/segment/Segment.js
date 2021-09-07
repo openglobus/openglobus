@@ -1483,6 +1483,10 @@ Segment.prototype.screenRendering = function (
                 m = pm[li._id] = li.createMaterial(this);
             }
 
+            if (!m.isReady) {
+                this.planet._renderCompleted = false;
+            }
+
             slice.layers.push(li);
 
             var n4 = n * 4,
