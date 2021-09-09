@@ -332,12 +332,13 @@ Node.prototype.prepareForRendering = function (
     } else {
         if (seg.tileZoom < 2) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
+        } else if (seg.tileZoom >= MAX_NORMAL_ZOOM) {
+            this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else if (
-            seg.tileZoom < MAX_NORMAL_ZOOM &&
-            (seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)
+            seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
+            seg._seNorm.dot(cam.eyeNorm) > DOT_VIS
         ) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
