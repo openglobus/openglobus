@@ -63,7 +63,7 @@ document.getElementById('upload').onchange = async e => {
   const files = Array.from(e.target.files);
   const pathes = await Promise.all(files.map(f => readKmlFile(f)));
   const { entities, extent } = extractPathes(pathes, color);
-  const ptsLayer = new og.layer.Vector('pts', { entities, clampToGround: true });
+  const ptsLayer = new og.layer.Vector('kmls', { entities });
   globus.planet.addLayer(ptsLayer);
   kmlExtent = extent;
   globus.planet.flyExtent(extent);
