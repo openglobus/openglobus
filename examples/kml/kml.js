@@ -1,7 +1,8 @@
+import { KML } from '../../src/og/layer/KML.js';
 
 const osm = new og.layer.XYZ('osm', { isBaseLayer: true, url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' });
 const globus = new og.Globe({ target: 'globus', terrain: new og.terrain.GlobusTerrain(), layers: [osm] });
-const billboard = { src: './carrot.png', color: 'red' };
+const billboard = { src: './plane.png' };
 let kmlExtent;
 
 const getXmlContent = file => {
@@ -17,7 +18,7 @@ document.getElementById('upload').onchange = async e => {
   billboard.color = color;
   const files = Array.from(e.target.files);
   const kmls = await Promise.all(files.map(f => getXmlContent(f)));
-  const ptsLayer = new og.layer.KML('myKmlFiles', { kmls });
+  const ptsLayer = new KML('myKmlFiles', { kmls, billboard, color });
   globus.planet.addLayer(ptsLayer);
   kmlExtent = ptsLayer.getExtent();
   globus.planet.flyExtent(kmlExtent);

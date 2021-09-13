@@ -3,6 +3,10 @@
  */
 
 'use strict';
+import { Extent } from '../Extent.js';
+import { LonLat } from '../LonLat.js';
+import { Vector } from './Vector.js';
+import { Entity } from '../entity/Entity.js';
 
 /**
  * Layer to render KMLs files
@@ -14,20 +18,21 @@ class KML extends Vector {
     #extent;
 
     constructor(name, options = {}) {
-        const xmlDocs = options.kmls;
-        const coordonates = xmlDocs.map(f => this._extractCoordonatesFromKml(f));
-        const { entities, extent } = this._convertCoordonatesIntoEntities(coordonates, color);
-        this.#extent = extent;
-        if (!options.entities) options.entities = [];
-        options.entities = [...options.entities, ...entities];
         super(name, options);
+        const kmls = options.kmls || [];
+        const billboard = options.billboard || { src: 'https://openglobus.org/examples/billboards/carrot.png' };
+        const color = options.color || '#6689db';
+        const coordonates = kmls.map(this.extractCoordonatesFromKml);
+        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, color, billboard);
+        this.#extent = extent;
+        entities.forEach(this.add.bind(this));
     }
 
     get instanceName() {
-        return "KML";
+        return 'KML';
     }
 
-    _extractCoordonatesFromKml(xmlDoc) {
+    extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName('coordinates'));
         const coordinates = raw.map(item => item.textContent.trim().replace(/\n/g, ' ').split(' ').map(co => co.split(',').map(parseFloat)));
         return coordinates;
@@ -39,8 +44,8 @@ class KML extends Vector {
      * @param {string} color 
      * @returns {Array<og.Entity>}
      */
-    _convertCoordonatesIntoEntities(coordinates, color) {
-        const extent = new og.Extent(new og.LonLat(180.0, 90.0), new og.LonLat(-180.0, -90.0));
+    convertCoordonatesIntoEntities(coordinates, color, billboard) {
+        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const addToExtent = (c) => {
             const lon = c[0], lat = c[1];
             if (lon < extent.southWest.lon) extent.southWest.lon = lon;
@@ -53,15 +58,15 @@ class KML extends Vector {
         const entities = _pathes.map(path => {
             if (path.length === 1) {
                 const lonlat = path[0];
-                const _entity = new og.Entity({ lonlat, billboard });
+                const _entity = new Entity({ lonlat, billboard });
                 addToExtent(lonlat);
                 return _entity;
             } else if (path.length > 1) {
                 const pathLonLat = path.map(item => {
                     addToExtent(item);
-                    return new og.LonLat(item[0], item[1], item[2]);
+                    return new LonLat(item[0], item[1], item[2]);
                 });
-                const _entity = new og.Entity({ polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false } });
+                const _entity = new Entity({ polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false } });
                 return _entity;
             }
         });
