@@ -16,14 +16,16 @@ import { Entity } from '../entity/Entity.js';
 class KML extends Vector {
 
     #extent;
+    #billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
+    #color = '#6689db';
 
     constructor(name, options = {}) {
         super(name, options);
         const kmls = options.kmls || [];
-        const billboard = options.billboard || { src: 'https://openglobus.org/examples/billboards/carrot.png' };
-        const color = options.color || '#6689db';
+        this.#billboard = options.billboard || this.#billboard;
+        this.#color = options.color || this.#color;
         const coordonates = kmls.map(this.extractCoordonatesFromKml);
-        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, color, billboard);
+        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
         this.#extent = extent;
         entities.forEach(this.add.bind(this));
     }
@@ -71,6 +73,31 @@ class KML extends Vector {
             }
         });
         return { entities, extent };
+    }
+
+    getKmlFromUrl(url) {
+        return new Promise((resolve, reject) => {
+            const request = new XMLHttpRequest();
+            request.open('GET', url, true);
+            request.responseType = 'document';
+            request.overrideMimeType('text/xml');
+            request.onload = () => {
+                if (request.readyState === request.DONE && request.status === 200) {
+                    resolve(request.responseXML);
+                } else {
+                    reject(new Error('no valid kml file'));
+                }
+            };
+            request.send();
+        });
+    };
+
+    async addKmlFromUrl(url) {
+        const kml = await this.getKmlFromUrl(url);
+        const coordonates = this.extractCoordonatesFromKml(kml);
+        const { entities, extent } = this.convertCoordonatesIntoEntities([coordonates], this.#color, this.#billboard);
+        this.#extent = extent;
+        entities.forEach(this.add.bind(this));
     }
 
     getExtent() {
