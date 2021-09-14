@@ -84,6 +84,7 @@ class KML extends Vector {
         const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
         this.#extent = extent;
         entities.forEach(this.add.bind(this));
+        return { entities, extent };
     }
 
     setColor(color) {
@@ -114,6 +115,7 @@ class KML extends Vector {
         const { entities, extent } = this.convertCoordonatesIntoEntities([coordonates], this.#color, this.#billboard);
         this.#extent = extent;
         entities.forEach(this.add.bind(this));
+        return { entities, extent };
     }
 
     getExtent() {

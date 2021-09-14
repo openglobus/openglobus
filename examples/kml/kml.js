@@ -8,8 +8,9 @@ let dieppeRouen;
 document.getElementById('upload').onchange = async e => {
   const color = document.getElementById('color').value;
   dieppeRouen.setColor(color);
-  dieppeRouen.addKmlFromFiles(Array.from(e.target.files));
-  globus.planet.flyExtent(dieppeRouen.getExtent());
+  const KMLs = Array.from(e.target.files);
+  const { extent } = await dieppeRouen.addKmlFromFiles(KMLs);
+  globus.planet.flyExtent(extent);
   document.getElementById('viewExtent').style.display = 'inline';
 };
 
@@ -19,11 +20,10 @@ document.getElementById('viewExtent').onclick = () => {
 
 (async () => {
   dieppeRouen = new KML('dieppeRouenVector', {
-    billboard:
-      { src: './plane.png', color: '#6689db' },
+    billboard: { src: './plane.png', color: '#6689db' },
     color: '#6689db'
   });
-  await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
+  const { extent } = await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
   globus.planet.addLayer(dieppeRouen);
-  globus.planet.flyExtent(dieppeRouen.getExtent());
+  globus.planet.flyExtent(extent);
 })();
