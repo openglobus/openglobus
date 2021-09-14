@@ -36,7 +36,8 @@
     "./entity": "./src/og/entity/index.js",
     "./control": "./src/og/control/index.js",
     "./webgl": "./src/og/webgl/index.js",
-    "./scene": "./src/og/scene/index.js"
+    "./scene": "./src/og/scene/index.js",
+    "./css/og.css": "./css/og.css"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.12.17",
