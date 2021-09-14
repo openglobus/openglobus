@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<Style id="plane">
+			<IconStyle>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/pal2/icon56.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<Style id="poi">
+			<IconStyle>
+				<Icon>
+					<href>http://labs.google.com/ridefinder/images/mm_20_orange.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<open>1</open>
+		<Folder>
+			<name>Les 4 CH... CHAMBORD, CHEVERNY, CHAUMONT-SUR-LOIRE et CHENONCEAU.</name>
+			<description>
+Voici une nav traditionnelle vers les châteaux de la Loire.
+Les CHÂTEAUX DE LA LOIRE    Suggestion de navigation
+Les 4 CH... CHAMBORD, CHEVERNY, CHAUMONT-SUR-LOIRE et CHENONCEAU.
+
+LFPT – vor EPR (Epernon) puis vor CAD ( Chateaudun). Contacter Orléans Bricy. 
+Cap 169 vers CHAMBORD.  Attention activité R149A, P34 et R96.
+Cap 200 vers CHEVERNY. Le plus difficile à trouver.
+Cap 264 vers CHAUMONT-sur-LOIRE, au bord de la Loire.
+Cap vers le vor AMB (Amboise) puis plein sud vers CHENONCEAU (pour moi le plus beau).
+Le terrain d’Amboise-Dierre (LFEF) est à  3 minutes au cap 280. 
+Arrêt restaurant à Dierre ou Saint-Martin-le-Beau.
+Retour
+La pagode de Chanteloup à 2 minutes de LFEF.
+Après Chateaudun, cap 025 vers la R132A à + de 500 ASFC, vue imprenable sur le château de RAMBOUILLET  (le +).  
+Retour Pontoise.
+			</description>
+			<open>1</open>
+			<Placemark>
+				<name>L'allée</name>
+				<LineString>
+					<coordinates>2.039,49.090 1.6558,48.6210 1.3774,48.0571 1.51744,47.61607 1.45799,47.50017 1.18186,47.47908 1.0699,47.32463 0.9449,47.3411</coordinates>
+				</LineString>
+			</Placemark>
+			<Placemark>
+				<name>Le retour</name>
+				<LineString>
+					<coordinates>0.9449,47.3411	1.2072,47.6776 1.123,48.097 1.414,48.452 2.039,49.090</coordinates>
+				</LineString>
+			</Placemark>
+			<Placemark>
+				<name>LFPT</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>2.039,49.090</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Châteaudun LFOC, vor CAD</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>1.3774,48.0571</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Château de Chambord</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>1.51744,47.61607</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Château de Cheverny</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>1.45799,47.50017</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Château de Chaumont sur Loire</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>1.18186,47.47908</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Château de Chenonceau</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>1.0699,47.32463</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Amboise-Dierre LFEF</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>0.9449,47.3411</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Pagode de Chanteloup</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>0.97014,47.39062</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Chartres LFOR</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>1.52265,48.45864</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Château de Rambouillet</name>
+				<styleUrl>#poi</styleUrl>
+				<Point>
+					<coordinates>1.81746,48.64537</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Blois LFOQ</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>1.2072,47.6776</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Dreux LFON</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>1.3611,48.70631</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name>Les mureaux LFXU</name>
+				<styleUrl>#plane</styleUrl>
+				<Point>
+					<coordinates>1.93623,48.99907</coordinates>
+				</Point>
+			</Placemark>
+		</Folder>
+	</Document>
+</kml>

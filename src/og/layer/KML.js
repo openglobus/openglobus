@@ -21,13 +21,8 @@ class KML extends Vector {
 
     constructor(name, options = {}) {
         super(name, options);
-        const kmls = options.kmls || [];
         this.#billboard = options.billboard || this.#billboard;
         this.#color = options.color || this.#color;
-        const coordonates = kmls.map(this.extractCoordonatesFromKml);
-        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
-        this.#extent = extent;
-        entities.forEach(this.add.bind(this));
     }
 
     get instanceName() {
@@ -73,6 +68,27 @@ class KML extends Vector {
             }
         });
         return { entities, extent };
+    }
+
+    getXmlContent(file) {
+        return new Promise(resolve => {
+            const fileReader = new FileReader();
+            fileReader.onload = async i => resolve((new DOMParser()).parseFromString(i.target.result, 'text/xml'));
+            fileReader.readAsText(file);
+        });
+    };
+
+    async addKmlFromFiles(kmls) {
+        const kmlObjs = await Promise.all(kmls.map(this.getXmlContent));
+        const coordonates = kmlObjs.map(this.extractCoordonatesFromKml);
+        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
+        this.#extent = extent;
+        entities.forEach(this.add.bind(this));
+    }
+
+    setColor(color) {
+        this.#color = color;
+        this.#billboard.color = color;
     }
 
     getKmlFromUrl(url) {
