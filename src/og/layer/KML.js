@@ -82,7 +82,7 @@ class KML extends Vector {
         const kmlObjs = await Promise.all(kmls.map(this.getXmlContent));
         const coordonates = kmlObjs.map(this.extractCoordonatesFromKml);
         const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
-        this.#extent = extent;
+        this.#extent = extent; // TODO expand the extent here
         entities.forEach(this.add.bind(this));
         return { entities, extent };
     }
