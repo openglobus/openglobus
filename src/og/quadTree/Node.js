@@ -32,7 +32,6 @@ import {
 
 import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
-const DOT_VIS = 0.3;
 const VISIBLE_HEIGHT = 3000000.0;
 
 let _tempHigh = new Vec3(),
@@ -255,7 +254,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             }
         }
     } else {
-        let commonFrustumFlag = 1 << (numFrustums - 1 - 1); //Math.pow(2, numFrustums - 1) - 1;
+        let commonFrustumFlag = 1 << (numFrustums - 1 - 1);
         for (let i = 0; commonFrustumFlag && i < numFrustums; i++) {
             if (seg.terrainReady) {
                 if (frustums[i].containsBox(seg.bbox)) {
@@ -335,10 +334,10 @@ Node.prototype.prepareForRendering = function (
         } else if (seg.tileZoom >= MAX_NORMAL_ZOOM) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else if (
-            seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
-            seg._seNorm.dot(cam.eyeNorm) > DOT_VIS
+            seg._swNorm.dot(cam._n) > 0.0 ||
+            seg._nwNorm.dot(cam._n) > 0.0 ||
+            seg._neNorm.dot(cam._n) > 0.0 ||
+            seg._seNorm.dot(cam._n) > 0.0
         ) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
