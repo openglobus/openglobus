@@ -3,17 +3,17 @@
  */
 
 'use strict';
+import { Entity } from '../entity/Entity.js';
 import { Extent } from '../Extent.js';
 import { LonLat } from '../LonLat.js';
 import { Vector } from './Vector.js';
-import { Entity } from '../entity/Entity.js';
 
 /**
  * Layer to render KMLs files
  * @class
  * @extends {og.Vector}
  */
-class KML extends Vector {
+export class KML extends Vector {
 
     #extent;
     #billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
@@ -78,11 +78,20 @@ class KML extends Vector {
         });
     };
 
+    expandExtents(extent1, extent2) {
+        if(!extent1) return extent2;
+        if (extent2.southWest.lon < extent1.southWest.lon) extent1.southWest.lon = extent2.southWest.lon;
+        if (extent2.southWest.lat < extent1.southWest.lat) extent1.southWest.lat = extent2.southWest.lat;
+        if (extent2.northEast.lon > extent1.northEast.lon) extent1.northEast.lon = extent2.northEast.lon;
+        if (extent2.northEast.lat > extent1.northEast.lat) extent1.northEast.lat = extent2.northEast.lat;
+        return extent1;
+    }
+
     async addKmlFromFiles(kmls) {
         const kmlObjs = await Promise.all(kmls.map(this.getXmlContent));
         const coordonates = kmlObjs.map(this.extractCoordonatesFromKml);
         const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
-        this.#extent = extent; // TODO expand the extent here
+        this.#extent = this.expandExtents(this.#extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
     }
@@ -113,7 +122,7 @@ class KML extends Vector {
         const kml = await this.getKmlFromUrl(url);
         const coordonates = this.extractCoordonatesFromKml(kml);
         const { entities, extent } = this.convertCoordonatesIntoEntities([coordonates], this.#color, this.#billboard);
-        this.#extent = extent;
+        this.#extent = this.expandExtents(this.#extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
     }
@@ -122,5 +131,3 @@ class KML extends Vector {
         return this.#extent;
     }
 };
-
-export { KML };
