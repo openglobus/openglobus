@@ -180,8 +180,16 @@ class MouseNavigation extends Control {
     }
 
     onMouseEnter(e) {
-        if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
-            this.renderer.events.releaseKeys();
+        const renderEvents = this.renderer.events;
+        if (renderEvents.isKeyPressed(input.KEY_ALT)) {
+            renderEvents.releaseKeys();
+        }
+
+        renderEvents.updateButtonsStates(e.buttons);
+        if (renderEvents.mouseState.leftButtonDown) {
+            this.renderer.handler.canvas.classList.add("ogGrabbingPoiner");
+        } else {
+            this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
         }
     }
 
@@ -189,6 +197,7 @@ class MouseNavigation extends Control {
         if (this.renderer.events.mouseState.leftButtonDown) {
             this.scaleRot = 0;
         }
+        this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
     }
 
     onMouseWheel(event) {
@@ -312,7 +321,10 @@ class MouseNavigation extends Control {
     onMouseRightButtonClick(e) {
         this.stopRotation();
         this.planet.stopFlying();
-        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({ x: e.x, y: e.y }, true);
+        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({
+            x: e.x,
+            y: e.y
+        }, true);
         if (this.pointOnEarth) {
             this.earthUp = this.pointOnEarth.normal();
         }
