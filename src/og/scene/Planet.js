@@ -24,7 +24,7 @@ import { PlanetCamera } from "../camera/PlanetCamera.js";
 import { RenderNode } from "./RenderNode.js";
 import { Segment } from "../segment/Segment.js";
 import { SegmentLonLat } from "../segment/SegmentLonLat.js";
-import { PlainSegmentWorker } from "../segment/PlainSegmentWorker.js";
+import { PlainSegmentWorker } from "../utils/PlainSegmentWorker.js";
 import { TerrainWorker } from "../utils/TerrainWorker.js";
 import { VectorTileCreator } from "../utils/VectorTileCreator.js";
 import { wgs84 } from "../ellipsoid/wgs84.js";
@@ -800,11 +800,11 @@ class Planet extends RenderNode {
         this._quadTree.renderNode();
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        for (var i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.createPlainSegment();
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
+        //for (var i = 0; i < this._quadTree.nodes.length; i++) {
+        //    this._quadTree.nodes[i].segment.createPlainSegment();
+        //    this._quadTree.nodes[i].renderNode(true);
+        //    this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
+        //}
 
         this._quadTreeNorth.createChildrenNodes();
         this._quadTreeNorth.segment.createPlainSegment();
