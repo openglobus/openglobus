@@ -81,7 +81,7 @@ class Globe {
          * @public
          * @type {Element}
          */
-        this.div = document.getElementById(options.target);
+        this.div = document.getElementById(options.target) || document.querySelector(options.target);
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
