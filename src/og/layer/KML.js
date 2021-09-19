@@ -15,21 +15,24 @@ import { Vector } from './Vector.js';
  */
 export class KML extends Vector {
 
-    #extent;
-    #billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
-    #color = '#6689db';
+    _billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
+    _color = '#6689db';
 
     constructor(name, options = {}) {
         super(name, options);
-        this.#billboard = options.billboard || this.#billboard;
-        this.#color = options.color || this.#color;
+        this._extent = null;
+        this._billboard = options.billboard || this._billboard;
+        this._color = options.color || this._color;
     }
 
     get instanceName() {
         return 'KML';
     }
 
-    extractCoordonatesFromKml(xmlDoc) {
+    /**
+     * @private
+     */
+    _extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName('coordinates'));
         const coordinates = raw.map(item => item.textContent.trim().replace(/\n/g, ' ').split(' ').map(co => co.split(',').map(parseFloat)));
         return coordinates;
@@ -37,11 +40,12 @@ export class KML extends Vector {
 
     /**
      * Creates billboards or polylines from array of lonlat.
+     * @private
      * @param {Array} coordonates
      * @param {string} color 
      * @returns {Array<og.Entity>}
      */
-    convertCoordonatesIntoEntities(coordinates, color, billboard) {
+    _convertCoordonatesIntoEntities(coordinates, color, billboard) {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const addToExtent = (c) => {
             const lon = c[0], lat = c[1];
@@ -70,7 +74,10 @@ export class KML extends Vector {
         return { entities, extent };
     }
 
-    getXmlContent(file) {
+    /**
+     * @private
+     */
+    _getXmlContent(file) {
         return new Promise(resolve => {
             const fileReader = new FileReader();
             fileReader.onload = async i => resolve((new DOMParser()).parseFromString(i.target.result, 'text/xml'));
@@ -78,8 +85,11 @@ export class KML extends Vector {
         });
     };
 
-    expandExtents(extent1, extent2) {
-        if(!extent1) return extent2;
+    /**
+     * @private
+     */
+    _expandExtents(extent1, extent2) {
+        if (!extent1) return extent2;
         if (extent2.southWest.lon < extent1.southWest.lon) extent1.southWest.lon = extent2.southWest.lon;
         if (extent2.southWest.lat < extent1.southWest.lat) extent1.southWest.lat = extent2.southWest.lat;
         if (extent2.northEast.lon > extent1.northEast.lon) extent1.northEast.lon = extent2.northEast.lon;
@@ -87,21 +97,33 @@ export class KML extends Vector {
         return extent1;
     }
 
+    /**
+     * @public
+     * @param {File[]} kmls
+     * @returns {Promise}
+     */
     async addKmlFromFiles(kmls) {
-        const kmlObjs = await Promise.all(kmls.map(this.getXmlContent));
-        const coordonates = kmlObjs.map(this.extractCoordonatesFromKml);
-        const { entities, extent } = this.convertCoordonatesIntoEntities(coordonates, this.#color, this.#billboard);
-        this.#extent = this.expandExtents(this.#extent, extent);
+        const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
+        const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
+        const { entities, extent } = this._convertCoordonatesIntoEntities(coordonates, this._color, this._billboard);
+        this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
     }
 
+    /**
+     * @param {string} color 
+     * @public
+     */
     setColor(color) {
-        this.#color = color;
-        this.#billboard.color = color;
+        this._color = color;
+        this._billboard.color = color;
     }
 
-    getKmlFromUrl(url) {
+    /**
+     * @private
+     */
+    _getKmlFromUrl(url) {
         return new Promise((resolve, reject) => {
             const request = new XMLHttpRequest();
             request.open('GET', url, true);
@@ -118,16 +140,18 @@ export class KML extends Vector {
         });
     };
 
+    /**
+     * @public
+     * @param {string} url - Url of the KML to display. './myFile.kml' or 'http://mySite/myFile.kml' for example.
+     * @returns {Promise}
+     */
     async addKmlFromUrl(url) {
-        const kml = await this.getKmlFromUrl(url);
-        const coordonates = this.extractCoordonatesFromKml(kml);
-        const { entities, extent } = this.convertCoordonatesIntoEntities([coordonates], this.#color, this.#billboard);
-        this.#extent = this.expandExtents(this.#extent, extent);
+        const kml = await this._getKmlFromUrl(url);
+        const coordonates = this._extractCoordonatesFromKml(kml);
+        const { entities, extent } = this._convertCoordonatesIntoEntities([coordonates], this._color, this._billboard);
+        this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
     }
 
-    getExtent() {
-        return this.#extent;
-    }
 };
