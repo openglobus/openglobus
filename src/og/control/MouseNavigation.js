@@ -2,18 +2,18 @@
  * @module og/control/MouseNavigation
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Control } from './Control.js';
-import { input } from '../input/input.js';
-import { Key } from '../Lock.js';
-import { LonLat } from '../LonLat.js';
-import { Mat4 } from '../math/Mat4.js';
-import { Quat } from '../math/Quat.js';
-import { Ray } from '../math/Ray.js';
-import { Sphere } from '../bv/Sphere.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as math from "../math.js";
+import { Control } from "./Control.js";
+import { input } from "../input/input.js";
+import { Key } from "../Lock.js";
+import { LonLat } from "../LonLat.js";
+import { Mat4 } from "../math/Mat4.js";
+import { Quat } from "../math/Quat.js";
+import { Ray } from "../math/Ray.js";
+import { Sphere } from "../bv/Sphere.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Mouse planet camera dragging control.
@@ -46,11 +46,12 @@ class MouseNavigation extends Control {
 
         this._lmbDoubleClickActive = true;
 
+        this.minSlope = options.minSlope || 0.1;
+
         this._keyLock = new Key();
     }
 
     static getMovePointsFromPixelTerrain(cam, planet, stepsCount, delta, point, forward, dir) {
-
         var steps = [];
 
         var eye = cam.eye.clone(),
@@ -65,12 +66,11 @@ class MouseNavigation extends Control {
         }
 
         if (a) {
-
             if (!dir) {
                 dir = Vec3.sub(a, cam.eye).normalize();
             }
 
-            var d = a ? delta * cam.eye.distance(a) / stepsCount : 1000;
+            var d = a ? (delta * cam.eye.distance(a)) / stepsCount : 1000;
 
             if (forward) {
                 d = -d;
@@ -163,7 +163,7 @@ class MouseNavigation extends Control {
         this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
         this.renderer.events.off("mouseleave", this.onMouseLeave);
         this.renderer.events.off("mouseenter", this.onMouseEnter);
-    };
+    }
 
     activateDoubleClickZoom() {
         if (!this._lmbDoubleClickActive) {
@@ -201,7 +201,6 @@ class MouseNavigation extends Control {
     }
 
     onMouseWheel(event) {
-
         if (this.stepIndex) {
             return;
         }
@@ -217,8 +216,15 @@ class MouseNavigation extends Control {
         this.planet._normalMapCreator.lock(this._keyLock);
 
         var ms = this.renderer.events.mouseState;
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(this.renderer.activeCamera,
-            this.planet, this.stepsCount, this.distDiff, ms, event.wheelDelta > 0, ms.direction);
+        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
+            this.renderer.activeCamera,
+            this.planet,
+            this.stepsCount,
+            this.distDiff,
+            ms,
+            event.wheelDelta > 0,
+            ms.direction
+        );
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
         }
@@ -238,9 +244,13 @@ class MouseNavigation extends Control {
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
             if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
-                this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0));
+                this.planet.flyLonLat(
+                    new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 2.0)
+                );
             } else {
-                this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
+                this.planet.flyLonLat(
+                    new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57)
+                );
             }
         }
     }
@@ -273,7 +283,6 @@ class MouseNavigation extends Control {
 
     onMouseLeftButtonDown(e) {
         if (this._active) {
-
             if (!this.grabbedPoint) {
                 return;
             }
@@ -281,14 +290,16 @@ class MouseNavigation extends Control {
             this.planet.stopFlying();
 
             if (this.renderer.events.mouseState.moving) {
-
                 var cam = this.renderer.activeCamera;
 
                 if (cam.slope > 0.2) {
                     var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
                     if (targetPoint) {
                         this.scaleRot = 1.0;
-                        this.qRot = Quat.getRotationBetweenVectors(targetPoint.normal(), this.grabbedPoint.normal());
+                        this.qRot = Quat.getRotationBetweenVectors(
+                            targetPoint.normal(),
+                            this.grabbedPoint.normal()
+                        );
                         var rot = this.qRot;
                         cam.eye = rot.mulVec3(cam.eye);
                         cam._v = rot.mulVec3(cam._v);
@@ -300,7 +311,6 @@ class MouseNavigation extends Control {
                         cam.update();
                     }
                 } else {
-
                     var p0 = this.grabbedPoint,
                         p1 = Vec3.add(p0, cam._u),
                         p2 = Vec3.add(p0, p0.normal());
@@ -321,26 +331,28 @@ class MouseNavigation extends Control {
     onMouseRightButtonClick(e) {
         this.stopRotation();
         this.planet.stopFlying();
-        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain({
-            x: e.x,
-            y: e.y
-        }, true);
+        this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(
+            {
+                x: e.x,
+                y: e.y
+            },
+            true
+        );
         if (this.pointOnEarth) {
             this.earthUp = this.pointOnEarth.normal();
         }
-    };
+    }
 
     onMouseRightButtonDown(e) {
         var cam = this.renderer.activeCamera;
 
         if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
-
             this.renderer.controlsBag.scaleRot = 1.0;
-            var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
+            var l = (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
 
-            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, true);
+            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, this.minSlope);
 
             cam.checkTerrainCollision();
 
@@ -353,9 +365,7 @@ class MouseNavigation extends Control {
     }
 
     onMouseMove(e) {
-
         if (this._active && this.renderer.events.isKeyPressed(input.KEY_ALT)) {
-
             if (!this._shiftBusy) {
                 this._shiftBusy = true;
                 this.onMouseRightButtonClick(e);
@@ -366,9 +376,7 @@ class MouseNavigation extends Control {
     }
 
     onDraw(e) {
-
         if (this._active) {
-
             var r = this.renderer;
             var cam = r.activeCamera;
             var prevEye = cam.eye.clone();
@@ -376,6 +384,13 @@ class MouseNavigation extends Control {
             if (this.stepIndex) {
                 r.controlsBag.scaleRot = 1.0;
                 var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+
+                let maxAlt = cam.maxAltitude + this.planet.ellipsoid._a;
+
+                if (sf.eye.length() > maxAlt) {
+                    return;
+                }
+
                 cam.eye = sf.eye;
                 cam._v = sf.v;
                 cam._u = sf.u;
@@ -402,9 +417,10 @@ class MouseNavigation extends Control {
             if (this.scaleRot <= 0.0) {
                 this.scaleRot = 0.0;
             } else {
-
                 r.controlsBag.scaleRot = this.scaleRot;
-                var rot = this.qRot.slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
+                var rot = this.qRot
+                    .slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot)
+                    .normalize();
                 if (!(rot.x || rot.y || rot.z)) {
                     this.scaleRot = 0.0;
                 }
@@ -429,6 +445,6 @@ class MouseNavigation extends Control {
             }
         }
     }
-};
+}
 
 export { MouseNavigation };

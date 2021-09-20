@@ -81,7 +81,8 @@ class Globe {
          * @public
          * @type {Element}
          */
-        this.div = document.getElementById(options.target) || document.querySelector(options.target);
+        this.div =
+            document.getElementById(options.target) || document.querySelector(options.target);
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
@@ -151,7 +152,9 @@ class Globe {
                 ellipsoid: options.ellipsoid,
                 maxGridSize: options.maxGridSize,
                 useNightTexture: options.useNightTexture,
-                useSpecularTexture: options.useSpecularTexture
+                useSpecularTexture: options.useSpecularTexture,
+                minAltitude: options.minAltitude,
+                maxAltitude: options.maxAltitude
             });
         }
 
@@ -170,7 +173,9 @@ class Globe {
         } else {
             this.planet.addControls([
                 new ZoomControl(),
-                new MouseNavigation(),
+                new MouseNavigation({
+                    minSlope: options.minSlope
+                }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
