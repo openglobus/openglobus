@@ -15,7 +15,7 @@
     "core": "rollup -c --environment entry:core",
     "test": "jest --coverage",
     "lint": "eslint src/og",
-    "generate_types": "npx -p typescript tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir node_modules/@types/openglobus__og",
+    "generate_types": "tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir node_modules/@types/openglobus__og",
     "prepare": "husky install"
   },
   "repository": {
