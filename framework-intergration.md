@@ -1,5 +1,13 @@
 ## Frameworks integrations
 
+```sh
+npm install @openglobus/og --save
+# or
+yarn add @openglobus/og
+```
+
+TODO npm i --save-dev @types/openglobus__og
+
 ### Code: using in Angular
 
 ```javascript
@@ -33,6 +41,14 @@ export class GlobeComponent implements OnInit {
 ```
 
 Note: tsconfig.json `compilerOptions>strict` need to be `false`
+
+Note: You will need to import the css in angular.json
+```
+"styles": [
+  "node_modules/@openglobus/og/css/og.css",
+  ...
+],
+```
 
 ### Code: using in VueJs 
 
