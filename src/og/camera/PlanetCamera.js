@@ -536,7 +536,7 @@ class PlanetCamera extends Camera {
         this.update();
     }
 
-    rotateVertical(angle, center, isLimited) {
+    rotateVertical(angle, center, minSlope = 0) {
         var rot = new Mat4().setRotation(this._u, angle);
         var tr = new Mat4().setIdentity().translate(center);
         var ntr = new Mat4().setIdentity().translate(center.negateTo());
@@ -550,7 +550,11 @@ class PlanetCamera extends Camera {
         let eyeNorm = eye.normal();
         let slope = n.dot(eyeNorm);
 
-        if (isLimited) {
+        if (minSlope) {
+            let dSlope = slope - this.slope;
+
+            if (slope < minSlope && dSlope < 0) return;
+
             if (
                 (slope > 0.1 && v.dot(eyeNorm) > 0) ||
                 this.slope <= 0.1 ||

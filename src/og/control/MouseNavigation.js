@@ -46,6 +46,8 @@ class MouseNavigation extends Control {
 
         this._lmbDoubleClickActive = true;
 
+        this.minSlope = options.minSlope || 0.1;
+
         this._keyLock = new Key();
     }
 
@@ -350,7 +352,7 @@ class MouseNavigation extends Control {
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
 
-            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, true);
+            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, this.minSlope);
 
             cam.checkTerrainCollision();
 

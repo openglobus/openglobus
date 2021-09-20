@@ -173,7 +173,9 @@ class Globe {
         } else {
             this.planet.addControls([
                 new ZoomControl(),
-                new MouseNavigation(),
+                new MouseNavigation({
+                    minSlope: options.minSlope
+                }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
