@@ -8,13 +8,14 @@
   "main": "./src/og/index.js",
   "style": "./css/og.css",
   "scripts": {
-    "api": ".jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
+    "api": "jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "ws",
     "build": "rollup -c",
     "webgl": "rollup -c --environment entry:webgl",
     "core": "rollup -c --environment entry:core",
     "test": "jest --coverage",
     "lint": "eslint src/og",
+    "generate_types": "npx -p typescript tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir node_modules/@types/openglobus__og",
     "prepare": "husky install"
   },
   "repository": {
@@ -48,7 +49,6 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-standard": "^4.1.0",
     "husky": "^6.0.0",
     "jaguarjs-jsdoc": "^1.1.0",
@@ -61,7 +61,8 @@
     "prettier": "^2.3.0",
     "rollup": "^1.32.1",
     "rollup-plugin-postcss": "^4.0.0",
-    "rollup-plugin-terser": "^5.3.1"
+    "rollup-plugin-terser": "^5.3.1",
+    "typescript": "^4.4.3"
   },
   "lint-staged": {
     "*.{js,ts}": [
