@@ -174,6 +174,9 @@ class Planet extends RenderNode {
          */
         this.camera = null;
 
+        this._minAltitude = options.minAltitude;
+        this._maxAltitude = options.maxAltitude;
+
         /**
          * Screen mouse pointer projected to planet cartesian position.
          * @public
@@ -699,7 +702,9 @@ class Planet extends RenderNode {
         this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
             eye: new Vec3(0, 0, 28000000),
             look: new Vec3(0, 0, 0),
-            up: new Vec3(0, 1, 0)
+            up: new Vec3(0, 1, 0),
+            minAltitude: this._minAltitude,
+            maxAltitude: this._maxAltitude
         });
 
         this.camera.update();
