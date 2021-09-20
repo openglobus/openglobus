@@ -145,6 +145,7 @@ class PlanetCamera extends Camera {
     }
 
     updateGeodeticPosition() {
+        this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
         if (Math.abs(this._lonLat.lat) <= mercator.MAX_LAT) {
             this._lonLatMerc = this._lonLat.forwardMercator();
         }
