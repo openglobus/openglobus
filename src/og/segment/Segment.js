@@ -12,7 +12,7 @@ import { Box } from "../bv/Box.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 
-export const MAX_NORMAL_ZOOM = 6;
+export const MAX_NORMAL_ZOOM = 7;
 
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();
@@ -1000,7 +1000,7 @@ Segment.prototype.createBoundsByExtent = function () {
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
 
     // check for zoom
-    if (this.tileZoom < MAX_NORMAL_ZOOM) {
+    if (this.tileZoom <= MAX_NORMAL_ZOOM) {
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
         var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
 
@@ -1037,7 +1037,7 @@ Segment.prototype.createBoundsByParent = function () {
             this.bsphere.center.z = pn.segment.bsphere.center.z;
             this.bsphere.radius = pn.segment.bsphere.radius;
 
-            if (this.tileZoom < MAX_NORMAL_ZOOM) {
+            if (this.tileZoom <= MAX_NORMAL_ZOOM) {
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
 

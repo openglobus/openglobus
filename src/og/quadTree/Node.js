@@ -32,7 +32,7 @@ import {
 
 import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
-const VISIBLE_HEIGHT = 3000000.0;
+const VISIBLE_HEIGHT = 1400000.0;
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -331,7 +331,7 @@ Node.prototype.prepareForRendering = function (
     } else {
         if (seg.tileZoom < 2) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-        } else if (seg.tileZoom >= MAX_NORMAL_ZOOM) {
+        } else if (seg.tileZoom > MAX_NORMAL_ZOOM) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else if (
             seg._swNorm.dot(cam._n) > 0.0 ||
