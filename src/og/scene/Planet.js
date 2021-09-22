@@ -1716,6 +1716,9 @@ export class Planet extends RenderNode {
      * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param [completeCallback]
+     * @param [startCallback]
+     * @param [frameCallback]
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
         this.renderer.activeCamera.flyLonLat(

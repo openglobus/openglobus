@@ -51,6 +51,10 @@ const EVENT_NAMES = [
  * @fires og.terrain.GlobusTerrain#loadend
  */
 class GlobusTerrain extends EmptyTerrain {
+    /**
+     * @param {string} [name]
+     * @param {*} [options]
+     */
     constructor(name, options) {
         super();
 
