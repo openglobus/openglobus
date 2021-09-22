@@ -100,7 +100,7 @@ const EVENT_NAMES = [
  * @fires og.scene.Planet#layervisibilitychange
  * @fires og.scene.Planet#geoimageadd
  */
-class Planet extends RenderNode {
+export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
@@ -1766,5 +1766,3 @@ class Planet extends RenderNode {
         }
     }
 }
-
-export { Planet };

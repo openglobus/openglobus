@@ -197,7 +197,7 @@ export class Handler {
      * @public
      * @param {callback} callback - Frame callback.
      */
-    setFrameCallback = function (callback) {
+    setFrameCallback(callback) {
         callback && (this._frameCallback = callback);
     };
 
@@ -207,7 +207,7 @@ export class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n = function (image) {
+    createTexture_n(image) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -233,7 +233,7 @@ export class Handler {
      * @param {Number} [levels=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture2DExt = function (
+    createEmptyTexture2DExt(
         width = 1,
         height = 1,
         filter = "NEAREST",
@@ -266,7 +266,7 @@ export class Handler {
     // * @param {number} height - Empty texture height.
     // * @returns {Object} - WebGL half float texture object.
     // */
-    //createEmptyTexture_hf = function (width, height) {
+    //createEmptyTexture_hf(width, height) {
     //    var gl = this.gl;
     //    var texture = gl.createTexture();
     //    gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -287,7 +287,7 @@ export class Handler {
     // * @param {number} height - Empty texture height.
     // * @returns {Object} - WebGL float texture object.
     // */
-    //createEmptyTexture_f = function (width, height) {
+    //createEmptyTexture_f(width, height) {
     //    var gl = this.gl;
     //    var texture = gl.createTexture();
     //    gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -308,7 +308,7 @@ export class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_n = function (width, height) {
+    createEmptyTexture_n(width, height) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -329,7 +329,7 @@ export class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_l = function (width, height) {
+    createEmptyTexture_l(width, height) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -349,7 +349,7 @@ export class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l = function (image) {
+    createTexture_l(image) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -368,7 +368,7 @@ export class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm = function (image) {
+    createTexture_mm(image) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -388,7 +388,7 @@ export class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a = function (image) {
+    createTexture_a(image) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -409,7 +409,7 @@ export class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture = function (image) {
+    createTexture(image) {
         return this.createTexture_a(image);
     };
 
@@ -425,7 +425,7 @@ export class Handler {
      * @param {string} params.nz - Negative Z or back image url.
      * @returns {Object} - WebGL texture object.
      */
-    loadCubeMapTexture = function (params) {
+    loadCubeMapTexture(params) {
         var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
@@ -475,7 +475,7 @@ export class Handler {
      * @param {boolean} [notActivate] - If it's true program will not compile.
      * @return {og.webgl.Program} -
      */
-    addProgram = function (program, notActivate) {
+    addProgram(program, notActivate) {
         if (!this.programs[program.name]) {
             var sc = new ProgramController(this, program);
             this.programs[program.name] = sc;
@@ -494,7 +494,7 @@ export class Handler {
      * @public
      * @param {String} name - Shader program name.
      */
-    removeProgram = function (name) {
+    removeProgram(name) {
         this.programs[name] && this.programs[name].remove();
     };
 
@@ -503,7 +503,7 @@ export class Handler {
      * @public
      * @param {Array.<og.webgl.Program>} programsArr - Shader program array.
      */
-    addPrograms = function (programsArr) {
+    addPrograms(programsArr) {
         for (var i = 0; i < programsArr.length; i++) {
             this.addProgram(programsArr[i]);
         }
@@ -514,7 +514,7 @@ export class Handler {
      * @private
      * @param {og.webgl.ProgramController} sc - Program controller
      */
-    _initProgramController = function (sc) {
+    _initProgramController(sc) {
         if (this._initialized) {
             sc.initialize();
             if (!this.activeProgram) {
@@ -532,7 +532,7 @@ export class Handler {
      * Used in init function.
      * @private
      */
-    _initPrograms = function () {
+    _initPrograms() {
         for (var p in this.programs) {
             this._initProgramController(this.programs[p]);
         }
@@ -545,7 +545,7 @@ export class Handler {
      * @param {boolean} showLog - Show logging.
      * @return {Object} -
      */
-    initializeExtension = function (extensionStr, showLog) {
+    initializeExtension(extensionStr, showLog) {
         if (!(this.extensions && this.extensions[extensionStr])) {
             var ext = Handler.getExtension(this.gl, extensionStr);
             if (ext) {
@@ -561,7 +561,7 @@ export class Handler {
      * Main function that initialize handler.
      * @public
      */
-    initialize = function () {
+    initialize() {
 
         if (this._id) {
             this.canvas = document.getElementById(this._id);
@@ -605,7 +605,7 @@ export class Handler {
      * Sets default gl render parameters. Used in init function.
      * @private
      */
-    _setDefaults = function () {
+    _setDefaults() {
         this.activateDepthTest();
         this.setSize(this.canvas.clientWidth || this._params.width, this.canvas.clientHeight || this._params.height);
         this.gl.frontFace(this.gl.CCW);
@@ -622,7 +622,7 @@ export class Handler {
      * Activate depth test.
      * @public
      */
-    activateDepthTest = function () {
+    activateDepthTest() {
         this.gl.enable(this.gl.DEPTH_TEST);
     };
 
@@ -630,7 +630,7 @@ export class Handler {
      * Deactivate depth test.
      * @public
      */
-    deactivateDepthTest = function () {
+    deactivateDepthTest() {
         this.gl.disable(this.gl.DEPTH_TEST);
     };
 
@@ -638,7 +638,7 @@ export class Handler {
      * Activate face culling.
      * @public
      */
-    activateFaceCulling = function () {
+    activateFaceCulling() {
         this.gl.enable(this.gl.CULL_FACE);
     };
 
@@ -646,7 +646,7 @@ export class Handler {
      * Deactivate face cullting.
      * @public
      */
-    deactivateFaceCulling = function () {
+    deactivateFaceCulling() {
         this.gl.disable(this.gl.CULL_FACE);
     };
 
@@ -654,7 +654,7 @@ export class Handler {
      * Activate blending.
      * @public
      */
-    activateBlending = function () {
+    activateBlending() {
         this.gl.enable(this.gl.BLEND);
     };
 
@@ -662,7 +662,7 @@ export class Handler {
      * Deactivate blending.
      * @public
      */
-    deactivateBlending = function () {
+    deactivateBlending() {
         this.gl.disable(this.gl.BLEND);
     };
 
@@ -675,7 +675,7 @@ export class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createStreamArrayBuffer = function (itemSize, numItems, usage, bites = 4) {
+    createStreamArrayBuffer(itemSize, numItems, usage, bites = 4) {
         var buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, numItems * itemSize * bites, usage || this.gl.STREAM_DRAW);
@@ -694,7 +694,7 @@ export class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    setStreamArrayBuffer = function (buffer, array, offset = 0) {
+    setStreamArrayBuffer(buffer, array, offset = 0) {
         let gl = this.gl;
         gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         gl.bufferSubData(this.gl.ARRAY_BUFFER, offset, array);
@@ -711,7 +711,7 @@ export class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createArrayBuffer = function (array, itemSize, numItems, usage) {
+    createArrayBuffer(array, itemSize, numItems, usage) {
         var buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
@@ -730,7 +730,7 @@ export class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createElementArrayBuffer = function (array, itemSize, numItems, usage) {
+    createElementArrayBuffer(array, itemSize, numItems, usage) {
         var buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
@@ -746,7 +746,7 @@ export class Handler {
      * @param {number} w - Canvas width.
      * @param {number} h - Canvas height.
      */
-    setSize = function (w, h) {
+    setSize(w, h) {
 
         if (w > MAX_SIZE) {
             w = MAX_SIZE;
@@ -771,7 +771,7 @@ export class Handler {
      * @public
      * @returns {number} -
      */
-    getWidth = function () {
+    getWidth() {
         return this.canvas.width;
     };
 
@@ -780,7 +780,7 @@ export class Handler {
      * @public
      * @returns {number} -
      */
-    getHeight = function () {
+    getHeight() {
         return this.canvas.height;
     };
 
@@ -789,7 +789,7 @@ export class Handler {
      * @public
      * @returns {number} -
      */
-    getClientAspect = function () {
+    getClientAspect() {
         return this.canvas.clientWidth / this.canvas.clientHeight;
     };
 
@@ -798,7 +798,7 @@ export class Handler {
      * @public
      * @returns {number} -
      */
-    getCenter = function () {
+    getCenter() {
         var c = this.canvas;
         return new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
     };
@@ -808,7 +808,7 @@ export class Handler {
      * @public
      * @param {number} now - Frame current time milliseconds.
      */
-    drawFrame = function () {
+    drawFrame() {
 
         /** Calculating frame time */
         var now = window.performance.now();
@@ -836,7 +836,7 @@ export class Handler {
      * Clearing gl frame.
      * @public
      */
-    clearFrame = function () {
+    clearFrame() {
         var gl = this.gl;
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -846,7 +846,7 @@ export class Handler {
      * Starts animation loop.
      * @public
      */
-    start = function () {
+    start() {
         if (!this._requestAnimationFrameId && this._initialized) {
             this._lastAnimationFrameTime = window.performance.now();
             this.defaultClock.setDate(new Date());
@@ -854,7 +854,7 @@ export class Handler {
         }
     };
 
-    stop = function () {
+    stop() {
         if (this._requestAnimationFrameId) {
             window.cancelAnimationFrame(this._requestAnimationFrameId);
             this._requestAnimationFrameId = null;
@@ -865,7 +865,7 @@ export class Handler {
      * Make animation.
      * @private
      */
-    _animationFrameCallback = function () {
+    _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
             this.drawFrame();
             this._animationFrameCallback();
@@ -880,7 +880,7 @@ export class Handler {
      * @param {number} [params.url] - Texture source url
      * @param {callback} success - Creation callback
      */
-    createDefaultTexture = function (params, success) {
+    createDefaultTexture(params, success) {
         var imgCnv;
         var texture;
         if (params && params.color) {
@@ -910,7 +910,7 @@ export class Handler {
     /**
      * @public
      */
-    destroy = function () {
+    destroy() {
 
         var gl = this.gl;
 
@@ -973,20 +973,20 @@ export class Handler {
         this._initialized = false;
     };
 
-    addClock = function (clock) {
+    addClock(clock) {
         if (!clock.__handler) {
             clock.__handler = this;
             this._clocks.push(clock);
         }
     };
 
-    addClocks = function (clockArr) {
+    addClocks(clockArr) {
         for (var i = 0; i < clockArr.length; i++) {
             this.addClock(clockArr[i]);
         }
     };
 
-    removeClock = function (clock) {
+    removeClock(clock) {
         if (clock.__handler) {
             var c = this._clocks;
             var i = c.length;
