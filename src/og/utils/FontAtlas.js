@@ -2,12 +2,12 @@
  * @module og/utils/FontAtlas
  */
 
-'use strict';
+"use strict";
 
-import { Rectangle } from '../Rectangle.js';
-import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
-import { Deferred } from '../Deferred.js';
-import { ARIAL_FONT_B64 } from '../res/images.js';
+import { Rectangle } from "../Rectangle.js";
+import { TextureAtlas, TextureAtlasNode } from "./TextureAtlas.js";
+import { Deferred } from "../Deferred.js";
+import { ARIAL_FONT_B64 } from "../res/images.js";
 
 class FontAtlas {
     constructor() {
@@ -145,7 +145,6 @@ class FontAtlas {
     }
 
     loadFont(faceName, srcDir, atlasUrl) {
-
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -171,14 +170,13 @@ class FontAtlas {
         this.atlasesArr[index] = atlas;
 
         fetch(`${srcDir}/${atlasUrl}`)
-            .then(response => {
+            .then((response) => {
                 if (!response.ok) {
                     throw Error(`Unable to load "${srcDir}/${atlasUrl}"`);
                 }
                 return response.json(response);
             })
-            .then(data => {
-
+            .then((data) => {
                 this._applyFontDataToAtlas(atlas, data);
 
                 let img = new Image();
@@ -188,10 +186,11 @@ class FontAtlas {
                 };
 
                 img.src = `${srcDir}/${data.pages[0]}`;
+                img.crossOrigin = "Anonymous";
             })
-            .catch(err => {
+            .catch((err) => {
                 def.reject();
-                return { 'status': "error", 'msg': err.toString() };
+                return { status: "error", msg: err.toString() };
             });
     }
 }
