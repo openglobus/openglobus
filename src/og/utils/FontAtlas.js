@@ -188,6 +188,7 @@ class FontAtlas {
                 };
 
                 img.src = `${srcDir}/${data.pages[0]}`;
+                img.crossOrigin = "Anonymous";
             })
             .catch(err => {
                 def.reject();
