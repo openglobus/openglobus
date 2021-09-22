@@ -269,6 +269,17 @@ class GeoObjectHandler {
                         ...geoObject._vertices
                     )
                 );
+                this._normalsArr[ti] = concatArrays(
+                    this._normalsArr[ti],
+                    setParametersToArray(
+                        [],
+                        0,
+                        geoObject._verticesCount * itemSize,
+                        geoObject._verticesCount * itemSize,
+                        ...geoObject._normals
+                        // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
+                    )
+                );
             }
         } else {
             this._vertexArr[ti] = concatArrays(
@@ -307,11 +318,6 @@ class GeoObjectHandler {
         this._directionArr[ti] = concatArrays(
             this._directionArr[ti],
             setParametersToArray([], 0, itemSize, itemSize, x, y, z)
-        );
-
-        this._normalsArr[ti] = concatArrays(
-            this._normalsArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, 0.0, 1.0, 0.0)
         );
 
         itemSize = 4;
@@ -411,10 +417,8 @@ class GeoObjectHandler {
                 [],
                 0,
                 geoObject._verticesCount * itemSize,
-                itemSize,
-                0.0,
-                1.0,
-                0.0
+                geoObject._verticesCount * itemSize,
+                ...geoObject._normals
             )
         );
 
@@ -902,6 +906,7 @@ class GeoObjectHandler {
             tag = geoObject.tag,
             ti = this.getTagIndexByObjectIndex(gi),
             prevState = this.instancedTags.get(tag);
+
         this.instancedTags.set(tag, {
             vCounts: geoObject._verticesCount * 3,
             iCounts: prevState.iCounts - 1,
@@ -917,11 +922,11 @@ class GeoObjectHandler {
         i = gi * 3;
         if (prevState.iCounts <= 1) {
             this._vertexArr[ti] = spliceArray(this._vertexArr[ti], 0, geoObject._verticesCount * 3);
+            this._normalsArr[ti] = spliceArray(this._normalsArr[ti], 0, geoObject._verticesCount * 3);
         }
         this._positionHighArr[ti] = spliceArray(this._positionHighArr[ti], i, 3);
         this._positionLowArr[ti] = spliceArray(this._positionLowArr[ti], i, 3);
         this._directionArr[ti] = spliceArray(this._directionArr[ti], i, 3);
-        this._normalsArr[ti] = spliceArray(this._normalsArr[ti], i, /*geoObject._verticesCount*/3);
         this._pickingColorArr[ti] = spliceArray(this._pickingColorArr[ti], i, 3);
 
         i = gi * 2;
@@ -944,21 +949,21 @@ class GeoObjectHandler {
         this._geoObjects.splice(gi, 1);
 
         var i = gi * 12;
-        this._rgbaArr[0] = spliceTypedArray(this._rgbaArr[0], i, 12);
+        this._rgbaArr[0] = spliceArray(this._rgbaArr[0], i, 12);
 
         i = gi * 9;
-        this._vertexArr[0] = spliceTypedArray(this._vertexArr[0], i, 9);
-        this._positionHighArr[0] = spliceTypedArray(this._positionHighArr[0], i, 9);
-        this._positionLowArr[0] = spliceTypedArray(this._positionLowArr[0], i, 9);
-        this._directionArr[0] = spliceTypedArray(this._directionArr[0], i, 9);
-        this._normalsArr[0] = spliceTypedArray(this._normalsArr[0], i, 9);
-        this._pickingColorArr[0] = spliceTypedArray(this._pickingColorArr[0], i, 9);
+        this._vertexArr[0] = spliceArray(this._vertexArr[0], i, 9);
+        this._positionHighArr[0] = spliceArray(this._positionHighArr[0], i, 9);
+        this._positionLowArr[0] = spliceArray(this._positionLowArr[0], i, 9);
+        this._directionArr[0] = spliceArray(this._directionArr[0], i, 9);
+        this._normalsArr[0] = spliceArray(this._normalsArr[0], i, 9);
+        this._pickingColorArr[0] = spliceArray(this._pickingColorArr[0], i, 9);
 
         i = gi * 6;
-        this._pitchRollArr[0] = spliceTypedArray(this._pitchRollArr[0], i, 6);
-        this._indicesArr[0] = spliceTypedArray(this._indicesArr[0], i, 6);
+        this._pitchRollArr[0] = spliceArray(this._pitchRollArr[0], i, 6);
+        this._indicesArr[0] = spliceArray(this._indicesArr[0], i, 6);
         i = gi * 3;
-        this._sizeArr[0] = spliceTypedArray(this._sizeArr[0], i, 3);
+        this._sizeArr[0] = spliceArray(this._sizeArr[0], i, 3);
 
         this.reindexGeoObjects(gi);
         this.refresh();

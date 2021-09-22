@@ -12,7 +12,6 @@ import { Planet } from "../scene/Planet.js";
 
 /**
  * @class
- * @extends {og.shape.BaseShape}
  * @param {Object} options - Sphere parameters:
  * @param {og.Vec3} [options.position] - Sphere position.
  * @param {og.Quat} [options.orientation] - Sphere orientation(rotation).
@@ -68,6 +67,7 @@ class GeoObject {
         this._handler = null;
         this._handlerIndex = -1;
         this._vertices = options.vertices;
+        this._normals = options.normals;
         this._indices = options.indices;
         this.instanced = options.instanced;
         this.tag = options.tag || "none";
