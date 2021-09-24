@@ -71,36 +71,6 @@ class EarthNavigation extends Control {
         var ll = this.renderer.activeCamera._lonLat;
 
         globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[this.currState].h));
-
-        //    if (!wheelDelta) {
-        //        if (this.currState === 0) {
-        //            this.planet.stopFlying();
-        //            this.currState = 1;
-        //            var ll = globus.planet.camera._lonLat;
-        //            globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[1].h));
-        //        } else {
-        //            this.planet.stopFlying();
-        //            this.currState = 0;
-        //            var ll = this.renderer.activeCamera._lonLat;
-        //            globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[0].h));
-        //        }
-        //    } else if (wheelDelta > 0) {
-        //        this.currState++;
-        //        if (this.currState === 0) {
-        //            this.planet.stopFlying();
-        //            this.currState = 1;
-        //            var ll = globus.planet.camera._lonLat;
-        //            globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[1].h));
-        //        }
-        //    } else {
-        //        this.currState--;
-        //        if (this.currState === 1) {
-        //            this.planet.stopFlying();
-        //            this.currState = 0;
-        //            var ll = this.renderer.activeCamera._lonLat;
-        //            globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[0].h));
-        //        }
-        //    }
     }
 
     onMouseWheel(event) {
@@ -225,10 +195,12 @@ class EarthNavigation extends Control {
 
         if (this.renderer.events.mouseState.moving) {
             var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
+
             if (targetPoint) {
                 this._a =
                     Math.acos(this.grabbedPoint.y / this.grabbedSpheroid.radius) -
                     Math.acos(targetPoint.y / this.grabbedSpheroid.radius);
+
                 this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
                 this._hRot = Quat.getRotationBetweenVectors(
                     new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
