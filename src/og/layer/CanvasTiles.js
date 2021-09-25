@@ -2,10 +2,10 @@
  * @module og/layer/CanvasTiles
  */
 
-'use strict';
+"use strict";
 
-import * as quadTree from '../quadTree/quadTree.js';
-import { Layer } from './Layer.js';
+import * as quadTree from "../quadTree/quadTree.js";
+import { Layer } from "./Layer.js";
 
 /**
  * Maximum tiles per frame.
@@ -92,7 +92,7 @@ class CanvasTiles extends Layer {
         }
         this._pendingsQueue = [];
         // this._pendingsQueue.clear();
-    };
+    }
 
     /**
      * Sets layer visibility.
@@ -119,11 +119,12 @@ class CanvasTiles extends Layer {
      * @param {og.planetSegment.Material} material -
      */
     loadMaterial(material) {
-
         var seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+            material.texture = seg._isNorth
+                ? seg.planet.solidTextureOne
+                : seg.planet.solidTextureTwo;
         } else {
             material.texture = seg.planet.transparentTexture;
         }
@@ -149,33 +150,32 @@ class CanvasTiles extends Layer {
         this._counter++;
         var that = this;
         if (this.drawTile) {
-
             /**
              * Tile custom draw function.
              * @callback og.layer.CanvasTiles~drawTileCallback
              * @param {og.planetSegment.Material} material
              * @param {applyCanvasCallback} applyCanvasCallback
              */
-            setTimeout(function () {
-                var e = that.events.load;
-                if (e.handlers.length) {
-                    that.events.dispatch(e, material);
+            var e = that.events.load;
+            if (e.handlers.length) {
+                that.events.dispatch(e, material);
+            }
+            that.drawTile(
+                material,
+                /**
+                 * Apply canvas.
+                 * @callback applyCanvasCallback
+                 * @param {Object} canvas -
+                 */
+                function (canvas) {
+                    that._counter--;
+                    CanvasTiles.__requestsCounter--;
+                    if (material.isLoading) {
+                        material.applyImage(canvas);
+                    }
+                    that._dequeueRequest();
                 }
-                that.drawTile(material,
-                    /**
-                     * Apply canvas.
-                     * @callback applyCanvasCallback
-                     * @param {Object} canvas -
-                     */
-                    function (canvas) {
-                        that._counter--;
-                        CanvasTiles.__requestsCounter--;
-                        if (material.isLoading) {
-                            material.applyImage(canvas);
-                        }
-                        that._dequeueRequest();
-                    });
-            }, 50);
+            );
         } else {
             material.textureNotExists();
         }
@@ -214,7 +214,10 @@ class CanvasTiles extends Layer {
         while (this._pendingsQueue.length) {
             var pmat = this._pendingsQueue.pop();
             if (pmat.segment.node) {
-                if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
+                if (
+                    pmat.segment.initialized &&
+                    pmat.segment.node.getState() === quadTree.RENDERING
+                ) {
                     return pmat;
                 }
                 pmat.isLoading = false;
@@ -227,7 +230,6 @@ class CanvasTiles extends Layer {
         if (material.isReady) {
             return [0, 0, 1, 1];
         } else {
-
             !material.isLoading && this.loadMaterial(material);
 
             var segment = material.segment;
@@ -278,10 +280,10 @@ class CanvasTiles extends Layer {
         material.textureExists = false;
 
         if (material.image) {
-            material.image.src = '';
+            material.image.src = "";
             material.image = null;
         }
     }
-};
+}
 
 export { CanvasTiles };

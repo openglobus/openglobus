@@ -551,9 +551,9 @@ class PlanetCamera extends Camera {
         let slope = n.dot(eyeNorm);
 
         if (minSlope) {
-            let dSlope = slope - this.slope;
+            //let dSlope = slope - this.slope;
 
-            if (slope < minSlope && dSlope < 0) return;
+            //if (slope < minSlope && dSlope < 0) return;
 
             if (
                 (slope > 0.1 && v.dot(eyeNorm) > 0) ||
@@ -610,7 +610,7 @@ class PlanetCamera extends Camera {
 
     checkTerrainCollision() {
         this._terrainAltitude = this._lonLat.height;
-        if (this._lonLat.height < 1000000 && this._insideSegment && this._insideSegment.planet) {
+        if (this._insideSegment && this._insideSegment.planet) {
             this._terrainAltitude = this._insideSegment.getTerrainPoint(
                 this.eye,
                 this._insideSegmentPosition,

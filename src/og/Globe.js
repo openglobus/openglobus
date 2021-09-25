@@ -13,6 +13,7 @@ import { isEmpty } from "./utils/shared.js";
 
 import { EarthCoordinates } from "./control/EarthCoordinates.js";
 import { MouseNavigation } from "./control/MouseNavigation.js";
+import { EarthNavigation } from "./control/EarthNavigation.js";
 import { TouchNavigation } from "./control/TouchNavigation.js";
 import { Sun } from "./control/Sun.js";
 import { ZoomControl } from "./control/ZoomControl.js";
@@ -173,9 +174,11 @@ class Globe {
         } else {
             this.planet.addControls([
                 new ZoomControl(),
-                new MouseNavigation({
-                    minSlope: options.minSlope
-                }),
+                options.useEarthNavigation
+                    ? new EarthNavigation()
+                    : new MouseNavigation({
+                          minSlope: options.minSlope
+                      }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
