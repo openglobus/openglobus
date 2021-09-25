@@ -501,6 +501,20 @@ Node.prototype.getCommonSide = function (node) {
                 (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return S;
+        } else if (
+            bs.tileX === 0 &&
+            as.tileX === Math.pow(2, as.tileZoom) - 1 &&
+            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+        ) {
+            return E;
+        } else if (
+            as.tileX === 0 &&
+            bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
+            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+        ) {
+            return W;
         }
     }
 
