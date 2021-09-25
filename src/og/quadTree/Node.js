@@ -477,7 +477,7 @@ Node.prototype.getCommonSide = function (node) {
             b_sw_lon = b_sw.lon,
             b_sw_lat = b_sw.lat;
 
-        if (!as.isPole && !bs.isPole) {
+        if (as._tileGroup === bs._tileGroup) {
             if (
                 a_ne_lon === b_sw_lon &&
                 ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
