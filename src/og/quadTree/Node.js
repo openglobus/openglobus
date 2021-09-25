@@ -477,44 +477,84 @@ Node.prototype.getCommonSide = function (node) {
             b_sw_lon = b_sw.lon,
             b_sw_lat = b_sw.lat;
 
+        if (!as.isPole && !bs.isPole) {
+            if (
+                a_ne_lon === b_sw_lon &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return E;
+            } else if (
+                a_sw_lon === b_ne_lon &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return W;
+            } else if (
+                a_ne_lat === b_sw_lat &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
+                return N;
+            } else if (
+                a_sw_lat === b_ne_lat &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
+                return S;
+            } else if (
+                bs.tileX === 0 &&
+                as.tileX === Math.pow(2, as.tileZoom) - 1 &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return E;
+            } else if (
+                as.tileX === 0 &&
+                bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return W;
+            }
+        }
+
         if (
-            a_ne_lon === b_sw_lon &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-        ) {
-            return E;
-        } else if (
-            a_sw_lon === b_ne_lon &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-        ) {
-            return W;
-        } else if (
-            a_ne_lat === b_sw_lat &&
+            as._tileGroup === 0 &&
+            bs._tileGroup === 1 &&
+            as.tileY === 0 &&
+            bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                 (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return N;
         } else if (
-            a_sw_lat === b_ne_lat &&
+            as._tileGroup === 2 &&
+            bs._tileGroup === 0 &&
+            as.tileY === 0 &&
+            bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+        ) {
+            return N;
+        } else if (
+            bs._tileGroup === 1 &&
+            as._tileGroup === 0 &&
+            as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+            bs.tileY === 0 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                 (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return S;
         } else if (
-            bs.tileX === 0 &&
-            as.tileX === Math.pow(2, as.tileZoom) - 1 &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            as._tileGroup === 1 &&
+            bs._tileGroup === 0 &&
+            as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+            bs.tileY === 0 &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
-            return E;
-        } else if (
-            as.tileX === 0 &&
-            bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-        ) {
-            return W;
+            return S;
         }
     }
 
