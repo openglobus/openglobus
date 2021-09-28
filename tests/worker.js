@@ -8,7 +8,3 @@ export class Worker {
     this.onmessage(msg);
   }
 }
-
-export class URL {
-  createObjectURL(tmp) { return '' }
-}

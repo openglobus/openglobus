@@ -1,3 +1,4 @@
+import { Extent } from '../src/og/Extent.js';
 import { Planet } from '../src/og/scene/Planet.js';
 import { SegmentLonLat } from '../src/og/segment/SegmentLonLat.js';
 import { Worker } from './worker';
@@ -12,11 +13,7 @@ const mockPlanet = () => {
     return planet;
 }
 
-const mockExtent = () => {
-    return { southWest: { forwardMercatorEPS01: () => { } }, northEast: { forwardMercatorEPS01: () => { } } };
-}
-
 test('Testing SegmentLonLat', () => {
-    const segmentLonLat = new SegmentLonLat({}, mockPlanet(), {}, mockExtent());
+    const segmentLonLat = new SegmentLonLat({}, mockPlanet(), {}, new Extent());
     expect(segmentLonLat).toBeTruthy();
 });
