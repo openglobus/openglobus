@@ -578,6 +578,7 @@ class Handler {
      * @public
      */
     initialize() {
+
         if (this._id) {
             this.canvas = document.getElementById(this._id);
         } else {
@@ -769,6 +770,7 @@ class Handler {
      * @param {number} h - Canvas height.
      */
     setSize(w, h) {
+
         if (w > MAX_SIZE) {
             w = MAX_SIZE;
         }
