@@ -15,7 +15,7 @@
     "core": "rollup -c --environment entry:core",
     "test": "jest --env=jsdom",
     "lint": "eslint src/og",
-    "generate_types": "rm -rf node_modules/@types/openglobus__og; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir node_modules/@types/openglobus__og",
+    "postbuild": "rm -rf dist/@openglobus/types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir dist/@openglobus/types",
     "prepare": "husky install"
   },
   "repository": {
